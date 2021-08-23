@@ -1,0 +1,22 @@
+isort; python_version == '3.6'
+junit-xml ~= 1.9
+python-jose >=3.1.0, <3.3.0; python_version == '3.5'
+m2r2; python_version == '3.6'
+moto == 1.3.14
+mutmut
+pyfakefs ~= 3.0
+pytest
+pytest-cov
+pytest-mock
+pytest-socket
+pytype; python_version == '3.6'
+setuptools
+Sphinx >= 4.0.0; python_version == '3.6'
+yapf == 0.27.0; python_version == '3.6'
+sphinx-rtd-theme; python_version == '3.6'
+sphinx_click; python_version == '3.6'
+numpy
+opencv-python >= 4.1.2.30
+fuse-python
+sshpubkeys ~= 3.1.0; python_version == '3.5'
+redis

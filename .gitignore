@@ -1,0 +1,13 @@
+__pycache__/
+/build
+/dist
+/megfile.egg-info
+/.pytest_cache
+/.pytype_output
+*.pyc
+*.swp
+.coverage
+html_cov/
+html_doc/
+.mutmut-cache
+mutmut.xml
