@@ -2,7 +2,6 @@ megfile - Megvii FILE library
 ---------------------------
 
 [![build](https://github.com/megvii-research/megfile/actions/workflows/on-push.yaml/badge.svg?branch=main)](https://github.com/megvii-research/megfile/actions/workflows/on-push.yaml)
-
 [![docs](https://github.com/megvii-research/megfile/actions/workflows/publish-docs.yml/badge.svg)](https://github.com/megvii-research/megfile/actions/workflows/publish-docs.yml)
 
 * Docs: http://megvii-research.github.io/megfile
