@@ -100,13 +100,3 @@ pip3 install -U .
     * Star megfile repo.
     * Recommend megfile to your friends.
     * Any other form of contribution is welcomed.
-
-## Differences with other library
-
-### vs Built-in libraries for other projects foo.utils.io
-#### why megfile
-1. The megfile project specifically aims at integrating the experience of different file system backends. We, developing members, have a relatively deep understanding of the differences between different file system backends
-2. The auxiliary libraries of other project may be specialized for their own projects, and these specializations may not meet the needs of your own projects.
-
-#### why not megfile
-1. The megfile project is a more public-oriented project, some optimizations for your own specific projects may not be applied
