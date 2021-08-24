@@ -33,3 +33,5 @@ release:
 
 	devpi login ${PYPI_USERNAME} --password=${PYPI_PASSWORD}
 	devpi upload dist/${PACKAGENAME}-${VERSION}-py3-none-any.whl
+
+	twine upload dist/${PACKAGENAME}-${VERSION}-py3-none-any.whl --username=${PYPI_USERNAME_2} --password=${PYPI_PASSWORD_2}
