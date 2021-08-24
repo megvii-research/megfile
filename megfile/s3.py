@@ -143,7 +143,7 @@ def _patch_make_request(client: botocore.client.BaseClient):
 
     def retry_callback(error, operation_model, request_dict, request_context):
         if error is None:  # retry for the first time
-            error_logger.warning(
+            error_logger.debug(
                 'failed to process: %r, with parameters: %s',
                 operation_model.name, request_dict)
         if is_readable(request_dict['body']):
@@ -496,7 +496,7 @@ def s3_scandir(s3_url: MegfilePathLike) -> Iterator[FileEntry]:
 def s3_listdir(s3_url: str) -> List[str]:
     '''
     Get all contents of given s3_url. The result is in acsending alphabetical order.
- 
+
     :param s3_url: Given s3 path
     :returns: All contents have prefix of s3_url in acsending alphabetical order
     :raises: S3FileNotFoundError, S3NotADirectoryError
@@ -570,7 +570,7 @@ def s3_stat(s3_url: MegfilePathLike) -> StatResult:
 
 def s3_getsize(s3_url: MegfilePathLike) -> int:
     '''
-    Get file size on the given s3_url path (in bytes). 
+    Get file size on the given s3_url path (in bytes).
     If the path in a directory, return the sum of all file size in it, including file in subdirectories (if exist).
     The result exludes the size of directory itself. In other words, return 0 Byte on an empty directory path.
 
@@ -794,7 +794,7 @@ def s3_walk(s3_url: MegfilePathLike
 
 def s3_scan(s3_url: MegfilePathLike, missing_ok: bool = True) -> Iterator[str]:
     '''
-    Iteratively traverse only files in given s3 directory, in alphabetical order. 
+    Iteratively traverse only files in given s3 directory, in alphabetical order.
     Every iteration on generator yields a path string.
 
     If s3_url is a file path, yields the file only
@@ -820,7 +820,7 @@ def s3_scan(s3_url: MegfilePathLike, missing_ok: bool = True) -> Iterator[str]:
 def s3_scan_stat(s3_url: MegfilePathLike,
                  missing_ok: bool = True) -> Iterator[FileEntry]:
     '''
-    Iteratively traverse only files in given directory, in alphabetical order. 
+    Iteratively traverse only files in given directory, in alphabetical order.
     Every iteration on generator yields a tuple of path string and file stat
 
     :param path: Given s3_url
@@ -1073,7 +1073,7 @@ def _group_s3path_by_bucket(globpath: str) -> List[str]:
 
 def s3_save_as(file_object: BinaryIO, s3_url: MegfilePathLike) -> None:
     '''Write the opened binary stream to specified path, but the stream won't be closed
-    
+
     :param file_object: Stream to be read
     :param s3_url: Specified target path
     '''

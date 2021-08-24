@@ -63,6 +63,7 @@ class S3PrefetchReader(Readable, Seekable):
             data = self._client.head_object(Bucket=self._bucket, Key=self._key)
             self._content_size = data['ContentLength']
             self._content_etag = data['ETag']
+            self._content_info = data
 
         self._block_size = block_size
         self._block_capacity = block_capacity  # Max number of blocks
@@ -337,7 +338,7 @@ class S3PrefetchReader(Readable, Seekable):
             if etag is not None and etag != self._content_etag:
                 raise S3FileChangedError(
                     'File changed: %r, etag before: %s, after: %s' %
-                    (self.name, self._content_etag, etag))
+                    (self.name, self._content_info, data))
             return data['Body'].read()
 
         fetch_bytes = patch_method(

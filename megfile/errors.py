@@ -135,7 +135,7 @@ def patch_method(
                 if after_callback is not None:
                     result = after_callback(result)
                 if error is not None:
-                    _logger.info(
+                    _logger.debug(
                         'unknown error resolved: %s, with %d tries' %
                         (full_error_message(error), retries))
                 return result
@@ -146,7 +146,7 @@ def patch_method(
                 if retries == max_retries or not should_retry(error):
                     raise
                 retry_interval = min(0.1 * 2**retries, 30)
-                _logger.warning(
+                _logger.debug(
                     'unknown error encountered: %s, retry in %0.1f seconds after %d tries'
                     % (full_error_message(error), retry_interval, retries))
                 time.sleep(retry_interval)
@@ -320,7 +320,7 @@ def translate_s3_error(
 
 def translate_http_error(http_error: Optional[Exception],
                          http_url: str) -> Optional[Exception]:
-    '''Generate exception according to http_error and status_code 
+    '''Generate exception according to http_error and status_code
 
     .. note ::
 
