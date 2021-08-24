@@ -113,7 +113,7 @@ __all__ = [
 
 _logger = get_logger(__name__)
 
-_default_endpoint_url = 'https://s3.amazonaws.com'
+endpoint_url = 'https://s3.amazonaws.com'
 
 
 def get_endpoint_url() -> str:
@@ -123,7 +123,7 @@ def get_endpoint_url() -> str:
     '''
     oss_endpoint = os.environ.get('OSS_ENDPOINT')
     if oss_endpoint is None:
-        oss_endpoint = _default_endpoint_url
+        oss_endpoint = endpoint_url
     return oss_endpoint
 
 
