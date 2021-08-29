@@ -940,16 +940,19 @@ def s3_glob_stat(
     :raises: UnsupportedError, when bucket part contains wildcard characters
     :returns: A generator contains tuples of path and file stat, in which paths match `s3_pathname`
     '''
-    result = []
-    bucket_glob_list = _group_s3path_by_bucket(s3_pathname)
+    s3_pathname = fspath(s3_pathname)
 
-    for globpath in bucket_glob_list:
-        result.append(
-            _s3_glob_stat_single_path(globpath, recursive, missing_ok))
+    iterables = []
+    for group_s3_pathname_1 in _group_s3path_by_bucket(s3_pathname):
+        for group_s3_pathname_2 in _group_s3path_by_ungloblize(
+                group_s3_pathname_1):
+            iterables.append(
+                _s3_glob_stat_single_path(
+                    group_s3_pathname_2, recursive, missing_ok))
 
-    iterableres = chain(*result)
+    generator = chain(*iterables)
     return _create_missing_ok_generator(
-        iterableres, missing_ok,
+        generator, missing_ok,
         S3FileNotFoundError('No match file: %r' % s3_pathname))
 
 
@@ -957,12 +960,6 @@ def _s3_glob_stat_single_path(
         s3_pathname: MegfilePathLike,
         recursive: bool = True,
         missing_ok: bool = True) -> Iterator[FileEntry]:
-
-    bucket, _ = parse_s3_url(s3_pathname)
-    if not bucket or has_magic(bucket):
-        raise UnsupportedError('Glob whole s3', s3_pathname)
-
-    s3_pathname = fspath(s3_pathname)
     top_dir, wildcard_part = _s3_split_magic(s3_pathname)
     search_dir = wildcard_part.endswith('/')
 
@@ -1004,71 +1001,78 @@ def _s3_glob_stat_single_path(
 
 
 def _s3path_change_bucket(path: str, oldname: str, newname: str) -> str:
-    newpath = path.replace(oldname, newname, 1)
-    return newpath
+    return path.replace(oldname, newname, 1)
 
 
-def _get_all_buckets_name(
-        config: Optional[botocore.config.Config] = None,
-        cache_key: Optional[str] = None) -> List[str]:
-    client = get_s3_client(config, cache_key)
-    bucket_names = []
+def _list_all_buckets() -> Iterator[str]:
     client = get_s3_client()
     response = client.list_buckets()
-    for bucket in response['Buckets']:
-        bucket_names.append(bucket["Name"])
-    return bucket_names
+    for content in response['Buckets']:
+        yield content['Name']
 
 
-def _group_s3path_by_bucket_with_wildcard(globpath: str) -> List[str]:
+def _group_s3path_by_bucket_with_wildcard(s3_pathname: str) -> List[str]:
     glob_dict = defaultdict(list)
-    bucket_names = _get_all_buckets_name()
-    expanded_globpath = ungloblize(globpath)
-    for single_glob in expanded_globpath:
+    expanded_s3_pathname = ungloblize(s3_pathname)
+    for single_glob in expanded_s3_pathname:
         bucket, _ = parse_s3_url(single_glob)
         glob_dict[bucket].append(single_glob)
 
-    group_glob_list = []
-
+    group_pathname_list = []
     for bucket, glob_list in glob_dict.items():
-        globed_path = globlize(glob_list)
+        group_s3_pathname = globlize(glob_list)
         pattern = re.compile(translate(re.sub(r'\*{2,}', '*', bucket)))
+        group_pathname_list.append((group_s3_pathname, pattern, bucket))
 
-        for bucketname in bucket_names:
+    group_glob_list = []
+    for bucketname in _list_all_buckets():
+        for group_s3_pathname, pattern, bucket in group_pathname_list:
             if pattern.fullmatch(bucketname) is not None:
                 group_glob_list.append(
-                    _s3path_change_bucket(globed_path, bucket, bucketname))
+                    _s3path_change_bucket(
+                        group_s3_pathname, bucket, bucketname))
     return group_glob_list
 
 
-def _group_s3path_by_bucket_without_wildcard(globpath: str) -> List[str]:
+def _group_s3path_by_bucket_without_wildcard(s3_pathname: str) -> List[str]:
     glob_dict = defaultdict(list)
-
-    expanded_globpath = ungloblize(globpath)
-    for single_glob in expanded_globpath:
+    expanded_s3_pathname = ungloblize(s3_pathname)
+    for single_glob in expanded_s3_pathname:
         bucket, _ = parse_s3_url(single_glob)
         glob_dict[bucket].append(single_glob)
 
     group_glob_list = []
-
     for bucket, glob_list in glob_dict.items():
         group_glob_list.append(globlize(glob_list))
     return group_glob_list
 
 
-def _group_s3path_by_bucket(globpath: str) -> List[str]:
-    bracket_pattern = re.compile(r'{.*?}')
-    raw_bucket, _ = parse_s3_url(globpath)
-    bucket_match = False
-    for substr in bracket_pattern.split(raw_bucket):
-        if has_magic(substr):
-            bucket_match = True
-            break
+def _group_s3path_by_bucket(s3_pathname: str) -> List[str]:
+    bucket, key = parse_s3_url(s3_pathname)
+    if not bucket:
+        if not key:
+            raise UnsupportedError('Glob whole s3', s3_pathname)
+        raise S3BucketNotFoundError('Empty bucket name: %r' % s3_pathname)
 
-    if bucket_match:
-        return _group_s3path_by_bucket_with_wildcard(globpath)
-    else:
-        return _group_s3path_by_bucket_without_wildcard(globpath)
+    expanded_bucket = ungloblize(bucket)
+    for bucketname in expanded_bucket:
+        if has_magic(bucketname):
+            return _group_s3path_by_bucket_with_wildcard(s3_pathname)
+    return _group_s3path_by_bucket_without_wildcard(s3_pathname)
+
+
+def _group_s3path_by_ungloblize(s3_pathname: str) -> List[str]:
+    glob_list = []
+    group_glob_list = []
+    expanded_s3_pathname = ungloblize(s3_pathname)
+    for pathname in expanded_s3_pathname:
+        if has_magic(pathname):
+            glob_list.append(pathname)
+            continue
+        group_glob_list.append(pathname)
+    if glob_list:
+        group_glob_list.append(globlize(glob_list))
+    return group_glob_list
 
 
 def s3_save_as(file_object: BinaryIO, s3_url: MegfilePathLike) -> None:
