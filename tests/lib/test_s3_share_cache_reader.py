@@ -7,7 +7,7 @@ from moto import mock_s3
 
 from megfile.lib import s3_share_cache_reader
 from megfile.lib.s3_share_cache_reader import S3ShareCacheReader
-from megfile.utils import _thread_local_cache
+from megfile.utils import thread_local
 from tests.test_s3 import s3_empty_client
 
 BUCKET = 'bucket'
@@ -16,8 +16,8 @@ KEY = 'key'
 
 def setup_function():
     s3_share_cache_reader.max_buffer_cache_size = 128 * 2**20
-    if hasattr(_thread_local_cache, 'S3ShareCacheReader.lru'):
-        delattr(_thread_local_cache, 'S3ShareCacheReader.lru')
+    if 'S3ShareCacheReader.lru' in thread_local:
+        del thread_local['S3ShareCacheReader.lru']
 
 
 @pytest.fixture

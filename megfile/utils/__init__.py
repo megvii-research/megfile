@@ -9,6 +9,8 @@ from threading import RLock as _RLock
 from threading import local
 from typing import IO, Callable, Optional
 
+from megfile.utils.mutex import ProcessLocal, ThreadLocal
+
 
 def get_content_size(fileobj: IO, *, intrusive: bool = False) -> int:
     ''' Get size of File-Like Object
@@ -91,7 +93,7 @@ def get_mode(fileobj, default='r'):
 
 
 def shadow_copy(fileobj: IO, intrusive: bool = True, buffered: bool = True):
-    ''' Create a File-Like Object, maintaining file pointer, to avoid misunderstanding the position when read / write / seek 
+    ''' Create a File-Like Object, maintaining file pointer, to avoid misunderstanding the position when read / write / seek
 
     :param intrusive: If is intrusive. If True, move file pointer to the original position after every read / write / seek. If False, then not.
     :param verbose: If True, print log when read / write / seek
@@ -129,80 +131,8 @@ def patch_rlimit():
     resource.setrlimit(resource.RLIMIT_NOFILE, (hard, hard))
 
 
-class ThreadLocal:
-
-    def __init__(self):
-        local_data = local()
-        object.__setattr__(self, '_local', local_data)
-        register_after_fork(self, ThreadLocal._reset)
-
-    def _reset(self):
-        local_data = local()
-        object.__setattr__(self, '_local', local_data)
-
-    def __getattribute__(self, name):
-        local_data = object.__getattribute__(self, '_local')
-        return local_data.__getattribute__(name)  # pytype: disable=attribute-error
-
-    def __setattr__(self, name, value):
-        local_data = object.__getattribute__(self, '_local')
-        return local_data.__setattr__(name, value)
-
-    def __delattr__(self, name):
-        local_data = object.__getattribute__(self, '_local')
-        return local_data.__delattr__(name)
-
-
-class ProcessLocal:
-    """
-    Provides a basic per-process mapping container that wipes itself if the current PID changed since the last get/set.
-    Aka `threading.local()`, but for processes instead of threads.
-    """
-
-    def __init__(self):
-        register_after_fork(self, ProcessLocal._reset)
-
-    def _reset(self):
-        self.__dict__.clear()
-
-
-class RLock:
-
-    def __init__(self):
-        self._reset()
-        register_after_fork(self, RLock._reset)
-
-    def _reset(self):
-        self._lock = _RLock()
-        self.acquire = self._lock.acquire
-        self.release = self._lock.release
-
-    def __enter__(self):
-        return self._lock.__enter__()
-
-    def __exit__(self, *args):
-        return self._lock.__exit__(*args)
-
-
-_thread_local_cache = ThreadLocal()
-
-_process_local_cache = ProcessLocal()
-_process_local_lock = RLock()
-
-
-def thread_local(key: str, creator: Callable, *args, **kwargs):
-
-    # Because _threading_local.local are in different thread, users get different dict, so don't need to lock
-    if not hasattr(_thread_local_cache, key):
-        setattr(_thread_local_cache, key, creator(*args, **kwargs))
-    return getattr(_thread_local_cache, key)
-
-
-def process_local(key: str, creator: Callable, *args, **kwargs):
-    with _process_local_lock:
-        if not hasattr(_process_local_cache, key):
-            setattr(_process_local_cache, key, creator(*args, **kwargs))
-        return getattr(_process_local_cache, key)
+thread_local = ThreadLocal()
+process_local = ProcessLocal()
 
 
 def combine(file_objects, name):
