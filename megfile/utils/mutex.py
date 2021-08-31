@@ -17,6 +17,9 @@ class ForkAware(ABC):
         self._process_id = os.getpid()
         self._reset()
 
+    def __reduce__(self):
+        return type(self), ()
+
     @abstractmethod
     def _reset(self):
         pass
@@ -72,9 +75,6 @@ class ThreadLocal(ForkAware, BaseLocal):
     def _data(self):
         return self._local.__dict__
 
-    def __reduce__(self):
-        return type(self), ()
-
     def __call__(self, key: str, func: Callable, *args, **kwargs):
         data = self._data  # 不同线程拿到的 dict 不同，因此不用加锁
         if key not in data:
@@ -103,12 +103,3 @@ class ProcessLocal(ForkAware, BaseLocal):
             if key not in data:
                 data[key] = func(*args, **kwargs)
             return data[key]
-
-
-if __name__ == '__main__':
-    pl = ProcessLocal()
-    pl('a', lambda: None)
-    print(pl._data)
-
-    pid = os.fork()
-    print(pid, pl._data)
