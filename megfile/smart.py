@@ -12,7 +12,6 @@ from megfile.interfaces import Access, FileEntry, MegfilePathLike, NullCacher, S
 from megfile.lib.combine_reader import CombineReader
 from megfile.lib.compat import fspath
 from megfile.lib.fakefs import FakefsCacher
-from megfile.lib.get_image_size import Image, get_image_metadata_from_bytesio
 from megfile.lib.glob import globlize, ungloblize
 from megfile.s3 import is_s3, s3_copy, s3_download, s3_load_content, s3_open, s3_upload
 from megfile.smart_path import SmartPath, get_traditional_path
@@ -141,7 +140,7 @@ def smart_scandir(path: Optional[MegfilePathLike] = None
 
 def smart_getsize(path: MegfilePathLike) -> int:
     '''
-    Get file size on the given s3_url or file path (in bytes). 
+    Get file size on the given s3_url or file path (in bytes).
     If the path in a directory, return the sum of all file size in it, including file in subdirectories (if exist).
     The result exludes the size of directory itself. In other words, return 0 Byte on an empty directory path.
 
@@ -156,7 +155,7 @@ def smart_getmtime(path: MegfilePathLike) -> float:
     '''
     Get last-modified time of the file on the given s3_url or file path (in Unix timestamp format).
     If the path is an existent directory, return the latest modified time of all file in it. The mtime of empty directory is 1970-01-01 00:00:00
-    
+
     :param path: Given path
     :returns: Last-modified time
     :raises: FileNotFoundError
@@ -466,7 +465,7 @@ def smart_walk(path: MegfilePathLike
               ) -> Iterator[Tuple[str, List[str], List[str]]]:
     '''
     Generate the file names in a directory tree by walking the tree top-down.
-    For each directory in the tree rooted at directory path (including path itself), 
+    For each directory in the tree rooted at directory path (including path itself),
     it yields a 3-tuple (root, dirs, files).
 
     root: a string of current path
@@ -486,7 +485,7 @@ def smart_walk(path: MegfilePathLike
 
 def smart_scan(path: MegfilePathLike, missing_ok: bool = True) -> Iterator[str]:
     '''
-    Iteratively traverse only files in given directory, in alphabetical order. 
+    Iteratively traverse only files in given directory, in alphabetical order.
     Every iteration on generator yields a path string.
 
     If path is a file path, yields the file only
@@ -504,7 +503,7 @@ def smart_scan(path: MegfilePathLike, missing_ok: bool = True) -> Iterator[str]:
 def smart_scan_stat(path: MegfilePathLike,
                     missing_ok: bool = True) -> Iterator[FileEntry]:
     '''
-    Iteratively traverse only files in given directory, in alphabetical order. 
+    Iteratively traverse only files in given directory, in alphabetical order.
     Every iteration on generator yields a tuple of path string and file stat
 
     :param path: Given path
@@ -673,39 +672,6 @@ def smart_ismount(path: MegfilePathLike) -> bool:
     :returns: True if a path is a mount point, else False
     '''
     return SmartPath(path).is_mount()
-
-
-def smart_load_image_metadata(path: MegfilePathLike) -> Image:
-    '''
-    Get metadata of image, including:
-
-        - path: str
-        - type: str, one of ['BMP', 'GIF', 'ICO', 'JPEG', 'PNG', 'TIFF']
-        - file_size: int, in bytes
-        - width: int
-        - height
-
-    Supported protocol: ::
-
-        - None
-        - s3
-        - http(s)
-
-    :param path: Image path
-    :return: Image metadata
-    '''
-
-    def _s3_read(path, mode='rb', **kwargs):
-        if mode not in ('rb'):
-            raise ValueError('unacceptable mode: %r' % mode)
-        # metadata only needs the first 26 bits
-        # Doesn't use s3_prefetch_open to avoid wasting download.
-        # Doesn't use open-source smart_open, because we want to replace it in the future optimization
-        return io.BytesIO(s3_load_content(path, 0, 26))
-
-    with smart_open(path, 'rb', s3_open_func=_s3_read) as fd:
-        size = smart_getsize(path)
-        return get_image_metadata_from_bytesio(fd, size, path)
 
 
 def smart_load_content(

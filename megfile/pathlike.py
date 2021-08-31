@@ -5,7 +5,6 @@ from typing import IO, Any, AnyStr, BinaryIO, Callable, Iterator, List, NamedTup
 
 from megfile.lib.compat import PathLike, fspath
 from megfile.lib.fnmatch import _compile_pattern
-from megfile.lib.get_image_size import Image
 from megfile.lib.joinpath import uri_join
 from megfile.utils import cachedproperty, classproperty
 

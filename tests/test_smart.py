@@ -656,26 +656,6 @@ def test_smart_relpath(mocker, s3_path, abs_path, rel_path):
     assert smart.smart_relpath(abs_path, os.path.dirname(__file__)) == rel_path
 
 
-def test_smart_load_image_metadata(mocker):
-    s3_load_content = mocker.patch('megfile.smart.s3_load_content')
-    s3_isfile = mocker.patch(
-        'megfile.s3_path.S3Path.is_file', return_value=True)
-    s3_stat = mocker.patch('megfile.smart.smart_getsize', return_value=22228)
-
-    def _fake_load_content(*args, **kwargs):
-        return open('tests/lib/lookmanodeps.png', 'rb').read()
-
-    s3_load_content.side_effect = _fake_load_content
-
-    res = smart.smart_load_image_metadata("s3://bucket/key")
-
-    assert res.path == 's3://bucket/key'
-    assert res.type == 'PNG'
-    assert res.file_size == 22228
-    assert res.width == 251
-    assert res.height == 208
-
-
 def test_smart_open_stdin(mocker):
     stdin_buffer_read = mocker.patch('sys.stdin.buffer.read')
     stdin_buffer_read.return_value = b'test\ntest1\n'
@@ -700,7 +680,7 @@ def test_smart_open_stdout(mocker):
 
 
 def test_smart_load_content():
-    path = 'tests/lib/lookmanodeps.png'
+    path = 'tests/test_smart.py'
     content = open(path, 'rb').read()
 
     assert smart.smart_load_content(path) == content
