@@ -13,26 +13,26 @@ from requests.exceptions import HTTPError
 from megfile.interfaces import MegfilePathLike
 
 __all__ = [
-    'S3FileNotFoundError',
-    'S3BucketNotFoundError',
-    'S3FileExistsError',
-    'S3NotADirectoryError',
-    'S3IsADirectoryError',
-    'S3PermissionError',
-    'S3ConfigError',
-    'UnknownError',
-    'UnsupportedError',
-    'HttpPermissionError',
-    'HttpFileNotFoundError',
-    'ProtocolExistsError',
-    'ProtocolNotFoundError',
-    'S3UnknownError',
-    'translate_http_error',
-    'translate_s3_error',
-    'patch_method',
-    'raise_s3_error',
-    's3_should_retry',
-    'translate_fs_error',
+    "S3FileNotFoundError",
+    "S3BucketNotFoundError",
+    "S3FileExistsError",
+    "S3NotADirectoryError",
+    "S3IsADirectoryError",
+    "S3PermissionError",
+    "S3ConfigError",
+    "UnknownError",
+    "UnsupportedError",
+    "HttpPermissionError",
+    "HttpFileNotFoundError",
+    "ProtocolExistsError",
+    "ProtocolNotFoundError",
+    "S3UnknownError",
+    "translate_http_error",
+    "translate_s3_error",
+    "patch_method",
+    "raise_s3_error",
+    "s3_should_retry",
+    "translate_fs_error",
 ]
 
 _logger = getLogger(__name__)
@@ -40,6 +40,7 @@ _logger = getLogger(__name__)
 
 def s3_endpoint_url():
     from megfile.s3 import get_endpoint_url, get_s3_client
+
     endpoint_url = get_endpoint_url()
     if endpoint_url is None:
         endpoint_url = get_s3_client().meta.endpoint_url
@@ -58,23 +59,27 @@ def full_class_name(obj):
     if module is None or module == str.__class__.__module__:
         return obj.__class__.__name__  # Avoid reporting __builtin__
     else:
-        return module + '.' + obj.__class__.__name__
+        return module + "." + obj.__class__.__name__
 
 
 def full_error_message(error):
-    return '%s(%r)' % (full_class_name(error), str(error))
+    return "%s(%r)" % (full_class_name(error), str(error))
 
 
 def client_error_code(error: ClientError) -> str:
-    return error.response.get('Error', {}).get('Code', 'Unknown')  # pytype: disable=attribute-error
+    return error.response.get("Error", {}).get(
+        "Code", "Unknown"
+    )  # pytype: disable=attribute-error
 
 
 def client_error_message(error: ClientError) -> str:
-    return error.response.get('Error', {}).get('Message', 'Unknown')  # pytype: disable=attribute-error
+    return error.response.get("Error", {}).get(
+        "Message", "Unknown"
+    )  # pytype: disable=attribute-error
 
 
 def param_validation_error_report(error: ParamValidationError) -> str:
-    return error.kwargs.get('report', 'Unknown')  # pytype: disable=attribute-error
+    return error.kwargs.get("report", "Unknown")  # pytype: disable=attribute-error
 
 
 s3_retry_exceptions = [
@@ -85,7 +90,7 @@ s3_retry_exceptions = [
     urllib3.exceptions.ProtocolError,
     urllib3.exceptions.ReadTimeoutError,
 ]
-if hasattr(botocore.exceptions, 'ReadTimeoutError'):  # backport botocore==1.8.4
+if hasattr(botocore.exceptions, "ReadTimeoutError"):  # backport botocore==1.8.4
     s3_retry_exceptions.append(botocore.exceptions.ReadTimeoutError)
 s3_retry_exceptions = tuple(s3_retry_exceptions)
 
@@ -94,7 +99,7 @@ def s3_should_retry(error: Exception) -> bool:
     if isinstance(error, s3_retry_exceptions):
         return True
     if isinstance(error, botocore.exceptions.ClientError):
-        return client_error_code(error) in ('500', 'InternalError')
+        return client_error_code(error) in ("500", "InternalError")
     return False
 
 
@@ -116,13 +121,13 @@ def http_should_retry(error: Exception) -> bool:
 
 
 def patch_method(
-        func: Callable,
-        max_retries: int,
-        should_retry: Callable[[Exception], bool],
-        before_callback: Optional[Callable] = None,
-        after_callback: Optional[Callable] = None,
-        retry_callback: Optional[Callable] = None):
-
+    func: Callable,
+    max_retries: int,
+    should_retry: Callable[[Exception], bool],
+    before_callback: Optional[Callable] = None,
+    after_callback: Optional[Callable] = None,
+    retry_callback: Optional[Callable] = None,
+):
     @wraps(func)
     def wrapper(*args, **kwargs):
         if before_callback is not None:
@@ -136,8 +141,9 @@ def patch_method(
                     result = after_callback(result)
                 if error is not None:
                     _logger.debug(
-                        'unknown error resolved: %s, with %d tries' %
-                        (full_error_message(error), retries))
+                        "unknown error resolved: %s, with %d tries"
+                        % (full_error_message(error), retries)
+                    )
                 return result
             except Exception as exception:
                 if retry_callback is not None:
@@ -145,10 +151,11 @@ def patch_method(
                 error = exception
                 if retries == max_retries or not should_retry(error):
                     raise
-                retry_interval = min(0.1 * 2**retries, 30)
+                retry_interval = min(0.1 * 2 ** retries, 30)
                 _logger.debug(
-                    'unknown error encountered: %s, retry in %0.1f seconds after %d tries'
-                    % (full_error_message(error), retry_interval, retries))
+                    "unknown error encountered: %s, retry in %0.1f seconds after %d tries"
+                    % (full_error_message(error), retry_interval, retries)
+                )
                 time.sleep(retry_interval)
 
     return wrapper
@@ -169,16 +176,15 @@ def _create_missing_ok_generator(generator, missing_ok: bool, error: Exception):
 
 
 class UnknownError(Exception):
-
     def __init__(
-            self,
-            error: Exception,
-            path: MegfilePathLike,
-            extra: Optional[str] = None):
-        message = 'Unknown error encountered: %r, error: %s' % (
-            path, full_error_message(error))
+        self, error: Exception, path: MegfilePathLike, extra: Optional[str] = None
+    ):
+        message = "Unknown error encountered: %r, error: %s" % (
+            path,
+            full_error_message(error),
+        )
         if extra is not None:
-            message += ', ' + extra
+            message += ", " + extra
         super().__init__(message)
         self.path = path
         self.extra = extra
@@ -189,10 +195,8 @@ class UnknownError(Exception):
 
 
 class UnsupportedError(Exception):
-
     def __init__(self, operation: str, path: MegfilePathLike):
-        super().__init__(
-            'Unsupported operation: %r, operation: %r' % (path, operation))
+        super().__init__("Unsupported operation: %r, operation: %r" % (path, operation))
         self.path = path
         self.operation = operation
 
@@ -201,10 +205,10 @@ class UnsupportedError(Exception):
 
 
 class S3Exception(Exception):
-    '''
+    """
     Base type for all s3 errors, should NOT be constructed directly.
     When you try to do so, consider adding a new type of error.
-    '''
+    """
 
 
 class S3FileNotFoundError(S3Exception, FileNotFoundError):
@@ -236,21 +240,19 @@ class S3PermissionError(S3Exception, PermissionError):
 
 
 class S3ConfigError(S3Exception, EnvironmentError):
-    '''Error raised by wrong S3 config, including wrong config file format, wrong aws_secret_access_key / aws_access_key_id, and etc.
-    '''
+    """Error raised by wrong S3 config, including wrong config file format, wrong aws_secret_access_key / aws_access_key_id, and etc."""
 
 
 class S3UnknownError(S3Exception, UnknownError):
-
     def __init__(self, error: Exception, path: MegfilePathLike):
-        super().__init__(error, path, 'endpoint: %r' % s3_endpoint_url())
+        super().__init__(error, path, "endpoint: %r" % s3_endpoint_url())
 
 
 class HttpException(Exception):
-    '''
+    """
     Base type for all http errors, should NOT be constructed directly.
     When you try to do so, consider adding a new type of error.
-    '''
+    """
 
 
 class HttpPermissionError(HttpException, PermissionError):
@@ -281,46 +283,47 @@ def translate_fs_error(fs_error: Exception, fs_path: MegfilePathLike):
     return fs_error
 
 
-def translate_s3_error(
-        s3_error: Exception, s3_url: MegfilePathLike) -> Exception:
-    ''' :param s3_error: error raised by boto3
-        :param s3_url: s3_url
-    '''
+def translate_s3_error(s3_error: Exception, s3_url: MegfilePathLike) -> Exception:
+    """:param s3_error: error raised by boto3
+    :param s3_url: s3_url
+    """
     if isinstance(s3_error, S3Exception):
         return s3_error
     elif isinstance(s3_error, ClientError):
         code = client_error_code(s3_error)
-        if code in ('NoSuchBucket'):
-            return S3BucketNotFoundError('No such bucket: %r' % s3_url)
-        if code in ('404', 'NoSuchKey'):
-            return S3FileNotFoundError('No such file: %r' % s3_url)
-        if code in ('401', '403', 'AccessDenied'):
+        if code in ("NoSuchBucket"):
+            return S3BucketNotFoundError("No such bucket: %r" % s3_url)
+        if code in ("404", "NoSuchKey"):
+            return S3FileNotFoundError("No such file: %r" % s3_url)
+        if code in ("401", "403", "AccessDenied"):
             message = client_error_message(s3_error)
             return S3PermissionError(
-                'Permission denied: %r, code: %r, message: %r, endpoint: %r' %
-                (s3_url, code, message, s3_endpoint_url()))
-        if code in ('InvalidAccessKeyId', 'SignatureDoesNotMatch'):
+                "Permission denied: %r, code: %r, message: %r, endpoint: %r"
+                % (s3_url, code, message, s3_endpoint_url())
+            )
+        if code in ("InvalidAccessKeyId", "SignatureDoesNotMatch"):
             message = client_error_message(s3_error)
             return S3ConfigError(
-                'Invalid configuration: %r, code: %r, message: %r, endpoint: %r'
-                % (s3_url, code, message, s3_endpoint_url()))
+                "Invalid configuration: %r, code: %r, message: %r, endpoint: %r"
+                % (s3_url, code, message, s3_endpoint_url())
+            )
         return S3UnknownError(s3_error, s3_url)
     elif isinstance(s3_error, ParamValidationError):
         report = param_validation_error_report(s3_error)
-        if 'Invalid bucket name' in report:
-            return S3BucketNotFoundError('Invalid bucket name: %r' % s3_url)
-        if 'Invalid length for parameter Key' in report:
-            return S3FileNotFoundError(
-                'Invalid length for parameter Key: %r' % s3_url)
+        if "Invalid bucket name" in report:
+            return S3BucketNotFoundError("Invalid bucket name: %r" % s3_url)
+        if "Invalid length for parameter Key" in report:
+            return S3FileNotFoundError("Invalid length for parameter Key: %r" % s3_url)
         return S3UnknownError(s3_error, s3_url)
     elif isinstance(s3_error, NoCredentialsError):
         return S3ConfigError(str(s3_error))
     return S3UnknownError(s3_error, s3_url)
 
 
-def translate_http_error(http_error: Optional[Exception],
-                         http_url: str) -> Optional[Exception]:
-    '''Generate exception according to http_error and status_code
+def translate_http_error(
+    http_error: Optional[Exception], http_url: str
+) -> Optional[Exception]:
+    """Generate exception according to http_error and status_code
 
     .. note ::
 
@@ -328,15 +331,15 @@ def translate_http_error(http_error: Optional[Exception],
 
     :param http_error: error raised by requests
     :param http_url: http url
-    '''
+    """
     if isinstance(http_error, HttpException):
         return http_error
     if isinstance(http_error, HTTPError):
         status_code = http_error.response.status_code
         if status_code == 401 or status_code == 403:
-            return HttpPermissionError('Permission denied: %r' % http_url)
+            return HttpPermissionError("Permission denied: %r" % http_url)
         elif status_code == 404:
-            return HttpFileNotFoundError('No such file: %r' % http_url)
+            return HttpFileNotFoundError("No such file: %r" % http_url)
     return HttpUnknownError(http_error, http_url)
 
 

@@ -5,35 +5,36 @@ from typing import Optional
 from megfile.lib.s3_prefetch_reader import LRUCacheFutureManager, S3PrefetchReader
 from megfile.utils import thread_local
 
-DEFAULT_BLOCK_SIZE = 8 * 2**20  # 8MB
+DEFAULT_BLOCK_SIZE = 8 * 2 ** 20  # 8MB
 DEFAULT_BLOCK_FORWARD = 12
 GLOBAL_MAX_WORKERS = 128
 
 DEFAULT_BLOCK_CAPACITY = 32
 
-NEWLINE = ord('\n')
+NEWLINE = ord("\n")
 
 _logger = get_logger(__name__)
 
 
 class S3ShareCacheReader(S3PrefetchReader):
-    '''
+    """
     Reader to fast read the s3 content. This will divide the file content into equal parts of block_size size, and will use LRU to cache at most block_capacity blocks in memory.
     open(), seek() and read() will trigger prefetch read. The prefetch will cached block_forward blocks of data from offset position (the position after reading if the called function is read).
-    '''
+    """
 
     def __init__(
-            self,
-            bucket: str,
-            key: str,
-            *,
-            s3_client,
-            block_size: int = DEFAULT_BLOCK_SIZE,
-            block_capacity: int = DEFAULT_BLOCK_CAPACITY,
-            block_forward: Optional[int] = None,
-            max_retries: int = 10,
-            cache_key: str = 'lru',
-            max_workers: Optional[int] = None):
+        self,
+        bucket: str,
+        key: str,
+        *,
+        s3_client,
+        block_size: int = DEFAULT_BLOCK_SIZE,
+        block_capacity: int = DEFAULT_BLOCK_CAPACITY,
+        block_forward: Optional[int] = None,
+        max_retries: int = 10,
+        cache_key: str = "lru",
+        max_workers: Optional[int] = None
+    ):
 
         self._cache_key = cache_key
 
@@ -48,15 +49,15 @@ class S3ShareCacheReader(S3PrefetchReader):
             max_workers=max_workers,
         )
 
-    def _get_block_forward(
-            self, block_capacity: int, block_forward: Optional[int]):
+    def _get_block_forward(self, block_capacity: int, block_forward: Optional[int]):
         if block_forward is None:
             block_forward = DEFAULT_BLOCK_FORWARD
         return block_forward
 
     def _get_futures(self):
         futures = thread_local(
-            'S3ShareCacheReader.' + self._cache_key, ShareCacheFutureManager)
+            "S3ShareCacheReader." + self._cache_key, ShareCacheFutureManager
+        )
         futures.register(self.name)
         return futures
 
@@ -70,7 +71,8 @@ class S3ShareCacheReader(S3PrefetchReader):
         if index < 0 or index >= self._block_stop:
             return
         self._futures.submit(
-            self._executor, (self.name, index), self._fetch_buffer, index)
+            self._executor, (self.name, index), self._fetch_buffer, index
+        )
 
     def _fetch_future_result(self, index: int):
         return self._futures.result((self.name, index))
@@ -79,7 +81,7 @@ class S3ShareCacheReader(S3PrefetchReader):
         self._futures.cleanup(DEFAULT_BLOCK_CAPACITY)
 
     def _close(self):
-        _logger.debug('close file: %r' % self.name)
+        _logger.debug("close file: %r" % self.name)
 
         if not self._is_global_executor:
             self._executor.shutdown()
@@ -87,7 +89,6 @@ class S3ShareCacheReader(S3PrefetchReader):
 
 
 class ShareCacheFutureManager(LRUCacheFutureManager):
-
     def __init__(self):
         super().__init__()
         self._references = Counter()

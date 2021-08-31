@@ -11,7 +11,6 @@ class Klass1(Closable):
 
 
 class Klass2(Closable):
-
     def __init__(self):
         self.outer_close_call_count = 0
 
@@ -20,7 +19,6 @@ class Klass2(Closable):
 
 
 class Klass3(Klass2):
-
     def __init__(self):
         self.inner_close_call_count = 0
         super().__init__()
@@ -59,8 +57,8 @@ def test_subclass_only_close_once():
 
 class Klass4(Readable):
 
-    name = 'test'
-    mode = 'r'
+    name = "test"
+    mode = "r"
 
     def __init__(self, data):
         self._buffer = BytesIO(data)
@@ -79,21 +77,21 @@ class Klass4(Readable):
 
 
 def test_readable(mocker):
-    r = Klass4(b'')
+    r = Klass4(b"")
     assert r.readlines() == []
 
-    r = Klass4(b'1\n2\n')
-    assert r.readlines() == [b'1\n', b'2\n']
+    r = Klass4(b"1\n2\n")
+    assert r.readlines() == [b"1\n", b"2\n"]
 
-    r = Klass4(b'1\n2\n')
-    assert next(r) == b'1\n'
-    assert list(r) == [b'2\n']
+    r = Klass4(b"1\n2\n")
+    assert next(r) == b"1\n"
+    assert list(r) == [b"2\n"]
 
 
 class Klass5(Writable):
 
-    name = 'test'
-    mode = 'w'
+    name = "test"
+    mode = "w"
 
     def __init__(self):
         self._buffer = BytesIO()
@@ -113,8 +111,8 @@ class Klass5(Writable):
 
 def test_writable(mocker):
     w = Klass5()
-    w.writelines([b'1', b'2'])
-    assert w.getvalue() == b'12'
+    w.writelines([b"1", b"2"])
+    assert w.getvalue() == b"12"
 
 
 TEST_PATH = "test/file"
@@ -122,7 +120,6 @@ TEST_URI = "test://test/file"
 
 
 class Klass6(BasePath):
-
     def __init__(self, path):
         self.path = path
 
@@ -134,7 +131,6 @@ def test_basepath(mocker):
 
 
 class Klass7(URIPath):
-
     @classmethod
     def get_protocol(cls) -> str:
         return "test"

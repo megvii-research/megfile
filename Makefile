@@ -1,16 +1,16 @@
-PACKAGENAME := megfile
-VERSION := $(shell cat ${PACKAGENAME}/version.py | sed -n -E 's/^VERSION = "(.+?)"/\1/p')
+PACKAGE := megfile
+VERSION := $(shell cat ${PACKAGE}/version.py | sed -n -E 's/^VERSION = "(.+?)"/\1/p')
 
 test:
-	pytest --cov-config=setup.cfg --cov=${PACKAGENAME} --disable-socket --no-cov-on-fail --cov-report=html:html_cov/ --cov-report term-missing tests/
+	pytest --cov-config=setup.cfg --cov=${PACKAGE} --disable-socket --no-cov-on-fail --cov-report=html:html_cov/ --cov-report term-missing tests/
 
 format:
-	isort ${PACKAGENAME} tests
-	yapf --in-place --recursive ${PACKAGENAME} tests
+	isort ${PACKAGE} tests
+	black ${PACKAGE} tests
 
 style_check:
-	isort --diff --check ${PACKAGENAME} tests
-	yapf --diff --recursive ${PACKAGENAME} tests
+	isort --diff --check ${PACKAGE} tests
+	black --check --diff ${PACKAGE} tests
 
 static_check:
 	pytype
@@ -32,6 +32,6 @@ release:
 	python3 setup.py bdist_wheel
 
 	devpi login ${PYPI_USERNAME} --password=${PYPI_PASSWORD}
-	devpi upload dist/${PACKAGENAME}-${VERSION}-py3-none-any.whl
+	devpi upload dist/${PACKAGE}-${VERSION}-py3-none-any.whl
 
-	twine upload dist/${PACKAGENAME}-${VERSION}-py3-none-any.whl --username=${PYPI_USERNAME_2} --password=${PYPI_PASSWORD_2}
+	twine upload dist/${PACKAGE}-${VERSION}-py3-none-any.whl --username=${PYPI_USERNAME_2} --password=${PYPI_PASSWORD_2}

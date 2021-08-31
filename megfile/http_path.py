@@ -5,8 +5,8 @@ from .interfaces import URIPath
 from .smart_path import SmartPath
 
 __all__ = [
-    'HttpPath',
-    'HttpsPath',
+    "HttpPath",
+    "HttpsPath",
 ]
 
 

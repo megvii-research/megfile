@@ -1,7 +1,19 @@
 from collections import Sequence
 from enum import Enum
 from functools import wraps
-from typing import IO, Any, AnyStr, BinaryIO, Callable, Iterator, List, NamedTuple, Optional, Tuple, Union
+from typing import (
+    IO,
+    Any,
+    AnyStr,
+    BinaryIO,
+    Callable,
+    Iterator,
+    List,
+    NamedTuple,
+    Optional,
+    Tuple,
+    Union,
+)
 
 from megfile.lib.compat import PathLike, fspath
 from megfile.lib.fnmatch import _compile_pattern
@@ -9,7 +21,7 @@ from megfile.lib.joinpath import uri_join
 from megfile.utils import cachedproperty, classproperty
 
 # Python 3.5+ compatible
-'''
+"""
 class StatResult(NamedTuple):
 
     size: int = 0
@@ -20,13 +32,19 @@ class StatResult(NamedTuple):
     extra: Any = None  # raw stat info
 
 in Python 3.6+
-'''
+"""
 
 _StatResult = NamedTuple(
-    'StatResult', [
-        ('size', int), ('ctime', float), ('mtime', float), ('isdir', bool),
-        ('islnk', bool), ('extra', Any)
-    ])
+    "StatResult",
+    [
+        ("size", int),
+        ("ctime", float),
+        ("mtime", float),
+        ("isdir", bool),
+        ("islnk", bool),
+        ("extra", Any),
+    ],
+)
 _StatResult.__new__.__defaults__ = (0, 0.0, 0.0, False, False, None)
 
 
@@ -36,7 +54,6 @@ class Access(Enum):
 
 
 class StatResult(_StatResult):
-
     def is_file(self) -> bool:
         return not self.isdir or self.islnk
 
@@ -47,20 +64,19 @@ class StatResult(_StatResult):
         return self.islnk
 
 
-'''
+"""
 class FileEntry(NamedTuple):
 
     name: str
     stat: StatResult
 
 in Python 3.6+
-'''
+"""
 
-_FileEntry = NamedTuple('FileEntry', [('name', str), ('stat', StatResult)])
+_FileEntry = NamedTuple("FileEntry", [("name", str), ("stat", StatResult)])
 
 
 class FileEntry(_FileEntry):
-
     def is_file(self) -> bool:
         return self.stat.is_file()
 
@@ -72,17 +88,16 @@ class FileEntry(_FileEntry):
 
 
 def method_not_implemented(func):
-
     @wraps(func)
     def wrapper(self, *args, **kwargs):
         raise NotImplementedError(
-            'method %r not implemented: %r' % (func.__name__, self))
+            "method %r not implemented: %r" % (func.__name__, self)
+        )
 
     return wrapper
 
 
 class BasePath:
-
     def __init__(self, path: "MegfilePathLike"):
         self.path = str(path)
 
@@ -90,7 +105,7 @@ class BasePath:
         return self.path
 
     def __repr__(self) -> str:
-        return '%s(%r)' % (self.__class__.__name__, str(self))
+        return "%s(%r)" % (self.__class__.__name__, str(self))
 
     def __bytes__(self) -> bytes:
         return str(self).encode()
@@ -161,8 +176,9 @@ class BasePath:
         raise NotImplementedError
 
     @method_not_implemented
-    def open(self, mode: str,
-             s3_open_func: Callable[[str, str], BinaryIO]) -> IO[AnyStr]:
+    def open(
+        self, mode: str, s3_open_func: Callable[[str, str], BinaryIO]
+    ) -> IO[AnyStr]:
         raise NotImplementedError
 
     @method_not_implemented
@@ -178,18 +194,17 @@ class BasePath:
         raise NotImplementedError
 
     @method_not_implemented
-    def glob(self, recursive: bool = True,
-             missing_ok: bool = True) -> List[str]:
+    def glob(self, recursive: bool = True, missing_ok: bool = True) -> List[str]:
         raise NotImplementedError
 
     @method_not_implemented
-    def iglob(self, recursive: bool = True,
-              missing_ok: bool = True) -> Iterator[str]:
+    def iglob(self, recursive: bool = True, missing_ok: bool = True) -> Iterator[str]:
         raise NotImplementedError
 
     @method_not_implemented
-    def glob_stat(self, recursive: bool = True,
-                  missing_ok: bool = True) -> Iterator[FileEntry]:
+    def glob_stat(
+        self, recursive: bool = True, missing_ok: bool = True
+    ) -> Iterator[FileEntry]:
         raise NotImplementedError
 
     @method_not_implemented
@@ -229,7 +244,7 @@ class BasePath:
         raise NotImplementedError
 
     def touch(self):
-        with self.open('w'):
+        with self.open("w"):
             pass
 
     # will be deleted in next version
@@ -268,13 +283,13 @@ class BaseURIPath(BasePath):
         path = self.path
         if path.startswith(self.anchor):
             return path
-        return self.anchor + path.lstrip('/')
+        return self.anchor + path.lstrip("/")
 
     @cachedproperty
     def path_without_protocol(self) -> str:
         path = self.path
         if path.startswith(self.anchor):
-            path = path[len(self.anchor):]
+            path = path[len(self.anchor) :]
         return path
 
     def as_posix(self) -> str:
@@ -286,11 +301,11 @@ class BaseURIPath(BasePath):
 
     @classmethod
     def from_uri(cls, path: str) -> "BaseURIPath":
-        if path[:len(cls.anchor)] != cls.anchor:
+        if path[: len(cls.anchor)] != cls.anchor:
             raise ValueError(
-                "protocol not match, expected: %r, got: %r" %
-                (cls.protocol, path))
-        return cls.from_path(path[len(cls.anchor):])
+                "protocol not match, expected: %r, got: %r" % (cls.protocol, path)
+            )
+        return cls.from_path(path[len(cls.anchor) :])
 
     def __fspath__(self) -> str:
         return self.as_uri()
@@ -300,8 +315,9 @@ class BaseURIPath(BasePath):
             raise TypeError("%r is not 'URIPath'" % other_path)
         if self.protocol != other_path.protocol:
             raise TypeError(
-                "'<' not supported between instances of %r and %r" %
-                (type(self), type(other_path)))
+                "'<' not supported between instances of %r and %r"
+                % (type(self), type(other_path))
+            )
         return fspath(self) < fspath(other_path)
 
     def __le__(self, other_path: "BaseURIPath") -> bool:
@@ -309,8 +325,9 @@ class BaseURIPath(BasePath):
             raise TypeError("%r is not 'URIPath'" % other_path)
         if self.protocol != other_path.protocol:
             raise TypeError(
-                "'<=' not supported between instances of %r and %r" %
-                (type(self), type(other_path)))
+                "'<=' not supported between instances of %r and %r"
+                % (type(self), type(other_path))
+            )
         return str(self) <= str(other_path)
 
     def __gt__(self, other_path: "BaseURIPath") -> bool:
@@ -318,8 +335,9 @@ class BaseURIPath(BasePath):
             raise TypeError("%r is not 'URIPath'" % other_path)
         if self.protocol != other_path.protocol:
             raise TypeError(
-                "'>' not supported between instances of %r and %r" %
-                (type(self), type(other_path)))
+                "'>' not supported between instances of %r and %r"
+                % (type(self), type(other_path))
+            )
         return str(self) > str(other_path)
 
     def __ge__(self, other_path: "BaseURIPath") -> bool:
@@ -327,17 +345,18 @@ class BaseURIPath(BasePath):
             raise TypeError("%r is not 'URIPath'" % other_path)
         if self.protocol != other_path.protocol:
             raise TypeError(
-                "'>=' not supported between instances of %r and %r" %
-                (type(self), type(other_path)))
+                "'>=' not supported between instances of %r and %r"
+                % (type(self), type(other_path))
+            )
         return str(self) >= str(other_path)
 
     @classproperty
     def drive(self) -> str:
-        return ''
+        return ""
 
     @classproperty
     def root(self) -> str:
-        return self.protocol + '://'
+        return self.protocol + "://"
 
     @classproperty
     def anchor(self) -> str:
@@ -345,9 +364,7 @@ class BaseURIPath(BasePath):
 
 
 class URIPath(BaseURIPath):
-
-    def __init__(
-            self, path: "MegfilePathLike", *other_paths: "MegfilePathLike"):
+    def __init__(self, path: "MegfilePathLike", *other_paths: "MegfilePathLike"):
         if len(other_paths) > 0:
             path = self.from_path(path).joinpath(*other_paths)
         self.path = str(path)
@@ -356,8 +373,9 @@ class URIPath(BaseURIPath):
         if isinstance(other_path, BaseURIPath):
             if self.protocol != other_path.protocol:
                 raise TypeError(
-                    "'/' not supported between instances of %r and %r" %
-                    (type(self), type(other_path)))
+                    "'/' not supported between instances of %r and %r"
+                    % (type(self), type(other_path))
+                )
         elif not isinstance(other_path, str):
             raise TypeError("%r is not 'str' nor 'URIPath'" % other_path)
         return self.joinpath(other_path)
@@ -369,9 +387,9 @@ class URIPath(BaseURIPath):
     def parts(self) -> Tuple[str]:
         parts = [self.root]
         path = self.path_without_protocol
-        path = path.lstrip('/')
-        if path != '':
-            parts.extend(path.split('/'))
+        path = path.lstrip("/")
+        if path != "":
+            parts.extend(path.split("/"))
         return tuple(parts)
 
     @cachedproperty
@@ -389,29 +407,29 @@ class URIPath(BaseURIPath):
     def name(self) -> str:
         parts = self.parts
         if len(parts) == 1:
-            return ''
+            return ""
         return parts[-1]
 
     @cachedproperty
     def suffix(self) -> str:
         name = self.name
-        i = name.rfind('.')
+        i = name.rfind(".")
         if 0 < i < len(name) - 1:
             return name[i:]
-        return ''
+        return ""
 
     @cachedproperty
     def suffixes(self) -> List[str]:
         name = self.name
-        if name.endswith('.'):
+        if name.endswith("."):
             return []
-        name = name.lstrip('.')
-        return ['.' + suffix for suffix in name.split('.')[1:]]
+        name = name.lstrip(".")
+        return ["." + suffix for suffix in name.split(".")[1:]]
 
     @cachedproperty
     def stem(self) -> str:
         name = self.name
-        i = name.rfind('.')
+        i = name.rfind(".")
         if 0 < i < len(name) - 1:
             return name[:i]
         return name
@@ -422,7 +440,7 @@ class URIPath(BaseURIPath):
     def match(self, pattern) -> bool:
         match = _compile_pattern(pattern)
         for index in range(len(self.parts), 0, -1):
-            path = '/'.join(self.parts[index:])
+            path = "/".join(self.parts[index:])
             if match(path) is not None:
                 return True
         return match(self.path_with_protocol) is not None
@@ -438,8 +456,8 @@ class URIPath(BaseURIPath):
             path = self.path_with_protocol
 
         if path.startswith(other):
-            relative = path[len(other):]
-            relative = relative.lstrip('/')
+            relative = path[len(other) :]
+            relative = relative.lstrip("/")
             return type(self)(relative)
         else:
             raise ValueError("%r does not start with %r" % (path, other))
@@ -447,12 +465,12 @@ class URIPath(BaseURIPath):
     def with_name(self, name) -> "BaseURIPath":
         path = str(self)
         raw_name = self.name
-        return type(self)(path[:len(path) - len(raw_name)] + name)
+        return type(self)(path[: len(path) - len(raw_name)] + name)
 
     def with_suffix(self, suffix) -> "BaseURIPath":
         path = str(self)
         raw_suffix = self.suffix
-        return type(self)(path[:len(path) - len(raw_suffix)] + suffix)
+        return type(self)(path[: len(path) - len(raw_suffix)] + suffix)
 
     def is_absolute(self) -> bool:
         return True
@@ -474,17 +492,16 @@ class URIPath(BaseURIPath):
 
 
 class URIPathParents(Sequence):
-
     def __init__(self, path):
         # We don't store the instance to avoid reference cycles
         self.cls = type(path)
         self.parts = path.parts[1:]
         self.prefix = path.parts[0]
         if not str(path).startswith(path.parts[0]):
-            if str(path).startswith('/'):
-                self.prefix = '/'
+            if str(path).startswith("/"):
+                self.prefix = "/"
             else:
-                self.prefix = ''
+                self.prefix = ""
 
     def __len__(self):
         return len(self.parts) - 1
@@ -492,4 +509,4 @@ class URIPathParents(Sequence):
     def __getitem__(self, idx):
         if idx < 0 or idx > len(self):
             raise IndexError(idx)
-        return self.cls(self.prefix + '/'.join(self.parts[:-idx - 1]))
+        return self.cls(self.prefix + "/".join(self.parts[: -idx - 1]))

@@ -6,13 +6,12 @@ from threading import local as _ThreadLocal
 from typing import Any, Callable, Iterator
 
 __all__ = [
-    'ThreadLocal',
-    'ProcessLocal',
+    "ThreadLocal",
+    "ProcessLocal",
 ]
 
 
 class ForkAware(ABC):
-
     def __init__(self):
         self._process_id = os.getpid()
         self._reset()
@@ -26,7 +25,6 @@ class ForkAware(ABC):
 
 
 def fork_aware(func):
-
     @wraps(func)
     def wrapper(self, *args, **kwargs):
         if self._process_id != os.getpid():
@@ -37,7 +35,6 @@ def fork_aware(func):
 
 
 class BaseLocal(ABC):
-
     @property
     @abstractmethod
     def _data(self) -> dict:
@@ -66,7 +63,6 @@ class BaseLocal(ABC):
 
 
 class ThreadLocal(ForkAware, BaseLocal):
-
     def _reset(self):
         self._local = _ThreadLocal()
 

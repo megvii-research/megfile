@@ -7,9 +7,9 @@ from megfile.utils import get_content_size, get_mode, get_name, is_readable, is_
 
 
 class ShadowHandler(Readable, Seekable, Writable):
-    ''' Create a File-Like Object, maintaining file pointer, to avoid misunderstanding the position when read / write / seek 
+    """Create a File-Like Object, maintaining file pointer, to avoid misunderstanding the position when read / write / seek
     It can be roughly regarded as the copy function of the file handle, but you need to be careful with the write handle, because no matter which copy will modify the data itself
-    '''
+    """
 
     def __init__(self, file_object: IO, intrusive: bool = True):
         self._file_object = file_object

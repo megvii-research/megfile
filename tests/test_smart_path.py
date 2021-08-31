@@ -47,7 +47,7 @@ def test_register_result():
     assert SmartPath._registered_protocols[StdioPath.protocol] == StdioPath
 
 
-@patch.object(SmartPath, '_create_pathlike')
+@patch.object(SmartPath, "_create_pathlike")
 def test_init(funcA):
     SmartPath(FS_TEST_ABSOLUTE_PATH)
     funcA.assert_called_once_with(FS_TEST_ABSOLUTE_PATH)
@@ -62,43 +62,71 @@ def test_init(funcA):
 
 def test_extract_protocol():
     assert SmartPath._extract_protocol(FS_TEST_ABSOLUTE_PATH) == (
-        FSPath.protocol, FS_TEST_ABSOLUTE_PATH)
+        FSPath.protocol,
+        FS_TEST_ABSOLUTE_PATH,
+    )
     assert SmartPath._extract_protocol(FS_TEST_ABSOLUTE_PATH_WITH_PROTOCOL) == (
-        FSPath.protocol, FS_TEST_ABSOLUTE_PATH)
+        FSPath.protocol,
+        FS_TEST_ABSOLUTE_PATH,
+    )
     assert SmartPath._extract_protocol(FS_TEST_RELATIVE_PATH) == (
-        FSPath.protocol, FS_TEST_RELATIVE_PATH)
+        FSPath.protocol,
+        FS_TEST_RELATIVE_PATH,
+    )
     assert SmartPath._extract_protocol(FS_TEST_RELATIVE_PATH_WITH_PROTOCOL) == (
-        FSPath.protocol, FS_TEST_RELATIVE_PATH)
+        FSPath.protocol,
+        FS_TEST_RELATIVE_PATH,
+    )
     assert SmartPath._extract_protocol(S3_TEST_PATH) == (
-        S3Path.protocol, S3_TEST_PATH_WITHOUT_PROTOCOL)
+        S3Path.protocol,
+        S3_TEST_PATH_WITHOUT_PROTOCOL,
+    )
     assert SmartPath._extract_protocol(HTTP_TEST_PATH) == (
-        HttpPath.protocol, HTTP_TEST_PATH_WITHOUT_PROTOCOL)
+        HttpPath.protocol,
+        HTTP_TEST_PATH_WITHOUT_PROTOCOL,
+    )
     assert SmartPath._extract_protocol(HTTPS_TEST_PATH) == (
-        HttpsPath.protocol, HTTPS_TEST_PATH_WITHOUT_PROTOCOL)
+        HttpsPath.protocol,
+        HTTPS_TEST_PATH_WITHOUT_PROTOCOL,
+    )
     assert SmartPath._extract_protocol(STDIO_TEST_PATH) == (
-        StdioPath.protocol, STDIO_TEST_PATH_WITHOUT_PROTOCOL)
+        StdioPath.protocol,
+        STDIO_TEST_PATH_WITHOUT_PROTOCOL,
+    )
 
     fs_path = FSPath(FS_TEST_ABSOLUTE_PATH)
     assert SmartPath._extract_protocol(fs_path) == (
-        FSPath.protocol, FS_TEST_ABSOLUTE_PATH)
+        FSPath.protocol,
+        FS_TEST_ABSOLUTE_PATH,
+    )
     fs_path = FSPath(FS_TEST_RELATIVE_PATH)
     assert SmartPath._extract_protocol(fs_path) == (
-        FSPath.protocol, FS_TEST_RELATIVE_PATH)
+        FSPath.protocol,
+        FS_TEST_RELATIVE_PATH,
+    )
     s3_path = S3Path(S3_TEST_PATH_WITHOUT_PROTOCOL)
     assert SmartPath._extract_protocol(s3_path) == (
-        S3Path.protocol, S3_TEST_PATH_WITHOUT_PROTOCOL)
+        S3Path.protocol,
+        S3_TEST_PATH_WITHOUT_PROTOCOL,
+    )
     http_path = HttpPath(HTTP_TEST_PATH_WITHOUT_PROTOCOL)
     assert SmartPath._extract_protocol(http_path) == (
-        HttpPath.protocol, HTTP_TEST_PATH_WITHOUT_PROTOCOL)
+        HttpPath.protocol,
+        HTTP_TEST_PATH_WITHOUT_PROTOCOL,
+    )
     https_path = HttpsPath(HTTPS_TEST_PATH_WITHOUT_PROTOCOL)
     assert SmartPath._extract_protocol(https_path) == (
-        HttpsPath.protocol, HTTPS_TEST_PATH_WITHOUT_PROTOCOL)
+        HttpsPath.protocol,
+        HTTPS_TEST_PATH_WITHOUT_PROTOCOL,
+    )
     stdio_path = StdioPath(STDIO_TEST_PATH_WITHOUT_PROTOCOL)
     assert SmartPath._extract_protocol(stdio_path) == (
-        StdioPath.protocol, STDIO_TEST_PATH_WITHOUT_PROTOCOL)
+        StdioPath.protocol,
+        STDIO_TEST_PATH_WITHOUT_PROTOCOL,
+    )
 
 
-@patch.object(SmartPath, '_extract_protocol')
+@patch.object(SmartPath, "_extract_protocol")
 def _create_pathlike(funcA):
     funcA.return_value = (S3Path.protocol, S3_TEST_PATH_WITHOUT_PROTOCOL)
     assert isinstance(SmartPath._create_pathlike("S3 Case"), S3Path)
@@ -131,43 +159,43 @@ def test_register():
     del SmartPath._registered_protocols["fake"]
 
 
-@patch.object(FSPath, 'unlink')
+@patch.object(FSPath, "unlink")
 def test_unlink(funcA):
     SmartPath(FS_TEST_ABSOLUTE_PATH).unlink(missing_ok=True)
     funcA.assert_called_once_with(missing_ok=True)
 
 
-@patch.object(FSPath, 'remove')
+@patch.object(FSPath, "remove")
 def test_remove(funcA):
     SmartPath(FS_TEST_ABSOLUTE_PATH).remove(missing_ok=True)
     funcA.assert_called_once_with(missing_ok=True)
 
 
-@patch.object(FSPath, 'replace')
+@patch.object(FSPath, "replace")
 def test_replace(funcA):
     SmartPath(FS_TEST_ABSOLUTE_PATH).replace(missing_ok=True)
     funcA.assert_called_once_with(missing_ok=True)
 
 
-@patch.object(FSPath, 'rename')
+@patch.object(FSPath, "rename")
 def test_rename(funcA):
     SmartPath(FS_TEST_ABSOLUTE_PATH).rename(missing_ok=True)
     funcA.assert_called_once_with(missing_ok=True)
 
 
-@patch.object(FSPath, 'stat')
+@patch.object(FSPath, "stat")
 def test_stat(funcA):
     SmartPath(FS_TEST_ABSOLUTE_PATH).stat()
     funcA.assert_called_once()
 
 
-@patch.object(FSPath, 'is_dir')
+@patch.object(FSPath, "is_dir")
 def test_is_dir(funcA):
     SmartPath(FS_TEST_ABSOLUTE_PATH).is_dir()
     funcA.assert_called_once()
 
 
-@patch.object(FSPath, 'is_file')
+@patch.object(FSPath, "is_file")
 def test_is_file(funcA):
     SmartPath(FS_TEST_ABSOLUTE_PATH).is_file()
     funcA.assert_called_once()
@@ -180,99 +208,98 @@ def test_is_symlink(mocker):
     funcA.assert_called_once_with(FS_TEST_ABSOLUTE_PATH)
 
 
-@patch.object(FSPath, 'access')
+@patch.object(FSPath, "access")
 def test_access(funcA):
     SmartPath(FS_TEST_ABSOLUTE_PATH).access(mode=Access.READ)
     SmartPath(FS_TEST_ABSOLUTE_PATH).access(mode=Access.WRITE)
     funcA.call_count == 2
 
 
-@patch.object(FSPath, 'exists')
+@patch.object(FSPath, "exists")
 def test_exists(funcA):
     SmartPath(FS_TEST_ABSOLUTE_PATH).exists()
     funcA.assert_called_once()
 
 
-@patch.object(FSPath, 'getmtime')
+@patch.object(FSPath, "getmtime")
 def test_getmtime(funcA):
     SmartPath(FS_TEST_ABSOLUTE_PATH).getmtime()
     funcA.assert_called_once()
 
 
-@patch.object(FSPath, 'getsize')
+@patch.object(FSPath, "getsize")
 def test_getsize(funcA):
     SmartPath(FS_TEST_ABSOLUTE_PATH).getsize()
     funcA.assert_called_once()
 
 
-@patch.object(S3Path, 'joinpath')
+@patch.object(S3Path, "joinpath")
 def test_path_join(funcA):
     SmartPath(S3_TEST_PATH).joinpath(S3_TEST_PATH)
     funcA.assert_called_once_with(S3_TEST_PATH)
 
 
-@patch.object(FSPath, 'makedirs')
+@patch.object(FSPath, "makedirs")
 def test_makedirs(funcA):
     SmartPath(FS_TEST_ABSOLUTE_PATH).makedirs(exist_ok=True)
     funcA.assert_called_once_with(exist_ok=True)
 
 
-@patch.object(FSPath, 'glob_stat')
+@patch.object(FSPath, "glob_stat")
 def test_glob_stat(funcA):
-    SmartPath(FS_TEST_ABSOLUTE_PATH).glob_stat(
-        recursive=False, missing_ok=False)
+    SmartPath(FS_TEST_ABSOLUTE_PATH).glob_stat(recursive=False, missing_ok=False)
     funcA.assert_called_once_with(recursive=False, missing_ok=False)
 
 
-@patch.object(FSPath, 'glob')
+@patch.object(FSPath, "glob")
 def test_glob(funcA):
     SmartPath(FS_TEST_ABSOLUTE_PATH).glob(recursive=False, missing_ok=False)
     funcA.assert_called_once_with(recursive=False, missing_ok=False)
 
 
-@patch.object(FSPath, 'iglob')
+@patch.object(FSPath, "iglob")
 def test_iglob(funcA):
     SmartPath(FS_TEST_ABSOLUTE_PATH).iglob(recursive=False, missing_ok=False)
     funcA.assert_called_once_with(recursive=False, missing_ok=False)
 
 
-@patch.object(FSPath, 'scan')
+@patch.object(FSPath, "scan")
 def test_scan(funcA):
     SmartPath(FS_TEST_ABSOLUTE_PATH).scan(missing_ok=False)
     funcA.assert_called_once_with(missing_ok=False)
 
 
-@patch.object(FSPath, 'scan_stat')
+@patch.object(FSPath, "scan_stat")
 def test_scan_stat(funcA):
     SmartPath(FS_TEST_ABSOLUTE_PATH).scan_stat(missing_ok=False)
     funcA.assert_called_once_with(missing_ok=False)
 
 
-@patch.object(FSPath, 'scandir')
+@patch.object(FSPath, "scandir")
 def test_scandir(funcA):
     SmartPath(FS_TEST_ABSOLUTE_PATH).scandir()
     funcA.assert_called_once_with()
 
 
-@patch.object(S3Path, 'listdir')
+@patch.object(S3Path, "listdir")
 def test_listdir(funcA):
     SmartPath(S3_TEST_PATH).listdir()
     funcA.assert_called_once()
 
 
-@patch.object(FSPath, 'walk')
+@patch.object(FSPath, "walk")
 def test_walk(funcA):
     SmartPath(FS_TEST_ABSOLUTE_PATH).walk()
     funcA.assert_called_once()
 
 
-@patch.object(FSPath, 'load')
+@patch.object(FSPath, "load")
 def test_load_from(funcA):
     SmartPath(FS_TEST_ABSOLUTE_PATH).load()
     funcA.assert_called_once()
 
 
-@patch.object(FSPath, 'md5')
+@patch.object(FSPath, "md5")
 def test_md5(funcA):
     SmartPath(FS_TEST_ABSOLUTE_PATH).md5()
     funcA.assert_called_once()

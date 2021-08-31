@@ -12,16 +12,19 @@ try:
 except ImportError:  # pragma: no cover
     raise ImportError(
         inspect.cleandoc(
-            '''
+            """
             Failed to import fuse, the following steps show you how to install it:
 
                 sudo apt install -y fuse libfuse-dev
                 pip3 install fuse-python --user
-            '''))
+            """
+        )
+    )
 
-if not hasattr(fuse, '__version__'):  # pragma: no cover
+if not hasattr(fuse, "__version__"):  # pragma: no cover
     raise RuntimeError(
-        "your fuse-py doesn't know of fuse.__version__, probably it's too old.")
+        "your fuse-py doesn't know of fuse.__version__, probably it's too old."
+    )
 
 fuse.fuse_python_api = (0, 2)
 
@@ -37,18 +40,17 @@ def translate_error_to_errno(error):  # pragma: no cover
 
 
 def translate_path(path):  # pragma: no cover
-    slices = path.split('/')
-    assert slices[0] == '', path
-    if slices[1].endswith(':'):
-        return slices[1] + '//' + '/'.join(slices[2:])
+    slices = path.split("/")
+    assert slices[0] == "", path
+    if slices[1].endswith(":"):
+        return slices[1] + "//" + "/".join(slices[2:])
     return path
 
 
 class FakeFS(fuse.Fuse):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.mountpoint = os.path.join('/tmp/refile/fake', str(uuid4()))
+        self.mountpoint = os.path.join("/tmp/refile/fake", str(uuid4()))
         self.started = False
         self.files = {}
 
@@ -80,7 +82,7 @@ class FakeFS(fuse.Fuse):
             return -errno.EACCES
 
         if path not in self.files:
-            self.files[path] = smart_open(path, 'rb')
+            self.files[path] = smart_open(path, "rb")
 
     def release(self, path, flags):  # pragma: no cover
         path = translate_path(path)
@@ -103,7 +105,7 @@ class FakeFS(fuse.Fuse):
         if self.started:
             return
         os.makedirs(self.mountpoint)
-        self.parse([self.mountpoint, '-f'], errex=1)
+        self.parse([self.mountpoint, "-f"], errex=1)
         self.daemon = Thread(target=self.main, daemon=True)
         self.daemon.start()
         atexit.register(self.stop)
@@ -116,9 +118,9 @@ class FakeFS(fuse.Fuse):
             file.close()
         self.files = {}
         try:
-            subprocess.check_call(['fusermount', '-u', self.mountpoint])
+            subprocess.check_call(["fusermount", "-u", self.mountpoint])
         except FileExistsError:
-            subprocess.check_call(['sudo', 'umount', self.mountpoint])
+            subprocess.check_call(["sudo", "umount", self.mountpoint])
         os.rmdir(self.mountpoint)
         atexit.unregister(self.stop)
         self.started = False

@@ -1,6 +1,6 @@
 import sys
 
-__all__ = ['PathLike', 'fspath']
+__all__ = ["PathLike", "fspath"]
 
 if sys.version_info < (3, 6):  # pragma: no cover
 
@@ -10,7 +10,7 @@ if sys.version_info < (3, 6):  # pragma: no cover
         """os.fspath replacement, useful to point out when we should replace it by the
         real function once we drop py35.
         """
-        if hasattr(path, '__fspath__'):
+        if hasattr(path, "__fspath__"):
             return path.__fspath__()
         elif isinstance(path, PathLike):
             return str(path)
@@ -19,8 +19,9 @@ if sys.version_info < (3, 6):  # pragma: no cover
         elif isinstance(path, str):
             return path
         raise TypeError(
-            'expected str, bytes or PathLike object, not %s' %
-            type(path).__name__)
+            "expected str, bytes or PathLike object, not %s" % type(path).__name__
+        )
+
 
 else:
     from os import PathLike

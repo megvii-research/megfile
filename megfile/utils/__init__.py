@@ -3,7 +3,16 @@ import math
 import os
 from copy import copy
 from functools import wraps
-from io import BufferedIOBase, BufferedRandom, BufferedReader, BufferedWriter, BytesIO, StringIO, TextIOBase, TextIOWrapper
+from io import (
+    BufferedIOBase,
+    BufferedRandom,
+    BufferedReader,
+    BufferedWriter,
+    BytesIO,
+    StringIO,
+    TextIOBase,
+    TextIOWrapper,
+)
 from multiprocessing.util import register_after_fork
 from threading import RLock as _RLock
 from threading import local
@@ -13,10 +22,10 @@ from megfile.utils.mutex import ProcessLocal, ThreadLocal
 
 
 def get_content_size(fileobj: IO, *, intrusive: bool = False) -> int:
-    ''' Get size of File-Like Object
+    """Get size of File-Like Object
 
     The File-Like Object must be seekable, otherwise raise IOError
-    '''
+    """
     if isinstance(fileobj, (BytesIO, StringIO)):
         return len(fileobj.getvalue())
 
@@ -26,8 +35,8 @@ def get_content_size(fileobj: IO, *, intrusive: bool = False) -> int:
             file = file.buffer
         if isinstance(file, BufferedIOBase):
             file = file.raw
-        if hasattr(file, '_content_size'):
-            return getattr(file, '_content_size')
+        if hasattr(file, "_content_size"):
+            return getattr(file, "_content_size")
 
     offset = fileobj.tell()
     if not is_seekable(fileobj) and is_writable(fileobj):
@@ -41,33 +50,33 @@ def get_content_size(fileobj: IO, *, intrusive: bool = False) -> int:
 
 
 def is_seekable(fileobj: IO) -> bool:
-    ''' Test if File-Like Object is seekable'''
-    if hasattr(fileobj, 'seekable'):
+    """Test if File-Like Object is seekable"""
+    if hasattr(fileobj, "seekable"):
         try:
             return fileobj.seekable()
         except Exception:
             return False
-    return hasattr(fileobj, 'seek')
+    return hasattr(fileobj, "seek")
 
 
 def is_readable(fileobj: IO) -> bool:
-    ''' Test if File-Like Object is readable'''
-    if hasattr(fileobj, 'readable'):
+    """Test if File-Like Object is readable"""
+    if hasattr(fileobj, "readable"):
         try:
             return fileobj.readable()
         except Exception:
             return False
-    return hasattr(fileobj, 'read')
+    return hasattr(fileobj, "read")
 
 
 def is_writable(fileobj: IO) -> bool:
-    ''' Test if File-Like Object is writable'''
-    if hasattr(fileobj, 'writable'):
+    """Test if File-Like Object is writable"""
+    if hasattr(fileobj, "writable"):
         try:
             return fileobj.writable()
         except Exception:
             return False
-    return hasattr(fileobj, 'write')
+    return hasattr(fileobj, "write")
 
 
 def get_content_offset(start: Optional[int], stop: Optional[int], size: int):
@@ -76,29 +85,30 @@ def get_content_offset(start: Optional[int], stop: Optional[int], size: int):
     if stop is None or stop < 0 or start < 0:
         start, stop, _ = slice(start, stop).indices(size)
     if stop < start:
-        raise ValueError('read length must be positive')
+        raise ValueError("read length must be positive")
     return start, stop
 
 
 def get_name(fileobj, default=None):
-    return getattr(fileobj, 'name', default or repr(fileobj))
+    return getattr(fileobj, "name", default or repr(fileobj))
 
 
-def get_mode(fileobj, default='r'):
+def get_mode(fileobj, default="r"):
     if isinstance(fileobj, BytesIO):
-        return 'rb+'
+        return "rb+"
     elif isinstance(fileobj, StringIO):
-        return 'r+'
-    return getattr(fileobj, 'mode', default)
+        return "r+"
+    return getattr(fileobj, "mode", default)
 
 
 def shadow_copy(fileobj: IO, intrusive: bool = True, buffered: bool = True):
-    ''' Create a File-Like Object, maintaining file pointer, to avoid misunderstanding the position when read / write / seek
+    """Create a File-Like Object, maintaining file pointer, to avoid misunderstanding the position when read / write / seek
 
     :param intrusive: If is intrusive. If True, move file pointer to the original position after every read / write / seek. If False, then not.
     :param verbose: If True, print log when read / write / seek
-    '''
+    """
     from megfile.lib.shadow_handler import ShadowHandler
+
     result = ShadowHandler(fileobj, intrusive=intrusive)
     mode = get_mode(fileobj)
     if buffered and "b" in mode:
@@ -111,22 +121,24 @@ def shadow_copy(fileobj: IO, intrusive: bool = True, buffered: bool = True):
     return result
 
 
-def lazy_open(
-        path: str, mode: str, open_func: Optional[Callable] = None, **options):
-    ''' Create a File-Like Object, maintaining file pointer, to open a file in lazy mode
+def lazy_open(path: str, mode: str, open_func: Optional[Callable] = None, **options):
+    """Create a File-Like Object, maintaining file pointer, to open a file in lazy mode
 
     :param intrusive: If is intrusive. If True, move file pointer to the original position after every read / write / seek. If False, then not.
     :param verbose: If True, print log when read / write / seek
-    '''
+    """
     from megfile.lib.lazy_handler import LazyHandler
+
     if open_func is None:
         from megfile.smart import smart_open
+
         open_func = smart_open
     return LazyHandler(path, mode, open_func=open_func, **options)
 
 
 def patch_rlimit():
     import resource
+
     soft, hard = resource.getrlimit(resource.RLIMIT_NOFILE)
     resource.setrlimit(resource.RLIMIT_NOFILE, (hard, hard))
 
@@ -137,32 +149,33 @@ process_local = ProcessLocal()
 
 def combine(file_objects, name):
     from megfile.lib.combine_reader import CombineReader
+
     return CombineReader(file_objects, name)
 
 
 def get_binary_mode(mode: str) -> str:
-    '''Replace mode parameter in open() with corresponding binary mode'''
+    """Replace mode parameter in open() with corresponding binary mode"""
     # TODO: some bugs in s3_cached_open, like mode should be rb+ rather than r+b, results in the slightly complicated code logic
-    if 't' in mode:
+    if "t" in mode:
         # rt / wt / rt+ => rb / wb / rb+
-        return mode.replace('t', 'b')
-    elif 'b' not in mode:
+        return mode.replace("t", "b")
+    elif "b" not in mode:
         # r / w / r+ => rb / wb / rb+
-        return mode[:1] + 'b' + mode[1:]
+        return mode[:1] + "b" + mode[1:]
     # rb / wb / rb+ => rb / wb / rb+
     return mode
 
 
 def binary_open(open_func):
-    '''
+    """
     Decorator:
     Output according to user-setting mode while calling Open
-    '''
+    """
 
     @wraps(open_func)
-    def wrapper(path, mode: str = 'rb', **kwargs):
+    def wrapper(path, mode: str = "rb", **kwargs):
         fileobj = open_func(path, get_binary_mode(mode), **kwargs)
-        if 'b' not in mode:
+        if "b" not in mode:
             fileobj = TextIOWrapper(fileobj)
             fileobj.mode = mode
         return fileobj
@@ -171,18 +184,18 @@ def binary_open(open_func):
 
 
 def get_human_size(size_bytes: float) -> str:
-    '''Get human-readable size, e.g. `100MB`'''
-    assert size_bytes >= 0, 'negative size: %r' % size_bytes
+    """Get human-readable size, e.g. `100MB`"""
+    assert size_bytes >= 0, "negative size: %r" % size_bytes
     if size_bytes == 0:
-        return '0 B'
-    size_name = ('B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB')
+        return "0 B"
+    size_name = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
     index = int(math.floor(math.log(size_bytes, 1024)))
     base = math.pow(1024, index)
     if base == 1:
         size = size_bytes
     else:
         size = round(size_bytes / base, 2)
-    return '%s %s' % (size, size_name[index])
+    return "%s %s" % (size, size_name[index])
 
 
 def necessary_params(func: Callable, **kwargs):

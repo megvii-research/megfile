@@ -7,24 +7,28 @@ from math import ceil
 from statistics import mean
 from typing import Optional
 
-from megfile.errors import S3FileChangedError, patch_method, raise_s3_error, s3_should_retry
+from megfile.errors import (
+    S3FileChangedError,
+    patch_method,
+    raise_s3_error,
+    s3_should_retry,
+)
 from megfile.interfaces import Readable, Seekable
 from megfile.utils import get_human_size, process_local
 
-DEFAULT_BLOCK_SIZE = 8 * 2**20  # 8MB
+DEFAULT_BLOCK_SIZE = 8 * 2 ** 20  # 8MB
 DEFAULT_BLOCK_CAPACITY = 16
 GLOBAL_MAX_WORKERS = 128
 
-BACKOFF_INITIAL = 64 * 2**20  # 64MB
+BACKOFF_INITIAL = 64 * 2 ** 20  # 64MB
 BACKOFF_FACTOR = 4
 
-NEWLINE = ord('\n')
+NEWLINE = ord("\n")
 
 _logger = get_logger(__name__)
 
 
 class SeekRecord:
-
     def __init__(self, seek_index: int):
         self.seek_index = seek_index
         self.seek_count = 0
@@ -32,27 +36,30 @@ class SeekRecord:
 
 
 class S3PrefetchReader(Readable, Seekable):
-    '''
+    """
     Reader to fast read the s3 content. This will divide the file content into equal parts of block_size size, and will use LRU to cache at most block_capacity blocks in memory.
     open(), seek() and read() will trigger prefetch read. The prefetch will cached block_forward blocks of data from offset position (the position after reading if the called function is read).
-    '''
+    """
 
     def __init__(
-            self,
-            bucket: str,
-            key: str,
-            *,
-            s3_client,
-            block_size: int = DEFAULT_BLOCK_SIZE,
-            block_capacity: int = DEFAULT_BLOCK_CAPACITY,
-            block_forward: Optional[int] = None,
-            max_retries: int = 10,
-            max_workers: Optional[int] = None):
+        self,
+        bucket: str,
+        key: str,
+        *,
+        s3_client,
+        block_size: int = DEFAULT_BLOCK_SIZE,
+        block_capacity: int = DEFAULT_BLOCK_CAPACITY,
+        block_forward: Optional[int] = None,
+        max_retries: int = 10,
+        max_workers: Optional[int] = None
+    ):
 
         block_forward = self._get_block_forward(block_capacity, block_forward)
 
-        assert block_capacity > block_forward, 'block_capacity should greater than block_forward, got: block_capacity=%s, block_forward=%s' % (
-            block_capacity, block_forward)
+        assert block_capacity > block_forward, (
+            "block_capacity should greater than block_forward, got: block_capacity=%s, block_forward=%s"
+            % (block_capacity, block_forward)
+        )
 
         self._bucket = bucket
         self._key = key
@@ -61,8 +68,8 @@ class S3PrefetchReader(Readable, Seekable):
 
         with raise_s3_error(self.name):
             data = self._client.head_object(Bucket=self._bucket, Key=self._key)
-            self._content_size = data['ContentLength']
-            self._content_etag = data['ETag']
+            self._content_size = data["ContentLength"]
+            self._content_etag = data["ETag"]
             self._content_info = data
 
         self._block_size = block_size
@@ -79,18 +86,18 @@ class S3PrefetchReader(Readable, Seekable):
         self._is_global_executor = False
         if max_workers is None:
             self._executor = process_local(
-                'S3PrefetchReader.executor',
+                "S3PrefetchReader.executor",
                 ThreadPoolExecutor,
-                max_workers=GLOBAL_MAX_WORKERS)
+                max_workers=GLOBAL_MAX_WORKERS,
+            )
             self._is_global_executor = True
         else:
             self._executor = ThreadPoolExecutor(max_workers=max_workers)
         self._seek_buffer(0)
 
-        _logger.debug('open file: %r, mode: %s' % (self.name, self.mode))
+        _logger.debug("open file: %r, mode: %s" % (self.name, self.mode))
 
-    def _get_block_forward(
-            self, block_capacity: int, block_forward: Optional[int]):
+    def _get_block_forward(self, block_capacity: int, block_forward: Optional[int]):
         self._is_auto_scaling = block_forward is None
         if block_forward is None:
             block_forward = block_capacity - 1
@@ -101,11 +108,11 @@ class S3PrefetchReader(Readable, Seekable):
 
     @property
     def name(self) -> str:
-        return 's3://%s/%s' % (self._bucket, self._key)
+        return "s3://%s/%s" % (self._bucket, self._key)
 
     @property
     def mode(self) -> str:
-        return 'rb'
+        return "rb"
 
     def tell(self) -> int:
         return self._offset
@@ -118,19 +125,19 @@ class S3PrefetchReader(Readable, Seekable):
     def _offset(self, value: int):
         if value > self._backoff_size:
             _logger.debug(
-                'reading file: %r, current offset / total size: %s / %s' % (
-                    self.name, get_human_size(value),
-                    get_human_size(self._content_size)))
+                "reading file: %r, current offset / total size: %s / %s"
+                % (self.name, get_human_size(value), get_human_size(self._content_size))
+            )
         while value > self._backoff_size:
             self._backoff_size *= BACKOFF_FACTOR
         self.__offset = value
 
     def seek(self, cookie: int, whence: int = os.SEEK_SET) -> int:
-        '''
+        """
         If target offset is longer than file size, set offset to content_size
-        '''
+        """
         if self.closed:
-            raise IOError('file already closed: %r' % self.name)
+            raise IOError("file already closed: %r" % self.name)
 
         if whence == os.SEEK_CUR:
             target_offset = self._offset + cookie
@@ -139,7 +146,7 @@ class S3PrefetchReader(Readable, Seekable):
         elif whence == os.SEEK_SET:
             target_offset = cookie
         else:
-            raise ValueError('invalid whence: %r' % whence)
+            raise ValueError("invalid whence: %r" % whence)
 
         if target_offset == self._offset:
             return target_offset
@@ -151,33 +158,32 @@ class S3PrefetchReader(Readable, Seekable):
         return self._offset
 
     def read(self, size: Optional[int] = None) -> bytes:
-        '''Read at most size data, size is at least 0
+        """Read at most size data, size is at least 0
 
         .. note ::
 
             This method is blocked
 
             b'' will be returned when the read to the end of file
-        '''
+        """
         if self.closed:
-            raise IOError('file already closed: %r' % self.name)
+            raise IOError("file already closed: %r" % self.name)
 
         if len(self._seek_history) > 0:
             self._seek_history[-1].read_count += 1
 
         if self._offset >= self._content_size:
-            return b''
+            return b""
 
         if size is None:
             size = self._content_size - self._offset
         else:
-            assert size >= 0, 'size should greater than 0, got: %r' % size
+            assert size >= 0, "size should greater than 0, got: %r" % size
             size = min(size, self._content_size - self._offset)
 
         if self._block_forward == 1:
             block_index = self._offset // self._block_size
-            mean_read_count = mean(
-                item.read_count for item in self._seek_history)
+            mean_read_count = mean(item.read_count for item in self._seek_history)
             if block_index not in self._futures and mean_read_count < 3:
                 # No using LRP will be better if read() are always called less than 3 times after seek()
                 return self._read(size)
@@ -198,22 +204,22 @@ class S3PrefetchReader(Readable, Seekable):
         return buffer.getvalue()
 
     def readline(self, size: Optional[int] = None):
-        '''
+        """
         According to the definition of python IOBase, readline() of BinaryIO will read the content util the first b'\n'
-        '''
+        """
         if self.closed:
-            raise IOError('file already closed: %r' % self.name)
+            raise IOError("file already closed: %r" % self.name)
 
         if len(self._seek_history) > 0:
             self._seek_history[-1].read_count += 1
 
         if self._offset >= self._content_size:
-            return b''
+            return b""
 
         if size is None:
             size = self._content_size - self._offset
         else:
-            assert size >= 0, 'size should greater than 0, got: %r' % size
+            assert size >= 0, "size should greater than 0, got: %r" % size
             size = min(size, self._content_size - self._offset)
 
         data = self._buffer.readline(size)
@@ -235,17 +241,18 @@ class S3PrefetchReader(Readable, Seekable):
 
     def _read(self, size: int):
         if size == 0 or self._offset >= self._content_size:
-            return b''
+            return b""
 
-        range_str = 'bytes=%d-%d' % (self._offset, self._offset + size - 1)
+        range_str = "bytes=%d-%d" % (self._offset, self._offset + size - 1)
         data = self._client.get_object(
-            Bucket=self._bucket, Key=self._key, Range=range_str)['Body'].read()
+            Bucket=self._bucket, Key=self._key, Range=range_str
+        )["Body"].read()
         self.seek(size, os.SEEK_CUR)
         return data
 
     def readinto(self, buffer: bytearray) -> int:
         if self.closed:
-            raise IOError('file already closed: %r' % self.name)
+            raise IOError("file already closed: %r" % self.name)
 
         if self._offset >= self._content_size:
             return 0
@@ -254,7 +261,7 @@ class S3PrefetchReader(Readable, Seekable):
         size = min(size, self._content_size - self._offset)
 
         data = self._buffer.read(size)
-        buffer[:len(data)] = data
+        buffer[: len(data)] = data
         if len(data) == size:
             self._offset += len(data)
             return size
@@ -263,7 +270,7 @@ class S3PrefetchReader(Readable, Seekable):
         while offset < size:
             remain_size = size - offset
             data = self._next_buffer.read(remain_size)
-            buffer[offset:offset + len(data)] = data
+            buffer[offset : offset + len(data)] = data
             offset += len(data)
 
         self._offset += offset
@@ -322,29 +329,33 @@ class S3PrefetchReader(Readable, Seekable):
             history.append(SeekRecord(index))
             self._seek_history = history
             self._block_forward = max(
-                (self._block_capacity - 1) // len(self._seek_history), 1)
+                (self._block_capacity - 1) // len(self._seek_history), 1
+            )
 
         self._cached_offset = offset
         self._block_index = index
 
     def _fetch_buffer(self, index: int) -> BytesIO:
-        range_str = 'bytes=%d-%d' % (
-            index * self._block_size, (index + 1) * self._block_size - 1)
+        range_str = "bytes=%d-%d" % (
+            index * self._block_size,
+            (index + 1) * self._block_size - 1,
+        )
 
         def fetch_bytes() -> bytes:
             data = self._client.get_object(
-                Bucket=self._bucket, Key=self._key, Range=range_str)
-            etag = data.get('ETag', None)
+                Bucket=self._bucket, Key=self._key, Range=range_str
+            )
+            etag = data.get("ETag", None)
             if etag is not None and etag != self._content_etag:
                 raise S3FileChangedError(
-                    'File changed: %r, etag before: %s, after: %s' %
-                    (self.name, self._content_info, data))
-            return data['Body'].read()
+                    "File changed: %r, etag before: %s, after: %s"
+                    % (self.name, self._content_info, data)
+                )
+            return data["Body"].read()
 
         fetch_bytes = patch_method(
-            fetch_bytes,
-            max_retries=self._max_retries,
-            should_retry=s3_should_retry)
+            fetch_bytes, max_retries=self._max_retries, should_retry=s3_should_retry
+        )
 
         with raise_s3_error(self.name):
             return BytesIO(fetch_bytes())
@@ -361,7 +372,7 @@ class S3PrefetchReader(Readable, Seekable):
         self._futures.cleanup(self._block_capacity)
 
     def _close(self):
-        _logger.debug('close file: %r' % self.name)
+        _logger.debug("close file: %r" % self.name)
 
         if not self._is_global_executor:
             self._executor.shutdown()
@@ -369,7 +380,6 @@ class S3PrefetchReader(Readable, Seekable):
 
 
 class LRUCacheFutureManager(OrderedDict):
-
     def __init__(self):
         super().__init__()
 

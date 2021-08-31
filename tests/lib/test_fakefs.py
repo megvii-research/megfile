@@ -7,10 +7,10 @@ from megfile.interfaces import StatResult
 from megfile.lib.fakefs import FakefsCacher
 from tests.test_s3 import s3_empty_client
 
-BUCKET = 'bucket'
-KEY = 'key'
+BUCKET = "bucket"
+KEY = "key"
 
-CONTENT = b'block0 block1 block2 block3 block4 '
+CONTENT = b"block0 block1 block2 block3 block4 "
 
 
 @pytest.fixture
@@ -24,14 +24,14 @@ def client(s3_empty_client):
 def test_fakefs_stat(client):
     from megfile.lib._fakefs import fakefs
 
-    cacher = FakefsCacher('s3://bucket/key')
+    cacher = FakefsCacher("s3://bucket/key")
 
     with cacher as path:
         assert path.startswith(fakefs.mountpoint)
-        assert subprocess.check_output(['cat', path]) == CONTENT
+        assert subprocess.check_output(["cat", path]) == CONTENT
 
     with pytest.raises(IsADirectoryError):
-        path = os.path.join(fakefs.mountpoint, 'notExist')
+        path = os.path.join(fakefs.mountpoint, "notExist")
         with open(path) as file:
             pass
 

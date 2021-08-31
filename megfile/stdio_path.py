@@ -17,7 +17,7 @@ class StdioPath(BaseURIPath):
         binary_mode = get_binary_mode(mode)
         fileobj = stdio_open(self.path_with_protocol, binary_mode)
 
-        if 'b' not in mode:
+        if "b" not in mode:
             fileobj = io.TextIOWrapper(fileobj)  # pytype: disable=wrong-arg-types
             fileobj.mode = mode
 
