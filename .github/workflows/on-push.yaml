@@ -1,5 +1,5 @@
 name: build
-on: 
+on:
   workflow_dispatch:
   push:
 
@@ -10,7 +10,7 @@ jobs:
       matrix:
         os: [ubuntu-18.04]
         python-version: [3.5, 3.6, 3.7, 3.8, 3.9]
-  
+
     steps:
       - name: Checkout Github Repository
         uses: actions/checkout@v2
@@ -30,7 +30,7 @@ jobs:
       - name: Install environment
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends gosu build-essential pkg-config libgl1-mesa-glx libglib2.0-0 libfuse-dev fuse 
+          sudo apt-get install -y --no-install-recommends build-essential pkg-config libgl1-mesa-glx libglib2.0-0 libfuse-dev fuse
       - name: Install package dependencies
         if: steps.pip-cache.outputs.cache-hit != 'true'
         run: |
