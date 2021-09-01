@@ -1721,6 +1721,25 @@ def test_s3_iglob(truncating_client):
         s3.s3_iglob('s3://')
 
 
+def test_group_s3path_by_bucket(truncating_client):
+    assert sorted(
+        s3._group_s3path_by_bucket(
+            r"s3://*ForGlobTest{1,2/a,2/1/a}/1.jso?,")) == [
+                's3://bucketForGlobTest2/{1/a,a}/1.jso?,'
+            ]
+
+    assert sorted(
+        s3._group_s3path_by_bucket(
+            r's3://{emptybucket,bucket}ForGlob{Test,Test2,Test3}/c/a/a')) == [
+                's3://bucketForGlobTest/c/a/a',
+                's3://bucketForGlobTest2/c/a/a',
+                's3://bucketForGlobTest3/c/a/a',
+                's3://emptybucketForGlobTest/c/a/a',
+                's3://emptybucketForGlobTest2/c/a/a',
+                's3://emptybucketForGlobTest3/c/a/a',
+            ]
+
+
 def test_s3_glob_stat(truncating_client, mocker):
     mocker.patch('megfile.s3.StatResult', side_effect=FakeStatResult)
 
