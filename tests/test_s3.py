@@ -16,7 +16,7 @@ from moto import mock_s3
 from megfile import s3, smart
 from megfile.errors import UnknownError, UnsupportedError, translate_s3_error
 from megfile.interfaces import Access, FileEntry, StatResult
-from megfile.s3 import MEGFILE_MD5_HEADER
+from megfile.s3 import content_md5_header
 
 from . import Any, FakeStatResult, Now
 
@@ -636,7 +636,7 @@ def test_s3_upload(fs, s3_empty_client):
     body = s3_empty_client.get_object(
         Bucket='bucket', Key='result')['Body'].read().decode('utf-8')
     md5 = s3_empty_client.head_object(
-        Bucket='bucket', Key='result')['Metadata'][MEGFILE_MD5_HEADER]
+        Bucket='bucket', Key='result')['Metadata'][content_md5_header]
 
     assert body == 'value'
     assert md5 == '2063c1608d6e0baf80249c42e2be5804'  # md5('value').hexdigest()
@@ -2228,7 +2228,7 @@ def test_s3_getmd5(s3_empty_client):
     s3_url = 's3://bucket/key'
     s3_empty_client.create_bucket(Bucket='bucket')
     s3_empty_client.put_object(
-        Bucket='bucket', Key='key', Metadata={MEGFILE_MD5_HEADER: 'md5'})
+        Bucket='bucket', Key='key', Metadata={content_md5_header: 'md5'})
 
     assert s3.s3_getmd5(s3_url) == 'md5'
 

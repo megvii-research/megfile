@@ -30,8 +30,6 @@ from megfile.lib.s3_prefetch_reader import DEFAULT_BLOCK_SIZE, S3PrefetchReader
 from megfile.lib.s3_share_cache_reader import S3ShareCacheReader
 from megfile.utils import get_binary_mode, get_content_offset, is_readable, thread_local
 
-MEGFILE_MD5_HEADER = 'megfile-content-md5'
-
 # Monkey patch for smart_open
 _smart_open_parameters = inspect.signature(smart_open.s3.open).parameters
 if 'resource_kwargs' in _smart_open_parameters:
@@ -113,6 +111,7 @@ __all__ = [
 
 _logger = get_logger(__name__)
 
+content_md5_header = 'megfile-content-md5'
 endpoint_url = 'https://s3.amazonaws.com'
 
 
@@ -629,7 +628,7 @@ def s3_upload(
                 Bucket=dst_bucket,
                 Key=dst_key,
                 ExtraArgs={'Metadata': {
-                    MEGFILE_MD5_HEADER: md5,
+                    content_md5_header: md5,
                 }},
                 Callback=callback)
 
@@ -1472,8 +1471,8 @@ def s3_getmd5(s3_url: MegfilePathLike) -> Optional[str]:
     # https://github.com/boto/botocore/issues/1963
     metadata = dict(
         (key.lower(), value) for key, value in resp['Metadata'].items())
-    if MEGFILE_MD5_HEADER in metadata:
-        return metadata[MEGFILE_MD5_HEADER]
+    if content_md5_header in metadata:
+        return metadata[content_md5_header]
     return None
 
 
