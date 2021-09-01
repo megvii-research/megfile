@@ -35,7 +35,6 @@ __all__ = [
     'smart_load_content',
     'smart_save_content',
     'smart_load_from',
-    'smart_load_image_metadata',
     'smart_load_text',
     'smart_save_text',
     'smart_makedirs',
@@ -60,10 +59,7 @@ __all__ = [
     'smart_abspath',
     'smart_isabs',
     'register_copy_func',
-    'IMAGE_EXTNAMES',
 ]
-
-IMAGE_EXTNAMES = [".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".tif", ".webp"]
 
 
 def smart_isdir(path: MegfilePathLike) -> bool:
