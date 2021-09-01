@@ -1,4 +1,5 @@
 from io import BufferedReader
+from logging import getLogger as get_logger
 from typing import Iterable
 from urllib.parse import urlsplit
 
@@ -16,6 +17,8 @@ __all__ = [
     'http_open',
 ]
 
+_logger = get_logger(__name__)
+
 max_retries = 10
 
 
@@ -29,17 +32,23 @@ def get_http_session(
             response.raise_for_status()
         return response
 
+    def before_callback(method, url, **kwargs):
+        _logger.debug(
+            'send http request: %s %r, with parameters: %s', method, url,
+            kwargs)
+
     session.request = patch_method(
         session.request,
         max_retries=max_retries,
         should_retry=http_should_retry,
+        before_callback=before_callback,
         after_callback=after_callback,
     )
     return session
 
 
 def is_http(path: MegfilePathLike) -> bool:
-    '''http scheme definition: http(s)://<url>
+    '''http scheme definition: http(s)://domain/path
 
     :param path: Path to be tested
     :returns: True if path is http url, else False
@@ -62,9 +71,9 @@ def http_open(http_url: str, mode: str = 'rb') -> BufferedReader:
 
         Essentially, it reads data of http(s) url to memory by requests, and then return BytesIO to user.
 
-    :param http_url: http(s) url, http(s)://<url>
+    :param http_url: http(s) url, e.g.: http(s)://domain/path
     :param mode: Only supports 'rb' mode now
-    :return: BytesIO initialized with http(s) data 
+    :return: BytesIO initialized with http(s) data
     '''
     if mode not in ('rb',):
         raise ValueError('unacceptable mode: %r' % mode)
