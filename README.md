@@ -72,10 +72,20 @@ pip3 install "megfile~=0.0"
 
 megfile can be installed from source
 ```bash
-git git@github.com:megvii-research/megfile.git
+git clone git@github.com:megvii-research/megfile.git
 cd megfile
 pip3 install -U .
 ```
+
+### Development Environment
+
+```bash
+git clone git@github.com:megvii-research/megfile.git
+cd megfile
+sudo apt install libgl1-mesa-glx libfuse-dev fuse
+pip3 install -r requirements.txt -r requirements-dev.txt
+```
+
 
 ## How to Contribute
 * We welcome everyone to contribute code to the `megfile` project, but the contributed code needs to meet the following conditions as much as possible:
