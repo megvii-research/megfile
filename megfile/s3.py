@@ -960,6 +960,9 @@ def _s3_glob_stat_single_path(
         s3_pathname: MegfilePathLike,
         recursive: bool = True,
         missing_ok: bool = True) -> Iterator[FileEntry]:
+    if not recursive:
+        # If not recursive, replace ** with *
+        s3_pathname = re.sub(r'\*{2,}', '*', s3_pathname)
     top_dir, wildcard_part = _s3_split_magic(s3_pathname)
     search_dir = wildcard_part.endswith('/')
 
@@ -972,11 +975,15 @@ def _s3_glob_stat_single_path(
             if s3_isdir(_s3_pathname):
                 yield FileEntry(_s3_pathname, StatResult(isdir=True))
             return
-
-        # patch glob
-        if not recursive:
-            # If not recursive, replace ** with *
-            _s3_pathname = re.sub(r'\*{2,}', '*', _s3_pathname)
+        else:
+            if '**' in wildcard_part:
+                delimiter = ''
+            elif search_dir and len(wildcard_part.split('/')) == 2:
+                delimiter = '/'
+            elif not search_dir and len(wildcard_part.split('/')) == 1:
+                delimiter = '/'
+            else:
+                delimiter = ''
 
         dirnames = set()
         pattern = re.compile(translate(_s3_pathname))
@@ -984,11 +991,22 @@ def _s3_glob_stat_single_path(
         prefix = _become_prefix(key)
         client = get_s3_client()
         with raise_s3_error(_s3_pathname):
-            for resp in _list_objects_recursive(client, bucket, prefix):
+            for resp in _list_objects_recursive(client, bucket, prefix,
+                                                delimiter):
                 for content in resp.get('Contents', []):
                     path = s3_path_join('s3://', bucket, content['Key'])
                     if not search_dir and pattern.match(path):
                         yield FileEntry(path, _make_stat(content))
+                    dirname = os.path.dirname(path)
+                    while dirname not in dirnames and dirname != top_dir:
+                        dirnames.add(dirname)
+                        path = dirname + '/' if search_dir else dirname
+                        if pattern.match(path):
+                            yield FileEntry(path, StatResult(isdir=True))
+                        dirname = os.path.dirname(dirname)
+                for common_prefix in resp.get('CommonPrefixes', []):
+                    path = s3_path_join(
+                        's3://', bucket, common_prefix['Prefix'])
                     dirname = os.path.dirname(path)
                     while dirname not in dirnames and dirname != top_dir:
                         dirnames.add(dirname)
