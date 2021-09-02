@@ -450,3 +450,20 @@ def test_ungloblize():
         's3://bu-oss/a,ba[*].json', 's3://bu-oss/a,bb.json',
         's3://bu-oss/a,bc.json'
     ] == glob.ungloblize(test_glob)
+
+    test_glob = 's3://{empty,b}*Test{/,2/,3/sub/}{1/a/c,a/b}/2{.mp4,.jpg}/s'
+    assert [
+        's3://empty*Test/1/a/c/2.mp4/s', 's3://empty*Test/1/a/c/2.jpg/s',
+        's3://empty*Test/a/b/2.mp4/s', 's3://empty*Test/a/b/2.jpg/s',
+        's3://empty*Test2/1/a/c/2.mp4/s', 's3://empty*Test2/1/a/c/2.jpg/s',
+        's3://empty*Test2/a/b/2.mp4/s', 's3://empty*Test2/a/b/2.jpg/s',
+        's3://empty*Test3/sub/1/a/c/2.mp4/s',
+        's3://empty*Test3/sub/1/a/c/2.jpg/s',
+        's3://empty*Test3/sub/a/b/2.mp4/s', 's3://empty*Test3/sub/a/b/2.jpg/s',
+        's3://b*Test/1/a/c/2.mp4/s', 's3://b*Test/1/a/c/2.jpg/s',
+        's3://b*Test/a/b/2.mp4/s', 's3://b*Test/a/b/2.jpg/s',
+        's3://b*Test2/1/a/c/2.mp4/s', 's3://b*Test2/1/a/c/2.jpg/s',
+        's3://b*Test2/a/b/2.mp4/s', 's3://b*Test2/a/b/2.jpg/s',
+        's3://b*Test3/sub/1/a/c/2.mp4/s', 's3://b*Test3/sub/1/a/c/2.jpg/s',
+        's3://b*Test3/sub/a/b/2.mp4/s', 's3://b*Test3/sub/a/b/2.jpg/s'
+    ] == glob.ungloblize(test_glob)
