@@ -1,6 +1,7 @@
 """Filename globbing utility."""
 """remove once py35 is dead"""
 
+import itertools
 import os
 import re
 from collections import OrderedDict
@@ -274,12 +275,10 @@ def globlize(path_list: List[str]) -> str:
 
 
 def ungloblize(glob: str) -> List[str]:
-    begin = 0
-    end = 0
     path_list = [glob]
     while True:
         temp_path = path_list[0]
-        begin = temp_path.find('{', begin)
+        begin = temp_path.find('{')
         end = temp_path.find('}', begin)
         if end == -1:
             break
