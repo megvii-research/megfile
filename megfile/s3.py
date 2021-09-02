@@ -966,6 +966,15 @@ def _s3_glob_stat_single_path(
     top_dir, wildcard_part = _s3_split_magic(s3_pathname)
     search_dir = wildcard_part.endswith('/')
 
+    def need_list_recursive(wildcard_part: str) -> bool:
+        if '**' in wildcard_part:
+            return True
+        for expanded_path in ungloblize(wildcard_part):
+            parts_length = len(expanded_path.split('/'))
+            if parts_length + search_dir >= 2:
+                return True
+        return False
+
     def create_generator(_s3_pathname) -> Iterator[FileEntry]:
         if not s3_exists(top_dir):
             return
@@ -976,14 +985,10 @@ def _s3_glob_stat_single_path(
                 yield FileEntry(_s3_pathname, StatResult(isdir=True))
             return
         else:
-            if '**' in wildcard_part:
+            if need_list_recursive(wildcard_part):
                 delimiter = ''
-            elif search_dir and len(wildcard_part.split('/')) == 2:
-                delimiter = '/'
-            elif not search_dir and len(wildcard_part.split('/')) == 1:
-                delimiter = '/'
             else:
-                delimiter = ''
+                delimiter = '/'
 
         dirnames = set()
         pattern = re.compile(translate(_s3_pathname))
