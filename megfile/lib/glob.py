@@ -1,7 +1,6 @@
 """Filename globbing utility."""
 """remove once py35 is dead"""
 
-import itertools
 import os
 import re
 from collections import OrderedDict
