@@ -1008,12 +1008,11 @@ def _s3_glob_stat_single_path(
                     path = s3_path_join(
                         's3://', bucket, common_prefix['Prefix'])
                     dirname = os.path.dirname(path)
-                    while dirname not in dirnames and dirname != top_dir:
+                    if dirname not in dirnames and dirname != top_dir:
                         dirnames.add(dirname)
                         path = dirname + '/' if search_dir else dirname
                         if pattern.match(path):
                             yield FileEntry(path, StatResult(isdir=True))
-                        dirname = os.path.dirname(dirname)
 
     return create_generator(s3_pathname)
 
