@@ -2,7 +2,6 @@ import os
 import sys
 
 from setuptools import find_packages, setup
-from setuptools.command.test import test as TestCommand
 from sphinx.setup_command import BuildDoc
 from importlib.machinery import SourceFileLoader
 
@@ -13,23 +12,6 @@ with open('requirements.txt') as f:
 test_requirements = []
 with open('requirements-dev.txt') as f:
     test_requirements = f.readlines()
-
-
-class PyTest(TestCommand):
-    user_options = [('pytest-args=', 'a', 'Arguments to pass to pytest')]
-
-    def initialize_options(self):
-        TestCommand.initialize_options(self)
-        self.pytest_args = 'tests/'
-
-    def run_tests(self):
-        import shlex
-
-        # import here, cause outside the eggs aren't loaded
-        import pytest
-
-        errno = pytest.main(shlex.split(self.pytest_args))
-        sys.exit(errno)
 
 
 def load_version(filename):
@@ -49,7 +31,6 @@ setup(
         'License :: Other/Proprietary License',
     ],
     cmdclass={
-        'test': PyTest,
         'build_sphinx': BuildDoc,
     },
     tests_require=test_requirements,
