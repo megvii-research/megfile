@@ -4,7 +4,7 @@ import io
 import os
 import re
 from collections import defaultdict
-from functools import partial, wraps
+from functools import wraps
 from itertools import chain
 from logging import getLogger as get_logger
 from typing import Any, BinaryIO, Callable, Dict, Iterator, List, Optional, Tuple, Union
