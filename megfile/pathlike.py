@@ -3,7 +3,8 @@ from enum import Enum
 from functools import wraps
 from typing import IO, Any, AnyStr, BinaryIO, Callable, Iterator, List, NamedTuple, Optional, Tuple, Union
 
-from megfile.lib.compat import PathLike, fspath
+from megfile.lib.compat import PathLike as _PathLike
+from megfile.lib.compat import fspath
 from megfile.lib.fnmatch import _compile_pattern
 from megfile.lib.joinpath import uri_join
 from megfile.utils import cachedproperty, classproperty
@@ -83,7 +84,7 @@ def method_not_implemented(func):
 
 class BasePath:
 
-    def __init__(self, path: "MegfilePathLike"):
+    def __init__(self, path: "PathLike"):
         self.path = str(path)
 
     def __str__(self) -> str:
@@ -201,7 +202,7 @@ class BasePath:
         raise NotImplementedError
 
     @method_not_implemented
-    def joinpath(self, *other_paths: "MegfilePathLike") -> str:
+    def joinpath(self, *other_paths: "PathLike") -> str:
         raise NotImplementedError
 
     @method_not_implemented
@@ -240,7 +241,7 @@ class BasePath:
         self.mkdir(exist_ok=exist_ok)
 
 
-MegfilePathLike = Union[str, BasePath, PathLike]
+PathLike = Union[str, BasePath, _PathLike]
 
 
 class BaseURIPath(BasePath):
@@ -346,13 +347,12 @@ class BaseURIPath(BasePath):
 
 class URIPath(BaseURIPath):
 
-    def __init__(
-            self, path: "MegfilePathLike", *other_paths: "MegfilePathLike"):
+    def __init__(self, path: "PathLike", *other_paths: "PathLike"):
         if len(other_paths) > 0:
             path = self.from_path(path).joinpath(*other_paths)
         self.path = str(path)
 
-    def __truediv__(self, other_path: MegfilePathLike) -> "BaseURIPath":
+    def __truediv__(self, other_path: PathLike) -> "BaseURIPath":
         if isinstance(other_path, BaseURIPath):
             if self.protocol != other_path.protocol:
                 raise TypeError(
@@ -362,7 +362,7 @@ class URIPath(BaseURIPath):
             raise TypeError("%r is not 'str' nor 'URIPath'" % other_path)
         return self.joinpath(other_path)
 
-    def joinpath(self, *other_paths: MegfilePathLike) -> "BaseURIPath":
+    def joinpath(self, *other_paths: PathLike) -> "BaseURIPath":
         return self.from_path(uri_join(str(self), *map(str, other_paths)))
 
     @cachedproperty
