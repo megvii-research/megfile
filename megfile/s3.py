@@ -98,12 +98,12 @@ __all__ = [
     's3_unlink',
     's3_upload',
     's3_walk',
-    'S3Cacher',
-    'get_s3_client',
-    'parse_s3_url',
     'get_endpoint_url',
-    'S3BufferedWriter',
+    'parse_s3_url',
+    'get_s3_client',
     'get_s3_session',
+    'S3Cacher',
+    'S3BufferedWriter',
     'S3LimitedSeekableWriter',
     'S3PrefetchReader',
     'S3ShareCacheReader',
@@ -120,10 +120,7 @@ def get_endpoint_url() -> str:
 
     returns: S3 endpoint url
     '''
-    oss_endpoint = os.environ.get('OSS_ENDPOINT')
-    if oss_endpoint is None:
-        oss_endpoint = endpoint_url
-    return oss_endpoint
+    return os.environ.get('OSS_ENDPOINT', endpoint_url)
 
 
 def get_s3_session():
