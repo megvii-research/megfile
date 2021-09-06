@@ -968,10 +968,9 @@ def _s3_glob_stat_single_path(
     def need_list_recursive(wildcard_part: str) -> bool:
         if '**' in wildcard_part:
             return True
-        for expanded_path in ungloblize(wildcard_part):
-            parts_length = len(expanded_path.split('/'))
-            if parts_length + search_dir >= 2:
-                return True
+        parts_length = len(wildcard_part.split('/'))
+        if parts_length + search_dir >= 2:
+            return True
         return False
 
     def create_generator(_s3_pathname) -> Iterator[FileEntry]:
@@ -1018,7 +1017,8 @@ def _s3_glob_stat_single_path(
                         if pattern.match(path):
                             yield FileEntry(path, StatResult(isdir=True))
 
-    return create_generator(s3_pathname)
+    for expanded_path in ungloblize(s3_pathname):
+        yield from create_generator(expanded_path)
 
 
 def _s3path_change_bucket(path: str, oldname: str, newname: str) -> str:
@@ -1046,22 +1046,18 @@ def _group_s3path_by_bucket(s3_pathname: str) -> List[str]:
         glob_dict[bucket].append(single_glob)
 
     group_glob_list = []
-    all_buckets = None
     for bucketname, glob_list in glob_dict.items():
         if has_magic(bucketname):
-            if all_buckets is None:
-                all_buckets = _list_all_buckets()
             pattern = re.compile(translate(re.sub(r'\*{2,}', '*', bucketname)))
 
             for bucket in _list_all_buckets():
                 if pattern.fullmatch(bucket) is not None:
-                    globlized_path = globlize(
-                        list(
-                            map(
-                                partial(
-                                    _s3path_change_bucket,
-                                    oldname=bucketname,
-                                    newname=bucket), glob_list)))
+                    unglobized_bucket_path = [
+                        _s3path_change_bucket(
+                            path, oldname=bucketname, newname=bucket)
+                        for path in glob_list
+                    ]
+                    globlized_path = globlize(unglobized_bucket_path)
                     group_glob_list.append(globlized_path)
         else:
             group_glob_list.append(globlize(glob_list))
