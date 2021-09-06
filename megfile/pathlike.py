@@ -3,7 +3,8 @@ from enum import Enum
 from functools import wraps
 from typing import IO, Any, AnyStr, BinaryIO, Callable, Iterator, List, NamedTuple, Optional, Tuple, Union
 
-from megfile.lib.compat import PathLike, fspath
+from megfile.lib.compat import PathLike as _PathLike
+from megfile.lib.compat import fspath
 from megfile.lib.fnmatch import _compile_pattern
 from megfile.lib.joinpath import uri_join
 from megfile.utils import cachedproperty, classproperty
@@ -240,7 +241,7 @@ class BasePath:
         self.mkdir(exist_ok=exist_ok)
 
 
-PathLike = Union[str, BasePath, PathLike]
+PathLike = Union[str, BasePath, _PathLike]
 
 
 class BaseURIPath(BasePath):
@@ -346,8 +347,7 @@ class BaseURIPath(BasePath):
 
 class URIPath(BaseURIPath):
 
-    def __init__(
-            self, path: "PathLike", *other_paths: "PathLike"):
+    def __init__(self, path: "PathLike", *other_paths: "PathLike"):
         if len(other_paths) > 0:
             path = self.from_path(path).joinpath(*other_paths)
         self.path = str(path)

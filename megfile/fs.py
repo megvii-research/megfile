@@ -224,8 +224,7 @@ def fs_path_join(path: PathLike, *other_paths: PathLike) -> str:
     return path_join(fspath(path), *map(fspath, other_paths))
 
 
-def fs_walk(path: PathLike
-           ) -> Iterator[Tuple[str, List[str], List[str]]]:
+def fs_walk(path: PathLike) -> Iterator[Tuple[str, List[str], List[str]]]:
     '''
     Generate the file names in a directory tree by walking the tree top-down.
     For each directory in the tree rooted at directory path (including path itself), 
@@ -280,8 +279,7 @@ def fs_scandir(path: PathLike) -> Iterator[FileEntry]:
         yield FileEntry(entry.path, _make_stat(entry.stat()))
 
 
-def _fs_scan(pathname: PathLike,
-             missing_ok: bool = True) -> Iterator[str]:
+def _fs_scan(pathname: PathLike, missing_ok: bool = True) -> Iterator[str]:
     if fs_isfile(pathname):
         path = fspath(pathname)
         yield path
@@ -291,8 +289,7 @@ def _fs_scan(pathname: PathLike,
             yield os.path.join(root, filename)
 
 
-def fs_scan(pathname: PathLike,
-            missing_ok: bool = True) -> Iterator[str]:
+def fs_scan(pathname: PathLike, missing_ok: bool = True) -> Iterator[str]:
     '''
     Iteratively traverse only files in given directory, in alphabetical order. 
     Every iteration on generator yields a path string.

@@ -8,7 +8,7 @@ from itertools import chain
 from typing import IO, AnyStr, BinaryIO, Callable, Iterator, List, Optional, Tuple
 
 from megfile.fs import fs_copy, fs_getsize, fs_scandir
-from megfile.interfaces import Access, FileEntry, PathLike, NullCacher, StatResult
+from megfile.interfaces import Access, FileEntry, NullCacher, PathLike, StatResult
 from megfile.lib.combine_reader import CombineReader
 from megfile.lib.compat import fspath
 from megfile.lib.fakefs import FakefsCacher
@@ -120,8 +120,7 @@ def smart_listdir(path: Optional[PathLike] = None) -> List[str]:
     return SmartPath(path).listdir()
 
 
-def smart_scandir(path: Optional[PathLike] = None
-                 ) -> Iterator[FileEntry]:
+def smart_scandir(path: Optional[PathLike] = None) -> Iterator[FileEntry]:
     '''
     Get all content of given s3_url or file path.
 
@@ -438,8 +437,7 @@ def smart_open(
     return SmartPath(path).open(mode, **options)
 
 
-def smart_path_join(
-        path: PathLike, *other_paths: PathLike) -> str:
+def smart_path_join(path: PathLike, *other_paths: PathLike) -> str:
     '''
     Concat 2 or more path to a complete path
 
@@ -457,8 +455,7 @@ def smart_path_join(
     return fspath(SmartPath(path).joinpath(*other_paths))
 
 
-def smart_walk(path: PathLike
-              ) -> Iterator[Tuple[str, List[str], List[str]]]:
+def smart_walk(path: PathLike) -> Iterator[Tuple[str, List[str], List[str]]]:
     '''
     Generate the file names in a directory tree by walking the tree top-down.
     For each directory in the tree rooted at directory path (including path itself),
@@ -671,8 +668,7 @@ def smart_ismount(path: PathLike) -> bool:
 
 
 def smart_load_content(
-        path: PathLike,
-        start: Optional[int] = None,
+        path: PathLike, start: Optional[int] = None,
         stop: Optional[int] = None) -> bytes:
     '''
     Get specified file from [start, stop) in bytes

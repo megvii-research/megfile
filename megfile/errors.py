@@ -171,9 +171,7 @@ def _create_missing_ok_generator(generator, missing_ok: bool, error: Exception):
 class UnknownError(Exception):
 
     def __init__(
-            self,
-            error: Exception,
-            path: PathLike,
+            self, error: Exception, path: PathLike,
             extra: Optional[str] = None):
         message = 'Unknown error encountered: %r, error: %s' % (
             path, full_error_message(error))
@@ -281,8 +279,7 @@ def translate_fs_error(fs_error: Exception, fs_path: PathLike):
     return fs_error
 
 
-def translate_s3_error(
-        s3_error: Exception, s3_url: PathLike) -> Exception:
+def translate_s3_error(s3_error: Exception, s3_url: PathLike) -> Exception:
     ''' :param s3_error: error raised by boto3
         :param s3_url: s3_url
     '''

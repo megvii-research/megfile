@@ -744,8 +744,7 @@ def s3_makedirs(s3_url: PathLike, exist_ok: bool = False):
         raise S3FileExistsError('File exists: %r' % s3_url)
 
 
-def s3_walk(s3_url: PathLike
-           ) -> Iterator[Tuple[str, List[str], List[str]]]:
+def s3_walk(s3_url: PathLike) -> Iterator[Tuple[str, List[str], List[str]]]:
     '''
     Iteratively traverse the given s3 directory, in top-bottom order. In other words, firstly traverse parent directory, if subdirectories exist, traverse the subdirectories in alphabetical order.
     Every iteration on generator yields a 3-tuple：(root, dirs, files)
@@ -887,8 +886,7 @@ def _s3_split_magic(s3_pathname: str) -> Tuple[str, str]:
 
 
 def s3_glob(
-        s3_pathname: PathLike,
-        recursive: bool = True,
+        s3_pathname: PathLike, recursive: bool = True,
         missing_ok: bool = True) -> List[str]:
     '''Return s3 path list in ascending alphabetical order, in which path matches glob pattern
     Notes：Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
@@ -904,8 +902,7 @@ def s3_glob(
 
 
 def s3_iglob(
-        s3_pathname: PathLike,
-        recursive: bool = True,
+        s3_pathname: PathLike, recursive: bool = True,
         missing_ok: bool = True) -> Iterator[str]:
     '''Return s3 path iterator in ascending alphabetical order, in which path matches glob pattern
     Notes：Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
@@ -927,8 +924,7 @@ def s3_iglob(
 
 
 def s3_glob_stat(
-        s3_pathname: PathLike,
-        recursive: bool = True,
+        s3_pathname: PathLike, recursive: bool = True,
         missing_ok: bool = True) -> Iterator[FileEntry]:
     '''Return a generator contains tuples of path and file stat, in ascending alphabetical order, in which path matches glob pattern
     Notes：Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
@@ -956,8 +952,7 @@ def s3_glob_stat(
 
 
 def _s3_glob_stat_single_path(
-        s3_pathname: PathLike,
-        recursive: bool = True,
+        s3_pathname: PathLike, recursive: bool = True,
         missing_ok: bool = True) -> Iterator[FileEntry]:
     if not recursive:
         # If not recursive, replace ** with *
@@ -1262,8 +1257,7 @@ def s3_pipe_open(
 
 @_s3_binary_mode
 def s3_cached_open(
-        s3_url: PathLike, mode: str, *,
-        cache_path: str) -> S3CachedHandler:
+        s3_url: PathLike, mode: str, *, cache_path: str) -> S3CachedHandler:
     '''Open a local-cache file reader / writer, for frequent random read / write
 
     .. note ::
@@ -1530,8 +1524,8 @@ def s3_rename(src_url: PathLike, dst_url: PathLike) -> None:
     s3_remove(src_url)
 
 
-def _s3_scan_pairs(src_url: PathLike, dst_url: PathLike
-                  ) -> Iterator[Tuple[PathLike, PathLike]]:
+def _s3_scan_pairs(src_url: PathLike,
+                   dst_url: PathLike) -> Iterator[Tuple[PathLike, PathLike]]:
     for src_file_path in s3_scan(src_url):
         content_path = src_file_path[len(src_url):]
         if len(content_path) > 0:
