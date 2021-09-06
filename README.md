@@ -30,24 +30,29 @@ Here's an example of writing a file to OSS, syncing to local, reading and finall
 from megfile import smart_open, smart_exists, smart_sync, smart_remove, smart_glob
 from megfile.smart_path import SmartPath
 
-with smart_open('s3://playground/megfile-test', 'w') as f:
-    f.write('megfile is not silver bullet')
+# open a file in s3 bucket
+with smart_open('s3://playground/refile-test', 'w') as fp:
+    fp.write('refile is not silver bullet')
 
-assert smart_exists('s3://playground/megfile-test')
+# test if file in s3 bucket exist
+smart_exists('s3://playground/refile-test')
 
-smart_sync('s3://playground/megfile-test', '/tmp/local-tmp/tmp-test')
+# copy files or directories
+smart_sync('s3://playground/refile-test', '/tmp/playground')
 
-with smart_open('/tmp/local-tmp/tmp-test', 'rb') as f:
-    result = f.read(7)
-    assert result == b'megfile'
+# remove files or directories
+smart_remove('s3://playground/refile-test')
 
-smart_remove('/tmp/local-tmp/tmp-test')
-
-assert smart_exists('/tmp/local-tmp/tmp-test') is False
-
+# glob files or directories in s3 bucket
 smart_glob('s3://playground/video-?.{mp4,avi}')
 
-# SmartPath Interface
+# or in local file system
+smart_exists('/tmp/playground/refile-test')
+
+# smart_open also support protocols like http / https
+smart_open('https://www.google.com')
+
+# SmartPath interface
 path = SmartPath('s3://playground/megfile-test')
 if path.exists():
     with path.open() as f:

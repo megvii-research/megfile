@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+## 0.0.7 - 2021.09.06
+
+- __[Breaking]__ Rename `megfile.interfaces.MegfilePathLike` to `megfile.interfaces.PathLike`
+- Fix ungloblize
+
 ## 0.0.6 - 2021.09.01
 
 - __[Breaking]__ Rename `megfile.s3.MEGFILE_MD5_HEADER` to `megfile.s3.content_md5_header`

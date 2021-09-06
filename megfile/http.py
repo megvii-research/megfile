@@ -8,7 +8,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from megfile.errors import http_should_retry, patch_method, translate_http_error
-from megfile.interfaces import MegfilePathLike
+from megfile.interfaces import PathLike
 from megfile.lib.compat import fspath
 from megfile.utils import binary_open
 
@@ -47,7 +47,7 @@ def get_http_session(
     return session
 
 
-def is_http(path: MegfilePathLike) -> bool:
+def is_http(path: PathLike) -> bool:
     '''http scheme definition: http(s)://domain/path
 
     :param path: Path to be tested
