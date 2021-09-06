@@ -1,12 +1,12 @@
 from typing import Union
 from urllib.parse import urlsplit
 
-from megfile.interfaces import MegfilePathLike
+from megfile.interfaces import PathLike
 from megfile.lib.compat import fspath
 from megfile.lib.stdio_handler import STDReader, STDWriter
 
 
-def is_stdio(path: MegfilePathLike) -> bool:
+def is_stdio(path: PathLike) -> bool:
     '''stdio scheme definition: stdio://-
 
     .. note ::

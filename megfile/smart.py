@@ -8,7 +8,7 @@ from itertools import chain
 from typing import IO, AnyStr, BinaryIO, Callable, Iterator, List, Optional, Tuple
 
 from megfile.fs import fs_copy, fs_getsize, fs_scandir
-from megfile.interfaces import Access, FileEntry, MegfilePathLike, NullCacher, StatResult
+from megfile.interfaces import Access, FileEntry, PathLike, NullCacher, StatResult
 from megfile.lib.combine_reader import CombineReader
 from megfile.lib.compat import fspath
 from megfile.lib.fakefs import FakefsCacher
@@ -62,7 +62,7 @@ __all__ = [
 ]
 
 
-def smart_isdir(path: MegfilePathLike) -> bool:
+def smart_isdir(path: PathLike) -> bool:
     '''
     Test if a file path or an s3 url is directory
 
@@ -72,7 +72,7 @@ def smart_isdir(path: MegfilePathLike) -> bool:
     return SmartPath(path).is_dir()
 
 
-def smart_isfile(path: MegfilePathLike) -> bool:
+def smart_isfile(path: PathLike) -> bool:
     '''
     Test if a file path or an s3 url is file
 
@@ -82,11 +82,11 @@ def smart_isfile(path: MegfilePathLike) -> bool:
     return SmartPath(path).is_file()
 
 
-def smart_islink(path: MegfilePathLike) -> bool:
+def smart_islink(path: PathLike) -> bool:
     return SmartPath(path).is_symlink()
 
 
-def smart_access(path: MegfilePathLike, mode: Access) -> bool:
+def smart_access(path: PathLike, mode: Access) -> bool:
     '''
     Test if path has access permission described by mode
 
@@ -97,7 +97,7 @@ def smart_access(path: MegfilePathLike, mode: Access) -> bool:
     return SmartPath(path).access(mode)
 
 
-def smart_exists(path: MegfilePathLike) -> bool:
+def smart_exists(path: PathLike) -> bool:
     '''
     Test if path or s3_url exists
 
@@ -107,7 +107,7 @@ def smart_exists(path: MegfilePathLike) -> bool:
     return SmartPath(path).exists()
 
 
-def smart_listdir(path: Optional[MegfilePathLike] = None) -> List[str]:
+def smart_listdir(path: Optional[PathLike] = None) -> List[str]:
     '''
     Get all contents of given s3_url or file path. The result is in acsending alphabetical order.
 
@@ -120,7 +120,7 @@ def smart_listdir(path: Optional[MegfilePathLike] = None) -> List[str]:
     return SmartPath(path).listdir()
 
 
-def smart_scandir(path: Optional[MegfilePathLike] = None
+def smart_scandir(path: Optional[PathLike] = None
                  ) -> Iterator[FileEntry]:
     '''
     Get all content of given s3_url or file path.
@@ -134,7 +134,7 @@ def smart_scandir(path: Optional[MegfilePathLike] = None
     return SmartPath(path).scandir()
 
 
-def smart_getsize(path: MegfilePathLike) -> int:
+def smart_getsize(path: PathLike) -> int:
     '''
     Get file size on the given s3_url or file path (in bytes).
     If the path in a directory, return the sum of all file size in it, including file in subdirectories (if exist).
@@ -147,7 +147,7 @@ def smart_getsize(path: MegfilePathLike) -> int:
     return SmartPath(path).getsize()
 
 
-def smart_getmtime(path: MegfilePathLike) -> float:
+def smart_getmtime(path: PathLike) -> float:
     '''
     Get last-modified time of the file on the given s3_url or file path (in Unix timestamp format).
     If the path is an existent directory, return the latest modified time of all file in it. The mtime of empty directory is 1970-01-01 00:00:00
@@ -159,7 +159,7 @@ def smart_getmtime(path: MegfilePathLike) -> float:
     return SmartPath(path).getmtime()
 
 
-def smart_stat(path: MegfilePathLike) -> StatResult:
+def smart_stat(path: PathLike) -> StatResult:
     '''
     Get StatResult of s3_url or file path
 
@@ -210,8 +210,8 @@ def register_copy_func(
 
 
 def _default_copy_func(
-        src_path: MegfilePathLike,
-        dst_path: MegfilePathLike,
+        src_path: PathLike,
+        dst_path: PathLike,
         callback: Optional[Callable[[int], None]] = None) -> None:
     with smart_open(src_path, 'rb') as fsrc:
         with smart_open(dst_path, 'wb') as fdst:
@@ -228,8 +228,8 @@ def _default_copy_func(
 
 
 def smart_copy(
-        src_path: MegfilePathLike,
-        dst_path: MegfilePathLike,
+        src_path: PathLike,
+        dst_path: PathLike,
         callback: Optional[Callable[[int], None]] = None) -> None:
     '''
     Copy file from source path to destination path
@@ -269,8 +269,8 @@ def smart_copy(
 
 
 def smart_sync(
-        src_path: MegfilePathLike,
-        dst_path: MegfilePathLike,
+        src_path: PathLike,
+        dst_path: PathLike,
         callback: Optional[Callable[[str, int], None]] = None) -> None:
     '''
     Sync file or directory on s3 and fs
@@ -324,7 +324,7 @@ def smart_sync(
         smart_copy(src_file_path, dst_abs_file_path, callback=copy_callback)
 
 
-def smart_remove(path: MegfilePathLike, missing_ok: bool = False) -> None:
+def smart_remove(path: PathLike, missing_ok: bool = False) -> None:
     '''
     Remove the file or directory on s3 or fs, `s3://` and `s3://bucket` are not permitted to remove
 
@@ -335,7 +335,7 @@ def smart_remove(path: MegfilePathLike, missing_ok: bool = False) -> None:
     SmartPath(path).remove(missing_ok=missing_ok)
 
 
-def smart_rename(src_path: MegfilePathLike, dst_path: MegfilePathLike) -> None:
+def smart_rename(src_path: PathLike, dst_path: PathLike) -> None:
     '''
     Move file on s3 or fs. `s3://` or `s3://bucket` is not allowed to move
 
@@ -343,7 +343,7 @@ def smart_rename(src_path: MegfilePathLike, dst_path: MegfilePathLike) -> None:
     :param dst_path: Given destination path
     '''
     if smart_isdir(src_path):
-        raise IsADirectoryError('%r is a directory' % MegfilePathLike)
+        raise IsADirectoryError('%r is a directory' % PathLike)
     src_protocol, _ = SmartPath._extract_protocol(src_path)
     dst_protocol, _ = SmartPath._extract_protocol(dst_path)
     if src_protocol == dst_protocol:
@@ -353,7 +353,7 @@ def smart_rename(src_path: MegfilePathLike, dst_path: MegfilePathLike) -> None:
     smart_unlink(src_path)
 
 
-def smart_move(src_path: MegfilePathLike, dst_path: MegfilePathLike) -> None:
+def smart_move(src_path: PathLike, dst_path: PathLike) -> None:
     '''
     Move file/directory on s3 or fs. `s3://` or `s3://bucket` is not allowed to move
 
@@ -369,7 +369,7 @@ def smart_move(src_path: MegfilePathLike, dst_path: MegfilePathLike) -> None:
     smart_remove(src_path)
 
 
-def smart_unlink(path: MegfilePathLike, missing_ok: bool = False) -> None:
+def smart_unlink(path: PathLike, missing_ok: bool = False) -> None:
     '''
     Remove the file on s3 or fs
 
@@ -380,7 +380,7 @@ def smart_unlink(path: MegfilePathLike, missing_ok: bool = False) -> None:
     SmartPath(path).unlink(missing_ok=missing_ok)
 
 
-def smart_makedirs(path: MegfilePathLike, exist_ok: bool = False) -> None:
+def smart_makedirs(path: PathLike, exist_ok: bool = False) -> None:
     '''
     Create a directory if is on fs.
     If on s3, it actually check if target exists, and check if bucket has WRITE access
@@ -393,7 +393,7 @@ def smart_makedirs(path: MegfilePathLike, exist_ok: bool = False) -> None:
 
 
 def smart_open(
-        path: MegfilePathLike,
+        path: PathLike,
         mode: str = 'r',
         s3_open_func: Callable[[str, str], BinaryIO] = s3_open,
         encoding: Optional[str] = None,
@@ -439,7 +439,7 @@ def smart_open(
 
 
 def smart_path_join(
-        path: MegfilePathLike, *other_paths: MegfilePathLike) -> str:
+        path: PathLike, *other_paths: PathLike) -> str:
     '''
     Concat 2 or more path to a complete path
 
@@ -457,7 +457,7 @@ def smart_path_join(
     return fspath(SmartPath(path).joinpath(*other_paths))
 
 
-def smart_walk(path: MegfilePathLike
+def smart_walk(path: PathLike
               ) -> Iterator[Tuple[str, List[str], List[str]]]:
     '''
     Generate the file names in a directory tree by walking the tree top-down.
@@ -479,7 +479,7 @@ def smart_walk(path: MegfilePathLike
     return SmartPath(path).walk()
 
 
-def smart_scan(path: MegfilePathLike, missing_ok: bool = True) -> Iterator[str]:
+def smart_scan(path: PathLike, missing_ok: bool = True) -> Iterator[str]:
     '''
     Iteratively traverse only files in given directory, in alphabetical order.
     Every iteration on generator yields a path string.
@@ -496,7 +496,7 @@ def smart_scan(path: MegfilePathLike, missing_ok: bool = True) -> Iterator[str]:
     return SmartPath(path).scan(missing_ok)
 
 
-def smart_scan_stat(path: MegfilePathLike,
+def smart_scan_stat(path: PathLike,
                     missing_ok: bool = True) -> Iterator[FileEntry]:
     '''
     Iteratively traverse only files in given directory, in alphabetical order.
@@ -532,7 +532,7 @@ def _group_glob(globstr: str) -> List[str]:
 
 
 def smart_glob(
-        pathname: MegfilePathLike, recursive: bool = True,
+        pathname: PathLike, recursive: bool = True,
         missing_ok: bool = True) -> List[str]:
     '''
     Given pathname may contain shell wildcard characters, return path list in ascending alphabetical order, in which path matches glob pattern
@@ -551,7 +551,7 @@ def smart_glob(
 
 
 def smart_iglob(
-        pathname: MegfilePathLike, recursive: bool = True,
+        pathname: PathLike, recursive: bool = True,
         missing_ok: bool = True) -> Iterator[str]:
     '''
     Given pathname may contain shell wildcard characters, return path iterator in ascending alphabetical order, in which path matches glob pattern
@@ -571,7 +571,7 @@ def smart_iglob(
 
 
 def smart_glob_stat(
-        pathname: MegfilePathLike, recursive: bool = True,
+        pathname: PathLike, recursive: bool = True,
         missing_ok: bool = True) -> Iterator[FileEntry]:
     '''
     Given pathname may contain shell wildcard characters, return a list contains tuples of path and file stat in ascending alphabetical order, in which path matches glob pattern
@@ -590,7 +590,7 @@ def smart_glob_stat(
     return iterableres
 
 
-def smart_save_as(file_object: BinaryIO, path: MegfilePathLike) -> None:
+def smart_save_as(file_object: BinaryIO, path: PathLike) -> None:
     '''Write the opened binary stream to specified path, but the stream won't be closed
 
     :param file_object: Stream to be read
@@ -599,7 +599,7 @@ def smart_save_as(file_object: BinaryIO, path: MegfilePathLike) -> None:
     SmartPath(path).save(file_object)
 
 
-def smart_load_from(path: MegfilePathLike) -> BinaryIO:
+def smart_load_from(path: PathLike) -> BinaryIO:
     '''Read all content in binary on specified path and write into memory
 
     User should close the BinaryIO manually
@@ -624,7 +624,7 @@ def smart_combine_open(
     return combine(file_objects, path_glob)
 
 
-def smart_abspath(path: MegfilePathLike):
+def smart_abspath(path: PathLike):
     '''Return the absolute path of given path
 
     :param path: Given path
@@ -633,7 +633,7 @@ def smart_abspath(path: MegfilePathLike):
     return SmartPath(path).abspath()
 
 
-def smart_realpath(path: MegfilePathLike):
+def smart_realpath(path: PathLike):
     '''Return the real path of given path
 
     :param path: Given path
@@ -642,7 +642,7 @@ def smart_realpath(path: MegfilePathLike):
     return SmartPath(path).realpath()
 
 
-def smart_relpath(path: MegfilePathLike, start=None):
+def smart_relpath(path: PathLike, start=None):
     '''Return the relative path of given path
 
     :param path: Given path
@@ -652,7 +652,7 @@ def smart_relpath(path: MegfilePathLike, start=None):
     return SmartPath(path).relpath(start)
 
 
-def smart_isabs(path: MegfilePathLike) -> bool:
+def smart_isabs(path: PathLike) -> bool:
     '''Test whether a path is absolute
 
     :param path: Given path
@@ -661,7 +661,7 @@ def smart_isabs(path: MegfilePathLike) -> bool:
     return SmartPath(path).is_absolute()
 
 
-def smart_ismount(path: MegfilePathLike) -> bool:
+def smart_ismount(path: PathLike) -> bool:
     '''Test whether a path is a mount point
 
     :param path: Given path
@@ -671,7 +671,7 @@ def smart_ismount(path: MegfilePathLike) -> bool:
 
 
 def smart_load_content(
-        path: MegfilePathLike,
+        path: PathLike,
         start: Optional[int] = None,
         stop: Optional[int] = None) -> bytes:
     '''
@@ -692,7 +692,7 @@ def smart_load_content(
         return fd.read(stop - start)
 
 
-def smart_save_content(path: MegfilePathLike, content: bytes) -> None:
+def smart_save_content(path: PathLike, content: bytes) -> None:
     '''Save bytes content to specified path
 
     param path: Path to save content
@@ -701,7 +701,7 @@ def smart_save_content(path: MegfilePathLike, content: bytes) -> None:
         fd.write(content)
 
 
-def smart_load_text(path: MegfilePathLike) -> str:
+def smart_load_text(path: PathLike) -> str:
     '''
     Read content from path
 
@@ -711,7 +711,7 @@ def smart_load_text(path: MegfilePathLike) -> str:
         return fd.read()
 
 
-def smart_save_text(path: MegfilePathLike, text: str) -> None:
+def smart_save_text(path: PathLike, text: str) -> None:
     '''Save text to specified path
 
     param path: Path to save text
@@ -732,7 +732,7 @@ def smart_cache(path, s3_cacher=FakefsCacher, **options):
     return NullCacher(path)
 
 
-def smart_touch(path: MegfilePathLike):
+def smart_touch(path: PathLike):
     '''Create a new file on path
 
     param path: Path to create file
@@ -741,7 +741,7 @@ def smart_touch(path: MegfilePathLike):
         pass
 
 
-def smart_getmd5(path: MegfilePathLike):
+def smart_getmd5(path: PathLike):
     '''Get md5 value of file
 
     param path: File path

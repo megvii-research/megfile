@@ -5,7 +5,7 @@ from urllib.parse import urlsplit
 from megfile.lib.compat import fspath
 
 from .errors import ProtocolExistsError, ProtocolNotFoundError
-from .interfaces import BasePath, BaseURIPath, MegfilePathLike
+from .interfaces import BasePath, BaseURIPath, PathLike
 
 
 def _bind_function(name):
@@ -30,7 +30,7 @@ def _bind_property(name):
 class SmartPath(BasePath):
     _registered_protocols = dict()
 
-    def __init__(self, path: MegfilePathLike, *other_paths: MegfilePathLike):
+    def __init__(self, path: PathLike, *other_paths: PathLike):
         self.path = str(path)
         pathlike = path
         if not isinstance(pathlike, BaseURIPath):
@@ -41,7 +41,7 @@ class SmartPath(BasePath):
         self.pathlike = pathlike
 
     @staticmethod
-    def _extract_protocol(path: MegfilePathLike) -> Tuple[str, str]:
+    def _extract_protocol(path: PathLike) -> Tuple[str, str]:
         if isinstance(path, str):
             protocol = urlsplit(path).scheme
             if protocol == "":
@@ -60,7 +60,7 @@ class SmartPath(BasePath):
         return protocol, path_without_protocol
 
     @classmethod
-    def _create_pathlike(cls, path: MegfilePathLike) -> BasePath:
+    def _create_pathlike(cls, path: PathLike) -> BasePath:
         protocol, path_without_protocol = cls._extract_protocol(path)
         if protocol not in cls._registered_protocols:
             raise ProtocolNotFoundError(

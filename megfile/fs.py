@@ -9,7 +9,7 @@ from unittest.mock import patch
 from urllib.parse import urlsplit
 
 from megfile.errors import _create_missing_ok_generator
-from megfile.interfaces import Access, FileEntry, MegfilePathLike, StatResult
+from megfile.interfaces import Access, FileEntry, PathLike, StatResult
 from megfile.lib.compat import fspath
 from megfile.lib.glob import iglob
 from megfile.lib.joinpath import path_join
@@ -67,7 +67,7 @@ def _make_stat(stat: os.stat_result) -> StatResult:
     )
 
 
-def is_fs(path: MegfilePathLike) -> bool:
+def is_fs(path: PathLike) -> bool:
     '''Test if a path is fs path
 
     :param path: Path to be tested
@@ -78,7 +78,7 @@ def is_fs(path: MegfilePathLike) -> bool:
     return parts.scheme == '' or parts.scheme == 'file'
 
 
-def fs_stat(path: MegfilePathLike) -> StatResult:
+def fs_stat(path: PathLike) -> StatResult:
     '''
     Get StatResult of file on fs, including file size and mtime, referring to fs_getsize and fs_getmtime
 
@@ -104,7 +104,7 @@ def fs_stat(path: MegfilePathLike) -> StatResult:
     return result._replace(size=size, ctime=ctime, mtime=mtime)
 
 
-def fs_getsize(path: MegfilePathLike) -> int:
+def fs_getsize(path: PathLike) -> int:
     '''
     Get file size on the given file path (in bytes). 
     If the path in a directory, return the sum of all file size in it, including file in subdirectories (if exist).
@@ -117,7 +117,7 @@ def fs_getsize(path: MegfilePathLike) -> int:
     return fs_stat(path).size
 
 
-def fs_getmtime(path: MegfilePathLike) -> float:
+def fs_getmtime(path: PathLike) -> float:
     '''
     Get last-modified time of the file on the given path (in Unix timestamp format).
     If the path is an existent directory, return the latest modified time of all file in it.
@@ -128,7 +128,7 @@ def fs_getmtime(path: MegfilePathLike) -> float:
     return fs_stat(path).mtime
 
 
-def fs_isdir(path: MegfilePathLike) -> bool:
+def fs_isdir(path: PathLike) -> bool:
     '''
     Test if a path is directory
 
@@ -145,7 +145,7 @@ def fs_isdir(path: MegfilePathLike) -> bool:
     return os.path.isdir(path)
 
 
-def fs_isfile(path: MegfilePathLike) -> bool:
+def fs_isfile(path: PathLike) -> bool:
     '''
     Test if a path is file
 
@@ -162,7 +162,7 @@ def fs_isfile(path: MegfilePathLike) -> bool:
     return os.path.isfile(path)
 
 
-def fs_exists(path: MegfilePathLike) -> bool:
+def fs_exists(path: PathLike) -> bool:
     '''
     Test if the path exists
 
@@ -178,7 +178,7 @@ def fs_exists(path: MegfilePathLike) -> bool:
     return os.path.lexists(path)
 
 
-def fs_remove(path: MegfilePathLike, missing_ok: bool = False) -> None:
+def fs_remove(path: PathLike, missing_ok: bool = False) -> None:
     '''
     Remove the file or directory on fs
 
@@ -193,7 +193,7 @@ def fs_remove(path: MegfilePathLike, missing_ok: bool = False) -> None:
         os.remove(path)
 
 
-def fs_unlink(path: MegfilePathLike, missing_ok: bool = False) -> None:
+def fs_unlink(path: PathLike, missing_ok: bool = False) -> None:
     '''
     Remove the file on fs
 
@@ -205,7 +205,7 @@ def fs_unlink(path: MegfilePathLike, missing_ok: bool = False) -> None:
     os.unlink(path)
 
 
-def fs_makedirs(path: MegfilePathLike, exist_ok: bool = False):
+def fs_makedirs(path: PathLike, exist_ok: bool = False):
     '''
     make a directory on fs, including parent directory
 
@@ -220,11 +220,11 @@ def fs_makedirs(path: MegfilePathLike, exist_ok: bool = False):
     return os.makedirs(path, exist_ok=exist_ok)
 
 
-def fs_path_join(path: MegfilePathLike, *other_paths: MegfilePathLike) -> str:
+def fs_path_join(path: PathLike, *other_paths: PathLike) -> str:
     return path_join(fspath(path), *map(fspath, other_paths))
 
 
-def fs_walk(path: MegfilePathLike
+def fs_walk(path: PathLike
            ) -> Iterator[Tuple[str, List[str], List[str]]]:
     '''
     Generate the file names in a directory tree by walking the tree top-down.
@@ -269,7 +269,7 @@ def fs_walk(path: MegfilePathLike
             (os.path.join(root, directory) for directory in reversed(dirs)))
 
 
-def fs_scandir(path: MegfilePathLike) -> Iterator[FileEntry]:
+def fs_scandir(path: PathLike) -> Iterator[FileEntry]:
     '''
     Get all content of given file path.
 
@@ -280,7 +280,7 @@ def fs_scandir(path: MegfilePathLike) -> Iterator[FileEntry]:
         yield FileEntry(entry.path, _make_stat(entry.stat()))
 
 
-def _fs_scan(pathname: MegfilePathLike,
+def _fs_scan(pathname: PathLike,
              missing_ok: bool = True) -> Iterator[str]:
     if fs_isfile(pathname):
         path = fspath(pathname)
@@ -291,7 +291,7 @@ def _fs_scan(pathname: MegfilePathLike,
             yield os.path.join(root, filename)
 
 
-def fs_scan(pathname: MegfilePathLike,
+def fs_scan(pathname: PathLike,
             missing_ok: bool = True) -> Iterator[str]:
     '''
     Iteratively traverse only files in given directory, in alphabetical order. 
@@ -310,7 +310,7 @@ def fs_scan(pathname: MegfilePathLike,
         FileNotFoundError('No match file: %r' % pathname))
 
 
-def fs_scan_stat(pathname: MegfilePathLike,
+def fs_scan_stat(pathname: PathLike,
                  missing_ok: bool = True) -> Iterator[FileEntry]:
     '''
     Iteratively traverse only files in given directory, in alphabetical order. 
@@ -329,7 +329,7 @@ def fs_scan_stat(pathname: MegfilePathLike,
 
 
 def fs_glob(
-        pathname: MegfilePathLike, recursive: bool = True,
+        pathname: PathLike, recursive: bool = True,
         missing_ok: bool = True) -> List[str]:
     '''Return path list in ascending alphabetical order, in which path matches glob pattern
 
@@ -351,7 +351,7 @@ def fs_glob(
 
 
 def fs_iglob(
-        pathname: MegfilePathLike, recursive: bool = True,
+        pathname: PathLike, recursive: bool = True,
         missing_ok: bool = True) -> Iterator[str]:
     '''Return path iterator in ascending alphabetical order, in which path matches glob pattern
 
@@ -375,7 +375,7 @@ def fs_iglob(
 
 
 def fs_glob_stat(
-        pathname: MegfilePathLike, recursive: bool = True,
+        pathname: PathLike, recursive: bool = True,
         missing_ok: bool = True) -> Iterator[FileEntry]:
     '''Return a list contains tuples of path and file stat, in ascending alphabetical order, in which path matches glob pattern
 
@@ -397,7 +397,7 @@ def fs_glob_stat(
         yield FileEntry(path, _make_stat(os.lstat(path)))
 
 
-def fs_save_as(file_object: BinaryIO, path: MegfilePathLike) -> None:
+def fs_save_as(file_object: BinaryIO, path: PathLike) -> None:
     '''Write the opened binary stream to path
     If parent directory of path doesn't exist, it will be created.
 
@@ -409,7 +409,7 @@ def fs_save_as(file_object: BinaryIO, path: MegfilePathLike) -> None:
         output.write(file_object.read())
 
 
-def fs_load_from(path: MegfilePathLike) -> BinaryIO:
+def fs_load_from(path: PathLike) -> BinaryIO:
     '''Read all content on specified path and write into memory
 
     User should close the BinaryIO manually
@@ -423,8 +423,8 @@ def fs_load_from(path: MegfilePathLike) -> BinaryIO:
 
 
 def _copyfile(
-        src_path: MegfilePathLike,
-        dst_path: MegfilePathLike,
+        src_path: PathLike,
+        dst_path: PathLike,
         callback: Optional[Callable[[int], None]] = None):
 
     def _patch_copyfileobj(callback=None):
@@ -454,8 +454,8 @@ def _copyfile(
 
 
 def fs_copy(
-        src_path: MegfilePathLike,
-        dst_path: MegfilePathLike,
+        src_path: PathLike,
+        dst_path: PathLike,
         callback: Optional[Callable[[int], None]] = None):
     ''' File copy on file system
     Copy content (excluding meta date) of file on `src_path` to `dst_path`. `dst_path` must be a complete file name
@@ -488,7 +488,7 @@ def fs_copy(
             raise
 
 
-def fs_sync(src_path: MegfilePathLike, dst_path: MegfilePathLike):
+def fs_sync(src_path: PathLike, dst_path: PathLike):
     '''Force write of everything to disk.
 
     :param src_path: Source file path
@@ -500,7 +500,7 @@ def fs_sync(src_path: MegfilePathLike, dst_path: MegfilePathLike):
         fs_copy(src_path, dst_path)
 
 
-def fs_listdir(path: MegfilePathLike) -> List[str]:
+def fs_listdir(path: PathLike) -> List[str]:
     '''
     Get all contents of given fs path. The result is in acsending alphabetical order.
  
@@ -510,11 +510,11 @@ def fs_listdir(path: MegfilePathLike) -> List[str]:
     return sorted(os.listdir(path))
 
 
-def fs_islink(path: MegfilePathLike) -> bool:
+def fs_islink(path: PathLike) -> bool:
     return os.path.islink(path)
 
 
-def fs_isabs(path: MegfilePathLike) -> bool:
+def fs_isabs(path: PathLike) -> bool:
     '''Test whether a path is absolute
 
     :param path: Given path
@@ -523,7 +523,7 @@ def fs_isabs(path: MegfilePathLike) -> bool:
     return os.path.isabs(path)
 
 
-def fs_ismount(path: MegfilePathLike) -> bool:
+def fs_ismount(path: PathLike) -> bool:
     '''Test whether a path is a mount point
 
     :param path: Given path
@@ -532,7 +532,7 @@ def fs_ismount(path: MegfilePathLike) -> bool:
     return os.path.ismount(path)
 
 
-def fs_abspath(path: MegfilePathLike) -> str:
+def fs_abspath(path: PathLike) -> str:
     '''Return the absolute path of given path
 
     :param path: Given path
@@ -541,7 +541,7 @@ def fs_abspath(path: MegfilePathLike) -> str:
     return fspath(os.path.abspath(path))
 
 
-def fs_realpath(path: MegfilePathLike) -> str:
+def fs_realpath(path: PathLike) -> str:
     '''Return the real path of given path
 
     :param path: Given path
@@ -550,7 +550,7 @@ def fs_realpath(path: MegfilePathLike) -> str:
     return fspath(os.path.realpath(path))
 
 
-def fs_relpath(path: MegfilePathLike, start: Optional[str] = None) -> str:
+def fs_relpath(path: PathLike, start: Optional[str] = None) -> str:
     '''Return the relative path of given path
 
     :param path: Given path
@@ -560,7 +560,7 @@ def fs_relpath(path: MegfilePathLike, start: Optional[str] = None) -> str:
     return fspath(os.path.relpath(path, start=start))
 
 
-def fs_rename(src_path: MegfilePathLike, dst_path: MegfilePathLike) -> None:
+def fs_rename(src_path: PathLike, dst_path: PathLike) -> None:
     '''
     move file on fs
 
@@ -570,7 +570,7 @@ def fs_rename(src_path: MegfilePathLike, dst_path: MegfilePathLike) -> None:
     os.rename(src_path, dst_path)
 
 
-def fs_move(src_path: MegfilePathLike, dst_path: MegfilePathLike) -> None:
+def fs_move(src_path: PathLike, dst_path: PathLike) -> None:
     '''
     move file on fs
 
@@ -583,7 +583,7 @@ def fs_move(src_path: MegfilePathLike, dst_path: MegfilePathLike) -> None:
         os.rename(src_path, dst_path)
 
 
-def fs_access(path: MegfilePathLike, mode: Access = Access.READ) -> bool:
+def fs_access(path: PathLike, mode: Access = Access.READ) -> bool:
     '''
     Test if path has access permission described by mode
     Using ``os.access``
@@ -620,21 +620,21 @@ def fs_home():
     return os.path.expanduser('~')
 
 
-def fs_expanduser(path: MegfilePathLike):
+def fs_expanduser(path: PathLike):
     '''Expand ~ and ~user constructions.  If user or $HOME is unknown,
 do nothing.
     '''
     return os.path.expanduser(path)
 
 
-def fs_resolve(path: MegfilePathLike):
+def fs_resolve(path: PathLike):
     '''
     Equal to fs_realpath
     '''
     return os.path.realpath(path)
 
 
-def fs_getmd5(path: MegfilePathLike):
+def fs_getmd5(path: PathLike):
     '''
     Calculate the md5 value of the file
 

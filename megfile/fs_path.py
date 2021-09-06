@@ -5,7 +5,7 @@ from typing import IO, AnyStr, BinaryIO
 
 from megfile import fs
 
-from .interfaces import MegfilePathLike, URIPath
+from .interfaces import PathLike, URIPath
 from .lib.compat import fspath
 from .lib.joinpath import path_join
 from .smart_path import SmartPath
@@ -77,7 +77,7 @@ class FSPath(URIPath):
     cwd = fs.fs_cwd
     home = fs.fs_home
 
-    def joinpath(self, *other_paths: MegfilePathLike) -> "FSPath":
+    def joinpath(self, *other_paths: PathLike) -> "FSPath":
         path = fspath(self)
         if path == '.':
             path = ''

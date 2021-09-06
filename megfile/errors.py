@@ -10,7 +10,7 @@ import urllib3.exceptions
 from botocore.exceptions import ClientError, NoCredentialsError, ParamValidationError
 from requests.exceptions import HTTPError
 
-from megfile.interfaces import MegfilePathLike
+from megfile.interfaces import PathLike
 
 __all__ = [
     'S3FileNotFoundError',
@@ -173,7 +173,7 @@ class UnknownError(Exception):
     def __init__(
             self,
             error: Exception,
-            path: MegfilePathLike,
+            path: PathLike,
             extra: Optional[str] = None):
         message = 'Unknown error encountered: %r, error: %s' % (
             path, full_error_message(error))
@@ -190,7 +190,7 @@ class UnknownError(Exception):
 
 class UnsupportedError(Exception):
 
-    def __init__(self, operation: str, path: MegfilePathLike):
+    def __init__(self, operation: str, path: PathLike):
         super().__init__(
             'Unsupported operation: %r, operation: %r' % (path, operation))
         self.path = path
@@ -242,7 +242,7 @@ class S3ConfigError(S3Exception, EnvironmentError):
 
 class S3UnknownError(S3Exception, UnknownError):
 
-    def __init__(self, error: Exception, path: MegfilePathLike):
+    def __init__(self, error: Exception, path: PathLike):
         super().__init__(error, path, 'endpoint: %r' % s3_endpoint_url())
 
 
@@ -273,7 +273,7 @@ class ProtocolNotFoundError(Exception):
     pass
 
 
-def translate_fs_error(fs_error: Exception, fs_path: MegfilePathLike):
+def translate_fs_error(fs_error: Exception, fs_path: PathLike):
     if isinstance(fs_error, OSError):
         if fs_error.filename is None:
             fs_error.filename = fs_path
@@ -282,7 +282,7 @@ def translate_fs_error(fs_error: Exception, fs_path: MegfilePathLike):
 
 
 def translate_s3_error(
-        s3_error: Exception, s3_url: MegfilePathLike) -> Exception:
+        s3_error: Exception, s3_url: PathLike) -> Exception:
     ''' :param s3_error: error raised by boto3
         :param s3_url: s3_url
     '''
@@ -341,7 +341,7 @@ def translate_http_error(http_error: Optional[Exception],
 
 
 @contextmanager
-def raise_s3_error(s3_url: MegfilePathLike):
+def raise_s3_error(s3_url: PathLike):
     try:
         yield
     except Exception as error:
