@@ -4,7 +4,7 @@ import io
 import os
 import re
 from collections import defaultdict
-from functools import partial, wraps
+from functools import wraps
 from itertools import chain
 from logging import getLogger as get_logger
 from typing import Any, BinaryIO, Callable, Dict, Iterator, List, Optional, Tuple, Union
@@ -17,7 +17,7 @@ import smart_open.s3
 from megfile.errors import S3BucketNotFoundError, S3ConfigError, S3FileExistsError, S3FileNotFoundError, S3IsADirectoryError, S3NotADirectoryError, S3PermissionError, S3UnknownError, UnsupportedError, _create_missing_ok_generator
 from megfile.errors import _logger as error_logger
 from megfile.errors import patch_method, raise_s3_error, s3_should_retry, translate_fs_error, translate_s3_error
-from megfile.interfaces import Access, FileCacher, FileEntry, MegfilePathLike, StatResult
+from megfile.interfaces import Access, FileCacher, FileEntry, PathLike, StatResult
 from megfile.lib.compat import fspath
 from megfile.lib.fnmatch import translate
 from megfile.lib.glob import globlize, has_magic, ungloblize
@@ -200,7 +200,7 @@ def get_s3_client(
     return client
 
 
-def is_s3(path: MegfilePathLike) -> bool:
+def is_s3(path: PathLike) -> bool:
     '''
     According to `aws-cli <https://docs.aws.amazon.com/cli/latest/reference/s3/index.html>`_ , test if a path is s3 path
 
@@ -214,7 +214,7 @@ def is_s3(path: MegfilePathLike) -> bool:
     return parts.scheme == 's3'
 
 
-def parse_s3_url(s3_url: MegfilePathLike) -> Tuple[str, str]:
+def parse_s3_url(s3_url: PathLike) -> Tuple[str, str]:
     s3_url = fspath(s3_url)
     s3_scheme, rightpart = s3_url[:5], s3_url[5:]
     if s3_scheme != 's3://':
@@ -244,8 +244,8 @@ def _make_stat(content: Dict[str, Any]):
 
 
 def s3_copy(
-        src_url: MegfilePathLike,
-        dst_url: MegfilePathLike,
+        src_url: PathLike,
+        dst_url: PathLike,
         callback: Optional[Callable[[int], None]] = None) -> None:
     ''' File copy on S3
     Copy content of file on `src_path` to `dst_path`.
@@ -292,7 +292,7 @@ def s3_copy(
         raise error
 
 
-def s3_isdir(s3_url: MegfilePathLike) -> bool:
+def s3_isdir(s3_url: PathLike) -> bool:
     '''
     Test if an s3 url is directory
     Specific procedures are as follows:
@@ -327,7 +327,7 @@ def s3_isdir(s3_url: MegfilePathLike) -> bool:
         len(resp.get('CommonPrefixes', [])) > 0
 
 
-def s3_isfile(s3_url: MegfilePathLike) -> bool:
+def s3_isfile(s3_url: PathLike) -> bool:
     '''
     Test if an s3_url is file
 
@@ -351,7 +351,7 @@ def s3_isfile(s3_url: MegfilePathLike) -> bool:
     return True
 
 
-def s3_access(s3_url: MegfilePathLike, mode: Access = Access.READ) -> bool:
+def s3_access(s3_url: PathLike, mode: Access = Access.READ) -> bool:
     '''
     Test if path has access permission described by mode
     Using head_bucket(), now READ/WRITE are same.
@@ -382,7 +382,7 @@ def s3_access(s3_url: MegfilePathLike, mode: Access = Access.READ) -> bool:
     return True
 
 
-def s3_hasbucket(s3_url: MegfilePathLike) -> bool:
+def s3_hasbucket(s3_url: PathLike) -> bool:
     '''
     Test if the bucket of s3_url exists
 
@@ -406,7 +406,7 @@ def s3_hasbucket(s3_url: MegfilePathLike) -> bool:
     return True
 
 
-def s3_exists(s3_url: MegfilePathLike) -> bool:
+def s3_exists(s3_url: PathLike) -> bool:
     '''
     Test if s3_url exists
 
@@ -445,7 +445,7 @@ def _list_objects_recursive(
             MaxKeys=max_keys)
 
 
-def s3_scandir(s3_url: MegfilePathLike) -> Iterator[FileEntry]:
+def s3_scandir(s3_url: PathLike) -> Iterator[FileEntry]:
     '''
     Get all contents of given s3_url, the order of result is not guaranteed.
 
@@ -534,7 +534,7 @@ def _s3_getdirstat(s3_dir_url: str) -> StatResult:
     return StatResult(size=size, mtime=mtime, isdir=True)
 
 
-def s3_stat(s3_url: MegfilePathLike) -> StatResult:
+def s3_stat(s3_url: PathLike) -> StatResult:
     '''
     Get StatResult of s3_url file, including file size and mtime, referring to s3_getsize and s3_getmtime
 
@@ -567,7 +567,7 @@ def s3_stat(s3_url: MegfilePathLike) -> StatResult:
     return stat_record
 
 
-def s3_getsize(s3_url: MegfilePathLike) -> int:
+def s3_getsize(s3_url: PathLike) -> int:
     '''
     Get file size on the given s3_url path (in bytes).
     If the path in a directory, return the sum of all file size in it, including file in subdirectories (if exist).
@@ -582,7 +582,7 @@ def s3_getsize(s3_url: MegfilePathLike) -> int:
     return s3_stat(s3_url).size
 
 
-def s3_getmtime(s3_url: MegfilePathLike) -> float:
+def s3_getmtime(s3_url: PathLike) -> float:
     '''
     Get last-modified time of the file on the given s3_url path (in Unix timestamp format).
     If the path is an existent directory, return the latest modified time of all file in it. The mtime of empty directory is 1970-01-01 00:00:00
@@ -597,8 +597,8 @@ def s3_getmtime(s3_url: MegfilePathLike) -> float:
 
 
 def s3_upload(
-        src_url: MegfilePathLike,
-        dst_url: MegfilePathLike,
+        src_url: PathLike,
+        dst_url: PathLike,
         callback: Optional[Callable[[int], None]] = None) -> None:
     '''
     Uploads a file from local filesystem to s3.
@@ -634,8 +634,8 @@ def s3_upload(
 
 
 def s3_download(
-        src_url: MegfilePathLike,
-        dst_url: MegfilePathLike,
+        src_url: PathLike,
+        dst_url: PathLike,
         callback: Optional[Callable[[int], None]] = None) -> None:
     '''
     Downloads a file from s3 to local filesystem.
@@ -668,7 +668,7 @@ def s3_download(
         raise error
 
 
-def s3_remove(s3_url: MegfilePathLike, missing_ok: bool = False) -> None:
+def s3_remove(s3_url: PathLike, missing_ok: bool = False) -> None:
     '''
     Remove the file or directory on s3, `s3://` and `s3://bucket` are not permitted to remove
 
@@ -700,7 +700,7 @@ def s3_remove(s3_url: MegfilePathLike, missing_ok: bool = False) -> None:
                 client.delete_objects(Bucket=bucket, Delete={'Objects': keys})
 
 
-def s3_unlink(s3_url: MegfilePathLike, missing_ok: bool = False) -> None:
+def s3_unlink(s3_url: PathLike, missing_ok: bool = False) -> None:
     '''
     Remove the file on s3
 
@@ -721,7 +721,7 @@ def s3_unlink(s3_url: MegfilePathLike, missing_ok: bool = False) -> None:
         client.delete_object(Bucket=bucket, Key=key)
 
 
-def s3_makedirs(s3_url: MegfilePathLike, exist_ok: bool = False):
+def s3_makedirs(s3_url: PathLike, exist_ok: bool = False):
     '''
     Create an s3 directory.
     Purely creating directory is invalid because it's unavailable on OSS.
@@ -744,8 +744,7 @@ def s3_makedirs(s3_url: MegfilePathLike, exist_ok: bool = False):
         raise S3FileExistsError('File exists: %r' % s3_url)
 
 
-def s3_walk(s3_url: MegfilePathLike
-           ) -> Iterator[Tuple[str, List[str], List[str]]]:
+def s3_walk(s3_url: PathLike) -> Iterator[Tuple[str, List[str], List[str]]]:
     '''
     Iteratively traverse the given s3 directory, in top-bottom order. In other words, firstly traverse parent directory, if subdirectories exist, traverse the subdirectories in alphabetical order.
     Every iteration on generator yields a 3-tuple：(root, dirs, files)
@@ -791,7 +790,7 @@ def s3_walk(s3_url: MegfilePathLike
         yield root, dirs, files
 
 
-def s3_scan(s3_url: MegfilePathLike, missing_ok: bool = True) -> Iterator[str]:
+def s3_scan(s3_url: PathLike, missing_ok: bool = True) -> Iterator[str]:
     '''
     Iteratively traverse only files in given s3 directory, in alphabetical order.
     Every iteration on generator yields a path string.
@@ -816,7 +815,7 @@ def s3_scan(s3_url: MegfilePathLike, missing_ok: bool = True) -> Iterator[str]:
     return create_generator()
 
 
-def s3_scan_stat(s3_url: MegfilePathLike,
+def s3_scan_stat(s3_url: PathLike,
                  missing_ok: bool = True) -> Iterator[FileEntry]:
     '''
     Iteratively traverse only files in given directory, in alphabetical order.
@@ -854,7 +853,7 @@ def s3_scan_stat(s3_url: MegfilePathLike,
         S3FileNotFoundError('No match file: %r' % s3_url))
 
 
-def s3_path_join(path: MegfilePathLike, *other_paths: MegfilePathLike) -> str:
+def s3_path_join(path: PathLike, *other_paths: PathLike) -> str:
     '''
     Concat 2 or more path to a complete path
 
@@ -887,8 +886,7 @@ def _s3_split_magic(s3_pathname: str) -> Tuple[str, str]:
 
 
 def s3_glob(
-        s3_pathname: MegfilePathLike,
-        recursive: bool = True,
+        s3_pathname: PathLike, recursive: bool = True,
         missing_ok: bool = True) -> List[str]:
     '''Return s3 path list in ascending alphabetical order, in which path matches glob pattern
     Notes：Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
@@ -904,8 +902,7 @@ def s3_glob(
 
 
 def s3_iglob(
-        s3_pathname: MegfilePathLike,
-        recursive: bool = True,
+        s3_pathname: PathLike, recursive: bool = True,
         missing_ok: bool = True) -> Iterator[str]:
     '''Return s3 path iterator in ascending alphabetical order, in which path matches glob pattern
     Notes：Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
@@ -927,8 +924,7 @@ def s3_iglob(
 
 
 def s3_glob_stat(
-        s3_pathname: MegfilePathLike,
-        recursive: bool = True,
+        s3_pathname: PathLike, recursive: bool = True,
         missing_ok: bool = True) -> Iterator[FileEntry]:
     '''Return a generator contains tuples of path and file stat, in ascending alphabetical order, in which path matches glob pattern
     Notes：Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
@@ -943,8 +939,7 @@ def s3_glob_stat(
 
     iterables = []
     for group_s3_pathname_1 in _group_s3path_by_bucket(s3_pathname):
-        for group_s3_pathname_2 in _group_s3path_by_ungloblize(
-                group_s3_pathname_1):
+        for group_s3_pathname_2 in _group_s3path_by_prefix(group_s3_pathname_1):
             iterables.append(
                 _s3_glob_stat_single_path(
                     group_s3_pathname_2, recursive, missing_ok))
@@ -956,8 +951,7 @@ def s3_glob_stat(
 
 
 def _s3_glob_stat_single_path(
-        s3_pathname: MegfilePathLike,
-        recursive: bool = True,
+        s3_pathname: PathLike, recursive: bool = True,
         missing_ok: bool = True) -> Iterator[FileEntry]:
     if not recursive:
         # If not recursive, replace ** with *
@@ -965,7 +959,7 @@ def _s3_glob_stat_single_path(
     top_dir, wildcard_part = _s3_split_magic(s3_pathname)
     search_dir = wildcard_part.endswith('/')
 
-    def need_list_recursive(wildcard_part: str) -> bool:
+    def should_recursive(wildcard_part: str) -> bool:
         if '**' in wildcard_part:
             return True
         parts_length = len(wildcard_part.split('/'))
@@ -982,11 +976,10 @@ def _s3_glob_stat_single_path(
             if s3_isdir(_s3_pathname):
                 yield FileEntry(_s3_pathname, StatResult(isdir=True))
             return
-        else:
-            if need_list_recursive(wildcard_part):
-                delimiter = ''
-            else:
-                delimiter = '/'
+
+        delimiter = ''
+        if not should_recursive(wildcard_part):
+            delimiter = '/'
 
         dirnames = set()
         pattern = re.compile(translate(_s3_pathname))
@@ -1052,12 +1045,12 @@ def _group_s3path_by_bucket(s3_pathname: str) -> List[str]:
 
             for bucket in _list_all_buckets():
                 if pattern.fullmatch(bucket) is not None:
-                    unglobized_bucket_path = [
-                        _s3path_change_bucket(
-                            path, oldname=bucketname, newname=bucket)
-                        for path in glob_list
-                    ]
-                    globlized_path = globlize(unglobized_bucket_path)
+                    globlized_path = globlize(
+                        [
+                            _s3path_change_bucket(
+                                glob_path, oldname=bucketname, newname=bucket)
+                            for glob_path in glob_list
+                        ])
                     group_glob_list.append(globlized_path)
         else:
             group_glob_list.append(globlize(glob_list))
@@ -1065,7 +1058,7 @@ def _group_s3path_by_bucket(s3_pathname: str) -> List[str]:
     return group_glob_list
 
 
-def _group_s3path_by_ungloblize(s3_pathname: str) -> List[str]:
+def _group_s3path_by_prefix(s3_pathname: str) -> List[str]:
     glob_list = []
     group_glob_list = []
     expanded_s3_pathname = ungloblize(s3_pathname)
@@ -1079,7 +1072,7 @@ def _group_s3path_by_ungloblize(s3_pathname: str) -> List[str]:
     return group_glob_list
 
 
-def s3_save_as(file_object: BinaryIO, s3_url: MegfilePathLike) -> None:
+def s3_save_as(file_object: BinaryIO, s3_url: PathLike) -> None:
     '''Write the opened binary stream to specified path, but the stream won't be closed
 
     :param file_object: Stream to be read
@@ -1096,7 +1089,7 @@ def s3_save_as(file_object: BinaryIO, s3_url: MegfilePathLike) -> None:
         client.upload_fileobj(file_object, Bucket=bucket, Key=key)
 
 
-def s3_load_from(s3_url: MegfilePathLike) -> BinaryIO:
+def s3_load_from(s3_url: PathLike) -> BinaryIO:
     '''Read all content in binary on specified path and write into memory
 
     User should close the BinaryIO manually
@@ -1149,7 +1142,7 @@ def _s3_binary_mode(s3_open_func):
 
 @_s3_binary_mode
 def s3_prefetch_open(
-        s3_url: MegfilePathLike,
+        s3_url: PathLike,
         mode: str = 'rb',
         *,
         max_concurrency: Optional[int] = None,
@@ -1186,7 +1179,7 @@ def s3_prefetch_open(
 
 @_s3_binary_mode
 def s3_share_cache_open(
-        s3_url: MegfilePathLike,
+        s3_url: PathLike,
         mode: str = 'rb',
         *,
         cache_key: str = 'lru',
@@ -1225,7 +1218,7 @@ def s3_share_cache_open(
 
 @_s3_binary_mode
 def s3_pipe_open(
-        s3_url: MegfilePathLike, mode: str, *,
+        s3_url: PathLike, mode: str, *,
         join_thread: bool = True) -> S3PipeHandler:
     '''Open a asynchronous read-write reader / writer, to support fast sequential read / write
 
@@ -1258,8 +1251,7 @@ def s3_pipe_open(
 
 @_s3_binary_mode
 def s3_cached_open(
-        s3_url: MegfilePathLike, mode: str, *,
-        cache_path: str) -> S3CachedHandler:
+        s3_url: PathLike, mode: str, *, cache_path: str) -> S3CachedHandler:
     '''Open a local-cache file reader / writer, for frequent random read / write
 
     .. note ::
@@ -1286,7 +1278,7 @@ def s3_cached_open(
 
 @_s3_binary_mode
 def s3_buffered_open(
-        s3_url: MegfilePathLike,
+        s3_url: PathLike,
         mode: str,
         *,
         max_concurrency: Optional[int] = None,
@@ -1375,7 +1367,7 @@ def s3_buffered_open(
 
 
 @_s3_binary_mode
-def s3_memory_open(s3_url: MegfilePathLike, mode: str) -> BinaryIO:
+def s3_memory_open(s3_url: PathLike, mode: str) -> BinaryIO:
     '''Open a BytesIO to read/write date to specified path
 
     :param s3_url: Specified path
@@ -1410,7 +1402,7 @@ def s3_memory_open(s3_url: MegfilePathLike, mode: str) -> BinaryIO:
 
 
 @_s3_binary_mode
-def s3_legacy_open(s3_url: MegfilePathLike, mode: str):
+def s3_legacy_open(s3_url: PathLike, mode: str):
     '''Use smart_open.s3.open open a reader / writer
 
     .. note ::
@@ -1454,7 +1446,7 @@ def s3_legacy_open(s3_url: MegfilePathLike, mode: str):
 s3_open = s3_buffered_open
 
 
-def s3_getmd5(s3_url: MegfilePathLike) -> Optional[str]:
+def s3_getmd5(s3_url: PathLike) -> Optional[str]:
     '''
     Get md5 meta info in files that uploaded/copied via megfile
 
@@ -1515,7 +1507,7 @@ def s3_load_content(
         )(client, bucket, key, range_str)
 
 
-def s3_rename(src_url: MegfilePathLike, dst_url: MegfilePathLike) -> None:
+def s3_rename(src_url: PathLike, dst_url: PathLike) -> None:
     '''
     Move s3 file path from src_url to dst_url
 
@@ -1526,8 +1518,8 @@ def s3_rename(src_url: MegfilePathLike, dst_url: MegfilePathLike) -> None:
     s3_remove(src_url)
 
 
-def _s3_scan_pairs(src_url: MegfilePathLike, dst_url: MegfilePathLike
-                  ) -> Iterator[Tuple[MegfilePathLike, MegfilePathLike]]:
+def _s3_scan_pairs(src_url: PathLike,
+                   dst_url: PathLike) -> Iterator[Tuple[PathLike, PathLike]]:
     for src_file_path in s3_scan(src_url):
         content_path = src_file_path[len(src_url):]
         if len(content_path) > 0:
@@ -1537,7 +1529,7 @@ def _s3_scan_pairs(src_url: MegfilePathLike, dst_url: MegfilePathLike
         yield src_file_path, dst_file_path
 
 
-def s3_move(src_url: MegfilePathLike, dst_url: MegfilePathLike) -> None:
+def s3_move(src_url: PathLike, dst_url: PathLike) -> None:
     '''
     Move file/directory path from src_url to dst_url
 
@@ -1548,7 +1540,7 @@ def s3_move(src_url: MegfilePathLike, dst_url: MegfilePathLike) -> None:
         s3_rename(src_file_path, dst_file_path)
 
 
-def s3_sync(src_url: MegfilePathLike, dst_url: MegfilePathLike) -> None:
+def s3_sync(src_url: PathLike, dst_url: PathLike) -> None:
     '''
     Copy file/directory on src_url to dst_url
 
