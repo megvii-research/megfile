@@ -7,7 +7,7 @@ from collections import defaultdict
 from functools import lru_cache, wraps
 from itertools import chain
 from logging import getLogger as get_logger
-from typing import Any, BinaryIO, Callable, DefaultDict, Dict, Iterator, List, Optional, Tuple, Union
+from typing import Any, BinaryIO, Callable, Dict, Iterator, List, Optional, Tuple, Union
 from urllib.parse import urlsplit
 
 import boto3
@@ -1019,7 +1019,7 @@ def _s3path_change_bucket(path: str, oldname: str, newname: str) -> str:
 
 
 @lru_cache(maxsize=1)
-def _list_all_buckets() -> Iterator[str]:
+def _list_all_buckets() -> List[str]:
     client = get_s3_client()
     response = client.list_buckets()
     return [content['Name'] for content in response['Buckets']]
@@ -1062,7 +1062,7 @@ def _group_s3path_by_prefix(s3_pathname: str) -> List[str]:
     bucket, key = parse_s3_url(s3_pathname)
     if not key:
         return ungloblize(s3_pathname)
-    prefix_storage = DefaultDict(list)
+    prefix_storage = defaultdict(list)
     expanded_s3_pathname = ungloblize(key)
     for pathname in expanded_s3_pathname:
         s3_path_parts = pathname.split("/")
