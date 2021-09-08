@@ -4,10 +4,10 @@ import io
 import os
 import re
 from collections import defaultdict
-from functools import wraps
+from functools import lru_cache, wraps
 from itertools import chain
 from logging import getLogger as get_logger
-from typing import Any, BinaryIO, Callable, Dict, Iterator, List, Optional, Tuple, Union
+from typing import Any, BinaryIO, Callable, DefaultDict, Dict, Iterator, List, Optional, Tuple, Union
 from urllib.parse import urlsplit
 
 import boto3
@@ -1018,11 +1018,11 @@ def _s3path_change_bucket(path: str, oldname: str, newname: str) -> str:
     return path.replace(oldname, newname, 1)
 
 
+@lru_cache(maxsize=1)
 def _list_all_buckets() -> Iterator[str]:
     client = get_s3_client()
     response = client.list_buckets()
-    for content in response['Buckets']:
-        yield content['Name']
+    return [content['Name'] for content in response['Buckets']]
 
 
 def _group_s3path_by_bucket(s3_pathname: str) -> List[str]:
@@ -1039,11 +1039,8 @@ def _group_s3path_by_bucket(s3_pathname: str) -> List[str]:
         glob_dict[bucket].append(single_glob)
 
     group_glob_list = []
-    all_buckets = None
     for bucketname, glob_list in glob_dict.items():
         if has_magic(bucketname):
-            if all_buckets is None:
-                all_buckets = _list_all_buckets()
             pattern = re.compile(translate(re.sub(r'\*{2,}', '*', bucketname)))
 
             for bucket in _list_all_buckets():
@@ -1062,17 +1059,27 @@ def _group_s3path_by_bucket(s3_pathname: str) -> List[str]:
 
 
 def _group_s3path_by_prefix(s3_pathname: str) -> List[str]:
-    glob_list = []
-    group_glob_list = []
-    expanded_s3_pathname = ungloblize(s3_pathname)
+    bucket, key = parse_s3_url(s3_pathname)
+    if not key:
+        return ungloblize(s3_pathname)
+    prefix_storage = DefaultDict(list)
+    expanded_s3_pathname = ungloblize(key)
     for pathname in expanded_s3_pathname:
-        if has_magic(pathname):
-            glob_list.append(pathname)
-            continue
-        group_glob_list.append(pathname)
-    if glob_list:
-        group_glob_list.append(globlize(glob_list))
-    return group_glob_list
+        s3_path_parts = pathname.split("/")
+        glob_index = len(s3_path_parts)
+        for index in range(len(s3_path_parts)):
+            if has_magic(s3_path_parts[index]):
+                glob_index = index
+                break
+        prefix, glob = "/".join(s3_path_parts[:glob_index]), "/".join(
+            s3_path_parts[glob_index:])
+        prefix_storage[prefix].append(glob)
+    path_list = []
+    for prefix, globs in prefix_storage.items():
+        globlized_glob = globlize(globs) if globs else ""
+        path = "/".join([p for p in [bucket, prefix, globlized_glob] if p])
+        path_list.append("s3://%s" % path)
+    return path_list
 
 
 def s3_save_as(file_object: BinaryIO, s3_url: PathLike) -> None:
