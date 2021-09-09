@@ -15,8 +15,4 @@ Sphinx >= 4.0.0; python_version == '3.6'
 yapf == 0.27.0; python_version == '3.6'
 sphinx-rtd-theme; python_version == '3.6'
 sphinx_click; python_version == '3.6'
-numpy
-opencv-python >= 4.1.2.30
 fuse-python
-sshpubkeys ~= 3.1.0; python_version == '3.5'
-redis
