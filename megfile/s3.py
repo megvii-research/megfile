@@ -4,7 +4,7 @@ import io
 import os
 import re
 from collections import defaultdict
-from functools import lru_cache, wraps
+from functools import wraps
 from itertools import chain
 from logging import getLogger as get_logger
 from typing import Any, BinaryIO, Callable, Dict, Iterator, List, Optional, Tuple, Union
@@ -1018,7 +1018,6 @@ def _s3path_change_bucket(path: str, oldname: str, newname: str) -> str:
     return path.replace(oldname, newname, 1)
 
 
-@lru_cache(maxsize=1)
 def _list_all_buckets() -> List[str]:
     client = get_s3_client()
     response = client.list_buckets()
@@ -1039,11 +1038,12 @@ def _group_s3path_by_bucket(s3_pathname: str) -> List[str]:
         glob_dict[bucket].append(single_glob)
 
     group_glob_list = []
+    all_bucket = _list_all_buckets()
     for bucketname, glob_list in glob_dict.items():
         if has_magic(bucketname):
             pattern = re.compile(translate(re.sub(r'\*{2,}', '*', bucketname)))
 
-            for bucket in _list_all_buckets():
+            for bucket in all_bucket:
                 if pattern.fullmatch(bucket) is not None:
                     globlized_path = globlize(
                         [
@@ -1065,20 +1065,16 @@ def _group_s3path_by_prefix(s3_pathname: str) -> List[str]:
     prefix_storage = defaultdict(list)
     expanded_s3_pathname = ungloblize(key)
     for pathname in expanded_s3_pathname:
-        s3_path_parts = pathname.split("/")
-        glob_index = len(s3_path_parts)
-        for index in range(len(s3_path_parts)):
-            if has_magic(s3_path_parts[index]):
-                glob_index = index
-                break
-        prefix, glob = "/".join(s3_path_parts[:glob_index]), "/".join(
-            s3_path_parts[glob_index:])
-        prefix_storage[prefix].append(glob)
+        top_dir, wildcard_part = _s3_split_magic(pathname)
+        prefix_storage[top_dir].append(wildcard_part)
     path_list = []
-    for prefix, globs in prefix_storage.items():
-        globlized_glob = globlize(globs) if globs else ""
-        path = "/".join([p for p in [bucket, prefix, globlized_glob] if p])
-        path_list.append("s3://%s" % path)
+    for prefix, wildcard_parts in prefix_storage.items():
+        globlized_part = globlize(wildcard_parts) if wildcard_parts else ""
+        unempty_parts = ["s3:/", bucket]
+        for path in [prefix, globlized_part]:
+            if path:
+                unempty_parts.append(path)
+        path_list.append("/".join(unempty_parts))
     return path_list
 
 

@@ -16,7 +16,7 @@ from moto import mock_s3
 from megfile import s3, smart
 from megfile.errors import UnknownError, UnsupportedError, translate_s3_error
 from megfile.interfaces import Access, FileEntry, StatResult
-from megfile.s3 import content_md5_header
+from megfile.s3 import _group_s3path_by_prefix, content_md5_header
 
 from . import Any, FakeStatResult, Now
 
@@ -1919,6 +1919,34 @@ def test_s3_glob_stat_cross_bucket(truncating_client, mocker):
             s3.s3_glob_stat(
                 r's3://{bucketForGlobTest,bucketForGlobTest2}/1/**.notExists',
                 missing_ok=False))
+
+
+def test_group_s3path_by_prefix():
+    assert sorted(
+        _group_s3path_by_prefix(
+            "s3://bucket/{a,b}/*/k/{c.json,d.json}")) == sorted(
+                [
+                    's3://bucket/a/*/k/{c,d}.json',
+                    's3://bucket/b/*/k/{c,d}.json'
+                ])
+    assert sorted(
+        _group_s3path_by_prefix(
+            "s3://bucket/{a,b/*}/k/{c.json,d.json}")) == sorted(
+                [
+                    's3://bucket/a/k/c.json', 's3://bucket/a/k/d.json',
+                    's3://bucket/b/[*]/k/c.json', 's3://bucket/b/[*]/k/d.json'
+                ])
+    assert sorted(
+        _group_s3path_by_prefix(
+            "s3://bucket/{a,b}*/k/{c.json,d.json}")) == sorted(
+                ['s3://bucket/{a*/k/c,a*/k/d,b*/k/c,b*/k/d}.json'])
+    assert sorted(
+        _group_s3path_by_prefix(
+            "s3://bucket/{a,b}/k/{c.json,d.json}")) == sorted(
+                [
+                    's3://bucket/a/k/c.json', 's3://bucket/a/k/d.json',
+                    's3://bucket/b/k/c.json', 's3://bucket/b/k/d.json'
+                ])
 
 
 def test_s3_save_as(s3_empty_client):

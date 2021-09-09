@@ -183,9 +183,11 @@ def _rlistdir(dirname: str, dironly: bool, fs: FSFunc) -> Iterator[str]:
 
 magic_check = re.compile(r'([*?[{])')
 magic_decheck = re.compile(r'\[(.)\]')
+escaped_check = re.compile(r'(\[[*?[{]\])')
 
 
 def has_magic(s: str) -> bool:
+    s = escaped_check.sub(r'', s)
     match = magic_check.search(s)
     return match is not None
 
