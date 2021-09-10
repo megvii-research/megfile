@@ -2171,7 +2171,6 @@ def test_s3_cached_open_raises_exceptions(mocker, s3_empty_client, fs):
 def test_s3_buffered_open(mocker, s3_empty_client, fs):
     content = b'test data for s3_buffered_open'
     s3_empty_client.create_bucket(Bucket='bucket')
-    cache_path = '/tmp/tempfile'
 
     writer = s3.s3_buffered_open('s3://bucket/key', 'wb')
     assert isinstance(writer.raw, s3.S3BufferedWriter)
@@ -2200,8 +2199,6 @@ def test_s3_buffered_open(mocker, s3_empty_client, fs):
 
 
 def test_s3_buffered_open_raises_exceptions(mocker, s3_empty_client, fs):
-    cache_path = '/tmp/tempfile'
-
     with pytest.raises(IsADirectoryError) as error:
         s3.s3_buffered_open('s3://bucket', 'wb')
     assert 's3://bucket' in str(error.value)
@@ -2241,6 +2238,24 @@ def test_s3_memory_open(s3_empty_client):
 
     with s3.s3_memory_open('s3://bucket/key', 'rb') as reader:
         assert reader.read() == content
+
+
+def test_s3_open(s3_empty_client):
+    content = b'test data for s3_open'
+    s3_empty_client.create_bucket(Bucket='bucket')
+    s3_empty_client.put_object(Bucket='bucket', Key='key', Body=content)
+
+    writer = s3.s3_open('s3://bucket/key', 'wb')
+    assert isinstance(writer.raw, s3.S3BufferedWriter)
+
+    reader = s3.s3_open('s3://bucket/key', 'rb')
+    assert isinstance(reader.raw, s3.S3PrefetchReader)
+
+    writer = s3.s3_open('s3://bucket/key', 'ab')
+    assert isinstance(writer, s3.S3MemoryHandler)
+
+    writer = s3.s3_open('s3://bucket/key', 'wb+')
+    assert isinstance(writer, s3.S3MemoryHandler)
 
 
 def test_s3_getmd5(s3_empty_client):
