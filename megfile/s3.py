@@ -1431,7 +1431,10 @@ def s3_legacy_open(s3_url: PathLike, mode: str):
         raise translate_s3_error(error, s3_url)
 
 
-s3_open = s3_buffered_open
+def s3_open(s3_url: PathLike, mode: str):
+    if 'a' in mode or '+' in mode:
+        return s3_memory_open(s3_url, mode)
+    return s3_buffered_open(s3_url, mode)
 
 
 def s3_getmd5(s3_url: PathLike) -> Optional[str]:
