@@ -25,6 +25,7 @@ from megfile.lib.joinpath import uri_join
 from megfile.lib.s3_buffered_writer import DEFAULT_MAX_BUFFER_SIZE, S3BufferedWriter
 from megfile.lib.s3_cached_handler import S3CachedHandler
 from megfile.lib.s3_limited_seekable_writer import S3LimitedSeekableWriter
+from megfile.lib.s3_memory_handler import S3MemoryHandler
 from megfile.lib.s3_pipe_handler import S3PipeHandler
 from megfile.lib.s3_prefetch_reader import DEFAULT_BLOCK_SIZE, S3PrefetchReader
 from megfile.lib.s3_share_cache_reader import S3ShareCacheReader
@@ -1367,38 +1368,25 @@ def s3_buffered_open(
 
 
 @_s3_binary_mode
-def s3_memory_open(s3_url: PathLike, mode: str) -> BinaryIO:
-    '''Open a BytesIO to read/write date to specified path
+def s3_memory_open(s3_url: PathLike, mode: str) -> S3MemoryHandler:
+    '''Open a memory-cache file reader / writer, for frequent random read / write
 
-    :param s3_url: Specified path
-    :returns: BinaryIO
+    .. note ::
+
+        User should make sure that reader / writer are closed correctly
+
+        Supports context manager
+
+    :param mode: Mode to open file, could be one of "rb", "wb" or "ab"
+    :returns: An opened BufferedReader / BufferedWriter object
     '''
-    if mode not in ('rb', 'wb'):
+    if mode not in ('rb', 'wb', 'ab', 'rb+', 'wb+', 'ab+'):
         raise ValueError('unacceptable mode: %r' % mode)
 
-    if mode == 'rb':
-        return s3_load_from(s3_url)
-
-    buffer = io.BytesIO()
-    close_buffer = buffer.close
     bucket, key = parse_s3_url(s3_url)
     config = botocore.config.Config(max_pool_connections=max_pool_connections)
     client = get_s3_client(config=config, cache_key='s3_filelike_client')
-
-    def close():
-        try:
-            buffer.seek(0)
-            # File-like objects are closed after uploading
-            # https://github.com/boto/s3transfer/issues/80
-            buffer.close = close_buffer
-            client.upload_fileobj(buffer, bucket, key)
-        except Exception as error:
-            raise translate_s3_error(error, s3_url)
-        finally:
-            close_buffer()
-
-    buffer.close = close
-    return buffer
+    return S3MemoryHandler(bucket, key, mode, s3_client=client)
 
 
 @_s3_binary_mode
