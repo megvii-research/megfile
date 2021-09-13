@@ -183,12 +183,17 @@ def _rlistdir(dirname: str, dironly: bool, fs: FSFunc) -> Iterator[str]:
 
 magic_check = re.compile(r'([*?[{])')
 magic_decheck = re.compile(r'\[(.)\]')
-escaped_check = re.compile(r'(\[[*?[{]\])')
+brace_check = re.compile(r'(\{.*\})')
+unbrace_check = re.compile(r'([*?[])')
 
 
 def has_magic(s: str) -> bool:
-    s = escaped_check.sub(r'', s)
     match = magic_check.search(s)
+    return match is not None
+
+
+def has_magic_ignore_brace(s: str) -> bool:
+    match = unbrace_check.search(brace_check.sub(r"", s))
     return match is not None
 
 
