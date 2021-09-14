@@ -116,12 +116,18 @@ content_md5_header = 'megfile-content-md5'
 endpoint_url = 'https://s3.amazonaws.com'
 
 
+def get_scoped_config() -> dict:
+    return get_s3_session()._session.get_scoped_config()
+
+
 def get_endpoint_url() -> str:
     '''Get the endpoint url of S3
 
     returns: S3 endpoint url
     '''
-    return os.environ.get('OSS_ENDPOINT', endpoint_url)
+    environ_endpoint_url = os.environ.get('OSS_ENDPOINT')
+    config_endpoint_url = get_scoped_config().get('s3', {}).get('endpoint_url')
+    return environ_endpoint_url or config_endpoint_url or endpoint_url
 
 
 def get_s3_session():
