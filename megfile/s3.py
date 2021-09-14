@@ -4,8 +4,8 @@ import io
 import os
 import re
 from collections import defaultdict
-from functools import wraps
-from itertools import chain
+from functools import lru_cache, wraps
+from itertools import chain, groupby
 from logging import getLogger as get_logger
 from typing import Any, BinaryIO, Callable, Dict, Iterator, List, Optional, Tuple, Union
 from urllib.parse import urlsplit
@@ -20,7 +20,7 @@ from megfile.errors import patch_method, raise_s3_error, s3_should_retry, transl
 from megfile.interfaces import Access, FileCacher, FileEntry, PathLike, StatResult
 from megfile.lib.compat import fspath
 from megfile.lib.fnmatch import translate
-from megfile.lib.glob import globlize, has_magic, ungloblize
+from megfile.lib.glob import globlize, has_magic, has_magic_ignore_brace, ungloblize
 from megfile.lib.joinpath import uri_join
 from megfile.lib.s3_buffered_writer import DEFAULT_MAX_BUFFER_SIZE, S3BufferedWriter
 from megfile.lib.s3_cached_handler import S3CachedHandler
@@ -1012,65 +1012,128 @@ def _s3_glob_stat_single_path(
     return create_generator(s3_pathname)
 
 
-def _s3path_change_bucket(path: str, oldname: str, newname: str) -> str:
-    return path.replace(oldname, newname, 1)
-
-
-def _list_all_buckets() -> Iterator[str]:
+def _list_all_buckets() -> List[str]:
     client = get_s3_client()
     response = client.list_buckets()
-    for content in response['Buckets']:
-        yield content['Name']
+    return [content['Name'] for content in response['Buckets']]
+
+
+def _parse_s3_url_ignore_brace(s3_url: str) -> Tuple[str, str]:
+    s3_url = fspath(s3_url)
+    s3_scheme, rightpart = s3_url[:5], s3_url[5:]
+    if s3_scheme != 's3://':
+        raise ValueError('Not a s3 url: %r' % s3_url)
+    left_brace = False
+    for current_index, current_character in enumerate(rightpart):
+        if current_character == "/" and left_brace is False:
+            return rightpart[:current_index], rightpart[current_index + 1:]
+        elif current_character == "{":
+            left_brace = True
+        elif current_character == "}":
+            left_brace = False
+    return rightpart, ""
 
 
 def _group_s3path_by_bucket(s3_pathname: str) -> List[str]:
-    bucket, key = parse_s3_url(s3_pathname)
+    bucket, key = _parse_s3_url_ignore_brace(s3_pathname)
     if not bucket:
         if not key:
             raise UnsupportedError('Glob whole s3', s3_pathname)
         raise S3BucketNotFoundError('Empty bucket name: %r' % s3_pathname)
 
-    glob_dict = defaultdict(list)
-    expanded_s3_pathname = ungloblize(s3_pathname)
-    for single_glob in expanded_s3_pathname:
-        bucket, _ = parse_s3_url(single_glob)
-        glob_dict[bucket].append(single_glob)
+    grouped_path = []
 
-    group_glob_list = []
-    all_buckets = None
-    for bucketname, glob_list in glob_dict.items():
+    def generate_s3_path(bucket: str):
+        if key:
+            return "s3://%s/%s" % (bucket, key)
+        return "s3://%s%s" % (bucket, "/" if s3_pathname.endswith("/") else "")
+
+    all_bucket = lru_cache(maxsize=1)(_list_all_buckets)
+    for bucketname in ungloblize(bucket):
         if has_magic(bucketname):
-            if all_buckets is None:
-                all_buckets = _list_all_buckets()
+            split_bucketname = bucketname.split("/", 1)
+            path_part = None
+            if len(split_bucketname) == 2:
+                bucketname, path_part = split_bucketname
             pattern = re.compile(translate(re.sub(r'\*{2,}', '*', bucketname)))
 
-            for bucket in _list_all_buckets():
+            for bucket in all_bucket():
                 if pattern.fullmatch(bucket) is not None:
-                    globlized_path = globlize(
-                        [
-                            _s3path_change_bucket(
-                                glob_path, oldname=bucketname, newname=bucket)
-                            for glob_path in glob_list
-                        ])
-                    group_glob_list.append(globlized_path)
+                    if path_part is not None:
+                        bucket = "%s/%s" % (bucket, path_part)
+                    grouped_path.append(generate_s3_path(bucket))
         else:
-            group_glob_list.append(globlize(glob_list))
+            grouped_path.append(generate_s3_path(bucketname))
 
-    return group_glob_list
+    return grouped_path
+
+
+def _s3_split_magic_ignore_brace(s3_pathname: str) -> Tuple[str, str]:
+    if not s3_pathname:
+        raise ValueError("s3_pathname: %s", s3_pathname)
+
+    has_protocol = False
+    if s3_pathname.startswith("s3://"):
+        has_protocol = True
+        s3_pathname = s3_pathname[5:]
+
+    has_delimiter = False
+    if s3_pathname.endswith("/"):
+        has_delimiter = True
+        s3_pathname = s3_pathname[:-1]
+
+    normal_parts = []
+    magic_parts = []
+    left_brace = False
+    left_index = 0
+    for current_index, current_character in enumerate(s3_pathname):
+        if current_character == "/" and left_brace is False:
+            if has_magic_ignore_brace(s3_pathname[left_index:current_index]):
+                magic_parts.append(s3_pathname[left_index:current_index])
+                if s3_pathname[current_index + 1:]:
+                    magic_parts.append(s3_pathname[current_index + 1:])
+                    left_index = len(s3_pathname)
+                break
+            normal_parts.append(s3_pathname[left_index:current_index])
+            left_index = current_index + 1
+        elif current_character == "{":
+            left_brace = True
+        elif current_character == "}":
+            left_brace = False
+    if s3_pathname[left_index:]:
+        if has_magic_ignore_brace(s3_pathname[left_index:]):
+            magic_parts.append(s3_pathname[left_index:])
+        else:
+            normal_parts.append(s3_pathname[left_index:])
+
+    if has_protocol and normal_parts:
+        normal_parts.insert(0, "s3:/")
+    elif has_protocol:
+        magic_parts.insert(0, "s3:/")
+
+    if has_delimiter and magic_parts:
+        magic_parts.append("")
+    elif has_delimiter:
+        normal_parts.append("")
+
+    return "/".join(normal_parts), "/".join(magic_parts)
 
 
 def _group_s3path_by_prefix(s3_pathname: str) -> List[str]:
-    glob_list = []
-    group_glob_list = []
-    expanded_s3_pathname = ungloblize(s3_pathname)
-    for pathname in expanded_s3_pathname:
-        if has_magic(pathname):
-            glob_list.append(pathname)
-            continue
-        group_glob_list.append(pathname)
-    if glob_list:
-        group_glob_list.append(globlize(glob_list))
-    return group_glob_list
+
+    _, key = parse_s3_url(s3_pathname)
+    if not key:
+        return ungloblize(s3_pathname)
+
+    top_dir, magic_part = _s3_split_magic_ignore_brace(s3_pathname)
+    if not top_dir:
+        return [magic_part]
+    grouped_path = []
+    for pathname in ungloblize(top_dir):
+        if magic_part:
+            pathname = "/".join([pathname, magic_part])
+        grouped_path.append(pathname)
+    return grouped_path
 
 
 def s3_save_as(file_object: BinaryIO, s3_url: PathLike) -> None:

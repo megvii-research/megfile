@@ -16,7 +16,7 @@ from moto import mock_s3
 from megfile import s3, smart
 from megfile.errors import UnknownError, UnsupportedError, translate_s3_error
 from megfile.interfaces import Access, FileEntry, StatResult
-from megfile.s3 import content_md5_header
+from megfile.s3 import _group_s3path_by_bucket, _group_s3path_by_prefix, _s3_split_magic, content_md5_header
 
 from . import Any, FakeStatResult, Now
 
@@ -1919,6 +1919,75 @@ def test_s3_glob_stat_cross_bucket(truncating_client, mocker):
             s3.s3_glob_stat(
                 r's3://{bucketForGlobTest,bucketForGlobTest2}/1/**.notExists',
                 missing_ok=False))
+
+
+def test_s3_split_magic():
+    assert _s3_split_magic('s3://bucketA/{a/b,c}*/d') == (
+        's3://bucketA', '{a/b,c}*/d')
+
+
+def test_group_s3path_by_bucket(truncating_client):
+    assert sorted(
+        _group_s3path_by_bucket(
+            's3://{bucketA,bucketB}/{a,b}/{a,b}*/k/{c.json,d.json}')) == sorted(
+                [
+                    's3://bucketA/{a,b}/{a,b}*/k/{c.json,d.json}',
+                    's3://bucketB/{a,b}/{a,b}*/k/{c.json,d.json}'
+                ])
+
+    assert sorted(
+        _group_s3path_by_bucket(
+            's3://{bucketA/a,bucketB/b}/c/{a,b}*/k/{c.json,d.json}')) == sorted(
+                [
+                    's3://bucketA/a/c/{a,b}*/k/{c.json,d.json}',
+                    's3://bucketB/b/c/{a,b}*/k/{c.json,d.json}'
+                ])
+
+    assert sorted(
+        _group_s3path_by_bucket(
+            's3://bucketForGlobTest*/{a,b}/{a,b}*/k/{c.json,d.json}')
+    ) == sorted(
+        [
+            's3://bucketForGlobTest/{a,b}/{a,b}*/k/{c.json,d.json}',
+            's3://bucketForGlobTest2/{a,b}/{a,b}*/k/{c.json,d.json}',
+            's3://bucketForGlobTest3/{a,b}/{a,b}*/k/{c.json,d.json}',
+        ])
+
+
+def test_group_s3path_by_prefix():
+    assert sorted(
+        _group_s3path_by_prefix("s3://bucketA/{a,b}/*/k/{c,d}.json")) == sorted(
+            ['s3://bucketA/a/*/k/{c,d}.json', 's3://bucketA/b/*/k/{c,d}.json'])
+    assert sorted(
+        _group_s3path_by_prefix(
+            "s3://bucketA/{a,b/*}/k/{c.json,d.json}")) == sorted(
+                [
+                    's3://bucketA/a/k/c.json', 's3://bucketA/a/k/d.json',
+                    's3://bucketA/b/[*]/k/c.json', 's3://bucketA/b/[*]/k/d.json'
+                ])
+    assert sorted(
+        _group_s3path_by_prefix(
+            "s3://bucketA/{a,b}*/k/{c.json,d.json}")) == sorted(
+                ['s3://bucketA/{a,b}*/k/{c.json,d.json}'])
+    assert sorted(
+        _group_s3path_by_prefix(
+            "s3://bucketA/{a,b}/{c,d}*/k/{e.json,f.json}")) == sorted(
+                [
+                    's3://bucketA/a/{c,d}*/k/{e.json,f.json}',
+                    's3://bucketA/b/{c,d}*/k/{e.json,f.json}'
+                ])
+    assert sorted(
+        _group_s3path_by_prefix(
+            "s3://bucketA/{a,b}/k/{c.json,d.json}")) == sorted(
+                [
+                    's3://bucketA/a/k/c.json', 's3://bucketA/a/k/d.json',
+                    's3://bucketA/b/k/c.json', 's3://bucketA/b/k/d.json'
+                ])
+    assert sorted(_group_s3path_by_prefix("s3://bucketA/{a,b}/k/")) == sorted(
+        [
+            's3://bucketA/a/k/',
+            's3://bucketA/b/k/',
+        ])
 
 
 def test_s3_save_as(s3_empty_client):
