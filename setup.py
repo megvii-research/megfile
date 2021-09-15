@@ -5,25 +5,32 @@ from setuptools import find_packages, setup
 from sphinx.setup_command import BuildDoc
 from importlib.machinery import SourceFileLoader
 
-requirements = []
-with open('requirements.txt') as f:
-    requirements = f.readlines()
-
-test_requirements = []
-with open('requirements-dev.txt') as f:
-    test_requirements = f.readlines()
-
 
 def load_version(filename):
     loader = SourceFileLoader(filename, filename)
     return loader.load_module().VERSION
 
+
+def load_text(filename):
+    with open(filename) as fd:
+        return fd.read()
+
+
+def load_requirements(filename):
+    return load_text(filename).splitlines()
+
+
+requirements = load_requirements("requirements.txt")
+test_requirements = load_requirements("requirements-dev.txt")
+
 setup(
     name='megfile',
-    description='R-eng team file operation library',
+    description='Megvii file operation library',
+    long_description=load_text('README.md'),
+    long_description_content_type='text/markdown',
     version=load_version('megfile/version.py'),
-    author='r-eng',
-    author_email='r-eng@megvii.com',
+    author='megvii',
+    author_email='megfile@megvii.com',
     url='https://github.com/megvii-research/megfile',
     packages=find_packages(exclude=('tests', 'tests*', 'remof')),
     scripts=[entry.path for entry in os.scandir('bin') if entry.is_file()],
