@@ -1,6 +1,13 @@
 CHANGELOG
 =========
 
+## 0.0.8 - 2021.09.15
+
+- `megfile.s3.s3_memory_open` support ab / rb+ / wb+ / ab+ mode
+- `megfile.s3.s3_open` support ab / rb+ / wb+ / ab+ mode (by using s3_memory_open)
+- Speed up `s3_glob`
+- Accept `s3.endpoint_url` in aws config file
+
 ## 0.0.7 - 2021.09.06
 
 - __[Breaking]__ Rename `megfile.interfaces.MegfilePathLike` to `megfile.interfaces.PathLike`

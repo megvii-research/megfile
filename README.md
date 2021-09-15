@@ -1,5 +1,5 @@
 megfile - Megvii FILE library
----------------------------
+---
 
 [![build](https://github.com/megvii-research/megfile/actions/workflows/on-push.yaml/badge.svg?branch=main)](https://github.com/megvii-research/megfile/actions/workflows/on-push.yaml)
 [![docs](https://github.com/megvii-research/megfile/actions/workflows/publish-docs.yml/badge.svg)](https://github.com/megvii-research/megfile/actions/workflows/publish-docs.yml)
@@ -9,11 +9,11 @@ megfile - Megvii FILE library
 
 * Docs: http://megvii-research.github.io/megfile
 
-`megfile` provides a silky operation experience with different backends (currently including local file system and OSS), which enable you to focus more on the logic of your own project instead of the question of "Which backend is used for this file?"
+`megfile` provides a silky operation experience with different backends (currently including local file system and s3), which enable you to focus more on the logic of your own project instead of the question of "Which backend is used for this file?"
 
 `megfile` provides:
 
-* Almost unified file system operation experience. Target path can be easily moved from local file system to OSS.
+* Almost unified file system operation experience. Target path can be easily moved from local file system to s3.
 * Complete boundary case handling. Even the most difficult (or even you can't even think of) boundary conditions, `megfile` can help you easily handle it.
 * Perfect type hints and built-in documentation. You can enjoy the IDE's auto-completion and static checking.
 * Semantic version and upgrade guide, which allows you enjoy the latest features easily.
@@ -27,7 +27,7 @@ megfile - Megvii FILE library
 
 ## Quick Start
 
-Here's an example of writing a file to OSS, syncing to local, reading and finally deleting it.
+Here's an example of writing a file to s3, syncing to local, reading and finally deleting it.
 
 ```python
 from megfile import smart_open, smart_exists, smart_sync, smart_remove, smart_glob
@@ -61,6 +61,20 @@ if path.exists():
     with path.open() as f:
         result = f.read(7)
         assert result == b'megfile'
+```
+
+### Configuration
+
+Before using `megfile` to access files on s3, you need to set up authentication credentials for your s3 account using the AWS CLI or editing the file `~/.aws/config` directly.
+
+```
+[default]
+aws_secret_access_key = xxx
+aws_access_key_id = xxx
+
+s3 =
+    addressing_style = virtual
+    endpoint_url = http://xxx
 ```
 
 ## Installation
@@ -106,7 +120,7 @@ pip3 install -r requirements.txt -r requirements-dev.txt
         *Note* : Because `pytype` doesn't support variable type annation, the variable type hint format introduced by py36 cannot be used.
         > i.e. `variable: int` is invalid, replace it with `variable  # type: int`
 
-    * **Test**: Your code needs complete **unit test** coverage. `megfile` uses `pyfakefs` and `moto` as local file system and OSS virtual environment in unit tests. The newly added code should have a complete unit test to ensure the correctness
+    * **Test**: Your code needs complete **unit test** coverage. `megfile` uses `pyfakefs` and `moto` as local file system and s3 virtual environment in unit tests. The newly added code should have a complete unit test to ensure the correctness
 
 * You can help to improve `megfile` in many ways:
     * Write code.
