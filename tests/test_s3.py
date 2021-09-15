@@ -179,11 +179,13 @@ def test_retry(s3_empty_client, mocker):
     assert sleep.call_count == s3.max_retries - 1
 
 
-def test_get_endpoint_url():
+def test_get_endpoint_url(mocker):
+    mocker.patch('megfile.s3.get_scoped_config', return_value={})
     assert s3.get_endpoint_url() == 'https://s3.amazonaws.com'
 
 
 def test_get_endpoint_url_from_env(mocker):
+    mocker.patch('megfile.s3.get_scoped_config', return_value={})
     mocker.patch.dict(os.environ, {'OSS_ENDPOINT': 'oss-endpoint'})
 
     assert s3.get_endpoint_url() == 'oss-endpoint'
@@ -191,6 +193,7 @@ def test_get_endpoint_url_from_env(mocker):
 
 def test_get_s3_client(mocker):
     mock_session = mocker.Mock(spec=boto3.session.Session)
+    mocker.patch('megfile.s3.get_scoped_config', return_value={})
     mocker.patch('megfile.s3.get_s3_session', return_value=mock_session)
 
     s3.get_s3_client()
@@ -201,6 +204,7 @@ def test_get_s3_client(mocker):
 
 def test_get_s3_client_from_env(mocker):
     mock_session = mocker.Mock(spec=boto3.session.Session)
+    mocker.patch('megfile.s3.get_scoped_config', return_value={})
     mocker.patch('megfile.s3.get_s3_session', return_value=mock_session)
     mocker.patch.dict(os.environ, {'OSS_ENDPOINT': 'oss-endpoint'})
 
@@ -212,6 +216,7 @@ def test_get_s3_client_from_env(mocker):
 
 def test_get_s3_client_with_config(mocker):
     mock_session = mocker.Mock(spec=boto3.session.Session)
+    mocker.patch('megfile.s3.get_scoped_config', return_value={})
     mocker.patch('megfile.s3.get_s3_session', return_value=mock_session)
 
     config = botocore.config.Config(max_pool_connections=20)
