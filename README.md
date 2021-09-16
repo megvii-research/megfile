@@ -34,23 +34,23 @@ from megfile import smart_open, smart_exists, smart_sync, smart_remove, smart_gl
 from megfile.smart_path import SmartPath
 
 # open a file in s3 bucket
-with smart_open('s3://playground/refile-test', 'w') as fp:
-    fp.write('refile is not silver bullet')
+with smart_open('s3://playground/megfile-test', 'w') as fp:
+    fp.write('megfile is not silver bullet')
 
 # test if file in s3 bucket exist
-smart_exists('s3://playground/refile-test')
+smart_exists('s3://playground/megfile-test')
 
 # copy files or directories
-smart_sync('s3://playground/refile-test', '/tmp/playground')
+smart_sync('s3://playground/megfile-test', '/tmp/playground')
 
 # remove files or directories
-smart_remove('s3://playground/refile-test')
+smart_remove('s3://playground/megfile-test')
 
 # glob files or directories in s3 bucket
-smart_glob('s3://playground/video-?.{mp4,avi}')
+smart_glob('s3://playground/megfile-?.{mp4,avi}')
 
 # or in local file system
-smart_exists('/tmp/playground/refile-test')
+smart_exists('/tmp/playground/megfile-test')
 
 # smart_open also support protocols like http / https
 smart_open('https://www.google.com')
