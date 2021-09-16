@@ -65,7 +65,7 @@ if path.exists():
 
 ### Configuration
 
-Before using `megfile` to access files on s3, you need to set up authentication credentials for your s3 account using the AWS CLI or editing the file `~/.aws/config` directly.
+Before using `megfile` to access files on s3, you need to set up authentication credentials for your s3 account using the AWS CLI or editing the file `~/.aws/config` directly, see also: [boto3 configuration](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html) & [boto3 credentials](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html).
 
 ```
 [default]
