@@ -1357,7 +1357,8 @@ def s3_buffered_open(
         block_size: int = DEFAULT_BLOCK_SIZE,
         limited_seekable: bool = False,
         buffered: bool = True,
-        share_cache_key: Optional[str] = None
+        share_cache_key: Optional[str] = None,
+        cache_path: Optional[str] = None
 ) -> Union[S3PrefetchReader, S3BufferedWriter, io.BufferedReader, io.
            BufferedWriter, S3MemoryHandler]:
     '''Open an asynchronous prefetch reader, to support fast sequential read
@@ -1385,7 +1386,10 @@ def s3_buffered_open(
     client = get_s3_client(config=config, cache_key='s3_filelike_client')
 
     if 'a' in mode or '+' in mode:
-        return S3MemoryHandler(bucket, key, mode, s3_client=client)
+        if cache_path is None:
+            return S3MemoryHandler(bucket, key, mode, s3_client=client)
+        return S3CachedHandler(
+            bucket, key, mode, s3_client=client, cache_path=cache_path)
 
     if mode == 'rb':
         # A rough conversion algorithm to align 2 types of Reader / Writer paremeters
