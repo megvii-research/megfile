@@ -65,16 +65,27 @@ if path.exists():
 
 ### Configuration
 
-Before using `megfile` to access files on s3, you need to set up authentication credentials for your s3 account using the AWS CLI or editing the file `~/.aws/config` directly, see also: [boto3 configuration](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html) & [boto3 credentials](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html).
+Before using `megfile` to access files on s3, you need to set up authentication credentials for your s3 account using the [AWS CLI](https://docs.aws.amazon.com/cli/latest/reference/configure/index.html) or editing the file `~/.aws/config` directly, see also: [boto3 configuration](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html) & [boto3 credentials](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html).
 
 ```
+$ aws configure
+AWS Access Key ID [None]: accesskey
+AWS Secret Access Key [None]: secretkey
+Default region name [None]:
+Default output format [None]:
+
+# for aliyun oss only
+$ aws configure set s3.addressing_style virtual
+$ aws configure set s3.endpoint_url http://oss-cn-hangzhou.aliyuncs.com
+
+$ cat `~/.aws/config
 [default]
-aws_secret_access_key = xxx
-aws_access_key_id = xxx
+aws_secret_access_key = accesskey
+aws_access_key_id = secretkey
 
 s3 =
     addressing_style = virtual
-    endpoint_url = http://xxx
+    endpoint_url = http://oss-cn-hangzhou.aliyuncs.com
 ```
 
 ## Installation
