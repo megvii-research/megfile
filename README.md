@@ -3,7 +3,7 @@ megfile - Megvii FILE library
 
 [![Build](https://github.com/megvii-research/megfile/actions/workflows/on-push.yaml/badge.svg?branch=main)](https://github.com/megvii-research/megfile/actions/workflows/on-push.yaml)
 [![Documents](https://github.com/megvii-research/megfile/actions/workflows/publish-docs.yml/badge.svg)](https://github.com/megvii-research/megfile/actions/workflows/publish-docs.yml)
-![Codecov](https://img.shields.io/codecov/c/gh/megvii-research/megfile)
+[![Codecov](https://img.shields.io/codecov/c/gh/megvii-research/megfile)](https://app.codecov.io/gh/megvii-research/megfile/)
 [![Latest version](https://img.shields.io/pypi/v/megfile.svg)](https://pypi.org/project/megfile/)
 [![Support python versions](https://img.shields.io/pypi/pyversions/megfile.svg)](https://pypi.org/project/megfile/)
 [![License](https://img.shields.io/pypi/l/megfile.svg)](https://github.com/megvii-research/megfile/blob/master/LICENSE)
