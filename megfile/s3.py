@@ -1359,7 +1359,7 @@ def s3_buffered_open(
         buffered: bool = True,
         share_cache_key: Optional[str] = None
 ) -> Union[S3PrefetchReader, S3BufferedWriter, io.BufferedReader, io.
-           BufferedWriter]:
+           BufferedWriter, S3MemoryHandler]:
     '''Open an asynchronous prefetch reader, to support fast sequential read
 
     .. note ::
@@ -1377,12 +1377,16 @@ def s3_buffered_open(
     :returns: An opened S3PrefetchReader object
     :raises: S3FileNotFoundError
     '''
-    if mode not in ('rb', 'wb'):
+    if mode not in ('rb', 'wb', 'ab', 'rb+', 'wb+', 'ab+'):
         raise ValueError('unacceptable mode: %r' % mode)
 
     bucket, key = parse_s3_url(s3_url)
     config = botocore.config.Config(max_pool_connections=max_pool_connections)
     client = get_s3_client(config=config, cache_key='s3_filelike_client')
+
+    if 'a' in mode or '+' in mode:
+        return S3MemoryHandler(bucket, key, mode, s3_client=client)
+
     if mode == 'rb':
         # A rough conversion algorithm to align 2 types of Reader / Writer paremeters
         # TODO: Optimize the conversion algorithm
@@ -1500,10 +1504,7 @@ def s3_legacy_open(s3_url: PathLike, mode: str):
         raise translate_s3_error(error, s3_url)
 
 
-def s3_open(s3_url: PathLike, mode: str):
-    if 'a' in mode or '+' in mode:
-        return s3_memory_open(s3_url, mode)
-    return s3_buffered_open(s3_url, mode)
+s3_open = s3_buffered_open
 
 
 def s3_getmd5(s3_url: PathLike) -> Optional[str]:
