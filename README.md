@@ -41,7 +41,7 @@ with smart_open('s3://playground/megfile-test', 'w') as fp:
 smart_exists('s3://playground/megfile-test')
 
 # copy files or directories
-smart_sync('s3://playground/megfile-test', '/tmp/playground')
+smart_sync('s3://playground/megfile-test', '/tmp/playground/megfile-test')
 
 # remove files or directories
 smart_remove('s3://playground/megfile-test')
