@@ -30,9 +30,9 @@ megfile - Megvii FILE library
 
 Here's an example of writing a file to s3, syncing to local, reading and finally deleting it.
 
+### Functional Interface
 ```python
 from megfile import smart_open, smart_exists, smart_sync, smart_remove, smart_glob
-from megfile.smart_path import SmartPath
 
 # open a file in s3 bucket
 with smart_open('s3://playground/megfile-test', 'w') as fp:
@@ -55,15 +55,21 @@ smart_glob('s3://playground/megfile-?.{mp4,avi}')
 
 # smart_open also support protocols like http / https
 smart_open('https://www.google.com')
+```
 
-# SmartPath Interface
+### SmartPath Interface
+```python
+from megfile.smart_path import SmartPath
+
 path = SmartPath('s3://playground/megfile-test')
 if path.exists():
     with path.open() as f:
         result = f.read(7)
         assert result == b'megfile'
-        
-# Command Line Interface
+```
+
+### Command Line Interface
+```bash
 $ megfile --help  # see what you can do
 
 $ megfile ls s3://playground/
