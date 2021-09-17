@@ -41,6 +41,9 @@ with smart_open('s3://playground/megfile-test', 'w') as fp:
 # test if file in s3 bucket exist
 smart_exists('s3://playground/megfile-test')
 
+# or in local file system
+smart_exists('/tmp/playground/megfile-test')
+
 # copy files or directories
 smart_sync('s3://playground/megfile-test', '/tmp/playground/megfile-test')
 
@@ -50,18 +53,25 @@ smart_remove('s3://playground/megfile-test')
 # glob files or directories in s3 bucket
 smart_glob('s3://playground/megfile-?.{mp4,avi}')
 
-# or in local file system
-smart_exists('/tmp/playground/megfile-test')
-
 # smart_open also support protocols like http / https
 smart_open('https://www.google.com')
 
-# SmartPath interface
+# SmartPath Interface
 path = SmartPath('s3://playground/megfile-test')
 if path.exists():
     with path.open() as f:
         result = f.read(7)
         assert result == b'megfile'
+        
+# Command Line Interface
+$ megfile --help  # see what you can do
+
+$ megfile ls s3://playground/
+$ megfile ls -l -h s3://playground/
+
+$ megfile cat s3://playground/megfile-test
+
+$ megfile cp s3://playground/megfile-test /tmp/playground/megfile-test
 ```
 
 ## Installation
