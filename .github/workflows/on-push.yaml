@@ -27,7 +27,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: /opt/hostedtoolcache/Python
-          key: ${{ matrix.os }}-python${{ matrix.python-version }}-pip-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}
+          key: ${{ matrix.os }}-py${{ matrix.python-version }}-pip-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}
           restore-keys: |
             ${{ matrix.os }}-pip-
             ${{ matrix.os }}-
@@ -75,7 +75,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: /opt/hostedtoolcache/Python
-          key: ${{ matrix.os }}-python${{ matrix.python-version }}-pip-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}
+          key: ${{ matrix.os }}-py${{ matrix.python-version }}-pip-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}
           restore-keys: |
             ${{ matrix.os }}-pip-
             ${{ matrix.os }}-
