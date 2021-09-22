@@ -6,6 +6,7 @@ megfile - Megvii FILE library
 [![Latest version](https://img.shields.io/pypi/v/megfile.svg)](https://pypi.org/project/megfile/)
 [![Support python versions](https://img.shields.io/pypi/pyversions/megfile.svg)](https://pypi.org/project/megfile/)
 [![License](https://img.shields.io/pypi/l/megfile.svg)](https://github.com/megvii-research/megfile/blob/master/LICENSE)
+[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/5233/badge)](https://bestpractices.coreinfrastructure.org/projects/5233)
 
 * Docs: http://megvii-research.github.io/megfile
 
