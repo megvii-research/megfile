@@ -158,3 +158,82 @@ jobs:
         uses: github/codeql-action/upload-sarif@v1
         with:
           sarif_file: bandit-sarif.json
+
+  scanning:
+    runs-on: ${{ matrix.os }}
+    name: code scanning (${{ matrix.os }}, py${{ matrix.python-version }})
+    strategy:
+      matrix:
+        os: [ubuntu-18.04]
+        python-version: [3.9]
+
+    steps:
+      - name: Checkout Github Repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache pip
+        id: pip-cache
+        uses: actions/cache@v2
+        with:
+          path: /opt/hostedtoolcache/Python
+          key: ${{ matrix.os }}-py${{ matrix.python-version }}-pip-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}
+          restore-keys: |
+            ${{ matrix.os }}-pip-
+            ${{ matrix.os }}-
+
+      - name: Install environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends build-essential pkg-config libgl1-mesa-glx libglib2.0-0 libfuse-dev fuse
+
+      - name: Install pyre and watchman
+        run: |
+          wget https://github.com/facebook/watchman/releases/download/v2021.08.23.00/watchman-v2021.08.23.00-linux.zip
+          unzip watchman-v2021.08.23.00-linux.zip
+          sudo mv watchman-v2021.08.23.00-linux/bin/* /usr/local/bin/
+          sudo mv watchman-v2021.08.23.00-linux/lib/* /usr/local/lib/
+          rm -rf watchman-*
+          pip install pyre-check
+
+      - name: Install package dependencies
+        if: steps.pip-cache.outputs.cache-hit != 'true'
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+          pip install -r requirements.txt
+
+      - name: Run pyre
+        continue-on-error: true
+        run: |
+          pyre --output=json check > errors.json
+
+      - name: Expose Pyre Results
+        uses: actions/upload-artifact@v2
+        with:
+          name: Pyre Results
+          path: errors.json
+
+      - name: Convert to SARIF
+        run: |
+          cat errors.json | ./scripts/convert_results_to_sarif.py > sarif.json
+
+      - name: Expose SARIF Results
+        uses: actions/upload-artifact@v2
+        with:
+          name: SARIF Results
+          path: sarif.json
+
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: sarif.json
+
+      # Temporarily disable failure status
+      #- name: Fail Command On Errors
+      #  run: |
+      #    if [ "$(cat errors.json)" != "[]" ]; then exit 1; fi
