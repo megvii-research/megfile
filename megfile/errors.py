@@ -94,7 +94,8 @@ def s3_should_retry(error: Exception) -> bool:
     if isinstance(error, s3_retry_exceptions):
         return True
     if isinstance(error, botocore.exceptions.ClientError):
-        return client_error_code(error) in ('500', 'InternalError')
+        return client_error_code(error) in (
+            '500', '501', '502', '503', 'InternalError')
     return False
 
 
