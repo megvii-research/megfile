@@ -103,11 +103,11 @@ def shadow_copy(fileobj: IO, intrusive: bool = True, buffered: bool = True):
     mode = get_mode(fileobj)
     if buffered and "b" in mode:
         if "+" in mode:
-            result = BufferedRandom(result)  # pytype: disable=wrong-arg-types
+            result = BufferedRandom(result)
         elif "x" in mode or "w" in mode or "a" in mode:
-            result = BufferedWriter(result)  # pytype: disable=wrong-arg-types
+            result = BufferedWriter(result)
         elif "r" in mode:
-            result = BufferedReader(result)  # pytype: disable=wrong-arg-types
+            result = BufferedReader(result)
     return result
 
 
