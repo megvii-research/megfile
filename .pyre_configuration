@@ -1,0 +1,27 @@
+{
+  "exclude": [
+    ".*/bin/.*",
+    ".*/docs/.*",
+    ".*/scripts/.*",
+    ".*/tests/.*",
+    ".*/setup.py"
+  ],
+  "search_path": [
+    {
+      "site-package": "boto3"
+    },
+    {
+      "site-package": "botocore"
+    },
+    {
+      "site-package": "requests"
+    },
+    {
+      "site-package": "smart_open"
+    }
+  ],
+  "source_directories": [
+    "."
+  ],
+  "strict": true
+}
