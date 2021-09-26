@@ -619,7 +619,7 @@ def s3_upload(
     client = get_s3_client()
     with open(src_url, 'rb') as src:
         # TODO: when have the 2nd md5 use case, extract this.
-        hash_md5 = hashlib.md5()
+        hash_md5 = hashlib.md5()  # nosec
         for chunk in iter(lambda: src.read(4096), b''):
             hash_md5.update(chunk)
         md5 = hash_md5.hexdigest()

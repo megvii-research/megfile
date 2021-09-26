@@ -48,7 +48,8 @@ class FakeFS(fuse.Fuse):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.mountpoint = os.path.join('/tmp/refile/fake', str(uuid4()))
+        self.mountpoint = os.path.join(
+            '/tmp/refile/fake', str(uuid4()))  # nosec
         self.started = False
         self.files = {}
 
