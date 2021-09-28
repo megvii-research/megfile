@@ -1,5 +1,5 @@
-megfile package
-==============
+API Reference
+=============
 
 Submodules
 ----------

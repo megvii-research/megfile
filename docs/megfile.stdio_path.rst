@@ -1,5 +1,5 @@
 megfile.stdio_path module
-========================
+=========================
 
 .. automodule:: megfile.stdio_path
     :members:

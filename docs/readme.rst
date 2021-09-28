@@ -1,4 +1,4 @@
-README
-======
+Getting Started
+===============
 
 .. mdinclude:: ../README.md

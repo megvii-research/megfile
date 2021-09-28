@@ -4,15 +4,15 @@
    contain the root `toctree` directive.
 
 Welcome to megfile's documentation!
-==================================
+===================================
 
 .. toctree::
    :maxdepth: 4
    :caption: Contents:
 
+   readme
    megfile
    cli
-   readme
    GitHub <https://github.com/megvii-research/megfile>
 
 

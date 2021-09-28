@@ -1,5 +1,5 @@
 megfile.fs module
-================
+=================
 
 .. automodule:: megfile.fs
     :members:

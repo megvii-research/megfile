@@ -126,8 +126,15 @@ class S3PrefetchReader(Readable, Seekable):
         self.__offset = value
 
     def seek(self, cookie: int, whence: int = os.SEEK_SET) -> int:
-        '''
-        If target offset is longer than file size, set offset to content_size
+        '''Change stream position.
+
+        Seek to byte offset pos relative to position indicated by whence:
+
+            0  Start of stream (the default).  pos should be >= 0;
+            1  Current position - pos may be negative;
+            2  End of stream - pos usually negative.
+
+        Returns the new absolute position.
         '''
         if self.closed:
             raise IOError('file already closed: %r' % self.name)
@@ -151,13 +158,10 @@ class S3PrefetchReader(Readable, Seekable):
         return self._offset
 
     def read(self, size: Optional[int] = None) -> bytes:
-        '''Read at most size data, size is at least 0
+        '''Read at most size bytes, returned as a bytes object.
 
-        .. note ::
-
-            This method is blocked
-
-            b'' will be returned when the read to the end of file
+        If the size argument is negative, read until EOF is reached.
+        Return an empty bytes object at EOF.
         '''
         if self.closed:
             raise IOError('file already closed: %r' % self.name)
@@ -197,9 +201,12 @@ class S3PrefetchReader(Readable, Seekable):
         self._offset += buffer.tell()
         return buffer.getvalue()
 
-    def readline(self, size: Optional[int] = None):
-        '''
-        According to the definition of python IOBase, readline() of BinaryIO will read the content util the first b'\n'
+    def readline(self, size: Optional[int] = None) -> bytes:
+        '''Next line from the file, as a bytes object.
+
+        Retain newline.  A non-negative size argument limits the maximum
+        number of bytes to return (an incomplete line may be returned then).
+        Return an empty bytes object at EOF.
         '''
         if self.closed:
             raise IOError('file already closed: %r' % self.name)
@@ -244,6 +251,11 @@ class S3PrefetchReader(Readable, Seekable):
         return data
 
     def readinto(self, buffer: bytearray) -> int:
+        '''Read bytes into buffer.
+
+        Returns number of bytes read (0 for EOF), or None if the object
+        is set not to block and has no data to read.
+        '''
         if self.closed:
             raise IOError('file already closed: %r' % self.name)
 
