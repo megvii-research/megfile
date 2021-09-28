@@ -1,5 +1,5 @@
 megfile.smart module
-===================
+====================
 
 .. automodule:: megfile.smart
     :members:

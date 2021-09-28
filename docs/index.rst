@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 Welcome to megfile's documentation!
-==================================
+===================================
 
 .. toctree::
    :maxdepth: 4

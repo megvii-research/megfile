@@ -106,7 +106,7 @@ def fs_stat(path: PathLike) -> StatResult:
 
 def fs_getsize(path: PathLike) -> int:
     '''
-    Get file size on the given file path (in bytes). 
+    Get file size on the given file path (in bytes).
     If the path in a directory, return the sum of all file size in it, including file in subdirectories (if exist).
     The result exludes the size of directory itself. In other words, return 0 Byte on an empty directory path.
 
@@ -227,7 +227,7 @@ def fs_path_join(path: PathLike, *other_paths: PathLike) -> str:
 def fs_walk(path: PathLike) -> Iterator[Tuple[str, List[str], List[str]]]:
     '''
     Generate the file names in a directory tree by walking the tree top-down.
-    For each directory in the tree rooted at directory path (including path itself), 
+    For each directory in the tree rooted at directory path (including path itself),
     it yields a 3-tuple (root, dirs, files).
 
     root: a string of current path
@@ -291,7 +291,7 @@ def _fs_scan(pathname: PathLike, missing_ok: bool = True) -> Iterator[str]:
 
 def fs_scan(pathname: PathLike, missing_ok: bool = True) -> Iterator[str]:
     '''
-    Iteratively traverse only files in given directory, in alphabetical order. 
+    Iteratively traverse only files in given directory, in alphabetical order.
     Every iteration on generator yields a path string.
 
     If path is a file path, yields the file only
@@ -310,7 +310,7 @@ def fs_scan(pathname: PathLike, missing_ok: bool = True) -> Iterator[str]:
 def fs_scan_stat(pathname: PathLike,
                  missing_ok: bool = True) -> Iterator[FileEntry]:
     '''
-    Iteratively traverse only files in given directory, in alphabetical order. 
+    Iteratively traverse only files in given directory, in alphabetical order.
     Every iteration on generator yields a tuple of path string and file stat
 
     :param path: Given path
@@ -463,7 +463,7 @@ def fs_copy(
 
             1. If parent directory of dst_path doesn't exist, create it
 
-            2. Allow callback function, None by default. callback: Optional[Callable[[int], None]],  
+            2. Allow callback function, None by default. callback: Optional[Callable[[int], None]],
 
         the int data is menas the size (in bytes) of the written data that is passed periodically
 
@@ -500,7 +500,7 @@ def fs_sync(src_path: PathLike, dst_path: PathLike):
 def fs_listdir(path: PathLike) -> List[str]:
     '''
     Get all contents of given fs path. The result is in acsending alphabetical order.
- 
+
     :param s3_url: Given path
     :returns: All contents have in the path in acsending alphabetical order
     '''
@@ -551,7 +551,7 @@ def fs_relpath(path: PathLike, start: Optional[str] = None) -> str:
     '''Return the relative path of given path
 
     :param path: Given path
-    :param start
+    :param start: Given start directory
     :returns: Relative path from start
     '''
     return fspath(os.path.relpath(path, start=start))

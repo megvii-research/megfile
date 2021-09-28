@@ -643,7 +643,7 @@ def smart_relpath(path: PathLike, start=None):
     '''Return the relative path of given path
 
     :param path: Given path
-    :param start
+    :param start: Given start directory
     :returns: Relative path from start
     '''
     return SmartPath(path).relpath(start)
