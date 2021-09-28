@@ -10,9 +10,9 @@ Welcome to megfile's documentation!
    :maxdepth: 4
    :caption: Contents:
 
+   readme
    megfile
    cli
-   readme
    GitHub <https://github.com/megvii-research/megfile>
 
 
