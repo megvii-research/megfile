@@ -1,11 +1,4 @@
 {
-  "exclude": [
-    ".*/bin/.*",
-    ".*/docs/.*",
-    ".*/scripts/.*",
-    ".*/tests/.*",
-    ".*/setup.py"
-  ],
   "search_path": [
     {
       "site-package": "boto3"
@@ -21,7 +14,7 @@
     }
   ],
   "source_directories": [
-    "."
+    "./megfile"
   ],
   "strict": true
 }

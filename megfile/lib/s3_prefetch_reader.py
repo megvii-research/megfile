@@ -201,7 +201,7 @@ class S3PrefetchReader(Readable, Seekable):
         self._offset += buffer.tell()
         return buffer.getvalue()
 
-    def readline(self, size: Optional[int] = None):
+    def readline(self, size: Optional[int] = None) -> bytes:
         '''Next line from the file, as a bytes object.
 
         Retain newline.  A non-negative size argument limits the maximum
