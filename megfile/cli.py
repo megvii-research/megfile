@@ -1,4 +1,6 @@
 import os
+import shutil
+import sys
 import time
 
 import click
@@ -143,9 +145,8 @@ def touch(path: str):
 @cli.command(short_help='Concatenate any files and send them to stdout.')
 @click.argument('path')
 def cat(path: str):
-    with smart_open(path, 'r') as f:
-        for line in f:
-            click.echo(line)
+    with smart_open(path, 'rb') as file:
+        shutil.copyfileobj(file, sys.stdout.buffer)
 
 
 @cli.command(
