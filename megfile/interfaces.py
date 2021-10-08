@@ -56,7 +56,7 @@ class FileLike(Closable, ABC):
     def mode(self) -> str:
         pass
 
-    def fileno(self):
+    def fileno(self) -> int:
         raise UnsupportedOperation('not a local file')
 
     def __repr__(self) -> str:
