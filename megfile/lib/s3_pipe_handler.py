@@ -65,6 +65,9 @@ class S3PipeHandler(Readable, Writable):
     def mode(self) -> str:
         return self._mode
 
+    def fileno(self):
+        return self._fileobj.fileno()
+
     def tell(self) -> int:
         return self._offset
 

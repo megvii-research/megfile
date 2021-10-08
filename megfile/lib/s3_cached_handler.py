@@ -32,6 +32,9 @@ class S3CachedHandler(S3MemoryHandler):
         if remove_cache_when_open:
             os.unlink(self._cache_path)
 
+    def fileno(self):
+        return self._fileobj.fileno()
+
     def _translate_error(self, error: Exception):
         error = translate_fs_error(error, self._cache_path)
         error = translate_s3_error(error, self.name)

@@ -56,6 +56,9 @@ class FileLike(Closable, ABC):
     def mode(self) -> str:
         pass
 
+    def fileno(self):
+        raise UnsupportedOperation('not a local file')
+
     def __repr__(self) -> str:
         return '<%s name=%r mode=%r>' % (fullname(self), self.name, self.mode)
 

@@ -32,6 +32,11 @@ def test_s3_pipe_handler_close(client):
     assert reader.closed is True
 
 
+def test_s3_pipe_handler_close(client):
+    writer = S3PipeHandler(BUCKET, KEY, 'wb', s3_client=client)
+    assert isinstance(writer.fileno(), int)
+
+
 def test_s3_pipe_handler_read(client):
     client.put_object(Bucket=BUCKET, Key=KEY, Body=CONTENT)
 
