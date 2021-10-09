@@ -35,6 +35,12 @@ def test_s3_cached_handler_close(client):
     assert reader.closed is True
 
 
+def test_s3_cached_handler_close(client):
+    writer = S3CachedHandler(
+        BUCKET, KEY, 'wb', s3_client=client, cache_path=CACHE_PATH)
+    assert isinstance(writer.fileno(), int)
+
+
 def test_s3_cached_handler_read(client):
     client.put_object(Bucket=BUCKET, Key=KEY, Body=CONTENT)
 
