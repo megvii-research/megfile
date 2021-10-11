@@ -14,7 +14,7 @@ import pytest
 from moto import mock_s3
 
 from megfile import s3, smart
-from megfile.errors import UnknownError, UnsupportedError, translate_s3_error
+from megfile.errors import UnknownError, UnsupportedError, translate_s3_error, S3FileNotFoundError
 from megfile.interfaces import Access, FileEntry, StatResult
 from megfile.s3 import _group_s3path_by_bucket, _group_s3path_by_prefix, _s3_split_magic, content_md5_header
 
@@ -2247,17 +2247,19 @@ def test_s3_buffered_open(mocker, s3_empty_client, fs):
     s3_empty_client.create_bucket(Bucket='bucket')
 
     writer = s3.s3_buffered_open('s3://bucket/key', 'wb')
-    assert isinstance(writer.raw, s3.S3BufferedWriter)
+    assert isinstance(writer, s3.S3BufferedWriter)
 
     writer = s3.s3_buffered_open('s3://bucket/key', 'wb', limited_seekable=True)
-    assert isinstance(writer.raw, s3.S3LimitedSeekableWriter)
+    assert isinstance(writer, s3.S3LimitedSeekableWriter)
 
-    reader = s3.s3_buffered_open('s3://bucket/key', 'rb')
-    assert isinstance(reader.raw, s3.S3PrefetchReader)
+    with pytest.raises(S3FileNotFoundError):
+        reader = s3.s3_buffered_open('s3://bucket/key', 'rb')
+        assert isinstance(reader, s3.S3PrefetchReader)
 
-    reader = s3.s3_buffered_open(
-        's3://bucket/key', 'rb', share_cache_key='share')
-    assert isinstance(reader.raw, s3.S3ShareCacheReader)
+    with pytest.raises(S3FileNotFoundError):
+        reader = s3.s3_buffered_open(
+            's3://bucket/key', 'rb', share_cache_key='share')
+        assert isinstance(reader, s3.S3ShareCacheReader)
 
     with s3.s3_buffered_open('s3://bucket/key', 'wb') as writer:
         assert writer.name == 's3://bucket/key'
@@ -2320,10 +2322,10 @@ def test_s3_open(s3_empty_client):
     s3_empty_client.put_object(Bucket='bucket', Key='key', Body=content)
 
     writer = s3.s3_open('s3://bucket/key', 'wb')
-    assert isinstance(writer.raw, s3.S3BufferedWriter)
+    assert isinstance(writer, s3.S3BufferedWriter)
 
     reader = s3.s3_open('s3://bucket/key', 'rb')
-    assert isinstance(reader.raw, s3.S3PrefetchReader)
+    assert isinstance(reader, s3.S3PrefetchReader)
 
     writer = s3.s3_open('s3://bucket/key', 'ab')
     assert isinstance(writer, s3.S3MemoryHandler)
