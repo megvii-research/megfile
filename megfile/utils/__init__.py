@@ -1,6 +1,7 @@
 import inspect
 import math
 import os
+import uuid
 from copy import copy
 from functools import wraps
 from io import BufferedIOBase, BufferedRandom, BufferedReader, BufferedWriter, BytesIO, StringIO, TextIOBase, TextIOWrapper
@@ -200,6 +201,11 @@ def necessary_params(func: Callable, **kwargs):
     if var_keyword:
         res_kwargs = copy(res_kwargs)
     return res_kwargs
+
+
+def generate_cache_path(filename: str, cache_dir: str = '/tmp') -> str:
+    suffix = os.path.splitext(filename)[1]
+    return os.path.join(cache_dir, str(uuid.uuid4()) + suffix)
 
 
 def _get_class(cls_or_obj) -> type:
