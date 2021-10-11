@@ -731,7 +731,7 @@ def test_register_copy_func():
 
 def test_smart_cache(mocker):
     from megfile.interfaces import NullCacher
-    from megfile.lib.fakefs import FakefsCacher
+    from megfile.s3 import S3Cacher
 
     cacher = megfile.smart_cache('/path/to/file')
     assert isinstance(cacher, NullCacher)
@@ -739,4 +739,4 @@ def test_smart_cache(mocker):
         assert path == '/path/to/file'
 
     cacher = megfile.smart_cache('s3://path/to/file')
-    assert isinstance(cacher, FakefsCacher)
+    assert isinstance(cacher, S3Cacher)
