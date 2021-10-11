@@ -1,7 +1,6 @@
 name: build
 on:
   workflow_dispatch:
-  push:
   pull_request:
 
 jobs:
@@ -108,9 +107,6 @@ jobs:
   #       with:
   #         path: /opt/hostedtoolcache/Python
   #         key: ${{ matrix.os }}-python${{ matrix.python-version }}-pip-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}
-  #         restore-keys: |
-  #           ${{ matrix.os }}-pip-
-  #           ${{ matrix.os }}-
 
   #     - name: Install environment
   #       run: |
@@ -167,9 +163,6 @@ jobs:
   #       with:
   #         path: /opt/hostedtoolcache/Python
   #         key: ${{ matrix.os }}-py${{ matrix.python-version }}-pip-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}
-  #         restore-keys: |
-  #           ${{ matrix.os }}-pip-
-  #           ${{ matrix.os }}-
 
   #     - name: Install environment
   #       run: |

@@ -29,7 +29,7 @@ from megfile.lib.s3_memory_handler import S3MemoryHandler
 from megfile.lib.s3_pipe_handler import S3PipeHandler
 from megfile.lib.s3_prefetch_reader import DEFAULT_BLOCK_SIZE, S3PrefetchReader
 from megfile.lib.s3_share_cache_reader import S3ShareCacheReader
-from megfile.utils import get_binary_mode, get_content_offset, is_readable, thread_local
+from megfile.utils import generate_cache_path, get_binary_mode, get_content_offset, is_readable, thread_local
 
 # Monkey patch for smart_open
 _smart_open_parameters = inspect.signature(smart_open.s3.open).parameters
@@ -1619,10 +1619,13 @@ def s3_sync(src_url: PathLike, dst_url: PathLike) -> None:
 class S3Cacher(FileCacher):
     cache_path = None
 
-    def __init__(self, path: str, cache_path: str, mode: str = 'r'):
+    def __init__(
+            self, path: str, cache_path: Optional[str] = None, mode: str = 'r'):
         if mode not in ('r', 'w', 'a'):
             raise ValueError('unacceptable mode: %r' % mode)
         if mode in ('r', 'a'):
+            if cache_path is None:
+                cache_path = generate_cache_path(path)
             s3_download(path, cache_path)
         self.name = path
         self.mode = mode
