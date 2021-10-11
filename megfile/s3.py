@@ -1356,7 +1356,7 @@ def s3_buffered_open(
         forward_ratio: Optional[float] = None,
         block_size: int = DEFAULT_BLOCK_SIZE,
         limited_seekable: bool = False,
-        buffered: bool = True,
+        buffered: bool = False,
         share_cache_key: Optional[str] = None,
         cache_path: Optional[str] = None
 ) -> Union[S3PrefetchReader, S3BufferedWriter, io.BufferedReader, io.
