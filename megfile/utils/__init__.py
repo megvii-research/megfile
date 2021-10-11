@@ -103,11 +103,11 @@ def shadow_copy(fileobj: IO, intrusive: bool = True, buffered: bool = True):
     mode = get_mode(fileobj)
     if buffered and "b" in mode:
         if "+" in mode:
-            result = BufferedRandom(result)  # pytype: disable=wrong-arg-types
+            result = BufferedRandom(result)
         elif "x" in mode or "w" in mode or "a" in mode:
-            result = BufferedWriter(result)  # pytype: disable=wrong-arg-types
+            result = BufferedWriter(result)
         elif "r" in mode:
-            result = BufferedReader(result)  # pytype: disable=wrong-arg-types
+            result = BufferedReader(result)
     return result
 
 
@@ -222,7 +222,7 @@ class classproperty(property):
             return "value"
     """
 
-    def __get__(self, _, cls) -> object:
+    def __get__(self, _, cls) -> object:  # type: ignore
         """
         This method gets called when a property value is requested.
         @param cls: The class type of the above instance.
@@ -231,7 +231,7 @@ class classproperty(property):
         # apply the __get__ on the class
         return super(classproperty, self).__get__(cls)
 
-    def __set__(self, cls_or_obj, value: object) -> None:
+    def __set__(self, cls_or_obj, value: object) -> None:  # type: ignore
         """
         This method gets called when a property value should be set.
         @param cls_or_obj: The class or instance of which the property should be changed.
@@ -240,7 +240,7 @@ class classproperty(property):
         # call this method only on the class, not the instance
         super(classproperty, self).__set__(_get_class(cls_or_obj), value)
 
-    def __delete__(self, cls_or_obj) -> None:
+    def __delete__(self, cls_or_obj) -> None:  # type: ignore
         """
         This method gets called when a property should be deleted.
         @param cls_or_obj: The class or instance of which the property should be deleted.

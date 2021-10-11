@@ -56,7 +56,7 @@ else:
             key,
             mode,
             s3_session=get_s3_session(),
-            endpoint_url=get_endpoint_url())
+            endpoint_url=get_endpoint_url())  # type: ignore
 
 
 __all__ = [
@@ -116,7 +116,7 @@ content_md5_header = 'megfile-content-md5'
 endpoint_url = 'https://s3.amazonaws.com'
 
 
-def get_scoped_config() -> dict:
+def get_scoped_config() -> Dict:
     return get_s3_session()._session.get_scoped_config()
 
 
@@ -1049,7 +1049,7 @@ def _group_s3path_by_bucket(s3_pathname: str) -> List[str]:
 
     grouped_path = []
 
-    def generate_s3_path(bucket: str):
+    def generate_s3_path(bucket: str, key: str) -> str:
         if key:
             return "s3://%s/%s" % (bucket, key)
         return "s3://%s%s" % (bucket, "/" if s3_pathname.endswith("/") else "")
@@ -1067,9 +1067,9 @@ def _group_s3path_by_bucket(s3_pathname: str) -> List[str]:
                 if pattern.fullmatch(bucket) is not None:
                     if path_part is not None:
                         bucket = "%s/%s" % (bucket, path_part)
-                    grouped_path.append(generate_s3_path(bucket))
+                    grouped_path.append(generate_s3_path(bucket, key))
         else:
-            grouped_path.append(generate_s3_path(bucketname))
+            grouped_path.append(generate_s3_path(bucketname, key))
 
     return grouped_path
 
