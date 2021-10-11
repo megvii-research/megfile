@@ -28,14 +28,6 @@ jobs:
         with:
           path: /opt/hostedtoolcache/Python
           key: ${{ matrix.os }}-py${{ matrix.python-version }}-pip-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}
-          restore-keys: |
-            ${{ matrix.os }}-pip-
-            ${{ matrix.os }}-
-
-      - name: Install environment
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends build-essential pkg-config libgl1-mesa-glx libglib2.0-0 libfuse-dev fuse
 
       - name: Install package dependencies
         if: steps.pip-cache.outputs.cache-hit != 'true'
@@ -76,14 +68,6 @@ jobs:
         with:
           path: /opt/hostedtoolcache/Python
           key: ${{ matrix.os }}-py${{ matrix.python-version }}-pip-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}
-          restore-keys: |
-            ${{ matrix.os }}-pip-
-            ${{ matrix.os }}-
-
-      - name: Install environment
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends build-essential pkg-config libgl1-mesa-glx libglib2.0-0 libfuse-dev fuse
 
       - name: Install package dependencies
         if: steps.pip-cache.outputs.cache-hit != 'true'
