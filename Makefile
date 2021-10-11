@@ -15,6 +15,10 @@ style_check:
 static_check:
 	pytype
 
+scan:
+	pyre --output=json check > errors.json || echo
+	cat errors.json | ./scripts/convert_results_to_sarif.py > sarif.json
+
 mut:
 	@echo Mutation testing...
 	mutmut run || echo
