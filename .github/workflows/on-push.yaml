@@ -159,11 +159,6 @@ jobs:
           path: /opt/hostedtoolcache/Python
           key: ${{ matrix.os }}-py${{ matrix.python-version }}-pip-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}
 
-      - name: Install environment
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends build-essential pkg-config libglib2.0-0
-
       - name: Install pyre
         run: |
           pip install pyre-check
