@@ -1,6 +1,3 @@
-import os
-import sys
-
 from setuptools import find_packages, setup
 from sphinx.setup_command import BuildDoc
 from importlib.machinery import SourceFileLoader
