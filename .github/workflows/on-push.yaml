@@ -7,7 +7,7 @@ on:
 jobs:
   test:
     runs-on: ${{ matrix.os }}
-    name: test (${{ matrix.os }}, py${{ matrix.python-version }})
+    name: test (py${{ matrix.python-version}}, ${{ matrix.os }})
     strategy:
       matrix:
         os: [ubuntu-18.04]
@@ -47,7 +47,7 @@ jobs:
 
   check:
     runs-on: ${{ matrix.os }}
-    name: static check (${{ matrix.os }}, py${{ matrix.python-version }})
+    name: static check (pytype, py${{matrix.python-version}}, ${{ matrix.os }})
     strategy:
       matrix:
         os: [ubuntu-18.04]
@@ -84,129 +84,118 @@ jobs:
         run: |
           make static_check
 
-  # Temporarily disable failure status
-  # security:
-  #   runs-on: ${{ matrix.os }}
-  #   name: security (${{ matrix.os }}, py${{ matrix.python-version }})
-  #   strategy:
-  #     matrix:
-  #       os: [ubuntu-18.04]
-  #       python-version: [3.9]
+  security:
+    runs-on: ${{ matrix.os }}
+    name: security (bandit, py${{ matrix.python-version }}, ${{ matrix.os }})
+    strategy:
+      matrix:
+        os: [ubuntu-18.04]
+        python-version: [3.9]
 
-  #   steps:
-  #     - name: Checkout Github Repository
-  #       uses: actions/checkout@v2
+    steps:
+      - name: Checkout Github Repository
+        uses: actions/checkout@v2
 
-  #     - name: Set up Python
-  #       uses: actions/setup-python@v2
-  #       with:
-  #         python-version: ${{ matrix.python-version }}
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
 
-  #     - name: Cache pip
-  #       id: pip-cache
-  #       uses: actions/cache@v2
-  #       with:
-  #         path: /opt/hostedtoolcache/Python
-  #         key: ${{ matrix.os }}-python${{ matrix.python-version }}-pip-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}
+      - name: Cache pip
+        id: pip-cache
+        uses: actions/cache@v2
+        with:
+          path: /opt/hostedtoolcache/Python
+          key: ${{ matrix.os }}-python${{ matrix.python-version }}-pip-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}
 
-  #     - name: Install environment
-  #       run: |
-  #         sudo apt-get update
-  #         sudo apt-get install -y --no-install-recommends build-essential pkg-config libgl1-mesa-glx libglib2.0-0 libfuse-dev fuse
+      - name: Install bandit
+        run: |
+          pip install bandit bandit_sarif_formatter
 
-  #     - name: Install bandit
-  #       run: |
-  #         pip install bandit bandit_sarif_formatter
+      - name: Install package dependencies
+        if: steps.pip-cache.outputs.cache-hit != 'true'
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+          pip install -r requirements.txt
 
-  #     - name: Install package dependencies
-  #       if: steps.pip-cache.outputs.cache-hit != 'true'
-  #       run: |
-  #         python -m pip install --upgrade pip
-  #         pip install -r requirements-dev.txt
-  #         pip install -r requirements.txt
+      - name: Run bandit
+        continue-on-error: true
+        run: |
+          bandit --format sarif -r megfile/ > bandit-sarif.json
 
-  #     - name: Run bandit
-  #       continue-on-error: true
-  #       run: |
-  #         bandit --format sarif -r megfile/ > bandit-sarif.json
+      - name: Expose SARIF Results
+        uses: actions/upload-artifact@v2
+        with:
+          name: SARIF Results
+          path: bandit-sarif.json
 
-  #     - name: Expose SARIF Results
-  #       uses: actions/upload-artifact@v2
-  #       with:
-  #         name: SARIF Results
-  #         path: bandit-sarif.json
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: bandit-sarif.json
 
-  #     - name: Upload SARIF file
-  #       uses: github/codeql-action/upload-sarif@v1
-  #       with:
-  #         sarif_file: bandit-sarif.json
+  scanning:
+    runs-on: ${{ matrix.os }}
+    name: static check (pyre, py${{matrix.python-version}}, ${{ matrix.os }})
+    strategy:
+      matrix:
+        os: [ubuntu-18.04]
+        python-version: [3.9]
 
-  # scanning:
-  #   runs-on: ${{ matrix.os }}
-  #   name: code scanning (${{ matrix.os }}, py${{ matrix.python-version }})
-  #   strategy:
-  #     matrix:
-  #       os: [ubuntu-18.04]
-  #       python-version: [3.9]
+    steps:
+      - name: Checkout Github Repository
+        uses: actions/checkout@v2
 
-  #   steps:
-  #     - name: Checkout Github Repository
-  #       uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
 
-  #     - name: Set up Python
-  #       uses: actions/setup-python@v2
-  #       with:
-  #         python-version: ${{ matrix.python-version }}
+      - name: Cache pip
+        id: pip-cache
+        uses: actions/cache@v2
+        with:
+          path: /opt/hostedtoolcache/Python
+          key: ${{ matrix.os }}-py${{ matrix.python-version }}-pip-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}
 
-  #     - name: Cache pip
-  #       id: pip-cache
-  #       uses: actions/cache@v2
-  #       with:
-  #         path: /opt/hostedtoolcache/Python
-  #         key: ${{ matrix.os }}-py${{ matrix.python-version }}-pip-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}
+      - name: Install pyre
+        run: |
+          pip install pyre-check
 
-  #     - name: Install environment
-  #       run: |
-  #         sudo apt-get update
-  #         sudo apt-get install -y --no-install-recommends build-essential pkg-config libgl1-mesa-glx libglib2.0-0 libfuse-dev fuse
+      - name: Install package dependencies
+        if: steps.pip-cache.outputs.cache-hit != 'true'
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+          pip install -r requirements.txt
 
-  #     - name: Install pyre
-  #       run: |
-  #         pip install pyre-check
+      - name: Run pyre
+        continue-on-error: true
+        run: |
+          pyre --output=json check > errors.json
 
-  #     - name: Install package dependencies
-  #       if: steps.pip-cache.outputs.cache-hit != 'true'
-  #       run: |
-  #         python -m pip install --upgrade pip
-  #         pip install -r requirements-dev.txt
-  #         pip install -r requirements.txt
+      - name: Expose Pyre Results
+        uses: actions/upload-artifact@v2
+        with:
+          name: Pyre Results
+          path: errors.json
 
-  #     - name: Run pyre
-  #       continue-on-error: true
-  #       run: |
-  #         pyre --output=json check > errors.json
+      - name: Convert to SARIF
+        run: |
+          cat errors.json | ./scripts/convert_results_to_sarif.py > sarif.json
 
-  #     - name: Expose Pyre Results
-  #       uses: actions/upload-artifact@v2
-  #       with:
-  #         name: Pyre Results
-  #         path: errors.json
+      - name: Expose SARIF Results
+        uses: actions/upload-artifact@v2
+        with:
+          name: SARIF Results
+          path: sarif.json
 
-  #     - name: Convert to SARIF
-  #       run: |
-  #         cat errors.json | ./scripts/convert_results_to_sarif.py > sarif.json
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: sarif.json
 
-  #     - name: Expose SARIF Results
-  #       uses: actions/upload-artifact@v2
-  #       with:
-  #         name: SARIF Results
-  #         path: sarif.json
-
-  #     - name: Upload SARIF file
-  #       uses: github/codeql-action/upload-sarif@v1
-  #       with:
-  #         sarif_file: sarif.json
-
-  #     - name: Fail Command On Errors
-  #       run: |
-  #         if [ "$(cat errors.json)" != "[]" ]; then exit 1; fi
+      #- name: Fail Command On Errors
+      #  run: |
+      #    if [ "$(cat errors.json)" != "[]" ]; then exit 1; fi
