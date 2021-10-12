@@ -179,3 +179,8 @@ def stat(path: str):
 @cli.command(short_help='Return the megfile version.')
 def version():
     click.echo(VERSION)
+
+
+if __name__ == '__main__':
+    # Usage: python -m megfile.cli
+    cli()
