@@ -1,6 +1,3 @@
-import os
-import sys
-
 from setuptools import find_packages, setup
 from sphinx.setup_command import BuildDoc
 from importlib.machinery import SourceFileLoader
@@ -33,7 +30,7 @@ setup(
     author_email='megfile@megvii.com',
     url='https://github.com/megvii-research/megfile',
     packages=find_packages(exclude=('tests', 'tests*', 'remof')),
-    scripts=[entry.path for entry in os.scandir('bin') if entry.is_file()],
+    entry_points={'console_scripts': ['megfile = megfile.cli:cli']},
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Console',
