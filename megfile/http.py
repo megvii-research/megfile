@@ -27,7 +27,7 @@ def get_http_session(
     session = requests.Session()
     session.timeout = timeout
 
-    def after_callback(response):
+    def after_callback(response, *args, **kwargs):
         if response.status_code in status_forcelist:
             response.raise_for_status()
         return response
