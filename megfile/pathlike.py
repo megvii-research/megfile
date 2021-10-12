@@ -1,4 +1,4 @@
-from collections import Sequence
+from collections.abc import Sequence
 from enum import Enum
 from functools import wraps
 from typing import IO, Any, AnyStr, BinaryIO, Callable, Iterator, List, NamedTuple, Optional, Tuple, Union
