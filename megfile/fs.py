@@ -639,7 +639,7 @@ def fs_getmd5(path: PathLike):
     '''
     if not os.path.isfile(path):
         raise FileNotFoundError('%s is not a file' % path)
-    with open(path, 'rb') as src:
+    with open(path, 'rb') as src:  # type: ignore
         hash_md5 = hashlib.md5()  # nosec
         for chunk in iter(lambda: src.read(4096), b''):
             hash_md5.update(chunk)

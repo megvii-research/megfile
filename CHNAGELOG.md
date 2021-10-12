@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+## 0.0.9 - 2021.10.11
+
+- `megfile.s3` retries when server returns 500 - 503
+- remove `megfile.lib.fakefs`
+
 ## 0.0.8 - 2021.09.15
 
 - `megfile.s3.s3_memory_open` support ab / rb+ / wb+ / ab+ mode

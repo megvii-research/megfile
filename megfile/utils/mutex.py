@@ -87,6 +87,7 @@ class ProcessLocal(ForkAware, BaseLocal):
     Provides a basic per-process mapping container that wipes itself if the current PID changed since the last get/set.
     Aka `threading.local()`, but for processes instead of threads.
     """
+    _lock = None
 
     def _reset(self):
         self._lock = RLock()

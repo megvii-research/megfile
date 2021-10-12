@@ -31,7 +31,7 @@ def _locations(errors: List[Error]) -> Dict[str, Location]:
 
 
 def _to_sarif_result(error: Error, locations: Dict[str, Location]) -> Dict[str, Any]:
-    LOG.info(f"Transforming error:\n{error}")
+    LOG.info(f"Transforming:\n{error}")
 
     return {
         "ruleId": "type-error",

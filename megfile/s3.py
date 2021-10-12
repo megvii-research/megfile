@@ -29,7 +29,7 @@ from megfile.lib.s3_memory_handler import S3MemoryHandler
 from megfile.lib.s3_pipe_handler import S3PipeHandler
 from megfile.lib.s3_prefetch_reader import DEFAULT_BLOCK_SIZE, S3PrefetchReader
 from megfile.lib.s3_share_cache_reader import S3ShareCacheReader
-from megfile.utils import get_binary_mode, get_content_offset, is_readable, thread_local
+from megfile.utils import generate_cache_path, get_binary_mode, get_content_offset, is_readable, thread_local
 
 # Monkey patch for smart_open
 _smart_open_parameters = inspect.signature(smart_open.s3.open).parameters
@@ -56,7 +56,7 @@ else:
             key,
             mode,
             s3_session=get_s3_session(),
-            endpoint_url=get_endpoint_url())
+            endpoint_url=get_endpoint_url())  # type: ignore
 
 
 __all__ = [
@@ -116,7 +116,7 @@ content_md5_header = 'megfile-content-md5'
 endpoint_url = 'https://s3.amazonaws.com'
 
 
-def get_scoped_config() -> dict:
+def get_scoped_config() -> Dict:
     return get_s3_session()._session.get_scoped_config()
 
 
@@ -1049,7 +1049,7 @@ def _group_s3path_by_bucket(s3_pathname: str) -> List[str]:
 
     grouped_path = []
 
-    def generate_s3_path(bucket: str):
+    def generate_s3_path(bucket: str, key: str) -> str:
         if key:
             return "s3://%s/%s" % (bucket, key)
         return "s3://%s%s" % (bucket, "/" if s3_pathname.endswith("/") else "")
@@ -1067,9 +1067,9 @@ def _group_s3path_by_bucket(s3_pathname: str) -> List[str]:
                 if pattern.fullmatch(bucket) is not None:
                     if path_part is not None:
                         bucket = "%s/%s" % (bucket, path_part)
-                    grouped_path.append(generate_s3_path(bucket))
+                    grouped_path.append(generate_s3_path(bucket, key))
         else:
-            grouped_path.append(generate_s3_path(bucketname))
+            grouped_path.append(generate_s3_path(bucketname, key))
 
     return grouped_path
 
@@ -1619,10 +1619,13 @@ def s3_sync(src_url: PathLike, dst_url: PathLike) -> None:
 class S3Cacher(FileCacher):
     cache_path = None
 
-    def __init__(self, path: str, cache_path: str, mode: str = 'r'):
+    def __init__(
+            self, path: str, cache_path: Optional[str] = None, mode: str = 'r'):
         if mode not in ('r', 'w', 'a'):
             raise ValueError('unacceptable mode: %r' % mode)
         if mode in ('r', 'a'):
+            if cache_path is None:
+                cache_path = generate_cache_path(path)
             s3_download(path, cache_path)
         self.name = path
         self.mode = mode

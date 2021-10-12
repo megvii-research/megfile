@@ -2,7 +2,7 @@ PACKAGE := megfile
 VERSION := $(shell cat ${PACKAGE}/version.py | sed -n -E 's/^VERSION = "(.+?)"/\1/p')
 
 test:
-	pytest --cov-config=setup.cfg --cov=${PACKAGE} --disable-socket --no-cov-on-fail --cov-report=html:html_cov/ --cov-report term-missing tests/
+	pytest --cov-config=setup.cfg --cov=${PACKAGE} --disable-socket --no-cov-on-fail --cov-report=html:html_cov/ --cov-report term-missing tests/ --durations=10
 
 format:
 	isort ${PACKAGE} tests
@@ -14,6 +14,10 @@ style_check:
 
 static_check:
 	pytype
+
+scan:
+	pyre --output=json check > errors.json || echo
+	cat errors.json | ./scripts/convert_results_to_sarif.py > sarif.json
 
 mut:
 	@echo Mutation testing...

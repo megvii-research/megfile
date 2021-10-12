@@ -11,9 +11,8 @@ from megfile.fs import fs_copy, fs_getsize, fs_scandir
 from megfile.interfaces import Access, FileEntry, NullCacher, PathLike, StatResult
 from megfile.lib.combine_reader import CombineReader
 from megfile.lib.compat import fspath
-from megfile.lib.fakefs import FakefsCacher
 from megfile.lib.glob import globlize, ungloblize
-from megfile.s3 import is_s3, s3_copy, s3_download, s3_load_content, s3_open, s3_upload
+from megfile.s3 import S3Cacher, is_s3, s3_copy, s3_download, s3_load_content, s3_open, s3_upload
 from megfile.smart_path import SmartPath, get_traditional_path
 from megfile.utils import combine, get_content_offset
 
@@ -716,7 +715,7 @@ def smart_save_text(path: PathLike, text: str) -> None:
         fd.write(text)
 
 
-def smart_cache(path, s3_cacher=FakefsCacher, **options):
+def smart_cache(path, s3_cacher=S3Cacher, **options):
     '''Return a path to Posixpath Interface
 
     param path: Path to cache

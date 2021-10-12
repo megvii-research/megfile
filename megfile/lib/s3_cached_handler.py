@@ -33,6 +33,7 @@ class S3CachedHandler(S3MemoryHandler):
             os.unlink(self._cache_path)
 
     def fileno(self) -> int:
+        # allow numpy.array to create a memmaped ndarray
         return self._fileobj.fileno()
 
     def _translate_error(self, error: Exception):

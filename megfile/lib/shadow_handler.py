@@ -1,12 +1,17 @@
 import os
 from contextlib import contextmanager
+from io import RawIOBase
 from typing import IO, AnyStr, Optional
 
 from megfile.interfaces import Readable, Seekable, Writable
 from megfile.utils import get_content_size, get_mode, get_name, is_readable, is_writable
 
 
-class ShadowHandler(Readable, Seekable, Writable):
+class BaseShadowHandler(RawIOBase):
+    """ShadowHandler using RawIOBase's interface. (avoid type checking error)"""
+
+
+class ShadowHandler(Readable, Seekable, Writable, BaseShadowHandler):
     ''' Create a File-Like Object, maintaining file pointer, to avoid misunderstanding the position when read / write / seek 
     It can be roughly regarded as the copy function of the file handle, but you need to be careful with the write handle, because no matter which copy will modify the data itself
     '''
