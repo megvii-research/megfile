@@ -897,7 +897,7 @@ def test_smart_open_url_is_of_credentials_format(mocker, s3_empty_client):
     详情见：https://github.com/RaRe-Technologies/smart_open/issues/378
     '''
     bucket = 'bucket'
-    key = 'username:pasword@key_part'
+    key = 'username:password@key_part'
     s3_empty_client.create_bucket(Bucket=bucket)
     s3_empty_client.put_object(Bucket=bucket, Key=key)
 
@@ -905,7 +905,7 @@ def test_smart_open_url_is_of_credentials_format(mocker, s3_empty_client):
 
     # 希望，正常打开，而不是报错
     # smart_open 将 '@' 之后的部分认为是 key
-    smart.smart_open('s3://bucket/username:pasword@key_part')
+    smart.smart_open('s3://bucket/username:password@key_part')
 
 
 def test_s3_walk(truncating_client):
@@ -1349,7 +1349,7 @@ def _s3_glob_with_nested_pathname():
 def _s3_glob_with_not_exists_dir():
     '''
     scenario: glob on a directory that is not exists
-    expectation: if recursive is True, return the direcotry with postfix of slash('/'), otherwise, an empty list.
+    expectation: if recursive is True, return the directory with postfix of slash('/'), otherwise, an empty list.
     keep identical result with standard glob module
     '''
 
@@ -1628,7 +1628,7 @@ def _s3_glob_with_nested_pathname_cross_bucket():
 def _s3_glob_with_not_exists_dir_cross_bucket():
     '''
     scenario: glob on a directory that is not exists
-    expectation: if recursive is True, return the direcotry with postfix of slash('/'), otherwise, an empty list.
+    expectation: if recursive is True, return the directory with postfix of slash('/'), otherwise, an empty list.
     keep identical result with standard glob module
     '''
 

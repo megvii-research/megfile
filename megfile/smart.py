@@ -136,7 +136,7 @@ def smart_getsize(path: PathLike) -> int:
     '''
     Get file size on the given s3_url or file path (in bytes).
     If the path in a directory, return the sum of all file size in it, including file in subdirectories (if exist).
-    The result exludes the size of directory itself. In other words, return 0 Byte on an empty directory path.
+    The result excludes the size of directory itself. In other words, return 0 Byte on an empty directory path.
 
     :param path: Given path
     :returns: File size
@@ -252,7 +252,7 @@ def smart_copy(
     :param dst_path: Given destination path
     :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
     '''
-    # this function contains plenty of mannual polymorphism
+    # this function contains plenty of manual polymorphism
     if smart_islink(src_path) and is_s3(dst_path):
         return
 
@@ -275,7 +275,7 @@ def smart_sync(
 
     .. note ::
 
-        When the paramter is file, this function bahaves like ``smart_copy``.
+        When the parameter is file, this function bahaves like ``smart_copy``.
 
         If file and directory of same name and same level, sync consider it's file first.
 
@@ -423,7 +423,7 @@ def smart_open(
 
     :param path: Given path
     :param mode: Mode to open file, supports r'[rwa][tb]?\+?'
-    :param s3_open_func: Function used to open s3_url. Require the function includes 2 neccessary parameters, file path and mode
+    :param s3_open_func: Function used to open s3_url. Require the function includes 2 necessary parameters, file path and mode
     :returns: File-Like object
     :raises: FileNotFoundError, IsADirectoryError, ValueError
     '''
@@ -446,7 +446,7 @@ def smart_path_join(path: PathLike, *other_paths: PathLike) -> str:
 
     .. note ::
 
-        For URI, the difference between this function and ``os.path.join`` is that this funcion ignores left side slash (which indicates absolute path) in ``other_paths`` and will directly concat.
+        For URI, the difference between this function and ``os.path.join`` is that this function ignores left side slash (which indicates absolute path) in ``other_paths`` and will directly concat.
         e.g. os.path.join('s3://path', 'to', '/file') => '/file', and smart_path_join('s3://path', 'to', '/file') => '/path/to/file'
         But for fs path, this function behaves exactly like ``os.path.join``
         e.g. smart_path_join('/path', 'to', '/file') => '/file'
