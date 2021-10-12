@@ -220,7 +220,7 @@ def _glob_with_nested_pathname():
 def _glob_with_not_exists_dir():
     '''
     scenario: glob on a directory that is not exists
-    expectation: if recursive is True, return the direcotry with postfix of slash('/'), otherwise, an empty list.
+    expectation: if recursive is True, return the directory with postfix of slash('/'), otherwise, an empty list.
     keep identical result with standard glob module
     '''
 

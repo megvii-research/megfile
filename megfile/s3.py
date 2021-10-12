@@ -513,7 +513,7 @@ def _s3_getdirstat(s3_dir_url: str) -> StatResult:
     Return StatResult of given s3_url directory, including：
 
     1. Directory size: the sum of all file size in it, including file in subdirectories (if exist).
-    The result exludes the size of directory itself. In other words, return 0 Byte on an empty directory path
+    The result excludes the size of directory itself. In other words, return 0 Byte on an empty directory path
     2. Last-modified time of directory：return the latest modified time of all file in it. The mtime of empty directory is 1970-01-01 00:00:00
 
     :param s3_url: Given s3 path
@@ -575,7 +575,7 @@ def s3_getsize(s3_url: PathLike) -> int:
     '''
     Get file size on the given s3_url path (in bytes).
     If the path in a directory, return the sum of all file size in it, including file in subdirectories (if exist).
-    The result exludes the size of directory itself. In other words, return 0 Byte on an empty directory path.
+    The result excludes the size of directory itself. In other words, return 0 Byte on an empty directory path.
 
     If s3_url is not an existent path, which means s3_exist(s3_url) returns False, then raise S3FileNotFoundError
 
@@ -1392,7 +1392,7 @@ def s3_buffered_open(
             bucket, key, mode, s3_client=client, cache_path=cache_path)
 
     if mode == 'rb':
-        # A rough conversion algorithm to align 2 types of Reader / Writer paremeters
+        # A rough conversion algorithm to align 2 types of Reader / Writer parameters
         # TODO: Optimize the conversion algorithm
         block_capacity = max_buffer_size // block_size
         if forward_ratio is None:

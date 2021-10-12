@@ -108,7 +108,7 @@ def fs_getsize(path: PathLike) -> int:
     '''
     Get file size on the given file path (in bytes).
     If the path in a directory, return the sum of all file size in it, including file in subdirectories (if exist).
-    The result exludes the size of directory itself. In other words, return 0 Byte on an empty directory path.
+    The result excludes the size of directory itself. In other words, return 0 Byte on an empty directory path.
 
     :param path: Given file path
     :returns: File size
@@ -465,7 +465,7 @@ def fs_copy(
 
             2. Allow callback function, None by default. callback: Optional[Callable[[int], None]],
 
-        the int data is menas the size (in bytes) of the written data that is passed periodically
+        the int data is means the size (in bytes) of the written data that is passed periodically
 
             3. This function is thread-unsafe
 
@@ -587,7 +587,7 @@ def fs_access(path: PathLike, mode: Access = Access.READ) -> bool:
 
     :param path: path to be tested
     :param mode: access mode
-    :returns: Acceess: Enum, the read/write access that path has.
+    :returns: Access: Enum, the read/write access that path has.
     '''
     if not isinstance(mode, Access):
         raise TypeError(
