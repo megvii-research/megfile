@@ -108,7 +108,6 @@ pip3 install -U .
 ```bash
 git clone git@github.com:megvii-research/megfile.git
 cd megfile
-sudo apt install libgl1-mesa-glx libfuse-dev fuse
 pip3 install -r requirements.txt -r requirements-dev.txt
 ```
 
