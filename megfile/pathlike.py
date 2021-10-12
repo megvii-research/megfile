@@ -2,6 +2,7 @@ from collections import Sequence
 from enum import Enum
 from functools import wraps
 from typing import IO, Any, AnyStr, BinaryIO, Callable, Iterator, List, NamedTuple, Optional, Tuple, Union
+from os.path import abspath
 
 from megfile.lib.compat import PathLike as _PathLike
 from megfile.lib.compat import fspath
@@ -461,7 +462,7 @@ class URIPath(BaseURIPath):
         return False
 
     def abspath(self) -> str:
-        return self.path_with_protocol
+        return self.root + abspath('/' + self.path_without_protocol)[1:]
 
     def realpath(self) -> str:
         return self.path_with_protocol
