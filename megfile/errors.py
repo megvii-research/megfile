@@ -134,7 +134,7 @@ def patch_method(
             try:
                 result = func(*args, **kwargs)
                 if after_callback is not None:
-                    result = after_callback(result)
+                    result = after_callback(result, *args, **kwargs)
                 if error is not None:
                     _logger.debug(
                         'unknown error resolved: %s, with %d tries' %
