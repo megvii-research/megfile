@@ -1,8 +1,8 @@
 from collections import Sequence
 from enum import Enum
 from functools import wraps
-from typing import IO, Any, AnyStr, BinaryIO, Callable, Iterator, List, NamedTuple, Optional, Tuple, Union
 from os.path import abspath
+from typing import IO, Any, AnyStr, BinaryIO, Callable, Iterator, List, NamedTuple, Optional, Tuple, Union
 
 from megfile.lib.compat import PathLike as _PathLike
 from megfile.lib.compat import fspath
