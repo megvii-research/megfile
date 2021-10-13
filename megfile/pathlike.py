@@ -462,7 +462,7 @@ class URIPath(BaseURIPath):
         return False
 
     def abspath(self) -> str:
-        return self.root + abspath('/' + self.path_without_protocol)[1:]
+        return str(self.root) + abspath('/' + self.path_without_protocol)[1:]
 
     def realpath(self) -> str:
         return self.path_with_protocol
