@@ -4,6 +4,7 @@ from typing import Iterable, List, Optional
 
 from megfile.errors import translate_fs_error, translate_s3_error
 from megfile.lib.s3_memory_handler import S3MemoryHandler
+from megfile.utils import generate_cache_path
 
 
 class S3CachedHandler(S3MemoryHandler):
@@ -15,7 +16,7 @@ class S3CachedHandler(S3MemoryHandler):
             mode: str,
             *,
             s3_client,
-            cache_path: str,
+            cache_path: Optional[str] = None,
             remove_cache_when_open: bool = True):
 
         assert mode in ('rb', 'wb', 'ab', 'rb+', 'wb+', 'ab+')
@@ -24,6 +25,9 @@ class S3CachedHandler(S3MemoryHandler):
         self._key = key
         self._mode = mode
         self._client = s3_client
+
+        if cache_path is None:
+            cache_path = generate_cache_path(self.name)
 
         self._cache_path = cache_path
         self._fileobj = open(self._cache_path, 'wb+')
