@@ -1337,7 +1337,8 @@ def s3_pipe_open(
 
 @_s3_binary_mode
 def s3_cached_open(
-        s3_url: PathLike, mode: str, *, cache_path: str) -> S3CachedHandler:
+        s3_url: PathLike, mode: str, *,
+        cache_path: Optional[str] = None) -> S3CachedHandler:
     '''Open a local-cache file reader / writer, for frequent random read / write
 
     .. note ::
