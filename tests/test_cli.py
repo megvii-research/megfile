@@ -69,8 +69,9 @@ def test_cat(runner, testdir):
 
 
 def test_mv(runner, testdir):
-    result = runner.invoke(mv, [str(testdir / 'text'),
-                                str(testdir / 'newfile')])
+    result = runner.invoke(
+        mv,
+        [str(testdir / 'text'), str(testdir / 'newfile')])
 
     assert result.exit_code == 0
     assert runner.invoke(ls, [str(testdir)]).output.endswith('/newfile\n')
@@ -113,8 +114,9 @@ def test_stat(runner, testdir):
 
 
 def test_cp(runner, testdir):
-    result = runner.invoke(cp, [str(testdir / 'text'),
-                                str(testdir / 'newfile')])
+    result = runner.invoke(
+        cp,
+        [str(testdir / 'text'), str(testdir / 'newfile')])
 
     assert result.exit_code == 0
     assert '/newfile\n' in runner.invoke(ls, [str(testdir)]).output
@@ -122,8 +124,9 @@ def test_cp(runner, testdir):
 
 
 def test_sync(runner, testdir):
-    result = runner.invoke(sync, [str(testdir / 'text'),
-                                  str(testdir / 'newfile')])
+    result = runner.invoke(
+        sync,
+        [str(testdir / 'text'), str(testdir / 'newfile')])
 
     assert result.exit_code == 0
     assert '/newfile\n' in runner.invoke(ls, [str(testdir)]).output
