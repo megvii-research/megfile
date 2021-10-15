@@ -146,15 +146,9 @@ max_retries = 10
 def _patch_make_request(client: botocore.client.BaseClient):
 
     def after_callback(result: Tuple[AWSResponse, dict], *args, **kwargs):
-        if not isinstance(result, tuple) or len(result) != 2:
-            error_class = client.exceptions.from_code('ClientError')
-            raise error_class(
-                {
-                    'Error': {
-                        'Code': 'InternalError',
-                        'Message': 'Internal error.'
-                    }
-                }, 'AfterCallback')
+        if not isinstance(result, tuple) or len(result) != 2 \
+            or not isinstance(result[0], AWSResponse) or not isinstance(result[1], dict):
+            return result
         http, parsed_response = result
         if http.status_code >= 500:
             error_code = parsed_response.get("Error", {}).get("Code")
