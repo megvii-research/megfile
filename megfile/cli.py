@@ -13,7 +13,7 @@ from megfile.version import VERSION
 
 @click.group()
 def cli():
-    pass
+    """Megfile Client"""
 
 
 def simple_echo(file):
