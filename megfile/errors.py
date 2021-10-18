@@ -95,7 +95,8 @@ def s3_should_retry(error: Exception) -> bool:
         return True
     if isinstance(error, botocore.exceptions.ClientError):
         return client_error_code(error) in (
-            '500', '501', '502', '503', 'InternalError')
+            '500', '501', '502', '503', 'InternalError', 'ServiceUnavailable',
+            'SlowDown')
     return False
 
 
@@ -134,7 +135,7 @@ def patch_method(
             try:
                 result = func(*args, **kwargs)
                 if after_callback is not None:
-                    result = after_callback(result)
+                    result = after_callback(result, *args, **kwargs)
                 if error is not None:
                     _logger.debug(
                         'unknown error resolved: %s, with %d tries' %

@@ -13,6 +13,7 @@ from urllib.parse import urlsplit
 import boto3
 import botocore
 import smart_open.s3
+from botocore.awsrequest import AWSResponse
 
 from megfile.errors import S3BucketNotFoundError, S3ConfigError, S3FileExistsError, S3FileNotFoundError, S3IsADirectoryError, S3NotADirectoryError, S3PermissionError, S3UnknownError, UnsupportedError, _create_missing_ok_generator
 from megfile.errors import _logger as error_logger
@@ -144,6 +145,20 @@ max_retries = 10
 
 def _patch_make_request(client: botocore.client.BaseClient):
 
+    def after_callback(result: Tuple[AWSResponse, dict], *args, **kwargs):
+        if not isinstance(result, tuple) or len(result) != 2 \
+            or not isinstance(result[0], AWSResponse) or not isinstance(result[1], dict):
+            return result
+        http, parsed_response = result
+        if http.status_code >= 500:
+            error_code = parsed_response.get("Error", {}).get("Code")
+            operation_model = kwargs.get('operation_model') or (
+                args[0] if args else None)
+            operation_name = operation_model.name if operation_model else 'ProxyMethod'
+            error_class = client.exceptions.from_code(error_code)
+            raise error_class(parsed_response, operation_name)
+        return result
+
     def retry_callback(error, operation_model, request_dict, request_context):
         if error is None:  # retry for the first time
             error_logger.debug(
@@ -161,6 +176,7 @@ def _patch_make_request(client: botocore.client.BaseClient):
         client._make_request,
         max_retries=max_retries,
         should_retry=s3_should_retry,
+        after_callback=after_callback,
         before_callback=before_callback,
         retry_callback=retry_callback)
     return client
