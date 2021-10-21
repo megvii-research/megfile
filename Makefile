@@ -1,5 +1,5 @@
 PACKAGE := megfile
-VERSION := $(shell cat ${PACKAGE}/version.py | sed -n -E 's/^VERSION = "(.+?)"/\1/p')
+VERSION := $(shell cat ${PACKAGE}/version.py | sed -n -E 's/.*=//; s/ //g; s/"//g; p')
 
 test:
 	pytest --cov-config=setup.cfg --cov=${PACKAGE} --disable-socket --no-cov-on-fail --cov-report=html:html_cov/ --cov-report term-missing --cov-report=xml tests/ --durations=10
