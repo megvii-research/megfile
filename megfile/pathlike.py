@@ -105,6 +105,8 @@ class BasePath:
     def __eq__(self, other_path: "BasePath") -> bool:
         return fspath(self) == fspath(other_path)
 
+    # pytype: disable=bad-return-type
+
     @method_not_implemented
     def is_dir(self) -> bool:  # type: ignore
         """Return True if the path points to a directory."""
@@ -241,6 +243,8 @@ class BasePath:
 
     def makedirs(self, exist_ok: bool = False) -> None:
         self.mkdir(exist_ok=exist_ok)
+
+    # pytype: enable=bad-return-type
 
 
 PathLike = Union[str, BasePath, _PathLike]
