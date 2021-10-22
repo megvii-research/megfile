@@ -162,12 +162,13 @@ class BasePath:
         """Remove (delete) the directory."""
 
     @method_not_implemented
-    def open(self, mode: str,
-             s3_open_func: Callable[[str, str], BinaryIO]) -> IO[AnyStr]:  # type: ignore
+    def open(self, mode: str, s3_open_func: Callable[[str, str], BinaryIO]
+            ) -> IO[AnyStr]:  # type: ignore
         """Open the file with mode."""
 
     @method_not_implemented
-    def walk(self) -> Iterator[Tuple[str, List[str], List[str]]]:  # type: ignore
+    def walk(self
+            ) -> Iterator[Tuple[str, List[str], List[str]]]:  # type: ignore
         """Generate the file names in a directory tree by walking the tree."""
 
     @method_not_implemented
@@ -175,7 +176,8 @@ class BasePath:
         """Iterate through the files in the directory."""
 
     @method_not_implemented
-    def scan_stat(self, missing_ok: bool = True) -> Iterator[FileEntry]:  # type: ignore
+    def scan_stat(self, missing_ok: bool = True
+                 ) -> Iterator[FileEntry]:  # type: ignore
         """Iterate through the files in the directory, with file stat."""
 
     @method_not_implemented
@@ -189,8 +191,8 @@ class BasePath:
         """Return an iterator of files whose paths match the glob pattern."""
 
     @method_not_implemented
-    def glob_stat(self, recursive: bool = True,
-                  missing_ok: bool = True) -> Iterator[FileEntry]:  # type: ignore
+    def glob_stat(self, recursive: bool = True, missing_ok: bool = True
+                 ) -> Iterator[FileEntry]:  # type: ignore
         """Return an iterator of files with stat whose paths match the glob pattern."""
 
     @method_not_implemented
