@@ -105,129 +105,133 @@ class BasePath:
     def __eq__(self, other_path: "BasePath") -> bool:
         return fspath(self) == fspath(other_path)
 
-    @method_not_implemented
-    def is_dir(self) -> bool:
-        raise NotImplementedError
+    # pytype: disable=bad-return-type
 
     @method_not_implemented
-    def is_file(self) -> bool:
-        raise NotImplementedError
+    def is_dir(self) -> bool:  # type: ignore
+        """Return True if the path points to a directory."""
+
+    @method_not_implemented
+    def is_file(self) -> bool:  # type: ignore
+        """Return True if the path points to a regular file."""
 
     def is_symlink(self) -> bool:
         return False
 
     @method_not_implemented
-    def access(self, mode: Access) -> bool:
-        raise NotImplementedError
+    def access(self, mode: Access) -> bool:  # type: ignore
+        """Return True if the path has access permission described by mode."""
 
     @method_not_implemented
-    def exists(self) -> bool:
-        raise NotImplementedError
+    def exists(self) -> bool:  # type: ignore
+        """Whether the path points to an existing file or directory."""
 
     # listdir or iterdir?
     @method_not_implemented
-    def listdir(self) -> List[str]:
-        raise NotImplementedError
+    def listdir(self) -> List[str]:  # type: ignore
+        """Return the names of the entries in the directory the path points to."""
 
     @method_not_implemented
-    def scandir(self) -> Iterator[FileEntry]:
-        raise NotImplementedError
+    def scandir(self) -> Iterator[FileEntry]:  # type: ignore
+        """Return an iterator of FileEntry objects corresponding to the entries in the directory."""
 
     @method_not_implemented
-    def getsize(self) -> int:
-        raise NotImplementedError
+    def getsize(self) -> int:  # type: ignore
+        """Return the size, in bytes."""
 
     @method_not_implemented
-    def getmtime(self) -> float:
-        raise NotImplementedError
+    def getmtime(self) -> float:  # type: ignore
+        """Return the time of last modification."""
 
     @method_not_implemented
-    def stat(self) -> StatResult:
-        raise NotImplementedError
+    def stat(self) -> StatResult:  # type: ignore
+        """Get the status of the path."""
 
     @method_not_implemented
     def remove(self, missing_ok: bool = False) -> None:
-        raise NotImplementedError
+        """Remove (delete) the file."""
 
     @method_not_implemented
     def unlink(self, missing_ok: bool = False) -> None:
-        raise NotImplementedError
+        """Remove (delete) the file."""
 
     @method_not_implemented
     def mkdir(self, exist_ok: bool = False) -> None:
-        raise NotImplementedError
+        """Create a directory."""
 
     @method_not_implemented
     def rmdir(self) -> None:
-        raise NotImplementedError
+        """Remove (delete) the directory."""
 
     @method_not_implemented
-    def open(self, mode: str,
-             s3_open_func: Callable[[str, str], BinaryIO]) -> IO[AnyStr]:
-        raise NotImplementedError
+    def open(self, mode: str, s3_open_func: Callable[[str, str], BinaryIO]
+            ) -> IO[AnyStr]:  # type: ignore
+        """Open the file with mode."""
 
     @method_not_implemented
-    def walk(self) -> Iterator[Tuple[str, List[str], List[str]]]:
-        raise NotImplementedError
+    def walk(self
+            ) -> Iterator[Tuple[str, List[str], List[str]]]:  # type: ignore
+        """Generate the file names in a directory tree by walking the tree."""
 
     @method_not_implemented
-    def scan(self, missing_ok: bool = True) -> Iterator[str]:
-        raise NotImplementedError
+    def scan(self, missing_ok: bool = True) -> Iterator[str]:  # type: ignore
+        """Iterate through the files in the directory."""
 
     @method_not_implemented
-    def scan_stat(self, missing_ok: bool = True) -> Iterator[FileEntry]:
-        raise NotImplementedError
+    def scan_stat(self, missing_ok: bool = True
+                 ) -> Iterator[FileEntry]:  # type: ignore
+        """Iterate through the files in the directory, with file stat."""
 
     @method_not_implemented
     def glob(self, recursive: bool = True,
-             missing_ok: bool = True) -> List[str]:
-        raise NotImplementedError
+             missing_ok: bool = True) -> List[str]:  # type: ignore
+        """Return files whose paths match the glob pattern."""
 
     @method_not_implemented
     def iglob(self, recursive: bool = True,
-              missing_ok: bool = True) -> Iterator[str]:
-        raise NotImplementedError
+              missing_ok: bool = True) -> Iterator[str]:  # type: ignore
+        """Return an iterator of files whose paths match the glob pattern."""
 
     @method_not_implemented
-    def glob_stat(self, recursive: bool = True,
-                  missing_ok: bool = True) -> Iterator[FileEntry]:
-        raise NotImplementedError
+    def glob_stat(self, recursive: bool = True, missing_ok: bool = True
+                 ) -> Iterator[FileEntry]:  # type: ignore
+        """Return an iterator of files with stat whose paths match the glob pattern."""
 
     @method_not_implemented
-    def load(self) -> BinaryIO:
-        raise NotImplementedError
+    def load(self) -> BinaryIO:  # type: ignore
+        """Read all content in binary."""
 
     @method_not_implemented
     def save(self, file_object: BinaryIO):
-        raise NotImplementedError
+        """Write the opened binary stream to the path."""
 
     @method_not_implemented
-    def joinpath(self, *other_paths: "PathLike") -> str:
-        raise NotImplementedError
+    def joinpath(self, *other_paths: "PathLike") -> str:  # type: ignore
+        """Join or or more path."""
 
     @method_not_implemented
-    def abspath(self):
-        raise NotImplementedError
+    def abspath(self):  # type: ignore
+        """Return a normalized absolutized version of the path."""
 
     @method_not_implemented
-    def realpath(self):
-        raise NotImplementedError
+    def realpath(self):  # type: ignore
+        """Return the canonical path of the path."""
 
     @method_not_implemented
-    def relpath(self, start=None):
-        raise NotImplementedError
+    def relpath(self, start=None):  # type: ignore
+        """Return the relative path."""
 
     @method_not_implemented
-    def is_absolute(self) -> bool:
-        raise NotImplementedError
+    def is_absolute(self) -> bool:  # type: ignore
+        """Return True if the path is an absolute pathname."""
 
     @method_not_implemented
-    def is_mount(self) -> bool:
-        raise NotImplementedError
+    def is_mount(self) -> bool:  # type: ignore
+        """Return True if the path is a mount point."""
 
     @method_not_implemented
-    def resolve(self):
-        raise NotImplementedError
+    def resolve(self):  # type: ignore
+        """Alias of realpath."""
 
     def touch(self):
         with self.open('w'):
@@ -239,6 +243,8 @@ class BasePath:
 
     def makedirs(self, exist_ok: bool = False) -> None:
         self.mkdir(exist_ok=exist_ok)
+
+    # pytype: enable=bad-return-type
 
 
 PathLike = Union[str, BasePath, _PathLike]
