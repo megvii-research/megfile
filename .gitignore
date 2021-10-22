@@ -11,3 +11,4 @@ html_cov/
 html_doc/
 .mutmut-cache
 mutmut.xml
+coverage.xml
