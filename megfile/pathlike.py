@@ -107,127 +107,127 @@ class BasePath:
 
     @method_not_implemented
     def is_dir(self) -> bool:
-        raise NotImplementedError
+        """Return True if the path points to a directory."""
 
     @method_not_implemented
     def is_file(self) -> bool:
-        raise NotImplementedError
+        """Return True if the path points to a regular file."""
 
     def is_symlink(self) -> bool:
         return False
 
     @method_not_implemented
     def access(self, mode: Access) -> bool:
-        raise NotImplementedError
+        """Return True if the path has access permission described by mode."""
 
     @method_not_implemented
     def exists(self) -> bool:
-        raise NotImplementedError
+        """Whether the path points to an existing file or directory."""
 
     # listdir or iterdir?
     @method_not_implemented
     def listdir(self) -> List[str]:
-        raise NotImplementedError
+        """Return the names of the entries in the directory the path points to."""
 
     @method_not_implemented
     def scandir(self) -> Iterator[FileEntry]:
-        raise NotImplementedError
+        """Return an iterator of FileEntry objects corresponding to the entries in the directory."""
 
     @method_not_implemented
     def getsize(self) -> int:
-        raise NotImplementedError
+        """Return the size, in bytes."""
 
     @method_not_implemented
     def getmtime(self) -> float:
-        raise NotImplementedError
+        """Return the time of last modification."""
 
     @method_not_implemented
     def stat(self) -> StatResult:
-        raise NotImplementedError
+        """Get the status of the path."""
 
     @method_not_implemented
     def remove(self, missing_ok: bool = False) -> None:
-        raise NotImplementedError
+        """Remove (delete) the file."""
 
     @method_not_implemented
     def unlink(self, missing_ok: bool = False) -> None:
-        raise NotImplementedError
+        """Remove (delete) the file."""
 
     @method_not_implemented
     def mkdir(self, exist_ok: bool = False) -> None:
-        raise NotImplementedError
+        """Create a directory."""
 
     @method_not_implemented
     def rmdir(self) -> None:
-        raise NotImplementedError
+        """Remove (delete) the directory."""
 
     @method_not_implemented
     def open(self, mode: str,
              s3_open_func: Callable[[str, str], BinaryIO]) -> IO[AnyStr]:
-        raise NotImplementedError
+        """Open the file with mode."""
 
     @method_not_implemented
     def walk(self) -> Iterator[Tuple[str, List[str], List[str]]]:
-        raise NotImplementedError
+        """Generate the file names in a directory tree by walking the tree."""
 
     @method_not_implemented
     def scan(self, missing_ok: bool = True) -> Iterator[str]:
-        raise NotImplementedError
+        """Iterate through the files in the directory."""
 
     @method_not_implemented
     def scan_stat(self, missing_ok: bool = True) -> Iterator[FileEntry]:
-        raise NotImplementedError
+        """Iterate through the files in the directory, with file stat."""
 
     @method_not_implemented
     def glob(self, recursive: bool = True,
              missing_ok: bool = True) -> List[str]:
-        raise NotImplementedError
+        """Return files whose paths match the glob pattern."""
 
     @method_not_implemented
     def iglob(self, recursive: bool = True,
               missing_ok: bool = True) -> Iterator[str]:
-        raise NotImplementedError
+        """Return an iterator of files whose paths match the glob pattern."""
 
     @method_not_implemented
     def glob_stat(self, recursive: bool = True,
                   missing_ok: bool = True) -> Iterator[FileEntry]:
-        raise NotImplementedError
+        """Return an iterator of files with stat whose paths match the glob pattern."""
 
     @method_not_implemented
     def load(self) -> BinaryIO:
-        raise NotImplementedError
+        """Read all content in binary."""
 
     @method_not_implemented
     def save(self, file_object: BinaryIO):
-        raise NotImplementedError
+        """Write the opened binary stream to the path."""
 
     @method_not_implemented
     def joinpath(self, *other_paths: "PathLike") -> str:
-        raise NotImplementedError
+        """Join or or more path."""
 
     @method_not_implemented
     def abspath(self):
-        raise NotImplementedError
+        """Return a normalized absolutized version of the path."""
 
     @method_not_implemented
     def realpath(self):
-        raise NotImplementedError
+        """Return the canonical path of the path."""
 
     @method_not_implemented
     def relpath(self, start=None):
-        raise NotImplementedError
+        """Return the relative path."""
 
     @method_not_implemented
     def is_absolute(self) -> bool:
-        raise NotImplementedError
+        """Return True if the path is an absolute pathname."""
 
     @method_not_implemented
     def is_mount(self) -> bool:
-        raise NotImplementedError
+        """Return True if the path is a mount point."""
 
     @method_not_implemented
     def resolve(self):
-        raise NotImplementedError
+        """Alias of realpath."""
 
     def touch(self):
         with self.open('w'):
