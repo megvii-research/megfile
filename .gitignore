@@ -1,7 +1,7 @@
 __pycache__/
 /build
 /dist
-/megfile.egg-info
+/*.egg-info
 /.pytest_cache
 /.pytype_output
 *.pyc
@@ -12,3 +12,7 @@ html_doc/
 .mutmut-cache
 mutmut.xml
 coverage.xml
+/.pyre
+pyre-errors.json
+pyre-sarif.json
+bandit-sarif.json

@@ -1,4 +1,4 @@
-name: build
+name: Run Tests
 on:
   workflow_dispatch:
   pull_request:
@@ -7,7 +7,7 @@ on:
 jobs:
   test:
     runs-on: ${{ matrix.os }}
-    name: test (py${{ matrix.python-version}}, ${{ matrix.os }})
+    name: Unit Test (py${{ matrix.python-version}}, ${{ matrix.os }})
     strategy:
       matrix:
         os: [ubuntu-18.04]
@@ -22,14 +22,14 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Cache pip
+      - name: Cache Python Packages
         id: pip-cache
         uses: actions/cache@v2
         with:
           path: /opt/hostedtoolcache/Python
           key: ${{ matrix.os }}-py${{ matrix.python-version }}-pip-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}
 
-      - name: Install package dependencies
+      - name: Install Python Packages
         if: steps.pip-cache.outputs.cache-hit != 'true'
         run: |
           python -m pip install --upgrade pip
@@ -40,16 +40,16 @@ jobs:
         run: |
           make test
 
-      - name: "Upload coverage to Codecov"
+      - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2
         with:
           fail_ci_if_error: true
           files: coverage.xml
           env_vars: OS,PYTHON
 
-  check:
+  style:
     runs-on: ${{ matrix.os }}
-    name: static check (pytype, py${{matrix.python-version}}, ${{ matrix.os }})
+    name: Style Check (py${{matrix.python-version}}, ${{ matrix.os }})
     strategy:
       matrix:
         os: [ubuntu-18.04]
@@ -64,14 +64,14 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Cache pip
+      - name: Cache Python Packages
         id: pip-cache
         uses: actions/cache@v2
         with:
           path: /opt/hostedtoolcache/Python
           key: ${{ matrix.os }}-py${{ matrix.python-version }}-pip-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}
 
-      - name: Install package dependencies
+      - name: Install Python Packages
         if: steps.pip-cache.outputs.cache-hit != 'true'
         run: |
           python -m pip install --upgrade pip
@@ -82,13 +82,44 @@ jobs:
         run: |
           make style_check
 
+  static:
+    runs-on: ${{ matrix.os }}
+    name: Static Check (pytype, py${{matrix.python-version}}, ${{ matrix.os }})
+    strategy:
+      matrix:
+        os: [ubuntu-18.04]
+        python-version: [3.6]
+
+    steps:
+      - name: Checkout Github Repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache Python Packages
+        id: pip-cache
+        uses: actions/cache@v2
+        with:
+          path: /opt/hostedtoolcache/Python
+          key: ${{ matrix.os }}-py${{ matrix.python-version }}-pip-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}
+
+      - name: Install Python Packages
+        if: steps.pip-cache.outputs.cache-hit != 'true'
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+          pip install -r requirements.txt
+
       - name: Run static-check
         run: |
           make static_check
 
   security:
     runs-on: ${{ matrix.os }}
-    name: security (bandit, py${{ matrix.python-version }}, ${{ matrix.os }})
+    name: Security Check (bandit, py${{ matrix.python-version }}, ${{ matrix.os }})
     strategy:
       matrix:
         os: [ubuntu-18.04]
@@ -103,28 +134,24 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Cache pip
+      - name: Cache Python Packages
         id: pip-cache
         uses: actions/cache@v2
         with:
           path: /opt/hostedtoolcache/Python
           key: ${{ matrix.os }}-python${{ matrix.python-version }}-pip-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}
 
-      - name: Install bandit
-        run: |
-          pip install bandit bandit_sarif_formatter
-
-      - name: Install package dependencies
+      - name: Install Python Packages
         if: steps.pip-cache.outputs.cache-hit != 'true'
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
           pip install -r requirements.txt
 
-      - name: Run bandit
+      - name: Run bandit-check
         continue-on-error: true
         run: |
-          bandit --format sarif -r megfile/ > bandit-sarif.json
+          make bandit_check
 
       - name: Expose SARIF Results
         uses: actions/upload-artifact@v2
@@ -137,9 +164,9 @@ jobs:
         with:
           sarif_file: bandit-sarif.json
 
-  scanning:
+  pyre:
     runs-on: ${{ matrix.os }}
-    name: static check (pyre, py${{matrix.python-version}}, ${{ matrix.os }})
+    name: Static Check (pyre, py${{matrix.python-version}}, ${{ matrix.os }})
     strategy:
       matrix:
         os: [ubuntu-18.04]
@@ -154,50 +181,33 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Cache pip
+      - name: Cache Python Packages
         id: pip-cache
         uses: actions/cache@v2
         with:
           path: /opt/hostedtoolcache/Python
           key: ${{ matrix.os }}-py${{ matrix.python-version }}-pip-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}
 
-      - name: Install pyre
-        run: |
-          pip install pyre-check
-
-      - name: Install package dependencies
+      - name: Install Python Packages
         if: steps.pip-cache.outputs.cache-hit != 'true'
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
           pip install -r requirements.txt
 
-      - name: Run pyre
+      - name: Run pyre-check
         continue-on-error: true
         run: |
-          pyre --output=json check > errors.json
-
-      - name: Expose Pyre Results
-        uses: actions/upload-artifact@v2
-        with:
-          name: Pyre Results
-          path: errors.json
-
-      - name: Convert to SARIF
-        run: |
-          cat errors.json | ./scripts/convert_results_to_sarif.py > sarif.json
+          pip install --upgrade pyre-check==0.9.6
+          make pyre_check
 
       - name: Expose SARIF Results
         uses: actions/upload-artifact@v2
         with:
           name: SARIF Results
-          path: sarif.json
+          path: pyre-sarif.json
 
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v1
         with:
-          sarif_file: sarif.json
-
-      #- name: Fail Command On Errors
-      #  run: |
-      #    if [ "$(cat errors.json)" != "[]" ]; then exit 1; fi
+          sarif_file: pyre-sarif.json

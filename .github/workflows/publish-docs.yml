@@ -1,4 +1,4 @@
-name: docs
+name: Publish Docs
 on:
   workflow_dispatch:
   release:
@@ -21,14 +21,14 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Cache pip
+      - name: Cache Python Packages
         id: pip-cache
         uses: actions/cache@v2
         with:
           path: /opt/hostedtoolcache/Python
           key: ${{ matrix.os }}-python${{ matrix.python-version }}-pip-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}
 
-      - name: Install package dependencies
+      - name: Install Python Packages
         if: steps.pip-cache.outputs.cache-hit != 'true'
         run: |
           python -m pip install --upgrade pip
@@ -39,7 +39,7 @@ jobs:
         run: |
           make doc
 
-      - name: Deploy
+      - name: Deploy gh-pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
