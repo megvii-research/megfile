@@ -1,4 +1,4 @@
-name: build
+name: Run Tests
 on:
   workflow_dispatch:
   pull_request:
@@ -47,9 +47,9 @@ jobs:
           files: coverage.xml
           env_vars: OS,PYTHON
 
-  check:
+  style:
     runs-on: ${{ matrix.os }}
-    name: Static check & style check (pytype, py${{matrix.python-version}}, ${{ matrix.os }})
+    name: Style Check (py${{matrix.python-version}}, ${{ matrix.os }})
     strategy:
       matrix:
         os: [ubuntu-18.04]
@@ -82,13 +82,44 @@ jobs:
         run: |
           make style_check
 
+  static:
+    runs-on: ${{ matrix.os }}
+    name: Static Check (pytype, py${{matrix.python-version}}, ${{ matrix.os }})
+    strategy:
+      matrix:
+        os: [ubuntu-18.04]
+        python-version: [3.6]
+
+    steps:
+      - name: Checkout Github Repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache Python Packages
+        id: pip-cache
+        uses: actions/cache@v2
+        with:
+          path: /opt/hostedtoolcache/Python
+          key: ${{ matrix.os }}-py${{ matrix.python-version }}-pip-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}
+
+      - name: Install Python Packages
+        if: steps.pip-cache.outputs.cache-hit != 'true'
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+          pip install -r requirements.txt
+
       - name: Run static-check
         run: |
           make static_check
 
   security:
     runs-on: ${{ matrix.os }}
-    name: Security check (bandit, py${{ matrix.python-version }}, ${{ matrix.os }})
+    name: Security Check (bandit, py${{ matrix.python-version }}, ${{ matrix.os }})
     strategy:
       matrix:
         os: [ubuntu-18.04]
@@ -135,7 +166,7 @@ jobs:
 
   pyre:
     runs-on: ${{ matrix.os }}
-    name: Static check (pyre, py${{matrix.python-version}}, ${{ matrix.os }})
+    name: Static Check (pyre, py${{matrix.python-version}}, ${{ matrix.os }})
     strategy:
       matrix:
         os: [ubuntu-18.04]
@@ -167,6 +198,7 @@ jobs:
       - name: Run pyre-check
         continue-on-error: true
         run: |
+          pip install --upgrade pyre-check==0.9.6
           make pyre_check
 
       - name: Expose SARIF Results

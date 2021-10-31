@@ -19,7 +19,7 @@ pytype_check:
 	pytype
 
 bandit_check:
-	bandit --format sarif -r megfile/ > bandit-sarif.json
+	bandit --format=sarif --recursive megfile/ > bandit-sarif.json || echo
 
 pyre_check:
 	pyre --output=json check > pyre-errors.json || echo
