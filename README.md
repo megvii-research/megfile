@@ -1,7 +1,7 @@
 megfile - Megvii FILE library
 ---
 
-[![Build](https://github.com/megvii-research/megfile/actions/workflows/on-push.yaml/badge.svg?branch=main)](https://github.com/megvii-research/megfile/actions/workflows/on-push.yaml)
+[![Build](https://github.com/megvii-research/megfile/actions/workflows/run-tests.yml/badge.svg?branch=main)](https://github.com/megvii-research/megfile/actions/workflows/run-tests.yml)
 [![Documents](https://github.com/megvii-research/megfile/actions/workflows/publish-docs.yml/badge.svg)](https://github.com/megvii-research/megfile/actions/workflows/publish-docs.yml)
 [![Codecov](https://img.shields.io/codecov/c/gh/megvii-research/megfile)](https://app.codecov.io/gh/megvii-research/megfile/)
 [![Latest version](https://img.shields.io/pypi/v/megfile.svg)](https://pypi.org/project/megfile/)
@@ -138,7 +138,7 @@ s3 =
 
 ## How to Contribute
 * We welcome everyone to contribute code to the `megfile` project, but the contributed code needs to meet the following conditions as much as possible:
-    
+
     *You can submit code even if the code doesn't meet conditions. The project members will evaluate and assist you in making code changes*
 
     * **Code format**: Your code needs to pass **code format check**. `megfile` uses `yapf` as lint tool and the version is locked at 0.27.0. The version lock may be removed in the future
