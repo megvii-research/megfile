@@ -228,8 +228,7 @@ def _default_copy_func(
 def smart_copy(
         src_path: PathLike,
         dst_path: PathLike,
-        callback: Optional[Callable[[int], None]] = None,
-        no_target_directory: bool = False) -> None:
+        callback: Optional[Callable[[int], None]] = None) -> None:
     '''
     Copy file from source path to destination path
 
@@ -257,9 +256,6 @@ def smart_copy(
     if smart_islink(src_path) and is_s3(dst_path):
         return
 
-    if smart_isdir(dst_path) and not no_target_directory:
-        dst_path = smart_path_join(dst_path, src_path.rsplit('/', 1)[-1])
-
     src_protocol, _ = SmartPath._extract_protocol(src_path)
     dst_protocol, _ = SmartPath._extract_protocol(dst_path)
 
@@ -273,8 +269,7 @@ def smart_copy(
 def smart_sync(
         src_path: PathLike,
         dst_path: PathLike,
-        callback: Optional[Callable[[str, int], None]] = None,
-        no_target_directory: bool = False) -> None:
+        callback: Optional[Callable[[str, int], None]] = None) -> None:
     '''
     Sync file or directory on s3 and fs
 
@@ -313,9 +308,6 @@ def smart_sync(
     :param dst_path: Given destination path
     :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
     '''
-    if smart_isdir(dst_path) and not no_target_directory:
-        dst_path = smart_path_join(dst_path, src_path.rsplit('/', 1)[-1])
-
     src_path, dst_path = get_traditional_path(src_path), get_traditional_path(
         dst_path)
     for src_file_path in smart_scan(src_path):
@@ -359,18 +351,13 @@ def smart_rename(src_path: PathLike, dst_path: PathLike) -> None:
     smart_unlink(src_path)
 
 
-def smart_move(
-        src_path: PathLike, dst_path: PathLike,
-        no_target_directory: bool = False) -> None:
+def smart_move(src_path: PathLike, dst_path: PathLike) -> None:
     '''
     Move file/directory on s3 or fs. `s3://` or `s3://bucket` is not allowed to move
 
     :param src_path: Given source path
     :param dst_path: Given destination path
     '''
-    if smart_isdir(dst_path) and not no_target_directory:
-        dst_path = smart_path_join(dst_path, src_path.rsplit('/', 1)[-1])
-
     src_protocol, _ = SmartPath._extract_protocol(src_path)
     dst_protocol, _ = SmartPath._extract_protocol(dst_path)
     if src_protocol == dst_protocol:

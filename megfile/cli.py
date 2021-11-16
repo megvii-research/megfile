@@ -6,7 +6,7 @@ import time
 import click
 
 from megfile.interfaces import FileEntry
-from megfile.smart import smart_copy, smart_getmd5, smart_getmtime, smart_getsize, smart_isdir, smart_isfile, smart_makedirs, smart_move, smart_open, smart_remove, smart_rename, smart_scan_stat, smart_scandir, smart_stat, smart_sync, smart_touch, smart_unlink
+from megfile.smart import smart_copy, smart_getmd5, smart_getmtime, smart_getsize, smart_isdir, smart_isfile, smart_makedirs, smart_move, smart_open, smart_path_join, smart_remove, smart_rename, smart_scan_stat, smart_scandir, smart_stat, smart_sync, smart_touch, smart_unlink
 from megfile.utils import get_human_size
 from megfile.version import VERSION
 
@@ -96,8 +96,10 @@ def ls(path: str, long: bool, recursive: bool, human_readable: bool):
 def cp(
         src_path: str, dst_path: str, recursive: bool,
         no_target_directory: bool):
+    if smart_isdir(dst_path) and not no_target_directory:
+        dst_path = smart_path_join(dst_path, src_path.rsplit('/', 1)[-1])
     copy_func = smart_sync if recursive else smart_copy
-    copy_func(src_path, dst_path, no_target_directory=no_target_directory)
+    copy_func(src_path, dst_path)
 
 
 @cli.command(short_help='Move files from source to dest.')
@@ -118,10 +120,14 @@ def cp(
 def mv(
         src_path: str, dst_path: str, recursive: bool,
         no_target_directory: bool):
-    if recursive or (smart_isdir(dst_path) and not no_target_directory):
-        smart_move(src_path, dst_path, no_target_directory=no_target_directory)
+    if smart_isdir(dst_path) and not no_target_directory:
+        dst_path = smart_path_join(dst_path, src_path.rsplit('/', 1)[-1])
+        copy_func = smart_move
+    elif recursive:
+        copy_func = smart_move
     else:
-        smart_rename(src_path, dst_path)
+        copy_func = smart_rename
+    copy_func(src_path, dst_path)
 
 
 @cli.command(short_help='Remove files from path.')
