@@ -4,7 +4,7 @@ import pytest
 import requests
 
 from megfile.errors import HttpFileNotFoundError, HttpPermissionError, UnknownError
-from megfile.http import http_open, is_http
+from megfile.http import http_download, http_open, is_http
 
 
 def test_is_http():
@@ -13,26 +13,27 @@ def test_is_http():
     assert not is_http("no-http://www.baidu.com")
 
 
+class FakeResponse:
+    status_code = 0
+
+    @property
+    def raw(self):
+        return BytesIO(b'test')
+
+    def raise_for_status(self):
+        if self.status_code // 100 == 2:
+            return
+        error = requests.exceptions.HTTPError()
+        error.response = self
+        raise error
+
+
 def test_http_open(mocker):
 
     with pytest.raises(ValueError) as error:
         http_open('http://test', 'w')
 
     requests_get_func = mocker.patch('megfile.http.requests.get')
-
-    class FakeResponse:
-        status_code = 0
-
-        @property
-        def raw(self):
-            return BytesIO(b'test')
-
-        def raise_for_status(self):
-            if self.status_code // 100 == 2:
-                return
-            error = requests.exceptions.HTTPError()
-            error.response = self
-            raise error
 
     class FakeResponse200(FakeResponse):
         status_code = 200
@@ -71,3 +72,19 @@ def test_http_open(mocker):
     assert str(
         error.value
     ) == 'Unknown error encountered: \'http://test\', error: requests.exceptions.ReadTimeout(\'test\')'
+
+
+def test_http_download(fs, mocker):
+
+    class FakeResponse200(FakeResponse):
+        status_code = 200
+
+    mocker.patch('megfile.http.requests.get', return_value=FakeResponse200())
+
+    def callback_func(length):
+        assert length == 4
+
+    http_download(
+        'http://test', 'test.html', open_func=open, callback=callback_func)
+    with open("test.html", 'rb') as f:
+        assert f.read() == b'test'

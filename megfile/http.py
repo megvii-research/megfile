@@ -1,11 +1,9 @@
 from io import BufferedReader
 from logging import getLogger as get_logger
-from typing import Iterable
+from typing import Callable, Iterable, Optional
 from urllib.parse import urlsplit
 
 import requests
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
 
 from megfile.errors import http_should_retry, patch_method, translate_http_error
 from megfile.interfaces import PathLike
@@ -86,3 +84,18 @@ def http_open(http_url: str, mode: str = 'rb') -> BufferedReader:
 
     response.raw.auto_close = False
     return BufferedReader(response.raw)
+
+
+def http_download(
+        http_url: str,
+        dst_path: str,
+        open_func: Callable = open,
+        callback: Optional[Callable] = None):
+
+    with http_open(http_url) as http:
+        response = http.read()
+
+    with open_func(dst_path, 'wb') as f:
+        if callback:
+            callback(len(response))
+        f.write(response)
