@@ -112,7 +112,7 @@ class SmartPath(BasePath):
 
     @property
     def protocol(self) -> str:
-        return self.pathlike.protocol
+        return self.pathlike.protocol  # pytype: disable=attribute-error
 
     @classmethod
     def from_uri(cls, path: str):
