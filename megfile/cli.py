@@ -122,11 +122,8 @@ def mv(
         no_target_directory: bool):
     if smart_isdir(dst_path) and not no_target_directory:
         dst_path = smart_path_join(dst_path, os.path.basename(src_path))
-    if recursive:
-        copy_func = smart_move
-    else:
-        copy_func = smart_rename
-    copy_func(src_path, dst_path)
+    move_func = smart_move if recursive else smart_rename
+    move_func(src_path, dst_path)
 
 
 @cli.command(short_help='Remove files from path.')
