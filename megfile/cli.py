@@ -97,7 +97,7 @@ def cp(
         src_path: str, dst_path: str, recursive: bool,
         no_target_directory: bool):
     if smart_isdir(dst_path) and not no_target_directory:
-        dst_path = smart_path_join(dst_path, src_path.rsplit('/', 1)[-1])
+        dst_path = smart_path_join(dst_path, os.path.basename(src_path))
     copy_func = smart_sync if recursive else smart_copy
     copy_func(src_path, dst_path)
 
@@ -121,9 +121,8 @@ def mv(
         src_path: str, dst_path: str, recursive: bool,
         no_target_directory: bool):
     if smart_isdir(dst_path) and not no_target_directory:
-        dst_path = smart_path_join(dst_path, src_path.rsplit('/', 1)[-1])
-        copy_func = smart_move
-    elif recursive:
+        dst_path = smart_path_join(dst_path, os.path.basename(src_path))
+    if recursive:
         copy_func = smart_move
     else:
         copy_func = smart_rename
