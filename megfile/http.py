@@ -1,6 +1,6 @@
 from io import BufferedReader
 from logging import getLogger as get_logger
-from typing import Callable, Iterable, Optional
+from typing import Iterable
 from urllib.parse import urlsplit
 
 import requests
@@ -84,18 +84,3 @@ def http_open(http_url: str, mode: str = 'rb') -> BufferedReader:
 
     response.raw.auto_close = False
     return BufferedReader(response.raw)
-
-
-def http_download(
-        http_url: str,
-        dst_path: str,
-        open_func: Callable = open,
-        callback: Optional[Callable] = None):
-
-    with http_open(http_url) as http:
-        response = http.read()
-
-    with open_func(dst_path, 'wb') as f:
-        if callback:
-            callback(len(response))
-        f.write(response)

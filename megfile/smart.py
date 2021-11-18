@@ -5,7 +5,6 @@ from itertools import chain
 from typing import IO, AnyStr, BinaryIO, Callable, Iterator, List, Optional, Tuple
 
 from megfile.fs import fs_copy, fs_getsize, fs_scandir
-from megfile.http import http_download
 from megfile.interfaces import Access, FileEntry, NullCacher, PathLike, StatResult
 from megfile.lib.combine_reader import CombineReader
 from megfile.lib.compat import fspath
@@ -174,15 +173,7 @@ _copy_funcs = {
     'file': {
         's3': s3_upload,
         'file': fs_copy,
-    },
-    'http': {
-        's3': partial(http_download, open_func=s3_open),
-        'file': http_download
-    },
-    'https': {
-        's3': partial(http_download, open_func=s3_open),
-        'file': http_download
-    },
+    }
 }
 
 

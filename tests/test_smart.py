@@ -1,7 +1,6 @@
 import os
 from io import BytesIO, StringIO
 from pathlib import Path
-from typing import List, Tuple
 
 import pytest
 from mock import patch
@@ -138,7 +137,7 @@ def test_smart_copy(mocker):
     s3_download = mocker.patch('megfile.smart.s3_download')
     s3_upload = mocker.patch('megfile.smart.s3_upload')
     fs_copy = mocker.patch('megfile.smart.fs_copy')
-    http_download = mocker.patch('megfile.smart.http_download')
+    default_copy_func = mocker.patch('megfile.smart._default_copy_func')
     copyfile = mocker.patch('megfile.fs._copyfile')
 
     smart_islink = mocker.patch(
@@ -152,15 +151,7 @@ def test_smart_copy(mocker):
         'file': {
             's3': s3_upload,
             'file': fs_copy,
-        },
-        'http': {
-            's3': http_download,
-            'file': http_download
-        },
-        'https': {
-            's3': http_download,
-            'file': http_download
-        },
+        }
     }
 
     with patch('megfile.smart._copy_funcs', patch_dict) as _:
@@ -175,7 +166,8 @@ def test_smart_copy(mocker):
         s3_copy.assert_called_once_with('s3://a/b', 's3://a/b', callback=None)
 
         smart.smart_copy('http://a/b', 'fs')
-        http_download.assert_called_once_with('http://a/b', 'fs', callback=None)
+        default_copy_func.assert_called_once_with(
+            'http://a/b', 'fs', callback=None)
 
         smart.smart_copy('s3://a/b', 'fs')
         s3_download.assert_called_once_with('s3://a/b', 'fs', callback=None)
