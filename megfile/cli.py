@@ -6,7 +6,7 @@ import time
 import click
 
 from megfile.interfaces import FileEntry
-from megfile.smart import smart_copy, smart_getmd5, smart_getmtime, smart_getsize, smart_isfile, smart_makedirs, smart_move, smart_open, smart_remove, smart_rename, smart_scan_stat, smart_scandir, smart_stat, smart_sync, smart_touch, smart_unlink
+from megfile.smart import smart_copy, smart_getmd5, smart_getmtime, smart_getsize, smart_isdir, smart_isfile, smart_makedirs, smart_move, smart_open, smart_path_join, smart_remove, smart_rename, smart_scan_stat, smart_scandir, smart_stat, smart_sync, smart_touch, smart_unlink
 from megfile.utils import get_human_size
 from megfile.version import VERSION
 
@@ -88,7 +88,16 @@ def ls(path: str, long: bool, recursive: bool, human_readable: bool):
     help=
     'Command is performed on all files or objects under the specified directory or prefix.'
 )
-def cp(src_path: str, dst_path: str, recursive: bool):
+@click.option(
+    '-T',
+    '--no-target-directory',
+    is_flag=True,
+    help='treat dst_path as a normal file.')
+def cp(
+        src_path: str, dst_path: str, recursive: bool,
+        no_target_directory: bool):
+    if smart_isdir(dst_path) and not no_target_directory:
+        dst_path = smart_path_join(dst_path, os.path.basename(src_path))
     copy_func = smart_sync if recursive else smart_copy
     copy_func(src_path, dst_path)
 
@@ -103,7 +112,16 @@ def cp(src_path: str, dst_path: str, recursive: bool):
     help=
     'Command is performed on all files or objects under the specified directory or prefix.'
 )
-def mv(src_path: str, dst_path: str, recursive: bool):
+@click.option(
+    '-T',
+    '--no-target-directory',
+    is_flag=True,
+    help='treat dst_path as a normal file.')
+def mv(
+        src_path: str, dst_path: str, recursive: bool,
+        no_target_directory: bool):
+    if smart_isdir(dst_path) and not no_target_directory:
+        dst_path = smart_path_join(dst_path, os.path.basename(src_path))
     move_func = smart_move if recursive else smart_rename
     move_func(src_path, dst_path)
 
