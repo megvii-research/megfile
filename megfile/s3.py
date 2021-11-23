@@ -127,8 +127,11 @@ def get_endpoint_url() -> str:
     returns: S3 endpoint url
     '''
     environ_endpoint_url = os.environ.get('OSS_ENDPOINT')
+    if environ_endpoint_url:
+        _logger.info("using OSS_ENDPOINT: %s" % environ_endpoint_url)
+        return environ_endpoint_url
     config_endpoint_url = get_scoped_config().get('s3', {}).get('endpoint_url')
-    return environ_endpoint_url or config_endpoint_url or endpoint_url
+    return config_endpoint_url or endpoint_url
 
 
 def get_s3_session():
