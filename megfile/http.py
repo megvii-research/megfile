@@ -134,5 +134,4 @@ def http_getmtime(http_url: str) -> float:
     last_modified = response.headers.get('Last-Modified')
     if not last_modified:
         raise UnsupportedError('http_getmtime', path=http_url)
-    return time.mktime(
-        time.strptime(last_modified, "%a, %d %b %Y %H:%M:%S GMT"))
+    return time.mktime(time.strptime(last_modified, "%a, %d %b %Y %H:%M:%S %Z"))
