@@ -13,26 +13,27 @@ def test_is_http():
     assert not is_http("no-http://www.baidu.com")
 
 
+class FakeResponse:
+    status_code = 0
+
+    @property
+    def raw(self):
+        return BytesIO(b'test')
+
+    def raise_for_status(self):
+        if self.status_code // 100 == 2:
+            return
+        error = requests.exceptions.HTTPError()
+        error.response = self
+        raise error
+
+
 def test_http_open(mocker):
 
     with pytest.raises(ValueError) as error:
         http_open('http://test', 'w')
 
     requests_get_func = mocker.patch('megfile.http.requests.get')
-
-    class FakeResponse:
-        status_code = 0
-
-        @property
-        def raw(self):
-            return BytesIO(b'test')
-
-        def raise_for_status(self):
-            if self.status_code // 100 == 2:
-                return
-            error = requests.exceptions.HTTPError()
-            error.response = self
-            raise error
 
     class FakeResponse200(FakeResponse):
         status_code = 200

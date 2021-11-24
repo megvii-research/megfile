@@ -4,8 +4,6 @@ from typing import Iterable
 from urllib.parse import urlsplit
 
 import requests
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
 
 from megfile.errors import http_should_retry, patch_method, translate_http_error
 from megfile.interfaces import PathLike
