@@ -4,10 +4,8 @@ from typing import Iterable
 from urllib.parse import urlsplit
 
 import requests
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
 
-from megfile.errors import http_should_retry, patch_method, translate_http_error
+from megfile.errors import http_should_retry, patch_method, translate_http_error, UnsupportedError
 from megfile.interfaces import PathLike
 from megfile.lib.compat import fspath
 from megfile.utils import binary_open
@@ -15,6 +13,7 @@ from megfile.utils import binary_open
 __all__ = [
     'is_http',
     'http_open',
+    'http_getsize',
 ]
 
 _logger = get_logger(__name__)
@@ -86,3 +85,28 @@ def http_open(http_url: str, mode: str = 'rb') -> BufferedReader:
 
     response.raw.auto_close = False
     return BufferedReader(response.raw)
+
+
+def http_getsize(http_url: str) -> int:
+    '''
+    Get file size on the given http_url path (in bytes).
+
+    If http response don't have Content-Length, will raise UnsupportedError
+
+    :param http_url: Given http path
+    :returns: File size
+    :raises: UnsupportedError, HttpPermissionError, HttpFileNotFoundError
+    '''
+
+    try:
+        response = requests.get(http_url, stream=True, timeout=10.0)
+        response.raise_for_status()
+    except Exception as error:
+        raise translate_http_error(error, http_url)
+
+    size = response.headers.get('Content-Length')
+    content_type = response.headers.get('Content-Type')
+    _logger.info("http response Content-Type: %s" % content_type)
+    if not size:
+        raise UnsupportedError('http_getsize', path=http_url)
+    return size
