@@ -1,9 +1,6 @@
-import io
 import os
-import sys
 from collections import defaultdict
 from functools import partial
-from inspect import cleandoc
 from itertools import chain
 from typing import IO, AnyStr, BinaryIO, Callable, Iterator, List, Optional, Tuple
 
