@@ -1,6 +1,6 @@
 from typing import IO, AnyStr
 
-from .http import http_open, http_getsize
+from .http import http_getmtime, http_getsize, http_open
 from .interfaces import URIPath
 from .smart_path import SmartPath
 
@@ -21,6 +21,8 @@ class HttpPath(URIPath):
     def getsize(self) -> int:
         return http_getsize(self.path_with_protocol)
 
+    def getmtime(self) -> float:
+        return http_getmtime(self.path_with_protocol)
 
 
 @SmartPath.register

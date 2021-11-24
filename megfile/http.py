@@ -1,3 +1,4 @@
+import time
 from io import BufferedReader
 from logging import getLogger as get_logger
 from typing import Iterable
@@ -5,7 +6,7 @@ from urllib.parse import urlsplit
 
 import requests
 
-from megfile.errors import http_should_retry, patch_method, translate_http_error, UnsupportedError
+from megfile.errors import UnsupportedError, http_should_retry, patch_method, translate_http_error
 from megfile.interfaces import PathLike
 from megfile.lib.compat import fspath
 from megfile.utils import binary_open
@@ -89,12 +90,12 @@ def http_open(http_url: str, mode: str = 'rb') -> BufferedReader:
 
 def http_getsize(http_url: str) -> int:
     '''
-    Get file size on the given http_url path (in bytes).
+    Get file size on the given http_url path.
 
-    If http response don't have Content-Length, will raise UnsupportedError
+    If http response header don't support Content-Length, will raise UnsupportedError
 
     :param http_url: Given http path
-    :returns: File size
+    :returns: File size (in bytes)
     :raises: UnsupportedError, HttpPermissionError, HttpFileNotFoundError
     '''
 
@@ -109,4 +110,28 @@ def http_getsize(http_url: str) -> int:
     _logger.info("http response Content-Type: %s" % content_type)
     if not size:
         raise UnsupportedError('http_getsize', path=http_url)
-    return size
+    return int(size)
+
+
+def http_getmtime(http_url: str) -> float:
+    '''
+    Get Last-Modified time of the http request on the given http_url path.
+    
+    If http response header don't support Last-Modified, will raise UnsupportedError
+
+    :param http_url: Given http url
+    :returns: Last-Modified time (in Unix timestamp format)
+    :raises: UnsupportedError, HttpPermissionError, HttpFileNotFoundError
+    '''
+
+    try:
+        response = requests.get(http_url, stream=True, timeout=10.0)
+        response.raise_for_status()
+    except Exception as error:
+        raise translate_http_error(error, http_url)
+
+    last_modified = response.headers.get('Last-Modified')
+    if not last_modified:
+        raise UnsupportedError('http_getmtime', path=http_url)
+    return time.mktime(
+        time.strptime(last_modified, "%a, %d %b %Y %H:%M:%S GMT"))
