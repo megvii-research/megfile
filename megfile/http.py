@@ -116,9 +116,9 @@ def http_stat(http_url: str) -> StatResult:
     content_type = response.headers.get('Content-Type')
     _logger.info("http response Content-Type: %s" % content_type)
 
-    return StatResult(
+    return StatResult(  # pyre-ignore[20]
         size=size, mtime=last_modified, isdir=False,
-        islnk=False)  # pyre-ignore[20]
+        islnk=False)
 
 
 def http_getsize(http_url: str) -> int:
