@@ -102,4 +102,6 @@ def test_http_getmtime(mocker):
         status_code = 200
 
     requests_get_func.return_value = FakeResponse200()
-    assert http_getmtime('http://test') == 1637709521.0
+    assert http_getmtime('http://test') == time.mktime(
+        time.strptime(
+            "Wed, 24 Nov 2021 07:18:41 GMT", "%a, %d %b %Y %H:%M:%S %Z"))

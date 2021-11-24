@@ -15,7 +15,7 @@ class HttpPath(URIPath):
 
     protocol = "http"
 
-    def open(self, mode: str, **kwargs) -> IO[AnyStr]:
+    def open(self, mode: str, **kwargs) -> IO:
         return http_open(self.path_with_protocol, mode)
 
     def getsize(self) -> int:
