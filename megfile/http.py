@@ -113,12 +113,9 @@ def http_stat(http_url: str) -> StatResult:
         last_modified = time.mktime(
             time.strptime(last_modified, "%a, %d %b %Y %H:%M:%S %Z"))
 
-    content_type = response.headers.get('Content-Type')
-    _logger.info("http response Content-Type: %s" % content_type)
-
     return StatResult(  # pyre-ignore[20]
         size=size, mtime=last_modified, isdir=False,
-        islnk=False)
+        islnk=False, extra=response.headers)
 
 
 def http_getsize(http_url: str) -> int:
