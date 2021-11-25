@@ -1,3 +1,4 @@
+import time
 from io import BufferedReader
 from logging import getLogger as get_logger
 from typing import Iterable
@@ -6,13 +7,15 @@ from urllib.parse import urlsplit
 import requests
 
 from megfile.errors import http_should_retry, patch_method, translate_http_error
-from megfile.interfaces import PathLike
+from megfile.interfaces import PathLike, StatResult
 from megfile.lib.compat import fspath
 from megfile.utils import binary_open
 
 __all__ = [
     'is_http',
     'http_open',
+    'http_getsize',
+    'http_getmtime',
 ]
 
 _logger = get_logger(__name__)
@@ -84,3 +87,58 @@ def http_open(http_url: str, mode: str = 'rb') -> BufferedReader:
 
     response.raw.auto_close = False
     return BufferedReader(response.raw)
+
+
+def http_stat(http_url: str) -> StatResult:
+    '''
+    Get StatResult of http_url response, including size and mtime, referring to http_getsize and http_getmtime
+
+    :param http_url: Given http url
+    :returns: StatResult
+    :raises: HttpPermissionError, HttpFileNotFoundError
+    '''
+
+    try:
+        response = requests.get(http_url, stream=True, timeout=10.0)
+        response.raise_for_status()
+    except Exception as error:
+        raise translate_http_error(error, http_url)
+
+    size = response.headers.get('Content-Length')
+    if size:
+        size = int(size)
+
+    last_modified = response.headers.get('Last-Modified')
+    if last_modified:
+        last_modified = time.mktime(
+            time.strptime(last_modified, "%a, %d %b %Y %H:%M:%S %Z"))
+
+    return StatResult(  # pyre-ignore[20]
+        size=size, mtime=last_modified, isdir=False,
+        islnk=False, extra=response.headers)
+
+
+def http_getsize(http_url: str) -> int:
+    '''
+    Get file size on the given http_url path.
+
+    If http response header don't support Content-Length, will return None
+
+    :param http_url: Given http path
+    :returns: File size (in bytes)
+    :raises: HttpPermissionError, HttpFileNotFoundError
+    '''
+    return http_stat(http_url).size
+
+
+def http_getmtime(http_url: str) -> float:
+    '''
+    Get Last-Modified time of the http request on the given http_url path.
+    
+    If http response header don't support Last-Modified, will return None
+
+    :param http_url: Given http url
+    :returns: Last-Modified time (in Unix timestamp format)
+    :raises: HttpPermissionError, HttpFileNotFoundError
+    '''
+    return http_stat(http_url).mtime

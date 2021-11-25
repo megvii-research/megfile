@@ -317,8 +317,8 @@ def translate_s3_error(s3_error: Exception, s3_url: PathLike) -> Exception:
     return S3UnknownError(s3_error, s3_url)
 
 
-def translate_http_error(http_error: Optional[Exception],
-                         http_url: str) -> Optional[Exception]:
+def translate_http_error(
+        http_error: Optional[Exception], http_url: str) -> Exception:
     '''Generate exception according to http_error and status_code
 
     .. note ::

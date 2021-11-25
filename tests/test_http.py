@@ -1,10 +1,11 @@
+import time
 from io import BytesIO
 
 import pytest
 import requests
 
 from megfile.errors import HttpFileNotFoundError, HttpPermissionError, UnknownError
-from megfile.http import http_open, is_http
+from megfile.http import http_getmtime, http_getsize, http_open, is_http
 
 
 def test_is_http():
@@ -19,6 +20,14 @@ class FakeResponse:
     @property
     def raw(self):
         return BytesIO(b'test')
+
+    @property
+    def headers(self):
+        return {
+            "Content-Length": '999',
+            'Content-Type': 'test/test',
+            "Last-Modified": "Wed, 24 Nov 2021 07:18:41 GMT"
+        }
 
     def raise_for_status(self):
         if self.status_code // 100 == 2:
@@ -72,3 +81,27 @@ def test_http_open(mocker):
     assert str(
         error.value
     ) == 'Unknown error encountered: \'http://test\', error: requests.exceptions.ReadTimeout(\'test\')'
+
+
+def test_http_getsize(mocker):
+
+    requests_get_func = mocker.patch('megfile.http.requests.get')
+
+    class FakeResponse200(FakeResponse):
+        status_code = 200
+
+    requests_get_func.return_value = FakeResponse200()
+    assert http_getsize('http://test') == 999
+
+
+def test_http_getmtime(mocker):
+
+    requests_get_func = mocker.patch('megfile.http.requests.get')
+
+    class FakeResponse200(FakeResponse):
+        status_code = 200
+
+    requests_get_func.return_value = FakeResponse200()
+    assert http_getmtime('http://test') == time.mktime(
+        time.strptime(
+            "Wed, 24 Nov 2021 07:18:41 GMT", "%a, %d %b %Y %H:%M:%S %Z"))
