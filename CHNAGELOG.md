@@ -1,6 +1,16 @@
 CHANGELOG
 =========
 
+## 0.0.10 - 2021.11.29
+
+- add info log about environ OSS_ENDPOINT and oss config file
+- smart_getsize and smart_getmtime support http
+- update cli cp and mv, make them like cp and mv in linux
+- fix sed warning in macOS
+- add some test code
+- add error code callback to _patch_make_request
+- Generate cache_path automatically
+
 ## 0.0.9 - 2021.10.11
 
 - `megfile.s3` retries when server returns 500 - 503
