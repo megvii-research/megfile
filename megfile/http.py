@@ -16,6 +16,7 @@ __all__ = [
     'http_open',
     'http_getsize',
     'http_getmtime',
+    'http_stat',
 ]
 
 _logger = get_logger(__name__)

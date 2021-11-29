@@ -1,7 +1,7 @@
 from typing import IO, AnyStr
 
-from .http import http_getmtime, http_getsize, http_open
-from .interfaces import URIPath
+from .http import http_getmtime, http_getsize, http_open, http_stat
+from .interfaces import StatResult, URIPath
 from .smart_path import SmartPath
 
 __all__ = [
@@ -17,6 +17,9 @@ class HttpPath(URIPath):
 
     def open(self, mode: str, **kwargs) -> IO:
         return http_open(self.path_with_protocol, mode)
+
+    def stat(self) -> StatResult:
+        return http_stat(self.path_with_protocol)
 
     def getsize(self) -> int:
         return http_getsize(self.path_with_protocol)
