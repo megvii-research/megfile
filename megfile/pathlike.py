@@ -247,7 +247,7 @@ class BasePath:
     # pytype: enable=bad-return-type
 
 
-PathLike = Union[str, BasePath, _PathLike, int]
+PathLike = Union[str, BasePath, _PathLike]
 
 
 class BaseURIPath(BasePath):
@@ -356,9 +356,7 @@ class URIPath(BaseURIPath):
     def __init__(self, path: "PathLike", *other_paths: "PathLike"):
         if len(other_paths) > 0:
             path = self.from_path(path).joinpath(*other_paths)
-        if not isinstance(path, int):
-            path = str(path)
-        self.path = path
+        self.path = str(path)
 
     def __truediv__(self, other_path: PathLike) -> "BaseURIPath":
         if isinstance(other_path, BaseURIPath):
