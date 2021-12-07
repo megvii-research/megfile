@@ -61,6 +61,8 @@ class SmartPath(BasePath):
 
     @classmethod
     def _create_pathlike(cls, path: PathLike) -> BasePath:
+        if isinstance(path, int):
+            return cls._registered_protocols['file'](path)
         protocol, path_without_protocol = cls._extract_protocol(path)
         if protocol not in cls._registered_protocols:
             raise ProtocolNotFoundError(

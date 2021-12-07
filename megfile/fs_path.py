@@ -87,6 +87,7 @@ class FSPath(URIPath):
         return fs.fs_save_as(file_object, self.path)
 
     def open(self, mode: str, **kwargs) -> IO[AnyStr]:
-        if 'w' in mode or 'x' in mode or 'a' in mode:
+        if not isinstance(self.path, int) and ('w' in mode or 'x' in mode or
+                                               'a' in mode):
             fs.fs_makedirs(os.path.dirname(self.path), exist_ok=True)
         return io.open(self.path, mode)
