@@ -1,5 +1,5 @@
 from pathlib import PurePath
-from typing import Tuple
+from typing import Tuple, Union
 from urllib.parse import urlsplit
 
 from megfile.lib.compat import fspath
@@ -60,7 +60,9 @@ class SmartPath(BasePath):
         return protocol, path_without_protocol
 
     @classmethod
-    def _create_pathlike(cls, path: PathLike) -> BasePath:
+    def _create_pathlike(cls, path: Union[PathLike, int]) -> BasePath:
+        if isinstance(path, int):
+            return cls._registered_protocols['file'](path)
         protocol, path_without_protocol = cls._extract_protocol(path)
         if protocol not in cls._registered_protocols:
             raise ProtocolNotFoundError(

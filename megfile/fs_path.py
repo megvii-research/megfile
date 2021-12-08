@@ -1,7 +1,7 @@
 import io
 import os
 from functools import wraps
-from typing import IO, AnyStr, BinaryIO
+from typing import IO, AnyStr, BinaryIO, Union
 
 from megfile import fs
 
@@ -28,6 +28,13 @@ class FSPath(URIPath):
 
     protocol = "file"
 
+    def __init__(self, path: Union["PathLike", int], *other_paths: "PathLike"):
+        if not isinstance(path, int):
+            if len(other_paths) > 0:
+                path = self.from_path(path).joinpath(*other_paths)
+            path = str(path)
+        self.path = path
+
     def __fspath__(self) -> str:
         return os.path.normpath(self.path_without_protocol)
 
@@ -36,7 +43,9 @@ class FSPath(URIPath):
         return cls.from_path(path)
 
     @property
-    def path_with_protocol(self) -> str:
+    def path_with_protocol(self) -> Union[str, int]:
+        if isinstance(self.path, int):
+            return self.path
         if self.path.startswith(self.anchor):
             return self.path
         return self.anchor + self.path
@@ -87,6 +96,7 @@ class FSPath(URIPath):
         return fs.fs_save_as(file_object, self.path)
 
     def open(self, mode: str, **kwargs) -> IO[AnyStr]:
-        if 'w' in mode or 'x' in mode or 'a' in mode:
+        if not isinstance(self.path, int) and ('w' in mode or 'x' in mode or
+                                               'a' in mode):
             fs.fs_makedirs(os.path.dirname(self.path), exist_ok=True)
         return io.open(self.path, mode)
