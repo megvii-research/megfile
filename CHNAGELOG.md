@@ -1,6 +1,10 @@
 CHANGELOG
 =========
 
+## 0.0.11 - 2021.12.08
+
+- smart_open support read and write pipe
+
 ## 0.0.10 - 2021.11.29
 
 - add info log about environ OSS_ENDPOINT and oss config file
