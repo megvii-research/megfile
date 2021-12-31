@@ -7,6 +7,10 @@ FS_PROTOCOL_PREFIX = FSPath.protocol + "://"
 TEST_PATH = "/test/dir/file"
 TEST_PATH_WITH_PROTOCOL = FS_PROTOCOL_PREFIX + TEST_PATH
 path = FSPath(TEST_PATH)
+SRC_PATH = '~/symlink/src/src_file'
+DST_PATH = '~/symlink/dst/dst_file'
+CHANGE_PATH = '~/symlink/src/change_file'
+dst_path = FSPath(DST_PATH)
 
 
 def test_as_uri():
@@ -219,3 +223,21 @@ def test_md5(mocker):
     funcA = mocker.patch('megfile.fs.fs_getmd5')
     path.md5()
     funcA.assert_called_once_with(TEST_PATH)
+
+
+def test_symlink(mocker):
+    funA = mocker.patch('megfile.fs.fs_symlink')
+    dst_path.symlink(SRC_PATH)
+    funA.assert_called_once_with(DST_PATH, SRC_PATH)
+
+
+def test_readlink(mocker):
+    funA = mocker.patch('megfile.fs.fs_readlink')
+    dst_path.readlink(SRC_PATH)
+    funA.assert_called_once_with(DST_PATH, SRC_PATH)
+
+
+def test_updatelink(mocker):
+    funA = mocker.patch('megfile.fs.fs_updatelink')
+    dst_path.updatelink(CHANGE_PATH)
+    funA.assert_called_once_with(DST_PATH, CHANGE_PATH)

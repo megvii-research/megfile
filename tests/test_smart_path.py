@@ -14,6 +14,9 @@ FS_TEST_ABSOLUTE_PATH = "/test/dir/file"
 FS_TEST_ABSOLUTE_PATH_WITH_PROTOCOL = FS_PROTOCOL_PREFIX + FS_TEST_ABSOLUTE_PATH
 FS_TEST_RELATIVE_PATH = "test/dir/file"
 FS_TEST_RELATIVE_PATH_WITH_PROTOCOL = FS_PROTOCOL_PREFIX + FS_TEST_RELATIVE_PATH
+FS_TEST_SRC_PATH = "~/symlink/src/src_file"
+FS_TEST_DST_PATH = "~/symlink/dst/dst_file"
+FS_TEST_CHANGE_PATH = "~/symlink/src/change_file"
 
 S3_PROTOCOL_PREFIX = S3Path.protocol + "://"
 S3_TEST_PATH_WITHOUT_PROTOCOL = "bucket/dir/file"
@@ -275,4 +278,22 @@ def test_load_from(funcA):
 @patch.object(FSPath, 'md5')
 def test_md5(funcA):
     SmartPath(FS_TEST_ABSOLUTE_PATH).md5()
+    funcA.assert_called_once()
+
+
+@patch.object(FSPath, 'symlink')
+def test_symlink(funcA):
+    SmartPath(FS_TEST_DST_PATH).symlink(FS_TEST_SRC_PATH)
+    funcA.assert_called_once()
+
+
+@patch.object(FSPath, 'updatelink')
+def test_updatelink(funcA):
+    SmartPath(FS_TEST_ABSOLUTE_PATH).updatelink(FS_TEST_CHANGE_PATH)
+    funcA.assert_called_once()
+
+
+@patch.object(FSPath, 'readlink')
+def test_readlink(funcA):
+    SmartPath(FS_TEST_ABSOLUTE_PATH).readlink()
     funcA.assert_called_once()

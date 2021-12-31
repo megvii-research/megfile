@@ -742,3 +742,35 @@ def test_smart_cache(mocker):
     cacher = megfile.smart_cache('s3://path/to/file')
     assert isinstance(cacher, S3Cacher)
     assert s3_download.called is True
+
+
+def test_smart_symlink():
+    src_path = '~/symlink/src/src_file'
+    dst_path = '~/symlink/dst/dst_file'
+    smart.smart_symlink(dst_path,src_path)
+    
+    res = smart.smart_readlink(dst_path)
+    assert res == src_path.replace('~', os.path.expanduser('~'), 1)
+    smart.smart_remove(dst_path)
+
+
+def test_smart_readlink():
+    src_path = '~/symlink/src/src_file'
+    dst_path = '~/symlink/dst/dst_file'
+    smart.smart_symlink(dst_path,src_path)
+    
+    res = smart.smart_readlink(dst_path)
+    assert res == src_path.replace('~', os.path.expanduser('~'), 1)
+    smart.smart_remove(dst_path)
+
+
+def test_smart_updatelink():
+    src_path = '/home/yujianpeng/symlink/src/src_file'
+    dst_path = '/home/yujianpeng/symlink/dst/dst_file'
+    change_path = '/home/yujianpeng/symlink/src/change_file'
+    smart.smart_symlink(dst_path,src_path)
+    
+    smart.smart_updatelink(dst_path, change_path)
+    res = smart.smart_readlink(dst_path)
+    assert res == change_path.replace('~', os.path.expanduser('~'), 1)
+    smart.smart_remove(dst_path)

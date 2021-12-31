@@ -185,6 +185,8 @@ def fs_remove(path: PathLike, missing_ok: bool = False) -> None:
     :param path: Given path
     :param missing_ok: if False and target file/directory not exists, raise FileNotFoundError
     '''
+    if fs_startswithhome(path):
+        path = fs_abspath(path, True)
     if missing_ok and not fs_exists(path):
         return
     if fs_isdir(path):
@@ -529,12 +531,15 @@ def fs_ismount(path: PathLike) -> bool:
     return os.path.ismount(path)
 
 
-def fs_abspath(path: PathLike) -> str:
+def fs_abspath(path: PathLike, with_home: bool = False) -> str:
     '''Return the absolute path of given path
 
     :param path: Given path
+    :param with_home: True if the path starts with home, else False
     :returns: Absolute path of given path
     '''
+    if with_home:
+        return fspath(path.replace('~', os.path.expanduser('~'), 1))
     return fspath(os.path.abspath(path))
 
 
@@ -646,3 +651,59 @@ def fs_getmd5(path: PathLike):
         md5 = hash_md5.hexdigest()
         src.seek(0)
     return md5
+
+
+def fs_startswithhome(path: PathLike) -> bool:
+    '''Test whether a path starts with home('~')
+
+    :param path: Given path
+    :returns: True if a path starts with home('~'), else False
+    '''
+    
+    if path.startswith('~'):
+        return True
+    return False
+
+
+def fs_symlink(
+    src_path: PathLike,
+    dst_path: PathLike) -> None:
+    '''
+    Create a symbolic link pointing to src_path named dst_path.
+
+    :param src_path: Source path
+    :param dst_path: Desination path
+    '''
+    if fs_startswithhome(dst_path):
+        dst_path = fs_abspath(dst_path, True)
+    if fs_startswithhome(src_path):
+        src_path= fs_abspath(src_path, True)
+    return os.symlink(src_path, dst_path)
+
+
+def fs_readlink(path: PathLike) -> PathLike:
+    '''
+    Return a string representing the path to which the symbolic link points.
+    :param path: Path to be read
+    :returns: Return a string representing the path to which the symbolic link points.
+    '''
+    if fs_startswithhome(path):
+        path = fs_abspath(path, True)
+    return os.readlink(path)
+
+
+def fs_updatelink(
+    src_path: PathLike,
+    dst_path: PathLike) -> None:
+    '''
+    Update the source path of a symbolic link.
+
+    :param src_path: Source path
+    :param dst_path: Desination path
+    '''
+    if fs_startswithhome(dst_path):
+        dst_path = fs_abspath(dst_path, True)
+    if fs_startswithhome(src_path):
+        src_path = fs_abspath(src_path, True)
+    fs_remove(dst_path)
+    fs_symlink(src_path, dst_path)
