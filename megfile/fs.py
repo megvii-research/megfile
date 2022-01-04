@@ -162,7 +162,7 @@ def fs_isfile(path: PathLike) -> bool:
     return os.path.isfile(path)
 
 
-def fs_exists(path: PathLike) -> bool:
+def fs_exists(path: PathLike, followlinks: bool = False) -> bool:
     '''
     Test if the path exists
 
@@ -172,9 +172,12 @@ def fs_exists(path: PathLike) -> bool:
         In other words, this function is equal to ``os.path.lexists``
 
     :param path: Given file path
+    :param followlinks: False if regard symlink as file, else True
     :returns: True if the path exists, else False
 
     '''
+    if followlinks:
+        return os.path.exists(path)
     return os.path.lexists(path)
 
 
@@ -646,3 +649,22 @@ def fs_getmd5(path: PathLike):
         md5 = hash_md5.hexdigest()
         src.seek(0)
     return md5
+
+
+def fs_symlink(src_path: PathLike, dst_path: PathLike) -> None:
+    '''
+    Create a symbolic link pointing to src_path named dst_path.
+
+    :param src_path: Source path
+    :param dst_path: Desination path
+    '''
+    return os.symlink(src_path, dst_path)
+
+
+def fs_readlink(path: PathLike) -> PathLike:
+    '''
+    Return a string representing the path to which the symbolic link points.
+    :param path: Path to be read
+    :returns: Return a string representing the path to which the symbolic link points.
+    '''
+    return os.readlink(path)

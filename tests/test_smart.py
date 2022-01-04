@@ -742,3 +742,21 @@ def test_smart_cache(mocker):
     cacher = megfile.smart_cache('s3://path/to/file')
     assert isinstance(cacher, S3Cacher)
     assert s3_download.called is True
+
+
+def test_smart_symlink(filesystem):
+    src_path = '/tmp/src_file'
+    dst_path = '/tmp/dst_file'
+    smart.smart_symlink(src_path, dst_path)
+
+    res = os.readlink(dst_path)
+    assert res == src_path
+
+
+def test_smart_readlink(filesystem):
+    src_path = '/tmp/src_file'
+    dst_path = '/tmp/dst_file'
+    os.symlink(src_path, dst_path)
+
+    res = smart.smart_readlink(dst_path)
+    assert res == src_path
