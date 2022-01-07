@@ -13,6 +13,7 @@ from megfile.interfaces import Access, FileEntry, PathLike, StatResult
 from megfile.lib.compat import fspath
 from megfile.lib.glob import iglob
 from megfile.lib.joinpath import path_join
+from megfile.utils import calculate_md5
 
 __all__ = [
     'fs_abspath',
@@ -631,7 +632,7 @@ def fs_resolve(path: PathLike):
     return os.path.realpath(path)
 
 
-def fs_getmd5(path: PathLike):
+def fs_getmd5(path: PathLike, recalculate: bool = False):
     '''
     Calculate the md5 value of the file
 
@@ -640,9 +641,5 @@ def fs_getmd5(path: PathLike):
     if not os.path.isfile(path):
         raise FileNotFoundError('%s is not a file' % path)
     with open(path, 'rb') as src:  # type: ignore
-        hash_md5 = hashlib.md5()  # nosec
-        for chunk in iter(lambda: src.read(4096), b''):
-            hash_md5.update(chunk)
-        md5 = hash_md5.hexdigest()
-        src.seek(0)
+        md5 = calculate_md5(src)
     return md5

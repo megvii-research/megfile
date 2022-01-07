@@ -30,7 +30,7 @@ from megfile.lib.s3_memory_handler import S3MemoryHandler
 from megfile.lib.s3_pipe_handler import S3PipeHandler
 from megfile.lib.s3_prefetch_reader import DEFAULT_BLOCK_SIZE, S3PrefetchReader
 from megfile.lib.s3_share_cache_reader import S3ShareCacheReader
-from megfile.utils import generate_cache_path, get_binary_mode, get_content_offset, is_readable, thread_local
+from megfile.utils import calculate_md5, generate_cache_path, get_binary_mode, get_content_offset, is_readable, thread_local
 
 # Monkey patch for smart_open
 _smart_open_parameters = inspect.signature(smart_open.s3.open).parameters
@@ -641,23 +641,9 @@ def s3_upload(
 
     client = get_s3_client()
     with open(src_url, 'rb') as src:
-        # TODO: when have the 2nd md5 use case, extract this.
-        hash_md5 = hashlib.md5()  # nosec
-        for chunk in iter(lambda: src.read(4096), b''):
-            hash_md5.update(chunk)
-        md5 = hash_md5.hexdigest()
-        src.seek(0)
-
         with raise_s3_error(dst_url):
-            # TODO: better design for metadata scheme when we have another metadata field.
             client.upload_fileobj(
-                src,
-                Bucket=dst_bucket,
-                Key=dst_key,
-                ExtraArgs={'Metadata': {
-                    content_md5_header: md5,
-                }},
-                Callback=callback)
+                src, Bucket=dst_bucket, Key=dst_key, Callback=callback)
 
 
 def s3_download(
@@ -1535,30 +1521,27 @@ def s3_legacy_open(s3_url: PathLike, mode: str):
 s3_open = s3_buffered_open
 
 
-def s3_getmd5(s3_url: PathLike) -> Optional[str]:
+def s3_getmd5(s3_url: PathLike, recalculate: bool = False) -> Optional[str]:
     '''
     Get md5 meta info in files that uploaded/copied via megfile
 
     If meta info is lost or non-existent, return None
 
     :param s3_url: Specified path
+    :param recalculate: calculate md5 in real-time or return s3 etag
     :returns: md5 meta info
     '''
-    bucket, key = parse_s3_url(s3_url)
+    bucket, _ = parse_s3_url(s3_url)
     if not bucket:
         raise S3BucketNotFoundError('Empty bucket name: %r' % s3_url)
-    if not key or key.endswith('/'):
+    stat = s3_stat(s3_url)
+    if stat.isdir is True:
         raise S3IsADirectoryError('Is a directory: %r' % s3_url)
-
-    client = get_s3_client()
-    with raise_s3_error(s3_url):
-        resp = client.head_object(Bucket=bucket, Key=key)
-    # boto3 does not lower the key of metadata
-    # https://github.com/boto/botocore/issues/1963
-    metadata = dict(
-        (key.lower(), value) for key, value in resp['Metadata'].items())
-    if content_md5_header in metadata:
-        return metadata[content_md5_header]
+    if recalculate is True:
+        with s3_open(s3_url, 'rb') as f:
+            return calculate_md5(f)
+    if stat.extra:
+        return stat.extra.get('ETag', '')[1:-1]
     return None
 
 
