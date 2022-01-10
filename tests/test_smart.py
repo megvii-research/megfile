@@ -258,7 +258,7 @@ def test_smart_sync(mocker):
       - a
     '''
 
-    def listdir(path: str):
+    def listdir(path: str, followlinks: bool):
         if path == 'folder':
             return ["folder/folderA/fileB", "folder/fileA"]
         if path == 'folder/fileA':
@@ -291,13 +291,13 @@ def test_smart_sync(mocker):
 def test_smart_remove(funcA):
     funcA.return_value = None
 
-    res = smart.smart_remove("False Case", False)
+    res = smart.smart_remove("False Case", missing_ok=False, followlinks=True)
     assert res is None
-    funcA.assert_called_once_with(missing_ok=False)
+    funcA.assert_called_once_with(missing_ok=False, followlinks=True)
 
-    res = smart.smart_remove("True Case", True)
+    res = smart.smart_remove("True Case", missing_ok=True, followlinks=True)
     assert res is None
-    funcA.assert_called_with(missing_ok=True)
+    funcA.assert_called_with(missing_ok=True, followlinks=True)
 
 
 @patch.object(SmartPath, 'rename')
@@ -314,6 +314,28 @@ def test_smart_rename(funcA):
     res = smart.smart_move('s3://bucket/a', 's3://bucket/b')
     assert res is None
     funcA.assert_called_once_with('s3://bucket/b')
+
+
+def test_smart_rename_fs(filesystem):
+    '''
+    /tmp_rename/
+        /src/
+            -src_file
+        /dst/
+            -link --> tmp_rename/src/src_file
+    '''
+    os.mkdir('tmp_rename')
+    os.mkdir('tmp_rename/src')
+    os.mkdir('tmp_rename/dst')
+    with open('tmp_rename/src/src_file', 'w') as f:
+        f.write('')
+    os.symlink('tmp_rename/src/src_file', 'tmp_rename/dst/link')
+    os.path.exists('tmp_rename/dst/link') is True
+    assert os.path.exists('tmp_rename/src')
+    smart.smart_rename('tmp_rename/src/src_file', 'tmp_rename/src_copy')
+    assert os.path.exists('tmp_rename/src_copy')
+    assert not os.path.exists('tmp_rename/src/src_file')
+    assert not os.path.exists('tmp_rename/dst/link')
 
 
 @patch.object(SmartPath, 'unlink')
@@ -538,20 +560,20 @@ def test_smart_path_join_result():
 @patch.object(SmartPath, "walk")
 def test_smart_walk(funcA):
     funcA.return_value = None
-    res = smart.smart_walk("Test Case")
+    res = smart.smart_walk("Test Case", followlinks=True)
     assert res is None
     funcA.assert_called_once()
 
 
 @patch.object(SmartPath, "scan")
 def test_smart_scan(funcA):
-    smart.smart_scan("Test Case")
+    smart.smart_scan("Test Case", followlinks=True)
     funcA.assert_called_once()
 
 
 @patch.object(SmartPath, "scan_stat")
 def test_smart_scan_stat(funcA):
-    smart.smart_scan_stat("Test Case")
+    smart.smart_scan_stat("Test Case", followlinks=True)
     funcA.assert_called_once()
 
 

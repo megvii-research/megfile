@@ -287,7 +287,8 @@ def smart_copy(
 def smart_sync(
         src_path: PathLike,
         dst_path: PathLike,
-        callback: Optional[Callable[[str, int], None]] = None) -> None:
+        callback: Optional[Callable[[str, int], None]] = None,
+        followlinks: bool = False) -> None:
     '''
     Sync file or directory on s3 and fs
 
@@ -328,7 +329,7 @@ def smart_sync(
     '''
     src_path, dst_path = get_traditional_path(src_path), get_traditional_path(
         dst_path)
-    for src_file_path in smart_scan(src_path):
+    for src_file_path in smart_scan(src_path, followlinks=followlinks):
         content_path = src_file_path[len(src_path):]
         if len(content_path):
             content_path = content_path.lstrip('/')
@@ -340,7 +341,9 @@ def smart_sync(
         smart_copy(src_file_path, dst_abs_file_path, callback=copy_callback)
 
 
-def smart_remove(path: PathLike, missing_ok: bool = False) -> None:
+def smart_remove(
+        path: PathLike, missing_ok: bool = False,
+        followlinks: bool = False) -> None:
     '''
     Remove the file or directory on s3 or fs, `s3://` and `s3://bucket` are not permitted to remove
 
@@ -348,17 +351,19 @@ def smart_remove(path: PathLike, missing_ok: bool = False) -> None:
     :param missing_ok: if False and target file/directory not exists, raise FileNotFoundError
     :raises: PermissionError, FileNotFoundError
     '''
-    SmartPath(path).remove(missing_ok=missing_ok)
+    SmartPath(path).remove(missing_ok=missing_ok, followlinks=followlinks)
 
 
-def smart_rename(src_path: PathLike, dst_path: PathLike) -> None:
+def smart_rename(
+        src_path: PathLike, dst_path: PathLike,
+        followlinks: bool = False) -> None:
     '''
     Move file on s3 or fs. `s3://` or `s3://bucket` is not allowed to move
 
     :param src_path: Given source path
     :param dst_path: Given destination path
     '''
-    if smart_isdir(src_path):
+    if smart_isdir(src_path, followlinks=followlinks):
         raise IsADirectoryError('%r is a directory' % PathLike)
     src_protocol, _ = SmartPath._extract_protocol(src_path)
     dst_protocol, _ = SmartPath._extract_protocol(dst_path)
@@ -369,7 +374,9 @@ def smart_rename(src_path: PathLike, dst_path: PathLike) -> None:
     smart_unlink(src_path)
 
 
-def smart_move(src_path: PathLike, dst_path: PathLike) -> None:
+def smart_move(
+        src_path: PathLike, dst_path: PathLike,
+        followlinks: bool = False) -> None:
     '''
     Move file/directory on s3 or fs. `s3://` or `s3://bucket` is not allowed to move
 
@@ -381,8 +388,8 @@ def smart_move(src_path: PathLike, dst_path: PathLike) -> None:
     if src_protocol == dst_protocol:
         SmartPath(src_path).rename(dst_path)
         return
-    smart_sync(src_path, dst_path)
-    smart_remove(src_path)
+    smart_sync(src_path, dst_path, followlinks=followlinks)
+    smart_remove(src_path, followlinks=followlinks)
 
 
 def smart_unlink(path: PathLike, missing_ok: bool = False) -> None:
@@ -472,7 +479,8 @@ def smart_path_join(path: PathLike, *other_paths: PathLike) -> str:
     return fspath(SmartPath(path).joinpath(*other_paths))
 
 
-def smart_walk(path: PathLike) -> Iterator[Tuple[str, List[str], List[str]]]:
+def smart_walk(path: PathLike, followlinks: bool = False
+              ) -> Iterator[Tuple[str, List[str], List[str]]]:
     '''
     Generate the file names in a directory tree by walking the tree top-down.
     For each directory in the tree rooted at directory path (including path itself),
@@ -490,10 +498,12 @@ def smart_walk(path: PathLike) -> Iterator[Tuple[str, List[str], List[str]]]:
     :raises: UnsupportedError
     :returns: A 3-tuple generator
     '''
-    return SmartPath(path).walk()
+    return SmartPath(path).walk(followlinks=followlinks)
 
 
-def smart_scan(path: PathLike, missing_ok: bool = True) -> Iterator[str]:
+def smart_scan(
+        path: PathLike, missing_ok: bool = True,
+        followlinks: bool = False) -> Iterator[str]:
     '''
     Iteratively traverse only files in given directory, in alphabetical order.
     Every iteration on generator yields a path string.
@@ -507,11 +517,12 @@ def smart_scan(path: PathLike, missing_ok: bool = True) -> Iterator[str]:
     :raises: UnsupportedError
     :returns: A file path generator
     '''
-    return SmartPath(path).scan(missing_ok)
+    return SmartPath(path).scan(missing_ok, followlinks=followlinks)
 
 
-def smart_scan_stat(path: PathLike,
-                    missing_ok: bool = True) -> Iterator[FileEntry]:
+def smart_scan_stat(
+        path: PathLike, missing_ok: bool = True,
+        followlinks: bool = False) -> Iterator[FileEntry]:
     '''
     Iteratively traverse only files in given directory, in alphabetical order.
     Every iteration on generator yields a tuple of path string and file stat
@@ -521,7 +532,7 @@ def smart_scan_stat(path: PathLike,
     :raises: UnsupportedError
     :returns: A file path generator
     '''
-    return SmartPath(path).scan_stat(missing_ok)
+    return SmartPath(path).scan_stat(missing_ok, followlinks=followlinks)
 
 
 def _group_glob(globstr: str) -> List[str]:
