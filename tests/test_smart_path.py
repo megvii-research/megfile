@@ -166,13 +166,15 @@ def test_stat(funcA):
 @patch.object(FSPath, 'is_dir')
 def test_is_dir(funcA):
     SmartPath(FS_TEST_ABSOLUTE_PATH).is_dir()
-    funcA.assert_called_once()
+    SmartPath(FS_TEST_ABSOLUTE_PATH).is_dir(followlinks=True)
+    funcA.call_count == 2
 
 
 @patch.object(FSPath, 'is_file')
 def test_is_file(funcA):
     SmartPath(FS_TEST_ABSOLUTE_PATH).is_file()
-    funcA.assert_called_once()
+    SmartPath(FS_TEST_ABSOLUTE_PATH).is_file(followlinks=True)
+    funcA.call_count == 2
 
 
 def test_is_symlink(mocker):
@@ -192,7 +194,8 @@ def test_access(funcA):
 @patch.object(FSPath, 'exists')
 def test_exists(funcA):
     SmartPath(FS_TEST_ABSOLUTE_PATH).exists()
-    funcA.assert_called_once()
+    SmartPath(FS_TEST_ABSOLUTE_PATH).exists(followlinks=True)
+    funcA.call_count == 2
 
 
 @patch.object(FSPath, 'getmtime')
