@@ -178,7 +178,7 @@ def fs_exists(path: PathLike, followlinks: bool = False) -> bool:
     :returns: True if the path exists, else False
 
     '''
-    if fs_islink(path) and followlinks:
+    if followlinks:
         return os.path.exists(path)
     return os.path.lexists(path)
 
