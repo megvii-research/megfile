@@ -141,10 +141,7 @@ def fs_isdir(path: PathLike, followlinks: bool = False) -> bool:
     :returns: True if the path is a directory, else False
 
     '''
-    if fs_islink(path) and followlinks:
-        path = fs_readlink(path)
-        fs_isdir(path, followlinks=True)
-    if os.path.islink(path):
+    if os.path.islink(path) and not followlinks:
         return False
     return os.path.isdir(path)
 
@@ -162,10 +159,7 @@ def fs_isfile(path: PathLike, followlinks: bool = False) -> bool:
     :returns: True if the path is a file, else False
 
     '''
-    if fs_islink(path) and followlinks:
-        path = fs_readlink(path)
-        fs_isfile(path, followlinks=True)
-    if os.path.islink(path):
+    if os.path.islink(path) and not followlinks:
         return True
     return os.path.isfile(path)
 
@@ -184,7 +178,7 @@ def fs_exists(path: PathLike, followlinks: bool = False) -> bool:
     :returns: True if the path exists, else False
 
     '''
-    if fs_islink(path) and followlinks:
+    if followlinks:
         return os.path.exists(path)
     return os.path.lexists(path)
 
