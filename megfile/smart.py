@@ -54,8 +54,29 @@ __all__ = [
     'smart_relpath',
     'smart_abspath',
     'smart_isabs',
+    'smart_symlink',
+    'smart_readlink',
     'register_copy_func',
 ]
+
+
+def smart_symlink(src_path: "PathLike", dst_path: PathLike) -> None:
+    '''
+    Create a symbolic link pointing to src_path named path.
+
+    :param path: Desination path
+    :param src_path: Source path
+    '''
+    return SmartPath(src_path).symlink(dst_path)
+
+
+def smart_readlink(path: PathLike) -> PathLike:
+    '''
+    Return a string representing the path to which the symbolic link points.
+    :param path: Path to be read
+    :returns: Return a string representing the path to which the symbolic link points.
+    '''
+    return SmartPath(path).readlink()
 
 
 def smart_isdir(path: PathLike) -> bool:

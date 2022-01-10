@@ -783,3 +783,17 @@ def test_fs_getmd5(filesystem):
     with open(path, 'wb') as f:
         f.write(b'00000')
     assert fs.fs_getmd5(path) == 'dcddb75469b4b4875094e14561e573d8'
+
+
+def test_fs_symlink(filesystem):
+    src_path = '/tmp/src_file'
+    dst_path = '/tmp/dst_file'
+    fs.fs_symlink(src_path, dst_path)
+    assert os.readlink(dst_path) == src_path
+
+
+def test_fs_readlink(filesystem):
+    src_path = '/tmp/src_file'
+    dst_path = '/tmp/dst_file'
+    os.symlink(src_path, dst_path)
+    assert fs.fs_readlink(dst_path) == src_path
