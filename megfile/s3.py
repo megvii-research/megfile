@@ -519,7 +519,7 @@ def s3_scandir(s3_url: PathLike) -> Iterator[FileEntry]:
     return create_generator()
 
 
-def s3_listdir(s3_url: str) -> List[str]:
+def s3_listdir(s3_url: PathLike) -> List[str]:
     '''
     Get all contents of given s3_url. The result is in acsending alphabetical order.
 
@@ -1521,7 +1521,7 @@ def s3_legacy_open(s3_url: PathLike, mode: str):
 s3_open = s3_buffered_open
 
 
-def s3_getmd5(s3_url: PathLike, recalculate: bool = False) -> Optional[str]:
+def s3_getmd5(s3_url: PathLike, recalculate: bool = False) -> str:
     '''
     Get md5 meta info in files that uploaded/copied via megfile
 
@@ -1536,13 +1536,17 @@ def s3_getmd5(s3_url: PathLike, recalculate: bool = False) -> Optional[str]:
         raise S3BucketNotFoundError('Empty bucket name: %r' % s3_url)
     stat = s3_stat(s3_url)
     if stat.isdir is True:
-        raise S3IsADirectoryError('Is a directory: %r' % s3_url)
+        hash_md5 = hashlib.md5()  # nosec
+        for file_name in s3_listdir(s3_url):
+            chunk = s3_getmd5(
+                s3_path_join(s3_url, file_name),
+                recalculate=recalculate).encode()
+            hash_md5.update(chunk)
+        return hash_md5.hexdigest()
     if recalculate is True:
         with s3_open(s3_url, 'rb') as f:
             return calculate_md5(f)
-    if stat.extra:
-        return stat.extra.get('ETag', '')[1:-1]
-    return None
+    return stat.extra.get('ETag', '')[1:-1]
 
 
 def s3_load_content(

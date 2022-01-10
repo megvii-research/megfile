@@ -2341,6 +2341,11 @@ def test_s3_getmd5(s3_empty_client):
 
     assert s3.s3_getmd5(s3_url) == hash_md5.hexdigest()
 
+    s3_dir_url = 's3://bucket'
+    hash_md5_dir = hashlib.md5()  # nosec
+    hash_md5_dir.update(hash_md5.hexdigest().encode())
+    assert s3.s3_getmd5(s3_dir_url) == hash_md5_dir.hexdigest()
+
 
 def test_s3_getmd5_None(s3_empty_client):
     s3_url = 's3://bucket/key'
