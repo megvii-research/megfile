@@ -733,9 +733,10 @@ def smart_touch(path: PathLike):
         pass
 
 
-def smart_getmd5(path: PathLike):
+def smart_getmd5(path: PathLike, recalculate: bool = False):
     '''Get md5 value of file
 
     param path: File path
+    param recalculate: calculate md5 in real-time or not return s3 etag when path is s3
     '''
-    return SmartPath(path).md5()
+    return SmartPath(path).md5(recalculate=recalculate)
