@@ -1536,7 +1536,13 @@ def s3_getmd5(s3_url: PathLike, recalculate: bool = False) -> Optional[str]:
         raise S3BucketNotFoundError('Empty bucket name: %r' % s3_url)
     stat = s3_stat(s3_url)
     if stat.isdir is True:
-        raise S3IsADirectoryError('Is a directory: %r' % s3_url)
+        hash_md5 = hashlib.md5()  # nosec
+        for file_name in s3_listdir(s3_url):
+            chunk = s3_getmd5(
+                s3_path_join(s3_url, file_name),
+                recalculate=recalculate).encode()
+            hash_md5.update(chunk)
+        return hash_md5.hexdigest()
     if recalculate is True:
         with s3_open(s3_url, 'rb') as f:
             return calculate_md5(f)

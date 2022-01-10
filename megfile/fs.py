@@ -638,8 +638,14 @@ def fs_getmd5(path: PathLike, recalculate: bool = False):
 
     returns: md5 of file
     '''
-    if not os.path.isfile(path):
-        raise FileNotFoundError('%s is not a file' % path)
+    if os.path.isdir(path):
+        hash_md5 = hashlib.md5()  # nosec
+        for file_name in fs_listdir(path):
+            chunk = fs_getmd5(
+                fs_path_join(path, file_name),
+                recalculate=recalculate).encode()
+            hash_md5.update(chunk)
+        return hash_md5.hexdigest()
     with open(path, 'rb') as src:  # type: ignore
         md5 = calculate_md5(src)
     return md5

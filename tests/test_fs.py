@@ -784,6 +784,9 @@ def test_fs_getmd5(filesystem):
         f.write(b'00000')
     assert fs.fs_getmd5(path) == 'dcddb75469b4b4875094e14561e573d8'
 
+    dir_path = '/tmp'
+    assert fs.fs_getmd5(dir_path) == 'c97cccbc3080944fc4b312467034fc84'
+
 
 def test_fs_symlink(filesystem):
     src_path = '/tmp/src_file'
