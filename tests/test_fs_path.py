@@ -219,3 +219,15 @@ def test_md5(mocker):
     funcA = mocker.patch('megfile.fs.fs_getmd5')
     path.md5()
     funcA.assert_called_once_with(TEST_PATH)
+
+
+def test_symlink(mocker):
+    funcA = mocker.patch('megfile.fs.fs_symlink')
+    path.symlink(dst_path='/test/dir/dst_file')
+    funcA.assert_called_once_with(TEST_PATH, dst_path='/test/dir/dst_file')
+
+
+def test_readlink(mocker):
+    funcA = mocker.patch('megfile.fs.fs_readlink')
+    path.readlink()
+    funcA.assert_called_once_with(TEST_PATH)

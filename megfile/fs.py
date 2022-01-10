@@ -643,3 +643,22 @@ def fs_getmd5(path: PathLike, recalculate: bool = False):
     with open(path, 'rb') as src:  # type: ignore
         md5 = calculate_md5(src)
     return md5
+
+
+def fs_symlink(src_path: PathLike, dst_path: PathLike) -> None:
+    '''
+    Create a symbolic link pointing to src_path named dst_path.
+
+    :param src_path: Source path
+    :param dst_path: Desination path
+    '''
+    return os.symlink(src_path, dst_path)
+
+
+def fs_readlink(path: PathLike) -> PathLike:
+    '''
+    Return a string representing the path to which the symbolic link points.
+    :param path: Path to be read
+    :returns: Return a string representing the path to which the symbolic link points.
+    '''
+    return os.readlink(path)
