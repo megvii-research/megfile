@@ -83,7 +83,7 @@ class FSPath(URIPath):
     md5 = _bind_function('fs_getmd5')
     copy = _bind_function('fs_copy')
     sync = _bind_function('fs_sync')
-    symlink = _bind_function('fs_symlink')
+    symlink_to = _bind_function('fs_symlink')
     readlink = _bind_function('fs_readlink')
     cwd = fs.fs_cwd
     home = fs.fs_home
