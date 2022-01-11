@@ -343,7 +343,11 @@ def smart_sync(
             # if content_path is empty, which means smart_isfile(src_path) is True, this function is equal to smart_copy
             dst_abs_file_path = dst_path
         copy_callback = partial(callback, src_file_path) if callback else None
-        smart_copy(src_file_path, dst_abs_file_path, callback=copy_callback)
+        smart_copy(
+            src_file_path,
+            dst_abs_file_path,
+            callback=copy_callback,
+            followlinks=followlinks)
 
 
 def smart_remove(
@@ -356,7 +360,11 @@ def smart_remove(
     :param missing_ok: if False and target file/directory not exists, raise FileNotFoundError
     :raises: PermissionError, FileNotFoundError
     '''
-    SmartPath(path).remove(missing_ok=missing_ok, followlinks=followlinks)
+    path_protocol, _ = SmartPath._extract_protocol(path)
+    if path_protocol == 'file':
+        SmartPath(path).remove(missing_ok=missing_ok, followlinks=followlinks)
+    else:
+        SmartPath(path).remove(missing_ok=missing_ok)
 
 
 def smart_rename(
@@ -391,7 +399,10 @@ def smart_move(
     src_protocol, _ = SmartPath._extract_protocol(src_path)
     dst_protocol, _ = SmartPath._extract_protocol(dst_path)
     if src_protocol == dst_protocol:
-        SmartPath(src_path).rename(dst_path)
+        if src_protocol == 'file':
+            SmartPath(src_path).rename(dst_path, followlinks=followlinks)
+        else:
+            SmartPath(src_path).rename(dst_path)
         return
     smart_sync(src_path, dst_path, followlinks=followlinks)
     smart_remove(src_path, followlinks=followlinks)
@@ -503,7 +514,11 @@ def smart_walk(path: PathLike, followlinks: bool = False
     :raises: UnsupportedError
     :returns: A 3-tuple generator
     '''
-    return SmartPath(path).walk(followlinks=followlinks)
+    path_protocol, _ = SmartPath._extract_protocol(path)
+    if path_protocol == 'file':
+        return SmartPath(path).walk(followlinks=followlinks)
+    else:
+        return SmartPath(path).walk()
 
 
 def smart_scan(
@@ -522,7 +537,11 @@ def smart_scan(
     :raises: UnsupportedError
     :returns: A file path generator
     '''
-    return SmartPath(path).scan(missing_ok, followlinks=followlinks)
+    path_protocol, _ = SmartPath._extract_protocol(path)
+    if path_protocol == 'file':
+        return SmartPath(path).scan(missing_ok, followlinks=followlinks)
+    else:
+        return SmartPath(path).scan(missing_ok)
 
 
 def smart_scan_stat(
@@ -537,7 +556,11 @@ def smart_scan_stat(
     :raises: UnsupportedError
     :returns: A file path generator
     '''
-    return SmartPath(path).scan_stat(missing_ok, followlinks=followlinks)
+    path_protocol, _ = SmartPath._extract_protocol(path)
+    if path_protocol == 'file':
+        return SmartPath(path).scan_stat(missing_ok, followlinks=followlinks)
+    else:
+        return SmartPath(path).scan_stat(missing_ok)
 
 
 def _group_glob(globstr: str) -> List[str]:

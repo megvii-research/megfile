@@ -279,23 +279,29 @@ def test_smart_sync(mocker):
 
     smart_scan.side_effect = listdir
 
-    smart.smart_sync('folder', 'dst')
+    smart.smart_sync('folder', 'dst', followlinks=True)
     assert smart_copy.call_count == 2
-    smart_copy.assert_any_call('folder/fileA', 'dst/fileA', callback=None)
     smart_copy.assert_any_call(
-        'folder/folderA/fileB', 'dst/folderA/fileB', callback=None)
+        'folder/fileA', 'dst/fileA', callback=None, followlinks=True)
+    smart_copy.assert_any_call(
+        'folder/folderA/fileB',
+        'dst/folderA/fileB',
+        callback=None,
+        followlinks=True)
     smart_copy.reset_mock()
 
-    smart.smart_sync('folder/fileA', 'dst/file')
+    smart.smart_sync('folder/fileA', 'dst/file', followlinks=True)
     assert smart_copy.call_count == 1
-    smart_copy.assert_any_call('folder/fileA', 'dst/file', callback=None)
+    smart_copy.assert_any_call(
+        'folder/fileA', 'dst/file', callback=None, followlinks=True)
     smart_copy.reset_mock()
 
-    smart.smart_sync('a', 'dst')
+    smart.smart_sync('a', 'dst', followlinks=True)
     assert smart_copy.call_count == 3
-    smart_copy.assert_any_call('a', 'dst', callback=None)
-    smart_copy.assert_any_call('a/b/c', 'dst/b/c', callback=None)
-    smart_copy.assert_any_call('a/d', 'dst/d', callback=None)
+    smart_copy.assert_any_call('a', 'dst', callback=None, followlinks=True)
+    smart_copy.assert_any_call(
+        'a/b/c', 'dst/b/c', callback=None, followlinks=True)
+    smart_copy.assert_any_call('a/d', 'dst/d', callback=None, followlinks=True)
 
 
 @patch.object(SmartPath, 'remove')

@@ -460,14 +460,12 @@ def _copyfile(
         return _copyfileobj
 
     src_stat = fs_stat(src_path)
-    if src_stat.is_symlink() and not followlinks:
-        shutil.copyfile(src_path, dst_path, follow_symlinks=False)
-        if callback:
-            callback(src_stat.size)
-        return
-
     with patch('shutil.copyfileobj', _patch_copyfileobj(callback)):
         shutil.copyfile(src_path, dst_path, follow_symlinks=followlinks)
+        if src_stat.is_symlink() and not followlinks:
+            if callback:
+                callback(src_stat.size)
+            return
 
 
 def fs_copy(
