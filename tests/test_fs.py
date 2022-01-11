@@ -262,6 +262,7 @@ def test_fs_isdir(filesystem):
     assert fs.fs_isdir('file') is False
     os.symlink('folder', 'soft_link_folder')
     assert fs.fs_isdir('soft_link_folder') is False
+    assert fs.fs_isdir('soft_link_folder', followlinks=True) is True
 
 
 def test_fs_isfile(filesystem):
@@ -273,6 +274,7 @@ def test_fs_isfile(filesystem):
     assert fs.fs_isfile('file') is True
     os.symlink('folder', 'soft_link_folder')
     assert fs.fs_isfile('soft_link_folder') is True
+    assert fs.fs_isfile('soft_link_folder', followlinks=True) is False
 
 
 def test_fs_access(filesystem):
@@ -301,6 +303,7 @@ def test_fs_exists(filesystem):
     os.removedirs('folder')
     assert fs.fs_exists('soft_link_folder') is True
     assert fs.fs_exists('folder') is False
+    assert fs.fs_exists('soft_link_folder', followlinks=True) is False
 
 
 def test_fs_remove(filesystem, mocker):

@@ -70,10 +70,15 @@ def test_smart_isdir(funcA):
     res = smart.smart_isdir("True Case")
     assert res == True
     funcA.assert_called_once()
+    res = smart.smart_isdir("True Case", followlinks=True)
+    assert res == True
+    assert funcA.call_count == 2
     funcA.return_value = False
     res = smart.smart_isdir("False Case")
     assert res == False
-    assert funcA.call_count == 2
+    res = smart.smart_isdir("False Case", followlinks=True)
+    assert res == False
+    assert funcA.call_count == 4
 
 
 @patch.object(SmartPath, 'is_file')
@@ -82,10 +87,15 @@ def test_smart_isfile(funcA):
     res = smart.smart_isfile("True Case")
     assert res == True
     funcA.assert_called_once()
+    res = smart.smart_isfile("True Case", followlinks=True)
+    assert res == True
+    assert funcA.call_count == 2
     funcA.return_value = False
     res = smart.smart_isfile("False Case")
     assert res == False
-    assert funcA.call_count == 2
+    res = smart.smart_isfile("False Case", followlinks=True)
+    assert res == False
+    assert funcA.call_count == 4
 
 
 @patch.object(SmartPath, 'exists')
@@ -94,10 +104,15 @@ def test_smart_exists(funcA):
     res = smart.smart_exists("True Case")
     assert res == True
     funcA.assert_called_once()
+    res = smart.smart_exists("True Case", followlinks=True)
+    assert res == True
+    assert funcA.call_count == 2
     funcA.return_value = False
     res = smart.smart_exists("False Case")
     assert res == False
-    assert funcA.call_count == 2
+    res = smart.smart_exists("False Case", followlinks=True)
+    assert res == False
+    assert funcA.call_count == 4
 
 
 @patch.object(SmartPath, 'is_symlink')

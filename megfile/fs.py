@@ -129,7 +129,7 @@ def fs_getmtime(path: PathLike) -> float:
     return fs_stat(path).mtime
 
 
-def fs_isdir(path: PathLike) -> bool:
+def fs_isdir(path: PathLike, followlinks: bool = False) -> bool:
     '''
     Test if a path is directory
 
@@ -138,32 +138,34 @@ def fs_isdir(path: PathLike) -> bool:
         The difference between this function and ``os.path.isdir`` is that this function regard symlink as file
 
     :param path: Given file path
+    :param followlinks: False if regard symlink as file, else True
     :returns: True if the path is a directory, else False
 
     '''
-    if os.path.islink(path):
+    if os.path.islink(path) and not followlinks:
         return False
     return os.path.isdir(path)
 
 
-def fs_isfile(path: PathLike) -> bool:
+def fs_isfile(path: PathLike, followlinks: bool = False) -> bool:
     '''
     Test if a path is file
 
     .. note::
-
+    
         The difference between this function and ``os.path.isfile`` is that this function regard symlink as file
 
     :param path: Given file path
+    :param followlinks: False if regard symlink as file, else True
     :returns: True if the path is a file, else False
 
     '''
-    if os.path.islink(path):
+    if os.path.islink(path) and not followlinks:
         return True
     return os.path.isfile(path)
 
 
-def fs_exists(path: PathLike) -> bool:
+def fs_exists(path: PathLike, followlinks: bool = False) -> bool:
     '''
     Test if the path exists
 
@@ -173,9 +175,12 @@ def fs_exists(path: PathLike) -> bool:
         In other words, this function is equal to ``os.path.lexists``
 
     :param path: Given file path
+    :param followlinks: False if regard symlink as file, else True
     :returns: True if the path exists, else False
 
     '''
+    if followlinks:
+        return os.path.exists(path)
     return os.path.lexists(path)
 
 
