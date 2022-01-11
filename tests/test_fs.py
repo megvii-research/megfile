@@ -954,7 +954,7 @@ def test_fs_getmd5(filesystem):
 def test_fs_symlink(filesystem):
     src_path = '/tmp/src_file'
     dst_path = '/tmp/dst_file'
-    fs.fs_symlink(src_path, dst_path)
+    fs.fs_symlink(dst_path, src_path)
     assert os.readlink(dst_path) == src_path
 
 

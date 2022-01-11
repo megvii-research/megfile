@@ -669,12 +669,12 @@ def fs_getmd5(path: PathLike):
     return md5
 
 
-def fs_symlink(src_path: PathLike, dst_path: PathLike) -> None:
+def fs_symlink(dst_path: PathLike, src_path: PathLike) -> None:
     '''
     Create a symbolic link pointing to src_path named dst_path.
 
-    :param src_path: Source path
     :param dst_path: Desination path
+    :param src_path: Source path
     '''
     return os.symlink(src_path, dst_path)
 

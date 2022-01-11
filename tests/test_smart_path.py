@@ -284,9 +284,9 @@ def test_md5(funcA):
     funcA.assert_called_once()
 
 
-@patch.object(FSPath, 'symlink')
-def test_symlink(funcA):
-    SmartPath(FS_TEST_DST_PATH).symlink(FS_TEST_SRC_PATH)
+@patch.object(FSPath, 'symlink_to')
+def test_symlink_to(funcA):
+    SmartPath(FS_TEST_DST_PATH).symlink_to(FS_TEST_SRC_PATH)
     funcA.assert_called_once()
 
 

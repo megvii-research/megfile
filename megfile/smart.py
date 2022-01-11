@@ -60,14 +60,14 @@ __all__ = [
 ]
 
 
-def smart_symlink(src_path: "PathLike", dst_path: PathLike) -> None:
+def smart_symlink(dst_path: PathLike, src_path: PathLike) -> None:
     '''
     Create a symbolic link pointing to src_path named path.
 
-    :param path: Desination path
+    :param dst_path: Desination path
     :param src_path: Source path
     '''
-    return SmartPath(src_path).symlink(dst_path)
+    return SmartPath(dst_path).symlink_to(src_path)
 
 
 def smart_readlink(path: PathLike) -> PathLike:

@@ -784,7 +784,7 @@ def test_smart_cache(mocker):
 def test_smart_symlink(filesystem):
     src_path = '/tmp/src_file'
     dst_path = '/tmp/dst_file'
-    smart.smart_symlink(src_path, dst_path)
+    smart.smart_symlink(dst_path, src_path)
 
     res = os.readlink(dst_path)
     assert res == src_path
