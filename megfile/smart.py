@@ -284,8 +284,7 @@ def smart_copy(
     except KeyError:
         copy_func = _default_copy_func
     if copy_func == fs_copy:
-        fs_copy(
-            src_path, dst_path, callback=callback, followlinks=followlinks)
+        fs_copy(src_path, dst_path, callback=callback, followlinks=followlinks)
     else:
         copy_func(src_path, dst_path, callback=callback)  # pytype: disable=wrong-keyword-args
 
