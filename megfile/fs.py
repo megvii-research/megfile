@@ -441,7 +441,8 @@ def fs_load_from(path: PathLike) -> BinaryIO:
 def _copyfile(
         src_path: PathLike,
         dst_path: PathLike,
-        callback: Optional[Callable[[int], None]] = None):
+        callback: Optional[Callable[[int], None]] = None,
+        followlinks: bool = False):
 
     def _patch_copyfileobj(callback=None):
 
@@ -459,20 +460,21 @@ def _copyfile(
         return _copyfileobj
 
     src_stat = fs_stat(src_path)
-    if src_stat.is_symlink():
+    if src_stat.is_symlink() and not followlinks:
         shutil.copyfile(src_path, dst_path, follow_symlinks=False)
         if callback:
             callback(src_stat.size)
         return
 
     with patch('shutil.copyfileobj', _patch_copyfileobj(callback)):
-        shutil.copyfile(src_path, dst_path)
+        shutil.copyfile(src_path, dst_path, follow_symlinks=followlinks)
 
 
 def fs_copy(
         src_path: PathLike,
         dst_path: PathLike,
-        callback: Optional[Callable[[int], None]] = None):
+        callback: Optional[Callable[[int], None]] = None,
+        followlinks: bool = False):
     ''' File copy on file system
     Copy content (excluding meta date) of file on `src_path` to `dst_path`. `dst_path` must be a complete file name
 
@@ -492,14 +494,17 @@ def fs_copy(
     :param src_path: Source file path
     :param dst_path: Target file path
     :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
+    :param followlinks: False if regard symlink as file, else True
     '''
     try:
-        _copyfile(src_path, dst_path, callback=callback)
+        _copyfile(
+            src_path, dst_path, callback=callback, followlinks=followlinks)
     except FileNotFoundError as error:
         # Prevent the dst_path directory from being created when src_path does not exist
         if dst_path == error.filename:
             fs_makedirs(os.path.dirname(dst_path), exist_ok=True)
-            _copyfile(src_path, dst_path, callback=callback)
+            _copyfile(
+                src_path, dst_path, callback=callback, followlinks=followlinks)
         else:
             raise
 
@@ -513,7 +518,7 @@ def fs_sync(src_path: PathLike, dst_path: PathLike, followlinks: bool = False):
     if fs_isdir(src_path, followlinks=followlinks):
         shutil.copytree(src_path, dst_path)
     else:
-        fs_copy(src_path, dst_path)
+        fs_copy(src_path, dst_path, followlinks=followlinks)
 
 
 def fs_listdir(path: PathLike) -> List[str]:

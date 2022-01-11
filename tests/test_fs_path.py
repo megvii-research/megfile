@@ -180,8 +180,8 @@ def test_replace(mocker):
 def test_copy(mocker):
     dst = '/tmp/refiletest/dst'
     funcA = mocker.patch('megfile.fs.fs_copy')
-    path.copy(dst)
-    funcA.assert_called_once_with(TEST_PATH, dst)
+    path.copy(dst, followlinks=True)
+    funcA.assert_called_once_with(TEST_PATH, dst, followlinks=True)
 
 
 def test_sync(mocker):

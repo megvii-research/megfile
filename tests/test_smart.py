@@ -177,6 +177,16 @@ def test_smart_copy(mocker):
         assert s3_upload.called is False
         assert fs_copy.called is False
 
+        src_path = '/tmp/src_file'
+        smart.smart_copy('link', src_path, followlinks=True)
+        assert s3_copy.called is False
+        assert s3_download.called is False
+        assert s3_upload.called is False
+        assert fs_copy.called is True
+        fs_copy.assert_called_once_with(
+            'link', src_path, callback=None, followlinks=True)
+        fs_copy.reset_mock()
+
         smart.smart_copy('s3://a/b', 's3://a/b')
         s3_copy.assert_called_once_with('s3://a/b', 's3://a/b', callback=None)
 
@@ -192,8 +202,9 @@ def test_smart_copy(mocker):
 
         fs_stat = mocker.patch(
             'megfile.fs.fs_stat', return_value=StatResult(islnk=False, size=10))
-        smart.smart_copy('fs', 'fs')
-        fs_copy.assert_called_once_with('fs', 'fs', callback=None)
+        smart.smart_copy('fs', 'fs', followlinks=False)
+        fs_copy.assert_called_once_with(
+            'fs', 'fs', callback=None, followlinks=False)
         fs_copy.reset_mock()
         fs_stat.stop()
 

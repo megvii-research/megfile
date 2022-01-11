@@ -812,6 +812,8 @@ def test_fs_load_from(filesystem):
 def test_fs_copy(filesystem):
     with open('file', 'wb') as f:
         f.write(b'0' * (16 * 1024 + 1))
+    dst = 'dst_file'
+    os.symlink('/file', dst)
 
     class bar:
 
@@ -827,6 +829,7 @@ def test_fs_copy(filesystem):
             self._num += x
 
     fs.fs_copy('/file', '/file1')
+    fs.fs_copy(dst, '/file2', followlinks=True)
 
 
 def test_fs_rename(filesystem):

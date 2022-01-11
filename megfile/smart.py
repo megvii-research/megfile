@@ -246,7 +246,8 @@ def _default_copy_func(
 def smart_copy(
         src_path: PathLike,
         dst_path: PathLike,
-        callback: Optional[Callable[[int], None]] = None) -> None:
+        callback: Optional[Callable[[int], None]] = None,
+        followlinks: bool = False) -> None:
     '''
     Copy file from source path to destination path
 
@@ -263,15 +264,16 @@ def smart_copy(
         ...
         >>> src_path = 'test.png'
         >>> dst_path = 'test1.png'
-        >>> smart_copy(src_path, dst_path, callback=Bar(total=smart_stat(src_path).size))
+        >>> smart_copy(src_path, dst_path, callback=Bar(total=smart_stat(src_path).size), followlinks=False)
         856960it [00:00, 260592384.24it/s]
 
     :param src_path: Given source path
     :param dst_path: Given destination path
     :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
+    :param followlinks: False if regard symlink as file, else True
     '''
     # this function contains plenty of manual polymorphism
-    if smart_islink(src_path) and is_s3(dst_path):
+    if smart_islink(src_path) and is_s3(dst_path) and not followlinks:
         return
 
     src_protocol, _ = SmartPath._extract_protocol(src_path)
@@ -281,7 +283,11 @@ def smart_copy(
         copy_func = _copy_funcs[src_protocol][dst_protocol]
     except KeyError:
         copy_func = _default_copy_func
-    copy_func(src_path, dst_path, callback=callback)  # pytype: disable=wrong-keyword-args
+    if copy_func == fs_copy:
+        fs_copy(
+            src_path, dst_path, callback=callback, followlinks=followlinks)
+    else:
+        copy_func(src_path, dst_path, callback=callback)  # pytype: disable=wrong-keyword-args
 
 
 def smart_sync(
