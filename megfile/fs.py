@@ -449,6 +449,7 @@ def _copyfile(
 
         def _copyfileobj(fsrc, fdst, length=16 * 1024):
             """copy data from file-like object fsrc to file-like object fdst"""
+            # coverage:ignore-start
             while 1:
                 buf = fsrc.read(length)
                 if not buf:
@@ -456,8 +457,8 @@ def _copyfile(
                 fdst.write(buf)
                 if callback is None:
                     continue
-                callback(len(buf))  # coverage:ignore-line
-
+                callback(len(buf))
+            # coverage:ignore-end
         return _copyfileobj
 
     src_stat = fs_stat(src_path)
