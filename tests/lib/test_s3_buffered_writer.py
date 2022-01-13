@@ -71,13 +71,12 @@ def test_s3_buffered_writer_write_multipart(client, mocker):
     put_object_func = mocker.spy(client, 'put_object')
     create_multipart_upload_func = mocker.spy(client, 'create_multipart_upload')
     upload_part_func = mocker.spy(client, 'upload_part')
-    complete_multipart_upload_func = mocker.spy(
-        client, 'complete_multipart_upload')
 
     writer = S3BufferedWriter(BUCKET, KEY, s3_client=client, block_size=5)
     writer.write(CONTENT)
     writer.write(b'\n')
     writer.write(CONTENT)
+    writer._submit_futures()
 
     assert writer._is_multipart
     # put_object_func.assert_not_called() in Python 3.6+
