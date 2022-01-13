@@ -253,6 +253,32 @@ def test_fs_stat(filesystem, mocker):
         size=os.lstat("soft_link_folder").st_size, islnk=True)
 
 
+def test_fs_stat2(filesystem, mocker):
+    import os
+    import time
+    real_stat = os.lstat
+
+    class FakeStat:
+        st_ctime = 100
+        st_mtime = time.time()
+        st_size = 5
+
+    def fake_lstat(path):
+        if '/folderA/fileA' in path:
+            return FakeStat()
+        return real_stat(path)
+
+    mocker.patch('os.lstat', fake_lstat)
+
+    if not os.path.exists('folderA'):
+        os.mkdir('folderA')
+    with open('/folderA/fileA', 'wb') as fileA:
+        fileA.write(b'fileA')
+    assert fs.fs_stat('/').ctime == FakeStat.st_ctime
+    print(fs.fs_stat('.'))
+    assert fs.fs_stat('.').ctime == FakeStat.st_ctime
+
+
 def test_fs_isdir(filesystem):
     os.mkdir('folder')
     assert fs.fs_isdir('folder') is True
@@ -336,6 +362,23 @@ def test_fs_remove(filesystem, mocker):
     fs.fs_remove('notExist', missing_ok=True)
     # remove.assert_not_called() in Python 3.6+
     assert remove.call_count == 1
+
+
+def test_fs_remove2(filesystem, mocker):
+    fs.fs_remove('/notExist.txt', missing_ok=True)
+
+    with open('/test.txt', 'w') as f:
+        f.write('test')
+
+    fs.fs_remove('/test.txt')
+    assert fs.fs_exists('/test.txt') is False
+
+    fs.fs_makedirs('/dir')
+    with open('/dir/test.txt', 'w') as f:
+        f.write('test')
+
+    fs.fs_remove('/dir')
+    assert fs.fs_exists('/dir') is False
 
 
 def test_fs_unlink(filesystem, mocker):
@@ -636,8 +679,12 @@ def test_fs_scan_stat(filesystem, mocker):
 
     with pytest.raises(FileNotFoundError):
         list(fs.fs_scan('/B', missing_ok=False))
+
     with pytest.raises(FileNotFoundError):
         list(fs.fs_scan('/A/folder3', missing_ok=False))
+
+    with pytest.raises(FileNotFoundError):
+        list(fs.fs_scan_stat('/B', missing_ok=False))
 
 
 def test_fs_scandir(filesystem):
@@ -814,6 +861,7 @@ def test_fs_copy(filesystem):
         f.write(b'0' * (16 * 1024 + 1))
     dst = 'dst_file'
     os.symlink('/file', dst)
+    symlink_src_stat = fs.fs_stat(dst)
 
     class bar:
 
@@ -828,8 +876,15 @@ def test_fs_copy(filesystem):
 
             self._num += x
 
-    fs.fs_copy('/file', '/file1')
+    def callback_file(count):
+        assert count in [16 * 1024, 1]
+
+    def callback_symlink(count):
+        assert count == symlink_src_stat.size
+
+    fs.fs_copy('/file', '/file1', callback=callback_file)
     fs.fs_copy(dst, '/file2', followlinks=True)
+    fs.fs_copy(dst, '/file3', callback=callback_symlink)
 
 
 def test_fs_rename(filesystem):
@@ -895,6 +950,14 @@ def test_fs_sync(filesystem):
     src = '/tmp/refiletest/src'
     dst = '/tmp/refiletest/dst'
     os.makedirs(src)
+    fs.fs_sync(src, dst)
+    assert os.path.exists(dst)
+    assert os.path.exists(src)
+
+    src = '/tmp/refiletest/src/test.txt'
+    dst = '/tmp/refiletest/dst/test.txt'
+    with open(src, 'w') as f:
+        f.write('test')
     fs.fs_sync(src, dst)
     assert os.path.exists(dst)
     assert os.path.exists(src)
