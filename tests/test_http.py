@@ -5,7 +5,7 @@ import pytest
 import requests
 
 from megfile.errors import HttpFileNotFoundError, HttpPermissionError, UnknownError
-from megfile.http import http_getmtime, http_getsize, http_open, http_stat, is_http
+from megfile.http import get_http_session, http_getmtime, http_getsize, http_open, http_stat, is_http
 
 
 def test_is_http():
@@ -120,3 +120,8 @@ def test_http_getstat(mocker):
         time.strptime(
             "Wed, 24 Nov 2021 07:18:41 GMT", "%a, %d %b %Y %H:%M:%S %Z"))
     assert stat.size == 999
+
+
+def test_get_http_session(mocker):
+    session = get_http_session()
+    assert isinstance(session, requests.Session)
