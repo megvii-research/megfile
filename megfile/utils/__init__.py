@@ -1,3 +1,4 @@
+import hashlib
 import inspect
 import math
 import os
@@ -217,6 +218,13 @@ def _get_class(cls_or_obj) -> type:
     if isinstance(cls_or_obj, type):
         return cls_or_obj
     return type(cls_or_obj)
+
+
+def calculate_md5(file_object):
+    hash_md5 = hashlib.md5()  # nosec
+    for chunk in iter(lambda: file_object.read(4096), b''):
+        hash_md5.update(chunk)
+    return hash_md5.hexdigest()
 
 
 class classproperty(property):

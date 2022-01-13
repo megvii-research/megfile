@@ -25,8 +25,8 @@ def test_from_uri():
 
 def test_remove(mocker):
     funcA = mocker.patch('megfile.fs.fs_remove')
-    path.remove(missing_ok=True)
-    funcA.assert_called_once_with(TEST_PATH, missing_ok=True)
+    path.remove(missing_ok=True, followlinks=True)
+    funcA.assert_called_once_with(TEST_PATH, missing_ok=True, followlinks=True)
 
 
 def test_unlink(mocker):
@@ -43,14 +43,14 @@ def test_stat(mocker):
 
 def test_is_dir(mocker):
     funcA = mocker.patch('megfile.fs.fs_isdir')
-    path.is_dir()
-    funcA.assert_called_once_with(TEST_PATH)
+    path.is_dir(followlinks=True)
+    funcA.assert_called_once_with(TEST_PATH, followlinks=True)
 
 
 def test_is_file(mocker):
     funcA = mocker.patch('megfile.fs.fs_isfile')
-    path.is_file()
-    funcA.assert_called_once_with(TEST_PATH)
+    path.is_file(followlinks=True)
+    funcA.assert_called_once_with(TEST_PATH, followlinks=True)
 
 
 def test_is_symlink(mocker):
@@ -67,8 +67,8 @@ def test_access(mocker):
 
 def test_exists(mocker):
     funcA = mocker.patch('megfile.fs.fs_exists')
-    path.exists()
-    funcA.assert_called_once_with(TEST_PATH)
+    path.exists(followlinks=True)
+    funcA.assert_called_once_with(TEST_PATH, followlinks=True)
 
 
 def test_getmtime(mocker):
@@ -119,14 +119,14 @@ def test_iglob(mocker):
 
 def test_scan(mocker):
     funcA = mocker.patch('megfile.fs.fs_scan')
-    path.scan(missing_ok=False)
-    funcA.assert_called_once_with(TEST_PATH, missing_ok=False)
+    path.scan(missing_ok=False, followlinks=True)
+    funcA.assert_called_once_with(TEST_PATH, missing_ok=False, followlinks=True)
 
 
 def test_scan_stat(mocker):
     funcA = mocker.patch('megfile.fs.fs_scan_stat')
-    path.scan_stat(missing_ok=False)
-    funcA.assert_called_once_with(TEST_PATH, missing_ok=False)
+    path.scan_stat(missing_ok=False, followlinks=True)
+    funcA.assert_called_once_with(TEST_PATH, missing_ok=False, followlinks=True)
 
 
 def test_scandir(mocker):
@@ -143,8 +143,8 @@ def test_listdir(mocker):
 
 def test_walk(mocker):
     funcA = mocker.patch('megfile.fs.fs_walk')
-    path.walk()
-    funcA.assert_called_once_with(TEST_PATH)
+    path.walk(followlinks=True)
+    funcA.assert_called_once_with(TEST_PATH, followlinks=True)
 
 
 def test_load_from(mocker):
@@ -167,28 +167,28 @@ def test_rmdir(mocker):
 
 def test_rename(mocker):
     funcA = mocker.patch('megfile.fs.fs_move')
-    path.rename()
-    funcA.assert_called_once_with(TEST_PATH)
+    path.rename(followlinks=True)
+    funcA.assert_called_once_with(TEST_PATH, followlinks=True)
 
 
 def test_replace(mocker):
     funcA = mocker.patch('megfile.fs.fs_move')
-    path.replace()
-    funcA.assert_called_once_with(TEST_PATH)
+    path.replace(followlinks=True)
+    funcA.assert_called_once_with(TEST_PATH, followlinks=True)
 
 
 def test_copy(mocker):
     dst = '/tmp/refiletest/dst'
     funcA = mocker.patch('megfile.fs.fs_copy')
-    path.copy(dst)
-    funcA.assert_called_once_with(TEST_PATH, dst)
+    path.copy(dst, followlinks=True)
+    funcA.assert_called_once_with(TEST_PATH, dst, followlinks=True)
 
 
 def test_sync(mocker):
     dst = '/tmp/refiletest/dst'
     funcA = mocker.patch('megfile.fs.fs_sync')
-    path.sync(dst)
-    funcA.assert_called_once_with(TEST_PATH, dst)
+    path.sync(dst, followlinks=True)
+    funcA.assert_called_once_with(TEST_PATH, dst, followlinks=True)
 
 
 def test_cwd(mocker):
@@ -218,4 +218,16 @@ def test_resolve(mocker):
 def test_md5(mocker):
     funcA = mocker.patch('megfile.fs.fs_getmd5')
     path.md5()
+    funcA.assert_called_once_with(TEST_PATH)
+
+
+def test_symlink_to(mocker):
+    funcA = mocker.patch('megfile.fs.fs_symlink')
+    path.symlink_to(src_path='/test/dir/src_file')
+    funcA.assert_called_once_with(TEST_PATH, src_path='/test/dir/src_file')
+
+
+def test_readlink(mocker):
+    funcA = mocker.patch('megfile.fs.fs_readlink')
+    path.readlink()
     funcA.assert_called_once_with(TEST_PATH)

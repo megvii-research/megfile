@@ -1,3 +1,4 @@
+import hashlib
 import os
 import sys
 import threading
@@ -640,11 +641,8 @@ def test_s3_upload(fs, s3_empty_client):
 
     body = s3_empty_client.get_object(
         Bucket='bucket', Key='result')['Body'].read().decode('utf-8')
-    md5 = s3_empty_client.head_object(
-        Bucket='bucket', Key='result')['Metadata'][content_md5_header]
 
     assert body == 'value'
-    assert md5 == '2063c1608d6e0baf80249c42e2be5804'  # md5('value').hexdigest()
 
 
 def test_s3_upload_invalid(fs, s3_empty_client):
@@ -2334,11 +2332,19 @@ def test_s3_open(s3_empty_client):
 
 def test_s3_getmd5(s3_empty_client):
     s3_url = 's3://bucket/key'
+    content = b'bytes'
     s3_empty_client.create_bucket(Bucket='bucket')
-    s3_empty_client.put_object(
-        Bucket='bucket', Key='key', Metadata={content_md5_header: 'md5'})
+    s3_empty_client.put_object(Bucket='bucket', Key='key', Body=content)
 
-    assert s3.s3_getmd5(s3_url) == 'md5'
+    hash_md5 = hashlib.md5()  # nosec
+    hash_md5.update(content)
+
+    assert s3.s3_getmd5(s3_url) == hash_md5.hexdigest()
+
+    s3_dir_url = 's3://bucket'
+    hash_md5_dir = hashlib.md5()  # nosec
+    hash_md5_dir.update(hash_md5.hexdigest().encode())
+    assert s3.s3_getmd5(s3_dir_url) == hash_md5_dir.hexdigest()
 
 
 def test_s3_getmd5_None(s3_empty_client):
@@ -2346,7 +2352,7 @@ def test_s3_getmd5_None(s3_empty_client):
     s3_empty_client.create_bucket(Bucket='bucket')
     s3_empty_client.put_object(Bucket='bucket', Key='key')
 
-    assert s3.s3_getmd5(s3_url) is None
+    assert s3.s3_getmd5(s3_url) == 'd41d8cd98f00b204e9800998ecf8427e'
 
 
 def test_s3_load_content(s3_empty_client):

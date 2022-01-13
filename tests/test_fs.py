@@ -262,6 +262,7 @@ def test_fs_isdir(filesystem):
     assert fs.fs_isdir('file') is False
     os.symlink('folder', 'soft_link_folder')
     assert fs.fs_isdir('soft_link_folder') is False
+    assert fs.fs_isdir('soft_link_folder', followlinks=True) is True
 
 
 def test_fs_isfile(filesystem):
@@ -273,6 +274,7 @@ def test_fs_isfile(filesystem):
     assert fs.fs_isfile('file') is True
     os.symlink('folder', 'soft_link_folder')
     assert fs.fs_isfile('soft_link_folder') is True
+    assert fs.fs_isfile('soft_link_folder', followlinks=True) is False
 
 
 def test_fs_access(filesystem):
@@ -301,11 +303,11 @@ def test_fs_exists(filesystem):
     os.removedirs('folder')
     assert fs.fs_exists('soft_link_folder') is True
     assert fs.fs_exists('folder') is False
+    assert fs.fs_exists('soft_link_folder', followlinks=True) is False
 
 
 def test_fs_remove(filesystem, mocker):
-    remove = mocker.patch('megfile.fs.os.remove')
-    rmtree = mocker.patch('megfile.fs.shutil.rmtree')
+    remove = mocker.patch('megfile.fs.fs_remove')
     if_func = mocker.patch('megfile.fs.fs_isdir')
     exists_func = mocker.patch('megfile.fs.fs_exists')
 
@@ -319,8 +321,8 @@ def test_fs_remove(filesystem, mocker):
     exists_func.side_effect = exists
 
     fs.fs_remove('folder')
-    rmtree.assert_called_once_with('folder')
-    rmtree.reset_mock()
+    remove.assert_called_once_with('folder')
+    remove.reset_mock()
     fs.fs_remove('file')
     remove.assert_called_once_with('file')
     remove.reset_mock()
@@ -333,7 +335,7 @@ def test_fs_remove(filesystem, mocker):
     remove.reset_mock()
     fs.fs_remove('notExist', missing_ok=True)
     # remove.assert_not_called() in Python 3.6+
-    assert remove.call_count == 0
+    assert remove.call_count == 1
 
 
 def test_fs_unlink(filesystem, mocker):
@@ -394,6 +396,27 @@ def test_fs_walk_not_a_dir(filesystem):
     assert list(fs.fs_walk('file')) == []
 
 
+def test_fs_walk_not_a_dir_symlink(filesystem):
+    '''
+    /A/
+        /folder1/
+            -file
+        /foder2/
+            -link --> A/folder1/file
+    '''
+    src = '/A/folder1'
+    dst = '/A/folder2'
+    os.makedirs(src)
+    os.makedirs(dst)
+    with open('/A/folder1/file', 'w') as f:
+        f.write('')
+    os.symlink('/A/folder1/file', '/A/folder2/link')
+    assert fs.fs_exists('/A/folder2/link', followlinks=True) is True
+    not_exist = 'notExists'
+    assert list(fs.fs_walk(not_exist)) == []
+    assert list(fs.fs_walk('/A/link', followlinks=True)) == []
+
+
 def test_fs_walk_empty(filesystem):
     '''
     /A/
@@ -403,6 +426,21 @@ def test_fs_walk_empty(filesystem):
     assert list(fs.fs_walk("/A")) == [('/A', [], [])]
     assert list(fs.fs_walk("./A")) == [('A', [], [])]
     assert list(fs.fs_walk("A")) == [('A', [], [])]
+
+
+def test_fs_walk_empty(filesystem):
+    '''
+    /A/
+        <nothing>
+    /B/
+        <nothing>
+    '''
+    os.mkdir('A')
+    os.symlink('A', 'B')
+    assert fs.fs_exists('B', followlinks=True) is True
+    assert list(fs.fs_walk("/B", followlinks=True)) == [('/B', [], [])]
+    assert list(fs.fs_walk("./B", followlinks=True)) == [('B', [], [])]
+    assert list(fs.fs_walk("B", followlinks=True)) == [('B', [], [])]
 
 
 def test_fs_walk_skip_link(filesystem):
@@ -415,6 +453,42 @@ def test_fs_walk_skip_link(filesystem):
     assert list(fs.fs_walk('A')) == [('A', [], ['link'])]
     assert list(fs.fs_walk('./A')) == [('A', [], ['link'])]
     assert list(fs.fs_walk('/A')) == [('/A', [], ['link'])]
+
+
+def test_fs_walk_not_skip_link(filesystem):
+    '''
+    /A/
+        /folder1/
+            -file
+        -link --> A/folder1/file
+    /B/
+        -link --> A
+    '''
+    os.mkdir('A')
+    os.mkdir('B')
+    os.mkdir('A/folder1')
+    with open('/A/folder1/file', 'w') as f:
+        f.write('')
+    assert fs.fs_exists('/A/folder1/file', followlinks=True) is True
+    os.symlink('/A/folder1/file', '/A/link')
+    assert fs.fs_exists('/A/folder1/file') is True
+    os.symlink('/A', '/B/link')
+    assert list(fs.fs_walk('A/link')) == []
+    assert list(fs.fs_walk('./A/link')) == []
+    assert list(fs.fs_walk('/A/link')) == []
+    assert list(fs.fs_walk('A/link', followlinks=True)) == []
+
+    assert fs.fs_exists('B/link', followlinks=True) is True
+    assert fs.fs_isfile('B/link', followlinks=True) is False
+    assert list(fs.fs_walk('B/link', followlinks=True)) == [
+        ('B/link', ['folder1'], ['link']), ('B/link/folder1', [], ['file'])
+    ]
+    assert list(fs.fs_walk('./B/link', followlinks=True)) == [
+        ('B/link', ['folder1'], ['link']), ('B/link/folder1', [], ['file'])
+    ]
+    assert list(fs.fs_walk('/B/link', followlinks=True)) == [
+        ('/B/link', ['folder1'], ['link']), ('/B/link/folder1', [], ['file'])
+    ]
 
 
 def test_fs_walk_with_lexicographical_order(filesystem):
@@ -472,6 +546,31 @@ def test_fs_walk_with_nested_subdirs(filesystem):
     ]
 
 
+def test_fs_walk_with_nested_subdirs_symlink(filesystem):
+    '''
+    /A/
+        - folder1/
+            - sub1/file1
+            - sub2
+        - folder2/
+            - link --> /A/folder1
+    '''
+    os.mkdir('A')
+    os.mkdir('/A/folder1')
+    os.mkdir('/A/folder2')
+    os.mkdir('/A/folder1/sub1')
+    os.mkdir('/A/folder1/sub2')
+    with open('A/folder1/sub1/file1', 'w') as f:
+        f.write('')
+    os.symlink('/A/folder1', '/A/folder2/link')
+    assert list(fs.fs_walk('A', followlinks=True)) == [
+        ('A', ['folder1', 'folder2'], []), ('A/folder1', ['sub1', 'sub2'], []),
+        ('A/folder1/sub1', [], ['file1']), ('A/folder1/sub2', [], []),
+        ('A/folder2', ['link'], []), ('A/folder2/link', ['sub1', 'sub2'], []),
+        ('A/folder2/link/sub1', [], ['file1']), ('A/folder2/link/sub2', [], [])
+    ]
+
+
 def test_fs_scan(filesystem):
     '''
     /A/
@@ -491,6 +590,9 @@ def test_fs_scan(filesystem):
         f.write('')
     os.symlink('/A/folder1', '/A/folder2/link')
     assert list(fs.fs_scan('A')) == ['A/folder1/sub1/file1', 'A/folder2/link']
+    assert list(fs.fs_scan('A', followlinks=True)) == [
+        'A/folder1/sub1/file1', 'A/folder2/link/sub1/file1'
+    ]
     assert list(fs.fs_scan('A/folder1/sub1/file1')) == ['A/folder1/sub1/file1']
     with pytest.raises(FileNotFoundError):
         list(fs.fs_scan('/B', missing_ok=False))
@@ -521,6 +623,11 @@ def test_fs_scan_stat(filesystem, mocker):
     assert list(fs.fs_scan_stat('A')) == [
         ('A/folder1/sub1/file1', make_stat(size=5)),
         ('A/folder2/link', make_stat(size=10, islnk=True)),  # symlink size
+    ]
+
+    assert list(fs.fs_scan_stat('A', followlinks=True)) == [
+        ('A/folder1/sub1/file1', make_stat(size=5)),
+        ('A/folder2/link/sub1/file1', make_stat(size=5)),
     ]
 
     assert list(fs.fs_scan_stat('A/folder1/sub1/file1')) == [
@@ -705,6 +812,8 @@ def test_fs_load_from(filesystem):
 def test_fs_copy(filesystem):
     with open('file', 'wb') as f:
         f.write(b'0' * (16 * 1024 + 1))
+    dst = 'dst_file'
+    os.symlink('/file', dst)
 
     class bar:
 
@@ -720,6 +829,7 @@ def test_fs_copy(filesystem):
             self._num += x
 
     fs.fs_copy('/file', '/file1')
+    fs.fs_copy(dst, '/file2', followlinks=True)
 
 
 def test_fs_rename(filesystem):
@@ -733,6 +843,26 @@ def test_fs_rename(filesystem):
     assert not os.path.exists(src)
 
 
+def test_fs_rename_symlink(filesystem):
+    '''
+    /src/
+        -src_file
+    /dst/
+        -link --> src
+    '''
+    os.mkdir('src')
+    os.mkdir('dst')
+    with open('src/src_file', 'w') as f:
+        f.write('')
+    os.symlink('src', '/dst/link')
+    fs.fs_exists('/dst/link', followlinks=True) is True
+    assert os.path.exists('src')
+    fs.fs_rename('src', 'src_copy')
+    assert os.path.exists('src_copy')
+    assert not os.path.exists('src')
+    assert not os.path.exists('/dst/link')
+
+
 def test_fs_move(filesystem):
     src = '/tmp/refiletest/src'
     dst = '/tmp/refiletest/dst'
@@ -742,6 +872,25 @@ def test_fs_move(filesystem):
     assert not os.path.exists(src)
 
 
+def test_fs_move_symlink(filesystem):
+    '''
+    /src/
+        -src_file
+    /dst/
+        -link --> src
+    '''
+    os.mkdir('src')
+    os.mkdir('dst')
+    with open('src/src_file', 'w') as f:
+        f.write('')
+    os.symlink('src', '/dst/link')
+    fs.fs_exists('/dst/link', followlinks=True) is True
+    fs.fs_move('src', 'src_copy', followlinks=True)
+    assert os.path.exists('src_copy')
+    assert not os.path.exists('src')
+    assert not os.path.exists('/dst/link')
+
+
 def test_fs_sync(filesystem):
     src = '/tmp/refiletest/src'
     dst = '/tmp/refiletest/dst'
@@ -749,6 +898,26 @@ def test_fs_sync(filesystem):
     fs.fs_sync(src, dst)
     assert os.path.exists(dst)
     assert os.path.exists(src)
+
+
+def test_fs_sync_symlink(filesystem):
+    '''
+    /
+    '''
+    '''
+    /src/
+        -src_file
+    /dst/
+        -link --> src
+    '''
+    os.mkdir('src')
+    os.mkdir('dst')
+    with open('/src/src_file', 'w') as f:
+        f.write('')
+    os.symlink('/src', '/dst/link')
+    fs.fs_sync('/dst/link', '/sync', followlinks=True)
+    assert os.path.exists('sync')
+    assert os.path.exists('/dst/link')
 
 
 def test_fs_cwd(filesystem):
@@ -783,3 +952,20 @@ def test_fs_getmd5(filesystem):
     with open(path, 'wb') as f:
         f.write(b'00000')
     assert fs.fs_getmd5(path) == 'dcddb75469b4b4875094e14561e573d8'
+
+    dir_path = '/tmp'
+    assert fs.fs_getmd5(dir_path) == 'c97cccbc3080944fc4b312467034fc84'
+
+
+def test_fs_symlink(filesystem):
+    src_path = '/tmp/src_file'
+    dst_path = '/tmp/dst_file'
+    fs.fs_symlink(dst_path, src_path)
+    assert os.readlink(dst_path) == src_path
+
+
+def test_fs_readlink(filesystem):
+    src_path = '/tmp/src_file'
+    dst_path = '/tmp/dst_file'
+    os.symlink(src_path, dst_path)
+    assert fs.fs_readlink(dst_path) == src_path

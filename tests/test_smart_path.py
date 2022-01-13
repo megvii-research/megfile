@@ -14,6 +14,8 @@ FS_TEST_ABSOLUTE_PATH = "/test/dir/file"
 FS_TEST_ABSOLUTE_PATH_WITH_PROTOCOL = FS_PROTOCOL_PREFIX + FS_TEST_ABSOLUTE_PATH
 FS_TEST_RELATIVE_PATH = "test/dir/file"
 FS_TEST_RELATIVE_PATH_WITH_PROTOCOL = FS_PROTOCOL_PREFIX + FS_TEST_RELATIVE_PATH
+FS_TEST_SRC_PATH = "/test/dir/src_file"
+FS_TEST_DST_PATH = "/test/dir/dst_file"
 
 S3_PROTOCOL_PREFIX = S3Path.protocol + "://"
 S3_TEST_PATH_WITHOUT_PROTOCOL = "bucket/dir/file"
@@ -139,20 +141,20 @@ def test_unlink(funcA):
 
 @patch.object(FSPath, 'remove')
 def test_remove(funcA):
-    SmartPath(FS_TEST_ABSOLUTE_PATH).remove(missing_ok=True)
-    funcA.assert_called_once_with(missing_ok=True)
+    SmartPath(FS_TEST_ABSOLUTE_PATH).remove(missing_ok=True, followlinks=True)
+    funcA.assert_called_once_with(missing_ok=True, followlinks=True)
 
 
 @patch.object(FSPath, 'replace')
 def test_replace(funcA):
-    SmartPath(FS_TEST_ABSOLUTE_PATH).replace(missing_ok=True)
-    funcA.assert_called_once_with(missing_ok=True)
+    SmartPath(FS_TEST_ABSOLUTE_PATH).replace(missing_ok=True, followlinks=True)
+    funcA.assert_called_once_with(missing_ok=True, followlinks=True)
 
 
 @patch.object(FSPath, 'rename')
 def test_rename(funcA):
-    SmartPath(FS_TEST_ABSOLUTE_PATH).rename(missing_ok=True)
-    funcA.assert_called_once_with(missing_ok=True)
+    SmartPath(FS_TEST_ABSOLUTE_PATH).rename(missing_ok=True, followlinks=True)
+    funcA.assert_called_once_with(missing_ok=True, followlinks=True)
 
 
 @patch.object(FSPath, 'stat')
@@ -164,13 +166,15 @@ def test_stat(funcA):
 @patch.object(FSPath, 'is_dir')
 def test_is_dir(funcA):
     SmartPath(FS_TEST_ABSOLUTE_PATH).is_dir()
-    funcA.assert_called_once()
+    SmartPath(FS_TEST_ABSOLUTE_PATH).is_dir(followlinks=True)
+    funcA.call_count == 2
 
 
 @patch.object(FSPath, 'is_file')
 def test_is_file(funcA):
     SmartPath(FS_TEST_ABSOLUTE_PATH).is_file()
-    funcA.assert_called_once()
+    SmartPath(FS_TEST_ABSOLUTE_PATH).is_file(followlinks=True)
+    funcA.call_count == 2
 
 
 def test_is_symlink(mocker):
@@ -190,7 +194,8 @@ def test_access(funcA):
 @patch.object(FSPath, 'exists')
 def test_exists(funcA):
     SmartPath(FS_TEST_ABSOLUTE_PATH).exists()
-    funcA.assert_called_once()
+    SmartPath(FS_TEST_ABSOLUTE_PATH).exists(followlinks=True)
+    funcA.call_count == 2
 
 
 @patch.object(FSPath, 'getmtime')
@@ -238,14 +243,15 @@ def test_iglob(funcA):
 
 @patch.object(FSPath, 'scan')
 def test_scan(funcA):
-    SmartPath(FS_TEST_ABSOLUTE_PATH).scan(missing_ok=False)
-    funcA.assert_called_once_with(missing_ok=False)
+    SmartPath(FS_TEST_ABSOLUTE_PATH).scan(missing_ok=False, followlinks=True)
+    funcA.assert_called_once_with(missing_ok=False, followlinks=True)
 
 
 @patch.object(FSPath, 'scan_stat')
 def test_scan_stat(funcA):
-    SmartPath(FS_TEST_ABSOLUTE_PATH).scan_stat(missing_ok=False)
-    funcA.assert_called_once_with(missing_ok=False)
+    SmartPath(FS_TEST_ABSOLUTE_PATH).scan_stat(
+        missing_ok=False, followlinks=True)
+    funcA.assert_called_once_with(missing_ok=False, followlinks=True)
 
 
 @patch.object(FSPath, 'scandir')
@@ -262,8 +268,8 @@ def test_listdir(funcA):
 
 @patch.object(FSPath, 'walk')
 def test_walk(funcA):
-    SmartPath(FS_TEST_ABSOLUTE_PATH).walk()
-    funcA.assert_called_once()
+    SmartPath(FS_TEST_ABSOLUTE_PATH).walk(followlinks=True)
+    funcA.assert_called_once_with(followlinks=True)
 
 
 @patch.object(FSPath, 'load')
@@ -275,4 +281,16 @@ def test_load_from(funcA):
 @patch.object(FSPath, 'md5')
 def test_md5(funcA):
     SmartPath(FS_TEST_ABSOLUTE_PATH).md5()
+    funcA.assert_called_once()
+
+
+@patch.object(FSPath, 'symlink_to')
+def test_symlink_to(funcA):
+    SmartPath(FS_TEST_DST_PATH).symlink_to(FS_TEST_SRC_PATH)
+    funcA.assert_called_once()
+
+
+@patch.object(FSPath, 'readlink')
+def test_readlink(funcA):
+    SmartPath(FS_TEST_DST_PATH).readlink()
     funcA.assert_called_once()

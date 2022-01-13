@@ -78,6 +78,8 @@ class SmartPath(BasePath):
         cls._registered_protocols[protocol] = path_class
         return path_class
 
+    symlink_to = _bind_function('symlink_to')
+    readlink = _bind_function('readlink')
     is_dir = _bind_function('is_dir')
     is_file = _bind_function('is_file')
     is_symlink = _bind_function('is_symlink')

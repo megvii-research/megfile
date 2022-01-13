@@ -54,28 +54,49 @@ __all__ = [
     'smart_relpath',
     'smart_abspath',
     'smart_isabs',
+    'smart_symlink',
+    'smart_readlink',
     'register_copy_func',
 ]
 
 
-def smart_isdir(path: PathLike) -> bool:
+def smart_symlink(dst_path: PathLike, src_path: PathLike) -> None:
+    '''
+    Create a symbolic link pointing to src_path named path.
+
+    :param dst_path: Desination path
+    :param src_path: Source path
+    '''
+    return SmartPath(dst_path).symlink_to(src_path)
+
+
+def smart_readlink(path: PathLike) -> PathLike:
+    '''
+    Return a string representing the path to which the symbolic link points.
+    :param path: Path to be read
+    :returns: Return a string representing the path to which the symbolic link points.
+    '''
+    return SmartPath(path).readlink()
+
+
+def smart_isdir(path: PathLike, followlinks: bool = False) -> bool:
     '''
     Test if a file path or an s3 url is directory
 
     :param path: Path to be tested
     :returns: True if path is directory, else False
     '''
-    return SmartPath(path).is_dir()
+    return SmartPath(path).is_dir(followlinks)
 
 
-def smart_isfile(path: PathLike) -> bool:
+def smart_isfile(path: PathLike, followlinks: bool = False) -> bool:
     '''
     Test if a file path or an s3 url is file
 
     :param path: Path to be tested
     :returns: True if path is file, else False
     '''
-    return SmartPath(path).is_file()
+    return SmartPath(path).is_file(followlinks)
 
 
 def smart_islink(path: PathLike) -> bool:
@@ -93,14 +114,14 @@ def smart_access(path: PathLike, mode: Access) -> bool:
     return SmartPath(path).access(mode)
 
 
-def smart_exists(path: PathLike) -> bool:
+def smart_exists(path: PathLike, followlinks: bool = False) -> bool:
     '''
     Test if path or s3_url exists
 
     :param path: Path to be tested
     :returns: True if path eixsts, else False
     '''
-    return SmartPath(path).exists()
+    return SmartPath(path).exists(followlinks)
 
 
 def smart_listdir(path: Optional[PathLike] = None) -> List[str]:
@@ -225,7 +246,8 @@ def _default_copy_func(
 def smart_copy(
         src_path: PathLike,
         dst_path: PathLike,
-        callback: Optional[Callable[[int], None]] = None) -> None:
+        callback: Optional[Callable[[int], None]] = None,
+        followlinks: bool = False) -> None:
     '''
     Copy file from source path to destination path
 
@@ -242,15 +264,16 @@ def smart_copy(
         ...
         >>> src_path = 'test.png'
         >>> dst_path = 'test1.png'
-        >>> smart_copy(src_path, dst_path, callback=Bar(total=smart_stat(src_path).size))
+        >>> smart_copy(src_path, dst_path, callback=Bar(total=smart_stat(src_path).size), followlinks=False)
         856960it [00:00, 260592384.24it/s]
 
     :param src_path: Given source path
     :param dst_path: Given destination path
     :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
+    :param followlinks: False if regard symlink as file, else True
     '''
     # this function contains plenty of manual polymorphism
-    if smart_islink(src_path) and is_s3(dst_path):
+    if smart_islink(src_path) and is_s3(dst_path) and not followlinks:
         return
 
     src_protocol, _ = SmartPath._extract_protocol(src_path)
@@ -260,13 +283,17 @@ def smart_copy(
         copy_func = _copy_funcs[src_protocol][dst_protocol]
     except KeyError:
         copy_func = _default_copy_func
-    copy_func(src_path, dst_path, callback=callback)  # pytype: disable=wrong-keyword-args
+    if copy_func == fs_copy:
+        fs_copy(src_path, dst_path, callback=callback, followlinks=followlinks)
+    else:
+        copy_func(src_path, dst_path, callback=callback)  # pytype: disable=wrong-keyword-args
 
 
 def smart_sync(
         src_path: PathLike,
         dst_path: PathLike,
-        callback: Optional[Callable[[str, int], None]] = None) -> None:
+        callback: Optional[Callable[[str, int], None]] = None,
+        followlinks: bool = False) -> None:
     '''
     Sync file or directory on s3 and fs
 
@@ -307,7 +334,7 @@ def smart_sync(
     '''
     src_path, dst_path = get_traditional_path(src_path), get_traditional_path(
         dst_path)
-    for src_file_path in smart_scan(src_path):
+    for src_file_path in smart_scan(src_path, followlinks=followlinks):
         content_path = src_file_path[len(src_path):]
         if len(content_path):
             content_path = content_path.lstrip('/')
@@ -316,10 +343,16 @@ def smart_sync(
             # if content_path is empty, which means smart_isfile(src_path) is True, this function is equal to smart_copy
             dst_abs_file_path = dst_path
         copy_callback = partial(callback, src_file_path) if callback else None
-        smart_copy(src_file_path, dst_abs_file_path, callback=copy_callback)
+        smart_copy(
+            src_file_path,
+            dst_abs_file_path,
+            callback=copy_callback,
+            followlinks=followlinks)
 
 
-def smart_remove(path: PathLike, missing_ok: bool = False) -> None:
+def smart_remove(
+        path: PathLike, missing_ok: bool = False,
+        followlinks: bool = False) -> None:
     '''
     Remove the file or directory on s3 or fs, `s3://` and `s3://bucket` are not permitted to remove
 
@@ -327,17 +360,23 @@ def smart_remove(path: PathLike, missing_ok: bool = False) -> None:
     :param missing_ok: if False and target file/directory not exists, raise FileNotFoundError
     :raises: PermissionError, FileNotFoundError
     '''
-    SmartPath(path).remove(missing_ok=missing_ok)
+    path_protocol, _ = SmartPath._extract_protocol(path)
+    if path_protocol == 'file':
+        SmartPath(path).remove(missing_ok=missing_ok, followlinks=followlinks)
+    else:
+        SmartPath(path).remove(missing_ok=missing_ok)
 
 
-def smart_rename(src_path: PathLike, dst_path: PathLike) -> None:
+def smart_rename(
+        src_path: PathLike, dst_path: PathLike,
+        followlinks: bool = False) -> None:
     '''
     Move file on s3 or fs. `s3://` or `s3://bucket` is not allowed to move
 
     :param src_path: Given source path
     :param dst_path: Given destination path
     '''
-    if smart_isdir(src_path):
+    if smart_isdir(src_path, followlinks=followlinks):
         raise IsADirectoryError('%r is a directory' % PathLike)
     src_protocol, _ = SmartPath._extract_protocol(src_path)
     dst_protocol, _ = SmartPath._extract_protocol(dst_path)
@@ -348,7 +387,9 @@ def smart_rename(src_path: PathLike, dst_path: PathLike) -> None:
     smart_unlink(src_path)
 
 
-def smart_move(src_path: PathLike, dst_path: PathLike) -> None:
+def smart_move(
+        src_path: PathLike, dst_path: PathLike,
+        followlinks: bool = False) -> None:
     '''
     Move file/directory on s3 or fs. `s3://` or `s3://bucket` is not allowed to move
 
@@ -358,10 +399,13 @@ def smart_move(src_path: PathLike, dst_path: PathLike) -> None:
     src_protocol, _ = SmartPath._extract_protocol(src_path)
     dst_protocol, _ = SmartPath._extract_protocol(dst_path)
     if src_protocol == dst_protocol:
-        SmartPath(src_path).rename(dst_path)
+        if src_protocol == 'file':
+            SmartPath(src_path).rename(dst_path, followlinks=followlinks)
+        else:
+            SmartPath(src_path).rename(dst_path)
         return
-    smart_sync(src_path, dst_path)
-    smart_remove(src_path)
+    smart_sync(src_path, dst_path, followlinks=followlinks)
+    smart_remove(src_path, followlinks=followlinks)
 
 
 def smart_unlink(path: PathLike, missing_ok: bool = False) -> None:
@@ -451,7 +495,8 @@ def smart_path_join(path: PathLike, *other_paths: PathLike) -> str:
     return fspath(SmartPath(path).joinpath(*other_paths))
 
 
-def smart_walk(path: PathLike) -> Iterator[Tuple[str, List[str], List[str]]]:
+def smart_walk(path: PathLike, followlinks: bool = False
+              ) -> Iterator[Tuple[str, List[str], List[str]]]:
     '''
     Generate the file names in a directory tree by walking the tree top-down.
     For each directory in the tree rooted at directory path (including path itself),
@@ -469,10 +514,16 @@ def smart_walk(path: PathLike) -> Iterator[Tuple[str, List[str], List[str]]]:
     :raises: UnsupportedError
     :returns: A 3-tuple generator
     '''
-    return SmartPath(path).walk()
+    path_protocol, _ = SmartPath._extract_protocol(path)
+    if path_protocol == 'file':
+        return SmartPath(path).walk(followlinks=followlinks)
+    else:
+        return SmartPath(path).walk()
 
 
-def smart_scan(path: PathLike, missing_ok: bool = True) -> Iterator[str]:
+def smart_scan(
+        path: PathLike, missing_ok: bool = True,
+        followlinks: bool = False) -> Iterator[str]:
     '''
     Iteratively traverse only files in given directory, in alphabetical order.
     Every iteration on generator yields a path string.
@@ -486,11 +537,16 @@ def smart_scan(path: PathLike, missing_ok: bool = True) -> Iterator[str]:
     :raises: UnsupportedError
     :returns: A file path generator
     '''
-    return SmartPath(path).scan(missing_ok)
+    path_protocol, _ = SmartPath._extract_protocol(path)
+    if path_protocol == 'file':
+        return SmartPath(path).scan(missing_ok, followlinks=followlinks)
+    else:
+        return SmartPath(path).scan(missing_ok)
 
 
-def smart_scan_stat(path: PathLike,
-                    missing_ok: bool = True) -> Iterator[FileEntry]:
+def smart_scan_stat(
+        path: PathLike, missing_ok: bool = True,
+        followlinks: bool = False) -> Iterator[FileEntry]:
     '''
     Iteratively traverse only files in given directory, in alphabetical order.
     Every iteration on generator yields a tuple of path string and file stat
@@ -500,7 +556,11 @@ def smart_scan_stat(path: PathLike,
     :raises: UnsupportedError
     :returns: A file path generator
     '''
-    return SmartPath(path).scan_stat(missing_ok)
+    path_protocol, _ = SmartPath._extract_protocol(path)
+    if path_protocol == 'file':
+        return SmartPath(path).scan_stat(missing_ok, followlinks=followlinks)
+    else:
+        return SmartPath(path).scan_stat(missing_ok)
 
 
 def _group_glob(globstr: str) -> List[str]:
@@ -733,9 +793,10 @@ def smart_touch(path: PathLike):
         pass
 
 
-def smart_getmd5(path: PathLike):
+def smart_getmd5(path: PathLike, recalculate: bool = False):
     '''Get md5 value of file
 
     param path: File path
+    param recalculate: calculate md5 in real-time or not return s3 etag when path is s3
     '''
-    return SmartPath(path).md5()
+    return SmartPath(path).md5(recalculate=recalculate)

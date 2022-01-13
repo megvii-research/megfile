@@ -70,10 +70,15 @@ def test_smart_isdir(funcA):
     res = smart.smart_isdir("True Case")
     assert res == True
     funcA.assert_called_once()
+    res = smart.smart_isdir("True Case", followlinks=True)
+    assert res == True
+    assert funcA.call_count == 2
     funcA.return_value = False
     res = smart.smart_isdir("False Case")
     assert res == False
-    assert funcA.call_count == 2
+    res = smart.smart_isdir("False Case", followlinks=True)
+    assert res == False
+    assert funcA.call_count == 4
 
 
 @patch.object(SmartPath, 'is_file')
@@ -82,10 +87,15 @@ def test_smart_isfile(funcA):
     res = smart.smart_isfile("True Case")
     assert res == True
     funcA.assert_called_once()
+    res = smart.smart_isfile("True Case", followlinks=True)
+    assert res == True
+    assert funcA.call_count == 2
     funcA.return_value = False
     res = smart.smart_isfile("False Case")
     assert res == False
-    assert funcA.call_count == 2
+    res = smart.smart_isfile("False Case", followlinks=True)
+    assert res == False
+    assert funcA.call_count == 4
 
 
 @patch.object(SmartPath, 'exists')
@@ -94,10 +104,15 @@ def test_smart_exists(funcA):
     res = smart.smart_exists("True Case")
     assert res == True
     funcA.assert_called_once()
+    res = smart.smart_exists("True Case", followlinks=True)
+    assert res == True
+    assert funcA.call_count == 2
     funcA.return_value = False
     res = smart.smart_exists("False Case")
     assert res == False
-    assert funcA.call_count == 2
+    res = smart.smart_exists("False Case", followlinks=True)
+    assert res == False
+    assert funcA.call_count == 4
 
 
 @patch.object(SmartPath, 'is_symlink')
@@ -162,6 +177,16 @@ def test_smart_copy(mocker):
         assert s3_upload.called is False
         assert fs_copy.called is False
 
+        src_path = '/tmp/src_file'
+        smart.smart_copy('link', src_path, followlinks=True)
+        assert s3_copy.called is False
+        assert s3_download.called is False
+        assert s3_upload.called is False
+        assert fs_copy.called is True
+        fs_copy.assert_called_once_with(
+            'link', src_path, callback=None, followlinks=True)
+        fs_copy.reset_mock()
+
         smart.smart_copy('s3://a/b', 's3://a/b')
         s3_copy.assert_called_once_with('s3://a/b', 's3://a/b', callback=None)
 
@@ -177,8 +202,9 @@ def test_smart_copy(mocker):
 
         fs_stat = mocker.patch(
             'megfile.fs.fs_stat', return_value=StatResult(islnk=False, size=10))
-        smart.smart_copy('fs', 'fs')
-        fs_copy.assert_called_once_with('fs', 'fs', callback=None)
+        smart.smart_copy('fs', 'fs', followlinks=False)
+        fs_copy.assert_called_once_with(
+            'fs', 'fs', callback=None, followlinks=False)
         fs_copy.reset_mock()
         fs_stat.stop()
 
@@ -243,7 +269,7 @@ def test_smart_sync(mocker):
       - a
     '''
 
-    def listdir(path: str):
+    def listdir(path: str, followlinks: bool):
         if path == 'folder':
             return ["folder/folderA/fileB", "folder/fileA"]
         if path == 'folder/fileA':
@@ -253,36 +279,42 @@ def test_smart_sync(mocker):
 
     smart_scan.side_effect = listdir
 
-    smart.smart_sync('folder', 'dst')
+    smart.smart_sync('folder', 'dst', followlinks=True)
     assert smart_copy.call_count == 2
-    smart_copy.assert_any_call('folder/fileA', 'dst/fileA', callback=None)
     smart_copy.assert_any_call(
-        'folder/folderA/fileB', 'dst/folderA/fileB', callback=None)
+        'folder/fileA', 'dst/fileA', callback=None, followlinks=True)
+    smart_copy.assert_any_call(
+        'folder/folderA/fileB',
+        'dst/folderA/fileB',
+        callback=None,
+        followlinks=True)
     smart_copy.reset_mock()
 
-    smart.smart_sync('folder/fileA', 'dst/file')
+    smart.smart_sync('folder/fileA', 'dst/file', followlinks=True)
     assert smart_copy.call_count == 1
-    smart_copy.assert_any_call('folder/fileA', 'dst/file', callback=None)
+    smart_copy.assert_any_call(
+        'folder/fileA', 'dst/file', callback=None, followlinks=True)
     smart_copy.reset_mock()
 
-    smart.smart_sync('a', 'dst')
+    smart.smart_sync('a', 'dst', followlinks=True)
     assert smart_copy.call_count == 3
-    smart_copy.assert_any_call('a', 'dst', callback=None)
-    smart_copy.assert_any_call('a/b/c', 'dst/b/c', callback=None)
-    smart_copy.assert_any_call('a/d', 'dst/d', callback=None)
+    smart_copy.assert_any_call('a', 'dst', callback=None, followlinks=True)
+    smart_copy.assert_any_call(
+        'a/b/c', 'dst/b/c', callback=None, followlinks=True)
+    smart_copy.assert_any_call('a/d', 'dst/d', callback=None, followlinks=True)
 
 
 @patch.object(SmartPath, 'remove')
 def test_smart_remove(funcA):
     funcA.return_value = None
 
-    res = smart.smart_remove("False Case", False)
+    res = smart.smart_remove("False Case", missing_ok=False, followlinks=True)
     assert res is None
-    funcA.assert_called_once_with(missing_ok=False)
+    funcA.assert_called_once_with(missing_ok=False, followlinks=True)
 
-    res = smart.smart_remove("True Case", True)
+    res = smart.smart_remove("True Case", missing_ok=True, followlinks=True)
     assert res is None
-    funcA.assert_called_with(missing_ok=True)
+    funcA.assert_called_with(missing_ok=True, followlinks=True)
 
 
 @patch.object(SmartPath, 'rename')
@@ -299,6 +331,28 @@ def test_smart_rename(funcA):
     res = smart.smart_move('s3://bucket/a', 's3://bucket/b')
     assert res is None
     funcA.assert_called_once_with('s3://bucket/b')
+
+
+def test_smart_rename_fs(filesystem):
+    '''
+    /tmp_rename/
+        /src/
+            -src_file
+        /dst/
+            -link --> tmp_rename/src/src_file
+    '''
+    os.mkdir('tmp_rename')
+    os.mkdir('tmp_rename/src')
+    os.mkdir('tmp_rename/dst')
+    with open('tmp_rename/src/src_file', 'w') as f:
+        f.write('')
+    os.symlink('tmp_rename/src/src_file', 'tmp_rename/dst/link')
+    os.path.exists('tmp_rename/dst/link') is True
+    assert os.path.exists('tmp_rename/src')
+    smart.smart_rename('tmp_rename/src/src_file', 'tmp_rename/src_copy')
+    assert os.path.exists('tmp_rename/src_copy')
+    assert not os.path.exists('tmp_rename/src/src_file')
+    assert not os.path.exists('tmp_rename/dst/link')
 
 
 @patch.object(SmartPath, 'unlink')
@@ -523,20 +577,20 @@ def test_smart_path_join_result():
 @patch.object(SmartPath, "walk")
 def test_smart_walk(funcA):
     funcA.return_value = None
-    res = smart.smart_walk("Test Case")
+    res = smart.smart_walk("Test Case", followlinks=True)
     assert res is None
     funcA.assert_called_once()
 
 
 @patch.object(SmartPath, "scan")
 def test_smart_scan(funcA):
-    smart.smart_scan("Test Case")
+    smart.smart_scan("Test Case", followlinks=True)
     funcA.assert_called_once()
 
 
 @patch.object(SmartPath, "scan_stat")
 def test_smart_scan_stat(funcA):
-    smart.smart_scan_stat("Test Case")
+    smart.smart_scan_stat("Test Case", followlinks=True)
     funcA.assert_called_once()
 
 
@@ -742,3 +796,21 @@ def test_smart_cache(mocker):
     cacher = megfile.smart_cache('s3://path/to/file')
     assert isinstance(cacher, S3Cacher)
     assert s3_download.called is True
+
+
+def test_smart_symlink(filesystem):
+    src_path = '/tmp/src_file'
+    dst_path = '/tmp/dst_file'
+    smart.smart_symlink(dst_path, src_path)
+
+    res = os.readlink(dst_path)
+    assert res == src_path
+
+
+def test_smart_readlink(filesystem):
+    src_path = '/tmp/src_file'
+    dst_path = '/tmp/dst_file'
+    os.symlink(src_path, dst_path)
+
+    res = smart.smart_readlink(dst_path)
+    assert res == src_path

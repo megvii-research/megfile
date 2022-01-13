@@ -13,6 +13,7 @@ from megfile.interfaces import Access, FileEntry, PathLike, StatResult
 from megfile.lib.compat import fspath
 from megfile.lib.glob import iglob
 from megfile.lib.joinpath import path_join
+from megfile.utils import calculate_md5
 
 __all__ = [
     'fs_abspath',
@@ -128,7 +129,7 @@ def fs_getmtime(path: PathLike) -> float:
     return fs_stat(path).mtime
 
 
-def fs_isdir(path: PathLike) -> bool:
+def fs_isdir(path: PathLike, followlinks: bool = False) -> bool:
     '''
     Test if a path is directory
 
@@ -137,32 +138,34 @@ def fs_isdir(path: PathLike) -> bool:
         The difference between this function and ``os.path.isdir`` is that this function regard symlink as file
 
     :param path: Given file path
+    :param followlinks: False if regard symlink as file, else True
     :returns: True if the path is a directory, else False
 
     '''
-    if os.path.islink(path):
+    if os.path.islink(path) and not followlinks:
         return False
     return os.path.isdir(path)
 
 
-def fs_isfile(path: PathLike) -> bool:
+def fs_isfile(path: PathLike, followlinks: bool = False) -> bool:
     '''
     Test if a path is file
 
     .. note::
-
+    
         The difference between this function and ``os.path.isfile`` is that this function regard symlink as file
 
     :param path: Given file path
+    :param followlinks: False if regard symlink as file, else True
     :returns: True if the path is a file, else False
 
     '''
-    if os.path.islink(path):
+    if os.path.islink(path) and not followlinks:
         return True
     return os.path.isfile(path)
 
 
-def fs_exists(path: PathLike) -> bool:
+def fs_exists(path: PathLike, followlinks: bool = False) -> bool:
     '''
     Test if the path exists
 
@@ -172,13 +175,18 @@ def fs_exists(path: PathLike) -> bool:
         In other words, this function is equal to ``os.path.lexists``
 
     :param path: Given file path
+    :param followlinks: False if regard symlink as file, else True
     :returns: True if the path exists, else False
 
     '''
+    if followlinks:
+        return os.path.exists(path)
     return os.path.lexists(path)
 
 
-def fs_remove(path: PathLike, missing_ok: bool = False) -> None:
+def fs_remove(
+        path: PathLike, missing_ok: bool = False,
+        followlinks: bool = False) -> None:
     '''
     Remove the file or directory on fs
 
@@ -187,7 +195,7 @@ def fs_remove(path: PathLike, missing_ok: bool = False) -> None:
     '''
     if missing_ok and not fs_exists(path):
         return
-    if fs_isdir(path):
+    if fs_isdir(path, followlinks=followlinks):
         shutil.rmtree(path)
     else:
         os.remove(path)
@@ -224,7 +232,8 @@ def fs_path_join(path: PathLike, *other_paths: PathLike) -> str:
     return path_join(fspath(path), *map(fspath, other_paths))
 
 
-def fs_walk(path: PathLike) -> Iterator[Tuple[str, List[str], List[str]]]:
+def fs_walk(path: PathLike, followlinks: bool = False
+           ) -> Iterator[Tuple[str, List[str], List[str]]]:
     '''
     Generate the file names in a directory tree by walking the tree top-down.
     For each directory in the tree rooted at directory path (including path itself),
@@ -236,13 +245,18 @@ def fs_walk(path: PathLike) -> Iterator[Tuple[str, List[str], List[str]]]:
 
     If path not exists, or path is a file (link is regarded as file), return an empty generator
 
+    .. note::
+
+        Be aware that setting ``followlinks`` to True can lead to infinite recursion if a link points to a parent directory of itself. fs_walk() does not keep track of the directories it visited already.
+
     :param path: A fs directory path
+    :param followlinks: False if regard symlink as file, else True
     :returns: A 3-tuple generator
     '''
-    if not fs_exists(path):
+    if not fs_exists(path, followlinks=followlinks):
         return
 
-    if fs_isfile(path):
+    if fs_isfile(path, followlinks=followlinks):
         return
 
     path = fspath(path)
@@ -254,9 +268,10 @@ def fs_walk(path: PathLike) -> Iterator[Tuple[str, List[str], List[str]]]:
         dirs, files = [], []
         for entry in os.scandir(root):
             name = fspath(entry.name)
-            if entry.is_file() or entry.is_symlink():
+            path = entry.path
+            if fs_isfile(path, followlinks=followlinks):
                 files.append(name)
-            else:
+            elif fs_isdir(path, followlinks=followlinks):
                 dirs.append(name)
 
         dirs = sorted(dirs)
@@ -279,17 +294,21 @@ def fs_scandir(path: PathLike) -> Iterator[FileEntry]:
         yield FileEntry(entry.path, _make_stat(entry.stat()))
 
 
-def _fs_scan(pathname: PathLike, missing_ok: bool = True) -> Iterator[str]:
-    if fs_isfile(pathname):
+def _fs_scan(
+        pathname: PathLike, missing_ok: bool = True,
+        followlinks: bool = False) -> Iterator[str]:
+    if fs_isfile(pathname, followlinks=followlinks):
         path = fspath(pathname)
         yield path
 
-    for root, _, files in fs_walk(pathname):
+    for root, _, files in fs_walk(pathname, followlinks=followlinks):
         for filename in files:
             yield os.path.join(root, filename)
 
 
-def fs_scan(pathname: PathLike, missing_ok: bool = True) -> Iterator[str]:
+def fs_scan(
+        pathname: PathLike, missing_ok: bool = True,
+        followlinks: bool = False) -> Iterator[str]:
     '''
     Iteratively traverse only files in given directory, in alphabetical order.
     Every iteration on generator yields a path string.
@@ -303,12 +322,13 @@ def fs_scan(pathname: PathLike, missing_ok: bool = True) -> Iterator[str]:
     :returns: A file path generator
     '''
     return _create_missing_ok_generator(
-        _fs_scan(pathname), missing_ok,
+        _fs_scan(pathname, followlinks=followlinks), missing_ok,
         FileNotFoundError('No match file: %r' % pathname))
 
 
-def fs_scan_stat(pathname: PathLike,
-                 missing_ok: bool = True) -> Iterator[FileEntry]:
+def fs_scan_stat(
+        pathname: PathLike, missing_ok: bool = True,
+        followlinks: bool = False) -> Iterator[FileEntry]:
     '''
     Iteratively traverse only files in given directory, in alphabetical order.
     Every iteration on generator yields a tuple of path string and file stat
@@ -317,7 +337,7 @@ def fs_scan_stat(pathname: PathLike,
     :param missing_ok: If False and there's no file in the directory, raise FileNotFoundError
     :returns: A file path generator
     '''
-    for path in _fs_scan(pathname):
+    for path in _fs_scan(pathname, followlinks=followlinks):
         yield FileEntry(path, _make_stat(os.lstat(path)))
     else:
         if missing_ok:
@@ -422,7 +442,8 @@ def fs_load_from(path: PathLike) -> BinaryIO:
 def _copyfile(
         src_path: PathLike,
         dst_path: PathLike,
-        callback: Optional[Callable[[int], None]] = None):
+        callback: Optional[Callable[[int], None]] = None,
+        followlinks: bool = False):
 
     def _patch_copyfileobj(callback=None):
 
@@ -440,20 +461,19 @@ def _copyfile(
         return _copyfileobj
 
     src_stat = fs_stat(src_path)
-    if src_stat.is_symlink():
-        shutil.copyfile(src_path, dst_path, follow_symlinks=False)
-        if callback:
-            callback(src_stat.size)
-        return
-
     with patch('shutil.copyfileobj', _patch_copyfileobj(callback)):
-        shutil.copyfile(src_path, dst_path)
+        shutil.copyfile(src_path, dst_path, follow_symlinks=followlinks)
+        if src_stat.is_symlink() and not followlinks:
+            if callback:
+                callback(src_stat.size)
+            return
 
 
 def fs_copy(
         src_path: PathLike,
         dst_path: PathLike,
-        callback: Optional[Callable[[int], None]] = None):
+        callback: Optional[Callable[[int], None]] = None,
+        followlinks: bool = False):
     ''' File copy on file system
     Copy content (excluding meta date) of file on `src_path` to `dst_path`. `dst_path` must be a complete file name
 
@@ -473,28 +493,31 @@ def fs_copy(
     :param src_path: Source file path
     :param dst_path: Target file path
     :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
+    :param followlinks: False if regard symlink as file, else True
     '''
     try:
-        _copyfile(src_path, dst_path, callback=callback)
+        _copyfile(
+            src_path, dst_path, callback=callback, followlinks=followlinks)
     except FileNotFoundError as error:
         # Prevent the dst_path directory from being created when src_path does not exist
         if dst_path == error.filename:
             fs_makedirs(os.path.dirname(dst_path), exist_ok=True)
-            _copyfile(src_path, dst_path, callback=callback)
+            _copyfile(
+                src_path, dst_path, callback=callback, followlinks=followlinks)
         else:
             raise
 
 
-def fs_sync(src_path: PathLike, dst_path: PathLike):
+def fs_sync(src_path: PathLike, dst_path: PathLike, followlinks: bool = False):
     '''Force write of everything to disk.
 
     :param src_path: Source file path
     :param dst_path: Target file path
     '''
-    if fs_isdir(src_path):
+    if fs_isdir(src_path, followlinks=followlinks):
         shutil.copytree(src_path, dst_path)
     else:
-        fs_copy(src_path, dst_path)
+        fs_copy(src_path, dst_path, followlinks=followlinks)
 
 
 def fs_listdir(path: PathLike) -> List[str]:
@@ -567,14 +590,16 @@ def fs_rename(src_path: PathLike, dst_path: PathLike) -> None:
     os.rename(src_path, dst_path)
 
 
-def fs_move(src_path: PathLike, dst_path: PathLike) -> None:
+def fs_move(
+        src_path: PathLike, dst_path: PathLike,
+        followlinks: bool = False) -> None:
     '''
     move file on fs
 
     :param src_path: Given source path
     :param dst_path: Given destination path
     '''
-    if fs_isdir(src_path):
+    if fs_isdir(src_path, followlinks=followlinks):
         shutil.move(src_path, dst_path)
     else:
         os.rename(src_path, dst_path)
@@ -631,18 +656,39 @@ def fs_resolve(path: PathLike):
     return os.path.realpath(path)
 
 
-def fs_getmd5(path: PathLike):
+def fs_getmd5(path: PathLike, recalculate: bool = False):
     '''
     Calculate the md5 value of the file
 
     returns: md5 of file
     '''
-    if not os.path.isfile(path):
-        raise FileNotFoundError('%s is not a file' % path)
-    with open(path, 'rb') as src:  # type: ignore
+    if os.path.isdir(path):
         hash_md5 = hashlib.md5()  # nosec
-        for chunk in iter(lambda: src.read(4096), b''):
+        for file_name in fs_listdir(path):
+            chunk = fs_getmd5(
+                fs_path_join(path, file_name),
+                recalculate=recalculate).encode()
             hash_md5.update(chunk)
-        md5 = hash_md5.hexdigest()
-        src.seek(0)
+        return hash_md5.hexdigest()
+    with open(path, 'rb') as src:  # type: ignore
+        md5 = calculate_md5(src)
     return md5
+
+
+def fs_symlink(dst_path: PathLike, src_path: PathLike) -> None:
+    '''
+    Create a symbolic link pointing to src_path named dst_path.
+
+    :param dst_path: Desination path
+    :param src_path: Source path
+    '''
+    return os.symlink(src_path, dst_path)
+
+
+def fs_readlink(path: PathLike) -> PathLike:
+    '''
+    Return a string representing the path to which the symbolic link points.
+    :param path: Path to be read
+    :returns: Return a string representing the path to which the symbolic link points.
+    '''
+    return os.readlink(path)
