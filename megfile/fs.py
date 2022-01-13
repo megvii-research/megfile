@@ -456,7 +456,7 @@ def _copyfile(
                 fdst.write(buf)
                 if callback is None:
                     continue
-                callback(len(buf))
+                callback(len(buf))  # coverage:ignore-line
 
         return _copyfileobj
 
