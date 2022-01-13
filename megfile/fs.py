@@ -619,8 +619,8 @@ def fs_access(path: PathLike, mode: Access = Access.READ) -> bool:
             'Unsupported mode: {} -- Mode should use one of the enums belonging to:  {}'
             .format(mode, ', '.join([str(a) for a in Access])))
     if mode not in (Access.READ, Access.WRITE):
-        raise TypeError(
-            'Unsupported mode: {}'.format(mode))  # coverage:ignore-line
+        raise TypeError(  # coverage:ignore-line
+            'Unsupported mode: {}'.format(mode))
     if mode == Access.READ:
         return os.access(path, os.R_OK)
     if mode == Access.WRITE:
