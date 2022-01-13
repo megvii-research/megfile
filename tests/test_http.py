@@ -140,3 +140,11 @@ def test_get_http_session(mocker):
     session = get_http_session()
     with pytest.raises(requests.exceptions.HTTPError):
         session.request('get', 'http://test')
+
+    class FakeResponse200(FakeResponse):
+        status_code = 200
+
+    requests_request_func.return_value = FakeResponse200()
+    session = get_http_session()
+    response = session.request('get', 'http://test')
+    assert response.status_code == 200
