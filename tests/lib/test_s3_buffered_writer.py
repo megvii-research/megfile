@@ -4,6 +4,7 @@ from threading import Event
 
 import boto3
 import moto
+import moto.s3
 import pytest
 from moto import mock_s3
 
