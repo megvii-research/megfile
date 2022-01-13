@@ -201,4 +201,4 @@ def version():
 
 if __name__ == '__main__':
     # Usage: python -m megfile.cli
-    cli()
+    cli()  # coverage:ignore-line
