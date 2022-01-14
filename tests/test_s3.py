@@ -192,6 +192,16 @@ def test_get_endpoint_url_from_env(mocker):
     assert s3.get_endpoint_url() == 'oss-endpoint'
 
 
+def test_get_endpoint_url_from_scoped_config(mocker):
+    mocker.patch(
+        'megfile.s3.get_scoped_config',
+        return_value={'s3': {
+            'endpoint_url': 'test_endpoint_url'
+        }})
+
+    assert s3.get_endpoint_url() == 'test_endpoint_url'
+
+
 def test_get_s3_client(mocker):
     mock_session = mocker.Mock(spec=boto3.session.Session)
     mocker.patch('megfile.s3.get_scoped_config', return_value={})

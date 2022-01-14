@@ -51,7 +51,7 @@ elif 'client' in _smart_open_parameters:
 
 else:
     # smart_open < 1.8.1, >= 1.6.0
-    def _s3_open(bucket: str, key: str, mode: str):
+    def _s3_open(bucket: str, key: str, mode: str):  # pragma: no cover
         return smart_open.s3.open(
             bucket,
             key,

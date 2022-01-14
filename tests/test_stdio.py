@@ -75,3 +75,17 @@ def test_stdio_writer(mocker):
     with stdio_open('stdio://-', 'wb') as writer:
         writer.write(b'test')
         assert data.getvalue() == b'test'
+
+
+def test_stdio_open_error():
+    with pytest.raises(ValueError):
+        with stdio_open('test://-', 'wb'):
+            pass
+    
+    with pytest.raises(ValueError):
+        with stdio_open('stdio://1', 'rb'):
+            pass
+
+    with pytest.raises(ValueError):
+        with stdio_open('stdio://0', 'wb'):
+            pass
