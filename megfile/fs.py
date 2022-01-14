@@ -505,7 +505,7 @@ def fs_copy(
             _copyfile(
                 src_path, dst_path, callback=callback, followlinks=followlinks)
         else:
-            raise  # coverage:ignore-line
+            raise  # pragma: no cover
 
 
 def fs_sync(src_path: PathLike, dst_path: PathLike, followlinks: bool = False):
