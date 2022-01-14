@@ -231,3 +231,11 @@ def test_readlink(mocker):
     funcA = mocker.patch('megfile.fs.fs_readlink')
     path.readlink()
     funcA.assert_called_once_with(TEST_PATH)
+
+
+def test_path_with_protocol():
+    path = FSPath(TEST_PATH)
+    assert path.path_with_protocol == TEST_PATH_WITH_PROTOCOL
+
+    int_path = FSPath(1)
+    assert int_path.path_with_protocol == 1

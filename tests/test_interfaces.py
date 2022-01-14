@@ -2,7 +2,7 @@ from io import BytesIO
 
 import pytest
 
-from megfile.interfaces import BasePath, Closable, Readable, URIPath, Writable
+from megfile.interfaces import BasePath, Closable, Readable, URIPath, Writable, fullname
 
 
 class Klass1(Closable):
@@ -28,6 +28,11 @@ class Klass3(Klass2):
     def _close(self):
         self.inner_close_call_count += 1
         super()._close()
+
+
+def test_fullname():
+    assert fullname(Klass3) == 'abc.ABCMeta'
+    assert fullname(str) == 'type'
 
 
 def test_not_provide_close():
@@ -88,6 +93,9 @@ def test_readable(mocker):
     r = Klass4(b'1\n2\n')
     assert next(r) == b'1\n'
     assert list(r) == [b'2\n']
+
+    r = Klass4(b'1\n2\n')
+    assert r.readinto(bytearray(b'123')) == 3
 
 
 class Klass5(Writable):
