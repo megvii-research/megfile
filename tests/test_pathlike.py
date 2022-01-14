@@ -89,3 +89,11 @@ def test_uri_path(mocker):
 
     mocker.patch('megfile.pathlike.URIPath.name', '.')
     assert uri_path.suffixes == []
+
+    with pytest.raises(TypeError):
+        uri_path.relative_to(None)
+
+    with pytest.raises(TypeError):
+        uri_path.relative_to(0)
+
+    assert uri_path.resolve() == 'fs://test'
