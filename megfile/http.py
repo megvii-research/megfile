@@ -35,7 +35,7 @@ def get_http_session(
         return response
 
     def before_callback(method, url, **kwargs):
-        _logger.debug(  # coverage:ignore-line
+        _logger.debug(  # pragma: no cover
             'send http request: %s %r, with parameters: %s', method, url,
             kwargs)
 
