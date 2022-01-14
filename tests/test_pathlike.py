@@ -22,6 +22,9 @@ def test_base_path(mocker):
     base_path.touch()
     funcA.assert_called_once_with('w')
 
+    with pytest.raises(NotImplementedError):
+        base_path.is_dir()
+
 
 def test_base_uri_path_as_posix(mocker):
     path = '/test'
@@ -88,12 +91,12 @@ def test_uri_path(mocker):
     assert uri_path.name == ''
 
     mocker.patch('megfile.pathlike.URIPath.name', '.')
-    assert uri_path.suffixes == []
+    uri_path_b = URIPath(path)
+    assert uri_path_b.suffixes == []
 
     with pytest.raises(TypeError):
         uri_path.relative_to(None)
 
     with pytest.raises(TypeError):
-        uri_path.relative_to(0)
-
+        uri_path.relative_to(1)
     assert uri_path.resolve() == 'fs://test'
