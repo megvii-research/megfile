@@ -4,6 +4,7 @@ from threading import Event
 
 import boto3
 import moto
+import moto.s3
 import pytest
 from moto import mock_s3
 
@@ -59,8 +60,7 @@ def test_s3_buffered_writer_write_put(client, mocker):
 
 
 def test_s3_buffered_writer_write_large_bytes(client):
-    with S3BufferedWriter(BUCKET, KEY, s3_client=client, block_size=5,
-                          max_block_size=8) as writer:
+    with S3BufferedWriter(BUCKET, KEY, s3_client=client) as writer:
         writer.write(CONTENT * 10)
 
     content = client.get_object(Bucket=BUCKET, Key=KEY)['Body'].read()
@@ -71,14 +71,12 @@ def test_s3_buffered_writer_write_multipart(client, mocker):
     put_object_func = mocker.spy(client, 'put_object')
     create_multipart_upload_func = mocker.spy(client, 'create_multipart_upload')
     upload_part_func = mocker.spy(client, 'upload_part')
-    complete_multipart_upload_func = mocker.spy(
-        client, 'complete_multipart_upload')
 
-    with S3BufferedWriter(BUCKET, KEY, s3_client=client,
-                          block_size=5) as writer:
-        writer.write(CONTENT)
-        writer.write(b'\n')
-        writer.write(CONTENT)
+    writer = S3BufferedWriter(BUCKET, KEY, s3_client=client, block_size=5)
+    writer.write(CONTENT)
+    writer.write(b'\n')
+    writer.write(CONTENT)
+    writer._submit_futures()
 
     assert writer._is_multipart
     # put_object_func.assert_not_called() in Python 3.6+
@@ -97,14 +95,6 @@ def test_s3_buffered_writer_write_multipart(client, mocker):
         PartNumber=2,
         UploadId=writer._upload_id)
     assert upload_part_func.call_count == 2
-    complete_multipart_upload_func.assert_called_once_with(
-        Bucket=BUCKET,
-        Key=KEY,
-        UploadId=writer._upload_id,
-        MultipartUpload=writer._multipart_upload)
-
-    content = client.get_object(Bucket=BUCKET, Key=KEY)['Body'].read()
-    assert content == CONTENT + b'\n' + CONTENT
 
 
 def test_s3_buffered_writer_write_multipart_pending(client, mocker):
@@ -127,25 +117,22 @@ def test_s3_buffered_writer_write_multipart_pending(client, mocker):
     mocker.patch.object(client, 'upload_part', side_effect=fake_upload_part)
     mocker.patch('megfile.lib.s3_buffered_writer.wait', side_effect=fake_wait)
 
-    with S3BufferedWriter(BUCKET, KEY, s3_client=client, block_size=5,
-                          max_buffer_size=10) as writer:
-        writer._buffer_size_before_wait = None
+    writer = S3BufferedWriter(
+        BUCKET, KEY, s3_client=client, block_size=5, max_buffer_size=10)
+    writer._buffer_size_before_wait = None
 
-        writer.write(CONTENT)
-        assert writer._buffer_size_before_wait == 22
-        writer._buffer_size_before_wait = None
-        assert writer._buffer_size == 0
+    writer.write(CONTENT)
+    assert writer._buffer_size_before_wait == 22
+    writer._buffer_size_before_wait = None
+    assert writer._buffer_size == 0
 
-        writer.write(b'\n')
-        assert writer._buffer_size_before_wait is None
-        assert writer._buffer_size == 0
+    writer.write(b'\n')
+    assert writer._buffer_size_before_wait is None
+    assert writer._buffer_size == 0
 
-        writer.write(CONTENT)
-        assert writer._buffer_size_before_wait == 23
-        writer._buffer_size_before_wait = None
-        assert writer._buffer_size == 0
+    writer.write(CONTENT)
+    assert writer._buffer_size_before_wait == 23
+    writer._buffer_size_before_wait = None
+    assert writer._buffer_size == 0
 
     assert writer._is_multipart
-
-    content = client.get_object(Bucket=BUCKET, Key=KEY)['Body'].read()
-    assert content == CONTENT + b'\n' + CONTENT

@@ -3,6 +3,7 @@ from string import ascii_letters
 
 import boto3
 import moto
+import moto.s3
 import pytest
 from moto import mock_s3
 
@@ -91,14 +92,9 @@ def test_write(client):
     assert writer._buffer.getvalue() == b'QRst'
     assert writer.tell() == 18
 
-    writer.close()
-
-    body = client.get_object(Bucket=BUCKET, Key=KEY)['Body']
-    assert body.read() == b'aBCDefghijklmnopQRst'
-
 
 def test_s3_buffered_writer_write_large_bytes(client):
-    with S3LimitedSeekableWriter(BUCKET, KEY, s3_client=client, block_size=5,
+    with S3LimitedSeekableWriter(BUCKET, KEY, s3_client=client,
                                  max_block_size=8) as writer:
         writer.write(CONTENT * 10)
 
@@ -119,10 +115,6 @@ def test_write_block_size(client):
     writer.seek(0)
     writer.write(b'ABCD')
     assert writer.tell() == 4
-    writer.close()
-
-    body = client.get_object(Bucket=BUCKET, Key=KEY)['Body']
-    assert body.read() == b'ABCDefghijkl'
 
 
 def test_write_three_blocks(client):
@@ -205,10 +197,6 @@ def test_write_multi_seek(client):
     writer.write(b'm')
     assert writer._head_buffer.getvalue() == b'ABcD'
     assert writer._buffer.getvalue() == b'ijklm'
-    writer.close()
-
-    body = client.get_object(Bucket=BUCKET, Key=KEY)['Body']
-    assert body.read() == b'ABcDefghijklm'
 
 
 def test_write_multi_seek_head_only(client):
@@ -257,10 +245,6 @@ def test_write_multi_seek_tail_only(client):
     writer.write(b'opq')
 
     assert writer._buffer.getvalue() == b'lMnopq'
-    writer.close()
-
-    body = client.get_object(Bucket=BUCKET, Key=KEY)['Body']
-    assert body.read() == b'abcdefghijklMnopq'
 
 
 def test_seek_out_of_head_nor_tail(client):

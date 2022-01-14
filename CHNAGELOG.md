@@ -1,6 +1,13 @@
 CHANGELOG
 =========
 
+## 0.1.0 - 2022.01.14
+
+- update get_md5, s3 use etag and support dir
+- fix py35 test about moto
+- add fs symlink support
+- support python 3.10
+
 ## 0.0.11 - 2021.12.08
 
 - smart_open support read and write pipe

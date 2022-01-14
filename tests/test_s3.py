@@ -631,7 +631,7 @@ def test_s3_stat(truncating_client, mocker):
         s3.s3_stat('s3:///notExistFile')
 
 
-def test_s3_upload(fs, s3_empty_client):
+def test_s3_upload(s3_empty_client, fs):
     src_url = '/path/to/file'
 
     fs.create_file(src_url, contents='value')
@@ -645,7 +645,7 @@ def test_s3_upload(fs, s3_empty_client):
     assert body == 'value'
 
 
-def test_s3_upload_invalid(fs, s3_empty_client):
+def test_s3_upload_invalid(s3_empty_client, fs):
     s3_empty_client.create_bucket(Bucket='bucket')
 
     src_url = '/path/to/file'
@@ -668,7 +668,7 @@ def test_s3_upload_invalid(fs, s3_empty_client):
     assert 's3://notExistBucket/key' in str(error.value)
 
 
-def test_s3_upload_is_directory(fs, s3_empty_client):
+def test_s3_upload_is_directory(s3_empty_client, fs):
     with pytest.raises(IsADirectoryError) as error:
         s3.s3_upload('/path/to/file', 's3://bucket/prefix/')
     assert 's3://bucket/prefix/' in str(error.value)
@@ -685,7 +685,7 @@ def test_s3_upload_is_directory(fs, s3_empty_client):
     assert src_url in str(error.value)
 
 
-def test_s3_download(fs, s3_setup):
+def test_s3_download(s3_setup, fs):
     dst_url = '/path/to/file'
 
     s3.s3_download('s3://bucketA/fileAA', dst_url)
@@ -712,7 +712,7 @@ def test_s3_download(fs, s3_setup):
         assert body == 'file'
 
 
-def test_s3_download_makedirs(mocker, fs, s3_setup):
+def test_s3_download_makedirs(s3_setup, mocker, fs):
     dst_url = '/path/to/another/file'
     dst_dir = os.path.dirname(dst_url)
     os.makedirs(dst_dir)
@@ -727,7 +727,7 @@ def test_s3_download_makedirs(mocker, fs, s3_setup):
     assert os.makedirs.call_count == 0
 
 
-def test_s3_download_is_directory(fs, s3_setup):
+def test_s3_download_is_directory(s3_setup, fs):
     with pytest.raises(IsADirectoryError) as error:
         s3.s3_download('s3://bucketA/fileAA', '')
 
@@ -740,7 +740,7 @@ def test_s3_download_is_directory(fs, s3_setup):
     assert 's3://bucketA' in str(error.value)
 
 
-def test_s3_download_invalid(fs, s3_setup):
+def test_s3_download_invalid(s3_setup, fs):
     dst_url = '/path/to/file'
 
     with pytest.raises(IsADirectoryError) as error:
@@ -2389,7 +2389,7 @@ def test_s3_load_content_retry(s3_empty_client, mocker):
     assert sleep.call_count == s3.max_retries - 1
 
 
-def test_s3_cacher(fs, s3_empty_client):
+def test_s3_cacher(s3_empty_client, fs):
     content = b'test data for s3_load_content'
     s3_empty_client.create_bucket(Bucket='bucket')
     s3_empty_client.put_object(Bucket='bucket', Key='key', Body=content)
