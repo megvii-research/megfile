@@ -81,7 +81,7 @@ def test_stdio_open_error():
     with pytest.raises(ValueError):
         with stdio_open('test://-', 'wb'):
             pass
-    
+
     with pytest.raises(ValueError):
         with stdio_open('stdio://1', 'rb'):
             pass
