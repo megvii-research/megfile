@@ -86,7 +86,11 @@ def smart_isdir(path: PathLike, followlinks: bool = False) -> bool:
     :param path: Path to be tested
     :returns: True if path is directory, else False
     '''
-    return SmartPath(path).is_dir(followlinks)
+    path_protocol, _ = SmartPath._extract_protocol(path)
+    if path_protocol == 'file':
+        return SmartPath(path).is_dir(followlinks=followlinks)
+    else:
+        return SmartPath(path).is_dir()
 
 
 def smart_isfile(path: PathLike, followlinks: bool = False) -> bool:
@@ -96,7 +100,11 @@ def smart_isfile(path: PathLike, followlinks: bool = False) -> bool:
     :param path: Path to be tested
     :returns: True if path is file, else False
     '''
-    return SmartPath(path).is_file(followlinks)
+    path_protocol, _ = SmartPath._extract_protocol(path)
+    if path_protocol == 'file':
+        return SmartPath(path).is_file(followlinks=followlinks)
+    else:
+        return SmartPath(path).is_file()
 
 
 def smart_islink(path: PathLike) -> bool:
@@ -121,7 +129,11 @@ def smart_exists(path: PathLike, followlinks: bool = False) -> bool:
     :param path: Path to be tested
     :returns: True if path eixsts, else False
     '''
-    return SmartPath(path).exists(followlinks)
+    path_protocol, _ = SmartPath._extract_protocol(path)
+    if path_protocol == 'file':
+        return SmartPath(path).exists(followlinks=followlinks)
+    else:
+        return SmartPath(path).exists()
 
 
 def smart_listdir(path: Optional[PathLike] = None) -> List[str]:
