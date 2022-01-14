@@ -44,6 +44,12 @@ def test_ls(runner, testdir):
     assert result.exit_code == 0
     assert result.output.endswith('/text\n')
 
+    file_name = 'text'
+    result_file = runner.invoke(ls, [str(testdir / file_name)])
+
+    assert result_file.exit_code == 0
+    assert result_file.output == "%s\n" % file_name
+
 
 def test_ls_long(runner, testdir):
     result = runner.invoke(ls, ['--long', str(testdir)])
@@ -76,6 +82,16 @@ def test_mv(runner, testdir):
     assert result.exit_code == 0
     assert runner.invoke(ls, [str(testdir)]).output.endswith('/newfile\n')
     assert not runner.invoke(ls, [str(testdir)]).output.endswith('/text\n')
+
+    runner.invoke(mkdir, [str(testdir / 'new_dir')])
+    result_dst_path_isdir = runner.invoke(
+        mv, [str(testdir / 'newfile'),
+             str(testdir / 'new_dir')])
+
+    assert result_dst_path_isdir.exit_code == 0
+    assert '/new_dir/newfile\n' in runner.invoke(
+        ls, [str(testdir / 'new_dir')]).output
+    assert not runner.invoke(ls, [str(testdir)]).output.endswith('/newfile\n')
 
 
 def test_rm(runner, testdir):
@@ -120,6 +136,16 @@ def test_cp(runner, testdir):
 
     assert result.exit_code == 0
     assert '/newfile\n' in runner.invoke(ls, [str(testdir)]).output
+    assert '/text\n' in runner.invoke(ls, [str(testdir)]).output
+
+    runner.invoke(mkdir, [str(testdir / 'new_dir')])
+    result_dst_path_isdir = runner.invoke(
+        cp,
+        [str(testdir / 'text'), str(testdir / 'new_dir')])
+
+    assert result_dst_path_isdir.exit_code == 0
+    assert '/new_dir/text\n' in runner.invoke(
+        ls, [str(testdir / 'new_dir')]).output
     assert '/text\n' in runner.invoke(ls, [str(testdir)]).output
 
 
