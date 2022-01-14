@@ -88,7 +88,7 @@ def smart_isdir(path: PathLike, followlinks: bool = False) -> bool:
     '''
     path_protocol, _ = SmartPath._extract_protocol(path)
     if path_protocol == 'file':
-        return SmartPath(path).is_dir(followlinks)
+        return SmartPath(path).is_dir(followlinks=followlinks)
     else:
         return SmartPath(path).is_dir()
 
@@ -102,7 +102,7 @@ def smart_isfile(path: PathLike, followlinks: bool = False) -> bool:
     '''
     path_protocol, _ = SmartPath._extract_protocol(path)
     if path_protocol == 'file':
-        return SmartPath(path).is_file(followlinks)
+        return SmartPath(path).is_file(followlinks=followlinks)
     else:
         return SmartPath(path).is_file()
 
@@ -131,7 +131,7 @@ def smart_exists(path: PathLike, followlinks: bool = False) -> bool:
     '''
     path_protocol, _ = SmartPath._extract_protocol(path)
     if path_protocol == 'file':
-        SmartPath(path).exists(followlinks)
+        return SmartPath(path).exists(followlinks=followlinks)
     else:
         return SmartPath(path).exists()
 
