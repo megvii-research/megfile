@@ -1,6 +1,9 @@
 CHANGELOG
 =========
 
+## 0.1.1 - 2022.01.14
+- fix smart api bug
+
 ## 0.1.0 - 2022.01.14
 
 - update get_md5, s3 use etag and support dir
