@@ -275,7 +275,6 @@ def test_fs_stat2(filesystem, mocker):
     with open('/folderA/fileA', 'wb') as fileA:
         fileA.write(b'fileA')
     assert fs.fs_stat('/').ctime == FakeStat.st_ctime
-    print(fs.fs_stat('.'))
     assert fs.fs_stat('.').ctime == FakeStat.st_ctime
 
 

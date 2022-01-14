@@ -10,9 +10,7 @@ def fullname(o):
     klass = o.__class__
     module = klass.__module__
     if module == 'builtins':
-        print(1)
         return klass.__qualname__  # avoid outputs like 'builtins.str'
-    print(2)
     return module + '.' + klass.__qualname__
 
 
