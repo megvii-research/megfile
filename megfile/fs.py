@@ -449,7 +449,6 @@ def _copyfile(
 
         def _copyfileobj(fsrc, fdst, length=16 * 1024):
             """copy data from file-like object fsrc to file-like object fdst"""
-            # coverage:ignore-start
             while 1:
                 buf = fsrc.read(length)
                 if not buf:
@@ -457,8 +456,8 @@ def _copyfile(
                 fdst.write(buf)
                 if callback is None:
                     continue
-                callback(len(buf))
-            # coverage:ignore-end
+                callback(len(buf))  # pragma: no cover
+
         return _copyfileobj
 
     src_stat = fs_stat(src_path)
@@ -620,7 +619,7 @@ def fs_access(path: PathLike, mode: Access = Access.READ) -> bool:
             'Unsupported mode: {} -- Mode should use one of the enums belonging to:  {}'
             .format(mode, ', '.join([str(a) for a in Access])))
     if mode not in (Access.READ, Access.WRITE):
-        raise TypeError(  # coverage:ignore-line
+        raise TypeError(  # pragma: no cover
             'Unsupported mode: {}'.format(mode))
     if mode == Access.READ:
         return os.access(path, os.R_OK)
