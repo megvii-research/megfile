@@ -41,7 +41,8 @@ class SmartPath(BasePath):
         self.pathlike = pathlike
 
     @staticmethod
-    def _extract_protocol(path: Union[PathLike, int]) -> Tuple[str, str]:
+    def _extract_protocol(path: Union[PathLike, int]
+                         ) -> Tuple[str, Union[str, int]]:
         if isinstance(path, int):
             protocol = "file"
             path_without_protocol = path

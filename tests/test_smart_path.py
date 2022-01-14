@@ -123,6 +123,13 @@ def _create_pathlike(funcA):
         SmartPath._create_pathlike("tcp://Not Exist Case")
 
 
+@patch.object(SmartPath, '_extract_protocol')
+def test_create_pathlike(funcA):
+    funcA.return_value = ("NotExistProtocol", "")
+    with pytest.raises(ProtocolNotFoundError):
+        SmartPath._create_pathlike("tcp://Not Exist Case")
+
+
 def test_register():
     pre_cnt = len(SmartPath._registered_protocols)
     with pytest.raises(ProtocolExistsError):
