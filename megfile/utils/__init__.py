@@ -227,7 +227,7 @@ def calculate_md5(file_object):
     return hash_md5.hexdigest()
 
 
-class classproperty(property):
+class classproperty(property):  # pragma: no cover
     """
     The use this class as a decorator for your class property.
     Example:

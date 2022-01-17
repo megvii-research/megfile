@@ -22,7 +22,7 @@ class ForkAware(ABC):
 
     @abstractmethod
     def _reset(self):
-        pass
+        pass  # pragma: no cover
 
 
 def fork_aware(func):
@@ -36,7 +36,7 @@ def fork_aware(func):
     return wrapper
 
 
-class BaseLocal(ABC):
+class BaseLocal(ABC):  # pragma: no cover
 
     @property
     @abstractmethod
