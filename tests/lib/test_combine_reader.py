@@ -4,12 +4,9 @@ from io import BufferedWriter, BytesIO, StringIO
 import pytest
 
 from megfile.lib.combine_reader import CombineReader
-from megfile.lib.s3_prefetch_reader import S3PrefetchReader
-from megfile.smart import smart_combine_open
-from megfile.utils import combine
 
 
-def test_combine_reader():
+def test_combine_reader(fs):
     reader = CombineReader([BytesIO(b'block0')], 'test_combine_reader')
     assert reader.name == 'test_combine_reader'
     assert reader.mode == 'rb+'
@@ -20,6 +17,9 @@ def test_combine_reader():
     with pytest.raises(IOError):
         CombineReader(
             [BufferedWriter(BytesIO(b'block0 '))], 'test_combine_reader_3')
+
+    with pytest.raises(IOError):
+        CombineReader([BytesIO(b''), StringIO('')], 'test_combine_reader_4')
 
 
 def test_combine_reader_read():
@@ -56,6 +56,51 @@ def test_combine_reader_read():
     with CombineReader([block0, block1, block2, block3, block4],
                        'test_combine_reader_1') as reader:
         assert reader.read() == b'block0 block1 block2 block3 block4 '
+
+
+def test_combine_reader_read_stringio():
+    block0 = StringIO('block0 ')
+    block1 = StringIO('block1 ')
+    block2 = StringIO('block2 ')
+    block3 = StringIO('block3 ')
+    block4 = StringIO('block4 ')
+    reader = CombineReader(
+        [block0, block1, block2, block3, block4], 'test_combine_reader')
+
+    # size = 0
+    assert reader.read(0) == ''
+    assert reader.tell() == 0
+
+    # In-block read
+    assert reader.read(2) == 'bl'
+    assert reader.tell() == 2
+
+    # Cross-block read
+    assert reader.read(6) == 'ock0 b'
+
+    assert reader.read(6) == 'lock1 '
+
+    # 连续读多个 block，且 size 超过剩余数据大小
+    assert reader.read(21 + 1) == 'block2 block3 block4 '
+
+    # Seek to head then read
+    reader.seek(0)
+    assert reader.tell() == 0
+    assert reader.read() == 'block0 block1 block2 block3 block4 '
+    assert reader.tell() == 35
+
+    reader.seek(36)
+    assert reader.read() == ''
+
+    with CombineReader([block0, block1, block2, block3, block4],
+                       'test_combine_reader_1') as reader:
+        assert reader.read() == 'block0 block1 block2 block3 block4 '
+
+    with pytest.raises(ValueError):
+        reader.seek(-1)
+
+    with pytest.raises(ValueError):
+        reader.seek(0, 100)
 
 
 def test_combine_reader_read_text():
