@@ -35,7 +35,7 @@ def test_get_human_size():
 
 def test_necessary_params():
 
-    def func(a, b, c=None, **kwargs):
+    def func(a=None, b=None, c=None, **kwargs):
         pass
 
     assert necessary_params(

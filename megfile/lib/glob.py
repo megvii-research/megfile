@@ -160,7 +160,7 @@ def _iterdir(dirname: str, dironly: bool, fs: FSFunc) -> Iterator[str]:
             try:
                 if not dironly or isdir:
                     yield name  # type: ignore
-            except OSError:
+            except OSError:  # pragma: no cover
                 pass
     except OSError:
         return
@@ -275,8 +275,6 @@ def globlize(path_list: List[str]) -> str:
     for i in path_list:
         if i[len(prefix):len(i) - len(suffix)] not in path:
             path.append(unescape(i[len(prefix):len(i) - len(suffix)]))
-    if prefix == path_list[-1]:
-        return prefix
     return prefix + "{" + ','.join(path) + "}" + suffix
 
 

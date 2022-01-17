@@ -17,5 +17,8 @@ def test_lazy_handler(fs):
         assert handler.name == path
         assert handler.mode == read_mode
         assert handler.readable() is True
-        handler.read() == content
+        assert handler.read() == content
         assert handler.tell() == 4
+        assert handler._content_size == 4
+        handler.seek(0)
+        assert handler.readline(4) == content
