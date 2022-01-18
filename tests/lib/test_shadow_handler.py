@@ -28,6 +28,19 @@ def test_shadow_handler_read():
     assert fd.tell() == 5
 
 
+def test_shadow_handler_readline():
+    io = BytesIO(b'ab\ncd\ne')
+    fd = ShadowHandler(io)
+
+    assert fd.readline(1) == b'a'
+    fd.seek(0)
+    assert fd.readline(2) == b'ab'
+    fd.seek(0)
+    assert fd.readline(4) == b'ab\n'
+    fd.seek(0)
+    assert fd.readline(5) == b'ab\n'
+
+
 def test_shadow_handler_read_text():
     io = StringIO('abcde')
     fd = ShadowHandler(io)
