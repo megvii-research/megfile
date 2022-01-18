@@ -35,12 +35,10 @@ def test_get_human_size():
 
 def test_necessary_params():
 
-    def func(a=None, b=None, c=None, **kwargs):
+    def func(a, b, c=None, **kwargs):
         pass
 
-    assert necessary_params(
-        func, a=1, b=2, c=3, kwargs=4) == dict(
-            a=1, b=2, c=3)
+    assert necessary_params(func, a=1, b=2, c=3, kwargs=4).get('kwargs') is None
 
 
 def test_get_class():
