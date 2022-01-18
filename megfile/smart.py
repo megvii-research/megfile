@@ -144,7 +144,7 @@ def smart_listdir(path: Optional[PathLike] = None) -> List[str]:
     :returns: All contents of given s3_url or file path in acsending alphabetical order.
     :raises: FileNotFoundError, NotADirectoryError
     '''
-    if path is None:
+    if path is None:  # pragma: no cover
         return sorted(os.listdir(path))
     return SmartPath(path).listdir()
 
@@ -157,7 +157,7 @@ def smart_scandir(path: Optional[PathLike] = None) -> Iterator[FileEntry]:
     :returns: An iterator contains all contents have prefix path
     :raises: FileNotFoundError, NotADirectoryError
     '''
-    if path is None:
+    if path is None:  # pragma: no cover
         return fs_scandir(path)
     return SmartPath(path).scandir()
 
@@ -229,7 +229,7 @@ def register_copy_func(
         dst_dict = _copy_funcs.get(src_protocol, {})
         dst_dict[dst_protocol] = copy_func
         _copy_funcs[src_protocol] = dst_dict
-    except Exception as error:
+    except Exception as error:  # pragma: no cover
         raise error
     else:
         raise ValueError(
