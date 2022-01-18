@@ -814,6 +814,15 @@ def test_s3_move(truncating_client):
     assert s3.s3_exists('s3://bucketA/folderAA/folderAAA1/fileAAAA')
 
 
+def test_s3_move_file(truncating_client):
+    smart.smart_touch('s3://bucketA/folderAA/folderAAA/fileAAAA')
+    s3.s3_move(
+        's3://bucketA/folderAA/folderAAA/fileAAAA',
+        's3://bucketA/folderAA/folderAAA1/fileAAAA')
+    assert s3.s3_exists('s3://bucketA/folderAA/folderAAA/fileAAAA') is False
+    assert s3.s3_exists('s3://bucketA/folderAA/folderAAA1/fileAAAA')
+
+
 def test_s3_sync(truncating_client):
     smart.smart_touch('s3://bucketA/folderAA/folderAAA/fileAAAA')
     s3.s3_sync(
@@ -2070,6 +2079,9 @@ def test_s3_prefetch_open(s3_empty_client):
                              max_block_size=1) as reader:
         assert reader.read() == content
 
+    with pytest.raises(s3.S3BucketNotFoundError):
+        s3.s3_prefetch_open('s3://', max_concurrency=1, max_block_size=1)
+
 
 def test_s3_share_cache_open(s3_empty_client):
     content = b'test data for s3_share_cache_open'
@@ -2257,11 +2269,15 @@ def test_s3_buffered_open(mocker, s3_empty_client, fs):
     writer = s3.s3_buffered_open('s3://bucket/key', 'wb')
     assert isinstance(writer.raw, s3.S3BufferedWriter)
 
+    writer = s3.s3_buffered_open('s3://bucket/key', 'ab', cache_path='/test')
+    assert isinstance(writer, s3.S3CachedHandler)
+
     writer = s3.s3_buffered_open('s3://bucket/key', 'wb', limited_seekable=True)
     assert isinstance(writer.raw, s3.S3LimitedSeekableWriter)
 
-    reader = s3.s3_buffered_open('s3://bucket/key', 'rb')
+    reader = s3.s3_buffered_open('s3://bucket/key', 'rb', forward_ratio=0.5)
     assert isinstance(reader.raw, s3.S3PrefetchReader)
+    assert reader.raw._block_forward == s3.DEFAULT_MAX_BUFFER_SIZE // s3.DEFAULT_BLOCK_SIZE * 0.5
 
     reader = s3.s3_buffered_open(
         's3://bucket/key', 'rb', share_cache_key='share')
@@ -2278,6 +2294,10 @@ def test_s3_buffered_open(mocker, s3_empty_client, fs):
         assert reader.name == 's3://bucket/key'
         assert reader.mode == 'rb'
         assert reader.read() == content
+
+    with pytest.raises(ValueError):
+        with s3.s3_buffered_open('s3://bucket/key', 'test_mode'):
+            pass
 
 
 def test_s3_buffered_open_raises_exceptions(mocker, s3_empty_client, fs):
@@ -2321,6 +2341,10 @@ def test_s3_memory_open(s3_empty_client):
     with s3.s3_memory_open('s3://bucket/key', 'rb') as reader:
         assert reader.read() == content
 
+    with pytest.raises(ValueError):
+        with s3.s3_memory_open('s3://bucket/key', 'test_mode'):
+            pass
+
 
 def test_s3_open(s3_empty_client):
     content = b'test data for s3_open'
@@ -2350,11 +2374,15 @@ def test_s3_getmd5(s3_empty_client):
     hash_md5.update(content)
 
     assert s3.s3_getmd5(s3_url) == hash_md5.hexdigest()
+    assert s3.s3_getmd5(s3_url, recalculate=True) == hash_md5.hexdigest()
 
     s3_dir_url = 's3://bucket'
     hash_md5_dir = hashlib.md5()  # nosec
     hash_md5_dir.update(hash_md5.hexdigest().encode())
     assert s3.s3_getmd5(s3_dir_url) == hash_md5_dir.hexdigest()
+
+    with pytest.raises(s3.S3BucketNotFoundError):
+        s3.s3_getmd5('s3://')
 
 
 def test_s3_getmd5_None(s3_empty_client):
@@ -2376,6 +2404,12 @@ def test_s3_load_content(s3_empty_client):
     assert s3.s3_load_content('s3://bucket/key', 1) == content[1:]
     assert s3.s3_load_content('s3://bucket/key', stop=-1) == content[:-1]
     assert s3.s3_load_content('s3://bucket/key', 4, 7) == content[4:7]
+
+    with pytest.raises(s3.S3BucketNotFoundError):
+        s3.s3_load_content('s3://', 5, 2)
+
+    with pytest.raises(s3.S3IsADirectoryError):
+        s3.s3_load_content('s3://bucket/', 5, 2)
 
     with pytest.raises(ValueError) as error:
         s3.s3_load_content('s3://bucket/key', 5, 2)
@@ -2430,3 +2464,7 @@ def test_s3_cacher(s3_empty_client, fs):
 
     assert not os.path.exists(path)
     assert s3.s3_load_content('s3://bucket/key') == content * 2
+
+    with pytest.raises(ValueError):
+        with s3.S3Cacher('s3://bucket/key', '/path/to/file', 'rb'):
+            pass

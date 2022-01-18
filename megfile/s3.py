@@ -36,7 +36,7 @@ from megfile.utils import calculate_md5, generate_cache_path, get_binary_mode, g
 _smart_open_parameters = inspect.signature(smart_open.s3.open).parameters
 if 'resource_kwargs' in _smart_open_parameters:
     # smart_open >= 1.8.1
-    def _s3_open(bucket: str, key: str, mode: str):
+    def _s3_open(bucket: str, key: str, mode: str):  # pragma: no cover
         return smart_open.s3.open(
             bucket,
             key,
@@ -1242,7 +1242,7 @@ def s3_prefetch_open(
     :raises: S3FileNotFoundError
     '''
     if mode != 'rb':
-        raise ValueError('unacceptable mode: %r' % mode)
+        raise ValueError('unacceptable mode: %r' % mode)  # pragma: no cover
 
     bucket, key = parse_s3_url(s3_url)
     config = botocore.config.Config(max_pool_connections=max_pool_connections)
@@ -1280,7 +1280,7 @@ def s3_share_cache_open(
     :raises: S3FileNotFoundError
     '''
     if mode != 'rb':
-        raise ValueError('unacceptable mode: %r' % mode)
+        raise ValueError('unacceptable mode: %r' % mode)  # pragma: no cover
 
     bucket, key = parse_s3_url(s3_url)
     config = botocore.config.Config(max_pool_connections=max_pool_connections)
@@ -1316,7 +1316,7 @@ def s3_pipe_open(
     :returns: An opened BufferedReader / BufferedWriter object
     '''
     if mode not in ('rb', 'wb'):
-        raise ValueError('unacceptable mode: %r' % mode)
+        raise ValueError('unacceptable mode: %r' % mode)  # pragma: no cover
 
     if mode[0] == 'r' and not s3_isfile(s3_url):
         raise S3FileNotFoundError('No such file: %r' % s3_url)
@@ -1347,7 +1347,7 @@ def s3_cached_open(
     :returns: An opened BufferedReader / BufferedWriter object
     '''
     if mode not in ('rb', 'wb', 'ab', 'rb+', 'wb+', 'ab+'):
-        raise ValueError('unacceptable mode: %r' % mode)
+        raise ValueError('unacceptable mode: %r' % mode)  # pragma: no cover
 
     bucket, key = parse_s3_url(s3_url)
     config = botocore.config.Config(max_pool_connections=max_pool_connections)
@@ -1464,7 +1464,7 @@ def s3_memory_open(s3_url: PathLike, mode: str) -> S3MemoryHandler:
 
         Supports context manager
 
-    :param mode: Mode to open file, could be one of "rb", "wb" or "ab"
+    :param mode: Mode to open file, could be one of "rb", "wb", "ab", "rb+", "wb+" or "ab+"
     :returns: An opened BufferedReader / BufferedWriter object
     '''
     if mode not in ('rb', 'wb', 'ab', 'rb+', 'wb+', 'ab+'):
@@ -1489,14 +1489,14 @@ def s3_legacy_open(s3_url: PathLike, mode: str):
     :param mode: Mode to open file, either "rb" or "wb"
     :returns: File-Like Object
     '''
-    if mode not in ('rb', 'wb'):
+    if mode not in ('rb', 'wb'):  # pragma: no cover
         raise ValueError('unacceptable mode: %r' % mode)
 
     bucket, key = parse_s3_url(s3_url)
 
     try:
         return _s3_open(bucket, key, mode)
-    except Exception as error:
+    except Exception as error:  # pragma: no cover
         if isinstance(error, IOError):
             error_str = str(error)
             if 'NoSuchKey' in error_str:

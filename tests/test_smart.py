@@ -786,7 +786,8 @@ def test_smart_open_stdout(mocker):
     assert data.getvalue() == b'test'
 
 
-def test_smart_load_content(mocker):
+@patch.object(smart, 's3_load_content')
+def test_smart_load_content(funcA):
     path = 'tests/test_smart.py'
     content = open(path, 'rb').read()
 
@@ -798,7 +799,6 @@ def test_smart_load_content(mocker):
     with pytest.raises(Exception) as error:
         smart.smart_load_content(path, 5, 2)
 
-    funcA = mocker.patch('megfile.smart.s3_load_content')
     smart.smart_load_content('s3://bucket/test.txt')
     funcA.assert_called_once()
 
@@ -897,19 +897,19 @@ def test_smart_combine_open(mocker):
     funcA.assert_called_once()
 
 
-def test_smart_save_content(mocker):
-    funcA = mocker.patch('megfile.smart.smart_open')
+@patch.object(smart, 'smart_open')
+def test_smart_save_content(funcA):
     smart.smart_save_content('test path', b'test')
     funcA.assert_called_once()
 
 
-def test_smart_save_text(mocker):
-    funcA = mocker.patch('megfile.smart.smart_open')
+@patch.object(smart, 'smart_open')
+def test_smart_save_text(funcA):
     smart.smart_save_text('test path', 'test')
     funcA.assert_called_once()
 
 
-def test_smart_load_text(mocker):
-    funcA = mocker.patch('megfile.smart.smart_open')
+@patch.object(smart, 'smart_open')
+def test_smart_load_text(funcA):
     smart.smart_load_text('test path')
     funcA.assert_called_once()
