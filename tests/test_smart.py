@@ -890,9 +890,9 @@ def test_default_copy_func(filesystem):
         assert f.read() == content
 
 
-def test_smart_combine_open(mocker):
+@patch.object(smart, 'combine')
+def test_smart_combine_open(funcA, mocker):
     mocker.patch('megfile.smart.smart_glob', return_value=[])
-    funcA = mocker.patch('megfile.smart.combine')
     smart.smart_combine_open('test path')
     funcA.assert_called_once()
 
