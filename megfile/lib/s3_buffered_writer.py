@@ -102,7 +102,7 @@ class S3BufferedWriter(Writable):
     @_content_size.setter
     def _content_size(self, value: int):
         if value > self._backoff_size:
-            _logger.debug(  # pragma: no cover
+            _logger.debug(
                 'writing file: %r, current size: %s' %
                 (self.name, get_human_size(value)))
         while value > self._backoff_size:

@@ -180,8 +180,11 @@ class S3PrefetchReader(Readable, Seekable):
 
         if self._block_forward == 1:
             block_index = self._offset // self._block_size
-            mean_read_count = mean(
-                item.read_count for item in self._seek_history)
+            if len(self._seek_history) > 0:
+                mean_read_count = mean(
+                    item.read_count for item in self._seek_history)
+            else:
+                mean_read_count = 0
             if block_index not in self._futures and mean_read_count < 3:
                 # No using LRP will be better if read() are always called less than 3 times after seek()
                 return self._read(size)
@@ -363,7 +366,7 @@ class S3PrefetchReader(Readable, Seekable):
 
     def _submit_future(self, index: int):
         if index < 0 or index >= self._block_stop:
-            return
+            return  # pragma: no cover
         self._futures.submit(self._executor, index, self._fetch_buffer, index)
 
     def _fetch_future_result(self, index: int):

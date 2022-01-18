@@ -83,15 +83,12 @@ def test_s3_pipe_handler_write_without_close():
 @pytest.fixture
 def error_client(s3_empty_client):
 
-    def fake_download_fileobj(*args, **kwargs):
-        raise S3Exception()
-
-    def fake_upload_fileobj(*args, **kwargs):
+    def fake(*args, **kwargs):
         raise S3Exception()
 
     s3_empty_client.create_bucket(Bucket=BUCKET)
-    s3_empty_client.download_fileobj = fake_download_fileobj
-    s3_empty_client.upload_fileobj = fake_upload_fileobj
+    s3_empty_client.download_fileobj = fake
+    s3_empty_client.upload_fileobj = fake
 
     return s3_empty_client
 
@@ -99,9 +96,10 @@ def error_client(s3_empty_client):
 def test_s3_pipe_handler_error(error_client):
     with pytest.raises(S3Exception):
         with S3PipeHandler(BUCKET, KEY, 'wb', s3_client=error_client) as writer:
-            writer.write(b'test')
-            pass
+            writer._async_task.join()
+            writer._raise_exception()
+
     with pytest.raises(S3Exception):
         with S3PipeHandler(BUCKET, KEY, 'rb', s3_client=error_client) as reader:
-            reader.read()
-            pass
+            reader._async_task.join()
+            reader._raise_exception()
