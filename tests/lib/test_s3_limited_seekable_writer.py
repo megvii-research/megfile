@@ -92,11 +92,25 @@ def test_write(client):
     assert writer._buffer.getvalue() == b'QRst'
     assert writer.tell() == 18
 
+    writer.seek(2)
+    writer.write(b'ab')
+    with pytest.raises(OSError):
+        writer.write(b'cd')
+
+    with pytest.raises(OSError):
+        writer.seek(5)
+
 
 def test_s3_buffered_writer_write_large_bytes(client):
     with S3LimitedSeekableWriter(BUCKET, KEY, s3_client=client,
                                  max_block_size=8) as writer:
         writer.write(CONTENT * 10)
+
+    with pytest.raises(IOError):
+        writer.seek(0)
+
+    with pytest.raises(IOError):
+        writer.write(CONTENT)
 
     content = client.get_object(Bucket=BUCKET, Key=KEY)['Body'].read()
     assert content == CONTENT * 10

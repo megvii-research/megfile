@@ -170,7 +170,3 @@ def test_s3_buffered_writer_write_multipart_pending(client, mocker):
     assert writer._buffer_size == 0
 
     assert writer._is_multipart
-
-    with pytest.raises(S3UnknownError):
-        # proposed upload is smaller than the minimum allowed object size
-        writer.close()
