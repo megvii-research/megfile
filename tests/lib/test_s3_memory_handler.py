@@ -5,6 +5,7 @@ import boto3
 import pytest
 from moto import mock_s3
 
+from megfile.errors import S3ConfigError
 from megfile.lib.s3_memory_handler import S3MemoryHandler
 from tests.test_s3 import s3_empty_client
 
@@ -91,6 +92,20 @@ def assert_write(fp1, fp2, buffer):
     assert load_content(fp1) == load_content(fp2)
 
 
+def assert_write_lines(fp1, fp2, buffer):
+
+    def load_content(fp):
+        fp.flush()
+        if isinstance(fp, S3MemoryHandler):
+            return fp._fileobj.getvalue()
+        with open(fp.name, 'rb') as reader:
+            return reader.read()
+
+    fp1.writelines([buffer] * 2)
+    fp2.writelines([buffer] * 2)
+    assert load_content(fp1) == load_content(fp2)
+
+
 def test_s3_memory_handler_mode_rb(client):
     client.put_object(Bucket=BUCKET, Key=KEY, Body=CONTENT)
     with open(LOCAL_PATH, 'wb') as writer:
@@ -156,6 +171,7 @@ def test_s3_memory_handler_mode_ab(client):
         assert_write(fp1, fp2, CONTENT)
         assert_seek(fp1, fp2, 0, 2)
         assert_write(fp1, fp2, CONTENT)
+        assert_write_lines(fp1, fp2, CONTENT)
 
 
 def test_s3_memory_handler_mode_rbp(client):
@@ -216,3 +232,24 @@ def test_s3_memory_handler_mode_rbp(client):
         assert_write(fp1, fp2, CONTENT)
         assert_seek(fp1, fp2, 0, 2)
         assert_read(fp1, fp2, 5)
+
+
+@pytest.fixture
+def error_client(s3_empty_client, fs):
+    s3_empty_client.create_bucket(Bucket=BUCKET)
+
+    def fake_head_object(*args, **kwargs):
+        raise S3ConfigError()
+
+    s3_empty_client.head_object = fake_head_object
+    return s3_empty_client
+
+
+def test_s3_memory_handler_error(error_client):
+    error_client.put_object(Bucket=BUCKET, Key=KEY, Body=CONTENT)
+    with open(LOCAL_PATH, 'wb') as writer:
+        writer.write(CONTENT)
+
+    with pytest.raises(S3ConfigError):
+        with S3MemoryHandler(BUCKET, KEY, 'ab', s3_client=error_client) as fp:
+            pass
