@@ -189,7 +189,7 @@ def _patch_make_request(client: botocore.client.BaseClient):
     return client
 
 
-def _patch_send_request():
+def _patch_send_request():  # pragma: no cover
     # From: https://github.com/boto/botocore/pull/1328
     try:
         import botocore.awsrequest
@@ -287,7 +287,7 @@ def s3_copy(
 
     if not src_bucket:
         raise S3BucketNotFoundError('Empty bucket name: %r' % src_url)
-    if not src_key or src_key.endswith('/'):
+    if s3_isdir(src_url):
         raise S3IsADirectoryError('Is a directory: %r' % src_url)
 
     if not dst_bucket:
@@ -313,8 +313,6 @@ def s3_copy(
                 raise S3BucketNotFoundError('No such bucket: %r' % src_url)
         elif isinstance(error, S3FileNotFoundError):
             if not s3_isfile(src_url):
-                if s3_isdir(src_url):
-                    raise S3IsADirectoryError('Is a directory: %r' % src_url)
                 raise S3FileNotFoundError('No such file: %r' % src_url)
         raise error
 
@@ -566,23 +564,18 @@ def s3_stat(s3_url: PathLike) -> StatResult:
     Get StatResult of s3_url file, including file size and mtime, referring to s3_getsize and s3_getmtime
 
     If s3_url is not an existent path, which means s3_exist(s3_url) returns False, then raise S3FileNotFoundError
-    If attempt to get StatResult of complete s3, such as s3_dir_url == 's3://', raise UnsupportedError
+    If attempt to get StatResult of complete s3, such as s3_dir_url == 's3://', raise S3BucketNotFoundError
 
     :param s3_url: Given s3 path
     :returns: StatResult
-    :raises: S3FileNotFoundError, UnsupportedError
+    :raises: S3FileNotFoundError, S3BucketNotFoundError
     '''
     bucket, key = parse_s3_url(s3_url)
     if not bucket:
-        if not key:
-            raise UnsupportedError('Get stat of whole s3', s3_url)
         raise S3BucketNotFoundError('Empty bucket name: %r' % s3_url)
 
     if not s3_isfile(s3_url):
         return _s3_getdirstat(s3_url)
-
-    if not key or key.endswith('/'):
-        raise S3FileNotFoundError('No such directory: %r' % s3_url)
 
     client = get_s3_client()
     with raise_s3_error(s3_url):
@@ -659,7 +652,11 @@ def s3_download(
     src_bucket, src_key = parse_s3_url(src_url)
     if not src_bucket:
         raise S3BucketNotFoundError('Empty bucket name: %r' % src_url)
-    if not src_key or src_key.endswith('/'):
+
+    if not s3_exists(src_url):
+        raise FileNotFoundError('File not found: %r' % src_url)
+
+    if not s3_isfile(src_url):
         raise S3IsADirectoryError('Is a directory: %r' % src_url)
 
     dst_url = fspath(dst_url)
@@ -673,11 +670,9 @@ def s3_download(
     client = get_s3_client()
     try:
         client.download_file(src_bucket, src_key, dst_url, Callback=callback)
-    except Exception as error:
+    except Exception as error:  # pragma: no cover
         error = translate_fs_error(error, dst_url)
         error = translate_s3_error(error, src_url)
-        if isinstance(error, S3FileNotFoundError) and s3_isdir(src_url):
-            raise S3IsADirectoryError('Is a directory: %r' % src_url)
         raise error
 
 
@@ -1075,7 +1070,8 @@ def _group_s3path_by_bucket(s3_pathname: str) -> List[str]:
             for bucket in all_bucket():
                 if pattern.fullmatch(bucket) is not None:
                     if path_part is not None:
-                        bucket = "%s/%s" % (bucket, path_part)
+                        bucket = "%s/%s" % (
+                            bucket, path_part)  # pragma: no cover
                     grouped_path.append(generate_s3_path(bucket, key))
         else:
             grouped_path.append(generate_s3_path(bucketname, key))
