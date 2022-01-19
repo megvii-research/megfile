@@ -6,7 +6,7 @@ import pytest
 from moto import mock_s3
 
 from megfile.lib import s3_share_cache_reader
-from megfile.lib.s3_share_cache_reader import S3ShareCacheReader
+from megfile.lib.s3_share_cache_reader import S3ShareCacheReader, ShareCacheFutureManager
 from megfile.utils import thread_local
 from tests.test_s3 import s3_empty_client
 
@@ -114,6 +114,34 @@ def test_s3_share_cache_reader_read_readline_mix(s3_empty_client):
         assert reader.read(1) == b'4'
         assert reader.readline() == b'\n'
         assert reader.readline() == b''
+
+
+def test_s3_share_cache_reader_read_readline_mix_multiple_reader(
+        s3_empty_client):
+    KEY2 = 'key2'
+    s3_empty_client.create_bucket(Bucket=BUCKET)
+    s3_empty_client.put_object(Bucket=BUCKET, Key=KEY, Body=b'1\n2\n3\n4\n')
+    s3_empty_client.put_object(Bucket=BUCKET, Key=KEY2, Body=b'5\n6\n7\n8\n')
+
+    reader = S3ShareCacheReader(
+        BUCKET, KEY, s3_client=s3_empty_client, max_workers=2, block_size=3)
+    reader2 = S3ShareCacheReader(
+        BUCKET, KEY2, s3_client=s3_empty_client, max_workers=2, block_size=3)
+    assert reader.readline() == b'1\n'
+    assert reader.read(2) == b'2\n'
+    assert reader.readline() == b'3\n'
+    assert reader.read(1) == b'4'
+    assert reader.readline() == b'\n'
+    assert reader.readline() == b''
+
+    assert reader2.readline() == b'5\n'
+    assert reader2.read(2) == b'6\n'
+    assert reader2.readline() == b'7\n'
+    assert reader2.read(1) == b'8'
+    assert reader2.readline() == b'\n'
+    assert reader2.readline() == b''
+    reader.close()
+    reader2.close()
 
 
 def test_s3_share_cache_reader_fetch(client, mocker):

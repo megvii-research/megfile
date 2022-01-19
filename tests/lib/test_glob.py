@@ -64,6 +64,7 @@ FILE_LIST = [
     File('/bucketForGlobTest/2/a/b/c/2.json', '2.json'),
     File('/bucketForGlobTest/2/a/b/a/1.json', '1.json'),
     File('/emptyBucketForGlobTest', None),
+    File('/1.json', '1.json'),
 ]
 
 
@@ -90,6 +91,12 @@ def _glob_with_common_wildcard():
     '''
     # without any wildcards
     assert_glob('/emptyBucketForGlobTest', ['/emptyBucketForGlobTest'])
+    assert_glob(
+        '*', [
+            'tmp', 'bucketA', 'bucketB', 'bucketC', 'bucketForGlobTest',
+            'emptyBucketForGlobTest', '1.json'
+        ],
+        recursive=False)
     assert_glob('/emptyBucketForGlobTest/', ['/emptyBucketForGlobTest/'])
     assert_glob('/bucketForGlobTest/1', ['/bucketForGlobTest/1'])
     assert_glob('/bucketForGlobTest/1/', ['/bucketForGlobTest/1/'])
@@ -171,6 +178,48 @@ def _glob_with_recursive_pathname():
             '/bucketForGlobTest/2/a/d/2.json',
             '/bucketForGlobTest/2/a/d/c/1.json',
             '/bucketForGlobTest/2/a/d/c',
+        ])
+
+    assert_glob(
+        '**', [
+            '1.json',
+            'tmp',
+            'bucketA',
+            'bucketA/folderAA',
+            'bucketA/folderAA/folderAAA',
+            'bucketA/folderAA/folderAAA/fileAAAA',
+            'bucketA/folderAB-C',
+            'bucketA/folderAB-C/fileAB-C',
+            'bucketA/folderAB',
+            'bucketA/folderAB/fileAB',
+            'bucketA/folderAB/fileAC',
+            'bucketA/fileAA',
+            'bucketA/fileAB',
+            'bucketB',
+            'bucketC',
+            'bucketC/folder',
+            'bucketC/folder/file',
+            'bucketForGlobTest',
+            'bucketForGlobTest/1',
+            'bucketForGlobTest/1/a',
+            'bucketForGlobTest/1/a/b',
+            'bucketForGlobTest/1/a/b/c',
+            'bucketForGlobTest/1/a/b/c/1.json',
+            'bucketForGlobTest/1/a/b/c/A.msg',
+            'bucketForGlobTest/1/a/b/1.json',
+            'bucketForGlobTest/2',
+            'bucketForGlobTest/2/a',
+            'bucketForGlobTest/2/a/d',
+            'bucketForGlobTest/2/a/d/c',
+            'bucketForGlobTest/2/a/d/c/1.json',
+            'bucketForGlobTest/2/a/d/2.json',
+            'bucketForGlobTest/2/a/b',
+            'bucketForGlobTest/2/a/b/c',
+            'bucketForGlobTest/2/a/b/c/1.json',
+            'bucketForGlobTest/2/a/b/c/2.json',
+            'bucketForGlobTest/2/a/b/a',
+            'bucketForGlobTest/2/a/b/a/1.json',
+            'emptyBucketForGlobTest',
         ])
 
 
@@ -467,3 +516,11 @@ def test_ungloblize():
         's3://b*Test3/sub/1/a/c/2.mp4/s', 's3://b*Test3/sub/1/a/c/2.jpg/s',
         's3://b*Test3/sub/a/b/2.mp4/s', 's3://b*Test3/sub/a/b/2.jpg/s'
     ] == glob.ungloblize(test_glob)
+
+    path_list = [
+        '/bucketForGlobTest/1.json',
+        '/bucketForGlobTest/1/1.json',
+        '/bucketForGlobTest/',
+    ]
+    assert sorted(path_list) == sorted(
+        glob.ungloblize(glob.globlize(path_list)))

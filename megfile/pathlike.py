@@ -256,7 +256,7 @@ class BaseURIPath(BasePath):
     # Backwards compatible API, will be removed in megfile 1.0
     @classmethod
     def get_protocol(self) -> Optional[str]:
-        pass
+        pass  # pragma: no cover
 
     @classproperty
     def protocol(cls) -> str:

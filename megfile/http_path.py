@@ -1,6 +1,7 @@
 from typing import IO, AnyStr
 
-from .http import http_getmtime, http_getsize, http_open, http_stat
+from megfile import http
+
 from .interfaces import StatResult, URIPath
 from .smart_path import SmartPath
 
@@ -16,16 +17,16 @@ class HttpPath(URIPath):
     protocol = "http"
 
     def open(self, mode: str, **kwargs) -> IO:
-        return http_open(self.path_with_protocol, mode)
+        return http.http_open(self.path_with_protocol, mode=mode)
 
     def stat(self) -> StatResult:
-        return http_stat(self.path_with_protocol)
+        return http.http_stat(self.path_with_protocol)
 
     def getsize(self) -> int:
-        return http_getsize(self.path_with_protocol)
+        return http.http_getsize(self.path_with_protocol)
 
     def getmtime(self) -> float:
-        return http_getmtime(self.path_with_protocol)
+        return http.http_getmtime(self.path_with_protocol)
 
 
 @SmartPath.register

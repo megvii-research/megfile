@@ -68,7 +68,7 @@ def filter(names: List[str], pat: str) -> List[str]:
 
 
 def _compat(res: str) -> str:
-    if sys.version_info < (3, 6):
+    if sys.version_info < (3, 6):  # pragma: no cover
         return r'%s\Z(?ms)' % res
     return r'(?s:%s)\Z' % res
 

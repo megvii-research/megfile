@@ -1,10 +1,14 @@
 import os
 import time
+from asyncore import read
+from contextlib import redirect_stderr
+from io import BytesIO
 
 import boto3
 import pytest
 from moto import mock_s3
 
+from megfile.errors import S3FileChangedError
 from megfile.lib.s3_prefetch_reader import S3PrefetchReader
 from tests.test_s3 import s3_empty_client
 
@@ -82,6 +86,15 @@ def test_s3_prefetch_reader_readline(s3_empty_client):
         # tailing bytes
         assert reader.readline() == b'5'
 
+        reader.seek(0)
+        assert reader.readline(1) == b'1'
+
+        with pytest.raises(AssertionError):
+            reader.readline(-1)
+
+    with pytest.raises(IOError):
+        reader.readline()
+
 
 def test_s3_prefetch_reader_readline_without_line_break_at_all(client):
     with S3PrefetchReader(
@@ -113,7 +126,8 @@ def test_s3_prefetch_reader_read_readline_mix(s3_empty_client):
         assert reader.readline() == b''
 
 
-def test_s3_prefetch_reader_seek_out_of_range(s3_empty_client):
+def test_s3_prefetch_reader_seek_out_of_range(s3_empty_client, mocker):
+    mocker.patch('megfile.lib.s3_prefetch_reader.BACKOFF_INITIAL', 4)
     s3_empty_client.create_bucket(Bucket=BUCKET)
     s3_empty_client.put_object(Bucket=BUCKET, Key=KEY, Body=b'1\n2\n3\n4\n')
     with S3PrefetchReader(BUCKET, KEY, s3_client=s3_empty_client, max_workers=2,
@@ -124,6 +138,13 @@ def test_s3_prefetch_reader_seek_out_of_range(s3_empty_client):
         reader.seek(100)
         assert reader.tell() == 8
         assert reader.read(2) == b''
+        assert reader._backoff_size == 16
+
+        with pytest.raises(ValueError):
+            reader.seek(0, 'error_whence')
+
+    with pytest.raises(IOError):
+        reader.seek(0)
 
 
 def test_s3_prefetch_reader_fetch(client, mocker):
@@ -255,6 +276,25 @@ def test_s3_prefetch_reader_backward_seek_and_the_target_in_remains(
         assert reader._cached_blocks == [2, 1, 0]
 
 
+def test_s3_prefetch_reader_backward_block_forward_eq_1(client, mocker):
+
+    class FakeHistory:
+        read_count = 1
+
+    with S3PrefetchReader(BUCKET, KEY, s3_client=client, max_workers=2,
+                          block_size=3, block_capacity=3,
+                          block_forward=1) as reader:
+        assert reader.read(6) == b'block0'
+        assert reader._cached_blocks == []
+
+        reader._seek_history = [FakeHistory()]
+        assert reader.read(7) == b' block1'
+        assert reader._cached_blocks == []
+
+        assert reader.read(7) == b' block2'
+        assert reader._cached_blocks == [4, 5, 6]
+
+
 def test_s3_prefetch_reader_backward_seek_and_the_target_out_of_remains(
         client, mocker):
     '''目标 offset 在 buffer 外，停止现有 future，丢弃当前 buffer，以目标 offset 作为新的起点启动新的 future'''
@@ -380,3 +420,54 @@ def test_s3_prefetch_reader_tell_after_seek(client):
         assert reader.tell() == 13
         reader.seek(0, os.SEEK_END)
         assert reader.tell() == 35
+
+
+def test_s3_prefetch_reader_readinto(client):
+
+    with S3PrefetchReader(BUCKET, KEY, s3_client=client, max_workers=2,
+                          block_size=3, block_capacity=3,
+                          block_forward=2) as reader:
+        assert reader.readinto(bytearray(b'test')) == 4
+
+    with pytest.raises(IOError):
+        reader.readinto(bytearray(b'test'))
+
+
+def test_s3_prefetch_reader_seek_history(client):
+
+    with S3PrefetchReader(BUCKET, KEY, s3_client=client,
+                          block_capacity=3) as reader:
+        reader._seek_buffer(2)
+        history = reader._seek_history[0]
+        assert history.seek_count == 1
+        reader._seek_buffer(2)
+        assert history.seek_count == 2
+        history.seek_count = reader._block_capacity * 2 + 1
+        reader._seek_buffer(2)
+        for item in reader._seek_history:
+            assert item is not history
+
+        reader._seek_buffer(1)
+        for item in reader._seek_history:
+            assert item.seek_index != 2
+
+
+@pytest.fixture
+def client_for_get_object(s3_empty_client):
+
+    def fake_get_object(*args, **kwargs):
+        return {'ETag': 'test'}
+
+    s3_empty_client.create_bucket(Bucket=BUCKET)
+    s3_empty_client.put_object(Bucket=BUCKET, Key=KEY, Body=CONTENT)
+    s3_empty_client.get_object = fake_get_object
+    return s3_empty_client
+
+
+def test_s3_prefetch_reader_fetch_buffer_error(client_for_get_object):
+
+    with S3PrefetchReader(BUCKET, KEY, s3_client=client_for_get_object,
+                          block_capacity=3) as reader:
+
+        with pytest.raises(S3FileChangedError):
+            reader._fetch_buffer(1)

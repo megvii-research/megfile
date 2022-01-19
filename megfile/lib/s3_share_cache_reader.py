@@ -68,7 +68,7 @@ class S3ShareCacheReader(S3PrefetchReader):
 
     def _submit_future(self, index: int):
         if index < 0 or index >= self._block_stop:
-            return
+            return  # pragma: no cover
         self._futures.submit(
             self._executor, (self.name, index), self._fetch_buffer, index)
 
@@ -104,4 +104,4 @@ class ShareCacheFutureManager(LRUCacheFutureManager):
                     continue
                 future = self.pop(key_tuple)
                 if not future.done():
-                    future.cancel()
+                    future.cancel()  # pragma: no cover

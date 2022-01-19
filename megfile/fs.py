@@ -456,7 +456,7 @@ def _copyfile(
                 fdst.write(buf)
                 if callback is None:
                     continue
-                callback(len(buf))
+                callback(len(buf))  # pragma: no cover
 
         return _copyfileobj
 
@@ -505,7 +505,7 @@ def fs_copy(
             _copyfile(
                 src_path, dst_path, callback=callback, followlinks=followlinks)
         else:
-            raise
+            raise  # pragma: no cover
 
 
 def fs_sync(src_path: PathLike, dst_path: PathLike, followlinks: bool = False):
@@ -619,7 +619,8 @@ def fs_access(path: PathLike, mode: Access = Access.READ) -> bool:
             'Unsupported mode: {} -- Mode should use one of the enums belonging to:  {}'
             .format(mode, ', '.join([str(a) for a in Access])))
     if mode not in (Access.READ, Access.WRITE):
-        raise TypeError('Unsupported mode: {}'.format(mode))
+        raise TypeError(  # pragma: no cover
+            'Unsupported mode: {}'.format(mode))
     if mode == Access.READ:
         return os.access(path, os.R_OK)
     if mode == Access.WRITE:

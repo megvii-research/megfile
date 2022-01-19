@@ -5,7 +5,7 @@ import pytest
 import requests
 
 from megfile.errors import HttpFileNotFoundError, HttpPermissionError, UnknownError
-from megfile.http import http_getmtime, http_getsize, http_open, is_http
+from megfile.http import get_http_session, http_getmtime, http_getsize, http_open, http_stat, is_http
 
 
 def test_is_http():
@@ -105,3 +105,46 @@ def test_http_getmtime(mocker):
     assert http_getmtime('http://test') == time.mktime(
         time.strptime(
             "Wed, 24 Nov 2021 07:18:41 GMT", "%a, %d %b %Y %H:%M:%S %Z"))
+
+
+def test_http_getstat(mocker):
+
+    requests_get_func = mocker.patch('megfile.http.requests.get')
+
+    class FakeResponse200(FakeResponse):
+        status_code = 200
+
+    requests_get_func.return_value = FakeResponse200()
+    stat = http_stat('http://test')
+    assert stat.mtime == time.mktime(
+        time.strptime(
+            "Wed, 24 Nov 2021 07:18:41 GMT", "%a, %d %b %Y %H:%M:%S %Z"))
+    assert stat.size == 999
+
+    class FakeResponse404(FakeResponse):
+        status_code = 404
+
+    requests_get_func.return_value = FakeResponse404()
+    with pytest.raises(HttpFileNotFoundError):
+        http_stat('http://test')
+
+
+def test_get_http_session(mocker):
+    requests_request_func = mocker.patch('requests.Session.request')
+    mocker.patch('megfile.http.max_retries', 1)
+
+    class FakeResponse502(FakeResponse):
+        status_code = 502
+
+    requests_request_func.return_value = FakeResponse502()
+    session = get_http_session()
+    with pytest.raises(requests.exceptions.HTTPError):
+        session.request('get', 'http://test')
+
+    class FakeResponse200(FakeResponse):
+        status_code = 200
+
+    requests_request_func.return_value = FakeResponse200()
+    session = get_http_session()
+    response = session.request('get', 'http://test')
+    assert response.status_code == 200

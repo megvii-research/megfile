@@ -4,7 +4,8 @@ from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 import pytest
 
 from megfile.s3 import s3_buffered_open
-from megfile.utils import get_content_size, is_readable, is_seekable, is_writable, process_local, shadow_copy, thread_local
+from megfile.smart import smart_open
+from megfile.utils import get_content_size, is_readable, is_seekable, is_writable, lazy_open, process_local, shadow_copy, thread_local
 from tests.test_s3 import s3_empty_client
 
 BUCKET = 'bucket'
@@ -73,6 +74,38 @@ def test_fs_abilities():
     w.write('abcde')
     assert get_content_size(w) == 10
 
+    class FakeIOError:
+
+        def seekable(self):
+            raise Exception
+
+        def readable(self):
+            raise Exception
+
+        def writable(self):
+            raise Exception
+
+    io_object_error = FakeIOError()
+    assert is_writable(io_object_error) is False
+    assert is_readable(io_object_error) is False
+    assert is_seekable(io_object_error) is False
+
+    class FakeIO:
+
+        def seek(self):
+            pass
+
+        def read(self):
+            pass
+
+        def write(self):
+            pass
+
+    io_object = FakeIO()
+    assert is_writable(io_object) is True
+    assert is_readable(io_object) is True
+    assert is_seekable(io_object) is True
+
 
 def test_pipe_abilities():
     r, w = os.pipe()
@@ -134,6 +167,16 @@ def test_shadow_copy(client):
     sr.close()
     r.close()
 
+    rw = s3_buffered_open('s3://bucket/key', 'rb+')
+    srw = shadow_copy(rw)
+    assert srw.seek(0) == 0
+    assert srw.read() == b'abcde'
+    assert srw.write(b'abcde') == 5
+    assert srw.seek(0) == 0
+    assert srw.read() == b'abcdeabcde'
+    srw.close()
+    rw.close()
+
 
 def assert_same_list(local_func, l1):
     l2 = local_func('list', list)
@@ -182,3 +225,10 @@ def test_thread_local_recursive():
 
     executor = ThreadPoolExecutor()
     executor.submit(func_1).result(timeout=1)
+
+
+def test_lazy_open(mocker):
+    TEST_PATH = '/test'
+    funcA = mocker.patch('megfile.lib.lazy_handler.LazyHandler')
+    lazy_open(TEST_PATH, 'r')
+    funcA.assert_called_once_with(TEST_PATH, 'r', open_func=smart_open)

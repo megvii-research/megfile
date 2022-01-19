@@ -6,7 +6,7 @@ from megfile.fs_path import FSPath
 from megfile.http_path import HttpPath, HttpsPath
 from megfile.interfaces import Access
 from megfile.s3_path import S3Path
-from megfile.smart_path import SmartPath
+from megfile.smart_path import PurePath, SmartPath
 from megfile.stdio_path import StdioPath
 
 FS_PROTOCOL_PREFIX = FSPath.protocol + "://"
@@ -47,6 +47,8 @@ def test_register_result():
     assert SmartPath._registered_protocols[HttpPath.protocol] == HttpPath
     assert SmartPath._registered_protocols[HttpsPath.protocol] == HttpsPath
     assert SmartPath._registered_protocols[StdioPath.protocol] == StdioPath
+    assert SmartPath.from_uri(FS_TEST_ABSOLUTE_PATH) == SmartPath(
+        FS_TEST_ABSOLUTE_PATH)
 
 
 @patch.object(SmartPath, '_create_pathlike')
@@ -98,6 +100,14 @@ def test_extract_protocol():
     stdio_path = StdioPath(STDIO_TEST_PATH_WITHOUT_PROTOCOL)
     assert SmartPath._extract_protocol(stdio_path) == (
         StdioPath.protocol, STDIO_TEST_PATH_WITHOUT_PROTOCOL)
+    int_path = 1
+    assert SmartPath._extract_protocol(int_path) == ('file', int_path)
+    pure_path = PurePath(FS_TEST_ABSOLUTE_PATH)
+    assert SmartPath._extract_protocol(pure_path) == (
+        'file', FS_TEST_ABSOLUTE_PATH)
+
+    with pytest.raises(ProtocolNotFoundError):
+        SmartPath._extract_protocol(None)
 
 
 @patch.object(SmartPath, '_extract_protocol')
@@ -110,7 +120,14 @@ def _create_pathlike(funcA):
 
     funcA.return_value = ("NotExistProtocol", "")
     with pytest.raises(ProtocolNotFoundError):
-        SmartPath._create_pathlike("Not Exist Case")
+        SmartPath._create_pathlike("tcp://Not Exist Case")
+
+
+@patch.object(SmartPath, '_extract_protocol')
+def test_create_pathlike(funcA):
+    funcA.return_value = ("NotExistProtocol", "")
+    with pytest.raises(ProtocolNotFoundError):
+        SmartPath._create_pathlike("tcp://Not Exist Case")
 
 
 def test_register():

@@ -137,7 +137,7 @@ def patch_method(
                 if after_callback is not None:
                     result = after_callback(result, *args, **kwargs)
                 if error is not None:
-                    _logger.debug(
+                    _logger.debug(  # pragma: no cover
                         'unknown error resolved: %s, with %d tries' %
                         (full_error_message(error), retries))
                 return result
