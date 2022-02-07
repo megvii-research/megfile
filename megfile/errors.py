@@ -240,6 +240,10 @@ class S3ConfigError(S3Exception, EnvironmentError):
     '''
 
 
+class S3NotALinkError(S3FileNotFoundError, PermissionError):
+    pass
+
+
 class S3UnknownError(S3Exception, UnknownError):
 
     def __init__(self, error: Exception, path: PathLike):
