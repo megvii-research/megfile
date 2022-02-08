@@ -18,7 +18,7 @@ from moto import mock_s3
 from megfile import s3, smart
 from megfile.errors import UnknownError, UnsupportedError, translate_s3_error
 from megfile.interfaces import Access, FileEntry, StatResult
-from megfile.s3 import _group_s3path_by_bucket, _group_s3path_by_prefix, _s3_split_magic, content_md5_header
+from megfile.s3 import _group_s3path_by_bucket, _group_s3path_by_prefix, _s3_split_magic, content_md5_header, s3_get_symlink, s3_isfile, s3_put_symlink
 
 from . import Any, FakeStatResult, Now
 
@@ -2669,3 +2669,27 @@ def test_error(s3_empty_client_with_patch, mocker):
         s3.s3_isfile('s3://bucketA/fileAA')
 
     assert s3.s3_isdir('s3://bucket/dir') is True
+
+def test_my_symlink(mocker):
+    src_url = 's3://yjp-oss/megfile-test'
+    dst_url = 's3://yjp-oss/timezone_test.py'
+    assert s3.s3_exists('s3://bucketA/folderAA/folderAAA/fileAAAA')
+    assert s3.s3_exists(src_url)
+    #smart.smart_touch(dst_url)
+    # s3_put_symlink(src_url, dst_url)
+    # assert smart.smart_exists(dst_url)
+    
+
+
+def test_put_symlink(s3_empty_client, mocker):
+    mocker.patch('genericpath.getsize', return_value = 0)
+    from genericpath import getsize
+    src_url = 's3://bucket/src'
+    dst_url = 's3://bucket/dst'
+    content = b'bytes'
+    s3_empty_client.create_bucket(Bucket='bucket')
+    s3_empty_client.put_object(Bucket='bucket', Key='src', Body=content)
+    assert not s3.s3_exists(dst_url)
+    assert getsize(dst_url) == 0
+    s3.s3_put_symlink(src_url, dst_url)
+    assert s3.s3_exists(dst_url)

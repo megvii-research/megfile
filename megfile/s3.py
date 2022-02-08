@@ -1660,20 +1660,45 @@ def s3_put_symlink(src_url: PathLike, dst_url: PathLike) -> None:
         raise S3BucketNotFoundError('Empty bucket name: %r' % src_url)
     # if s3_isdir(src_url):
     #     raise S3IsADirectoryError('Is a directory: %r' % src_url)
-
+    if not dst_bucket:
+        raise S3BucketNotFoundError('Empty bucket name: %r' % dst_url)
     if not dst_key or dst_key.endswith('/'):
         raise S3IsADirectoryError('Is a directory: %r' % dst_url)
 
     client = get_s3_client()
-    with raise_s3_error(dst_url):
-        client.upload_fileobj(
-            "",
+    try:
+        client.copy(
+            {
+                'Bucket': src_bucket,
+                'Key': src_key,
+            },
             Bucket=dst_bucket,
             Key=dst_key,
             ExtraArgs={'Metadata': {
-                "is_symlink": True,
+                "is_symlink": '0',
                 "src_url": src_url
             }})
+    except Exception as error:
+        error = translate_s3_error(error, dst_url)
+        # Error can't help tell which is problematic
+        if isinstance(error, S3BucketNotFoundError):
+            if not s3_hasbucket(src_url):
+                raise S3BucketNotFoundError('No such bucket: %r' % src_url)
+        elif isinstance(error, S3FileNotFoundError):
+            if not s3_isfile(src_url):
+                raise S3FileNotFoundError('No such file: %r' % src_url)
+        raise error
+    
+    # client = get_s3_client()
+    # with raise_s3_error(dst_url):
+    #     client.upload_file(
+    #         Filename=dst_url,
+    #         Bucket=dst_bucket,
+    #         Key=dst_key,
+    #         ExtraArgs={'Metadata': {
+    #             "is_symlink": '0',
+    #             "src_url": src_url
+    #         }})
 
 
 def s3_get_symlink(src_url: PathLike) -> PathLike:

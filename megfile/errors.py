@@ -33,6 +33,7 @@ __all__ = [
     'raise_s3_error',
     's3_should_retry',
     'translate_fs_error',
+    'http_should_retry',
 ]
 
 _logger = getLogger(__name__)
