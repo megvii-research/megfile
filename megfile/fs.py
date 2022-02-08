@@ -54,6 +54,8 @@ __all__ = [
     'fs_getmd5',
     'StatResult',
     'fs_path_join',
+    'fs_symlink',
+    'fs_readlink',
 ]
 
 
