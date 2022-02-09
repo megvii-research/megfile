@@ -2671,7 +2671,7 @@ def test_error(s3_empty_client_with_patch, mocker):
     assert s3.s3_isdir('s3://bucket/dir') is True
 
 
-def test_exists_with_symlink(s3_empty_client, mocker):
+def test_exists_with_symlink(s3_empty_client):
     src_url = 's3://bucket/src'
     dst_url = 's3://bucket/dst'
     content = b'bytes'
@@ -2683,7 +2683,7 @@ def test_exists_with_symlink(s3_empty_client, mocker):
     assert s3.s3_exists(dst_url, followlinks=True) == False
 
 
-def test_put_symlink(s3_empty_client, mocker):
+def test_put_symlink(s3_empty_client):
     src_url = 's3://bucket/src'
     dst_url = 's3://bucket/dst'
     dir_url = 's3://bucket'
@@ -2717,12 +2717,12 @@ def test_put_symlink(s3_empty_client, mocker):
         s3.s3_put_symlink(src_url, 's3://bucket/dst/')
 
 
-def test_islink(s3_empty_client, mocker):
+def test_islink():
     assert s3.s3_islink('s3:///') == False
     assert s3.s3_islink('s3://bucket/src/') == False
 
 
-def test_get_symlink(s3_empty_client, mocker):
+def test_get_symlink(s3_empty_client):
     src_url = 's3://bucket/src'
     dst_url = 's3://bucket/dst'
     content = b'bytes'
