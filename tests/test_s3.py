@@ -2670,16 +2670,6 @@ def test_error(s3_empty_client_with_patch, mocker):
 
     assert s3.s3_isdir('s3://bucket/dir') is True
 
-def test_my_symlink(mocker):
-    src_url = 's3://yjp-oss/megfile-test'
-    dst_url = 's3://yjp-oss/timezone_test.py'
-    assert s3.s3_exists('s3://bucketA/folderAA/folderAAA/fileAAAA')
-    assert s3.s3_exists(src_url)
-    #smart.smart_touch(dst_url)
-    # s3_put_symlink(src_url, dst_url)
-    # assert smart.smart_exists(dst_url)
-    
-
 
 def test_put_symlink(s3_empty_client, mocker):
     mocker.patch('genericpath.getsize', return_value = 0)
@@ -2693,3 +2683,5 @@ def test_put_symlink(s3_empty_client, mocker):
     assert getsize(dst_url) == 0
     s3.s3_put_symlink(src_url, dst_url)
     assert s3.s3_exists(dst_url)
+    assert s3.s3_islink(dst_url)
+    assert s3.s3_get_symlink(dst_url) == src_url
