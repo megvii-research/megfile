@@ -2671,17 +2671,51 @@ def test_error(s3_empty_client_with_patch, mocker):
     assert s3.s3_isdir('s3://bucket/dir') is True
 
 
-def test_put_symlink(s3_empty_client, mocker):
-    mocker.patch('genericpath.getsize', return_value = 0)
-    from genericpath import getsize
+def test_exists_with_symlink(s3_empty_client, mocker):
     src_url = 's3://bucket/src'
     dst_url = 's3://bucket/dst'
     content = b'bytes'
     s3_empty_client.create_bucket(Bucket='bucket')
     s3_empty_client.put_object(Bucket='bucket', Key='src', Body=content)
+    s3.s3_put_symlink(src_url, dst_url)
+    s3.s3_rename('s3://bucket/src', 's3://bucket/src_new')
+    assert s3.s3_exists(dst_url, followlinks=False) == True
+    assert s3.s3_exists(dst_url, followlinks=True) == False
+
+
+def test_put_symlink(s3_empty_client, mocker):
+    src_url = 's3://bucket/src'
+    dst_url = 's3://bucket/dst'
+    dir_url = 's3://bucket'
+    dst_dir_url = 's3://bucketA'
+    content = b'bytes'
+    s3_empty_client.create_bucket(Bucket='bucket')
+    s3_empty_client.create_bucket(Bucket='bucketA')
+    s3_empty_client.put_object(Bucket='bucket', Key='src', Body=content)
     assert not s3.s3_exists(dst_url)
-    assert getsize(dst_url) == 0
     s3.s3_put_symlink(src_url, dst_url)
     assert s3.s3_exists(dst_url)
     assert s3.s3_islink(dst_url)
+    assert s3.s3_get_symlink(dst_url) == src_url
+
+    def dir_entrys_to_tuples(entries: Iterable[FileEntry]
+                            ) -> List[Tuple[str, bool]]:
+        return sorted([(entry.name, entry.is_dir()) for entry in entries])
+
+    s3.s3_put_symlink(dir_url, dst_dir_url)
+    assert dir_entrys_to_tuples(s3.s3_scandir('s3://bucketA')) == [
+        ('dst', False),
+        ('src', False),
+    ]
+    assert s3.s3_exists(dst_dir_url + '/dst')
+    assert s3.s3_exists(dst_dir_url + '/src')
+
+
+def test_get_symlink(s3_empty_client, mocker):
+    src_url = 's3://bucket/src'
+    dst_url = 's3://bucket/dst'
+    content = b'bytes'
+    s3_empty_client.create_bucket(Bucket='bucket')
+    s3_empty_client.put_object(Bucket='bucket', Key='src', Body=content)
+    s3.s3_put_symlink(src_url, dst_url)
     assert s3.s3_get_symlink(dst_url) == src_url
