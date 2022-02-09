@@ -2716,9 +2716,11 @@ def test_put_symlink(s3_empty_client, mocker):
     with pytest.raises(s3.S3IsADirectoryError):
         s3.s3_put_symlink(src_url, 's3://bucket/dst/')
 
+
 def test_islink(s3_empty_client, mocker):
     assert s3.s3_islink('s3:///') == False
     assert s3.s3_islink('s3://bucket/src/') == False
+
 
 def test_get_symlink(s3_empty_client, mocker):
     src_url = 's3://bucket/src'
