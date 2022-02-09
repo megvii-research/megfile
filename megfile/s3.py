@@ -1678,7 +1678,7 @@ def s3_put_symlink(src_url: PathLike, dst_url: PathLike) -> None:
         client.put_object(
             Bucket=dst_bucket,
             Key=dst_key,
-            Body=f'{src_url}'.encode(),
+            Body='{}'.format(src_url).encode(),
             Metadata={
                 "is_symlink": '1',
                 "src_url": src_url
