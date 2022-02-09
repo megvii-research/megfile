@@ -2709,7 +2709,16 @@ def test_put_symlink(s3_empty_client, mocker):
     ]
     assert s3.s3_exists(dst_dir_url + '/dst')
     assert s3.s3_exists(dst_dir_url + '/src')
+    with pytest.raises(s3.S3BucketNotFoundError):
+        s3.s3_put_symlink('s3:///notExistFolder', dst_url)
+    with pytest.raises(s3.S3BucketNotFoundError):
+        s3.s3_put_symlink(src_url, 's3:///notExistFolder')
+    with pytest.raises(s3.S3IsADirectoryError):
+        s3.s3_put_symlink(src_url, 's3://bucket/dst/')
 
+def test_islink(s3_empty_client, mocker):
+    assert s3.s3_islink('s3:///') == False
+    assert s3.s3_islink('s3://bucket/src/') == False
 
 def test_get_symlink(s3_empty_client, mocker):
     src_url = 's3://bucket/src'
@@ -2719,3 +2728,6 @@ def test_get_symlink(s3_empty_client, mocker):
     s3_empty_client.put_object(Bucket='bucket', Key='src', Body=content)
     s3.s3_put_symlink(src_url, dst_url)
     assert s3.s3_get_symlink(dst_url) == src_url
+    assert s3.s3_islink('s3://bucket/src/') == False
+    with pytest.raises(s3.S3NotALinkError):
+        s3.s3_get_symlink(src_url)
