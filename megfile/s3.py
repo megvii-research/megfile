@@ -1680,7 +1680,9 @@ def s3_symlink(dst_url: PathLike, src_url: PathLike) -> None:
             Bucket=dst_bucket,
             Key=dst_key,
             Body='{}'.format(src_url).encode(),
-            Metadata={"is_symlink": '1'})
+            Metadata={
+                "is_symlink": '1',
+                "src_url": src_url})
 
 
 def s3_readlink(src_url: PathLike) -> PathLike:
@@ -1690,13 +1692,20 @@ def s3_readlink(src_url: PathLike) -> PathLike:
     :returns: Return a string representing the path to which the symbolic link points.
     :raises: S3NotALinkError
     '''
-    if not s3_islink(src_url):
-        raise S3NotALinkError('Not a link: %r' % src_url)
     bucket, key = parse_s3_url(src_url)
-    session = get_s3_session()
-    s3 = session.resource('s3')
-    obj = s3.Object(bucket, key)
-    return obj.get()['Body'].read().decode('utf-8')
+    if not bucket:
+        raise S3BucketNotFoundError('Empty bucket name: %r' % src_url)
+    if not key or key.endswith('/'):
+        raise S3IsADirectoryError('Is a directory: %r' % src_url)
+    client = get_s3_client()
+    with raise_s3_error(src_url):
+        resp = client.head_object(Bucket=bucket, Key=key)
+    metadata = dict(
+        (key.lower(), value) for key, value in resp['Metadata'].items())
+    if {'is_symlink', 'src_url'} > set(metadata):
+        raise S3NotALinkError('Not a link: %r' % src_url)
+    else:
+        return metadata['src_url']
 
 
 class S3Cacher(FileCacher):
