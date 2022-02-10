@@ -867,9 +867,15 @@ def test_smart_symlink(s3_empty_client, filesystem):
 
     src_url = 's3://bucket/src'
     dst_url = 's3://bucket/dst'
+    dst_dst_url = 's3://bucket/dst_dst'
+    content = b'bytes'
+    s3_empty_client.create_bucket(Bucket='bucket')
+    s3_empty_client.create_bucket(Bucket='bucketA')
+    s3_empty_client.put_object(Bucket='bucket', Key='src', Body=content)
     smart.smart_symlink(dst_url, src_url)
+    smart.smart_symlink(dst_dst_url, dst_url)
 
-    res = smart.smart_readlink(dst_url)
+    res = smart.smart_readlink(dst_dst_url)
     assert res == src_url
 
 

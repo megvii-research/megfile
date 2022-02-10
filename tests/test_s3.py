@@ -2686,6 +2686,7 @@ def test_exists_with_symlink(s3_empty_client):
 def test_symlink(s3_empty_client):
     src_url = 's3://bucket/src'
     dst_url = 's3://bucket/dst'
+    dst_dst_url = 's3://bucket/dst_dst'
     dir_url = 's3://bucket'
     dst_dir_url = 's3://bucketA'
     content = b'bytes'
@@ -2694,9 +2695,15 @@ def test_symlink(s3_empty_client):
     s3_empty_client.put_object(Bucket='bucket', Key='src', Body=content)
     assert not s3.s3_exists(dst_url)
     s3.s3_symlink(dst_url, src_url)
+    smart.smart_symlink(dst_dst_url, dst_url)
     assert s3.s3_exists(dst_url)
+    assert s3.s3_exists(dst_dst_url)
+
     assert s3.s3_islink(dst_url)
+    assert s3.s3_islink(dst_dst_url)
+
     assert s3.s3_readlink(dst_url) == src_url
+    assert s3.s3_readlink(dst_dst_url) == src_url
 
     def dir_entrys_to_tuples(entries: Iterable[FileEntry]
                             ) -> List[Tuple[str, bool]]:
@@ -2705,6 +2712,7 @@ def test_symlink(s3_empty_client):
     s3.s3_symlink(dst_dir_url, dir_url)
     assert dir_entrys_to_tuples(s3.s3_scandir(dst_dir_url)) == [
         ('dst', False),
+        ('dst_dst', False),
         ('src', False),
     ]
     assert s3.s3_exists(dst_dir_url + '/dst')

@@ -1627,6 +1627,12 @@ def s3_sync(src_url: PathLike, dst_url: PathLike) -> None:
         s3_copy(src_file_path, dst_file_path)
 
 
+def s3_get_metadata(src_url: PathLike, bucket: str, key: str, client) -> dict:
+    with raise_s3_error(src_url):
+        resp = client.head_object(Bucket=bucket, Key=key)
+    return dict((key.lower(), value) for key, value in resp['Metadata'].items())
+
+
 def s3_islink(src_url: PathLike) -> bool:
     '''
     Test whether a path is link
@@ -1641,10 +1647,8 @@ def s3_islink(src_url: PathLike) -> bool:
         if not key or key.endswith('/'):
             return False
         client = get_s3_client()
-        with raise_s3_error(src_url):
-            resp = client.head_object(Bucket=bucket, Key=key)
-        metadata = dict(
-            (key.lower(), value) for key, value in resp['Metadata'].items())
+        metadata = s3_get_metadata(
+            src_url, bucket=bucket, key=key, client=client)
         return 'is_symlink' in metadata and metadata['is_symlink'] == '1'
     except S3FileNotFoundError:
         return False
@@ -1664,7 +1668,7 @@ def s3_symlink(dst_url: PathLike, src_url: PathLike) -> None:
                 s3_path_join(str(dst_url), str(content.name)),
                 s3_path_join(str(src_url), str(content.name)))
         return
-    src_bucket, _ = parse_s3_url(src_url)
+    src_bucket, src_key = parse_s3_url(src_url)
     dst_bucket, dst_key = parse_s3_url(dst_url)
 
     if not src_bucket:
@@ -1675,6 +1679,10 @@ def s3_symlink(dst_url: PathLike, src_url: PathLike) -> None:
         raise S3IsADirectoryError('Is a directory: %r' % dst_url)
 
     client = get_s3_client()
+    metadata = s3_get_metadata(
+        src_url, bucket=src_bucket, key=src_key, client=client)
+    if 'src_url' in metadata:
+        src_url = metadata['src_url']
     with raise_s3_error(dst_url):
         client.put_object(
             Bucket=dst_bucket,
@@ -1682,7 +1690,8 @@ def s3_symlink(dst_url: PathLike, src_url: PathLike) -> None:
             Body='{}'.format(src_url).encode(),
             Metadata={
                 "is_symlink": '1',
-                "src_url": src_url})
+                "src_url": src_url
+            })
 
 
 def s3_readlink(src_url: PathLike) -> PathLike:
@@ -1698,10 +1707,7 @@ def s3_readlink(src_url: PathLike) -> PathLike:
     if not key or key.endswith('/'):
         raise S3IsADirectoryError('Is a directory: %r' % src_url)
     client = get_s3_client()
-    with raise_s3_error(src_url):
-        resp = client.head_object(Bucket=bucket, Key=key)
-    metadata = dict(
-        (key.lower(), value) for key, value in resp['Metadata'].items())
+    metadata = s3_get_metadata(src_url, bucket=bucket, key=key, client=client)
     if {'is_symlink', 'src_url'} > set(metadata):
         raise S3NotALinkError('Not a link: %r' % src_url)
     else:
