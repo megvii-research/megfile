@@ -100,8 +100,8 @@ __all__ = [
     's3_unlink',
     's3_upload',
     's3_walk',
-    's3_put_symlink',
-    's3_get_symlink',
+    's3_symlink',
+    's3_readlink',
     's3_islink',
     'get_endpoint_url',
     'parse_s3_url',
@@ -368,7 +368,7 @@ def s3_isfile(s3_url: PathLike, followlinks: bool = False) -> bool:
 
     client = get_s3_client()
     if followlinks and s3_islink(s3_url):
-        return s3_isfile(s3_get_symlink(s3_url), followlinks=True)
+        return s3_isfile(s3_readlink(s3_url), followlinks=True)
     try:
         client.head_object(Bucket=bucket, Key=key)
     except Exception as error:
@@ -1637,20 +1637,20 @@ def s3_islink(src_url: PathLike) -> bool:
     try:
         bucket, key = parse_s3_url(src_url)
         if not bucket:
-            raise S3BucketNotFoundError('Empty bucket name: %r' % src_url)
+            return False
         if not key or key.endswith('/'):
-            raise S3IsADirectoryError('Is a directory: %r' % src_url)
+            return False
         client = get_s3_client()
         with raise_s3_error(src_url):
             resp = client.head_object(Bucket=bucket, Key=key)
         metadata = dict(
             (key.lower(), value) for key, value in resp['Metadata'].items())
         return 'is_symlink' in metadata and metadata['is_symlink'] == '1'
-    except:
+    except S3FileNotFoundError:
         return False
 
 
-def s3_put_symlink(src_url: PathLike, dst_url: PathLike) -> None:
+def s3_symlink(src_url: PathLike, dst_url: PathLike) -> None:
     '''
     Create a symbolic link pointing to src_url named dst_url.
 
@@ -1660,8 +1660,9 @@ def s3_put_symlink(src_url: PathLike, dst_url: PathLike) -> None:
     if s3_isdir(src_url):
         contents = list(s3_scandir(src_url))
         for content in contents:
-            s3_put_symlink(
-                src_url + '/' + content.name, dst_url + '/' + content.name)
+            s3_symlink(
+                s3_path_join(str(src_url), str(content.name)),
+                s3_path_join(str(dst_url), str(content.name)))
         return
     src_bucket, _ = parse_s3_url(src_url)
     dst_bucket, dst_key = parse_s3_url(dst_url)
@@ -1670,7 +1671,7 @@ def s3_put_symlink(src_url: PathLike, dst_url: PathLike) -> None:
         raise S3BucketNotFoundError('Empty bucket name: %r' % src_url)
     if not dst_bucket:
         raise S3BucketNotFoundError('Empty bucket name: %r' % dst_url)
-    if not s3_isdir(src_url) and not dst_key or dst_key.endswith('/'):
+    if not dst_key or dst_key.endswith('/'):
         raise S3IsADirectoryError('Is a directory: %r' % dst_url)
 
     client = get_s3_client()
@@ -1679,17 +1680,15 @@ def s3_put_symlink(src_url: PathLike, dst_url: PathLike) -> None:
             Bucket=dst_bucket,
             Key=dst_key,
             Body='{}'.format(src_url).encode(),
-            Metadata={
-                "is_symlink": '1',
-                "src_url": src_url
-            })
+            Metadata={"is_symlink": '1'})
 
 
-def s3_get_symlink(src_url: PathLike) -> PathLike:
+def s3_readlink(src_url: PathLike) -> PathLike:
     '''
     Return a string representing the path to which the symbolic link points.
     :param src_url: Path to be read
     :returns: Return a string representing the path to which the symbolic link points.
+    :raises: S3NotALinkError
     '''
     if not s3_islink(src_url):
         raise S3NotALinkError('Not a link: %r' % src_url)

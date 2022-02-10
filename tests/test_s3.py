@@ -18,7 +18,7 @@ from moto import mock_s3
 from megfile import s3, smart
 from megfile.errors import UnknownError, UnsupportedError, translate_s3_error
 from megfile.interfaces import Access, FileEntry, StatResult
-from megfile.s3 import _group_s3path_by_bucket, _group_s3path_by_prefix, _s3_split_magic, content_md5_header, s3_get_symlink, s3_isfile, s3_put_symlink
+from megfile.s3 import _group_s3path_by_bucket, _group_s3path_by_prefix, _s3_split_magic, content_md5_header, s3_isfile, s3_readlink, s3_symlink
 
 from . import Any, FakeStatResult, Now
 
@@ -2677,13 +2677,13 @@ def test_exists_with_symlink(s3_empty_client):
     content = b'bytes'
     s3_empty_client.create_bucket(Bucket='bucket')
     s3_empty_client.put_object(Bucket='bucket', Key='src', Body=content)
-    s3.s3_put_symlink(src_url, dst_url)
+    s3.s3_symlink(src_url, dst_url)
     s3.s3_rename('s3://bucket/src', 's3://bucket/src_new')
     assert s3.s3_exists(dst_url, followlinks=False) == True
     assert s3.s3_exists(dst_url, followlinks=True) == False
 
 
-def test_put_symlink(s3_empty_client):
+def test_symlink(s3_empty_client):
     src_url = 's3://bucket/src'
     dst_url = 's3://bucket/dst'
     dir_url = 's3://bucket'
@@ -2693,16 +2693,16 @@ def test_put_symlink(s3_empty_client):
     s3_empty_client.create_bucket(Bucket='bucketA')
     s3_empty_client.put_object(Bucket='bucket', Key='src', Body=content)
     assert not s3.s3_exists(dst_url)
-    s3.s3_put_symlink(src_url, dst_url)
+    s3.s3_symlink(src_url, dst_url)
     assert s3.s3_exists(dst_url)
     assert s3.s3_islink(dst_url)
-    assert s3.s3_get_symlink(dst_url) == src_url
+    assert s3.s3_readlink(dst_url) == src_url
 
     def dir_entrys_to_tuples(entries: Iterable[FileEntry]
                             ) -> List[Tuple[str, bool]]:
         return sorted([(entry.name, entry.is_dir()) for entry in entries])
 
-    s3.s3_put_symlink(dir_url, dst_dir_url)
+    s3.s3_symlink(dir_url, dst_dir_url)
     assert dir_entrys_to_tuples(s3.s3_scandir('s3://bucketA')) == [
         ('dst', False),
         ('src', False),
@@ -2710,11 +2710,11 @@ def test_put_symlink(s3_empty_client):
     assert s3.s3_exists(dst_dir_url + '/dst')
     assert s3.s3_exists(dst_dir_url + '/src')
     with pytest.raises(s3.S3BucketNotFoundError):
-        s3.s3_put_symlink('s3:///notExistFolder', dst_url)
+        s3.s3_symlink('s3:///notExistFolder', dst_url)
     with pytest.raises(s3.S3BucketNotFoundError):
-        s3.s3_put_symlink(src_url, 's3:///notExistFolder')
+        s3.s3_symlink(src_url, 's3:///notExistFolder')
     with pytest.raises(s3.S3IsADirectoryError):
-        s3.s3_put_symlink(src_url, 's3://bucket/dst/')
+        s3.s3_symlink(src_url, 's3://bucket/dst/')
 
 
 def test_islink():
@@ -2722,14 +2722,14 @@ def test_islink():
     assert s3.s3_islink('s3://bucket/src/') == False
 
 
-def test_get_symlink(s3_empty_client):
+def test_read_symlink(s3_empty_client):
     src_url = 's3://bucket/src'
     dst_url = 's3://bucket/dst'
     content = b'bytes'
     s3_empty_client.create_bucket(Bucket='bucket')
     s3_empty_client.put_object(Bucket='bucket', Key='src', Body=content)
-    s3.s3_put_symlink(src_url, dst_url)
-    assert s3.s3_get_symlink(dst_url) == src_url
+    s3.s3_symlink(src_url, dst_url)
+    assert s3.s3_readlink(dst_url) == src_url
     assert s3.s3_islink('s3://bucket/src/') == False
     with pytest.raises(s3.S3NotALinkError):
-        s3.s3_get_symlink(src_url)
+        s3.s3_readlink(src_url)
