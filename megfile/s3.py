@@ -1650,7 +1650,7 @@ def s3_islink(src_url: PathLike) -> bool:
         return False
 
 
-def s3_symlink(src_url: PathLike, dst_url: PathLike) -> None:
+def s3_symlink(dst_url: PathLike, src_url: PathLike) -> None:
     '''
     Create a symbolic link pointing to src_url named dst_url.
 
@@ -1661,8 +1661,8 @@ def s3_symlink(src_url: PathLike, dst_url: PathLike) -> None:
         contents = list(s3_scandir(src_url))
         for content in contents:
             s3_symlink(
-                s3_path_join(str(src_url), str(content.name)),
-                s3_path_join(str(dst_url), str(content.name)))
+                s3_path_join(str(dst_url), str(content.name)),
+                s3_path_join(str(src_url), str(content.name)))
         return
     src_bucket, _ = parse_s3_url(src_url)
     dst_bucket, dst_key = parse_s3_url(dst_url)

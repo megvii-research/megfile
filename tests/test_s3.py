@@ -2677,7 +2677,7 @@ def test_exists_with_symlink(s3_empty_client):
     content = b'bytes'
     s3_empty_client.create_bucket(Bucket='bucket')
     s3_empty_client.put_object(Bucket='bucket', Key='src', Body=content)
-    s3.s3_symlink(src_url, dst_url)
+    s3.s3_symlink(dst_url, src_url)
     s3.s3_rename('s3://bucket/src', 's3://bucket/src_new')
     assert s3.s3_exists(dst_url, followlinks=False) == True
     assert s3.s3_exists(dst_url, followlinks=True) == False
@@ -2693,7 +2693,7 @@ def test_symlink(s3_empty_client):
     s3_empty_client.create_bucket(Bucket='bucketA')
     s3_empty_client.put_object(Bucket='bucket', Key='src', Body=content)
     assert not s3.s3_exists(dst_url)
-    s3.s3_symlink(src_url, dst_url)
+    s3.s3_symlink(dst_url, src_url)
     assert s3.s3_exists(dst_url)
     assert s3.s3_islink(dst_url)
     assert s3.s3_readlink(dst_url) == src_url
@@ -2702,19 +2702,19 @@ def test_symlink(s3_empty_client):
                             ) -> List[Tuple[str, bool]]:
         return sorted([(entry.name, entry.is_dir()) for entry in entries])
 
-    s3.s3_symlink(dir_url, dst_dir_url)
-    assert dir_entrys_to_tuples(s3.s3_scandir('s3://bucketA')) == [
+    s3.s3_symlink(dst_dir_url, dir_url)
+    assert dir_entrys_to_tuples(s3.s3_scandir(dst_dir_url)) == [
         ('dst', False),
         ('src', False),
     ]
     assert s3.s3_exists(dst_dir_url + '/dst')
     assert s3.s3_exists(dst_dir_url + '/src')
     with pytest.raises(s3.S3BucketNotFoundError):
-        s3.s3_symlink('s3:///notExistFolder', dst_url)
+        s3.s3_symlink(dst_url, 's3:///notExistFolder')
     with pytest.raises(s3.S3BucketNotFoundError):
-        s3.s3_symlink(src_url, 's3:///notExistFolder')
+        s3.s3_symlink('s3:///notExistFolder', src_url)
     with pytest.raises(s3.S3IsADirectoryError):
-        s3.s3_symlink(src_url, 's3://bucket/dst/')
+        s3.s3_symlink('s3://bucket/dst/', src_url)
 
 
 def test_islink():
@@ -2728,7 +2728,7 @@ def test_read_symlink(s3_empty_client):
     content = b'bytes'
     s3_empty_client.create_bucket(Bucket='bucket')
     s3_empty_client.put_object(Bucket='bucket', Key='src', Body=content)
-    s3.s3_symlink(src_url, dst_url)
+    s3.s3_symlink(dst_url, src_url)
     assert s3.s3_readlink(dst_url) == src_url
     assert s3.s3_islink('s3://bucket/src/') == False
     with pytest.raises(s3.S3NotALinkError):
