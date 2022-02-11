@@ -1684,9 +1684,7 @@ def s3_symlink(dst_url: PathLike, src_url: PathLike) -> None:
         src_url = metadata['src_url']
     with raise_s3_error(dst_url):
         client.put_object(
-            Bucket=dst_bucket,
-            Key=dst_key,
-            Metadata={"src_url": src_url})
+            Bucket=dst_bucket, Key=dst_key, Metadata={"src_url": src_url})
 
 
 def s3_readlink(src_url: PathLike) -> PathLike:
