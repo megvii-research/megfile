@@ -2687,11 +2687,8 @@ def test_symlink(s3_empty_client):
     src_url = 's3://bucket/src'
     dst_url = 's3://bucket/dst'
     dst_dst_url = 's3://bucket/dst_dst'
-    dir_url = 's3://bucket'
-    dst_dir_url = 's3://bucketA'
     content = b'bytes'
     s3_empty_client.create_bucket(Bucket='bucket')
-    s3_empty_client.create_bucket(Bucket='bucketA')
     s3_empty_client.put_object(Bucket='bucket', Key='src', Body=content)
     assert not s3.s3_exists(dst_url)
     s3.s3_symlink(dst_url, src_url)
@@ -2705,18 +2702,6 @@ def test_symlink(s3_empty_client):
     assert s3.s3_readlink(dst_url) == src_url
     assert s3.s3_readlink(dst_dst_url) == src_url
 
-    def dir_entrys_to_tuples(entries: Iterable[FileEntry]
-                            ) -> List[Tuple[str, bool]]:
-        return sorted([(entry.name, entry.is_dir()) for entry in entries])
-
-    s3.s3_symlink(dst_dir_url, dir_url)
-    assert dir_entrys_to_tuples(s3.s3_scandir(dst_dir_url)) == [
-        ('dst', False),
-        ('dst_dst', False),
-        ('src', False),
-    ]
-    assert s3.s3_exists(dst_dir_url + '/dst')
-    assert s3.s3_exists(dst_dir_url + '/src')
     with pytest.raises(s3.S3BucketNotFoundError):
         s3.s3_symlink(dst_url, 's3:///notExistFolder')
     with pytest.raises(s3.S3BucketNotFoundError):

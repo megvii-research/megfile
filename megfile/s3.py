@@ -1667,13 +1667,6 @@ def s3_symlink(dst_url: PathLike, src_url: PathLike) -> None:
     '''
     if len(str(dst_url).encode()) > 255:
         raise S3NameTooLongError('File name too long: %r' % dst_url)
-    if s3_isdir(src_url):
-        contents = list(s3_scandir(src_url))
-        for content in contents:
-            s3_symlink(
-                s3_path_join(str(dst_url), str(content.name)),
-                s3_path_join(str(src_url), str(content.name)))
-        return
     src_bucket, src_key = parse_s3_url(src_url)
     dst_bucket, dst_key = parse_s3_url(dst_url)
 
