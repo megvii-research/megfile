@@ -2723,11 +2723,14 @@ def test_symlink(s3_empty_client):
         s3.s3_symlink('s3:///notExistFolder', src_url)
     with pytest.raises(s3.S3IsADirectoryError):
         s3.s3_symlink('s3://bucket/dst/', src_url)
+    with pytest.raises(s3.S3NameTooLongError):
+        s3.s3_symlink('s3://notExistFolder' + '/name/too/long' * 100, src_url)
 
 
-def test_islink():
+def test_islink(s3_empty_client):
     assert s3.s3_islink('s3:///') == False
     assert s3.s3_islink('s3://bucket/src/') == False
+    assert s3.s3_islink('s3://notExistFolder' + '/name/too/long' * 100) == False
 
 
 def test_read_symlink(s3_empty_client):
@@ -2741,3 +2744,7 @@ def test_read_symlink(s3_empty_client):
     assert s3.s3_islink('s3://bucket/src/') == False
     with pytest.raises(s3.S3NotALinkError):
         s3.s3_readlink(src_url)
+    with pytest.raises(s3.S3BucketNotFoundError):
+        s3.s3_readlink('s3:///notExistFolder')
+    with pytest.raises(s3.S3IsADirectoryError):
+        s3.s3_readlink('s3://bucket/dst/')

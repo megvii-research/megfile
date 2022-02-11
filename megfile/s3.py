@@ -15,7 +15,7 @@ import botocore
 import smart_open.s3
 from botocore.awsrequest import AWSResponse
 
-from megfile.errors import S3BucketNotFoundError, S3ConfigError, S3FileExistsError, S3FileNotFoundError, S3IsADirectoryError, S3NotADirectoryError, S3NotALinkError, S3PermissionError, S3UnknownError, UnsupportedError, _create_missing_ok_generator
+from megfile.errors import S3BucketNotFoundError, S3ConfigError, S3FileExistsError, S3FileNotFoundError, S3IsADirectoryError, S3NameTooLongError, S3NotADirectoryError, S3NotALinkError, S3PermissionError, S3UnknownError, UnsupportedError, _create_missing_ok_generator
 from megfile.errors import _logger as error_logger
 from megfile.errors import patch_method, raise_s3_error, s3_should_retry, translate_fs_error, translate_s3_error
 from megfile.interfaces import Access, FileCacher, FileEntry, PathLike, StatResult
@@ -1639,8 +1639,11 @@ def s3_islink(src_url: PathLike) -> bool:
 
     :param path: Given path
     :returns: True if a path is link, else False
+    :raises: S3NotALinkError
     '''
     try:
+        if len(str(src_url).encode()) > 255:
+            return False
         bucket, key = parse_s3_url(src_url)
         if not bucket:
             return False
@@ -1649,7 +1652,7 @@ def s3_islink(src_url: PathLike) -> bool:
         client = get_s3_client()
         metadata = s3_get_metadata(
             src_url, bucket=bucket, key=key, client=client)
-        return 'is_symlink' in metadata and metadata['is_symlink'] == '1'
+        return 'src_url' in metadata
     except S3FileNotFoundError:
         return False
 
@@ -1660,7 +1663,10 @@ def s3_symlink(dst_url: PathLike, src_url: PathLike) -> None:
 
     :param dst_url: Desination path
     :param src_url: Source path
+    :raises: S3NameTooLongError, S3BucketNotFoundError, S3IsADirectoryError
     '''
+    if len(str(dst_url).encode()) > 255:
+        raise S3NameTooLongError('File name too long: %r' % dst_url)
     if s3_isdir(src_url):
         contents = list(s3_scandir(src_url))
         for content in contents:
@@ -1688,10 +1694,7 @@ def s3_symlink(dst_url: PathLike, src_url: PathLike) -> None:
             Bucket=dst_bucket,
             Key=dst_key,
             Body='{}'.format(src_url).encode(),
-            Metadata={
-                "is_symlink": '1',
-                "src_url": src_url
-            })
+            Metadata={"src_url": src_url})
 
 
 def s3_readlink(src_url: PathLike) -> PathLike:
@@ -1699,8 +1702,10 @@ def s3_readlink(src_url: PathLike) -> PathLike:
     Return a string representing the path to which the symbolic link points.
     :param src_url: Path to be read
     :returns: Return a string representing the path to which the symbolic link points.
-    :raises: S3NotALinkError
+    :raises: S3NameTooLongError, S3BucketNotFoundError, S3IsADirectoryError, S3NotALinkError
     '''
+    if len(str(src_url).encode()) > 255:
+        raise S3NameTooLongError('File name too long: %r' % src_url)
     bucket, key = parse_s3_url(src_url)
     if not bucket:
         raise S3BucketNotFoundError('Empty bucket name: %r' % src_url)
@@ -1708,7 +1713,7 @@ def s3_readlink(src_url: PathLike) -> PathLike:
         raise S3IsADirectoryError('Is a directory: %r' % src_url)
     client = get_s3_client()
     metadata = s3_get_metadata(src_url, bucket=bucket, key=key, client=client)
-    if {'is_symlink', 'src_url'} > set(metadata):
+    if not 'src_url' in metadata:
         raise S3NotALinkError('Not a link: %r' % src_url)
     else:
         return metadata['src_url']
