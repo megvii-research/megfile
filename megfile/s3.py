@@ -1665,7 +1665,7 @@ def s3_symlink(dst_url: PathLike, src_url: PathLike) -> None:
     :param src_url: Source path
     :raises: S3NameTooLongError, S3BucketNotFoundError, S3IsADirectoryError
     '''
-    if len(str(dst_url).encode()) > 255:
+    if len(str(dst_url).encode()) > 1024:
         raise S3NameTooLongError('File name too long: %r' % dst_url)
     src_bucket, src_key = parse_s3_url(src_url)
     dst_bucket, dst_key = parse_s3_url(dst_url)
@@ -1694,7 +1694,7 @@ def s3_readlink(src_url: PathLike) -> PathLike:
     :returns: Return a string representing the path to which the symbolic link points.
     :raises: S3NameTooLongError, S3BucketNotFoundError, S3IsADirectoryError, S3NotALinkError
     '''
-    if len(str(src_url).encode()) > 255:
+    if len(str(src_url).encode()) > 1024:
         raise S3NameTooLongError('File name too long: %r' % src_url)
     bucket, key = parse_s3_url(src_url)
     if not bucket:

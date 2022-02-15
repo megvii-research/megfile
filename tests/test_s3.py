@@ -2733,3 +2733,5 @@ def test_read_symlink(s3_empty_client):
         s3.s3_readlink('s3:///notExistFolder')
     with pytest.raises(s3.S3IsADirectoryError):
         s3.s3_readlink('s3://bucket/dst/')
+    with pytest.raises(s3.S3NameTooLongError):
+        s3.s3_readlink('s3://notExistFolder' + '/name/too/long' * 100)
