@@ -1650,7 +1650,7 @@ def s3_islink(src_url: PathLike) -> bool:
         client = get_s3_client()
         metadata = s3_get_metadata(
             src_url, bucket=bucket, key=key, client=client)
-        return 'src_url' in metadata
+        return 'symlink_to' in metadata
     except S3FileNotFoundError:
         return False
 
@@ -1678,11 +1678,11 @@ def s3_symlink(dst_url: PathLike, src_url: PathLike) -> None:
     client = get_s3_client()
     metadata = s3_get_metadata(
         src_url, bucket=src_bucket, key=src_key, client=client)
-    if 'src_url' in metadata:
-        src_url = metadata['src_url']
+    if 'symlink_to' in metadata:
+        src_url = metadata['symlink_to']
     with raise_s3_error(dst_url):
         client.put_object(
-            Bucket=dst_bucket, Key=dst_key, Metadata={"src_url": src_url})
+            Bucket=dst_bucket, Key=dst_key, Metadata={"symlink_to": src_url})
 
 
 def s3_readlink(src_url: PathLike) -> PathLike:
@@ -1699,10 +1699,10 @@ def s3_readlink(src_url: PathLike) -> PathLike:
         raise S3IsADirectoryError('Is a directory: %r' % src_url)
     client = get_s3_client()
     metadata = s3_get_metadata(src_url, bucket=bucket, key=key, client=client)
-    if not 'src_url' in metadata:
+    if not 'symlink_to' in metadata:
         raise S3NotALinkError('Not a link: %r' % src_url)
     else:
-        return metadata['src_url']
+        return metadata['symlink_to']
 
 
 class S3Cacher(FileCacher):
