@@ -19,7 +19,9 @@ FS_TEST_DST_PATH = "/test/dir/dst_file"
 
 S3_PROTOCOL_PREFIX = S3Path.protocol + "://"
 S3_TEST_PATH_WITHOUT_PROTOCOL = "bucket/dir/file"
+S3_SRC_PATH_WITHOUT_PROTOCOL = "bucket/dir/src"
 S3_TEST_PATH = S3_PROTOCOL_PREFIX + S3_TEST_PATH_WITHOUT_PROTOCOL
+S3_SRC_PATH = S3_PROTOCOL_PREFIX + S3_SRC_PATH_WITHOUT_PROTOCOL
 
 HTTP_PROTOCOL_PRFIX = HttpPath.protocol + "://"
 HTTP_TEST_PATH_WITHOUT_PROTOCOL = "www.test.com"
@@ -310,4 +312,16 @@ def test_symlink_to(funcA):
 @patch.object(FSPath, 'readlink')
 def test_readlink(funcA):
     SmartPath(FS_TEST_DST_PATH).readlink()
+    funcA.assert_called_once()
+
+
+@patch.object(S3Path, 'symlink_to')
+def test_symlink_to_s3(funcA):
+    SmartPath(S3_TEST_PATH).symlink_to(S3_SRC_PATH)
+    funcA.assert_called_once()
+
+
+@patch.object(S3Path, 'readlink')
+def test_readlink_s3(funcA):
+    SmartPath(S3_TEST_PATH).readlink()
     funcA.assert_called_once()

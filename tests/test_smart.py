@@ -857,13 +857,25 @@ def test_smart_cache(mocker):
     assert s3_download.called is True
 
 
-def test_smart_symlink(filesystem):
+def test_smart_symlink(mocker, s3_empty_client, filesystem):
     src_path = '/tmp/src_file'
     dst_path = '/tmp/dst_file'
     smart.smart_symlink(dst_path, src_path)
 
     res = os.readlink(dst_path)
     assert res == src_path
+
+    src_url = 's3://bucket/src'
+    dst_url = 's3://bucket/dst'
+    dst_dst_url = 's3://bucket/dst_dst'
+    content = b'bytes'
+    s3_empty_client.create_bucket(Bucket='bucket')
+    s3_empty_client.put_object(Bucket='bucket', Key='src', Body=content)
+    smart.smart_symlink(dst_url, src_url)
+    smart.smart_symlink(dst_dst_url, dst_url)
+
+    res = smart.smart_readlink(dst_dst_url)
+    assert res == src_url
 
 
 def test_smart_readlink(filesystem):

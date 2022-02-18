@@ -51,6 +51,8 @@ class S3Path(URIPath):
     md5 = _bind_function('s3_getmd5')
     copy = _bind_function('s3_copy')
     sync = _bind_function('s3_sync')
+    symlink_to = _bind_function('s3_symlink')
+    readlink = _bind_function('s3_readlink')
 
     def save(self, file_object: BinaryIO):
         return s3.s3_save_as(file_object, self.path_with_protocol)

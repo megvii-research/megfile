@@ -33,6 +33,7 @@ __all__ = [
     'raise_s3_error',
     's3_should_retry',
     'translate_fs_error',
+    'http_should_retry',
 ]
 
 _logger = getLogger(__name__)
@@ -238,6 +239,14 @@ class S3PermissionError(S3Exception, PermissionError):
 class S3ConfigError(S3Exception, EnvironmentError):
     '''Error raised by wrong S3 config, including wrong config file format, wrong aws_secret_access_key / aws_access_key_id, and etc.
     '''
+
+
+class S3NotALinkError(S3FileNotFoundError, PermissionError):
+    pass
+
+
+class S3NameTooLongError(S3FileNotFoundError, PermissionError):
+    pass
 
 
 class S3UnknownError(S3Exception, UnknownError):

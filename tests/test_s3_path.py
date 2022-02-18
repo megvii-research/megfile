@@ -183,3 +183,15 @@ def test_md5(mocker):
     funcA = mocker.patch('megfile.s3.s3_getmd5')
     path.md5()
     funcA.assert_called_once_with(TEST_PATH_WITH_PROTOCOL)
+
+
+def test_symlink_to(mocker):
+    funcA = mocker.patch('megfile.s3.s3_symlink')
+    path.symlink_to()
+    funcA.assert_called_once_with(TEST_PATH_WITH_PROTOCOL)
+
+
+def test_read_symlink(mocker):
+    funcA = mocker.patch('megfile.s3.s3_readlink')
+    path.readlink()
+    funcA.assert_called_once_with(TEST_PATH_WITH_PROTOCOL)
