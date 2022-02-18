@@ -368,7 +368,7 @@ def s3_isfile(s3_url: PathLike, followlinks: bool = False) -> bool:
 
     client = get_s3_client()
     if followlinks and s3_islink(s3_url):
-        return s3_isfile(s3_readlink(s3_url), followlinks=True)
+        return s3_isfile(s3_readlink(s3_url))
     try:
         client.head_object(Bucket=bucket, Key=key)
     except Exception as error:
