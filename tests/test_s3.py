@@ -14,8 +14,6 @@ import boto3
 import botocore
 import pytest
 from moto import mock_s3
-from rx import return_value
-from scipy.fft import dst
 
 from megfile import s3, smart
 from megfile.errors import UnknownError, UnsupportedError, translate_s3_error
