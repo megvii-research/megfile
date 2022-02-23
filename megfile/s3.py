@@ -285,6 +285,9 @@ def s3_copy(
     :param dst_path: Target file path
     :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
     '''
+    # if s3_islink(src_url) and s3_exists(src_url, followlinks=True):
+    if s3_islink(src_url):
+        src_url = s3_readlink(src_url)
     src_bucket, src_key = parse_s3_url(src_url)
     dst_bucket, dst_key = parse_s3_url(dst_url)
 
@@ -361,14 +364,13 @@ def s3_isfile(s3_url: PathLike, followlinks: bool = False) -> bool:
     :param s3_url: Path to be tested
     :returns: True if path is s3 file, else False
     '''
+    if followlinks and s3_islink(s3_url):
+        s3_url = s3_readlink(s3_url)
     bucket, key = parse_s3_url(s3_url)
     if not bucket or not key or key.endswith('/'):
         # s3://, s3:///key, s3://bucket, s3://bucket/prefix/
         return False
-
     client = get_s3_client()
-    if followlinks and s3_islink(s3_url):
-        return s3_isfile(s3_readlink(s3_url))
     try:
         client.head_object(Bucket=bucket, Key=key)
     except Exception as error:
@@ -389,6 +391,8 @@ def s3_access(s3_url: PathLike, mode: Access = Access.READ) -> bool:
     :param mode: access mode
     :returns: bool, if the bucket of s3_url has read/write access.
     '''
+    if s3_islink(s3_url):
+        s3_url = s3_readlink(s3_url)
     bucket, _ = parse_s3_url(s3_url)  # only check bucket accessibility
     if not bucket:
         raise Exception("No available bucket")
@@ -442,6 +446,7 @@ def s3_exists(s3_url: PathLike, followlinks: bool = False) -> bool:
     If the bucket of s3_url are not permitted to read, return False
 
     :param path: Path to be tested
+    :param followlinks: Be regarded as exists if True, else lexists
     :returns: True if s3_url eixsts, else False
     '''
     bucket, key = parse_s3_url(s3_url)
@@ -465,7 +470,6 @@ def _list_objects_recursive(
 
         if not resp['IsTruncated']:
             break
-
         resp = s3_client.list_objects_v2(
             Bucket=bucket,
             Prefix=prefix,
@@ -515,8 +519,18 @@ def s3_scandir(s3_url: PathLike) -> Iterator[FileEntry]:
                         common_prefix['Prefix'][len(prefix):-1],
                         StatResult(isdir=True, extra=common_prefix))
                 for content in resp.get('Contents', []):
-                    yield FileEntry(
-                        content['Key'][len(prefix):], _make_stat(content))
+
+                    def generate_s3_path(bucket: str, key: str) -> str:
+                        return "s3://%s/%s" % (bucket, key)
+
+                    content_key = content['Key']
+                    src_url = generate_s3_path(bucket, content_key)
+                    if s3_islink(src_url):
+                        yield FileEntry(
+                            content['Key'][len(prefix):], s3_stat(src_url))
+                    else:
+                        yield FileEntry(
+                            content['Key'][len(prefix):], _make_stat(content))
 
     return create_generator()
 
@@ -574,6 +588,10 @@ def s3_stat(s3_url: PathLike) -> StatResult:
     :returns: StatResult
     :raises: S3FileNotFoundError, S3BucketNotFoundError
     '''
+    islnk = False
+    if s3_islink(s3_url):
+        islnk = True
+        s3_url = s3_readlink(s3_url)
     bucket, key = parse_s3_url(s3_url)
     if not bucket:
         raise S3BucketNotFoundError('Empty bucket name: %r' % s3_url)
@@ -585,6 +603,7 @@ def s3_stat(s3_url: PathLike) -> StatResult:
     with raise_s3_error(s3_url):
         content = client.head_object(Bucket=bucket, Key=key)
         stat_record = StatResult(
+            islnk=islnk,
             size=content['ContentLength'],
             mtime=content['LastModified'].timestamp(),
             extra=content)
@@ -653,6 +672,8 @@ def s3_download(
     :param dst_url: target fs path
     :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
     '''
+    if s3_islink(src_url):
+        src_url = s3_readlink(src_url)
     src_bucket, src_key = parse_s3_url(src_url)
     if not src_bucket:
         raise S3BucketNotFoundError('Empty bucket name: %r' % src_url)
@@ -1176,6 +1197,8 @@ def s3_load_from(s3_url: PathLike) -> BinaryIO:
     :param s3_url: Specified path
     :returns: BinaryIO
     '''
+    if s3_islink(s3_url):
+        s3_url = s3_readlink(s3_url)
     bucket, key = parse_s3_url(s3_url)
     if not bucket:
         raise S3BucketNotFoundError('Empty bucket name: %r' % s3_url)
@@ -1194,6 +1217,8 @@ def _s3_binary_mode(s3_open_func):
 
     @wraps(s3_open_func)
     def wrapper(s3_url, mode: str = 'rb', **kwargs):
+        if s3_islink(s3_url):
+            s3_url = s3_readlink(s3_url)
         bucket, key = parse_s3_url(s3_url)
         if not bucket:
             raise S3BucketNotFoundError('Empty bucket name: %r' % s3_url)
@@ -1565,6 +1590,8 @@ def s3_load_content(
         return client.get_object(
             Bucket=bucket, Key=key, Range=range_str)['Body'].read()
 
+    if s3_islink(s3_url):
+        s3_url = s3_readlink(s3_url)
     bucket, key = parse_s3_url(s3_url)
     if not bucket:
         raise S3BucketNotFoundError('Empty bucket name: %r' % s3_url)
