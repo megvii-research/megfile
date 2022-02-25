@@ -266,6 +266,13 @@ def _become_prefix(prefix: str) -> str:
 
 
 def _make_stat(content: Dict[str, Any]):
+    if 'islnk' in content:
+        return StatResult(
+            islnk=content['islnk'],
+            size=content['Size'],
+            mtime=content['LastModified'].timestamp(),
+            extra=content,
+        )
     return StatResult(
         size=content['Size'],
         mtime=content['LastModified'].timestamp(),
@@ -276,6 +283,7 @@ def _make_stat(content: Dict[str, Any]):
 def s3_copy(
         src_url: PathLike,
         dst_url: PathLike,
+        followlinks: bool = False,
         callback: Optional[Callable[[int], None]] = None) -> None:
     ''' File copy on S3
     Copy content of file on `src_path` to `dst_path`.
@@ -285,9 +293,10 @@ def s3_copy(
     :param dst_path: Target file path
     :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
     '''
-    # if s3_islink(src_url) and s3_exists(src_url, followlinks=True):
-    if s3_islink(src_url):
-        src_url = s3_readlink(src_url)
+    if followlinks:
+        metadata = s3_get_metadata(src_url)
+        if metadata and 'symlink_to' in metadata:
+            src_url = metadata['symlink_to']
     src_bucket, src_key = parse_s3_url(src_url)
     dst_bucket, dst_key = parse_s3_url(dst_url)
 
@@ -364,8 +373,10 @@ def s3_isfile(s3_url: PathLike, followlinks: bool = False) -> bool:
     :param s3_url: Path to be tested
     :returns: True if path is s3 file, else False
     '''
-    if followlinks and s3_islink(s3_url):
-        s3_url = s3_readlink(s3_url)
+    if followlinks:
+        metadata = s3_get_metadata(s3_url)
+        if metadata and 'symlink_to' in metadata:
+            s3_url = metadata['symlink_to']
     bucket, key = parse_s3_url(s3_url)
     if not bucket or not key or key.endswith('/'):
         # s3://, s3:///key, s3://bucket, s3://bucket/prefix/
@@ -382,7 +393,9 @@ def s3_isfile(s3_url: PathLike, followlinks: bool = False) -> bool:
     return True
 
 
-def s3_access(s3_url: PathLike, mode: Access = Access.READ) -> bool:
+def s3_access(
+        s3_url: PathLike, mode: Access = Access.READ,
+        followlinks: bool = False) -> bool:
     '''
     Test if path has access permission described by mode
     Using head_bucket(), now READ/WRITE are same.
@@ -391,8 +404,10 @@ def s3_access(s3_url: PathLike, mode: Access = Access.READ) -> bool:
     :param mode: access mode
     :returns: bool, if the bucket of s3_url has read/write access.
     '''
-    if s3_islink(s3_url):
-        s3_url = s3_readlink(s3_url)
+    if followlinks:
+        metadata = s3_get_metadata(s3_url)
+        if metadata and 'symlink_to' in metadata:
+            s3_url = metadata['symlink_to']
     bucket, _ = parse_s3_url(s3_url)  # only check bucket accessibility
     if not bucket:
         raise Exception("No available bucket")
@@ -453,7 +468,7 @@ def s3_exists(s3_url: PathLike, followlinks: bool = False) -> bool:
     if not bucket:  # s3:// => True, s3:///key => False
         return not key
 
-    return s3_isfile(s3_url, followlinks) or s3_isdir(s3_url)
+    return s3_isdir(s3_url) or s3_isfile(s3_url, followlinks)
 
 
 max_keys = 1000
@@ -478,7 +493,8 @@ def _list_objects_recursive(
             MaxKeys=max_keys)
 
 
-def s3_scandir(s3_url: PathLike) -> Iterator[FileEntry]:
+def s3_scandir(s3_url: PathLike,
+               followlinks: bool = False) -> Iterator[FileEntry]:
     '''
     Get all contents of given s3_url, the order of result is not guaranteed.
 
@@ -523,11 +539,18 @@ def s3_scandir(s3_url: PathLike) -> Iterator[FileEntry]:
                     def generate_s3_path(bucket: str, key: str) -> str:
                         return "s3://%s/%s" % (bucket, key)
 
-                    content_key = content['Key']
-                    src_url = generate_s3_path(bucket, content_key)
-                    if s3_islink(src_url):
-                        yield FileEntry(
-                            content['Key'][len(prefix):], s3_stat(src_url))
+                    if followlinks:
+                        content_key = content['Key']
+                        src_url = generate_s3_path(bucket, content_key)
+                        if s3_islink(src_url):
+                            content['islnk'] = True
+                            yield FileEntry(
+                                content['Key'][len(prefix):],
+                                _make_stat(content))
+                        else:
+                            yield FileEntry(
+                                content['Key'][len(prefix):],
+                                _make_stat(content))
                     else:
                         yield FileEntry(
                             content['Key'][len(prefix):], _make_stat(content))
@@ -535,7 +558,7 @@ def s3_scandir(s3_url: PathLike) -> Iterator[FileEntry]:
     return create_generator()
 
 
-def s3_listdir(s3_url: PathLike) -> List[str]:
+def s3_listdir(s3_url: PathLike, followlinks: bool = False) -> List[str]:
     '''
     Get all contents of given s3_url. The result is in acsending alphabetical order.
 
@@ -543,7 +566,7 @@ def s3_listdir(s3_url: PathLike) -> List[str]:
     :returns: All contents have prefix of s3_url in acsending alphabetical order
     :raises: S3FileNotFoundError, S3NotADirectoryError
     '''
-    entries = list(s3_scandir(s3_url))
+    entries = list(s3_scandir(s3_url, followlinks=followlinks))
     return sorted([entry.name for entry in entries])
 
 
@@ -577,7 +600,7 @@ def _s3_getdirstat(s3_dir_url: str) -> StatResult:
     return StatResult(size=size, mtime=mtime, isdir=True)
 
 
-def s3_stat(s3_url: PathLike) -> StatResult:
+def s3_stat(s3_url: PathLike, followlinks: bool = False) -> StatResult:
     '''
     Get StatResult of s3_url file, including file size and mtime, referring to s3_getsize and s3_getmtime
 
@@ -589,9 +612,11 @@ def s3_stat(s3_url: PathLike) -> StatResult:
     :raises: S3FileNotFoundError, S3BucketNotFoundError
     '''
     islnk = False
-    if s3_islink(s3_url):
-        islnk = True
-        s3_url = s3_readlink(s3_url)
+    if followlinks:
+        metadata = s3_get_metadata(s3_url)
+        if metadata and 'symlink_to' in metadata:
+            islnk = True
+            s3_url = metadata['symlink_to']
     bucket, key = parse_s3_url(s3_url)
     if not bucket:
         raise S3BucketNotFoundError('Empty bucket name: %r' % s3_url)
@@ -610,7 +635,7 @@ def s3_stat(s3_url: PathLike) -> StatResult:
     return stat_record
 
 
-def s3_getsize(s3_url: PathLike) -> int:
+def s3_getsize(s3_url: PathLike, followlinks: bool = False) -> int:
     '''
     Get file size on the given s3_url path (in bytes).
     If the path in a directory, return the sum of all file size in it, including file in subdirectories (if exist).
@@ -622,10 +647,10 @@ def s3_getsize(s3_url: PathLike) -> int:
     :returns: File size
     :raises: S3FileNotFoundError, UnsupportedError
     '''
-    return s3_stat(s3_url).size
+    return s3_stat(s3_url, followlinks=followlinks).size
 
 
-def s3_getmtime(s3_url: PathLike) -> float:
+def s3_getmtime(s3_url: PathLike, followlinks: bool = False) -> float:
     '''
     Get last-modified time of the file on the given s3_url path (in Unix timestamp format).
     If the path is an existent directory, return the latest modified time of all file in it. The mtime of empty directory is 1970-01-01 00:00:00
@@ -636,7 +661,7 @@ def s3_getmtime(s3_url: PathLike) -> float:
     :returns: Last-modified time
     :raises: S3FileNotFoundError, UnsupportedError
     '''
-    return s3_stat(s3_url).mtime
+    return s3_stat(s3_url, followlinks=followlinks).mtime
 
 
 def s3_upload(
@@ -665,6 +690,7 @@ def s3_upload(
 def s3_download(
         src_url: PathLike,
         dst_url: PathLike,
+        followlinks: bool = False,
         callback: Optional[Callable[[int], None]] = None) -> None:
     '''
     Downloads a file from s3 to local filesystem.
@@ -672,8 +698,10 @@ def s3_download(
     :param dst_url: target fs path
     :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
     '''
-    if s3_islink(src_url):
-        src_url = s3_readlink(src_url)
+    if followlinks:
+        metadata = s3_get_metadata(src_url)
+        if metadata and 'symlink_to' in metadata:
+            src_url = metadata['symlink_to']
     src_bucket, src_key = parse_s3_url(src_url)
     if not src_bucket:
         raise S3BucketNotFoundError('Empty bucket name: %r' % src_url)
@@ -848,8 +876,9 @@ def s3_scan(s3_url: PathLike, missing_ok: bool = True) -> Iterator[str]:
     return create_generator()
 
 
-def s3_scan_stat(s3_url: PathLike,
-                 missing_ok: bool = True) -> Iterator[FileEntry]:
+def s3_scan_stat(
+        s3_url: PathLike, missing_ok: bool = True,
+        followlinks: bool = False) -> Iterator[FileEntry]:
     '''
     Iteratively traverse only files in given directory, in alphabetical order.
     Every iteration on generator yields a tuple of path string and file stat
@@ -867,11 +896,13 @@ def s3_scan_stat(s3_url: PathLike,
         if not s3_isdir(s3_url):
             if s3_isfile(s3_url):
                 # On s3, file and directory may be of same name and level, so need to test the path is file or directory
-                yield FileEntry(fspath(s3_url), s3_stat(s3_url))
+                yield FileEntry(
+                    fspath(s3_url), s3_stat(s3_url, followlinks=followlinks))
             return
 
         if not key.endswith('/') and s3_isfile(s3_url):
-            yield FileEntry(fspath(s3_url), s3_stat(s3_url))
+            yield FileEntry(
+                fspath(s3_url), s3_stat(s3_url, followlinks=followlinks))
 
         prefix = _become_prefix(key)
         client = get_s3_client()
@@ -957,8 +988,10 @@ def s3_iglob(
 
 
 def s3_glob_stat(
-        s3_pathname: PathLike, recursive: bool = True,
-        missing_ok: bool = True) -> Iterator[FileEntry]:
+        s3_pathname: PathLike,
+        recursive: bool = True,
+        missing_ok: bool = True,
+        followlinks: bool = False) -> Iterator[FileEntry]:
     '''Return a generator contains tuples of path and file stat, in ascending alphabetical order, in which path matches glob pattern
     Notes：Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
 
@@ -975,7 +1008,10 @@ def s3_glob_stat(
         for group_s3_pathname_2 in _group_s3path_by_prefix(group_s3_pathname_1):
             iterables.append(
                 _s3_glob_stat_single_path(
-                    group_s3_pathname_2, recursive, missing_ok))
+                    group_s3_pathname_2,
+                    recursive,
+                    missing_ok,
+                    followlinks=followlinks))
 
     generator = chain(*iterables)
     return _create_missing_ok_generator(
@@ -984,8 +1020,10 @@ def s3_glob_stat(
 
 
 def _s3_glob_stat_single_path(
-        s3_pathname: PathLike, recursive: bool = True,
-        missing_ok: bool = True) -> Iterator[FileEntry]:
+        s3_pathname: PathLike,
+        recursive: bool = True,
+        missing_ok: bool = True,
+        followlinks: bool = False) -> Iterator[FileEntry]:
     if not recursive:
         # If not recursive, replace ** with *
         s3_pathname = re.sub(r'\*{2,}', '*', s3_pathname)
@@ -1006,7 +1044,9 @@ def _s3_glob_stat_single_path(
             return
         if not has_magic(_s3_pathname):
             if s3_isfile(_s3_pathname):
-                yield FileEntry(_s3_pathname, s3_stat(_s3_pathname))
+                yield FileEntry(
+                    _s3_pathname,
+                    s3_stat(_s3_pathname, followlinks=followlinks))
             if s3_isdir(_s3_pathname):
                 yield FileEntry(_s3_pathname, StatResult(isdir=True))
             return
@@ -1189,7 +1229,7 @@ def s3_save_as(file_object: BinaryIO, s3_url: PathLike) -> None:
         client.upload_fileobj(file_object, Bucket=bucket, Key=key)
 
 
-def s3_load_from(s3_url: PathLike) -> BinaryIO:
+def s3_load_from(s3_url: PathLike, followlinks: bool = False) -> BinaryIO:
     '''Read all content in binary on specified path and write into memory
 
     User should close the BinaryIO manually
@@ -1197,8 +1237,10 @@ def s3_load_from(s3_url: PathLike) -> BinaryIO:
     :param s3_url: Specified path
     :returns: BinaryIO
     '''
-    if s3_islink(s3_url):
-        s3_url = s3_readlink(s3_url)
+    if followlinks:
+        metadata = s3_get_metadata(s3_url)
+        if metadata and 'symlink_to' in metadata:
+            s3_url = metadata['symlink_to']
     bucket, key = parse_s3_url(s3_url)
     if not bucket:
         raise S3BucketNotFoundError('Empty bucket name: %r' % s3_url)
@@ -1216,9 +1258,11 @@ def s3_load_from(s3_url: PathLike) -> BinaryIO:
 def _s3_binary_mode(s3_open_func):
 
     @wraps(s3_open_func)
-    def wrapper(s3_url, mode: str = 'rb', **kwargs):
-        if s3_islink(s3_url):
-            s3_url = s3_readlink(s3_url)
+    def wrapper(s3_url, mode: str = 'rb', followlinks: bool = False, **kwargs):
+        if followlinks:
+            metadata = s3_get_metadata(s3_url)
+            if metadata and 'symlink_to' in metadata:
+                s3_url = metadata['symlink_to']
         bucket, key = parse_s3_url(s3_url)
         if not bucket:
             raise S3BucketNotFoundError('Empty bucket name: %r' % s3_url)
@@ -1546,7 +1590,9 @@ def s3_legacy_open(s3_url: PathLike, mode: str):
 s3_open = s3_buffered_open
 
 
-def s3_getmd5(s3_url: PathLike, recalculate: bool = False) -> str:
+def s3_getmd5(
+        s3_url: PathLike, recalculate: bool = False,
+        followlinks: bool = False) -> str:
     '''
     Get md5 meta info in files that uploaded/copied via megfile
 
@@ -1559,7 +1605,7 @@ def s3_getmd5(s3_url: PathLike, recalculate: bool = False) -> str:
     bucket, _ = parse_s3_url(s3_url)
     if not bucket:
         raise S3BucketNotFoundError('Empty bucket name: %r' % s3_url)
-    stat = s3_stat(s3_url)
+    stat = s3_stat(s3_url, followlinks=followlinks)
     if stat.isdir is True:
         hash_md5 = hashlib.md5()  # nosec
         for file_name in s3_listdir(s3_url):
@@ -1575,8 +1621,10 @@ def s3_getmd5(s3_url: PathLike, recalculate: bool = False) -> str:
 
 
 def s3_load_content(
-        s3_url, start: Optional[int] = None,
-        stop: Optional[int] = None) -> bytes:
+        s3_url,
+        start: Optional[int] = None,
+        stop: Optional[int] = None,
+        followlinks: bool = False) -> bytes:
     '''
     Get specified file from [start, stop) in bytes
 
@@ -1590,8 +1638,10 @@ def s3_load_content(
         return client.get_object(
             Bucket=bucket, Key=key, Range=range_str)['Body'].read()
 
-    if s3_islink(s3_url):
-        s3_url = s3_readlink(s3_url)
+    if followlinks:
+        metadata = s3_get_metadata(s3_url)
+        if metadata and 'symlink_to' in metadata:
+            s3_url = metadata['symlink_to']
     bucket, key = parse_s3_url(s3_url)
     if not bucket:
         raise S3BucketNotFoundError('Empty bucket name: %r' % s3_url)
@@ -1599,6 +1649,8 @@ def s3_load_content(
         raise S3IsADirectoryError('Is a directory: %r' % s3_url)
 
     start, stop = get_content_offset(start, stop, s3_getsize(s3_url))
+    if start == 0 and stop == 0:
+        return b''
     range_str = 'bytes=%d-%d' % (start, stop - 1)
 
     client = get_s3_client()
@@ -1643,7 +1695,9 @@ def s3_move(src_url: PathLike, dst_url: PathLike) -> None:
         s3_rename(src_file_path, dst_file_path)
 
 
-def s3_sync(src_url: PathLike, dst_url: PathLike) -> None:
+def s3_sync(
+        src_url: PathLike, dst_url: PathLike,
+        followlinks: bool = False) -> None:
     '''
     Copy file/directory on src_url to dst_url
 
@@ -1651,13 +1705,29 @@ def s3_sync(src_url: PathLike, dst_url: PathLike) -> None:
     :param dst_url: Given destination path
     '''
     for src_file_path, dst_file_path in _s3_scan_pairs(src_url, dst_url):
-        s3_copy(src_file_path, dst_file_path)
+        s3_copy(src_file_path, dst_file_path, followlinks=followlinks)
 
 
-def s3_get_metadata(src_url: PathLike, bucket: str, key: str, client) -> dict:
-    with raise_s3_error(src_url):
-        resp = client.head_object(Bucket=bucket, Key=key)
-    return dict((key.lower(), value) for key, value in resp['Metadata'].items())
+def s3_get_metadata(src_url: PathLike) -> dict:
+    '''
+    Get object metadata
+
+    :param path: Object path
+    :returns: Object metadata
+    '''
+    bucket, key = parse_s3_url(src_url)
+    if not bucket:
+        return {}
+    if not key or key.endswith('/'):
+        return {}
+    client = get_s3_client()
+    try:
+        with raise_s3_error(src_url):
+            resp = client.head_object(Bucket=bucket, Key=key)
+        return dict(
+            (key.lower(), value) for key, value in resp['Metadata'].items())
+    except Exception:
+        return {}
 
 
 def s3_islink(src_url: PathLike) -> bool:
@@ -1668,18 +1738,14 @@ def s3_islink(src_url: PathLike) -> bool:
     :returns: True if a path is link, else False
     :raises: S3NotALinkError
     '''
-    try:
-        bucket, key = parse_s3_url(src_url)
-        if not bucket:
-            return False
-        if not key or key.endswith('/'):
-            return False
-        client = get_s3_client()
-        metadata = s3_get_metadata(
-            src_url, bucket=bucket, key=key, client=client)
-        return 'symlink_to' in metadata
-    except S3FileNotFoundError:
+    bucket, key = parse_s3_url(src_url)
+    if not bucket:
         return False
+    if not key or key.endswith('/'):
+        return False
+    client = get_s3_client()
+    metadata = s3_get_metadata(src_url)
+    return 'symlink_to' in metadata
 
 
 def s3_symlink(dst_url: PathLike, src_url: PathLike) -> None:
@@ -1703,8 +1769,7 @@ def s3_symlink(dst_url: PathLike, src_url: PathLike) -> None:
         raise S3IsADirectoryError('Is a directory: %r' % dst_url)
 
     client = get_s3_client()
-    metadata = s3_get_metadata(
-        src_url, bucket=src_bucket, key=src_key, client=client)
+    metadata = s3_get_metadata(src_url)
     if 'symlink_to' in metadata:
         src_url = metadata['symlink_to']
     with raise_s3_error(dst_url):
@@ -1725,7 +1790,7 @@ def s3_readlink(src_url: PathLike) -> PathLike:
     if not key or key.endswith('/'):
         raise S3IsADirectoryError('Is a directory: %r' % src_url)
     client = get_s3_client()
-    metadata = s3_get_metadata(src_url, bucket=bucket, key=key, client=client)
+    metadata = s3_get_metadata(src_url)
     if not 'symlink_to' in metadata:
         raise S3NotALinkError('Not a link: %r' % src_url)
     else:
