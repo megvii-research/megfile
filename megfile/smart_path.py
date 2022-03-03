@@ -80,10 +80,10 @@ class SmartPath(BasePath):
         cls._registered_protocols[protocol] = path_class
         return path_class
 
-    symlink_to = _bind_function('symlink_to')
+    symlink = _bind_function('symlink')
     readlink = _bind_function('readlink')
-    is_dir = _bind_function('is_dir')
-    is_file = _bind_function('is_file')
+    isdir = _bind_function('isdir')
+    isfile = _bind_function('isfile')
     is_symlink = _bind_function('is_symlink')
     access = _bind_function('access')
     exists = _bind_function('exists')

@@ -67,13 +67,13 @@ def test_stat(mocker):
 
 def test_is_dir(mocker):
     funcA = mocker.patch('megfile.s3.s3_isdir')
-    path.is_dir()
+    path.isdir()
     funcA.assert_called_once_with(TEST_PATH_WITH_PROTOCOL)
 
 
 def test_is_file(mocker):
     funcA = mocker.patch('megfile.s3.s3_isfile')
-    path.is_file()
+    path.isfile()
     funcA.assert_called_once_with(TEST_PATH_WITH_PROTOCOL)
 
 
@@ -187,7 +187,7 @@ def test_md5(mocker):
 
 def test_symlink_to(mocker):
     funcA = mocker.patch('megfile.s3.s3_symlink')
-    path.symlink_to()
+    path.symlink()
     funcA.assert_called_once_with(TEST_PATH_WITH_PROTOCOL)
 
 

@@ -79,7 +79,7 @@ def test_smart_stat(funcA):
     funcA.assert_called_once()
 
 
-@patch.object(SmartPath, 'is_dir')
+@patch.object(SmartPath, 'isdir')
 def test_smart_isdir(funcA):
     funcA.return_value = True
     res = smart.smart_isdir("True Case")
@@ -99,7 +99,7 @@ def test_smart_isdir(funcA):
     assert funcA.call_count == 5
 
 
-@patch.object(SmartPath, 'is_file')
+@patch.object(SmartPath, 'isfile')
 def test_smart_isfile(funcA):
     funcA.return_value = True
     res = smart.smart_isfile("True Case")
@@ -234,8 +234,8 @@ def test_smart_copy(mocker):
 
 
 def test_smart_copy_fs2fs(mocker):
-    fs_makedirs = mocker.patch(
-        'megfile.fs.fs_makedirs', side_effect=lambda *args, **kwargs:...)
+    fs_mkdir = mocker.patch(
+        'megfile.fs.fs_mkdir', side_effect=lambda *args, **kwargs:...)
 
     class fake_copy:
         flag = False
@@ -252,9 +252,9 @@ def test_smart_copy_fs2fs(mocker):
     copyfile = mocker.patch('megfile.fs._copyfile')
     copyfile.side_effect = fake_copy()
     smart.smart_copy('fs', 'fs/a/b/c')
-    fs_makedirs.call_count == 1
-    fs_makedirs.assert_called_once_with('fs/a/b', exist_ok=True)
-    fs_makedirs.reset_mock()
+    fs_mkdir.call_count == 1
+    fs_mkdir.assert_called_once_with('fs/a/b', exist_ok=True)
+    fs_mkdir.reset_mock()
 
 
 def test_smart_copy_UP2UP(filesystem):

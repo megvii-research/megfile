@@ -31,8 +31,8 @@ __all__ = [
     'fs_islink',
     'fs_ismount',
     'fs_listdir',
-    'fs_load_from',
-    'fs_makedirs',
+    'fs_load',
+    'fs_mkdir',
     'fs_realpath',
     'fs_relpath',
     'fs_remove',
@@ -215,7 +215,7 @@ def fs_unlink(path: PathLike, missing_ok: bool = False) -> None:
     os.unlink(path)
 
 
-def fs_makedirs(path: PathLike, exist_ok: bool = False):
+def fs_mkdir(path: PathLike, exist_ok: bool = False):
     '''
     make a directory on fs, including parent directory
 
@@ -423,12 +423,12 @@ def fs_save_as(file_object: BinaryIO, path: PathLike) -> None:
     :param file_object: stream to be read
     :param path: Specified target path
     '''
-    fs_makedirs(os.path.dirname(path), exist_ok=True)
+    fs_mkdir(os.path.dirname(path), exist_ok=True)
     with open(path, 'wb') as output:
         output.write(file_object.read())
 
 
-def fs_load_from(path: PathLike) -> BinaryIO:
+def fs_load(path: PathLike) -> BinaryIO:
     '''Read all content on specified path and write into memory
 
     User should close the BinaryIO manually
@@ -503,7 +503,7 @@ def fs_copy(
     except FileNotFoundError as error:
         # Prevent the dst_path directory from being created when src_path does not exist
         if dst_path == error.filename:
-            fs_makedirs(os.path.dirname(dst_path), exist_ok=True)
+            fs_mkdir(os.path.dirname(dst_path), exist_ok=True)
             _copyfile(
                 src_path, dst_path, callback=callback, followlinks=followlinks)
         else:

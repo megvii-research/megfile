@@ -43,13 +43,13 @@ def test_stat(mocker):
 
 def test_is_dir(mocker):
     funcA = mocker.patch('megfile.fs.fs_isdir')
-    path.is_dir(followlinks=True)
+    path.isdir(followlinks=True)
     funcA.assert_called_once_with(TEST_PATH, followlinks=True)
 
 
 def test_is_file(mocker):
     funcA = mocker.patch('megfile.fs.fs_isfile')
-    path.is_file(followlinks=True)
+    path.isfile(followlinks=True)
     funcA.assert_called_once_with(TEST_PATH, followlinks=True)
 
 
@@ -94,7 +94,7 @@ def test_getsize(mocker):
 
 
 def test_makedirs(mocker):
-    funcA = mocker.patch('megfile.fs.fs_makedirs')
+    funcA = mocker.patch('megfile.fs.fs_mkdir')
     path.makedirs(exist_ok=True)
     funcA.assert_called_once_with(TEST_PATH, exist_ok=True)
 
@@ -148,13 +148,13 @@ def test_walk(mocker):
 
 
 def test_load_from(mocker):
-    funcA = mocker.patch('megfile.fs.fs_load_from')
+    funcA = mocker.patch('megfile.fs.fs_load')
     path.load()
     funcA.assert_called_once_with(TEST_PATH)
 
 
 def test_mkdir(mocker):
-    funcA = mocker.patch('megfile.fs.fs_makedirs')
+    funcA = mocker.patch('megfile.fs.fs_mkdir')
     path.mkdir()
     funcA.assert_called_once_with(TEST_PATH)
 
@@ -223,7 +223,7 @@ def test_md5(mocker):
 
 def test_symlink_to(mocker):
     funcA = mocker.patch('megfile.fs.fs_symlink')
-    path.symlink_to(src_path='/test/dir/src_file')
+    path.symlink(src_path='/test/dir/src_file')
     funcA.assert_called_once_with(TEST_PATH, src_path='/test/dir/src_file')
 
 

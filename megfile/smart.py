@@ -67,7 +67,7 @@ def smart_symlink(dst_path: PathLike, src_path: PathLike) -> None:
     :param dst_path: Desination path
     :param src_path: Source path
     '''
-    return SmartPath(dst_path).symlink_to(src_path)
+    return SmartPath(dst_path).symlink(src_path)
 
 
 def smart_readlink(path: PathLike) -> PathLike:
@@ -88,9 +88,9 @@ def smart_isdir(path: PathLike, followlinks: bool = False) -> bool:
     '''
     path_protocol, _ = SmartPath._extract_protocol(path)
     if path_protocol == 'file':
-        return SmartPath(path).is_dir(followlinks=followlinks)
+        return SmartPath(path).isdir(followlinks=followlinks)
     else:
-        return SmartPath(path).is_dir()
+        return SmartPath(path).isdir()
 
 
 def smart_isfile(path: PathLike, followlinks: bool = False) -> bool:
@@ -102,9 +102,9 @@ def smart_isfile(path: PathLike, followlinks: bool = False) -> bool:
     '''
     path_protocol, _ = SmartPath._extract_protocol(path)
     if path_protocol == 'file':
-        return SmartPath(path).is_file(followlinks=followlinks)
+        return SmartPath(path).isfile(followlinks=followlinks)
     else:
-        return SmartPath(path).is_file()
+        return SmartPath(path).isfile()
 
 
 def smart_islink(path: PathLike) -> bool:

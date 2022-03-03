@@ -182,17 +182,17 @@ def test_stat(funcA):
     funcA.assert_called_once()
 
 
-@patch.object(FSPath, 'is_dir')
+@patch.object(FSPath, 'isdir')
 def test_is_dir(funcA):
-    SmartPath(FS_TEST_ABSOLUTE_PATH).is_dir()
-    SmartPath(FS_TEST_ABSOLUTE_PATH).is_dir(followlinks=True)
+    SmartPath(FS_TEST_ABSOLUTE_PATH).isdir()
+    SmartPath(FS_TEST_ABSOLUTE_PATH).isdir(followlinks=True)
     funcA.call_count == 2
 
 
-@patch.object(FSPath, 'is_file')
+@patch.object(FSPath, 'isfile')
 def test_is_file(funcA):
-    SmartPath(FS_TEST_ABSOLUTE_PATH).is_file()
-    SmartPath(FS_TEST_ABSOLUTE_PATH).is_file(followlinks=True)
+    SmartPath(FS_TEST_ABSOLUTE_PATH).isfile()
+    SmartPath(FS_TEST_ABSOLUTE_PATH).isfile(followlinks=True)
     funcA.call_count == 2
 
 
@@ -303,9 +303,9 @@ def test_md5(funcA):
     funcA.assert_called_once()
 
 
-@patch.object(FSPath, 'symlink_to')
+@patch.object(FSPath, 'symlink')
 def test_symlink_to(funcA):
-    SmartPath(FS_TEST_DST_PATH).symlink_to(FS_TEST_SRC_PATH)
+    SmartPath(FS_TEST_DST_PATH).symlink(FS_TEST_SRC_PATH)
     funcA.assert_called_once()
 
 
@@ -315,9 +315,9 @@ def test_readlink(funcA):
     funcA.assert_called_once()
 
 
-@patch.object(S3Path, 'symlink_to')
+@patch.object(S3Path, 'symlink')
 def test_symlink_to_s3(funcA):
-    SmartPath(S3_TEST_PATH).symlink_to(S3_SRC_PATH)
+    SmartPath(S3_TEST_PATH).symlink(S3_SRC_PATH)
     funcA.assert_called_once()
 
 

@@ -443,7 +443,7 @@ def test_s3_scandir_internal(truncating_client):
 
     def dir_entrys_to_tuples(entries: Iterable[FileEntry]
                             ) -> List[Tuple[str, bool]]:
-        return sorted([(entry.name, entry.is_dir()) for entry in entries])
+        return sorted([(entry.name, entry.isdir()) for entry in entries])
 
     assert dir_entrys_to_tuples(s3.s3_scandir('s3://')) == [
         ('bucketA', True),
