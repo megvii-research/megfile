@@ -32,7 +32,7 @@ def _isdir(path: str) -> bool:
 
 def _scandir(dirname: str) -> Iterator[Tuple[str, bool]]:
     for entry in os.scandir(dirname):
-        yield entry.name, entry.isdir()
+        yield entry.name, entry.is_dir()
 
 
 DEFAULT_FILESYSTEM_FUNC = FSFunc(_exists, _isdir, _scandir)
