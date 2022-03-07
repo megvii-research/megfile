@@ -208,7 +208,7 @@ class FSPath(URIPath):
         '''
         return os.path.isabs(self.path_with_protocol)
 
-    def isdir(self, followlinks: bool = False) -> bool:
+    def is_dir(self, followlinks: bool = False) -> bool:
         '''
         Test if a path is directory
 
@@ -225,7 +225,7 @@ class FSPath(URIPath):
             return False
         return os.path.isdir(self.path_with_protocol)
 
-    def isfile(self, followlinks: bool = False) -> bool:
+    def is_file(self, followlinks: bool = False) -> bool:
         '''
         Test if a path is file
 

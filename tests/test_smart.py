@@ -79,7 +79,7 @@ def test_smart_stat(funcA):
     funcA.assert_called_once()
 
 
-@patch.object(SmartPath, 'isdir')
+@patch.object(SmartPath, 'is_dir')
 def test_smart_isdir(funcA):
     funcA.return_value = True
     res = smart.smart_isdir("True Case")
@@ -99,7 +99,7 @@ def test_smart_isdir(funcA):
     assert funcA.call_count == 5
 
 
-@patch.object(SmartPath, 'isfile')
+@patch.object(SmartPath, 'is_file')
 def test_smart_isfile(funcA):
     funcA.return_value = True
     res = smart.smart_isfile("True Case")

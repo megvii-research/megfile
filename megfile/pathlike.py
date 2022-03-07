@@ -38,10 +38,10 @@ class Access(Enum):
 
 class StatResult(_StatResult):
 
-    def isfile(self) -> bool:
+    def is_file(self) -> bool:
         return not self.isdir or self.islnk
 
-    def isdir(self) -> bool:
+    def is_dir(self) -> bool:
         return self.isdir and not self.islnk
 
     def is_symlink(self) -> bool:
@@ -62,10 +62,10 @@ _FileEntry = NamedTuple('FileEntry', [('name', str), ('stat', StatResult)])
 
 class FileEntry(_FileEntry):
 
-    def isfile(self) -> bool:
+    def is_file(self) -> bool:
         return self.stat.isfile()
 
-    def isdir(self) -> bool:
+    def is_dir(self) -> bool:
         return self.stat.isdir()
 
     def is_symlink(self) -> bool:
@@ -108,11 +108,11 @@ class BasePath:
     # pytype: disable=bad-return-type
 
     @method_not_implemented
-    def isdir(self) -> bool:  # type: ignore
+    def is_dir(self) -> bool:  # type: ignore
         """Return True if the path points to a directory."""
 
     @method_not_implemented
-    def isfile(self) -> bool:  # type: ignore
+    def is_file(self) -> bool:  # type: ignore
         """Return True if the path points to a regular file."""
 
     def is_symlink(self) -> bool:

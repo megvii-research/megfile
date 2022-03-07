@@ -545,7 +545,7 @@ class S3Path(URIPath):
 
         return create_generator()
 
-    def isdir(self) -> bool:
+    def is_dir(self) -> bool:
         '''
         Test if an s3 url is directory
         Specific procedures are as follows:
@@ -578,7 +578,7 @@ class S3Path(URIPath):
         return len(resp.get('Contents', [])) > 0 or \
             len(resp.get('CommonPrefixes', [])) > 0
 
-    def isfile(self, followlinks: bool = False) -> bool:
+    def is_file(self, followlinks: bool = False) -> bool:
         '''
         Test if an s3_url is file
 

@@ -182,17 +182,17 @@ def test_stat(funcA):
     funcA.assert_called_once()
 
 
-@patch.object(FSPath, 'isdir')
+@patch.object(FSPath, 'is_dir')
 def test_is_dir(funcA):
-    SmartPath(FS_TEST_ABSOLUTE_PATH).isdir()
-    SmartPath(FS_TEST_ABSOLUTE_PATH).isdir(followlinks=True)
+    SmartPath(FS_TEST_ABSOLUTE_PATH).is_dir()
+    SmartPath(FS_TEST_ABSOLUTE_PATH).is_dir(followlinks=True)
     funcA.call_count == 2
 
 
-@patch.object(FSPath, 'isfile')
+@patch.object(FSPath, 'is_file')
 def test_is_file(funcA):
-    SmartPath(FS_TEST_ABSOLUTE_PATH).isfile()
-    SmartPath(FS_TEST_ABSOLUTE_PATH).isfile(followlinks=True)
+    SmartPath(FS_TEST_ABSOLUTE_PATH).is_file()
+    SmartPath(FS_TEST_ABSOLUTE_PATH).is_file(followlinks=True)
     funcA.call_count == 2
 
 

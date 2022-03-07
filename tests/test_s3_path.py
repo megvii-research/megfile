@@ -67,13 +67,13 @@ def test_stat(mocker):
 
 def test_is_dir(mocker):
     funcA = mocker.patch('megfile.s3.s3_isdir')
-    path.isdir()
+    path.is_dir()
     funcA.assert_called_once_with(TEST_PATH_WITH_PROTOCOL)
 
 
 def test_is_file(mocker):
     funcA = mocker.patch('megfile.s3.s3_isfile')
-    path.isfile()
+    path.is_file()
     funcA.assert_called_once_with(TEST_PATH_WITH_PROTOCOL)
 
 

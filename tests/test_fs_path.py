@@ -43,13 +43,13 @@ def test_stat(mocker):
 
 def test_is_dir(mocker):
     funcA = mocker.patch('megfile.fs.fs_isdir')
-    path.isdir(followlinks=True)
+    path.is_dir(followlinks=True)
     funcA.assert_called_once_with(TEST_PATH, followlinks=True)
 
 
 def test_is_file(mocker):
     funcA = mocker.patch('megfile.fs.fs_isfile')
-    path.isfile(followlinks=True)
+    path.is_file(followlinks=True)
     funcA.assert_called_once_with(TEST_PATH, followlinks=True)
 
 
