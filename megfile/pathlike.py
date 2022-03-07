@@ -63,10 +63,10 @@ _FileEntry = NamedTuple('FileEntry', [('name', str), ('stat', StatResult)])
 class FileEntry(_FileEntry):
 
     def is_file(self) -> bool:
-        return self.stat.isfile()
+        return self.stat.is_file()
 
     def is_dir(self) -> bool:
-        return self.stat.isdir()
+        return self.stat.is_dir()
 
     def is_symlink(self) -> bool:
         return self.stat.is_symlink()

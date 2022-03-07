@@ -9,7 +9,7 @@ def test_stat():
     assert not stat.is_dir()
     assert not stat.is_symlink()
 
-    stat = StatResult(is_dir=True, islnk=True)
+    stat = StatResult(isdir=True, islnk=True)
     assert stat.is_file()
     assert not stat.is_dir()
     assert stat.is_symlink()
