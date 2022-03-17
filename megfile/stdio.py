@@ -1,6 +1,6 @@
+import io
 from typing import Union
 from urllib.parse import urlsplit
-import io
 
 from megfile.interfaces import PathLike
 from megfile.lib.compat import fspath

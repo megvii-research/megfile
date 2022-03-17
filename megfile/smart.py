@@ -1,28 +1,29 @@
-from megfile.fs import fs_access, fs_exists, fs_getmd5, fs_getmtime, fs_getsize, fs_isdir, fs_isfile, fs_islink, fs_listdir, fs_load_from, fs_makedirs, fs_open, fs_readlink, fs_remove, fs_save_as, fs_scan, fs_scan_stat, fs_scandir, fs_stat, fs_symlink, fs_unlink, fs_walk
-from megfile.s3 import s3_access, s3_exists, s3_getmd5, s3_getmtime, s3_getsize, s3_isdir, s3_isfile, s3_islink, s3_listdir, s3_load_from, s3_makedirs, s3_open, s3_readlink, s3_remove, s3_save_as, s3_scan, s3_scan_stat, s3_scandir, s3_stat, s3_symlink, s3_unlink, s3_walk
-from megfile.http import http_getmtime, http_getsize, http_open, http_stat
-from megfile.stdio import stdio_open
-import os
 import io
-from typing import *
+import os
 import typing
 from collections import defaultdict
 from functools import partial
 from itertools import chain
 from pathlib import PurePath
+from typing import *
 from urllib.parse import urlsplit
+
+import megfile
 from megfile.errors import ProtocolNotFoundError, UnsupportedError
-from megfile.fs import fs_copy, fs_rename, fs_getsize, fs_glob, fs_iglob, fs_glob_stat, fs_path_join
-from megfile.interfaces import BaseURIPath, FileEntry, PathLike, Access, NullCacher
+from megfile.fs import fs_access, fs_copy, fs_exists, fs_getmd5, fs_getmtime, fs_getsize, fs_glob, fs_glob_stat, fs_iglob, fs_isdir, fs_isfile, fs_islink, fs_listdir, fs_load_from, fs_makedirs, fs_open, fs_path_join, fs_readlink, fs_remove, fs_rename, fs_save_as, fs_scan, fs_scan_stat, fs_scandir, fs_stat, fs_symlink, fs_unlink, fs_walk
+from megfile.http import http_getmtime, http_getsize, http_open, http_stat
+from megfile.interfaces import Access, BaseURIPath, FileEntry, NullCacher, PathLike
 from megfile.lib.combine_reader import CombineReader
 from megfile.lib.compat import fspath
 from megfile.lib.glob import globlize, ungloblize
-from megfile.s3 import is_s3, s3_copy, s3_download, s3_upload, s3_rename, S3Cacher, s3_load_content, s3_glob, s3_iglob, s3_glob_stat, s3_path_join
+from megfile.s3 import S3Cacher, is_s3, s3_access, s3_copy, s3_download, s3_exists, s3_getmd5, s3_getmtime, s3_getsize, s3_glob, s3_glob_stat, s3_iglob, s3_isdir, s3_isfile, s3_islink, s3_listdir, s3_load_content, s3_load_from, s3_makedirs, s3_open, s3_path_join, s3_readlink, s3_remove, s3_rename, s3_save_as, s3_scan, s3_scan_stat, s3_scandir, s3_stat, s3_symlink, s3_unlink, s3_upload, s3_walk
+from megfile.stdio import stdio_open
 from megfile.utils import combine, get_content_offset
-import megfile
 
 
-def smart_access(path: typing.Union[str, os.PathLike], mode: megfile.pathlike.Access = Access.READ) -> bool:
+def smart_access(
+        path: typing.Union[str, os.PathLike],
+        mode: megfile.pathlike.Access = Access.READ) -> bool:
     protocol = _extract_protocol(path)
     if protocol == 'fs':
         return fs_access(path=path, mode=mode)
@@ -31,7 +32,9 @@ def smart_access(path: typing.Union[str, os.PathLike], mode: megfile.pathlike.Ac
     raise UnsupportedError(operation='smart_access', path=path)
 
 
-def smart_exists(path: typing.Union[str, os.PathLike], followlinks: bool = False) -> bool:
+def smart_exists(
+        path: typing.Union[str, os.PathLike],
+        followlinks: bool = False) -> bool:
     protocol = _extract_protocol(path)
     if protocol == 'fs':
         return fs_exists(path=path, followlinks=followlinks)
@@ -40,7 +43,8 @@ def smart_exists(path: typing.Union[str, os.PathLike], followlinks: bool = False
     raise UnsupportedError(operation='smart_exists', path=path)
 
 
-def smart_getmd5(path: typing.Union[str, os.PathLike], recalculate: bool = False) -> str:
+def smart_getmd5(
+        path: typing.Union[str, os.PathLike], recalculate: bool = False) -> str:
     protocol = _extract_protocol(path)
     if protocol == 'fs':
         return fs_getmd5(path=path, recalculate=recalculate)
@@ -71,7 +75,9 @@ def smart_getsize(path: typing.Union[str, os.PathLike]) -> int:
     raise UnsupportedError(operation='smart_getsize', path=path)
 
 
-def smart_isdir(path: typing.Union[str, os.PathLike], followlinks: bool = False) -> bool:
+def smart_isdir(
+        path: typing.Union[str, os.PathLike],
+        followlinks: bool = False) -> bool:
     protocol = _extract_protocol(path)
     if protocol == 'fs':
         return fs_isdir(path=path, followlinks=followlinks)
@@ -80,7 +86,9 @@ def smart_isdir(path: typing.Union[str, os.PathLike], followlinks: bool = False)
     raise UnsupportedError(operation='smart_isdir', path=path)
 
 
-def smart_isfile(path: typing.Union[str, os.PathLike], followlinks: bool = False) -> bool:
+def smart_isfile(
+        path: typing.Union[str, os.PathLike],
+        followlinks: bool = False) -> bool:
     protocol = _extract_protocol(path)
     if protocol == 'fs':
         return fs_isfile(path=path, followlinks=followlinks)
@@ -116,7 +124,8 @@ def smart_load_from(path: typing.Union[str, os.PathLike]) -> typing.BinaryIO:
     raise UnsupportedError(operation='smart_load_from', path=path)
 
 
-def smart_makedirs(path: typing.Union[str, os.PathLike], exist_ok: bool = False):
+def smart_makedirs(
+        path: typing.Union[str, os.PathLike], exist_ok: bool = False):
     protocol = _extract_protocol(path)
     if protocol == 'fs':
         return fs_makedirs(path=path, exist_ok=exist_ok)
@@ -125,7 +134,12 @@ def smart_makedirs(path: typing.Union[str, os.PathLike], exist_ok: bool = False)
     raise UnsupportedError(operation='smart_makedirs', path=path)
 
 
-def smart_open(path: typing.Union[str, os.PathLike], mode: str = 'r', s3_open_func: typing.Callable = megfile.s3.s3_buffered_open) -> typing.Union[typing.IO[AnyStr], io.BufferedReader, megfile.lib.stdio_handler.STDReader, megfile.lib.stdio_handler.STDWriter]:
+def smart_open(
+        path: typing.Union[str, os.PathLike],
+        mode: str = 'r',
+        s3_open_func: typing.Callable = megfile.s3.s3_buffered_open
+) -> typing.Union[typing.IO[AnyStr], io.BufferedReader, megfile.lib.
+                  stdio_handler.STDReader, megfile.lib.stdio_handler.STDWriter]:
     protocol = _extract_protocol(path)
     if protocol == 'fs':
         return fs_open(path=path, mode=mode)
@@ -138,7 +152,8 @@ def smart_open(path: typing.Union[str, os.PathLike], mode: str = 'r', s3_open_fu
     raise UnsupportedError(operation='smart_open', path=path)
 
 
-def smart_readlink(path: typing.Union[str, os.PathLike]) -> typing.Union[str, os.PathLike]:
+def smart_readlink(path: typing.Union[str, os.PathLike]
+                  ) -> typing.Union[str, os.PathLike]:
     protocol = _extract_protocol(path)
     if protocol == 'fs':
         return fs_readlink(path=path)
@@ -147,16 +162,22 @@ def smart_readlink(path: typing.Union[str, os.PathLike]) -> typing.Union[str, os
     raise UnsupportedError(operation='smart_readlink', path=path)
 
 
-def smart_remove(path: typing.Union[str, os.PathLike], missing_ok: bool = False, followlinks: bool = False) -> None:
+def smart_remove(
+        path: typing.Union[str, os.PathLike],
+        missing_ok: bool = False,
+        followlinks: bool = False) -> None:
     protocol = _extract_protocol(path)
     if protocol == 'fs':
-        return fs_remove(path=path, missing_ok=missing_ok, followlinks=followlinks)
+        return fs_remove(
+            path=path, missing_ok=missing_ok, followlinks=followlinks)
     if protocol == 's3':
         return s3_remove(path=path, missing_ok=missing_ok)
     raise UnsupportedError(operation='smart_remove', path=path)
 
 
-def smart_save_as(file_object: typing.BinaryIO, path: typing.Union[str, os.PathLike]) -> None:
+def smart_save_as(
+        file_object: typing.BinaryIO,
+        path: typing.Union[str, os.PathLike]) -> None:
     protocol = _extract_protocol(path)
     if protocol == 'fs':
         return fs_save_as(file_object=file_object, path=path)
@@ -165,19 +186,27 @@ def smart_save_as(file_object: typing.BinaryIO, path: typing.Union[str, os.PathL
     raise UnsupportedError(operation='smart_save_as', path=path)
 
 
-def smart_scan(path: typing.Union[str, os.PathLike], missing_ok: bool = True, followlinks: bool = False) -> typing.Iterator:
+def smart_scan(
+        path: typing.Union[str, os.PathLike],
+        missing_ok: bool = True,
+        followlinks: bool = False) -> typing.Iterator:
     protocol = _extract_protocol(path)
     if protocol == 'fs':
-        return fs_scan(path=path, missing_ok=missing_ok, followlinks=followlinks)
+        return fs_scan(
+            path=path, missing_ok=missing_ok, followlinks=followlinks)
     if protocol == 's3':
         return s3_scan(path=path, missing_ok=missing_ok)
     raise UnsupportedError(operation='smart_scan', path=path)
 
 
-def smart_scan_stat(path: typing.Union[str, os.PathLike], missing_ok: bool = True, followlinks: bool = False) -> typing.Iterator:
+def smart_scan_stat(
+        path: typing.Union[str, os.PathLike],
+        missing_ok: bool = True,
+        followlinks: bool = False) -> typing.Iterator:
     protocol = _extract_protocol(path)
     if protocol == 'fs':
-        return fs_scan_stat(path=path, missing_ok=missing_ok, followlinks=followlinks)
+        return fs_scan_stat(
+            path=path, missing_ok=missing_ok, followlinks=followlinks)
     if protocol == 's3':
         return s3_scan_stat(path=path, missing_ok=missing_ok)
     raise UnsupportedError(operation='smart_scan_stat', path=path)
@@ -192,7 +221,8 @@ def smart_scandir(path: typing.Union[str, os.PathLike]) -> typing.Iterator:
     raise UnsupportedError(operation='smart_scandir', path=path)
 
 
-def smart_stat(path: typing.Union[str, os.PathLike]) -> megfile.pathlike.StatResult:
+def smart_stat(
+        path: typing.Union[str, os.PathLike]) -> megfile.pathlike.StatResult:
     protocol = _extract_protocol(path)
     if protocol == 'fs':
         return fs_stat(path=path)
@@ -203,7 +233,9 @@ def smart_stat(path: typing.Union[str, os.PathLike]) -> megfile.pathlike.StatRes
     raise UnsupportedError(operation='smart_stat', path=path)
 
 
-def smart_symlink(dst_path: typing.Union[str, os.PathLike], src_path: typing.Union[str, os.PathLike]) -> None:
+def smart_symlink(
+        dst_path: typing.Union[str, os.PathLike],
+        src_path: typing.Union[str, os.PathLike]) -> None:
     protocol = _extract_protocol(src_path)
     if protocol == 'fs':
         return fs_symlink(dst_path=dst_path, src_path=src_path)
@@ -212,7 +244,8 @@ def smart_symlink(dst_path: typing.Union[str, os.PathLike], src_path: typing.Uni
     raise UnsupportedError(operation='smart_symlink', path=src_path)
 
 
-def smart_unlink(path: typing.Union[str, os.PathLike], missing_ok: bool = False) -> None:
+def smart_unlink(
+        path: typing.Union[str, os.PathLike], missing_ok: bool = False) -> None:
     protocol = _extract_protocol(path)
     if protocol == 'fs':
         return fs_unlink(path=path, missing_ok=missing_ok)
@@ -221,15 +254,15 @@ def smart_unlink(path: typing.Union[str, os.PathLike], missing_ok: bool = False)
     raise UnsupportedError(operation='smart_unlink', path=path)
 
 
-def smart_walk(path: typing.Union[str, os.PathLike], followlinks: bool = False) -> typing.Iterator:
+def smart_walk(
+        path: typing.Union[str, os.PathLike],
+        followlinks: bool = False) -> typing.Iterator:
     protocol = _extract_protocol(path)
     if protocol == 'fs':
         return fs_walk(path=path, followlinks=followlinks)
     if protocol == 's3':
         return s3_walk(path=path)
     raise UnsupportedError(operation='smart_walk', path=path)
-
-
 
 
 _copy_funcs = {
@@ -242,8 +275,6 @@ _copy_funcs = {
         'fs': fs_copy,
     }
 }
-
-
 
 
 def register_copy_func(
@@ -292,8 +323,7 @@ def _default_copy_func(
                 callback(len(buf))
 
 
-def _extract_protocol(path: typing.Union[PathLike, int]
-                     ) -> str:
+def _extract_protocol(path: typing.Union[PathLike, int]) -> str:
     if isinstance(path, int):
         protocol = "fs"
     elif isinstance(path, str):
@@ -491,9 +521,8 @@ def _group_glob(globstr: str) -> typing.List[str]:
     return group_glob_list
 
 
-def smart_glob(
-        path: PathLike, recursive: bool = True,
-        missing_ok: bool = True) -> typing.List[str]:
+def smart_glob(path: PathLike, recursive: bool = True,
+               missing_ok: bool = True) -> typing.List[str]:
     '''
     Given path may contain shell wildcard characters, return path list in ascending alphabetical order, in which path matches glob pattern
 
@@ -627,6 +656,7 @@ def smart_touch(path: PathLike):
     with smart_open(path, 'w'):
         pass
 
+
 def smart_load_content(
         path: PathLike, start: Optional[int] = None,
         stop: Optional[int] = None) -> bytes:
@@ -648,7 +678,9 @@ def smart_load_content(
         return fd.read(stop - start)
 
 
-def smart_path_join(path: typing.Union[str, os.PathLike], *other_paths: typing.Union[str, os.PathLike]) -> str:
+def smart_path_join(
+        path: typing.Union[str, os.PathLike],
+        *other_paths: typing.Union[str, os.PathLike]) -> str:
     protocol = _extract_protocol(path)
     if protocol == 'fs':
         return fspath(os.path.normpath(fs_path_join(path, *other_paths)))

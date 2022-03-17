@@ -607,7 +607,6 @@ def test_s3_copy(s3_empty_client):
     assert body == 'value'
 
 
-@pytest.mark.skipif(sys.version_info < (3, 6), reason="Python3.6+")
 def test_s3_copy_invalid(s3_empty_client):
     s3_empty_client.create_bucket(Bucket='bucket')
     s3_empty_client.put_object(Bucket='bucket', Key='key', Body='value')
