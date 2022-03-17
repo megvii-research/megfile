@@ -41,7 +41,7 @@ def string_typing(annotation):
         s = f"'{annotation}'"
     else:
         s = str(annotation)
-    return s.replace('NoneType', 'None').replace('_io', 'io').replace('~', '')
+    return s.replace('NoneType', 'None').replace('_io', 'io').replace('~', 'typing.')
 
 
 def sort_params(t):

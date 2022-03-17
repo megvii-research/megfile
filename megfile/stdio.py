@@ -26,7 +26,8 @@ def is_stdio(path: PathLike) -> bool:
     return parts.scheme == 'stdio'
 
 
-def stdio_open(path: str, mode: str = 'rb') -> Union[STDReader, STDWriter]:
+def stdio_open(path: str, mode: str = 'rb'
+              ) -> Union[STDReader, STDWriter, io.TextIOWrapper]:
     '''Used to read or write stdio
 
     .. note ::

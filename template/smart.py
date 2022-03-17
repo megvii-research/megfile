@@ -1,6 +1,5 @@
 import os
 import io
-from typing import *
 import typing
 from collections import defaultdict
 from functools import partial
@@ -95,10 +94,10 @@ def _default_copy_func(
             # This magic number is copied from  copyfileobj
             length = 16 * 1024
             while True:
-                buf = fsrc.read(length)
+                buf = fsrc.read(length)  # type: ignore
                 if not buf:
                     break
-                fdst.write(buf)
+                fdst.write(buf)  # type: ignore
                 if callback is None:
                     continue
                 callback(len(buf))
@@ -397,7 +396,7 @@ def smart_save_content(path: PathLike, content: bytes) -> None:
     param path: Path to save content
     '''
     with smart_open(path, 'wb') as fd:
-        fd.write(content)
+        fd.write(content)  # type: ignore
 
 
 def smart_load_text(path: PathLike) -> str:
@@ -407,7 +406,7 @@ def smart_load_text(path: PathLike) -> str:
     param path: Path to be read
     '''
     with smart_open(path) as fd:
-        return fd.read()
+        return fd.read()  # type: ignore
 
 
 def smart_save_text(path: PathLike, text: str) -> None:
@@ -416,7 +415,7 @@ def smart_save_text(path: PathLike, text: str) -> None:
     param path: Path to save text
     '''
     with smart_open(path, 'w') as fd:
-        fd.write(text)
+        fd.write(text)  # type: ignore
 
 
 def smart_cache(path, s3_cacher=S3Cacher, **options):
@@ -440,8 +439,8 @@ def smart_touch(path: PathLike):
         pass
 
 def smart_load_content(
-        path: PathLike, start: Optional[int] = None,
-        stop: Optional[int] = None) -> bytes:
+        path: PathLike, start: typing.Optional[int] = None,
+        stop: typing.Optional[int] = None) -> bytes:
     '''
     Get specified file from [start, stop) in bytes
 
