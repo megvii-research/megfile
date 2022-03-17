@@ -1,5 +1,6 @@
 from typing import Union
 from urllib.parse import urlsplit
+import io
 
 from megfile.interfaces import PathLike
 from megfile.lib.compat import fspath
@@ -50,5 +51,10 @@ def stdio_open(path: str, mode: str = 'rb') -> Union[STDReader, STDWriter]:
         raise ValueError('cannot open for writing: %r' % path)
 
     if 'r' in mode:
-        return STDReader(mode)
-    return STDWriter(path, mode)
+        fileobj = STDReader(mode)
+    else:
+        fileobj = STDWriter(path, mode)
+    if 'b' not in mode:
+        fileobj = io.TextIOWrapper(fileobj)  # type: ignore
+        fileobj.mode = mode
+    return fileobj

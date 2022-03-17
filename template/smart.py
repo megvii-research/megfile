@@ -1,7 +1,3 @@
-from megfile.fs import fs_access, fs_exists, fs_getmd5, fs_getmtime, fs_getsize, fs_isdir, fs_isfile, fs_islink, fs_listdir, fs_load_from, fs_makedirs, fs_open, fs_readlink, fs_remove, fs_save_as, fs_scan, fs_scan_stat, fs_scandir, fs_stat, fs_symlink, fs_unlink, fs_walk
-from megfile.s3 import s3_access, s3_exists, s3_getmd5, s3_getmtime, s3_getsize, s3_isdir, s3_isfile, s3_islink, s3_listdir, s3_load_from, s3_makedirs, s3_open, s3_readlink, s3_remove, s3_save_as, s3_scan, s3_scan_stat, s3_scandir, s3_stat, s3_symlink, s3_unlink, s3_walk
-from megfile.http import http_getmtime, http_getsize, http_open, http_stat
-from megfile.stdio import stdio_open
 import os
 import io
 from typing import *
@@ -11,6 +7,7 @@ from functools import partial
 from itertools import chain
 from pathlib import PurePath
 from urllib.parse import urlsplit
+
 from megfile.errors import ProtocolNotFoundError, UnsupportedError
 from megfile.fs import fs_copy, fs_rename, fs_getsize, fs_glob, fs_iglob, fs_glob_stat, fs_path_join
 from megfile.interfaces import BaseURIPath, FileEntry, PathLike, Access, NullCacher
@@ -20,217 +17,6 @@ from megfile.lib.glob import globlize, ungloblize
 from megfile.s3 import is_s3, s3_copy, s3_download, s3_upload, s3_rename, S3Cacher, s3_load_content, s3_glob, s3_iglob, s3_glob_stat, s3_path_join
 from megfile.utils import combine, get_content_offset
 import megfile
-
-
-def smart_access(path: typing.Union[str, os.PathLike], mode: megfile.pathlike.Access = Access.READ) -> bool:
-    protocol = _extract_protocol(path)
-    if protocol == 'fs':
-        return fs_access(path=path, mode=mode)
-    if protocol == 's3':
-        return s3_access(path=path, mode=mode)
-    raise UnsupportedError(operation='smart_access', path=path)
-
-
-def smart_exists(path: typing.Union[str, os.PathLike], followlinks: bool = False) -> bool:
-    protocol = _extract_protocol(path)
-    if protocol == 'fs':
-        return fs_exists(path=path, followlinks=followlinks)
-    if protocol == 's3':
-        return s3_exists(path=path, followlinks=followlinks)
-    raise UnsupportedError(operation='smart_exists', path=path)
-
-
-def smart_getmd5(path: typing.Union[str, os.PathLike], recalculate: bool = False) -> str:
-    protocol = _extract_protocol(path)
-    if protocol == 'fs':
-        return fs_getmd5(path=path, recalculate=recalculate)
-    if protocol == 's3':
-        return s3_getmd5(path=path, recalculate=recalculate)
-    raise UnsupportedError(operation='smart_getmd5', path=path)
-
-
-def smart_getmtime(path: typing.Union[str, os.PathLike]) -> float:
-    protocol = _extract_protocol(path)
-    if protocol == 'fs':
-        return fs_getmtime(path=path)
-    if protocol == 's3':
-        return s3_getmtime(path=path)
-    if protocol == 'http':
-        return http_getmtime(path=path)
-    raise UnsupportedError(operation='smart_getmtime', path=path)
-
-
-def smart_getsize(path: typing.Union[str, os.PathLike]) -> int:
-    protocol = _extract_protocol(path)
-    if protocol == 'fs':
-        return fs_getsize(path=path)
-    if protocol == 's3':
-        return s3_getsize(path=path)
-    if protocol == 'http':
-        return http_getsize(path=path)
-    raise UnsupportedError(operation='smart_getsize', path=path)
-
-
-def smart_isdir(path: typing.Union[str, os.PathLike], followlinks: bool = False) -> bool:
-    protocol = _extract_protocol(path)
-    if protocol == 'fs':
-        return fs_isdir(path=path, followlinks=followlinks)
-    if protocol == 's3':
-        return s3_isdir(path=path)
-    raise UnsupportedError(operation='smart_isdir', path=path)
-
-
-def smart_isfile(path: typing.Union[str, os.PathLike], followlinks: bool = False) -> bool:
-    protocol = _extract_protocol(path)
-    if protocol == 'fs':
-        return fs_isfile(path=path, followlinks=followlinks)
-    if protocol == 's3':
-        return s3_isfile(path=path, followlinks=followlinks)
-    raise UnsupportedError(operation='smart_isfile', path=path)
-
-
-def smart_islink(path: typing.Union[str, os.PathLike]) -> bool:
-    protocol = _extract_protocol(path)
-    if protocol == 'fs':
-        return fs_islink(path=path)
-    if protocol == 's3':
-        return s3_islink(path=path)
-    raise UnsupportedError(operation='smart_islink', path=path)
-
-
-def smart_listdir(path: typing.Union[str, os.PathLike]) -> typing.List:
-    protocol = _extract_protocol(path)
-    if protocol == 'fs':
-        return fs_listdir(path=path)
-    if protocol == 's3':
-        return s3_listdir(path=path)
-    raise UnsupportedError(operation='smart_listdir', path=path)
-
-
-def smart_load_from(path: typing.Union[str, os.PathLike]) -> typing.BinaryIO:
-    protocol = _extract_protocol(path)
-    if protocol == 'fs':
-        return fs_load_from(path=path)
-    if protocol == 's3':
-        return s3_load_from(path=path)
-    raise UnsupportedError(operation='smart_load_from', path=path)
-
-
-def smart_makedirs(path: typing.Union[str, os.PathLike], exist_ok: bool = False):
-    protocol = _extract_protocol(path)
-    if protocol == 'fs':
-        return fs_makedirs(path=path, exist_ok=exist_ok)
-    if protocol == 's3':
-        return s3_makedirs(path=path, exist_ok=exist_ok)
-    raise UnsupportedError(operation='smart_makedirs', path=path)
-
-
-def smart_open(path: typing.Union[str, os.PathLike], mode: str = 'r', s3_open_func: typing.Callable = megfile.s3.s3_buffered_open) -> typing.Union[typing.IO[AnyStr], io.BufferedReader, megfile.lib.stdio_handler.STDReader, megfile.lib.stdio_handler.STDWriter]:
-    protocol = _extract_protocol(path)
-    if protocol == 'fs':
-        return fs_open(path=path, mode=mode)
-    if protocol == 's3':
-        return s3_open(path=path, mode=mode, s3_open_func=s3_open_func)
-    if protocol == 'http':
-        return http_open(path=path, mode=mode)
-    if protocol == 'stdio':
-        return stdio_open(path=path, mode=mode)
-    raise UnsupportedError(operation='smart_open', path=path)
-
-
-def smart_readlink(path: typing.Union[str, os.PathLike]) -> typing.Union[str, os.PathLike]:
-    protocol = _extract_protocol(path)
-    if protocol == 'fs':
-        return fs_readlink(path=path)
-    if protocol == 's3':
-        return s3_readlink(path=path)
-    raise UnsupportedError(operation='smart_readlink', path=path)
-
-
-def smart_remove(path: typing.Union[str, os.PathLike], missing_ok: bool = False, followlinks: bool = False) -> None:
-    protocol = _extract_protocol(path)
-    if protocol == 'fs':
-        return fs_remove(path=path, missing_ok=missing_ok, followlinks=followlinks)
-    if protocol == 's3':
-        return s3_remove(path=path, missing_ok=missing_ok)
-    raise UnsupportedError(operation='smart_remove', path=path)
-
-
-def smart_save_as(file_object: typing.BinaryIO, path: typing.Union[str, os.PathLike]) -> None:
-    protocol = _extract_protocol(path)
-    if protocol == 'fs':
-        return fs_save_as(file_object=file_object, path=path)
-    if protocol == 's3':
-        return s3_save_as(file_object=file_object, path=path)
-    raise UnsupportedError(operation='smart_save_as', path=path)
-
-
-def smart_scan(path: typing.Union[str, os.PathLike], missing_ok: bool = True, followlinks: bool = False) -> typing.Iterator:
-    protocol = _extract_protocol(path)
-    if protocol == 'fs':
-        return fs_scan(path=path, missing_ok=missing_ok, followlinks=followlinks)
-    if protocol == 's3':
-        return s3_scan(path=path, missing_ok=missing_ok)
-    raise UnsupportedError(operation='smart_scan', path=path)
-
-
-def smart_scan_stat(path: typing.Union[str, os.PathLike], missing_ok: bool = True, followlinks: bool = False) -> typing.Iterator:
-    protocol = _extract_protocol(path)
-    if protocol == 'fs':
-        return fs_scan_stat(path=path, missing_ok=missing_ok, followlinks=followlinks)
-    if protocol == 's3':
-        return s3_scan_stat(path=path, missing_ok=missing_ok)
-    raise UnsupportedError(operation='smart_scan_stat', path=path)
-
-
-def smart_scandir(path: typing.Union[str, os.PathLike]) -> typing.Iterator:
-    protocol = _extract_protocol(path)
-    if protocol == 'fs':
-        return fs_scandir(path=path)
-    if protocol == 's3':
-        return s3_scandir(path=path)
-    raise UnsupportedError(operation='smart_scandir', path=path)
-
-
-def smart_stat(path: typing.Union[str, os.PathLike]) -> megfile.pathlike.StatResult:
-    protocol = _extract_protocol(path)
-    if protocol == 'fs':
-        return fs_stat(path=path)
-    if protocol == 's3':
-        return s3_stat(path=path)
-    if protocol == 'http':
-        return http_stat(path=path)
-    raise UnsupportedError(operation='smart_stat', path=path)
-
-
-def smart_symlink(dst_path: typing.Union[str, os.PathLike], src_path: typing.Union[str, os.PathLike]) -> None:
-    protocol = _extract_protocol(src_path)
-    if protocol == 'fs':
-        return fs_symlink(dst_path=dst_path, src_path=src_path)
-    if protocol == 's3':
-        return s3_symlink(dst_path=dst_path, src_path=src_path)
-    raise UnsupportedError(operation='smart_symlink', path=src_path)
-
-
-def smart_unlink(path: typing.Union[str, os.PathLike], missing_ok: bool = False) -> None:
-    protocol = _extract_protocol(path)
-    if protocol == 'fs':
-        return fs_unlink(path=path, missing_ok=missing_ok)
-    if protocol == 's3':
-        return s3_unlink(path=path, missing_ok=missing_ok)
-    raise UnsupportedError(operation='smart_unlink', path=path)
-
-
-def smart_walk(path: typing.Union[str, os.PathLike], followlinks: bool = False) -> typing.Iterator:
-    protocol = _extract_protocol(path)
-    if protocol == 'fs':
-        return fs_walk(path=path, followlinks=followlinks)
-    if protocol == 's3':
-        return s3_walk(path=path)
-    raise UnsupportedError(operation='smart_walk', path=path)
-
-
-
 
 _copy_funcs = {
     's3': {
@@ -244,6 +30,32 @@ _copy_funcs = {
 }
 
 
+# auto-smart-ignore-start
+def smart_islink(*args, **kwargs):
+    pass
+
+
+def smart_open(*args, **kwargs):
+    pass
+
+
+def smart_scan(*args, **kwargs):
+    pass
+
+
+def smart_path_join(*args, **kwargs):
+    pass
+
+
+def smart_remove(*args, **kwargs):
+    pass
+
+def smart_unlink(*args, **kwargs):
+    pass
+
+def smart_isdir(*args, **kwargs):
+    pass
+# auto-smart-ignore-end
 
 
 def register_copy_func(

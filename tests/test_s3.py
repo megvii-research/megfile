@@ -887,7 +887,8 @@ def test_s3_remove_slashes(s3_empty_client):
 
 
 def test_s3_move(truncating_client):
-    smart.smart_touch('s3://bucketA/folderAA/folderAAA/fileAAAA')
+    with smart.smart_open('s3://bucketA/folderAA/folderAAA/fileAAAA', 'w'):
+        pass
     s3.s3_move(
         's3://bucketA/folderAA/folderAAA', 's3://bucketA/folderAA/folderAAA1')
     assert s3.s3_exists('s3://bucketA/folderAA/folderAAA') is False
@@ -895,7 +896,8 @@ def test_s3_move(truncating_client):
 
 
 def test_s3_move_file(truncating_client):
-    smart.smart_touch('s3://bucketA/folderAA/folderAAA/fileAAAA')
+    with smart.smart_open('s3://bucketA/folderAA/folderAAA/fileAAAA', 'w'):
+        pass
     s3.s3_move(
         's3://bucketA/folderAA/folderAAA/fileAAAA',
         's3://bucketA/folderAA/folderAAA1/fileAAAA')
@@ -904,7 +906,8 @@ def test_s3_move_file(truncating_client):
 
 
 def test_s3_sync(truncating_client):
-    smart.smart_touch('s3://bucketA/folderAA/folderAAA/fileAAAA')
+    with smart.smart_open('s3://bucketA/folderAA/folderAAA/fileAAAA', 'w'):
+        pass
     s3.s3_sync(
         's3://bucketA/folderAA/folderAAA', 's3://bucketA/folderAA/folderAAA1')
     assert s3.s3_exists('s3://bucketA/folderAA/folderAAA')
