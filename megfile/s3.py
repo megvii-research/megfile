@@ -579,7 +579,7 @@ def s3_stat(path: PathLike) -> StatResult:
         raise S3BucketNotFoundError('Empty bucket name: %r' % path)
 
     if not s3_isfile(path):
-        return _s3_getdirstat(path)
+        return _s3_getdirstat(str(path))
 
     client = get_s3_client()
     with raise_s3_error(path):
@@ -963,8 +963,8 @@ def _s3_glob_stat_single_path(
         missing_ok: bool = True) -> Iterator[FileEntry]:
     if not recursive:
         # If not recursive, replace ** with *
-        path = re.sub(r'\*{2,}', '*', path)
-    top_dir, wildcard_part = _s3_split_magic(path)
+        path = re.sub(r'\*{2,}', '*', str(path))
+    top_dir, wildcard_part = _s3_split_magic(str(path))
     search_dir = wildcard_part.endswith('/')
 
     def should_recursive(wildcard_part: str) -> bool:
@@ -1518,8 +1518,9 @@ def s3_open(
         path: PathLike,
         mode: str = 'r',
         *,
-        s3_open_func: Callable[[str, str], BinaryIO] = s3_buffered_open,
-        **kwargs) -> IO[AnyStr]:
+        s3_open_func: Callable[[PathLike, str], BinaryIO] = s3_buffered_open,
+        **kwargs) -> Union[S3PrefetchReader, S3BufferedWriter, io.
+                           BufferedReader, io.BufferedWriter, S3MemoryHandler]:
     return s3_open_func(path, mode, **necessary_params(s3_open_func, **kwargs))
 
 

@@ -311,7 +311,7 @@ def smart_glob(
     :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
     '''
     result = []
-    group_glob_list = _group_glob(path)
+    group_glob_list = _group_glob(str(path))
     for glob_path in group_glob_list:
         protocol = _extract_protocol(glob_path)
         if protocol == 'fs':
@@ -335,7 +335,7 @@ def smart_iglob(
     :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
     '''
     result = []
-    group_glob_list = _group_glob(path)
+    group_glob_list = _group_glob(str(path))
     for glob_path in group_glob_list:
         protocol = _extract_protocol(glob_path)
         if protocol == 'fs':
@@ -360,7 +360,7 @@ def smart_glob_stat(
     :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
     '''
     result = []
-    group_glob_list = _group_glob(path)
+    group_glob_list = _group_glob(str(path))
     for glob_path in group_glob_list:
         protocol = _extract_protocol(glob_path)
         if protocol == 'fs':

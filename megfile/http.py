@@ -66,7 +66,7 @@ def is_http(path: PathLike) -> bool:
 
 
 @binary_open
-def http_open(path: str, mode: str = 'rb') -> BufferedReader:
+def http_open(path: PathLike, mode: str = 'rb') -> BufferedReader:
     '''Open a BytesIO to read binary data of given http(s) url
 
     .. note ::
@@ -77,6 +77,8 @@ def http_open(path: str, mode: str = 'rb') -> BufferedReader:
     :param mode: Only supports 'rb' mode now
     :return: BytesIO initialized with http(s) data
     '''
+    path = str(path)
+
     if mode not in ('rb',):
         raise ValueError('unacceptable mode: %r' % mode)
 
@@ -90,7 +92,7 @@ def http_open(path: str, mode: str = 'rb') -> BufferedReader:
     return BufferedReader(response.raw)
 
 
-def http_stat(path: str) -> StatResult:
+def http_stat(path: PathLike) -> StatResult:
     '''
     Get StatResult of path response, including size and mtime, referring to http_getsize and http_getmtime
 
@@ -98,7 +100,7 @@ def http_stat(path: str) -> StatResult:
     :returns: StatResult
     :raises: HttpPermissionError, HttpFileNotFoundError
     '''
-
+    path = str(path)
     try:
         response = requests.get(path, stream=True, timeout=10.0)
         response.raise_for_status()
@@ -119,7 +121,7 @@ def http_stat(path: str) -> StatResult:
         islnk=False, extra=response.headers)
 
 
-def http_getsize(path: str) -> int:
+def http_getsize(path: PathLike) -> int:
     '''
     Get file size on the given path path.
 
@@ -129,10 +131,11 @@ def http_getsize(path: str) -> int:
     :returns: File size (in bytes)
     :raises: HttpPermissionError, HttpFileNotFoundError
     '''
+    path = str(path)
     return http_stat(path).size
 
 
-def http_getmtime(path: str) -> float:
+def http_getmtime(path: PathLike) -> float:
     '''
     Get Last-Modified time of the http request on the given path path.
     
@@ -142,4 +145,5 @@ def http_getmtime(path: str) -> float:
     :returns: Last-Modified time (in Unix timestamp format)
     :raises: HttpPermissionError, HttpFileNotFoundError
     '''
+    path = str(path)
     return http_stat(path).mtime

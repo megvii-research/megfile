@@ -26,7 +26,7 @@ def is_stdio(path: PathLike) -> bool:
     return parts.scheme == 'stdio'
 
 
-def stdio_open(path: str, mode: str = 'rb'
+def stdio_open(path: PathLike, mode: str = 'rb'
               ) -> Union[STDReader, STDWriter, io.TextIOWrapper]:
     '''Used to read or write stdio
 
@@ -38,6 +38,7 @@ def stdio_open(path: str, mode: str = 'rb'
     :param mode: Only supports 'rb' and 'wb' now
     :return: STDReader, STDWriter
     '''
+    path = str(path)
 
     if mode not in ('rb', 'wb', 'rt', 'wt', 'r', 'w'):
         raise ValueError('unacceptable mode: %r' % mode)
