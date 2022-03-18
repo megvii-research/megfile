@@ -694,7 +694,7 @@ def fs_readlink(path: PathLike) -> PathLike:
     '''
     path = os.readlink(path)
     if isinstance(path, bytes):
-        path = path.decode()
+        path = path.decode()  # pragma: no cover
     return path
 
 

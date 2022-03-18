@@ -148,12 +148,9 @@ def smart_open(
         path: typing.Union[str, os.PathLike],
         mode: str = 'r',
         s3_open_func: typing.Callable = megfile.s3.s3_buffered_open
-) -> typing.Union[typing.IO[typing.AnyStr], megfile.lib.s3_prefetch_reader.
-                  S3PrefetchReader, megfile.lib.s3_buffered_writer.
-                  S3BufferedWriter, io.BufferedReader, io.
-                  BufferedWriter, megfile.lib.s3_memory_handler.
-                  S3MemoryHandler, megfile.lib.stdio_handler.STDReader, megfile.
-                  lib.stdio_handler.STDWriter, io.TextIOWrapper]:
+) -> typing.Union[typing.IO[typing.AnyStr], io.BufferedReader, megfile.lib.
+                  stdio_handler.STDReader, megfile.lib.stdio_handler.
+                  STDWriter, io.TextIOWrapper]:
     protocol = _extract_protocol(path)
     if protocol == 'fs':
         return fs_open(path=path, mode=mode)

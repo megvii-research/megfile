@@ -1519,8 +1519,7 @@ def s3_open(
         mode: str = 'r',
         *,
         s3_open_func: Callable[[PathLike, str], BinaryIO] = s3_buffered_open,
-        **kwargs) -> Union[S3PrefetchReader, S3BufferedWriter, io.
-                           BufferedReader, io.BufferedWriter, S3MemoryHandler]:
+        **kwargs) -> IO[AnyStr]:  # type: ignore
     return s3_open_func(path, mode, **necessary_params(s3_open_func, **kwargs))
 
 
@@ -1599,7 +1598,7 @@ def s3_rename(src_path: PathLike, dst_path: PathLike) -> None:
 def _s3_scan_pairs(src_path: PathLike,
                    dst_path: PathLike) -> Iterator[Tuple[PathLike, PathLike]]:
     for src_file_path in s3_scan(src_path):
-        content_path = src_file_path[len(src_path):]
+        content_path = src_file_path[len(str(src_path)):]
         if len(content_path) > 0:
             dst_file_path = s3_path_join(dst_path, content_path)
         else:
