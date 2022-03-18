@@ -1,8 +1,7 @@
 import sys
 
-__all__ = ['PathLike', 'fspath']
+__all__ = ['fspath']
 
-from os import PathLike
 from os import fspath as _fspath
 
 

@@ -9,7 +9,7 @@ from urllib.parse import urlsplit
 
 from megfile.errors import ProtocolNotFoundError, UnsupportedError
 from megfile.fs import fs_copy, fs_rename, fs_getsize, fs_glob, fs_iglob, fs_glob_stat, fs_path_join
-from megfile.interfaces import BaseURIPath, FileEntry, PathLike, Access, NullCacher
+from megfile.interfaces import FileEntry, PathLike, Access, NullCacher
 from megfile.lib.combine_reader import CombineReader
 from megfile.lib.compat import fspath
 from megfile.lib.glob import globlize, ungloblize
@@ -111,8 +111,6 @@ def _extract_protocol(path: typing.Union[PathLike, int]
         protocol = urlsplit(path).scheme
         if protocol == "":
             protocol = "fs"
-    elif isinstance(path, (BaseURIPath)):
-        protocol = path.protocol
     elif isinstance(path, PurePath):
         protocol = "fs"
     else:
@@ -145,7 +143,7 @@ def smart_rename(
         elif src_protocol == 's3':
             s3_rename(src_path, dst_path)
         else:
-            raise UnsupportedError(operation='smart_rename', path=src_path)
+            raise UnsupportedError(operation='smart_rename', path=src_path)  # pragma: no cover
         return
     smart_copy(src_path, dst_path)
     smart_unlink(src_path)
@@ -275,7 +273,7 @@ def smart_move(
         elif src_protocol == 's3':
             s3_rename(src_path, dst_path)
         else:
-            raise UnsupportedError(operation='smart_move', path=src_path)
+            raise UnsupportedError(operation='smart_move', path=src_path)  # pragma: no cover
         return
     smart_sync(src_path, dst_path, followlinks=followlinks)
     smart_remove(src_path, followlinks=followlinks)
@@ -321,7 +319,7 @@ def smart_glob(
         elif protocol == 's3':
             glob_path_list = s3_glob(glob_path, recursive, missing_ok)
         else:
-            raise UnsupportedError(operation='smart_glob', path=path)
+            raise UnsupportedError(operation='smart_glob', path=path)  # pragma: no cover
         result.extend(glob_path_list)
     return result
 
@@ -345,7 +343,7 @@ def smart_iglob(
         elif protocol == 's3':
             iglob_path = s3_iglob(glob_path, recursive, missing_ok)
         else:
-            raise UnsupportedError(operation='smart_iglob', path=path)
+            raise UnsupportedError(operation='smart_iglob', path=path)  # pragma: no cover
         result.append(iglob_path)
     iterableres = chain(*result)
     return iterableres
@@ -370,7 +368,7 @@ def smart_glob_stat(
         elif protocol == 's3':
             stat = s3_glob_stat(glob_path, recursive, missing_ok)
         else:
-            raise UnsupportedError(operation='smart_glob_stat', path=path)
+            raise UnsupportedError(operation='smart_glob_stat', path=path)  # pragma: no cover
         result.append(stat)
     iterableres = chain(*result)
     return iterableres
@@ -465,4 +463,4 @@ def smart_path_join(path: typing.Union[str, os.PathLike], *other_paths: typing.U
         return fspath(os.path.normpath(fs_path_join(path, *other_paths)))
     if protocol == 's3':
         return fspath(s3_path_join(path, *other_paths))
-    raise UnsupportedError(operation='smart_path_join', path=path)
+    raise UnsupportedError(operation='smart_path_join', path=path)  # pragma: no cover

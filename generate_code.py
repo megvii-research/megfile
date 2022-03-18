@@ -188,7 +188,7 @@ def main():
                 smart_file.write(", ".join(parameter_list))
                 smart_file.write(')\n')
             smart_file.write(" " * 4)
-            smart_file.write(f"raise UnsupportedError(operation='smart_{func_name}', path={path_param_name})\n\n\n")
+            smart_file.write(f"raise UnsupportedError(operation='smart_{func_name}', path={path_param_name})  # pragma: no cover\n\n\n")
 
         # write template smart file functions
         smart_file.writelines(template_function_content_lines)

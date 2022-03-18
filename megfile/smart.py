@@ -11,7 +11,7 @@ import megfile
 from megfile.errors import ProtocolNotFoundError, UnsupportedError
 from megfile.fs import fs_access, fs_copy, fs_exists, fs_getmd5, fs_getmtime, fs_getsize, fs_glob, fs_glob_stat, fs_iglob, fs_isdir, fs_isfile, fs_islink, fs_listdir, fs_load_from, fs_makedirs, fs_open, fs_path_join, fs_readlink, fs_remove, fs_rename, fs_save_as, fs_scan, fs_scan_stat, fs_scandir, fs_stat, fs_symlink, fs_unlink, fs_walk
 from megfile.http import http_getmtime, http_getsize, http_open, http_stat
-from megfile.interfaces import Access, BaseURIPath, FileEntry, NullCacher, PathLike
+from megfile.interfaces import Access, FileEntry, NullCacher, PathLike
 from megfile.lib.combine_reader import CombineReader
 from megfile.lib.compat import fspath
 from megfile.lib.glob import globlize, ungloblize
@@ -28,7 +28,8 @@ def smart_access(
         return fs_access(path=path, mode=mode)
     if protocol == 's3':
         return s3_access(path=path, mode=mode)
-    raise UnsupportedError(operation='smart_access', path=path)
+    raise UnsupportedError(
+        operation='smart_access', path=path)  # pragma: no cover
 
 
 def smart_exists(
@@ -39,7 +40,8 @@ def smart_exists(
         return fs_exists(path=path, followlinks=followlinks)
     if protocol == 's3':
         return s3_exists(path=path, followlinks=followlinks)
-    raise UnsupportedError(operation='smart_exists', path=path)
+    raise UnsupportedError(
+        operation='smart_exists', path=path)  # pragma: no cover
 
 
 def smart_getmd5(
@@ -49,7 +51,8 @@ def smart_getmd5(
         return fs_getmd5(path=path, recalculate=recalculate)
     if protocol == 's3':
         return s3_getmd5(path=path, recalculate=recalculate)
-    raise UnsupportedError(operation='smart_getmd5', path=path)
+    raise UnsupportedError(
+        operation='smart_getmd5', path=path)  # pragma: no cover
 
 
 def smart_getmtime(path: typing.Union[str, os.PathLike]) -> float:
@@ -60,7 +63,8 @@ def smart_getmtime(path: typing.Union[str, os.PathLike]) -> float:
         return s3_getmtime(path=path)
     if protocol == 'http':
         return http_getmtime(path=path)
-    raise UnsupportedError(operation='smart_getmtime', path=path)
+    raise UnsupportedError(
+        operation='smart_getmtime', path=path)  # pragma: no cover
 
 
 def smart_getsize(path: typing.Union[str, os.PathLike]) -> int:
@@ -71,7 +75,8 @@ def smart_getsize(path: typing.Union[str, os.PathLike]) -> int:
         return s3_getsize(path=path)
     if protocol == 'http':
         return http_getsize(path=path)
-    raise UnsupportedError(operation='smart_getsize', path=path)
+    raise UnsupportedError(
+        operation='smart_getsize', path=path)  # pragma: no cover
 
 
 def smart_isdir(
@@ -82,7 +87,8 @@ def smart_isdir(
         return fs_isdir(path=path, followlinks=followlinks)
     if protocol == 's3':
         return s3_isdir(path=path)
-    raise UnsupportedError(operation='smart_isdir', path=path)
+    raise UnsupportedError(
+        operation='smart_isdir', path=path)  # pragma: no cover
 
 
 def smart_isfile(
@@ -93,7 +99,8 @@ def smart_isfile(
         return fs_isfile(path=path, followlinks=followlinks)
     if protocol == 's3':
         return s3_isfile(path=path, followlinks=followlinks)
-    raise UnsupportedError(operation='smart_isfile', path=path)
+    raise UnsupportedError(
+        operation='smart_isfile', path=path)  # pragma: no cover
 
 
 def smart_islink(path: typing.Union[str, os.PathLike]) -> bool:
@@ -102,7 +109,8 @@ def smart_islink(path: typing.Union[str, os.PathLike]) -> bool:
         return fs_islink(path=path)
     if protocol == 's3':
         return s3_islink(path=path)
-    raise UnsupportedError(operation='smart_islink', path=path)
+    raise UnsupportedError(
+        operation='smart_islink', path=path)  # pragma: no cover
 
 
 def smart_listdir(path: typing.Union[str, os.PathLike]) -> typing.List:
@@ -111,7 +119,8 @@ def smart_listdir(path: typing.Union[str, os.PathLike]) -> typing.List:
         return fs_listdir(path=path)
     if protocol == 's3':
         return s3_listdir(path=path)
-    raise UnsupportedError(operation='smart_listdir', path=path)
+    raise UnsupportedError(
+        operation='smart_listdir', path=path)  # pragma: no cover
 
 
 def smart_load_from(path: typing.Union[str, os.PathLike]) -> typing.BinaryIO:
@@ -120,7 +129,8 @@ def smart_load_from(path: typing.Union[str, os.PathLike]) -> typing.BinaryIO:
         return fs_load_from(path=path)
     if protocol == 's3':
         return s3_load_from(path=path)
-    raise UnsupportedError(operation='smart_load_from', path=path)
+    raise UnsupportedError(
+        operation='smart_load_from', path=path)  # pragma: no cover
 
 
 def smart_makedirs(
@@ -130,7 +140,8 @@ def smart_makedirs(
         return fs_makedirs(path=path, exist_ok=exist_ok)
     if protocol == 's3':
         return s3_makedirs(path=path, exist_ok=exist_ok)
-    raise UnsupportedError(operation='smart_makedirs', path=path)
+    raise UnsupportedError(
+        operation='smart_makedirs', path=path)  # pragma: no cover
 
 
 def smart_open(
@@ -149,7 +160,8 @@ def smart_open(
         return http_open(path=path, mode=mode)
     if protocol == 'stdio':
         return stdio_open(path=path, mode=mode)
-    raise UnsupportedError(operation='smart_open', path=path)
+    raise UnsupportedError(
+        operation='smart_open', path=path)  # pragma: no cover
 
 
 def smart_readlink(path: typing.Union[str, os.PathLike]
@@ -159,7 +171,8 @@ def smart_readlink(path: typing.Union[str, os.PathLike]
         return fs_readlink(path=path)
     if protocol == 's3':
         return s3_readlink(path=path)
-    raise UnsupportedError(operation='smart_readlink', path=path)
+    raise UnsupportedError(
+        operation='smart_readlink', path=path)  # pragma: no cover
 
 
 def smart_remove(
@@ -172,7 +185,8 @@ def smart_remove(
             path=path, missing_ok=missing_ok, followlinks=followlinks)
     if protocol == 's3':
         return s3_remove(path=path, missing_ok=missing_ok)
-    raise UnsupportedError(operation='smart_remove', path=path)
+    raise UnsupportedError(
+        operation='smart_remove', path=path)  # pragma: no cover
 
 
 def smart_save_as(
@@ -183,7 +197,8 @@ def smart_save_as(
         return fs_save_as(file_object=file_object, path=path)
     if protocol == 's3':
         return s3_save_as(file_object=file_object, path=path)
-    raise UnsupportedError(operation='smart_save_as', path=path)
+    raise UnsupportedError(
+        operation='smart_save_as', path=path)  # pragma: no cover
 
 
 def smart_scan(
@@ -196,7 +211,8 @@ def smart_scan(
             path=path, missing_ok=missing_ok, followlinks=followlinks)
     if protocol == 's3':
         return s3_scan(path=path, missing_ok=missing_ok)
-    raise UnsupportedError(operation='smart_scan', path=path)
+    raise UnsupportedError(
+        operation='smart_scan', path=path)  # pragma: no cover
 
 
 def smart_scan_stat(
@@ -209,7 +225,8 @@ def smart_scan_stat(
             path=path, missing_ok=missing_ok, followlinks=followlinks)
     if protocol == 's3':
         return s3_scan_stat(path=path, missing_ok=missing_ok)
-    raise UnsupportedError(operation='smart_scan_stat', path=path)
+    raise UnsupportedError(
+        operation='smart_scan_stat', path=path)  # pragma: no cover
 
 
 def smart_scandir(path: typing.Union[str, os.PathLike]) -> typing.Iterator:
@@ -218,7 +235,8 @@ def smart_scandir(path: typing.Union[str, os.PathLike]) -> typing.Iterator:
         return fs_scandir(path=path)
     if protocol == 's3':
         return s3_scandir(path=path)
-    raise UnsupportedError(operation='smart_scandir', path=path)
+    raise UnsupportedError(
+        operation='smart_scandir', path=path)  # pragma: no cover
 
 
 def smart_stat(
@@ -230,7 +248,8 @@ def smart_stat(
         return s3_stat(path=path)
     if protocol == 'http':
         return http_stat(path=path)
-    raise UnsupportedError(operation='smart_stat', path=path)
+    raise UnsupportedError(
+        operation='smart_stat', path=path)  # pragma: no cover
 
 
 def smart_symlink(
@@ -241,7 +260,8 @@ def smart_symlink(
         return fs_symlink(dst_path=dst_path, src_path=src_path)
     if protocol == 's3':
         return s3_symlink(dst_path=dst_path, src_path=src_path)
-    raise UnsupportedError(operation='smart_symlink', path=src_path)
+    raise UnsupportedError(
+        operation='smart_symlink', path=src_path)  # pragma: no cover
 
 
 def smart_unlink(
@@ -251,7 +271,8 @@ def smart_unlink(
         return fs_unlink(path=path, missing_ok=missing_ok)
     if protocol == 's3':
         return s3_unlink(path=path, missing_ok=missing_ok)
-    raise UnsupportedError(operation='smart_unlink', path=path)
+    raise UnsupportedError(
+        operation='smart_unlink', path=path)  # pragma: no cover
 
 
 def smart_walk(
@@ -262,7 +283,8 @@ def smart_walk(
         return fs_walk(path=path, followlinks=followlinks)
     if protocol == 's3':
         return s3_walk(path=path)
-    raise UnsupportedError(operation='smart_walk', path=path)
+    raise UnsupportedError(
+        operation='smart_walk', path=path)  # pragma: no cover
 
 
 _copy_funcs = {
@@ -330,8 +352,6 @@ def _extract_protocol(path: typing.Union[PathLike, int]) -> str:
         protocol = urlsplit(path).scheme
         if protocol == "":
             protocol = "fs"
-    elif isinstance(path, (BaseURIPath)):
-        protocol = path.protocol
     elif isinstance(path, PurePath):
         protocol = "fs"
     else:
@@ -364,7 +384,8 @@ def smart_rename(
         elif src_protocol == 's3':
             s3_rename(src_path, dst_path)
         else:
-            raise UnsupportedError(operation='smart_rename', path=src_path)
+            raise UnsupportedError(
+                operation='smart_rename', path=src_path)  # pragma: no cover
         return
     smart_copy(src_path, dst_path)
     smart_unlink(src_path)
@@ -494,7 +515,8 @@ def smart_move(
         elif src_protocol == 's3':
             s3_rename(src_path, dst_path)
         else:
-            raise UnsupportedError(operation='smart_move', path=src_path)
+            raise UnsupportedError(
+                operation='smart_move', path=src_path)  # pragma: no cover
         return
     smart_sync(src_path, dst_path, followlinks=followlinks)
     smart_remove(src_path, followlinks=followlinks)
@@ -539,7 +561,8 @@ def smart_glob(path: PathLike, recursive: bool = True,
         elif protocol == 's3':
             glob_path_list = s3_glob(glob_path, recursive, missing_ok)
         else:
-            raise UnsupportedError(operation='smart_glob', path=path)
+            raise UnsupportedError(
+                operation='smart_glob', path=path)  # pragma: no cover
         result.extend(glob_path_list)
     return result
 
@@ -563,7 +586,8 @@ def smart_iglob(
         elif protocol == 's3':
             iglob_path = s3_iglob(glob_path, recursive, missing_ok)
         else:
-            raise UnsupportedError(operation='smart_iglob', path=path)
+            raise UnsupportedError(
+                operation='smart_iglob', path=path)  # pragma: no cover
         result.append(iglob_path)
     iterableres = chain(*result)
     return iterableres
@@ -588,7 +612,8 @@ def smart_glob_stat(
         elif protocol == 's3':
             stat = s3_glob_stat(glob_path, recursive, missing_ok)
         else:
-            raise UnsupportedError(operation='smart_glob_stat', path=path)
+            raise UnsupportedError(
+                operation='smart_glob_stat', path=path)  # pragma: no cover
         result.append(stat)
     iterableres = chain(*result)
     return iterableres
@@ -687,4 +712,5 @@ def smart_path_join(
         return fspath(os.path.normpath(fs_path_join(path, *other_paths)))
     if protocol == 's3':
         return fspath(s3_path_join(path, *other_paths))
-    raise UnsupportedError(operation='smart_path_join', path=path)
+    raise UnsupportedError(
+        operation='smart_path_join', path=path)  # pragma: no cover

@@ -925,6 +925,15 @@ def test_fs_move(filesystem):
     assert os.path.exists(dst)
     assert not os.path.exists(src)
 
+    src_file = '/tmp/refiletest/src/file'
+    dst_file = '/tmp/refiletest/dst/file'
+    os.makedirs(src)
+    with open(src_file, 'w'):
+        pass
+    fs.fs_move(src_file, dst_file)
+    assert os.path.exists(dst_file)
+    assert not os.path.exists(src_file)
+
 
 def test_fs_move_symlink(filesystem):
     '''
@@ -1031,3 +1040,38 @@ def test_fs_readlink(filesystem):
     dst_path = '/tmp/dst_file'
     os.symlink(src_path, dst_path)
     assert fs.fs_readlink(dst_path) == src_path
+
+
+def test_fs_isabs(mocker):
+    path = 'test_path'
+    funcA = mocker.patch('os.path.isabs')
+    fs.fs_isabs(path)
+    funcA.assert_called_once_with(path)
+
+
+def test_fs_ismount(mocker):
+    path = 'test_path'
+    funcA = mocker.patch('os.path.ismount')
+    fs.fs_ismount(path)
+    funcA.assert_called_once_with(path)
+
+
+def test_fs_abspath(mocker):
+    path = 'test_path'
+    funcA = mocker.patch('os.path.abspath', return_value=path)
+    fs.fs_abspath(path)
+    funcA.assert_called_once_with(path)
+
+
+def test_fs_realpath(mocker):
+    path = 'test_path'
+    funcA = mocker.patch('os.path.realpath', return_value=path)
+    fs.fs_realpath(path)
+    funcA.assert_called_once_with(path)
+
+
+def test_fs_relpath(mocker):
+    path = 'test_path'
+    funcA = mocker.patch('os.path.relpath', return_value=path)
+    fs.fs_relpath(path)
+    funcA.assert_called_once_with(path, start=None)

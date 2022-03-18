@@ -278,6 +278,6 @@ class cachedproperty:
 
     def __get__(self, obj, cls):
         if obj is None:
-            return self
+            return self  # pragma: no cover
         value = obj.__dict__[self.__name__] = self.__wrapped__(obj)
         return value

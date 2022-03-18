@@ -1,6 +1,6 @@
 import os
 from io import BytesIO, StringIO
-from pathlib import Path
+from pathlib import Path, PurePath
 
 import boto3
 import botocore
@@ -10,6 +10,7 @@ from moto import mock_s3
 
 import megfile
 from megfile import smart
+from megfile.errors import ProtocolNotFoundError
 from megfile.interfaces import Access, StatResult
 from megfile.s3 import _s3_binary_mode, s3_load_content
 
@@ -247,6 +248,10 @@ def test_smart_rename_fs(s3_empty_client, filesystem):
     assert smart.smart_exists('s3://bucket/src_copy')
     assert not smart.smart_exists('tmp_rename/src_copy')
 
+    smart.smart_rename('s3://bucket/src_copy', 's3://bucket/dst_copy')
+    assert smart.smart_exists('s3://bucket/dst_copy')
+    assert not smart.smart_exists('s3://bucket/src_copy')
+
 
 def test_smart_unlink(mocker):
     funcA = mocker.patch('megfile.smart.fs_unlink', return_value=None)
@@ -383,6 +388,21 @@ def test_smart_open(mocker, fs):
     # assert text_wrapper.call_count == 1
     # s3_reader.reset_mock()
     # text_wrapper.reset_mock()
+    funcA = mocker.patch('megfile.smart.fs_open')
+    smart.smart_open('/test')
+    funcA.assert_called_once()
+
+    funcA = mocker.patch('megfile.smart.s3_open')
+    smart.smart_open('s3://test/test')
+    funcA.assert_called_once()
+
+    funcA = mocker.patch('megfile.smart.http_open')
+    smart.smart_open('http://test/test')
+    funcA.assert_called_once()
+
+    funcA = mocker.patch('megfile.smart.stdio_open')
+    smart.smart_open('stdio://test/test')
+    funcA.assert_called_once()
 
 
 def test_smart_open_custom_s3_open_func(mocker, fs):
@@ -745,3 +765,204 @@ def test_smart_save_text(funcA):
 def test_smart_load_text(funcA):
     smart.smart_load_text('test path')
     funcA.assert_called_once()
+
+
+def test_smart_access(mocker):
+
+    funcA = mocker.patch('megfile.smart.fs_access')
+    smart.smart_access('/test')
+    funcA.assert_called_once()
+
+    funcA = mocker.patch('megfile.smart.s3_access')
+    smart.smart_access('s3://test/test')
+    funcA.assert_called_once()
+
+
+def test_smart_getmd5(mocker):
+
+    funcA = mocker.patch('megfile.smart.fs_getmd5')
+    smart.smart_getmd5('/test')
+    funcA.assert_called_once()
+
+    funcA = mocker.patch('megfile.smart.s3_getmd5')
+    smart.smart_getmd5('s3://test/test')
+    funcA.assert_called_once()
+
+
+def test_smart_getmtime(mocker):
+
+    funcA = mocker.patch('megfile.smart.fs_getmtime')
+    smart.smart_getmtime('/test')
+    funcA.assert_called_once()
+
+    funcA = mocker.patch('megfile.smart.s3_getmtime')
+    smart.smart_getmtime('s3://test/test')
+    funcA.assert_called_once()
+
+    funcA = mocker.patch('megfile.smart.http_getmtime')
+    smart.smart_getmtime('http://test/test')
+    funcA.assert_called_once()
+
+
+def test_smart_getsize(mocker):
+
+    funcA = mocker.patch('megfile.smart.fs_getsize')
+    smart.smart_getsize('/test')
+    funcA.assert_called_once()
+
+    funcA = mocker.patch('megfile.smart.s3_getsize')
+    smart.smart_getsize('s3://test/test')
+    funcA.assert_called_once()
+
+    funcA = mocker.patch('megfile.smart.http_getsize')
+    smart.smart_getsize('http://test/test')
+    funcA.assert_called_once()
+
+
+def test_smart_isdir(mocker):
+
+    funcA = mocker.patch('megfile.smart.fs_isdir')
+    smart.smart_isdir('/test')
+    funcA.assert_called_once()
+
+    funcA = mocker.patch('megfile.smart.s3_isdir')
+    smart.smart_isdir('s3://test/test')
+    funcA.assert_called_once()
+
+
+def test_smart_isfile(mocker):
+
+    funcA = mocker.patch('megfile.smart.fs_isfile')
+    smart.smart_isfile('/test')
+    funcA.assert_called_once()
+
+    funcA = mocker.patch('megfile.smart.s3_isfile')
+    smart.smart_isfile('s3://test/test')
+    funcA.assert_called_once()
+
+
+def test_smart_islink(mocker):
+
+    funcA = mocker.patch('megfile.smart.fs_islink')
+    smart.smart_islink('/test')
+    funcA.assert_called_once()
+
+    funcA = mocker.patch('megfile.smart.s3_islink')
+    smart.smart_islink('s3://test/test')
+    funcA.assert_called_once()
+
+
+def test_smart_listdir(mocker):
+
+    funcA = mocker.patch('megfile.smart.fs_listdir')
+    smart.smart_listdir('/test')
+    funcA.assert_called_once()
+
+    funcA = mocker.patch('megfile.smart.s3_listdir')
+    smart.smart_listdir('s3://test/test')
+    funcA.assert_called_once()
+
+
+def test_smart_load_from(mocker):
+
+    funcA = mocker.patch('megfile.smart.fs_load_from')
+    smart.smart_load_from('/test')
+    funcA.assert_called_once()
+
+    funcA = mocker.patch('megfile.smart.s3_load_from')
+    smart.smart_load_from('s3://test/test')
+    funcA.assert_called_once()
+
+
+def test_smart_makedirs(mocker):
+
+    funcA = mocker.patch('megfile.smart.fs_makedirs')
+    smart.smart_makedirs('/test')
+    funcA.assert_called_once()
+
+    funcA = mocker.patch('megfile.smart.s3_makedirs')
+    smart.smart_makedirs('s3://test/test')
+    funcA.assert_called_once()
+
+
+def test_smart_remove(mocker):
+
+    funcA = mocker.patch('megfile.smart.fs_remove')
+    smart.smart_remove('/test')
+    funcA.assert_called_once()
+
+    funcA = mocker.patch('megfile.smart.s3_remove')
+    smart.smart_remove('s3://test/test')
+    funcA.assert_called_once()
+
+
+def test_smart_scandir(mocker):
+
+    funcA = mocker.patch('megfile.smart.fs_scandir')
+    smart.smart_scandir('/test')
+    funcA.assert_called_once()
+
+    funcA = mocker.patch('megfile.smart.s3_scandir')
+    smart.smart_scandir('s3://test/test')
+    funcA.assert_called_once()
+
+
+def test_smart_stat(mocker):
+
+    funcA = mocker.patch('megfile.smart.fs_stat')
+    smart.smart_stat('/test')
+    funcA.assert_called_once()
+
+    funcA = mocker.patch('megfile.smart.s3_stat')
+    smart.smart_stat('s3://test/test')
+    funcA.assert_called_once()
+
+    funcA = mocker.patch('megfile.smart.http_stat')
+    smart.smart_stat('http://test/test')
+    funcA.assert_called_once()
+
+
+def test_smart_scan_stat(mocker):
+
+    funcA = mocker.patch('megfile.smart.fs_scan_stat')
+    smart.smart_scan_stat('/test')
+    funcA.assert_called_once()
+
+    funcA = mocker.patch('megfile.smart.s3_scan_stat')
+    smart.smart_scan_stat('s3://test/test')
+    funcA.assert_called_once()
+
+
+def test_smart_unlink(mocker):
+
+    funcA = mocker.patch('megfile.smart.fs_unlink')
+    smart.smart_unlink('/test')
+    funcA.assert_called_once()
+
+    funcA = mocker.patch('megfile.smart.s3_unlink')
+    smart.smart_unlink('s3://test/test')
+    funcA.assert_called_once()
+
+
+def test_smart_walk(mocker):
+
+    funcA = mocker.patch('megfile.smart.fs_walk')
+    smart.smart_walk('/test')
+    funcA.assert_called_once()
+
+    funcA = mocker.patch('megfile.smart.s3_walk')
+    smart.smart_walk('s3://test/test')
+    funcA.assert_called_once()
+
+
+def test_extract_protocol():
+    assert smart._extract_protocol('http://a/b') == 'http'
+    assert smart._extract_protocol('https://a/b') == 'http'
+    assert smart._extract_protocol('/a/b') == 'fs'
+    assert smart._extract_protocol(PurePath()) == 'fs'
+    assert smart._extract_protocol('stdio://a/b') == 'stdio'
+    assert smart._extract_protocol('s3://a/b') == 's3'
+    assert smart._extract_protocol(0) == 'fs'
+
+    with pytest.raises(ProtocolNotFoundError):
+        smart._extract_protocol({})
