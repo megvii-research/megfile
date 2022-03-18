@@ -692,7 +692,10 @@ def fs_readlink(path: PathLike) -> PathLike:
     :param path: Path to be read
     :returns: Return a string representing the path to which the symbolic link points.
     '''
-    return os.readlink(path)
+    path = os.readlink(path)
+    if isinstance(path, bytes):
+        path = path.decode()
+    return path
 
 
 def fs_open(path: PathLike, mode: str, **kwargs) -> IO[AnyStr]:
