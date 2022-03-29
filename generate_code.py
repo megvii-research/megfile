@@ -101,6 +101,11 @@ def join_params_and_return_annotation(func_info):
     return current_parameters, return_annotation
 
 
+def get_smart_doc():
+    with open('template/doc.json', 'r') as smart_file_doc:
+        return json.load(smart_file_doc)
+
+
 def main():
     all_type_functions, all_functions_group_by_type = get_all_functions_from_types()
     joined_type_functions, joined_functions_group_by_type = {}, {}
@@ -113,6 +118,7 @@ def main():
                 joined_functions_group_by_type[current_type].append(f"{current_type}_{base_func_name}")
 
     smart_functions = []
+    smart_doc = get_smart_doc()
     with open('megfile/smart.py', 'w') as smart_file:
 
         # write template smart file imports
@@ -127,7 +133,9 @@ def main():
         # join and write functions
         for func_name, func_info in joined_type_functions.items():
 
-            if f"smart_{func_name}" in exist_func_set:
+            smart_func_name = f'smart_{func_name}'
+
+            if smart_func_name in exist_func_set:
                 continue
 
             current_parameters, return_annotation = join_params_and_return_annotation(func_info)
@@ -141,7 +149,7 @@ def main():
             
             # write function name
             smart_file.write(f'def smart_{func_name}(')
-            smart_functions.append(f'smart_{func_name}')
+            smart_functions.append(smart_func_name)
 
             # write function parameters
             all_param = []
@@ -167,6 +175,19 @@ def main():
                 smart_file.write(":")
             smart_file.write("\n")
 
+            # write function doc
+            if smart_func_name in smart_doc:
+                smart_file.write(" " * 4)
+                smart_file.write("'" * 3)
+                smart_file.write("\n")
+                for doc_line in smart_doc[smart_func_name].split('\n'):
+                    smart_file.write(" " * 4)
+                    smart_file.write(doc_line)
+                    smart_file.write("\n")
+                smart_file.write(" " * 4)
+                smart_file.write("'" * 3)
+                smart_file.write("\n")
+            
             smart_file.write(" " * 4)
             smart_file.write(f"protocol = _extract_protocol({path_param_name})\n")
 
@@ -202,6 +223,7 @@ def main():
             init_file.write('from megfile.%s import %s\n' % (current_type, ", ".join(function_names)))
         init_file.write('from megfile.smart import %s\n\n\n' % ", ".join(smart_functions))
         all_func_list.extend(smart_functions)
+        all_func_list.sort()
         init_file.write("__all__ = ")
         init_file.write(json.dumps(all_func_list, indent=2).replace('\n]', ',\n]'))
         pass

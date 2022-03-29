@@ -45,3 +45,7 @@ release:
 	devpi upload dist/${PACKAGE}-${VERSION}-py3-none-any.whl
 
 	twine upload dist/${PACKAGE}-${VERSION}-py3-none-any.whl --username=${PYPI_USERNAME_2} --password=${PYPI_PASSWORD_2}
+
+smart-file:
+	python3 generate_code.py
+	make format
