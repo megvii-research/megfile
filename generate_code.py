@@ -1,5 +1,6 @@
 import inspect
 import json
+import yaml
 import typing
 
 ALL_TYPES = ['fs', 's3', 'http', 'stdio']
@@ -102,8 +103,8 @@ def join_params_and_return_annotation(func_info):
 
 
 def get_smart_doc():
-    with open('template/doc.json', 'r') as smart_file_doc:
-        return json.load(smart_file_doc)
+    with open('template/doc.yaml', 'r') as smart_file_doc:
+        return yaml.load(smart_file_doc, Loader=yaml.FullLoader)
 
 
 def main():
