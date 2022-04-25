@@ -607,7 +607,6 @@ def test_s3_copy(s3_empty_client):
     assert body == 'value'
 
 
-@pytest.mark.skipif(sys.version_info < (3, 6), reason="Python3.6+")
 def test_s3_copy_invalid(s3_empty_client):
     s3_empty_client.create_bucket(Bucket='bucket')
     s3_empty_client.put_object(Bucket='bucket', Key='key', Body='value')
@@ -887,7 +886,8 @@ def test_s3_remove_slashes(s3_empty_client):
 
 
 def test_s3_move(truncating_client):
-    smart.smart_touch('s3://bucketA/folderAA/folderAAA/fileAAAA')
+    with smart.smart_open('s3://bucketA/folderAA/folderAAA/fileAAAA', 'w'):
+        pass
     s3.s3_move(
         's3://bucketA/folderAA/folderAAA', 's3://bucketA/folderAA/folderAAA1')
     assert s3.s3_exists('s3://bucketA/folderAA/folderAAA') is False
@@ -895,7 +895,8 @@ def test_s3_move(truncating_client):
 
 
 def test_s3_move_file(truncating_client):
-    smart.smart_touch('s3://bucketA/folderAA/folderAAA/fileAAAA')
+    with smart.smart_open('s3://bucketA/folderAA/folderAAA/fileAAAA', 'w'):
+        pass
     s3.s3_move(
         's3://bucketA/folderAA/folderAAA/fileAAAA',
         's3://bucketA/folderAA/folderAAA1/fileAAAA')
@@ -904,7 +905,8 @@ def test_s3_move_file(truncating_client):
 
 
 def test_s3_sync(truncating_client):
-    smart.smart_touch('s3://bucketA/folderAA/folderAAA/fileAAAA')
+    with smart.smart_open('s3://bucketA/folderAA/folderAAA/fileAAAA', 'w'):
+        pass
     s3.s3_sync(
         's3://bucketA/folderAA/folderAAA', 's3://bucketA/folderAA/folderAAA1')
     assert s3.s3_exists('s3://bucketA/folderAA/folderAAA')
