@@ -263,6 +263,7 @@ def smart_readlink(path: typing.Union[str, os.PathLike]
                   ) -> typing.Union[str, os.PathLike]:
     '''
     Return a string representing the path to which the symbolic link points.
+    
     :param path: Path to be read
     :returns: Return a string representing the path to which the symbolic link points.
     '''

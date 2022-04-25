@@ -1,252 +1,171 @@
-smart_abspath: 'Return the absolute path of given path
-
+smart_abspath: |-
+  Return the absolute path of given path
 
   :param path: Given path
-
-  :returns: Absolute path of given path'
-smart_access: 'Test if path has access permission described by mode
-
+  :returns: Absolute path of given path
+smart_access: |-
+  Test if path has access permission described by mode
 
   :param path: Path to be tested
-
   :param mode: Access mode(Access.READ, Access.WRITE, Access.BUCKETREAD, Access.BUCKETWRITE)
-
-  :returns: bool, if the path has read/write access.'
-smart_exists: 'Test if path or s3_url exists
-
+  :returns: bool, if the path has read/write access.
+smart_exists: |-
+  Test if path or s3_url exists
 
   :param path: Path to be tested
-
-  :returns: True if path eixsts, else False'
-smart_getmtime: 'Get last-modified time of the file on the given s3_url or file path
-  (in Unix timestamp format).
-
-  If the path is an existent directory, return the latest modified time of all file
-  in it. The mtime of empty directory is 1970-01-01 00:00:00
-
+  :returns: True if path eixsts, else False
+smart_getmtime: |-
+  Get last-modified time of the file on the given s3_url or file path (in Unix timestamp format).
+  If the path is an existent directory, return the latest modified time of all file in it. The mtime of empty directory is 1970-01-01 00:00:00
 
   :param path: Given path
-
   :returns: Last-modified time
-
-  :raises: FileNotFoundError'
-smart_getsize: 'Get file size on the given s3_url or file path (in bytes).
-
-  If the path in a directory, return the sum of all file size in it, including file
-  in subdirectories (if exist).
-
-  The result excludes the size of directory itself. In other words, return 0 Byte
-  on an empty directory path.
-
+  :raises: FileNotFoundError
+smart_getsize: |-
+  Get file size on the given s3_url or file path (in bytes).
+  If the path in a directory, return the sum of all file size in it, including file in subdirectories (if exist).
+  The result excludes the size of directory itself. In other words, return 0 Byte on an empty directory path.
 
   :param path: Given path
-
   :returns: File size
-
-  :raises: FileNotFoundError'
-smart_isdir: 'Test if a file path or an s3 url is directory
-
-
-  :param path: Path to be tested
-
-  :returns: True if path is directory, else False'
-smart_isfile: 'Test if a file path or an s3 url is file
-
+  :raises: FileNotFoundError
+smart_isdir: |-
+  Test if a file path or an s3 url is directory
 
   :param path: Path to be tested
+  :returns: True if path is directory, else False
+smart_isfile: |-
+  Test if a file path or an s3 url is file
 
-  :returns: True if path is file, else False'
-smart_ismount: 'Test whether a path is a mount point
-
-
-  :param path: Given path
-
-  :returns: True if a path is a mount point, else False'
-smart_listdir: 'Get all contents of given s3_url or file path. The result is in acsending
-  alphabetical order.
-
+  :param path: Path to be tested
+  :returns: True if path is file, else False
+smart_ismount: |-
+  Test whether a path is a mount point
 
   :param path: Given path
+  :returns: True if a path is a mount point, else False
+smart_listdir: |-
+  Get all contents of given s3_url or file path. The result is in acsending alphabetical order.
 
+  :param path: Given path
   :returns: All contents of given s3_url or file path in acsending alphabetical order.
-
-  :raises: FileNotFoundError, NotADirectoryError'
-smart_load_from: 'Read all content in binary on specified path and write into memory
-
+  :raises: FileNotFoundError, NotADirectoryError
+smart_load_from: |-
+  Read all content in binary on specified path and write into memory
 
   User should close the BinaryIO manually
 
-
   :param path: Specified path
-
-  :returns: BinaryIO'
-smart_makedirs: 'Create a directory if is on fs.
-
+  :returns: BinaryIO
+smart_makedirs: |-
+  Create a directory if is on fs.
   If on s3, it actually check if target exists, and check if bucket has WRITE access
 
-
   :param path: Given path
-
   :param exist_ok: if False and target directory not exists, raise FileNotFoundError
-
-  :raises: PermissionError, FileExistsError'
-smart_open: 'Open a file on the path
-
+  :raises: PermissionError, FileExistsError
+smart_open: |-
+  Open a file on the path
 
   .. note ::
 
-
-  On fs, the difference between this function and ``io.open`` is that this function
-  create directories automatically, instead of raising FileNotFoundError
-
+  On fs, the difference between this function and ``io.open`` is that this function create directories automatically, instead of raising FileNotFoundError
 
   Currently, supported protocols are:
 
-
   1. s3:      "s3://<bucket>/<key>"
-
 
   2. http(s): http(s) url
 
-
   3. stdio:   "stdio://-"
-
 
   4. FS file: Besides above mentioned protocols, other path are considered fs path
 
-
   Here are a few examples: ::
 
-
   >>> import cv2
-
   >>> import numpy as np
-
-  >>> raw = smart_open(''https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=2275743969,3715493841&fm=26&gp=0.jpg'').read()
-
+  >>> raw = smart_open('https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=2275743969,3715493841&fm=26&gp=0.jpg').read()
   >>> img = cv2.imdecode(np.frombuffer(raw, np.uint8), cv2.IMREAD_ANYDEPTH | cv2.IMREAD_COLOR)
 
-
   :param path: Given path
-
-  :param mode: Mode to open file, supports r''[rwa][tb]?\+?''
-
-  :param s3_open_func: Function used to open s3_url. Require the function includes
-  2 necessary parameters, file path and mode
-
+  :param mode: Mode to open file, supports r'[rwa][tb]?\+?'
+  :param s3_open_func: Function used to open s3_url. Require the function includes 2 necessary parameters, file path and mode
   :returns: File-Like object
-
-  :raises: FileNotFoundError, IsADirectoryError, ValueError'
-smart_readlink: 'Return a string representing the path to which the symbolic link
-  points.
+  :raises: FileNotFoundError, IsADirectoryError, ValueError
+smart_readlink: |-
+  Return a string representing the path to which the symbolic link points.
 
   :param path: Path to be read
-
-  :returns: Return a string representing the path to which the symbolic link points.'
-smart_relpath: 'Return the relative path of given path
-
+  :returns: Return a string representing the path to which the symbolic link points.
+smart_relpath: |-
+  Return the relative path of given path
 
   :param path: Given path
-
   :param start: Given start directory
-
-  :returns: Relative path from start'
-smart_remove: 'Remove the file or directory on s3 or fs, `s3://` and `s3://bucket`
-  are not permitted to remove
-
+  :returns: Relative path from start
+smart_remove: |-
+  Remove the file or directory on s3 or fs, `s3://` and `s3://bucket` are not permitted to remove
 
   :param path: Given path
-
   :param missing_ok: if False and target file/directory not exists, raise FileNotFoundError
-
-  :raises: PermissionError, FileNotFoundError'
-smart_scan: 'Iteratively traverse only files in given directory, in alphabetical order.
-
+  :raises: PermissionError, FileNotFoundError
+smart_scan: |-
+  Iteratively traverse only files in given directory, in alphabetical order.
   Every iteration on generator yields a path string.
 
-
   If path is a file path, yields the file only
-
   If path is a non-existent path, return an empty generator
-
   If path is a bucket path, return all file paths in the bucket
 
-
   :param path: Given path
-
-  :param missing_ok: If False and there''s no file in the directory, raise FileNotFoundError
-
+  :param missing_ok: If False and there's no file in the directory, raise FileNotFoundError
   :raises: UnsupportedError
-
-  :returns: A file path generator'
-smart_scan_stat: 'Iteratively traverse only files in given directory, in alphabetical
-  order.
-
+  :returns: A file path generator
+smart_scan_stat: |-
+  Iteratively traverse only files in given directory, in alphabetical order.
   Every iteration on generator yields a tuple of path string and file stat
 
-
   :param path: Given path
-
-  :param missing_ok: If False and there''s no file in the directory, raise FileNotFoundError
-
+  :param missing_ok: If False and there's no file in the directory, raise FileNotFoundError
   :raises: UnsupportedError
-
-  :returns: A file path generator'
-smart_scandir: 'Get all content of given s3_url or file path.
-
+  :returns: A file path generator
+smart_scandir: |-
+  Get all content of given s3_url or file path.
 
   :param path: Given path
-
   :returns: An iterator contains all contents have prefix path
-
-  :raises: FileNotFoundError, NotADirectoryError'
-smart_stat: 'Get StatResult of s3_url or file path
-
+  :raises: FileNotFoundError, NotADirectoryError
+smart_stat: |-
+  Get StatResult of s3_url or file path
 
   :param path: Given path
-
   :returns: StatResult
-
-  :raises: FileNotFoundError'
-smart_symlink: 'Create a symbolic link pointing to src_path named path.
-
+  :raises: FileNotFoundError
+smart_symlink: |-
+  Create a symbolic link pointing to src_path named path.
 
   :param dst_path: Desination path
-
-  :param src_path: Source path'
-smart_unlink: 'Remove the file on s3 or fs
-
+  :param src_path: Source path
+smart_unlink: |-
+  Remove the file on s3 or fs
 
   :param path: Given path
-
   :param missing_ok: if False and target file not exists, raise FileNotFoundError
-
-  :raises: PermissionError, FileNotFoundError, IsADirectoryError'
-smart_walk: 'Generate the file names in a directory tree by walking the tree top-down.
-
+  :raises: PermissionError, FileNotFoundError, IsADirectoryError
+smart_walk: |-
+  Generate the file names in a directory tree by walking the tree top-down.
   For each directory in the tree rooted at directory path (including path itself),
-
   it yields a 3-tuple (root, dirs, files).
 
-
   root: a string of current path
-
-  dirs: name list of subdirectories (excluding ''.'' and ''..'' if they exist) in
-  ''root''. The list is sorted by ascending alphabetical order
-
-  files: name list of non-directory files (link is regarded as file) in ''root''.
-  The list is sorted by ascending alphabetical order
-
+  dirs: name list of subdirectories (excluding '.' and '..' if they exist) in 'root'. The list is sorted by ascending alphabetical order
+  files: name list of non-directory files (link is regarded as file) in 'root'. The list is sorted by ascending alphabetical order
 
   If path not exists, return an empty generator
-
   If path is a file, return an empty generator
-
   If try to apply walk() on unsupported path, raise UnsupportedError
 
-
   :param path: Given path
-
   :raises: UnsupportedError
-
-  :returns: A 3-tuple generator'
+  :returns: A 3-tuple generator
