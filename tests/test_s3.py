@@ -885,6 +885,50 @@ def test_s3_remove_slashes(s3_empty_client):
     assert s3.s3_exists('s3://bucket////') is False
 
 
+def test_s3_remove_with_error(s3_empty_client, caplog):
+    response = {
+        'Deleted': [
+            {
+                'Key': 'string',
+                'VersionId': 'string',
+                'DeleteMarker': True,
+                'DeleteMarkerVersionId': 'string'
+            },
+        ],
+        'RequestCharged':
+        'requester',
+        'Errors': [
+            {
+                'Key': 'error1',
+                'VersionId': 'test1',
+                'Code': 'InternalError',
+                'Message': 'test InternalError'
+            },
+            {
+                'Key': 'error2',
+                'VersionId': 'test2',
+                'Code': 'TestError',
+                'Message': 'test InternalError'
+            },
+        ]
+    }
+    s3_empty_client.delete_objects = lambda *args, **kwargs: response
+    s3_empty_client.create_bucket(Bucket='bucket')
+    s3_empty_client.put_object(Bucket='bucket', Key='///')
+    s3.s3_remove('s3://bucket//')
+    for error_info in response['Errors']:
+        if error_info['Code'] == 'InternalError':
+            for i in range(2):
+                log = "retry %s times, removing file: %s, with error %s: %s" % (
+                    i + 1, error_info['Key'], error_info['Code'],
+                    error_info['Message'])
+                assert log in caplog.text
+        else:
+            log = "failed remove file: %s, with error %s: %s" % (
+                error_info['Key'], error_info['Code'], error_info['Message'])
+            assert log in caplog.text
+
+
 def test_s3_move(truncating_client):
     with smart.smart_open('s3://bucketA/folderAA/folderAAA/fileAAAA', 'w'):
         pass

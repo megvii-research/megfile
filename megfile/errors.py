@@ -101,6 +101,12 @@ def s3_should_retry(error: Exception) -> bool:
     return False
 
 
+def s3_error_code_should_retry(error: str) -> bool:
+    if error in ['InternalError', 'ServiceUnavailable', 'SlowDown']:
+        return True
+    return False
+
+
 http_retry_exceptions = (
     requests.exceptions.ReadTimeout,
     requests.exceptions.ChunkedEncodingError,
