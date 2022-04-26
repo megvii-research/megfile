@@ -915,9 +915,9 @@ def test_s3_remove_with_error(s3_empty_client, caplog):
     }
     s3_empty_client.delete_objects = lambda *args, **kwargs: response
     s3_empty_client.create_bucket(Bucket='bucket')
-    s3_empty_client.put_object(Bucket='bucket', Key='///')
+    s3_empty_client.put_object(Bucket='bucket', Key='test.txt', Body='test')
     with pytest.raises(S3UnknownError) as error:
-        s3.s3_remove('s3://bucket//')
+        s3.s3_remove('s3://bucket/test.txt')
     for error_info in response['Errors']:
         if error_info['Code'] == 'InternalError':
             for i in range(2):
