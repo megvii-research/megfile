@@ -3,12 +3,12 @@ import inspect
 import io
 import os
 import re
+import time
 from functools import lru_cache, wraps
 from itertools import chain
 from logging import getLogger as get_logger
 from typing import Any, BinaryIO, Callable, Dict, Iterator, List, Optional, Tuple, Union
 from urllib.parse import urlsplit
-import time
 
 import boto3
 import botocore
@@ -17,7 +17,7 @@ from botocore.awsrequest import AWSResponse
 
 from megfile.errors import S3BucketNotFoundError, S3ConfigError, S3FileExistsError, S3FileNotFoundError, S3IsADirectoryError, S3NameTooLongError, S3NotADirectoryError, S3NotALinkError, S3PermissionError, S3UnknownError, UnsupportedError, _create_missing_ok_generator
 from megfile.errors import _logger as error_logger
-from megfile.errors import patch_method, raise_s3_error, s3_should_retry, translate_fs_error, translate_s3_error, s3_error_code_should_retry
+from megfile.errors import patch_method, raise_s3_error, s3_error_code_should_retry, s3_should_retry, translate_fs_error, translate_s3_error
 from megfile.interfaces import Access, FileCacher, FileEntry, PathLike, StatResult
 from megfile.lib.compat import fspath
 from megfile.lib.fnmatch import translate
