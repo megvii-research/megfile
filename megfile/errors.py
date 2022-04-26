@@ -354,3 +354,9 @@ def raise_s3_error(s3_url: PathLike):
         yield
     except Exception as error:
         raise translate_s3_error(error, s3_url)
+
+
+def s3_error_code_should_retry(error: str) -> bool:
+    if error in ['InternalError', 'ServiceUnavailable', 'SlowDown']:
+        return True
+    return False
