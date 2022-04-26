@@ -16,7 +16,7 @@ import pytest
 from moto import mock_s3
 
 from megfile import s3, smart
-from megfile.errors import UnknownError, UnsupportedError, translate_s3_error
+from megfile.errors import UnknownError, UnsupportedError, translate_s3_error, S3UnknownError
 from megfile.interfaces import Access, FileEntry, StatResult
 from megfile.s3 import _group_s3path_by_bucket, _group_s3path_by_prefix, _s3_split_magic, content_md5_header, s3_isfile, s3_readlink, s3_symlink
 
@@ -884,6 +884,53 @@ def test_s3_remove_slashes(s3_empty_client):
     s3_empty_client.put_object(Bucket='bucket', Key='///')
     s3.s3_remove('s3://bucket//')
     assert s3.s3_exists('s3://bucket////') is False
+
+
+def test_s3_remove_with_error(s3_empty_client, caplog):
+    response = {
+        'Deleted': [
+            {
+                'Key': 'string',
+                'VersionId': 'string',
+                'DeleteMarker': True,
+                'DeleteMarkerVersionId': 'string'
+            },
+        ],
+        'RequestCharged':
+        'requester',
+        'Errors': [
+            {
+                'Key': 'error1',
+                'VersionId': 'test1',
+                'Code': 'InternalError',
+                'Message': 'test InternalError'
+            },
+            {
+                'Key': 'error2',
+                'VersionId': 'test2',
+                'Code': 'TestError',
+                'Message': 'test InternalError'
+            },
+        ]
+    }
+    s3_empty_client.delete_objects = lambda *args, **kwargs: response
+    s3_empty_client.create_bucket(Bucket='bucket')
+    s3_empty_client.put_object(Bucket='bucket', Key='///')
+    with pytest.raises(S3UnknownError) as error:
+        s3.s3_remove('s3://bucket//')
+    for error_info in response['Errors']:
+        if error_info['Code'] == 'InternalError':
+            for i in range(2):
+                log = "retry %s times, removing file: %s, with error %s: %s" % (
+                    i + 1, error_info['Key'], error_info['Code'],
+                    error_info['Message'])
+                assert log in caplog.text
+        else:
+            log = "failed remove file: %s, with error %s: %s" % (
+                error_info['Key'], error_info['Code'], error_info['Message'])
+            assert log in caplog.text
+    assert 'failed remove path: s3://bucket//, total file count: 1, failed count: 2' in str(
+        error.value)
 
 
 def test_s3_move(truncating_client):

@@ -3,12 +3,12 @@ import inspect
 import io
 import os
 import re
-from collections import defaultdict
 from functools import lru_cache, wraps
-from itertools import chain, groupby
+from itertools import chain
 from logging import getLogger as get_logger
 from typing import Any, BinaryIO, Callable, Dict, Iterator, List, Optional, Tuple, Union
 from urllib.parse import urlsplit
+import time
 
 import boto3
 import botocore
@@ -17,11 +17,11 @@ from botocore.awsrequest import AWSResponse
 
 from megfile.errors import S3BucketNotFoundError, S3ConfigError, S3FileExistsError, S3FileNotFoundError, S3IsADirectoryError, S3NameTooLongError, S3NotADirectoryError, S3NotALinkError, S3PermissionError, S3UnknownError, UnsupportedError, _create_missing_ok_generator
 from megfile.errors import _logger as error_logger
-from megfile.errors import patch_method, raise_s3_error, s3_should_retry, translate_fs_error, translate_s3_error
+from megfile.errors import patch_method, raise_s3_error, s3_should_retry, translate_fs_error, translate_s3_error, s3_error_code_should_retry
 from megfile.interfaces import Access, FileCacher, FileEntry, PathLike, StatResult
 from megfile.lib.compat import fspath
 from megfile.lib.fnmatch import translate
-from megfile.lib.glob import globlize, has_magic, has_magic_ignore_brace, ungloblize
+from megfile.lib.glob import has_magic, has_magic_ignore_brace, ungloblize
 from megfile.lib.joinpath import uri_join
 from megfile.lib.s3_buffered_writer import DEFAULT_MAX_BUFFER_SIZE, S3BufferedWriter
 from megfile.lib.s3_cached_handler import S3CachedHandler
@@ -706,10 +706,42 @@ def s3_remove(s3_url: PathLike, missing_ok: bool = False) -> None:
             client.delete_object(Bucket=bucket, Key=key)
             return
         prefix = _become_prefix(key)
+        total_count, error_count = 0, 0
         for resp in _list_objects_recursive(client, bucket, prefix):
             if 'Contents' in resp:
                 keys = [{'Key': content['Key']} for content in resp['Contents']]
-                client.delete_objects(Bucket=bucket, Delete={'Objects': keys})
+                total_count += len(keys)
+                errors = []
+                retries = 2
+                retry_interval = min(0.1 * 2**retries, 30)
+                for i in range(retries):
+                    # doc: https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3.html#S3.Client.delete_objects
+                    if not keys:
+                        break
+                    response = client.delete_objects(
+                        Bucket=bucket, Delete={'Objects': keys})
+                    keys = []
+                    for error_info in response.get('Errors', []):
+                        if s3_error_code_should_retry(error_info.get('Code')):
+                            error_logger.warning(
+                                "retry %s times, removing file: %s, with error %s: %s"
+                                % (
+                                    i + 1, error_info['Key'],
+                                    error_info['Code'], error_info['Message']))
+                            keys.append({'Key': error_info['Key']})
+                        else:
+                            errors.append(error_info)
+                    time.sleep(retry_interval)
+                for error_info in errors:
+                    error_logger.error(
+                        "failed remove file: %s, with error %s: %s" % (
+                            error_info['Key'], error_info['Code'],
+                            error_info['Message']))
+                error_count += len(errors)
+        if error_count > 0:
+            error_msg = "failed remove path: %s, total file count: %s, failed count: %s" % (
+                s3_url, total_count, error_count)
+            raise S3UnknownError(Exception(error_msg), s3_url)
 
 
 def s3_unlink(s3_url: PathLike, missing_ok: bool = False) -> None:
