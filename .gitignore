@@ -16,4 +16,3 @@ coverage.xml
 pyre-errors.json
 pyre-sarif.json
 bandit-sarif.json
-file:

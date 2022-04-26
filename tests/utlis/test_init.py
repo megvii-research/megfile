@@ -1,7 +1,7 @@
 import resource
 from io import BytesIO, TextIOWrapper
 
-from megfile.utils import _get_class, binary_open, cachedproperty, combine, get_human_size, necessary_params, patch_rlimit
+from megfile.utils import _get_class, binary_open, combine, get_human_size, necessary_params, patch_rlimit
 
 
 def test_patch_rlimit(mocker):
@@ -38,8 +38,7 @@ def test_necessary_params():
     def func(a, b, c=None, **kwargs):
         pass
 
-    assert necessary_params(
-        func, a=1, b=2, c=3, d=4, kwargs=4).get('kwargs') is None
+    assert necessary_params(func, a=1, b=2, c=3, kwargs=4).get('kwargs') is None
 
 
 def test_get_class():
