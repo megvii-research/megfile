@@ -1,4 +1,3 @@
-import io
 from typing import Union
 from urllib.parse import urlsplit
 
@@ -26,8 +25,7 @@ def is_stdio(path: PathLike) -> bool:
     return parts.scheme == 'stdio'
 
 
-def stdio_open(path: PathLike, mode: str = 'rb'
-              ) -> Union[STDReader, STDWriter, io.TextIOWrapper]:
+def stdio_open(path: str, mode: str = 'rb') -> Union[STDReader, STDWriter]:
     '''Used to read or write stdio
 
     .. note ::
@@ -38,7 +36,6 @@ def stdio_open(path: PathLike, mode: str = 'rb'
     :param mode: Only supports 'rb' and 'wb' now
     :return: STDReader, STDWriter
     '''
-    path = str(path)
 
     if mode not in ('rb', 'wb', 'rt', 'wt', 'r', 'w'):
         raise ValueError('unacceptable mode: %r' % mode)
@@ -53,10 +50,5 @@ def stdio_open(path: PathLike, mode: str = 'rb'
         raise ValueError('cannot open for writing: %r' % path)
 
     if 'r' in mode:
-        fileobj = STDReader(mode)
-    else:
-        fileobj = STDWriter(path, mode)
-    if 'b' not in mode:
-        fileobj = io.TextIOWrapper(fileobj)  # type: ignore
-        fileobj.mode = mode
-    return fileobj
+        return STDReader(mode)
+    return STDWriter(path, mode)

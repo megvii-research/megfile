@@ -1,11 +1,10 @@
 import hashlib
-import io
 import os
 import shutil
 from io import BytesIO
 from stat import S_ISDIR as stat_isdir
 from stat import S_ISLNK as stat_islnk
-from typing import IO, AnyStr, BinaryIO, Callable, Iterator, List, Optional, Tuple
+from typing import BinaryIO, Callable, Iterator, List, Optional, Tuple
 from unittest.mock import patch
 from urllib.parse import urlsplit
 
@@ -298,19 +297,20 @@ def fs_scandir(path: PathLike) -> Iterator[FileEntry]:
 
 
 def _fs_scan(
-        path: PathLike, missing_ok: bool = True,
+        pathname: PathLike, missing_ok: bool = True,
         followlinks: bool = False) -> Iterator[str]:
-    if fs_isfile(path, followlinks=followlinks):
-        path = fspath(path)
+    if fs_isfile(pathname, followlinks=followlinks):
+        path = fspath(pathname)
         yield path
 
-    for root, _, files in fs_walk(path, followlinks=followlinks):
+    for root, _, files in fs_walk(pathname, followlinks=followlinks):
         for filename in files:
             yield os.path.join(root, filename)
 
 
-def fs_scan(path: PathLike, missing_ok: bool = True,
-            followlinks: bool = False) -> Iterator[str]:
+def fs_scan(
+        pathname: PathLike, missing_ok: bool = True,
+        followlinks: bool = False) -> Iterator[str]:
     '''
     Iteratively traverse only files in given directory, in alphabetical order.
     Every iteration on generator yields a path string.
@@ -324,12 +324,12 @@ def fs_scan(path: PathLike, missing_ok: bool = True,
     :returns: A file path generator
     '''
     return _create_missing_ok_generator(
-        _fs_scan(path, followlinks=followlinks), missing_ok,
-        FileNotFoundError('No match file: %r' % path))
+        _fs_scan(pathname, followlinks=followlinks), missing_ok,
+        FileNotFoundError('No match file: %r' % pathname))
 
 
 def fs_scan_stat(
-        path: PathLike, missing_ok: bool = True,
+        pathname: PathLike, missing_ok: bool = True,
         followlinks: bool = False) -> Iterator[FileEntry]:
     '''
     Iteratively traverse only files in given directory, in alphabetical order.
@@ -339,78 +339,80 @@ def fs_scan_stat(
     :param missing_ok: If False and there's no file in the directory, raise FileNotFoundError
     :returns: A file path generator
     '''
-    for path in _fs_scan(path, followlinks=followlinks):
+    for path in _fs_scan(pathname, followlinks=followlinks):
         yield FileEntry(path, _make_stat(os.lstat(path)))
     else:
         if missing_ok:
             return
-        raise FileNotFoundError('No match file: %r' % path)
+        raise FileNotFoundError('No match file: %r' % pathname)
 
 
-def fs_glob(path: PathLike, recursive: bool = True,
-            missing_ok: bool = True) -> List[str]:
+def fs_glob(
+        pathname: PathLike, recursive: bool = True,
+        missing_ok: bool = True) -> List[str]:
     '''Return path list in ascending alphabetical order, in which path matches glob pattern
 
     1. If doesn't match any path, return empty list
-        Notice： ``glob.glob`` in standard library returns ['a/'] instead of empty list when path is like `a/**`, recursive is True and directory 'a' doesn't exist. fs_glob behaves like ``glob.glob`` in standard library under such circumstance.
+        Notice： ``glob.glob`` in standard library returns ['a/'] instead of empty list when pathname is like `a/**`, recursive is True and directory 'a' doesn't exist. fs_glob behaves like ``glob.glob`` in standard library under such circumstance.
     2. No guarantee that each path in result is different, which means:
         Assume there exists a path `/a/b/c/b/d.txt`
         use path pattern like `/**/b/**/*.txt` to glob, the path above will be returned twice
     3. `**` will match any matched file, directory, symlink and '' by default, when recursive is `True`
-    4. fs_glob returns same as glob.glob(path, recursive=True) in acsending alphabetical order.
+    4. fs_glob returns same as glob.glob(pathname, recursive=True) in acsending alphabetical order.
     5. Hidden files (filename stars with '.') will not be found in the result
 
-    :param path: A path pattern may contain shell wildcard characters
+    :param pathname: A path pattern may contain shell wildcard characters
     :param recursive: If False，`**` will not search directory recursively
     :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
-    :returns: A list contains paths match `path`
+    :returns: A list contains paths match `pathname`
     '''
-    return list(fs_iglob(path, recursive=recursive, missing_ok=missing_ok))
+    return list(fs_iglob(pathname, recursive=recursive, missing_ok=missing_ok))
 
 
-def fs_iglob(path: PathLike, recursive: bool = True,
-             missing_ok: bool = True) -> Iterator[str]:
+def fs_iglob(
+        pathname: PathLike, recursive: bool = True,
+        missing_ok: bool = True) -> Iterator[str]:
     '''Return path iterator in ascending alphabetical order, in which path matches glob pattern
 
     1. If doesn't match any path, return empty list
-        Notice： ``glob.glob`` in standard library returns ['a/'] instead of empty list when path is like `a/**`, recursive is True and directory 'a' doesn't exist. fs_glob behaves like ``glob.glob`` in standard library under such circumstance.
+        Notice： ``glob.glob`` in standard library returns ['a/'] instead of empty list when pathname is like `a/**`, recursive is True and directory 'a' doesn't exist. fs_glob behaves like ``glob.glob`` in standard library under such circumstance.
     2. No guarantee that each path in result is different, which means:
         Assume there exists a path `/a/b/c/b/d.txt`
         use path pattern like `/**/b/**/*.txt` to glob, the path above will be returned twice
     3. `**` will match any matched file, directory, symlink and '' by default, when recursive is `True`
-    4. fs_glob returns same as glob.glob(path, recursive=True) in acsending alphabetical order.
+    4. fs_glob returns same as glob.glob(pathname, recursive=True) in acsending alphabetical order.
     5. Hidden files (filename stars with '.') will not be found in the result
 
-    :param path: A path pattern may contain shell wildcard characters
+    :param pathname: A path pattern may contain shell wildcard characters
     :param recursive: If False，`**` will not search directory recursively
     :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
-    :returns: An iterator contains paths match `path`
+    :returns: An iterator contains paths match `pathname`
     '''
     return _create_missing_ok_generator(
-        iglob(fspath(path), recursive=recursive), missing_ok,
-        FileNotFoundError('No match file: %r' % path))
+        iglob(fspath(pathname), recursive=recursive), missing_ok,
+        FileNotFoundError('No match file: %r' % pathname))
 
 
 def fs_glob_stat(
-        path: PathLike, recursive: bool = True,
+        pathname: PathLike, recursive: bool = True,
         missing_ok: bool = True) -> Iterator[FileEntry]:
     '''Return a list contains tuples of path and file stat, in ascending alphabetical order, in which path matches glob pattern
 
     1. If doesn't match any path, return empty list
-        Notice： ``glob.glob`` in standard library returns ['a/'] instead of empty list when path is like `a/**`, recursive is True and directory 'a' doesn't exist. fs_glob behaves like ``glob.glob`` in standard library under such circumstance.
+        Notice： ``glob.glob`` in standard library returns ['a/'] instead of empty list when pathname is like `a/**`, recursive is True and directory 'a' doesn't exist. fs_glob behaves like ``glob.glob`` in standard library under such circumstance.
     2. No guarantee that each path in result is different, which means:
         Assume there exists a path `/a/b/c/b/d.txt`
         use path pattern like `/**/b/**/*.txt` to glob, the path above will be returned twice
     3. `**` will match any matched file, directory, symlink and '' by default, when recursive is `True`
-    4. fs_glob returns same as glob.glob(path, recursive=True) in acsending alphabetical order.
+    4. fs_glob returns same as glob.glob(pathname, recursive=True) in acsending alphabetical order.
     5. Hidden files (filename stars with '.') will not be found in the result
 
-    :param path: A path pattern may contain shell wildcard characters
+    :param pathname: A path pattern may contain shell wildcard characters
     :param recursive: If False，`**` will not search directory recursively
     :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
-    :returns: A list contains tuples of path and file stat, in which paths match `path`
+    :returns: A list contains tuples of path and file stat, in which paths match `pathname`
     '''
-    for path in fs_iglob(path, recursive=recursive, missing_ok=missing_ok):
+    for path in fs_iglob(pathname, recursive=recursive, missing_ok=missing_ok):
         yield FileEntry(path, _make_stat(os.lstat(path)))
 
 
@@ -692,14 +694,4 @@ def fs_readlink(path: PathLike) -> PathLike:
     :param path: Path to be read
     :returns: Return a string representing the path to which the symbolic link points.
     '''
-    path = os.readlink(path)
-    if isinstance(path, bytes):
-        path = path.decode()  # pragma: no cover
-    return path
-
-
-def fs_open(path: PathLike, mode: str, **kwargs) -> IO[AnyStr]:
-    if not isinstance(path, int) and ('w' in mode or 'x' in mode or
-                                      'a' in mode):
-        fs_makedirs(os.path.dirname(path), exist_ok=True)
-    return io.open(path, mode)
+    return os.readlink(path)

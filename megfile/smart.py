@@ -1,474 +1,211 @@
-import io
 import os
-import typing
 from collections import defaultdict
 from functools import partial
 from itertools import chain
-from pathlib import PurePath
-from urllib.parse import urlsplit
+from typing import IO, AnyStr, BinaryIO, Callable, Iterator, List, Optional, Tuple
 
-import megfile
-from megfile.errors import ProtocolNotFoundError, UnsupportedError
-from megfile.fs import fs_access, fs_copy, fs_exists, fs_getmd5, fs_getmtime, fs_getsize, fs_glob, fs_glob_stat, fs_iglob, fs_isdir, fs_isfile, fs_islink, fs_listdir, fs_load_from, fs_makedirs, fs_open, fs_path_join, fs_readlink, fs_remove, fs_rename, fs_save_as, fs_scan, fs_scan_stat, fs_scandir, fs_stat, fs_symlink, fs_unlink, fs_walk
-from megfile.http import http_getmtime, http_getsize, http_open, http_stat
-from megfile.interfaces import Access, FileEntry, NullCacher, PathLike
+from megfile.fs import fs_copy, fs_getsize, fs_scandir
+from megfile.interfaces import Access, FileEntry, NullCacher, PathLike, StatResult
 from megfile.lib.combine_reader import CombineReader
 from megfile.lib.compat import fspath
 from megfile.lib.glob import globlize, ungloblize
-from megfile.s3 import S3Cacher, is_s3, s3_access, s3_copy, s3_download, s3_exists, s3_getmd5, s3_getmtime, s3_getsize, s3_glob, s3_glob_stat, s3_iglob, s3_isdir, s3_isfile, s3_islink, s3_listdir, s3_load_content, s3_load_from, s3_makedirs, s3_open, s3_path_join, s3_readlink, s3_remove, s3_rename, s3_save_as, s3_scan, s3_scan_stat, s3_scandir, s3_stat, s3_symlink, s3_unlink, s3_upload, s3_walk
-from megfile.stdio import stdio_open
+from megfile.s3 import S3Cacher, is_s3, s3_copy, s3_download, s3_load_content, s3_open, s3_upload
+from megfile.smart_path import SmartPath, get_traditional_path
 from megfile.utils import combine, get_content_offset
 
+__all__ = [
+    'smart_access',
+    'smart_cache',
+    'smart_combine_open',
+    'smart_copy',
+    'smart_exists',
+    'smart_getmtime',
+    'smart_getsize',
+    'smart_glob_stat',
+    'smart_glob',
+    'smart_iglob',
+    'smart_isdir',
+    'smart_isfile',
+    'smart_islink',
+    'smart_listdir',
+    'smart_load_content',
+    'smart_save_content',
+    'smart_load_from',
+    'smart_load_text',
+    'smart_save_text',
+    'smart_makedirs',
+    'smart_open',
+    'smart_path_join',
+    'smart_remove',
+    'smart_move',
+    'smart_rename',
+    'smart_save_as',
+    'smart_scan_stat',
+    'smart_scan',
+    'smart_scandir',
+    'smart_stat',
+    'smart_sync',
+    'smart_touch',
+    'smart_unlink',
+    'smart_walk',
+    'smart_getmd5',
+    'smart_realpath',
+    'smart_ismount',
+    'smart_relpath',
+    'smart_abspath',
+    'smart_isabs',
+    'smart_symlink',
+    'smart_readlink',
+    'register_copy_func',
+]
 
-def smart_access(
-        path: typing.Union[str, os.PathLike],
-        mode: megfile.pathlike.Access = Access.READ) -> bool:
+
+def smart_symlink(dst_path: PathLike, src_path: PathLike) -> None:
+    '''
+    Create a symbolic link pointing to src_path named path.
+
+    :param dst_path: Desination path
+    :param src_path: Source path
+    '''
+    return SmartPath(dst_path).symlink_to(src_path)
+
+
+def smart_readlink(path: PathLike) -> PathLike:
+    '''
+    Return a string representing the path to which the symbolic link points.
+    :param path: Path to be read
+    :returns: Return a string representing the path to which the symbolic link points.
+    '''
+    return SmartPath(path).readlink()
+
+
+def smart_isdir(path: PathLike, followlinks: bool = False) -> bool:
+    '''
+    Test if a file path or an s3 url is directory
+
+    :param path: Path to be tested
+    :returns: True if path is directory, else False
+    '''
+    path_protocol, _ = SmartPath._extract_protocol(path)
+    if path_protocol == 'file':
+        return SmartPath(path).is_dir(followlinks=followlinks)
+    else:
+        return SmartPath(path).is_dir()
+
+
+def smart_isfile(path: PathLike, followlinks: bool = False) -> bool:
+    '''
+    Test if a file path or an s3 url is file
+
+    :param path: Path to be tested
+    :returns: True if path is file, else False
+    '''
+    path_protocol, _ = SmartPath._extract_protocol(path)
+    if path_protocol == 'file':
+        return SmartPath(path).is_file(followlinks=followlinks)
+    else:
+        return SmartPath(path).is_file()
+
+
+def smart_islink(path: PathLike) -> bool:
+    return SmartPath(path).is_symlink()
+
+
+def smart_access(path: PathLike, mode: Access) -> bool:
     '''
     Test if path has access permission described by mode
-    
+
     :param path: Path to be tested
     :param mode: Access mode(Access.READ, Access.WRITE, Access.BUCKETREAD, Access.BUCKETWRITE)
     :returns: bool, if the path has read/write access.
     '''
-    protocol = _extract_protocol(path)
-    if protocol == 'fs':
-        return fs_access(path=path, mode=mode)
-    if protocol == 's3':
-        return s3_access(path=path, mode=mode)
-    raise UnsupportedError(
-        operation='smart_access', path=path)  # pragma: no cover
+    return SmartPath(path).access(mode)
 
 
-def smart_exists(
-        path: typing.Union[str, os.PathLike],
-        followlinks: bool = False) -> bool:
+def smart_exists(path: PathLike, followlinks: bool = False) -> bool:
     '''
     Test if path or s3_url exists
-    
+
     :param path: Path to be tested
     :returns: True if path eixsts, else False
     '''
-    protocol = _extract_protocol(path)
-    if protocol == 'fs':
-        return fs_exists(path=path, followlinks=followlinks)
-    if protocol == 's3':
-        return s3_exists(path=path, followlinks=followlinks)
-    raise UnsupportedError(
-        operation='smart_exists', path=path)  # pragma: no cover
+    path_protocol, _ = SmartPath._extract_protocol(path)
+    if path_protocol == 'file':
+        return SmartPath(path).exists(followlinks=followlinks)
+    else:
+        return SmartPath(path).exists()
 
 
-def smart_getmd5(
-        path: typing.Union[str, os.PathLike], recalculate: bool = False) -> str:
-    protocol = _extract_protocol(path)
-    if protocol == 'fs':
-        return fs_getmd5(path=path, recalculate=recalculate)
-    if protocol == 's3':
-        return s3_getmd5(path=path, recalculate=recalculate)
-    raise UnsupportedError(
-        operation='smart_getmd5', path=path)  # pragma: no cover
-
-
-def smart_getmtime(path: typing.Union[str, os.PathLike]) -> float:
-    '''
-    Get last-modified time of the file on the given s3_url or file path (in Unix timestamp format).
-    If the path is an existent directory, return the latest modified time of all file in it. The mtime of empty directory is 1970-01-01 00:00:00
-    
-    :param path: Given path
-    :returns: Last-modified time
-    :raises: FileNotFoundError
-    '''
-    protocol = _extract_protocol(path)
-    if protocol == 'fs':
-        return fs_getmtime(path=path)
-    if protocol == 's3':
-        return s3_getmtime(path=path)
-    if protocol == 'http':
-        return http_getmtime(path=path)
-    raise UnsupportedError(
-        operation='smart_getmtime', path=path)  # pragma: no cover
-
-
-def smart_getsize(path: typing.Union[str, os.PathLike]) -> int:
-    '''
-    Get file size on the given s3_url or file path (in bytes).
-    If the path in a directory, return the sum of all file size in it, including file in subdirectories (if exist).
-    The result excludes the size of directory itself. In other words, return 0 Byte on an empty directory path.
-    
-    :param path: Given path
-    :returns: File size
-    :raises: FileNotFoundError
-    '''
-    protocol = _extract_protocol(path)
-    if protocol == 'fs':
-        return fs_getsize(path=path)
-    if protocol == 's3':
-        return s3_getsize(path=path)
-    if protocol == 'http':
-        return http_getsize(path=path)
-    raise UnsupportedError(
-        operation='smart_getsize', path=path)  # pragma: no cover
-
-
-def smart_isdir(
-        path: typing.Union[str, os.PathLike],
-        followlinks: bool = False) -> bool:
-    '''
-    Test if a file path or an s3 url is directory
-    
-    :param path: Path to be tested
-    :returns: True if path is directory, else False
-    '''
-    protocol = _extract_protocol(path)
-    if protocol == 'fs':
-        return fs_isdir(path=path, followlinks=followlinks)
-    if protocol == 's3':
-        return s3_isdir(path=path)
-    raise UnsupportedError(
-        operation='smart_isdir', path=path)  # pragma: no cover
-
-
-def smart_isfile(
-        path: typing.Union[str, os.PathLike],
-        followlinks: bool = False) -> bool:
-    '''
-    Test if a file path or an s3 url is file
-    
-    :param path: Path to be tested
-    :returns: True if path is file, else False
-    '''
-    protocol = _extract_protocol(path)
-    if protocol == 'fs':
-        return fs_isfile(path=path, followlinks=followlinks)
-    if protocol == 's3':
-        return s3_isfile(path=path, followlinks=followlinks)
-    raise UnsupportedError(
-        operation='smart_isfile', path=path)  # pragma: no cover
-
-
-def smart_islink(path: typing.Union[str, os.PathLike]) -> bool:
-    protocol = _extract_protocol(path)
-    if protocol == 'fs':
-        return fs_islink(path=path)
-    if protocol == 's3':
-        return s3_islink(path=path)
-    raise UnsupportedError(
-        operation='smart_islink', path=path)  # pragma: no cover
-
-
-def smart_listdir(path: typing.Union[str, os.PathLike]) -> typing.List:
+def smart_listdir(path: Optional[PathLike] = None) -> List[str]:
     '''
     Get all contents of given s3_url or file path. The result is in acsending alphabetical order.
-    
+
     :param path: Given path
     :returns: All contents of given s3_url or file path in acsending alphabetical order.
     :raises: FileNotFoundError, NotADirectoryError
     '''
-    protocol = _extract_protocol(path)
-    if protocol == 'fs':
-        return fs_listdir(path=path)
-    if protocol == 's3':
-        return s3_listdir(path=path)
-    raise UnsupportedError(
-        operation='smart_listdir', path=path)  # pragma: no cover
+    if path is None:  # pragma: no cover
+        return sorted(os.listdir(path))
+    return SmartPath(path).listdir()
 
 
-def smart_load_from(path: typing.Union[str, os.PathLike]) -> typing.BinaryIO:
-    '''
-    Read all content in binary on specified path and write into memory
-    
-    User should close the BinaryIO manually
-    
-    :param path: Specified path
-    :returns: BinaryIO
-    '''
-    protocol = _extract_protocol(path)
-    if protocol == 'fs':
-        return fs_load_from(path=path)
-    if protocol == 's3':
-        return s3_load_from(path=path)
-    raise UnsupportedError(
-        operation='smart_load_from', path=path)  # pragma: no cover
-
-
-def smart_makedirs(
-        path: typing.Union[str, os.PathLike], exist_ok: bool = False):
-    '''
-    Create a directory if is on fs.
-    If on s3, it actually check if target exists, and check if bucket has WRITE access
-    
-    :param path: Given path
-    :param exist_ok: if False and target directory not exists, raise FileNotFoundError
-    :raises: PermissionError, FileExistsError
-    '''
-    protocol = _extract_protocol(path)
-    if protocol == 'fs':
-        return fs_makedirs(path=path, exist_ok=exist_ok)
-    if protocol == 's3':
-        return s3_makedirs(path=path, exist_ok=exist_ok)
-    raise UnsupportedError(
-        operation='smart_makedirs', path=path)  # pragma: no cover
-
-
-def smart_open(
-        path: typing.Union[str, os.PathLike],
-        mode: str = 'r',
-        s3_open_func: typing.Callable = megfile.s3.s3_buffered_open
-) -> typing.Union[typing.IO[typing.AnyStr], io.BufferedReader, megfile.lib.
-                  stdio_handler.STDReader, megfile.lib.stdio_handler.
-                  STDWriter, io.TextIOWrapper]:
-    '''
-    Open a file on the path
-    
-    .. note ::
-    
-    On fs, the difference between this function and ``io.open`` is that this function create directories automatically, instead of raising FileNotFoundError
-    
-    Currently, supported protocols are:
-    
-    1. s3:      "s3://<bucket>/<key>"
-    
-    2. http(s): http(s) url
-    
-    3. stdio:   "stdio://-"
-    
-    4. FS file: Besides above mentioned protocols, other path are considered fs path
-    
-    Here are a few examples: ::
-    
-    >>> import cv2
-    >>> import numpy as np
-    >>> raw = smart_open('https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=2275743969,3715493841&fm=26&gp=0.jpg').read()
-    >>> img = cv2.imdecode(np.frombuffer(raw, np.uint8), cv2.IMREAD_ANYDEPTH | cv2.IMREAD_COLOR)
-    
-    :param path: Given path
-    :param mode: Mode to open file, supports r'[rwa][tb]?\+?'
-    :param s3_open_func: Function used to open s3_url. Require the function includes 2 necessary parameters, file path and mode
-    :returns: File-Like object
-    :raises: FileNotFoundError, IsADirectoryError, ValueError
-    '''
-    protocol = _extract_protocol(path)
-    if protocol == 'fs':
-        return fs_open(path=path, mode=mode)
-    if protocol == 's3':
-        return s3_open(path=path, mode=mode, s3_open_func=s3_open_func)
-    if protocol == 'http':
-        return http_open(path=path, mode=mode)
-    if protocol == 'stdio':
-        return stdio_open(path=path, mode=mode)
-    raise UnsupportedError(
-        operation='smart_open', path=path)  # pragma: no cover
-
-
-def smart_readlink(path: typing.Union[str, os.PathLike]
-                  ) -> typing.Union[str, os.PathLike]:
-    '''
-    Return a string representing the path to which the symbolic link points.
-    
-    :param path: Path to be read
-    :returns: Return a string representing the path to which the symbolic link points.
-    '''
-    protocol = _extract_protocol(path)
-    if protocol == 'fs':
-        return fs_readlink(path=path)
-    if protocol == 's3':
-        return s3_readlink(path=path)
-    raise UnsupportedError(
-        operation='smart_readlink', path=path)  # pragma: no cover
-
-
-def smart_remove(
-        path: typing.Union[str, os.PathLike],
-        missing_ok: bool = False,
-        followlinks: bool = False) -> None:
-    '''
-    Remove the file or directory on s3 or fs, `s3://` and `s3://bucket` are not permitted to remove
-    
-    :param path: Given path
-    :param missing_ok: if False and target file/directory not exists, raise FileNotFoundError
-    :raises: PermissionError, FileNotFoundError
-    '''
-    protocol = _extract_protocol(path)
-    if protocol == 'fs':
-        return fs_remove(
-            path=path, missing_ok=missing_ok, followlinks=followlinks)
-    if protocol == 's3':
-        return s3_remove(path=path, missing_ok=missing_ok)
-    raise UnsupportedError(
-        operation='smart_remove', path=path)  # pragma: no cover
-
-
-def smart_save_as(
-        file_object: typing.BinaryIO,
-        path: typing.Union[str, os.PathLike]) -> None:
-    protocol = _extract_protocol(path)
-    if protocol == 'fs':
-        return fs_save_as(file_object=file_object, path=path)
-    if protocol == 's3':
-        return s3_save_as(file_object=file_object, path=path)
-    raise UnsupportedError(
-        operation='smart_save_as', path=path)  # pragma: no cover
-
-
-def smart_scan(
-        path: typing.Union[str, os.PathLike],
-        missing_ok: bool = True,
-        followlinks: bool = False) -> typing.Iterator:
-    '''
-    Iteratively traverse only files in given directory, in alphabetical order.
-    Every iteration on generator yields a path string.
-    
-    If path is a file path, yields the file only
-    If path is a non-existent path, return an empty generator
-    If path is a bucket path, return all file paths in the bucket
-    
-    :param path: Given path
-    :param missing_ok: If False and there's no file in the directory, raise FileNotFoundError
-    :raises: UnsupportedError
-    :returns: A file path generator
-    '''
-    protocol = _extract_protocol(path)
-    if protocol == 'fs':
-        return fs_scan(
-            path=path, missing_ok=missing_ok, followlinks=followlinks)
-    if protocol == 's3':
-        return s3_scan(path=path, missing_ok=missing_ok)
-    raise UnsupportedError(
-        operation='smart_scan', path=path)  # pragma: no cover
-
-
-def smart_scan_stat(
-        path: typing.Union[str, os.PathLike],
-        missing_ok: bool = True,
-        followlinks: bool = False) -> typing.Iterator:
-    '''
-    Iteratively traverse only files in given directory, in alphabetical order.
-    Every iteration on generator yields a tuple of path string and file stat
-    
-    :param path: Given path
-    :param missing_ok: If False and there's no file in the directory, raise FileNotFoundError
-    :raises: UnsupportedError
-    :returns: A file path generator
-    '''
-    protocol = _extract_protocol(path)
-    if protocol == 'fs':
-        return fs_scan_stat(
-            path=path, missing_ok=missing_ok, followlinks=followlinks)
-    if protocol == 's3':
-        return s3_scan_stat(path=path, missing_ok=missing_ok)
-    raise UnsupportedError(
-        operation='smart_scan_stat', path=path)  # pragma: no cover
-
-
-def smart_scandir(path: typing.Union[str, os.PathLike]) -> typing.Iterator:
+def smart_scandir(path: Optional[PathLike] = None) -> Iterator[FileEntry]:
     '''
     Get all content of given s3_url or file path.
-    
+
     :param path: Given path
     :returns: An iterator contains all contents have prefix path
     :raises: FileNotFoundError, NotADirectoryError
     '''
-    protocol = _extract_protocol(path)
-    if protocol == 'fs':
-        return fs_scandir(path=path)
-    if protocol == 's3':
-        return s3_scandir(path=path)
-    raise UnsupportedError(
-        operation='smart_scandir', path=path)  # pragma: no cover
+    if path is None:  # pragma: no cover
+        return fs_scandir(path)
+    return SmartPath(path).scandir()
 
 
-def smart_stat(
-        path: typing.Union[str, os.PathLike]) -> megfile.pathlike.StatResult:
+def smart_getsize(path: PathLike) -> int:
+    '''
+    Get file size on the given s3_url or file path (in bytes).
+    If the path in a directory, return the sum of all file size in it, including file in subdirectories (if exist).
+    The result excludes the size of directory itself. In other words, return 0 Byte on an empty directory path.
+
+    :param path: Given path
+    :returns: File size
+    :raises: FileNotFoundError
+    '''
+    return SmartPath(path).getsize()
+
+
+def smart_getmtime(path: PathLike) -> float:
+    '''
+    Get last-modified time of the file on the given s3_url or file path (in Unix timestamp format).
+    If the path is an existent directory, return the latest modified time of all file in it. The mtime of empty directory is 1970-01-01 00:00:00
+
+    :param path: Given path
+    :returns: Last-modified time
+    :raises: FileNotFoundError
+    '''
+    return SmartPath(path).getmtime()
+
+
+def smart_stat(path: PathLike) -> StatResult:
     '''
     Get StatResult of s3_url or file path
-    
+
     :param path: Given path
     :returns: StatResult
     :raises: FileNotFoundError
     '''
-    protocol = _extract_protocol(path)
-    if protocol == 'fs':
-        return fs_stat(path=path)
-    if protocol == 's3':
-        return s3_stat(path=path)
-    if protocol == 'http':
-        return http_stat(path=path)
-    raise UnsupportedError(
-        operation='smart_stat', path=path)  # pragma: no cover
-
-
-def smart_symlink(
-        dst_path: typing.Union[str, os.PathLike],
-        src_path: typing.Union[str, os.PathLike]) -> None:
-    '''
-    Create a symbolic link pointing to src_path named path.
-    
-    :param dst_path: Desination path
-    :param src_path: Source path
-    '''
-    protocol = _extract_protocol(src_path)
-    if protocol == 'fs':
-        return fs_symlink(dst_path=dst_path, src_path=src_path)
-    if protocol == 's3':
-        return s3_symlink(dst_path=dst_path, src_path=src_path)
-    raise UnsupportedError(
-        operation='smart_symlink', path=src_path)  # pragma: no cover
-
-
-def smart_unlink(
-        path: typing.Union[str, os.PathLike], missing_ok: bool = False) -> None:
-    '''
-    Remove the file on s3 or fs
-    
-    :param path: Given path
-    :param missing_ok: if False and target file not exists, raise FileNotFoundError
-    :raises: PermissionError, FileNotFoundError, IsADirectoryError
-    '''
-    protocol = _extract_protocol(path)
-    if protocol == 'fs':
-        return fs_unlink(path=path, missing_ok=missing_ok)
-    if protocol == 's3':
-        return s3_unlink(path=path, missing_ok=missing_ok)
-    raise UnsupportedError(
-        operation='smart_unlink', path=path)  # pragma: no cover
-
-
-def smart_walk(
-        path: typing.Union[str, os.PathLike],
-        followlinks: bool = False) -> typing.Iterator:
-    '''
-    Generate the file names in a directory tree by walking the tree top-down.
-    For each directory in the tree rooted at directory path (including path itself),
-    it yields a 3-tuple (root, dirs, files).
-    
-    root: a string of current path
-    dirs: name list of subdirectories (excluding '.' and '..' if they exist) in 'root'. The list is sorted by ascending alphabetical order
-    files: name list of non-directory files (link is regarded as file) in 'root'. The list is sorted by ascending alphabetical order
-    
-    If path not exists, return an empty generator
-    If path is a file, return an empty generator
-    If try to apply walk() on unsupported path, raise UnsupportedError
-    
-    :param path: Given path
-    :raises: UnsupportedError
-    :returns: A 3-tuple generator
-    '''
-    protocol = _extract_protocol(path)
-    if protocol == 'fs':
-        return fs_walk(path=path, followlinks=followlinks)
-    if protocol == 's3':
-        return s3_walk(path=path)
-    raise UnsupportedError(
-        operation='smart_walk', path=path)  # pragma: no cover
+    return SmartPath(path).stat()
 
 
 _copy_funcs = {
     's3': {
         's3': s3_copy,
-        'fs': s3_download
+        'file': s3_download
     },
-    'fs': {
+    'file': {
         's3': s3_upload,
-        'fs': fs_copy,
+        'file': fs_copy,
     }
 }
 
@@ -476,16 +213,15 @@ _copy_funcs = {
 def register_copy_func(
         src_protocol: str,
         dst_protocol: str,
-        copy_func: typing.Optional[typing.Callable[
-            [str, str, typing.Optional[typing.
-                                       Callable[[int], None]]], None]] = None,
+        copy_func: Optional[
+            Callable[[str, str, Optional[Callable[[int], None]]], None]] = None,
 ) -> None:
     '''
     Used to register copy func between protocols, and do not allow duplicate registration
 
     :param src_protocol: protocol name of source file, e.g. 's3'
     :param dst_protocol: protocol name of destination file, e.g. 's3'
-    :param copy_func: copy func, its type is: typing.Callable[[str, str, typing.Optional[typing.Callable[[int], None]]], None]
+    :param copy_func: copy func, its type is: Callable[[str, str, Optional[Callable[[int], None]]], None]
     '''
     try:
         _copy_funcs[src_protocol][dst_protocol]
@@ -504,71 +240,25 @@ def register_copy_func(
 def _default_copy_func(
         src_path: PathLike,
         dst_path: PathLike,
-        callback: typing.Optional[typing.Callable[[int], None]] = None) -> None:
+        callback: Optional[Callable[[int], None]] = None) -> None:
     with smart_open(src_path, 'rb') as fsrc:
         with smart_open(dst_path, 'wb') as fdst:
             # This magic number is copied from  copyfileobj
             length = 16 * 1024
             while True:
-                buf = fsrc.read(length)  # type: ignore
+                buf = fsrc.read(length)
                 if not buf:
                     break
-                fdst.write(buf)  # type: ignore
+                fdst.write(buf)
                 if callback is None:
                     continue
                 callback(len(buf))
 
 
-def _extract_protocol(path: typing.Union[PathLike, int]) -> str:
-    if isinstance(path, int):
-        protocol = "fs"
-    elif isinstance(path, str):
-        protocol = urlsplit(path).scheme
-        if protocol == "":
-            protocol = "fs"
-    elif isinstance(path, PurePath):
-        protocol = "fs"
-    else:
-        raise ProtocolNotFoundError('protocol not found: %r' % path)
-    if protocol == 'https':
-        protocol = 'http'
-    return protocol
-
-
-def get_traditional_path(path: PathLike):
-    return fspath(path)
-
-
-def smart_rename(
-        src_path: PathLike, dst_path: PathLike,
-        followlinks: bool = False) -> None:
-    '''
-    Move file on s3 or fs. `s3://` or `s3://bucket` is not allowed to move
-
-    :param src_path: Given source path
-    :param dst_path: Given destination path
-    '''
-    if smart_isdir(src_path, followlinks=followlinks):
-        raise IsADirectoryError('%r is a directory' % PathLike)
-    src_protocol = _extract_protocol(src_path)
-    dst_protocol = _extract_protocol(dst_path)
-    if src_protocol == dst_protocol:
-        if src_protocol == 'fs':
-            fs_rename(src_path, dst_path)
-        elif src_protocol == 's3':
-            s3_rename(src_path, dst_path)
-        else:
-            raise UnsupportedError(
-                operation='smart_rename', path=src_path)  # pragma: no cover
-        return
-    smart_copy(src_path, dst_path)
-    smart_unlink(src_path)
-
-
 def smart_copy(
         src_path: PathLike,
         dst_path: PathLike,
-        callback: typing.Optional[typing.Callable[[int], None]] = None,
+        callback: Optional[Callable[[int], None]] = None,
         followlinks: bool = False) -> None:
     '''
     Copy file from source path to destination path
@@ -598,8 +288,8 @@ def smart_copy(
     if smart_islink(src_path) and is_s3(dst_path) and not followlinks:
         return
 
-    src_protocol = _extract_protocol(src_path)
-    dst_protocol = _extract_protocol(dst_path)
+    src_protocol, _ = SmartPath._extract_protocol(src_path)
+    dst_protocol, _ = SmartPath._extract_protocol(dst_path)
 
     try:
         copy_func = _copy_funcs[src_protocol][dst_protocol]
@@ -614,7 +304,7 @@ def smart_copy(
 def smart_sync(
         src_path: PathLike,
         dst_path: PathLike,
-        callback: typing.Optional[typing.Callable[[str, int], None]] = None,
+        callback: Optional[Callable[[str, int], None]] = None,
         followlinks: bool = False) -> None:
     '''
     Sync file or directory on s3 and fs
@@ -672,6 +362,43 @@ def smart_sync(
             followlinks=followlinks)
 
 
+def smart_remove(
+        path: PathLike, missing_ok: bool = False,
+        followlinks: bool = False) -> None:
+    '''
+    Remove the file or directory on s3 or fs, `s3://` and `s3://bucket` are not permitted to remove
+
+    :param path: Given path
+    :param missing_ok: if False and target file/directory not exists, raise FileNotFoundError
+    :raises: PermissionError, FileNotFoundError
+    '''
+    path_protocol, _ = SmartPath._extract_protocol(path)
+    if path_protocol == 'file':
+        SmartPath(path).remove(missing_ok=missing_ok, followlinks=followlinks)
+    else:
+        SmartPath(path).remove(missing_ok=missing_ok)
+
+
+def smart_rename(
+        src_path: PathLike, dst_path: PathLike,
+        followlinks: bool = False) -> None:
+    '''
+    Move file on s3 or fs. `s3://` or `s3://bucket` is not allowed to move
+
+    :param src_path: Given source path
+    :param dst_path: Given destination path
+    '''
+    if smart_isdir(src_path, followlinks=followlinks):
+        raise IsADirectoryError('%r is a directory' % PathLike)
+    src_protocol, _ = SmartPath._extract_protocol(src_path)
+    dst_protocol, _ = SmartPath._extract_protocol(dst_path)
+    if src_protocol == dst_protocol:
+        SmartPath(src_path).rename(dst_path)
+        return
+    smart_copy(src_path, dst_path)
+    smart_unlink(src_path)
+
+
 def smart_move(
         src_path: PathLike, dst_path: PathLike,
         followlinks: bool = False) -> None:
@@ -681,24 +408,176 @@ def smart_move(
     :param src_path: Given source path
     :param dst_path: Given destination path
     '''
-    src_protocol = _extract_protocol(src_path)
-    dst_protocol = _extract_protocol(dst_path)
+    src_protocol, _ = SmartPath._extract_protocol(src_path)
+    dst_protocol, _ = SmartPath._extract_protocol(dst_path)
     if src_protocol == dst_protocol:
-        if src_protocol == 'fs':
-            fs_rename(src_path, dst_path)
-        elif src_protocol == 's3':
-            s3_rename(src_path, dst_path)
+        if src_protocol == 'file':
+            SmartPath(src_path).rename(dst_path, followlinks=followlinks)
         else:
-            raise UnsupportedError(
-                operation='smart_move', path=src_path)  # pragma: no cover
+            SmartPath(src_path).rename(dst_path)
         return
     smart_sync(src_path, dst_path, followlinks=followlinks)
     smart_remove(src_path, followlinks=followlinks)
 
 
-def _group_glob(globstr: str) -> typing.List[str]:
+def smart_unlink(path: PathLike, missing_ok: bool = False) -> None:
     '''
-    Split path, and group them by protocol, return the glob list of same group.
+    Remove the file on s3 or fs
+
+    :param path: Given path
+    :param missing_ok: if False and target file not exists, raise FileNotFoundError
+    :raises: PermissionError, FileNotFoundError, IsADirectoryError
+    '''
+    SmartPath(path).unlink(missing_ok=missing_ok)
+
+
+def smart_makedirs(path: PathLike, exist_ok: bool = False) -> None:
+    '''
+    Create a directory if is on fs.
+    If on s3, it actually check if target exists, and check if bucket has WRITE access
+
+    :param path: Given path
+    :param missing_ok: if False and target directory not exists, raise FileNotFoundError
+    :raises: PermissionError, FileExistsError
+    '''
+    SmartPath(path).makedirs(exist_ok)
+
+
+def smart_open(
+        path: PathLike,
+        mode: str = 'r',
+        s3_open_func: Callable[[str, str], BinaryIO] = s3_open,
+        encoding: Optional[str] = None,
+        errors: Optional[str] = None,
+        **options) -> IO[AnyStr]:
+    '''
+    Open a file on the path
+
+    .. note ::
+
+        On fs, the difference between this function and ``io.open`` is that this function create directories automatically, instead of raising FileNotFoundError
+
+    Currently, supported protocols are:
+
+    1. s3:      "s3://<bucket>/<key>"
+
+    2. http(s): http(s) url
+
+    3. stdio:   "stdio://-"
+
+    4. FS file: Besides above mentioned protocols, other path are considered fs path
+
+    Here are a few examples: ::
+
+        >>> import cv2
+        >>> import numpy as np
+        >>> raw = smart_open('https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=2275743969,3715493841&fm=26&gp=0.jpg').read()
+        >>> img = cv2.imdecode(np.frombuffer(raw, np.uint8), cv2.IMREAD_ANYDEPTH | cv2.IMREAD_COLOR)
+
+    :param path: Given path
+    :param mode: Mode to open file, supports r'[rwa][tb]?\+?'
+    :param s3_open_func: Function used to open s3_url. Require the function includes 2 necessary parameters, file path and mode
+    :returns: File-Like object
+    :raises: FileNotFoundError, IsADirectoryError, ValueError
+    '''
+    options = {
+        's3_open_func': s3_open_func,
+        'encoding': encoding,
+        'errors': errors,
+        **options,
+    }
+    return SmartPath(path).open(mode, **options)
+
+
+def smart_path_join(path: PathLike, *other_paths: PathLike) -> str:
+    '''
+    Concat 2 or more path to a complete path
+
+    :param path: Given path
+    :param other_paths: Paths to be concatenated
+    :returns: Concatenated complete path
+
+    .. note ::
+
+        For URI, the difference between this function and ``os.path.join`` is that this function ignores left side slash (which indicates absolute path) in ``other_paths`` and will directly concat.
+        e.g. os.path.join('s3://path', 'to', '/file') => '/file', and smart_path_join('s3://path', 'to', '/file') => '/path/to/file'
+        But for fs path, this function behaves exactly like ``os.path.join``
+        e.g. smart_path_join('/path', 'to', '/file') => '/file'
+    '''
+    return fspath(SmartPath(path).joinpath(*other_paths))
+
+
+def smart_walk(path: PathLike, followlinks: bool = False
+              ) -> Iterator[Tuple[str, List[str], List[str]]]:
+    '''
+    Generate the file names in a directory tree by walking the tree top-down.
+    For each directory in the tree rooted at directory path (including path itself),
+    it yields a 3-tuple (root, dirs, files).
+
+    root: a string of current path
+    dirs: name list of subdirectories (excluding '.' and '..' if they exist) in 'root'. The list is sorted by ascending alphabetical order
+    files: name list of non-directory files (link is regarded as file) in 'root'. The list is sorted by ascending alphabetical order
+
+    If path not exists, return an empty generator
+    If path is a file, return an empty generator
+    If try to apply walk() on unsupported path, raise UnsupportedError
+
+    :param path: Given path
+    :raises: UnsupportedError
+    :returns: A 3-tuple generator
+    '''
+    path_protocol, _ = SmartPath._extract_protocol(path)
+    if path_protocol == 'file':
+        return SmartPath(path).walk(followlinks=followlinks)
+    else:
+        return SmartPath(path).walk()
+
+
+def smart_scan(
+        path: PathLike, missing_ok: bool = True,
+        followlinks: bool = False) -> Iterator[str]:
+    '''
+    Iteratively traverse only files in given directory, in alphabetical order.
+    Every iteration on generator yields a path string.
+
+    If path is a file path, yields the file only
+    If path is a non-existent path, return an empty generator
+    If path is a bucket path, return all file paths in the bucket
+
+    :param path: Given path
+    :param missing_ok: If False and there's no file in the directory, raise FileNotFoundError
+    :raises: UnsupportedError
+    :returns: A file path generator
+    '''
+    path_protocol, _ = SmartPath._extract_protocol(path)
+    if path_protocol == 'file':
+        return SmartPath(path).scan(missing_ok, followlinks=followlinks)
+    else:
+        return SmartPath(path).scan(missing_ok)
+
+
+def smart_scan_stat(
+        path: PathLike, missing_ok: bool = True,
+        followlinks: bool = False) -> Iterator[FileEntry]:
+    '''
+    Iteratively traverse only files in given directory, in alphabetical order.
+    Every iteration on generator yields a tuple of path string and file stat
+
+    :param path: Given path
+    :param missing_ok: If False and there's no file in the directory, raise FileNotFoundError
+    :raises: UnsupportedError
+    :returns: A file path generator
+    '''
+    path_protocol, _ = SmartPath._extract_protocol(path)
+    if path_protocol == 'file':
+        return SmartPath(path).scan_stat(missing_ok, followlinks=followlinks)
+    else:
+        return SmartPath(path).scan_stat(missing_ok)
+
+
+def _group_glob(globstr: str) -> List[str]:
+    '''
+    Split pathname, and group them by protocol, return the glob list of same group.
 
     :param globstr: A glob string
     :returns: A glob list after being grouped by protocol
@@ -707,7 +586,7 @@ def _group_glob(globstr: str) -> typing.List[str]:
     expanded_glob = ungloblize(globstr)
 
     for single_glob in expanded_glob:
-        protocol = _extract_protocol(single_glob)
+        protocol, _ = SmartPath._extract_protocol(single_glob)
         glob_dict[protocol].append(single_glob)
 
     group_glob_list = []
@@ -717,80 +596,83 @@ def _group_glob(globstr: str) -> typing.List[str]:
     return group_glob_list
 
 
-def smart_glob(path: PathLike, recursive: bool = True,
-               missing_ok: bool = True) -> typing.List[str]:
+def smart_glob(
+        pathname: PathLike, recursive: bool = True,
+        missing_ok: bool = True) -> List[str]:
     '''
-    Given path may contain shell wildcard characters, return path list in ascending alphabetical order, in which path matches glob pattern
+    Given pathname may contain shell wildcard characters, return path list in ascending alphabetical order, in which path matches glob pattern
 
-    :param path: A path pattern may contain shell wildcard characters
+    :param pathname: A path pattern may contain shell wildcard characters
     :param recursive: If False, this function will not glob recursively
     :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
     '''
+    # Split pathname, group by protocol, call glob respectively
+    # SmartPath(pathname).glob(recursive, missing_ok)
     result = []
-    group_glob_list = _group_glob(str(path))
+    group_glob_list = _group_glob(pathname)
     for glob_path in group_glob_list:
-        protocol = _extract_protocol(glob_path)
-        if protocol == 'fs':
-            glob_path_list = fs_glob(glob_path, recursive, missing_ok)
-        elif protocol == 's3':
-            glob_path_list = s3_glob(glob_path, recursive, missing_ok)
-        else:
-            raise UnsupportedError(
-                operation='smart_glob', path=path)  # pragma: no cover
-        result.extend(glob_path_list)
+        result.extend(SmartPath(glob_path).glob(recursive, missing_ok))
     return result
 
 
 def smart_iglob(
-        path: PathLike, recursive: bool = True,
-        missing_ok: bool = True) -> typing.Iterator[str]:
+        pathname: PathLike, recursive: bool = True,
+        missing_ok: bool = True) -> Iterator[str]:
     '''
-    Given path may contain shell wildcard characters, return path iterator in ascending alphabetical order, in which path matches glob pattern
+    Given pathname may contain shell wildcard characters, return path iterator in ascending alphabetical order, in which path matches glob pattern
 
-    :param path: A path pattern may contain shell wildcard characters
+    :param pathname: A path pattern may contain shell wildcard characters
     :param recursive: If False, this function will not glob recursively
     :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
     '''
+    # Split pathname, group by protocol, call glob respectively
+    # SmartPath(pathname).glob(recursive, missing_ok)
     result = []
-    group_glob_list = _group_glob(str(path))
+    group_glob_list = _group_glob(pathname)
     for glob_path in group_glob_list:
-        protocol = _extract_protocol(glob_path)
-        if protocol == 'fs':
-            iglob_path = fs_iglob(glob_path, recursive, missing_ok)
-        elif protocol == 's3':
-            iglob_path = s3_iglob(glob_path, recursive, missing_ok)
-        else:
-            raise UnsupportedError(
-                operation='smart_iglob', path=path)  # pragma: no cover
-        result.append(iglob_path)
+        result.append(SmartPath(glob_path).iglob(recursive, missing_ok))
     iterableres = chain(*result)
     return iterableres
 
 
 def smart_glob_stat(
-        path: PathLike, recursive: bool = True,
-        missing_ok: bool = True) -> typing.Iterator[FileEntry]:
+        pathname: PathLike, recursive: bool = True,
+        missing_ok: bool = True) -> Iterator[FileEntry]:
     '''
-    Given path may contain shell wildcard characters, return a list contains tuples of path and file stat in ascending alphabetical order, in which path matches glob pattern
+    Given pathname may contain shell wildcard characters, return a list contains tuples of path and file stat in ascending alphabetical order, in which path matches glob pattern
 
-    :param path: A path pattern may contain shell wildcard characters
+    :param pathname: A path pattern may contain shell wildcard characters
     :param recursive: If False, this function will not glob recursively
     :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
     '''
+    # Split pathname, group by protocol, call glob respectively
+    # SmartPath(pathname).glob(recursive, missing_ok)
     result = []
-    group_glob_list = _group_glob(str(path))
+    group_glob_list = _group_glob(pathname)
     for glob_path in group_glob_list:
-        protocol = _extract_protocol(glob_path)
-        if protocol == 'fs':
-            stat = fs_glob_stat(glob_path, recursive, missing_ok)
-        elif protocol == 's3':
-            stat = s3_glob_stat(glob_path, recursive, missing_ok)
-        else:
-            raise UnsupportedError(
-                operation='smart_glob_stat', path=path)  # pragma: no cover
-        result.append(stat)
+        result.append(SmartPath(glob_path).glob_stat(recursive, missing_ok))
     iterableres = chain(*result)
     return iterableres
+
+
+def smart_save_as(file_object: BinaryIO, path: PathLike) -> None:
+    '''Write the opened binary stream to specified path, but the stream won't be closed
+
+    :param file_object: Stream to be read
+    :param path: Specified target path
+    '''
+    SmartPath(path).save(file_object)
+
+
+def smart_load_from(path: PathLike) -> BinaryIO:
+    '''Read all content in binary on specified path and write into memory
+
+    User should close the BinaryIO manually
+
+    :param path: Specified path
+    :returns: BinaryIO
+    '''
+    return SmartPath(path).load()
 
 
 def smart_combine_open(
@@ -807,13 +689,80 @@ def smart_combine_open(
     return combine(file_objects, path_glob)
 
 
+def smart_abspath(path: PathLike):
+    '''Return the absolute path of given path
+
+    :param path: Given path
+    :returns: Absolute path of given path
+    '''
+    return SmartPath(path).abspath()
+
+
+def smart_realpath(path: PathLike):
+    '''Return the real path of given path
+
+    :param path: Given path
+    :returns: Real path of given path
+    '''
+    return SmartPath(path).realpath()
+
+
+def smart_relpath(path: PathLike, start=None):
+    '''Return the relative path of given path
+
+    :param path: Given path
+    :param start: Given start directory
+    :returns: Relative path from start
+    '''
+    return SmartPath(path).relpath(start)
+
+
+def smart_isabs(path: PathLike) -> bool:
+    '''Test whether a path is absolute
+
+    :param path: Given path
+    :returns: True if a path is absolute, else False
+    '''
+    return SmartPath(path).is_absolute()
+
+
+def smart_ismount(path: PathLike) -> bool:
+    '''Test whether a path is a mount point
+
+    :param path: Given path
+    :returns: True if a path is a mount point, else False
+    '''
+    return SmartPath(path).is_mount()
+
+
+def smart_load_content(
+        path: PathLike, start: Optional[int] = None,
+        stop: Optional[int] = None) -> bytes:
+    '''
+    Get specified file from [start, stop) in bytes
+
+    :param path: Specified path
+    :param start: start index
+    :param stop: stop index
+    :returns: bytes content in range [start, stop)
+    '''
+    if is_s3(path):
+        return s3_load_content(path, start, stop)
+
+    start, stop = get_content_offset(start, stop, fs_getsize(path))
+
+    with open(path, 'rb') as fd:
+        fd.seek(start)
+        return fd.read(stop - start)
+
+
 def smart_save_content(path: PathLike, content: bytes) -> None:
     '''Save bytes content to specified path
 
     param path: Path to save content
     '''
     with smart_open(path, 'wb') as fd:
-        fd.write(content)  # type: ignore
+        fd.write(content)
 
 
 def smart_load_text(path: PathLike) -> str:
@@ -823,7 +772,7 @@ def smart_load_text(path: PathLike) -> str:
     param path: Path to be read
     '''
     with smart_open(path) as fd:
-        return fd.read()  # type: ignore
+        return fd.read()
 
 
 def smart_save_text(path: PathLike, text: str) -> None:
@@ -832,7 +781,7 @@ def smart_save_text(path: PathLike, text: str) -> None:
     param path: Path to save text
     '''
     with smart_open(path, 'w') as fd:
-        fd.write(text)  # type: ignore
+        fd.write(text)
 
 
 def smart_cache(path, s3_cacher=S3Cacher, **options):
@@ -856,35 +805,10 @@ def smart_touch(path: PathLike):
         pass
 
 
-def smart_load_content(
-        path: PathLike,
-        start: typing.Optional[int] = None,
-        stop: typing.Optional[int] = None) -> bytes:
+def smart_getmd5(path: PathLike, recalculate: bool = False):
+    '''Get md5 value of file
+
+    param path: File path
+    param recalculate: calculate md5 in real-time or not return s3 etag when path is s3
     '''
-    Get specified file from [start, stop) in bytes
-
-    :param path: Specified path
-    :param start: start index
-    :param stop: stop index
-    :returns: bytes content in range [start, stop)
-    '''
-    if is_s3(path):
-        return s3_load_content(path, start, stop)
-
-    start, stop = get_content_offset(start, stop, fs_getsize(path))
-
-    with open(path, 'rb') as fd:
-        fd.seek(start)
-        return fd.read(stop - start)
-
-
-def smart_path_join(
-        path: typing.Union[str, os.PathLike],
-        *other_paths: typing.Union[str, os.PathLike]) -> str:
-    protocol = _extract_protocol(path)
-    if protocol == 'fs':
-        return fspath(os.path.normpath(fs_path_join(path, *other_paths)))
-    if protocol == 's3':
-        return fspath(s3_path_join(path, *other_paths))
-    raise UnsupportedError(
-        operation='smart_path_join', path=path)  # pragma: no cover
+    return SmartPath(path).md5(recalculate=recalculate)

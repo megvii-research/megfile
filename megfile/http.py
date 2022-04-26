@@ -66,46 +66,44 @@ def is_http(path: PathLike) -> bool:
 
 
 @binary_open
-def http_open(path: PathLike, mode: str = 'rb') -> BufferedReader:
+def http_open(http_url: str, mode: str = 'rb') -> BufferedReader:
     '''Open a BytesIO to read binary data of given http(s) url
 
     .. note ::
 
         Essentially, it reads data of http(s) url to memory by requests, and then return BytesIO to user.
 
-    :param path: http(s) url, e.g.: http(s)://domain/path
+    :param http_url: http(s) url, e.g.: http(s)://domain/path
     :param mode: Only supports 'rb' mode now
     :return: BytesIO initialized with http(s) data
     '''
-    path = str(path)
-
     if mode not in ('rb',):
         raise ValueError('unacceptable mode: %r' % mode)
 
     try:
-        response = requests.get(path, stream=True, timeout=10.0)
+        response = requests.get(http_url, stream=True, timeout=10.0)
         response.raise_for_status()
     except Exception as error:
-        raise translate_http_error(error, path)
+        raise translate_http_error(error, http_url)
 
     response.raw.auto_close = False
     return BufferedReader(response.raw)
 
 
-def http_stat(path: PathLike) -> StatResult:
+def http_stat(http_url: str) -> StatResult:
     '''
-    Get StatResult of path response, including size and mtime, referring to http_getsize and http_getmtime
+    Get StatResult of http_url response, including size and mtime, referring to http_getsize and http_getmtime
 
-    :param path: Given http url
+    :param http_url: Given http url
     :returns: StatResult
     :raises: HttpPermissionError, HttpFileNotFoundError
     '''
-    path = str(path)
+
     try:
-        response = requests.get(path, stream=True, timeout=10.0)
+        response = requests.get(http_url, stream=True, timeout=10.0)
         response.raise_for_status()
     except Exception as error:
-        raise translate_http_error(error, path)
+        raise translate_http_error(error, http_url)
 
     size = response.headers.get('Content-Length')
     if size:
@@ -121,29 +119,27 @@ def http_stat(path: PathLike) -> StatResult:
         islnk=False, extra=response.headers)
 
 
-def http_getsize(path: PathLike) -> int:
+def http_getsize(http_url: str) -> int:
     '''
-    Get file size on the given path path.
+    Get file size on the given http_url path.
 
     If http response header don't support Content-Length, will return None
 
-    :param path: Given http path
+    :param http_url: Given http path
     :returns: File size (in bytes)
     :raises: HttpPermissionError, HttpFileNotFoundError
     '''
-    path = str(path)
-    return http_stat(path).size
+    return http_stat(http_url).size
 
 
-def http_getmtime(path: PathLike) -> float:
+def http_getmtime(http_url: str) -> float:
     '''
-    Get Last-Modified time of the http request on the given path path.
+    Get Last-Modified time of the http request on the given http_url path.
     
     If http response header don't support Last-Modified, will return None
 
-    :param path: Given http url
+    :param http_url: Given http url
     :returns: Last-Modified time (in Unix timestamp format)
     :raises: HttpPermissionError, HttpFileNotFoundError
     '''
-    path = str(path)
-    return http_stat(path).mtime
+    return http_stat(http_url).mtime

@@ -25,7 +25,7 @@ megfile - Megvii FILE library
 * `smart_open` can open resources that use various protocols, including fs, s3, http(s) and stdio. Especially, reader / writer of s3 in `megfile` is implemented with multi-thread, which is faster than known competitors.
 * `smart_glob` is available on s3. And it supports zsh extended pattern syntax of `[]`, e.g. `s3://bucket/video.{mp4,avi}`.
 * All-inclusive functions like `smart_exists` / `smart_stat` / `smart_sync`. If you don't find the functions you want, [submit an issue](https://github.com/megvii-research/megfile/issues).
-* Compatible with `pathlib.Path` interface.
+* Compatible with `pathlib.Path` interface, referring to `S3Path` and `SmartPath`.
 
 ## Quick Start
 
@@ -56,6 +56,17 @@ smart_glob('s3://playground/megfile-?.{mp4,avi}')
 
 # smart_open also support protocols like http / https
 smart_open('https://www.google.com')
+```
+
+### SmartPath Interface
+```python
+from megfile.smart_path import SmartPath
+
+path = SmartPath('s3://playground/megfile-test')
+if path.exists():
+    with path.open() as f:
+        result = f.read(7)
+        assert result == b'megfile'
 ```
 
 ### Command Line Interface
