@@ -1,6 +1,10 @@
 CHANGELOG
 =========
 
+## 0.1.2 - 2022.04.26
+- handle s3 remove file errors
+- support s3 symlink
+
 ## 0.1.1 - 2022.01.14
 - fix smart api bug
 
