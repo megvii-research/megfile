@@ -126,7 +126,7 @@ Default output format [None]:
 $ aws configure set s3.addressing_style virtual
 $ aws configure set s3.endpoint_url http://oss-cn-hangzhou.aliyuncs.com
 
-$ cat `~/.aws/config
+$ cat ~/.aws/config
 [default]
 aws_secret_access_key = accesskey
 aws_access_key_id = secretkey
