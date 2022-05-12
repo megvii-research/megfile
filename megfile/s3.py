@@ -266,14 +266,8 @@ def _become_prefix(prefix: str) -> str:
 
 
 def _make_stat(content: Dict[str, Any]):
-    if 'islnk' in content:
-        return StatResult(
-            islnk=content['islnk'],
-            size=content['Size'],
-            mtime=content['LastModified'].timestamp(),
-            extra=content,
-        )
     return StatResult(
+        islnk=content.get('islnk',False),
         size=content['Size'],
         mtime=content['LastModified'].timestamp(),
         extra=content,
