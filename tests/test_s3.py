@@ -2816,7 +2816,7 @@ def test_isfile_symlink(s3_empty_client):
     assert s3.s3_isfile(dst_dst_url, followlinks=True) is False
 
 
-def test_symlink_relevant_functions(s3_empty_client, fs):
+def test_symlink_relevant_functions(s3_empty_client):
     path = '/tmp/download_file'
     src_url = 's3://bucket/src'
     dst_url = 's3://bucket/dst'
