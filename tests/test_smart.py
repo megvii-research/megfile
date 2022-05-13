@@ -550,6 +550,8 @@ def test_smart_open_custom_s3_open_func(mocker, fs):
     parse_s3_url = mocker.patch('megfile.s3.parse_s3_url')
     parse_s3_url.return_value = ('bucket', 'key')
 
+    parse_s3_url = mocker.patch('megfile.s3.s3_get_metadata')
+    parse_s3_url.return_value = {}
     smart.smart_open('s3://bucket/key', 'r', s3_open_func=s3_binary_open)
     s3_open.assert_called_once_with('s3://bucket/key', 'rb')
     # text_wrapper.assert_called_once() in Python 3.6+
