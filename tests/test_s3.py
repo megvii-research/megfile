@@ -2862,10 +2862,11 @@ def test_symlink_relevant_functions(s3_empty_client, fs):
     assert s3.s3_load_content(dst_url, followlinks=False) == b''
     assert s3.s3_load_content(copy_url, followlinks=True) == content
 
+    assert list(s3.s3_scan_stat(A_dst_url))[0].is_symlink() == True
     s3.s3_sync(A_dst_url, sync_url)
     assert s3.s3_exists(sync_url, followlinks=False) is True
     assert s3, s3_islink(sync_url) is False
-    assert list(s3.s3_scan_stat(sync_url))[0].is_symlink() == False
+    assert list(s3.s3_scan_stat(sync_url))[0].is_symlink() == True
     assert list(s3.s3_scan_stat(sync_url,
                                 followlinks=True))[0].is_symlink() == True
     assert list(s3.s3_scan_stat(A_dst_url,
@@ -2928,7 +2929,7 @@ def test_symlink_relevant_functions(s3_empty_client, fs):
             s3._s3_glob_stat_single_path(src_url,
                                          followlinks=True))[0].stat.mtime
 
-    assert list(s3.s3_glob_stat(dst_url))[0].is_symlink() is False
+    assert list(s3.s3_glob_stat(dst_url))[0].is_symlink() is True
     assert list(s3.s3_glob_stat(dst_url,
                                 followlinks=True))[0].is_symlink() is True
     assert list(s3.s3_glob_stat(src_url))[0].is_symlink() is False

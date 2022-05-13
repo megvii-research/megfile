@@ -598,6 +598,7 @@ def s3_stat(s3_url: PathLike, followlinks: bool = False) -> StatResult:
     '''
     Get StatResult of s3_url file, including file size and mtime, referring to s3_getsize and s3_getmtime
 
+    Automatically identifies "islnk" of s3_url whether "followlinks" is True or not.
     If s3_url is not an existent path, which means s3_exist(s3_url) returns False, then raise S3FileNotFoundError
     If attempt to get StatResult of complete s3, such as s3_dir_url == 's3://', raise S3BucketNotFoundError
 
@@ -606,11 +607,6 @@ def s3_stat(s3_url: PathLike, followlinks: bool = False) -> StatResult:
     :raises: S3FileNotFoundError, S3BucketNotFoundError
     '''
     islnk = False
-    if followlinks:
-        metadata = s3_get_metadata(s3_url)
-        if metadata and 'symlink_to' in metadata:
-            islnk = True
-            s3_url = metadata['symlink_to']
     bucket, key = parse_s3_url(s3_url)
     if not bucket:
         raise S3BucketNotFoundError('Empty bucket name: %r' % s3_url)
@@ -621,6 +617,16 @@ def s3_stat(s3_url: PathLike, followlinks: bool = False) -> StatResult:
     client = get_s3_client()
     with raise_s3_error(s3_url):
         content = client.head_object(Bucket=bucket, Key=key)
+        if 'Metadata' in content:
+            metadata = dict(
+                (key.lower(), value)
+                for key, value in content['Metadata'].items())
+            if metadata and 'symlink_to' in metadata:
+                islnk = True
+                if islnk and followlinks:
+                    s3_url = metadata['symlink_to']
+                    bucket, key = parse_s3_url(s3_url)
+                    content = client.head_object(Bucket=bucket, Key=key)
         stat_record = StatResult(
             islnk=islnk,
             size=content['ContentLength'],
