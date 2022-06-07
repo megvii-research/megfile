@@ -566,11 +566,11 @@ def s3_listdir(s3_url: PathLike, followlinks: bool = False) -> List[str]:
 
 def _s3_getdirstat(s3_dir_url: str) -> StatResult:
     '''
-    Return StatResult of given s3_url directory, including：
+    Return StatResult of given s3_url directory, including: 
 
     1. Directory size: the sum of all file size in it, including file in subdirectories (if exist).
     The result excludes the size of directory itself. In other words, return 0 Byte on an empty directory path
-    2. Last-modified time of directory：return the latest modified time of all file in it. The mtime of empty directory is 1970-01-01 00:00:00
+    2. Last-modified time of directory: return the latest modified time of all file in it. The mtime of empty directory is 1970-01-01 00:00:00
 
     :param s3_url: Given s3 path
     :returns: An int indicates size in Bytes
@@ -840,7 +840,7 @@ def s3_makedirs(s3_url: PathLike, exist_ok: bool = False):
 def s3_walk(s3_url: PathLike) -> Iterator[Tuple[str, List[str], List[str]]]:
     '''
     Iteratively traverse the given s3 directory, in top-bottom order. In other words, firstly traverse parent directory, if subdirectories exist, traverse the subdirectories in alphabetical order.
-    Every iteration on generator yields a 3-tuple：(root, dirs, files)
+    Every iteration on generator yields a 3-tuple: (root, dirs, files)
 
     - root: Current s3 path;
     - dirs: Name list of subdirectories in current directory. The list is sorted by name in ascending alphabetical order;
@@ -985,10 +985,10 @@ def s3_glob(
         s3_pathname: PathLike, recursive: bool = True,
         missing_ok: bool = True) -> List[str]:
     '''Return s3 path list in ascending alphabetical order, in which path matches glob pattern
-    Notes：Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
+    Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
 
     :param s3_pathname: May contain shell wildcard characters
-    :param recursive: If False，`**` will not search directory recursively
+    :param recursive: If False, `**` will not search directory recursively
     :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
     :raises: UnsupportedError, when bucket part contains wildcard characters
     :returns: A list contains paths match `s3_pathname`
@@ -1001,10 +1001,10 @@ def s3_iglob(
         s3_pathname: PathLike, recursive: bool = True,
         missing_ok: bool = True) -> Iterator[str]:
     '''Return s3 path iterator in ascending alphabetical order, in which path matches glob pattern
-    Notes：Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
+    Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
 
     :param s3_pathname: May contain shell wildcard characters
-    :param recursive: If False，`**` will not search directory recursively
+    :param recursive: If False, `**` will not search directory recursively
     :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
     :raises: UnsupportedError, when bucket part contains wildcard characters
     :returns: An iterator contains paths match `s3_pathname`
@@ -1025,10 +1025,10 @@ def s3_glob_stat(
         missing_ok: bool = True,
         followlinks: bool = False) -> Iterator[FileEntry]:
     '''Return a generator contains tuples of path and file stat, in ascending alphabetical order, in which path matches glob pattern
-    Notes：Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
+    Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
 
     :param s3_pathname: May contain shell wildcard characters
-    :param recursive: If False，`**` will not search directory recursively
+    :param recursive: If False, `**` will not search directory recursively
     :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
     :raises: UnsupportedError, when bucket part contains wildcard characters
     :returns: A generator contains tuples of path and file stat, in which paths match `s3_pathname`
@@ -1335,7 +1335,7 @@ def s3_prefetch_open(
 
         Supports context manager
 
-        Some parameter setting may perform well：max_concurrency=10 or 20, max_block_size=8 or 16 MB, default value None means using global thread pool
+        Some parameter setting may perform well: max_concurrency=10 or 20, max_block_size=8 or 16 MB, default value None means using global thread pool
 
     :param max_concurrency: Max download thread number, None by default
     :param max_block_size: Max data size downloaded by each thread, in bytes, 8MB by default
@@ -1373,7 +1373,7 @@ def s3_share_cache_open(
 
         Supports context manager
 
-        Some parameter setting may perform well：max_concurrency=10 or 20, max_block_size=8 or 16 MB, default value None means using global thread pool
+        Some parameter setting may perform well: max_concurrency=10 or 20, max_block_size=8 or 16 MB, default value None means using global thread pool
 
     :param max_concurrency: Max download thread number, None by default
     :param max_block_size: Max data size downloaded by each thread, in bytes, 8MB by default
@@ -1480,12 +1480,12 @@ def s3_buffered_open(
 
         Supports context manager
 
-        Some parameter setting may perform well：max_concurrency=10 or 20, max_block_size=8 or 16 MB, default value None means using global thread pool
+        Some parameter setting may perform well: max_concurrency=10 or 20, max_block_size=8 or 16 MB, default value None means using global thread pool
 
     :param max_concurrency: Max download thread number, None by default
     :param max_buffer_size: Max cached buffer size in memory, 128MB by default
     :param block_size: Size of single block, 8MB by default. Each block will be uploaded or downloaded by single thread.
-    :param limited_seekable: If write-handle supports limited seek (both file head part and tail part can seek block_size). Notes：This parameter are valid only for write-handle. Read-handle support arbitrary seek
+    :param limited_seekable: If write-handle supports limited seek (both file head part and tail part can seek block_size). Notes: This parameter are valid only for write-handle. Read-handle support arbitrary seek
     :returns: An opened S3PrefetchReader object
     :raises: S3FileNotFoundError
     '''

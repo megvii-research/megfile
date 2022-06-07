@@ -76,7 +76,7 @@ class ThreadLocal(ForkAware, BaseLocal):
         return self._local.__dict__
 
     def __call__(self, key: str, func: Callable, *args, **kwargs):
-        data = self._data  # 不同线程拿到的 dict 不同，因此不用加锁
+        data = self._data  # 不同线程拿到的 dict 不同, 因此不用加锁
         if key not in data:
             data[key] = func(*args, **kwargs)
         return data[key]

@@ -61,8 +61,8 @@ def test_s3_memory_handler_append(client):
 
 
 def assert_ability(fp1, fp2):
-    # TODO: pyfakefs writable 返回值是错的，readable 不可读时会抛异常
-    # 正确测试以下几项，需要关掉 pyfakefs
+    # TODO: pyfakefs writable 返回值是错的, readable 不可读时会抛异常
+    # 正确测试以下几项, 需要关掉 pyfakefs
     assert fp1.seekable() == fp2.seekable()
     # assert fp1.readable() == fp2.readable()
     # assert fp1.writable() == fp2.writable()

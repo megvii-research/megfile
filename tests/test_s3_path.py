@@ -105,7 +105,7 @@ def test_getsize(mocker):
     funcA.assert_called_once_with(TEST_PATH_WITH_PROTOCOL)
 
 
-# TODO: 修改了实现，不再调用 s3_path_join
+# TODO: 修改了实现, 不再调用 s3_path_join
 # def test_path_join(mocker):
 #     funcA = mocker.patch('megfile.s3.s3_path_join')
 

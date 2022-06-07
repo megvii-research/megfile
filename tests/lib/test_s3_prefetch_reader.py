@@ -54,7 +54,7 @@ def test_s3_prefetch_reader(client):
         assert reader.read(4) == b'k0 b'
         assert reader.read(6) == b'lock1 '
 
-        # 连续读多个 block，且 size 超过剩余数据大小
+        # 连续读多个 block, 且 size 超过剩余数据大小
         assert reader.read(21 + 1) == b'block2 block3 block4 '
         assert reader._read(1) == b''
 
@@ -158,7 +158,7 @@ def test_s3_prefetch_reader_fetch(client, mocker):
             block_capacity=4,
             block_forward=2,
     ) as reader:
-        # 打开 reader，_executor 没有执行
+        # 打开 reader, _executor 没有执行
         # get_object_func.assert_not_called() in Python 3.6+
         assert get_object_func.call_count == 0
 
@@ -184,7 +184,7 @@ def test_s3_prefetch_reader_fetch(client, mocker):
         # get_object_func.assert_not_called() in Python 3.6+
         assert get_object_func.call_count == 0
 
-        # 读 block0 的前 2 字节，_executor 下载 block2，完成后阻塞地等待 _downloading 事件
+        # 读 block0 的前 2 字节, _executor 下载 block2, 完成后阻塞地等待 _downloading 事件
         reader.read(2)
         sleep_until_downloaded(reader)
         get_object_func.assert_called_once_with(
@@ -192,7 +192,7 @@ def test_s3_prefetch_reader_fetch(client, mocker):
         assert not reader._is_downloading
         get_object_func.reset_mock()
 
-        # 读到 block1，引发 _executor 开始下载 block3
+        # 读到 block1, 引发 _executor 开始下载 block3
         reader.read(6)
         sleep_until_downloaded(reader)
         get_object_func.assert_called_once_with(
@@ -200,13 +200,13 @@ def test_s3_prefetch_reader_fetch(client, mocker):
         assert not reader._is_downloading
         get_object_func.reset_mock()
 
-        # reader._futures 可满足 size，不会引发 _executor 下载 block4，且 _executor 仍旧阻塞
+        # reader._futures 可满足 size, 不会引发 _executor 下载 block4, 且 _executor 仍旧阻塞
         reader.read(6)
         # get_object_func.assert_not_called() in Python 3.6+
         assert get_object_func.call_count == 0
         assert not reader._is_downloading
 
-        # 连续读多个 block，引发 _executor 下载 block4
+        # 连续读多个 block, 引发 _executor 下载 block4
         reader.read(21)
         sleep_until_downloaded(reader)
         get_object_func.assert_called_once_with(
@@ -226,7 +226,7 @@ def test_s3_prefetch_reader_close(client):
 
     with S3PrefetchReader(BUCKET, KEY, s3_client=client, max_workers=1,
                           block_size=1) as reader:
-        # 主线程休眠，等待 reader.fetcher 线程阻塞在 _donwloading 事件上
+        # 主线程休眠, 等待 reader.fetcher 线程阻塞在 _donwloading 事件上
         sleep_until_downloaded(reader)
     assert reader.closed
 
@@ -297,7 +297,7 @@ def test_s3_prefetch_reader_backward_block_forward_eq_1(client, mocker):
 
 def test_s3_prefetch_reader_backward_seek_and_the_target_out_of_remains(
         client, mocker):
-    '''目标 offset 在 buffer 外，停止现有 future，丢弃当前 buffer，以目标 offset 作为新的起点启动新的 future'''
+    '''目标 offset 在 buffer 外, 停止现有 future, 丢弃当前 buffer, 以目标 offset 作为新的起点启动新的 future'''
     with S3PrefetchReader(BUCKET, KEY, s3_client=client, max_workers=2,
                           block_size=3, block_capacity=3,
                           block_forward=2) as reader:  # buffer 最大为 6B
@@ -320,7 +320,7 @@ def test_s3_prefetch_reader_backward_seek_and_the_target_out_of_remains(
 
 def test_s3_prefetch_reader_seek_and_the_target_in_buffer(client, mocker):
     '''
-        目标 offset 在 buffer 中，丢弃目标 block 之前的全部 block，必要时截断目标 block 的前半部分
+        目标 offset 在 buffer 中, 丢弃目标 block 之前的全部 block, 必要时截断目标 block 的前半部分
     '''
     with S3PrefetchReader(BUCKET, KEY, s3_client=client, max_workers=3,
                           block_size=3, block_capacity=3,
@@ -348,7 +348,7 @@ def test_s3_prefetch_reader_seek_and_the_target_in_buffer(client, mocker):
 
 
 def test_s3_prefetch_reader_seek_and_the_target_out_of_buffer(client, mocker):
-    '''目标 offset 在 buffer 外，停止现有 future，丢弃当前 buffer，以目标 offset 作为新的起点启动新的 future'''
+    '''目标 offset 在 buffer 外, 停止现有 future, 丢弃当前 buffer, 以目标 offset 作为新的起点启动新的 future'''
     with S3PrefetchReader(BUCKET, KEY, s3_client=client, max_workers=2,
                           block_size=3, block_capacity=3,
                           block_forward=2) as reader:  # buffer 最大为 6B
@@ -365,7 +365,7 @@ def test_s3_prefetch_reader_seek_and_the_target_out_of_buffer(client, mocker):
 
 
 def test_s3_prefetch_reader_read_with_forward_seek(client):
-    '''向后 seek 后，测试 read 结果的正确性'''
+    '''向后 seek 后, 测试 read 结果的正确性'''
     with S3PrefetchReader(BUCKET, KEY, s3_client=client, max_workers=2,
                           block_size=7) as reader:
         reader.seek(2)

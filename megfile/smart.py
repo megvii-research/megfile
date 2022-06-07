@@ -678,7 +678,7 @@ def smart_load_from(path: PathLike) -> BinaryIO:
 def smart_combine_open(
         path_glob: str, mode: str = 'rb',
         open_func=smart_open) -> CombineReader:
-    '''Open a unified reader that supports multi file reading。
+    '''Open a unified reader that supports multi file reading.
 
     :param path_glob: A path may contain shell wildcard characters
     :param mode: Mode to open file, supports 'rb'

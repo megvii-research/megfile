@@ -774,7 +774,7 @@ def test_smart_open_stdin(mocker):
 
 
 def test_smart_open_stdout(mocker):
-    # TODO: 这里 pytest 会把 sys.stdout mocker 掉，导致无法测试，之后想办法解决
+    # TODO: 这里 pytest 会把 sys.stdout mocker 掉, 导致无法测试, 之后想办法解决
     return
     data = BytesIO()
 

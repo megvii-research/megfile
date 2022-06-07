@@ -745,7 +745,7 @@ def test_fs_glob_returns_lexicographical_result(create_glob_fake_dirtree):
     # without hidden file
     res = list(fs.fs_glob('A/a/**', recursive=True))
     expected = [
-        'A/a/',  # 奇怪！
+        'A/a/',  # 奇怪! 
         'A/a/b',
         'A/a/b/c',
         'A/a/b/c/1.json',
@@ -778,11 +778,11 @@ def test_fs_glob_with_double_star(create_glob_fake_dirtree):
     assert sorted(res) == expected
 
     res = list(fs.fs_glob('A/b/file/**', recursive=True))
-    expected = ['A/b/file/']  # 奇怪！
+    expected = ['A/b/file/']  # 奇怪! 
     assert sorted(res) == expected
 
     res = list(fs.fs_glob('A/b/b/**', recursive=True))
-    expected = ['A/b/b/']  # 奇怪！
+    expected = ['A/b/b/']  # 奇怪! 
     assert sorted(res) == expected
 
 

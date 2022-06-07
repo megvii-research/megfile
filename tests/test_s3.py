@@ -43,7 +43,7 @@ bucketC/
 |-folderAA
     |-fileAA
 
-bucketForGlobTest/ （用于 s3_glob 的测试，结构较复杂）
+bucketForGlobTest/ （用于 s3_glob 的测试, 结构较复杂）
 |-1
     |-a （目录）
         |-b
@@ -153,7 +153,7 @@ def s3_setup(mocker, s3_empty_client, file_list=FILE_LIST):
 
 @pytest.fixture
 def truncating_client(mocker, s3_setup):
-    '''将 list_objects_v2 的 MaxKeys 限定为 1，在结果超过 1 个 key 时总是截断'''
+    '''将 list_objects_v2 的 MaxKeys 限定为 1, 在结果超过 1 个 key 时总是截断'''
     truncating_client = mocker.patch.object(
         s3_setup,
         'list_objects_v2',
@@ -381,7 +381,7 @@ def test_is_s3():
     assert s3.is_s3('s3://bu') == True
     assert s3.is_s3('s3://%s' % ('b' * 64)) == True
 
-    # prefix，可以为 ''，或包含连续的 '/'
+    # prefix, 可以为 '', 或包含连续的 '/'
     assert s3.is_s3('s3://bucket') == True
     assert s3.is_s3('s3://bucket/') == True
     assert s3.is_s3('s3://bucket//') == True
@@ -700,7 +700,7 @@ def test_s3_stat(truncating_client, mocker):
     assert s3.s3_stat('s3://bucketA/folderAB') == make_stat(
         size=6 + 6, mtime=Now(), isdir=True)
 
-    # 有同名目录时，优先返回文件的状态
+    # 有同名目录时, 优先返回文件的状态
     assert s3.s3_stat('s3://bucketC/folder') == StatResult(size=4, mtime=Now())
 
     with pytest.raises(s3.S3BucketNotFoundError) as error:
@@ -1041,8 +1041,8 @@ def test_smart_open_read_s3_file_not_found(mocker, s3_empty_client):
 
 def test_smart_open_url_is_of_credentials_format(mocker, s3_empty_client):
     '''
-    测试 s3_url 中包含 ':' 和 '@' 字符的 url，该 url 将被 smart_open 误认为是包含 credential info 的 url
-    详情见：https://github.com/RaRe-Technologies/smart_open/issues/378
+    测试 s3_url 中包含 ':' 和 '@' 字符的 url, 该 url 将被 smart_open 误认为是包含 credential info 的 url
+    详情见: https://github.com/RaRe-Technologies/smart_open/issues/378
     '''
     bucket = 'bucket'
     key = 'username:password@key_part'
@@ -1051,7 +1051,7 @@ def test_smart_open_url_is_of_credentials_format(mocker, s3_empty_client):
 
     mocker.patch('megfile.s3.get_endpoint_url', return_value=None)
 
-    # 希望，正常打开，而不是报错
+    # 希望, 正常打开, 而不是报错
     # smart_open 将 '@' 之后的部分认为是 key
     smart.smart_open('s3://bucket/username:password@key_part')
 

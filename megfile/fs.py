@@ -353,7 +353,7 @@ def fs_glob(
     '''Return path list in ascending alphabetical order, in which path matches glob pattern
 
     1. If doesn't match any path, return empty list
-        Notice： ``glob.glob`` in standard library returns ['a/'] instead of empty list when pathname is like `a/**`, recursive is True and directory 'a' doesn't exist. fs_glob behaves like ``glob.glob`` in standard library under such circumstance.
+        Notice:  ``glob.glob`` in standard library returns ['a/'] instead of empty list when pathname is like `a/**`, recursive is True and directory 'a' doesn't exist. fs_glob behaves like ``glob.glob`` in standard library under such circumstance.
     2. No guarantee that each path in result is different, which means:
         Assume there exists a path `/a/b/c/b/d.txt`
         use path pattern like `/**/b/**/*.txt` to glob, the path above will be returned twice
@@ -362,7 +362,7 @@ def fs_glob(
     5. Hidden files (filename stars with '.') will not be found in the result
 
     :param pathname: A path pattern may contain shell wildcard characters
-    :param recursive: If False，`**` will not search directory recursively
+    :param recursive: If False, `**` will not search directory recursively
     :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
     :returns: A list contains paths match `pathname`
     '''
@@ -375,7 +375,7 @@ def fs_iglob(
     '''Return path iterator in ascending alphabetical order, in which path matches glob pattern
 
     1. If doesn't match any path, return empty list
-        Notice： ``glob.glob`` in standard library returns ['a/'] instead of empty list when pathname is like `a/**`, recursive is True and directory 'a' doesn't exist. fs_glob behaves like ``glob.glob`` in standard library under such circumstance.
+        Notice:  ``glob.glob`` in standard library returns ['a/'] instead of empty list when pathname is like `a/**`, recursive is True and directory 'a' doesn't exist. fs_glob behaves like ``glob.glob`` in standard library under such circumstance.
     2. No guarantee that each path in result is different, which means:
         Assume there exists a path `/a/b/c/b/d.txt`
         use path pattern like `/**/b/**/*.txt` to glob, the path above will be returned twice
@@ -384,7 +384,7 @@ def fs_iglob(
     5. Hidden files (filename stars with '.') will not be found in the result
 
     :param pathname: A path pattern may contain shell wildcard characters
-    :param recursive: If False，`**` will not search directory recursively
+    :param recursive: If False, `**` will not search directory recursively
     :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
     :returns: An iterator contains paths match `pathname`
     '''
@@ -399,7 +399,7 @@ def fs_glob_stat(
     '''Return a list contains tuples of path and file stat, in ascending alphabetical order, in which path matches glob pattern
 
     1. If doesn't match any path, return empty list
-        Notice： ``glob.glob`` in standard library returns ['a/'] instead of empty list when pathname is like `a/**`, recursive is True and directory 'a' doesn't exist. fs_glob behaves like ``glob.glob`` in standard library under such circumstance.
+        Notice:  ``glob.glob`` in standard library returns ['a/'] instead of empty list when pathname is like `a/**`, recursive is True and directory 'a' doesn't exist. fs_glob behaves like ``glob.glob`` in standard library under such circumstance.
     2. No guarantee that each path in result is different, which means:
         Assume there exists a path `/a/b/c/b/d.txt`
         use path pattern like `/**/b/**/*.txt` to glob, the path above will be returned twice
@@ -408,7 +408,7 @@ def fs_glob_stat(
     5. Hidden files (filename stars with '.') will not be found in the result
 
     :param pathname: A path pattern may contain shell wildcard characters
-    :param recursive: If False，`**` will not search directory recursively
+    :param recursive: If False, `**` will not search directory recursively
     :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
     :returns: A list contains tuples of path and file stat, in which paths match `pathname`
     '''
