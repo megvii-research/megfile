@@ -60,14 +60,14 @@ __all__ = [
 ]
 
 
-def smart_symlink(dst_path: PathLike, src_path: PathLike) -> None:
+def smart_symlink(src_path: PathLike, dst_path: PathLike) -> None:
     '''
     Create a symbolic link pointing to src_path named path.
 
-    :param dst_path: Desination path
     :param src_path: Source path
+    :param dst_path: Desination path
     '''
-    return SmartPath(dst_path).symlink(src_path)
+    return SmartPath(src_path).symlink(dst_path)
 
 
 def smart_readlink(path: PathLike) -> PathLike:
@@ -655,7 +655,7 @@ def smart_glob_stat(
     return iterableres
 
 
-def smart_save_as(file_object: BinaryIO, path: PathLike) -> None:
+def smart_save_as(path: PathLike, file_object: BinaryIO) -> None:
     '''Write the opened binary stream to specified path, but the stream won't be closed
 
     :param file_object: Stream to be read

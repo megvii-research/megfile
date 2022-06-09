@@ -8,6 +8,7 @@ __all__ = [
     'is_fs',
     'StatResult',
     'fs_path_join',
+    'fs_isabs',
     'fs_abspath',
     'fs_access',
     'fs_exists',
@@ -17,19 +18,15 @@ __all__ = [
     'fs_glob_stat',
     'fs_expanduser',
     'fs_iglob',
-    'fs_isabs',
     'fs_isdir',
     'fs_isfile',
-    'fs_islink',
-    'fs_ismount',
     'fs_listdir',
     'fs_load',
     'fs_mkdir',
     'fs_realpath',
     'fs_relpath',
-    'fs_remove',
-    'fs_move',
     'fs_rename',
+    'fs_move',
     'fs_remove',
     'fs_scan',
     'fs_scan_stat',
@@ -43,10 +40,21 @@ __all__ = [
     'fs_sync',
     'fs_symlink',
     'fs_readlink',
+    'fs_islink',
+    'fs_ismount',
     'fs_cwd',
     'fs_home',
     'fs_save_as',
 ]
+
+
+def fs_isabs(path: PathLike) -> bool:
+    '''Test whether a path is absolute
+
+    :param path: Given path
+    :returns: True if a path is absolute, else False
+    '''
+    return FSPath(path).is_absolute()
 
 
 def fs_abspath(path: PathLike) -> str:
@@ -182,15 +190,6 @@ def fs_iglob(path: PathLike, recursive: bool = True,
     return FSPath(path).iglob(recursive, missing_ok)
 
 
-def fs_isabs(path: PathLike) -> bool:
-    '''Test whether a path is absolute
-
-    :param path: Given path
-    :returns: True if a path is absolute, else False
-    '''
-    return FSPath(path).isabs()
-
-
 def fs_isdir(path: PathLike, followlinks: bool = False) -> bool:
     '''
     Test if a path is directory
@@ -221,25 +220,6 @@ def fs_isfile(path: PathLike, followlinks: bool = False) -> bool:
 
     '''
     return FSPath(path).is_file(followlinks)
-
-
-def fs_islink(path: PathLike) -> bool:
-    '''Test whether a path is a symlink
-
-    :param path: Given path
-    :return: True if a path is a symlink, else False
-    :rtype: bool
-    '''
-    return FSPath(path).islink()
-
-
-def fs_ismount(path: PathLike) -> bool:
-    '''Test whether a path is a mount point
-
-    :param path: Given path
-    :returns: True if a path is a mount point, else False
-    '''
-    return FSPath(path).ismount()
 
 
 def fs_listdir(path: PathLike) -> List[str]:
@@ -295,16 +275,16 @@ def fs_relpath(path: PathLike, start: Optional[str] = None) -> str:
     return FSPath(path).relpath(start)
 
 
-def fs_remove(
-        path: PathLike, missing_ok: bool = False,
+def fs_rename(
+        src_path: PathLike, dst_path: PathLike,
         followlinks: bool = False) -> None:
     '''
-    Remove the file or directory on fs
+    rename file on fs
 
-    :param path: Given path
-    :param missing_ok: if False and target file/directory not exists, raise FileNotFoundError
+    :param src_path: Given path
+    :param dst_path: Given destination path
     '''
-    return FSPath(path).remove(missing_ok, followlinks)
+    return FSPath(src_path).rename(dst_path, followlinks)
 
 
 def fs_move(
@@ -316,19 +296,7 @@ def fs_move(
     :param src_path: Given path
     :param dst_path: Given destination path
     '''
-    return FSPath(src_path).move(dst_path, followlinks)
-
-
-def fs_rename(
-        src_path: PathLike, dst_path: PathLike,
-        followlinks: bool = False) -> None:
-    '''
-    rename file on fs
-
-    :param src_path: Given path
-    :param dst_path: Given destination path
-    '''
-    return FSPath(src_path).rename(dst_path, followlinks)
+    return FSPath(src_path).replace(dst_path, followlinks)
 
 
 def fs_remove(
@@ -503,6 +471,25 @@ def fs_readlink(path: PathLike) -> PathLike:
     :returns: Return a string representing the path to which the symbolic link points.
     '''
     return FSPath(path).readlink()
+
+
+def fs_islink(path: PathLike) -> bool:
+    '''Test whether a path is a symbolic link
+
+    :param path: Given path
+    :return: If path is a symbolic link return True, else False
+    :rtype: bool
+    '''
+    return FSPath(path).is_symlink()
+
+
+def fs_ismount(path: PathLike) -> bool:
+    '''Test whether a path is a mount point
+
+    :param path: Given path
+    :returns: True if a path is a mount point, else False
+    '''
+    return FSPath(path).is_mount()
 
 
 def fs_cwd() -> str:

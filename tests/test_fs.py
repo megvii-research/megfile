@@ -19,12 +19,27 @@ def make_stat(size=0, time=Now(), isdir=False, islnk=False):
         size=size, ctime=time, mtime=time, isdir=isdir, islnk=islnk)
 
 
+@pytest.fixture
+def mount_point(fs):
+    fs.add_mount_point(os.path.dirname(__file__))
+    yield os.path.dirname(__file__)
+
+
 def test_is_fs():
     assert fs.is_fs('/abs/path') is True
     assert fs.is_fs('rel/path') is True
     assert fs.is_fs('file:///abs/path') is True
     assert fs.is_fs('file://rel/path') is True
     assert fs.is_fs('s3://rel/path') is False
+
+
+def test_fs_isabs(filesystem):
+    assert fs.fs_isabs('/') is True
+    assert fs.fs_isabs('test/1') is False
+
+
+def test_fs_ismount(mount_point):
+    assert fs.fs_ismount(mount_point) is True
 
 
 def test_fs_getsize(filesystem):
@@ -103,6 +118,39 @@ def test_fs_getsize(filesystem):
         "soft_link_folder").st_size
 
 
+def test_fs_abspath(filesystem):
+    os.makedirs('/test/dir')
+    with open('/test/dir/1.txt', 'w') as f:
+        f.write('test')
+    os.chdir('/test/dir')
+    assert fs.fs_abspath('1.txt') == '/test/dir/1.txt'
+
+
+def test_fs_listdir(filesystem):
+    os.makedirs('/test/dir/test')
+    with open('/test/dir/1.txt', 'w') as f:
+        f.write('test')
+    assert sorted(fs.fs_listdir('/test/dir')) == sorted(['test', '1.txt'])
+
+
+def test_fs_realpath__fs_islink(filesystem):
+    os.makedirs('/test/dir/test')
+    with open('/test/dir/1.txt', 'w') as f:
+        f.write('test')
+    os.symlink('/test/dir/1.txt', '/test/dir/link.txt')
+    assert fs.fs_islink('/test/dir/link.txt') is True
+    assert fs.fs_islink('/test/dir/1.txt') is False
+    assert fs.fs_realpath('/test/dir/link.txt') == '/test/dir/1.txt'
+
+
+def test_fs_relpath(filesystem):
+    os.makedirs('/test/dir')
+    with open('/test/dir/1.txt', 'w') as f:
+        f.write('test')
+    os.chdir('/test/dir')
+    assert fs.fs_relpath('/test/dir/1.txt') == '1.txt'
+
+
 def test_fs_getmtime(filesystem):
     with pytest.raises(FileNotFoundError):
         fs.fs_getmtime('NotExist')
@@ -175,7 +223,7 @@ def test_fs_getmtime(filesystem):
 
 
 def test_fs_stat(filesystem, mocker):
-    mocker.patch('megfile.fs.StatResult', side_effect=FakeStatResult)
+    mocker.patch('megfile.fs_path.StatResult', side_effect=FakeStatResult)
 
     with pytest.raises(FileNotFoundError):
         fs.fs_stat('NotExist')
@@ -651,7 +699,7 @@ def test_fs_scan_stat(filesystem, mocker):
         - folder2/
             - link --> /A/folder1
     '''
-    mocker.patch('megfile.fs.StatResult', side_effect=FakeStatResult)
+    mocker.patch('megfile.fs_path.StatResult', side_effect=FakeStatResult)
 
     os.mkdir('A')
     os.mkdir('/A/folder1')
@@ -744,6 +792,7 @@ def test_fs_glob_returns_lexicographical_result(create_glob_fake_dirtree):
     # lexifographical
     # without hidden file
     res = list(fs.fs_glob('A/a/**', recursive=True))
+    res_iglob = list(fs.fs_iglob('A/a/**', recursive=True))
     expected = [
         'A/a/',  # 奇怪! 
         'A/a/b',
@@ -752,6 +801,7 @@ def test_fs_glob_returns_lexicographical_result(create_glob_fake_dirtree):
         'A/a/b/c/2.json',
     ]
     assert sorted(res) == expected
+    assert sorted(res_iglob) == expected
 
     with pytest.raises(FileNotFoundError):
         list(fs.fs_glob('B', missing_ok=False))

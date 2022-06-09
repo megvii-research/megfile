@@ -28,7 +28,7 @@ def s3_empty_client(mocker):
     with mock_s3():
         client = boto3.client('s3')
         client.create_bucket(Bucket=BUCKET)
-        mocker.patch('megfile.s3.get_s3_client', return_value=client)
+        mocker.patch('megfile.s3_path.get_s3_client', return_value=client)
         yield client
 
 
@@ -177,7 +177,7 @@ def test_smart_copy(mocker):
     s3_upload = mocker.patch('megfile.smart.s3_upload')
     fs_copy = mocker.patch('megfile.smart.fs_copy')
     default_copy_func = mocker.patch('megfile.smart._default_copy_func')
-    copyfile = mocker.patch('megfile.fs._copyfile')
+    copyfile = mocker.patch('megfile.fs_path.FSPath._copyfile')
 
     smart_islink = mocker.patch(
         'megfile.smart.smart_islink', side_effect=is_symlink)
@@ -235,7 +235,7 @@ def test_smart_copy(mocker):
 
 def test_smart_copy_fs2fs(mocker):
     fs_mkdir = mocker.patch(
-        'megfile.fs.fs_mkdir', side_effect=lambda *args, **kwargs:...)
+        'megfile.fs_path.FSPath.mkdir', side_effect=lambda *args, **kwargs:...)
 
     class fake_copy:
         flag = False
@@ -249,11 +249,11 @@ def test_smart_copy_fs2fs(mocker):
                 self.flag = True
                 raise error
 
-    copyfile = mocker.patch('megfile.fs._copyfile')
+    copyfile = mocker.patch('megfile.fs_path.FSPath._copyfile')
     copyfile.side_effect = fake_copy()
     smart.smart_copy('fs', 'fs/a/b/c')
     fs_mkdir.call_count == 1
-    fs_mkdir.assert_called_once_with('fs/a/b', exist_ok=True)
+    fs_mkdir.assert_called_once_with(exist_ok=True)
     fs_mkdir.reset_mock()
 
 
@@ -543,14 +543,14 @@ def test_smart_open_custom_s3_open_func(mocker, fs):
     s3_open = mocker.Mock()
     s3_binary_open = _s3_binary_mode(s3_open)
     text_wrapper = mocker.patch('io.TextIOWrapper')
-    s3_hasbucket_func = mocker.patch('megfile.s3.s3_hasbucket')
+    s3_hasbucket_func = mocker.patch('megfile.s3_path.S3Path.hasbucket')
     s3_hasbucket_func.return_value = True
-    s3_isfile_func = mocker.patch('megfile.s3.s3_isfile')
+    s3_isfile_func = mocker.patch('megfile.s3_path.S3Path.is_file')
     s3_isfile_func.return_value = False
-    parse_s3_url = mocker.patch('megfile.s3.parse_s3_url')
+    parse_s3_url = mocker.patch('megfile.s3_path.parse_s3_url')
     parse_s3_url.return_value = ('bucket', 'key')
 
-    parse_s3_url = mocker.patch('megfile.s3.s3_get_metadata')
+    parse_s3_url = mocker.patch('megfile.s3_path._s3_get_metadata')
     parse_s3_url.return_value = {}
     smart.smart_open('s3://bucket/key', 'r', s3_open_func=s3_binary_open)
     s3_open.assert_called_once_with('s3://bucket/key', 'rb')
@@ -691,13 +691,16 @@ def test_smart_glob_stat_cross_backend(funcA):
 
 
 def test_smart_save_as(mocker):
-    funcA = mocker.patch('megfile.s3.s3_save_as')
-    funcB = mocker.patch('megfile.fs.fs_save_as')
+    funcA = mocker.patch('megfile.s3_path.S3Path.save')
+    funcB = mocker.patch('megfile.fs_path.FSPath.save')
     stream = BytesIO()
-    smart.smart_save_as(stream, 's3://test/ture_case')
-    funcA.assert_called_once_with(stream, 's3://test/ture_case')
-    smart.smart_save_as(stream, '/test/false_case')
-    funcB.assert_called_once_with(stream, '/test/false_case')
+    smart.smart_save_as('s3://test/ture_case', stream)
+    funcA.assert_called_once_with(stream)
+    smart.smart_save_as(
+        '/test/false_case',
+        stream,
+    )
+    funcB.assert_called_once_with(stream)
 
 
 @patch.object(SmartPath, "load")
@@ -843,7 +846,7 @@ def test_register_copy_func():
 
 
 def test_smart_cache(mocker):
-    s3_download = mocker.patch('megfile.s3.s3_download')
+    s3_download = mocker.patch('megfile.s3_path.s3_download')
     s3_download.return_value = None
 
     from megfile.interfaces import NullCacher
@@ -862,7 +865,7 @@ def test_smart_cache(mocker):
 def test_smart_symlink(mocker, s3_empty_client, filesystem):
     src_path = '/tmp/src_file'
     dst_path = '/tmp/dst_file'
-    smart.smart_symlink(dst_path, src_path)
+    smart.smart_symlink(src_path, dst_path)
 
     res = os.readlink(dst_path)
     assert res == src_path
@@ -873,8 +876,8 @@ def test_smart_symlink(mocker, s3_empty_client, filesystem):
     content = b'bytes'
     s3_empty_client.create_bucket(Bucket='bucket')
     s3_empty_client.put_object(Bucket='bucket', Key='src', Body=content)
-    smart.smart_symlink(dst_url, src_url)
-    smart.smart_symlink(dst_dst_url, dst_url)
+    smart.smart_symlink(src_url, dst_url)
+    smart.smart_symlink(dst_url, dst_dst_url)
 
     res = smart.smart_readlink(dst_dst_url)
     assert res == src_url

@@ -42,7 +42,7 @@ def test_http_open(mocker):
     with pytest.raises(ValueError) as error:
         http_open('http://test', 'w')
 
-    requests_get_func = mocker.patch('megfile.http.requests.get')
+    requests_get_func = mocker.patch('megfile.http_path.requests.get')
 
     class FakeResponse200(FakeResponse):
         status_code = 200
@@ -85,7 +85,7 @@ def test_http_open(mocker):
 
 def test_http_getsize(mocker):
 
-    requests_get_func = mocker.patch('megfile.http.requests.get')
+    requests_get_func = mocker.patch('megfile.http_path.requests.get')
 
     class FakeResponse200(FakeResponse):
         status_code = 200
@@ -96,7 +96,7 @@ def test_http_getsize(mocker):
 
 def test_http_getmtime(mocker):
 
-    requests_get_func = mocker.patch('megfile.http.requests.get')
+    requests_get_func = mocker.patch('megfile.http_path.requests.get')
 
     class FakeResponse200(FakeResponse):
         status_code = 200
@@ -109,7 +109,7 @@ def test_http_getmtime(mocker):
 
 def test_http_getstat(mocker):
 
-    requests_get_func = mocker.patch('megfile.http.requests.get')
+    requests_get_func = mocker.patch('megfile.http_path.requests.get')
 
     class FakeResponse200(FakeResponse):
         status_code = 200
@@ -131,7 +131,7 @@ def test_http_getstat(mocker):
 
 def test_get_http_session(mocker):
     requests_request_func = mocker.patch('requests.Session.request')
-    mocker.patch('megfile.http.max_retries', 1)
+    mocker.patch('megfile.http_path.max_retries', 1)
 
     class FakeResponse502(FakeResponse):
         status_code = 502

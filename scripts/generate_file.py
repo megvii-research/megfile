@@ -2,8 +2,8 @@ import importlib
 import re
 
 ALL_IGNORE_FUNC_LIST = dict(
-    s3=["open", "rmdir"],
-    fs=["open", "rmdir", "replace", "from_uri", "path_with_protocol", "joinpath"],
+    s3=["open"],
+    fs=["open", "from_uri", "path_with_protocol", "joinpath"],
     http=[],
 )
 
@@ -44,8 +44,11 @@ ALL_FUNC_NAME_MAPPING = dict(
         md5="getmd5",
         symlink_to="symlink",
         is_symlink="islink",
+        is_mount="ismount",
         save="save_as",
         joinpath="path_join",
+        is_absolute="isabs",
+        replace="move",
     ),
     http=dict(),
 )
@@ -122,7 +125,8 @@ def get_methods_from_path_file(current_file_type: str):
                         func_start = False
                     func_params.append(line.strip())
                 elif "'''" in line or '"""' in line:
-                    annotation_start = not annotation_start
+                    if line.count("'''") <= 1 and line.count('"""') <= 1:
+                        annotation_start = not annotation_start
                     annotation_lines.append(line[4:].rstrip())
                 elif annotation_start is True:
                     annotation_lines.append(line[4:].rstrip())
@@ -164,5 +168,5 @@ def generate_file(current_file_type: str):
 
 
 if __name__ == "__main__":
-    for t in ['s3', 'fs', 'http', 'stdio']:
-        generate_file(t)
+    # for t in ['s3', 'fs', 'http', 'stdio']:
+    generate_file('fs')

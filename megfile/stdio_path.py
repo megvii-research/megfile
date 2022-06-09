@@ -53,6 +53,8 @@ class StdioPath(BaseURIPath):
         if mode not in ('rb', 'wb', 'rt', 'wt', 'r', 'w'):
             raise ValueError('unacceptable mode: %r' % mode)
 
+        mode = get_binary_mode(mode)
+
         if self.path_with_protocol not in ('stdio://-', 'stdio://0',
                                            'stdio://1', 'stdio://2'):
             raise ValueError('unacceptable path: %r' % self.path_with_protocol)
@@ -80,8 +82,7 @@ class StdioPath(BaseURIPath):
         :param mode: Only supports 'rb' and 'wb' now
         :return: STDReader, STDWriter
         '''
-        binary_mode = get_binary_mode(mode)
-        fileobj = self._open(binary_mode)
+        fileobj = self._open(mode)
 
         if 'b' not in mode:
             fileobj = io.TextIOWrapper(fileobj)  # type: ignore

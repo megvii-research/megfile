@@ -93,7 +93,6 @@ class SmartPath(BasePath):
     getmtime = _bind_function('getmtime')
     stat = _bind_function('stat')
     remove = _bind_function('remove')
-    rmdir = _bind_function('remove')
     rename = _bind_function('rename')
     replace = _bind_function('replace')
     unlink = _bind_function('unlink')

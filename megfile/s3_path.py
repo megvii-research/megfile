@@ -15,7 +15,6 @@ import botocore
 import smart_open.s3
 from botocore.awsrequest import AWSResponse
 
-from megfile import s3
 from megfile.errors import S3BucketNotFoundError, S3ConfigError, S3FileExistsError, S3FileNotFoundError, S3IsADirectoryError, S3NameTooLongError, S3NotADirectoryError, S3NotALinkError, S3PermissionError, S3UnknownError, UnsupportedError, _create_missing_ok_generator
 from megfile.errors import _logger as error_logger
 from megfile.errors import patch_method, raise_s3_error, s3_error_code_should_retry, s3_should_retry, translate_fs_error, translate_s3_error
@@ -409,11 +408,11 @@ def _s3_glob_stat_single_path(
         if not S3Path(top_dir).exists():
             return
         if not has_magic(_s3_pathname):
-            if S3Path(_s3_pathname).isfile():
+            if S3Path(_s3_pathname).is_file():
                 yield FileEntry(
                     _s3_pathname,
                     S3Path(_s3_pathname).stat(followlinks=followlinks))
-            if S3Path(_s3_pathname).isdir():
+            if S3Path(_s3_pathname).is_dir():
                 yield FileEntry(_s3_pathname, StatResult(isdir=True))
             return
 
@@ -1027,7 +1026,7 @@ class S3Path(URIPath):
         if not bucket:  # s3:// => True, s3:///key => False
             return not key
 
-        return self.isdir() or self.isfile(followlinks)
+        return self.is_dir() or self.is_file(followlinks)
 
     def getmtime(self, followlinks: bool = False) -> float:
         '''
@@ -1247,7 +1246,7 @@ class S3Path(URIPath):
             raise S3BucketNotFoundError(
                 'No such bucket: %r' % self.path_with_protocol)
         if exist_ok:
-            if self.isfile():
+            if self.is_file():
                 raise S3FileExistsError(
                     'File exists: %r' % self.path_with_protocol)
             return
@@ -1345,15 +1344,6 @@ class S3Path(URIPath):
         self.copy(dst_url)
         self.remove()
 
-    def rmdir(self, missing_ok: bool = False) -> None:
-        '''
-        Remove the file or directory on s3, `s3://` and `s3://bucket` are not permitted to remove
-
-        :param missing_ok: if False and target file/directory not exists, raise S3FileNotFoundError
-        :raises: S3PermissionError, S3FileNotFoundError, UnsupportedError
-        '''
-        return self.remove(missing_ok=missing_ok)
-
     def scan(self, missing_ok: bool = True) -> Iterator[str]:
         '''
         Iteratively traverse only files in given s3 directory, in alphabetical order.
@@ -1392,15 +1382,15 @@ class S3Path(URIPath):
             raise UnsupportedError('Scan whole s3', self.path_with_protocol)
 
         def create_generator() -> Iterator[FileEntry]:
-            if not self.isdir():
-                if self.isfile():
+            if not self.is_dir():
+                if self.is_file():
                     # On s3, file and directory may be of same name and level, so need to test the path is file or directory
                     yield FileEntry(
                         fspath(self.path_with_protocol),
                         self.stat(followlinks=followlinks))
                 return
 
-            if not key.endswith('/') and self.isfile():
+            if not key.endswith('/') and self.is_file():
                 yield FileEntry(
                     fspath(self.path_with_protocol),
                     self.stat(followlinks=followlinks))
@@ -1430,10 +1420,10 @@ class S3Path(URIPath):
             raise S3BucketNotFoundError(
                 'Empty bucket name: %r' % self.path_with_protocol)
 
-        if self.isfile():
+        if self.is_file():
             raise S3NotADirectoryError(
                 'Not a directory: %r' % self.path_with_protocol)
-        elif not self.isdir():
+        elif not self.is_dir():
             raise S3FileNotFoundError(
                 'No such directory: %r' % self.path_with_protocol)
         prefix = _become_prefix(key)
@@ -1470,7 +1460,7 @@ class S3Path(URIPath):
                         if followlinks:
                             content_key = content['Key']
                             src_url = generate_s3_path(bucket, content_key)
-                            if S3Path(src_url).symlink():
+                            if S3Path(src_url).is_symlink():
                                 content['islnk'] = True
                                 yield FileEntry(
                                     content['Key'][len(prefix):],
@@ -1496,7 +1486,7 @@ class S3Path(URIPath):
 
         :returns: An int indicates size in Bytes
         '''
-        if not self.isdir():
+        if not self.is_dir():
             raise S3FileNotFoundError(
                 'No such file or directory: %r' % self.path_with_protocol)
 
@@ -1532,7 +1522,7 @@ class S3Path(URIPath):
             raise S3BucketNotFoundError(
                 'Empty bucket name: %r' % self.path_with_protocol)
 
-        if not self.isfile():
+        if not self.is_file():
             return self._getdirstat()
 
         client = get_s3_client()
@@ -1566,7 +1556,7 @@ class S3Path(URIPath):
         if not bucket or not key or key.endswith('/'):
             raise S3IsADirectoryError(
                 'Is a directory: %r' % self.path_with_protocol)
-        if not self.isfile():
+        if not self.is_file():
             if missing_ok:
                 return
             raise S3FileNotFoundError(
@@ -1598,7 +1588,7 @@ class S3Path(URIPath):
         if not bucket:
             raise UnsupportedError('Walk whole s3', self.path_with_protocol)
 
-        if not self.isdir():
+        if not self.is_dir():
             return
 
         stack = [key]
@@ -1644,7 +1634,7 @@ class S3Path(URIPath):
                 hash_md5.update(chunk)
             return hash_md5.hexdigest()
         if recalculate is True:
-            with self.open(self.path_with_protocol, 'rb') as f:
+            with self.open('rb') as f:
                 return calculate_md5(f)
         return stat.extra.get('ETag', '')[1:-1]
 
@@ -1660,19 +1650,18 @@ class S3Path(URIPath):
         :param dst_path: Target file path
         :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
         '''
+        src_url = self.path_with_protocol
         if followlinks:
             metadata = _s3_get_metadata(src_url)
             if metadata and 'symlink_to' in metadata:
                 src_url = metadata['symlink_to']
-        src_bucket, src_key = parse_s3_url(self.path_with_protocol)
+        src_bucket, src_key = parse_s3_url(src_url)
         dst_bucket, dst_key = parse_s3_url(dst_url)
 
         if not src_bucket:
-            raise S3BucketNotFoundError(
-                'Empty bucket name: %r' % self.path_with_protocol)
-        if self.isdir():
-            raise S3IsADirectoryError(
-                'Is a directory: %r' % self.path_with_protocol)
+            raise S3BucketNotFoundError('Empty bucket name: %r' % src_url)
+        if self.is_dir():
+            raise S3IsADirectoryError('Is a directory: %r' % src_url)
 
         if not dst_bucket:
             raise S3BucketNotFoundError('Empty bucket name: %r' % dst_url)
@@ -1694,12 +1683,10 @@ class S3Path(URIPath):
             # Error can't help tell which is problematic
             if isinstance(error, S3BucketNotFoundError):
                 if not self.hasbucket():
-                    raise S3BucketNotFoundError(
-                        'No such bucket: %r' % self.path_with_protocol)
+                    raise S3BucketNotFoundError('No such bucket: %r' % src_url)
             elif isinstance(error, S3FileNotFoundError):
-                if not self.isfile():
-                    raise S3FileNotFoundError(
-                        'No such file: %r' % self.path_with_protocol)
+                if not self.is_file():
+                    raise S3FileNotFoundError('No such file: %r' % src_url)
             raise error
 
     def sync(self, dst_url: PathLike, followlinks: bool = False) -> None:
@@ -1719,20 +1706,20 @@ class S3Path(URIPath):
         :param dst_url: Desination path
         :raises: S3NameTooLongError, S3BucketNotFoundError, S3IsADirectoryError
         '''
-        if len(str(self.path_with_protocol).encode()) > 1024:
+        src_url = self.path_with_protocol
+        if len(str(src_url).encode()) > 1024:
             raise S3NameTooLongError('File name too long: %r' % dst_url)
-        src_bucket, src_key = parse_s3_url(self.path_with_protocol)
+        src_bucket, src_key = parse_s3_url(src_url)
         dst_bucket, dst_key = parse_s3_url(dst_url)
 
         if not src_bucket:
-            raise S3BucketNotFoundError(
-                'Empty bucket name: %r' % self.path_with_protocol)
+            raise S3BucketNotFoundError('Empty bucket name: %r' % src_url)
         if not dst_bucket:
             raise S3BucketNotFoundError('Empty bucket name: %r' % dst_url)
         if not dst_key or dst_key.endswith('/'):
             raise S3IsADirectoryError('Is a directory: %r' % dst_url)
 
-        metadata = _s3_get_metadata(self.path_with_protocol)
+        metadata = _s3_get_metadata(src_url)
 
         if 'symlink_to' in metadata:
             src_url = metadata['symlink_to']
