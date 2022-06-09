@@ -11,7 +11,7 @@ from moto import mock_s3
 import megfile
 from megfile import smart
 from megfile.interfaces import Access, StatResult
-from megfile.s3 import _s3_binary_mode
+from megfile.s3_path import _s3_binary_mode
 from megfile.smart_path import SmartPath
 
 

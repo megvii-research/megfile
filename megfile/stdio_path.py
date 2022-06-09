@@ -1,10 +1,36 @@
 import io
 from typing import IO, AnyStr, Union
+from urllib.parse import urlsplit
 
-from megfile.interfaces import BaseURIPath
+from megfile.interfaces import BaseURIPath, PathLike
+from megfile.lib.compat import fspath
 from megfile.lib.stdio_handler import STDReader, STDWriter
 from megfile.smart_path import SmartPath
 from megfile.utils import get_binary_mode
+
+__all__ = [
+    "StdioPath",
+    "is_stdio",
+]
+
+
+def is_stdio(path: PathLike) -> bool:
+    '''stdio scheme definition: stdio://-
+
+    .. note ::
+
+        Only tests protocol
+
+    :param path: Path to be tested
+    :returns: True of a path is stdio url, else False
+    '''
+
+    path = fspath(path)
+    if not isinstance(path, str) or not path.startswith('stdio://'):
+        return False
+
+    parts = urlsplit(path)
+    return parts.scheme == 'stdio'
 
 
 @SmartPath.register
@@ -45,6 +71,15 @@ class StdioPath(BaseURIPath):
         return STDWriter(self.path_with_protocol, mode)
 
     def open(self, mode: str, **kwargs) -> IO[AnyStr]:
+        '''Used to read or write stdio
+
+        .. note ::
+
+            Essentially invoke sys.stdin.buffer | sys.stdout.buffer to read or write
+
+        :param mode: Only supports 'rb' and 'wb' now
+        :return: STDReader, STDWriter
+        '''
         binary_mode = get_binary_mode(mode)
         fileobj = self._open(binary_mode)
 

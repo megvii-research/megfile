@@ -1,17 +1,67 @@
 import time
 from io import BufferedReader
+from logging import getLogger as get_logger
+from typing import Iterable
+from urllib.parse import urlsplit
 
 import requests
 
-from megfile.errors import translate_http_error
-from megfile.interfaces import StatResult, URIPath
+from megfile.errors import http_should_retry, patch_method, translate_http_error
+from megfile.interfaces import PathLike, StatResult, URIPath
+from megfile.lib.compat import fspath
 from megfile.smart_path import SmartPath
 from megfile.utils import binary_open
 
 __all__ = [
     'HttpPath',
     'HttpsPath',
+    'get_http_session',
+    'is_http',
 ]
+
+_logger = get_logger(__name__)
+max_retries = 10
+
+
+def get_http_session(
+        timeout: int = 10, status_forcelist: Iterable[int] = (502, 503, 504)):
+    session = requests.Session()
+    session.timeout = timeout
+
+    def after_callback(response, *args, **kwargs):
+        if response.status_code in status_forcelist:
+            response.raise_for_status()
+        return response
+
+    def before_callback(method, url, **kwargs):
+        _logger.debug(  # pragma: no cover
+            'send http request: %s %r, with parameters: %s', method, url,
+            kwargs)
+
+    session.request = patch_method(
+        session.request,
+        max_retries=max_retries,
+        should_retry=http_should_retry,
+        before_callback=before_callback,
+        after_callback=after_callback,
+    )
+    return session
+
+
+def is_http(path: PathLike) -> bool:
+    '''http scheme definition: http(s)://domain/path
+
+    :param path: Path to be tested
+    :returns: True if path is http url, else False
+    '''
+
+    path = fspath(path)
+    if not isinstance(path, str) or not (path.startswith('http://') or
+                                         path.startswith('https://')):
+        return False
+
+    parts = urlsplit(path)
+    return parts.scheme == 'http' or parts.scheme == 'https'
 
 
 @SmartPath.register
@@ -27,7 +77,6 @@ class HttpPath(URIPath):
 
             Essentially, it reads data of http(s) url to memory by requests, and then return BytesIO to user.
 
-        :param http_url: http(s) url, e.g.: http(s)://domain/path
         :param mode: Only supports 'rb' mode now
         :return: BytesIO initialized with http(s) data
         '''
@@ -48,7 +97,6 @@ class HttpPath(URIPath):
         '''
         Get StatResult of http_url response, including size and mtime, referring to http_getsize and http_getmtime
 
-        :param http_url: Given http url
         :returns: StatResult
         :raises: HttpPermissionError, HttpFileNotFoundError
         '''
@@ -79,7 +127,6 @@ class HttpPath(URIPath):
 
         If http response header don't support Content-Length, will return None
 
-        :param http_url: Given http path
         :returns: File size (in bytes)
         :raises: HttpPermissionError, HttpFileNotFoundError
         '''
@@ -91,7 +138,6 @@ class HttpPath(URIPath):
         
         If http response header don't support Last-Modified, will return None
 
-        :param http_url: Given http url
         :returns: Last-Modified time (in Unix timestamp format)
         :raises: HttpPermissionError, HttpFileNotFoundError
         '''

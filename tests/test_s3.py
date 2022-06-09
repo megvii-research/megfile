@@ -18,7 +18,8 @@ from moto import mock_s3
 from megfile import s3, smart
 from megfile.errors import S3UnknownError, UnknownError, UnsupportedError, translate_s3_error
 from megfile.interfaces import Access, FileEntry, StatResult
-from megfile.s3 import _group_s3path_by_bucket, _group_s3path_by_prefix, _s3_split_magic, content_md5_header, s3_isfile, s3_islink, s3_readlink, s3_remove, s3_symlink
+from megfile.s3 import s3_islink
+from megfile.s3_path import _group_s3path_by_bucket, _group_s3path_by_prefix, _s3_split_magic
 
 from . import Any, FakeStatResult, Now
 

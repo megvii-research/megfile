@@ -778,11 +778,11 @@ def test_fs_glob_with_double_star(create_glob_fake_dirtree):
     assert sorted(res) == expected
 
     res = list(fs.fs_glob('A/b/file/**', recursive=True))
-    expected = ['A/b/file/']  # 奇怪! 
+    expected = ['A/b/file/']  # 奇怪!
     assert sorted(res) == expected
 
     res = list(fs.fs_glob('A/b/b/**', recursive=True))
-    expected = ['A/b/b/']  # 奇怪! 
+    expected = ['A/b/b/']  # 奇怪!
     assert sorted(res) == expected
 
 
@@ -804,7 +804,7 @@ def test_fs_glob_with_not_exists_directory(filesystem):
 
 def test_fs_save_as(filesystem):
     content = b'value'
-    fs.fs_save_as(BytesIO(content), '/path/to/file')
+    fs.fs_save_as('/path/to/file', BytesIO(content))
     with open('/path/to/file', 'rb') as result:
         assert content == result.read()
 
@@ -1022,7 +1022,7 @@ def test_fs_getmd5(filesystem):
 def test_fs_symlink(filesystem):
     src_path = '/tmp/src_file'
     dst_path = '/tmp/dst_file'
-    fs.fs_symlink(dst_path, src_path)
+    fs.fs_symlink(src_path, dst_path)
     assert os.readlink(dst_path) == src_path
 
 
