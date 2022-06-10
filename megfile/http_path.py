@@ -23,10 +23,8 @@ _logger = get_logger(__name__)
 max_retries = 10
 
 
-def get_http_session(
-        timeout: int = 10, status_forcelist: Iterable[int] = (502, 503, 504)):
+def get_http_session(status_forcelist: Iterable[int] = (502, 503, 504)):
     session = requests.Session()
-    session.timeout = timeout
 
     def after_callback(response, *args, **kwargs):
         if response.status_code in status_forcelist:

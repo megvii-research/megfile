@@ -67,12 +67,6 @@ def filter(names: List[str], pat: str) -> List[str]:
     return result
 
 
-def _compat(res: str) -> str:
-    if sys.version_info < (3, 6):  # pragma: no cover
-        return r'%s\Z(?ms)' % res
-    return r'(?s:%s)\Z' % res
-
-
 def translate(pat: str) -> str:
     """Translate a shell PATTERN to a regular expression.
 
@@ -134,4 +128,4 @@ def translate(pat: str) -> str:
                 i = j + 1
         else:
             res = res + re.escape(c)
-    return _compat(res)
+    return r'(?s:%s)\Z' % res

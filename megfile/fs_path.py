@@ -108,13 +108,13 @@ class FSPath(URIPath):
             raise TypeError(
                 'Unsupported mode: {} -- Mode should use one of the enums belonging to:  {}'
                 .format(mode, ', '.join([str(a) for a in Access])))
-        if mode not in (Access.READ, Access.WRITE):
-            raise TypeError(  # pragma: no cover
-                'Unsupported mode: {}'.format(mode))
         if mode == Access.READ:
             return os.access(self.path_without_protocol, os.R_OK)
         if mode == Access.WRITE:
             return os.access(self.path_without_protocol, os.W_OK)
+        else:
+            raise TypeError(  # pragma: no cover
+                'Unsupported mode: {}'.format(mode))
 
     def exists(self, followlinks: bool = False) -> bool:
         '''

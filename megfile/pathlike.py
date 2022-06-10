@@ -475,7 +475,7 @@ class URIPath(BaseURIPath):
     def relpath(self, start=None) -> str:
         return self.path_with_protocol
 
-    def resolve(self, start=None):
+    def resolve(self):
         return self.path_with_protocol
 
 
