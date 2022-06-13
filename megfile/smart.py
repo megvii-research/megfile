@@ -284,7 +284,9 @@ def smart_copy(
         copy_func = _copy_funcs[src_protocol][dst_protocol]
     except KeyError:
         copy_func = _default_copy_func
-    copy_func(src_path, dst_path, callback=callback, followlinks=followlinks)
+    copy_func(  # type: ignore
+        src_path, dst_path, callback=callback,
+        followlinks=followlinks)
 
 
 def smart_sync(
@@ -542,7 +544,8 @@ def smart_scan_stat(
     :raises: UnsupportedError
     :returns: A file path generator
     '''
-    return SmartPath(path).scan_stat(missing_ok=missing_ok, followlinks=followlinks)
+    return SmartPath(path).scan_stat(
+        missing_ok=missing_ok, followlinks=followlinks)
 
 
 def _group_glob(globstr: str) -> List[str]:
