@@ -2870,7 +2870,7 @@ def test_symlink_relevant_functions(s3_empty_client, fs):
     assert list(s3.s3_scan_stat(A_dst_url))[0].is_symlink() == True
     s3.s3_sync(A_dst_url, sync_url)
     assert s3.s3_exists(sync_url, followlinks=False) is True
-    assert s3, s3_islink(sync_url) is False
+    assert s3.s3_islink(sync_url) is True
     assert list(s3.s3_scan_stat(sync_url))[0].is_symlink() == True
     assert list(s3.s3_scan_stat(sync_url,
                                 followlinks=True))[0].is_symlink() == True
@@ -2880,7 +2880,7 @@ def test_symlink_relevant_functions(s3_empty_client, fs):
     s3.s3_remove(sync_url)
     s3.s3_sync(A_dst_url, sync_url, followlinks=True)
     assert s3.s3_exists(sync_url, followlinks=False) is True
-    assert s3, s3_islink(sync_url) is True
+    assert s3.s3_islink(sync_url) is False
 
     assert list(s3.s3_scan_stat(sync_url))[0].is_symlink() == False
     assert list(s3.s3_scan_stat(sync_url,

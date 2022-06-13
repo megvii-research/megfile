@@ -259,7 +259,8 @@ def s3_rename(src_url: PathLike, dst_url: PathLike) -> None:
     return S3Path(src_url).rename(dst_url)
 
 
-def s3_scan(path: PathLike, missing_ok: bool = True) -> Iterator[str]:
+def s3_scan(path: PathLike, missing_ok: bool = True,
+            followlinks: bool = False) -> Iterator[str]:
     '''
     Iteratively traverse only files in given s3 directory, in alphabetical order.
     Every iteration on generator yields a path string.
@@ -275,7 +276,7 @@ def s3_scan(path: PathLike, missing_ok: bool = True) -> Iterator[str]:
     :raises: UnsupportedError
     :returns: A file path generator
     '''
-    return S3Path(path).scan(missing_ok)
+    return S3Path(path).scan(missing_ok, followlinks)
 
 
 def s3_scan_stat(

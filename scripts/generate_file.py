@@ -168,5 +168,5 @@ def generate_file(current_file_type: str):
 
 
 if __name__ == "__main__":
-    # for t in ['s3', 'fs', 'http', 'stdio']:
-    generate_file('fs')
+    for t in ['s3', 'fs', 'http', 'stdio']:
+        generate_file(t)

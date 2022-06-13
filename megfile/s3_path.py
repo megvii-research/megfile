@@ -502,11 +502,7 @@ def is_s3(path: PathLike) -> bool:
 def _s3_binary_mode(s3_open_func):
 
     @wraps(s3_open_func)
-    def wrapper(s3_url, mode: str = 'rb', followlinks: bool = False, **kwargs):
-        if followlinks:
-            metadata = _s3_get_metadata(s3_url)
-            if metadata and 'symlink_to' in metadata:
-                s3_url = metadata['symlink_to']
+    def wrapper(s3_url, mode: str = 'rb', **kwargs):
         bucket, key = parse_s3_url(s3_url)
         if not bucket:
             raise S3BucketNotFoundError('Empty bucket name: %r' % s3_url)
@@ -536,6 +532,7 @@ def _s3_binary_mode(s3_open_func):
 def s3_prefetch_open(
         s3_url: PathLike,
         mode: str = 'rb',
+        followlinks: bool = False,
         *,
         max_concurrency: Optional[int] = None,
         max_block_size: int = DEFAULT_BLOCK_SIZE) -> S3PrefetchReader:
@@ -556,6 +553,10 @@ def s3_prefetch_open(
     '''
     if mode != 'rb':
         raise ValueError('unacceptable mode: %r' % mode)  # pragma: no cover
+    if followlinks:
+        metadata = _s3_get_metadata(s3_url)
+        if metadata and 'symlink_to' in metadata:
+            s3_url = metadata['symlink_to']
 
     bucket, key = parse_s3_url(s3_url)
     config = botocore.config.Config(max_pool_connections=max_pool_connections)
@@ -573,6 +574,7 @@ def s3_prefetch_open(
 def s3_share_cache_open(
         s3_url: PathLike,
         mode: str = 'rb',
+        followlinks: bool = False,
         *,
         cache_key: str = 'lru',
         max_concurrency: Optional[int] = None,
@@ -594,6 +596,10 @@ def s3_share_cache_open(
     '''
     if mode != 'rb':
         raise ValueError('unacceptable mode: %r' % mode)  # pragma: no cover
+    if followlinks:
+        metadata = _s3_get_metadata(s3_url)
+        if metadata and 'symlink_to' in metadata:
+            s3_url = metadata['symlink_to']
 
     bucket, key = parse_s3_url(s3_url)
     config = botocore.config.Config(max_pool_connections=max_pool_connections)
@@ -610,7 +616,10 @@ def s3_share_cache_open(
 
 @_s3_binary_mode
 def s3_pipe_open(
-        s3_url: PathLike, mode: str, *,
+        s3_url: PathLike,
+        mode: str,
+        followlinks: bool = False,
+        *,
         join_thread: bool = True) -> S3PipeHandler:
     '''Open a asynchronous read-write reader / writer, to support fast sequential read / write
 
@@ -634,6 +643,11 @@ def s3_pipe_open(
     if mode[0] == 'r' and not S3Path(s3_url).is_file():
         raise S3FileNotFoundError('No such file: %r' % s3_url)
 
+    if followlinks:
+        metadata = _s3_get_metadata(s3_url)
+        if metadata and 'symlink_to' in metadata:
+            s3_url = metadata['symlink_to']
+
     bucket, key = parse_s3_url(s3_url)
     config = botocore.config.Config(max_pool_connections=max_pool_connections)
     client = get_s3_client(config=config, cache_key='s3_filelike_client')
@@ -643,7 +657,10 @@ def s3_pipe_open(
 
 @_s3_binary_mode
 def s3_cached_open(
-        s3_url: PathLike, mode: str, *,
+        s3_url: PathLike,
+        mode: str,
+        followlinks: bool = False,
+        *,
         cache_path: Optional[str] = None) -> S3CachedHandler:
     '''Open a local-cache file reader / writer, for frequent random read / write
 
@@ -661,6 +678,10 @@ def s3_cached_open(
     '''
     if mode not in ('rb', 'wb', 'ab', 'rb+', 'wb+', 'ab+'):
         raise ValueError('unacceptable mode: %r' % mode)  # pragma: no cover
+    if followlinks:
+        metadata = _s3_get_metadata(s3_url)
+        if metadata and 'symlink_to' in metadata:
+            s3_url = metadata['symlink_to']
 
     bucket, key = parse_s3_url(s3_url)
     config = botocore.config.Config(max_pool_connections=max_pool_connections)
@@ -673,6 +694,7 @@ def s3_cached_open(
 def s3_buffered_open(
         s3_url: PathLike,
         mode: str,
+        followlinks: bool = False,
         *,
         max_concurrency: Optional[int] = None,
         max_buffer_size: int = DEFAULT_MAX_BUFFER_SIZE,
@@ -703,6 +725,10 @@ def s3_buffered_open(
     '''
     if mode not in ('rb', 'wb', 'ab', 'rb+', 'wb+', 'ab+'):
         raise ValueError('unacceptable mode: %r' % mode)
+    if followlinks:
+        metadata = _s3_get_metadata(s3_url)
+        if metadata and 'symlink_to' in metadata:
+            s3_url = metadata['symlink_to']
 
     bucket, key = parse_s3_url(s3_url)
     config = botocore.config.Config(max_pool_connections=max_pool_connections)
@@ -768,7 +794,9 @@ def s3_buffered_open(
 
 
 @_s3_binary_mode
-def s3_memory_open(s3_url: PathLike, mode: str) -> S3MemoryHandler:
+def s3_memory_open(
+        s3_url: PathLike, mode: str,
+        followlinks: bool = False) -> S3MemoryHandler:
     '''Open a memory-cache file reader / writer, for frequent random read / write
 
     .. note ::
@@ -782,6 +810,10 @@ def s3_memory_open(s3_url: PathLike, mode: str) -> S3MemoryHandler:
     '''
     if mode not in ('rb', 'wb', 'ab', 'rb+', 'wb+', 'ab+'):
         raise ValueError('unacceptable mode: %r' % mode)
+    if followlinks:
+        metadata = _s3_get_metadata(s3_url)
+        if metadata and 'symlink_to' in metadata:
+            s3_url = metadata['symlink_to']
 
     bucket, key = parse_s3_url(s3_url)
     config = botocore.config.Config(max_pool_connections=max_pool_connections)
@@ -790,7 +822,7 @@ def s3_memory_open(s3_url: PathLike, mode: str) -> S3MemoryHandler:
 
 
 @_s3_binary_mode
-def s3_legacy_open(s3_url: PathLike, mode: str):
+def s3_legacy_open(s3_url: PathLike, mode: str, followlinks: bool = False):
     '''Use smart_open.s3.open open a reader / writer
 
     .. note ::
@@ -804,6 +836,10 @@ def s3_legacy_open(s3_url: PathLike, mode: str):
     '''
     if mode not in ('rb', 'wb'):  # pragma: no cover
         raise ValueError('unacceptable mode: %r' % mode)
+    if followlinks:
+        metadata = _s3_get_metadata(s3_url)
+        if metadata and 'symlink_to' in metadata:
+            s3_url = metadata['symlink_to']
 
     bucket, key = parse_s3_url(s3_url)
 
@@ -879,7 +915,8 @@ def s3_download(
 def s3_upload(
         src_url: PathLike,
         dst_url: PathLike,
-        callback: Optional[Callable[[int], None]] = None) -> None:
+        callback: Optional[Callable[[int], None]] = None,
+        **kwargs) -> None:
     '''
     Uploads a file from local filesystem to s3.
     :param src_url: source fs path
@@ -1115,7 +1152,7 @@ class S3Path(URIPath):
 
         return create_generator()
 
-    def is_dir(self) -> bool:
+    def is_dir(self, **kwargs) -> bool:
         '''
         Test if an s3 url is directory
         Specific procedures are as follows:
@@ -1263,7 +1300,7 @@ class S3Path(URIPath):
                 self.path_with_protocol, dst_url):
             S3Path(src_file_path).rename(dst_file_path)
 
-    def remove(self, missing_ok: bool = False) -> None:
+    def remove(self, missing_ok: bool = False, **kwargs) -> None:
         '''
         Remove the file or directory on s3, `s3://` and `s3://bucket` are not permitted to remove
 
@@ -1344,7 +1381,8 @@ class S3Path(URIPath):
         self.copy(dst_url)
         self.remove()
 
-    def scan(self, missing_ok: bool = True) -> Iterator[str]:
+    def scan(self, missing_ok: bool = True,
+             followlinks: bool = False) -> Iterator[str]:
         '''
         Iteratively traverse only files in given s3 directory, in alphabetical order.
         Every iteration on generator yields a path string.
@@ -1359,7 +1397,8 @@ class S3Path(URIPath):
         :raises: UnsupportedError
         :returns: A file path generator
         '''
-        scan_stat_iter = self.scan_stat(missing_ok=missing_ok)
+        scan_stat_iter = self.scan_stat(
+            missing_ok=missing_ok, followlinks=followlinks)
 
         def create_generator() -> Iterator[str]:
             for path, _ in scan_stat_iter:
@@ -1566,7 +1605,7 @@ class S3Path(URIPath):
         with raise_s3_error(self.path_with_protocol):
             client.delete_object(Bucket=bucket, Key=key)
 
-    def walk(self) -> Iterator[Tuple[str, List[str], List[str]]]:
+    def walk(self, **kwargs) -> Iterator[Tuple[str, List[str], List[str]]]:
         '''
         Iteratively traverse the given s3 directory, in top-bottom order. In other words, firstly traverse parent directory, if subdirectories exist, traverse the subdirectories in alphabetical order.
         Every iteration on generator yields a 3-tuple: (root, dirs, files)
@@ -1651,10 +1690,6 @@ class S3Path(URIPath):
         :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
         '''
         src_url = self.path_with_protocol
-        if followlinks:
-            metadata = _s3_get_metadata(src_url)
-            if metadata and 'symlink_to' in metadata:
-                src_url = metadata['symlink_to']
         src_bucket, src_key = parse_s3_url(src_url)
         dst_bucket, dst_key = parse_s3_url(dst_url)
 
@@ -1667,6 +1702,12 @@ class S3Path(URIPath):
             raise S3BucketNotFoundError('Empty bucket name: %r' % dst_url)
         if not dst_key or dst_key.endswith('/'):
             raise S3IsADirectoryError('Is a directory: %r' % dst_url)
+
+        if followlinks:
+            metadata = _s3_get_metadata(src_url)
+            if metadata and 'symlink_to' in metadata:
+                src_url = metadata['symlink_to']
+                src_bucket, src_key = parse_s3_url(src_url)
 
         client = get_s3_client()
         try:
