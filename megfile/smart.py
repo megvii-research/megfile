@@ -284,9 +284,9 @@ def smart_copy(
         copy_func = _copy_funcs[src_protocol][dst_protocol]
     except KeyError:
         copy_func = _default_copy_func
-    copy_func(  # type: ignore
+    copy_func(
         src_path, dst_path, callback=callback,
-        followlinks=followlinks)
+        followlinks=followlinks)  # type: ignore
 
 
 def smart_sync(
