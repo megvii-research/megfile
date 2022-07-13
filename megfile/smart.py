@@ -1,3 +1,4 @@
+import hashlib
 import os
 from collections import defaultdict
 from functools import partial
@@ -785,3 +786,26 @@ def smart_getmd5(path: PathLike, recalculate: bool = False):
     param recalculate: calculate md5 in real-time or not return s3 etag when path is s3
     '''
     return SmartPath(path).md5(recalculate=recalculate)
+
+
+def smart_getmd5_by_paths(
+        paths: List[PathLike], recalculate: bool = False) -> str:
+    '''Get md5 value of list of path
+
+    :param paths: list of file path
+    :type paths: List[PathLike]
+    :param recalculate: calculate md5 in real-time or not return s3 etag when path is s3, defaults to False
+    :type recalculate: bool, optional
+    :return: md5
+    :rtype: str
+    '''
+    '''Get md5 value of list of path
+
+    param paths: list of file path
+    param recalculate: calculate md5 in real-time or not return s3 etag when path is s3
+    '''
+    hash_md5 = hashlib.md5()  # nosec
+    for path in paths:
+        chunk = SmartPath(path).md5(recalculate=recalculate).encode()
+        hash_md5.update(chunk)
+    return hash_md5.hexdigest()
