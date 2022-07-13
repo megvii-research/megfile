@@ -80,9 +80,15 @@ def insert_class_method_lines(func_params: list, annotation_lines: list, current
                 if 'dst' in param:
                     path_param_name = param.replace("dst", "src")
                 current_params.append(param)
-        func_first_line = func_first_line.replace("self", f"{path_param_name}: PathLike")
-
         func_name = func_first_line.strip().split("def ", maxsplit=1)[1].split("(", maxsplit=1)[0]
+        if func_name == 'save':
+            func_first_line = func_first_line.replace("self", f"{path_param_name}: PathLike")
+            special_order_params = [param.strip() for param in func_first_line.split('(', 1)[1].split(')', 1)[0].split(',')]
+            special_order_params[0], special_order_params[1] = special_order_params[1], special_order_params[0]
+            func_first_line = "".join([func_first_line.split('(', 1)[0], "(", ", ".join(special_order_params), ")", func_first_line.split(')', 1)[1]])
+        else:
+            func_first_line = func_first_line.replace("self", f"{path_param_name}: PathLike")
+
         if not func_name.startswith("_") and func_name not in ignore_func_list:
             real_func_name = f"{current_file_type}_{func_name_mapping.get(func_name, func_name)}"
             func_content_lines.append(func_first_line.replace(func_name, real_func_name).replace(', **kwargs', ''))

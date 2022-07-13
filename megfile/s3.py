@@ -430,7 +430,7 @@ def s3_islink(path: PathLike) -> bool:
     return S3Path(path).is_symlink()
 
 
-def s3_save_as(path: PathLike, file_object: BinaryIO):
+def s3_save_as(file_object: BinaryIO, path: PathLike):
     '''Write the opened binary stream to specified path, but the stream won't be closed
 
     :param path: Given path

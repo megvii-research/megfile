@@ -628,7 +628,7 @@ def smart_glob_stat(
     return iterableres
 
 
-def smart_save_as(path: PathLike, file_object: BinaryIO) -> None:
+def smart_save_as(file_object: BinaryIO, path: PathLike) -> None:
     '''Write the opened binary stream to specified path, but the stream won't be closed
 
     :param file_object: Stream to be read

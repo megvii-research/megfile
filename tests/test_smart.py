@@ -767,11 +767,11 @@ def test_smart_save_as(mocker):
     funcA = mocker.patch('megfile.s3_path.S3Path.save')
     funcB = mocker.patch('megfile.fs_path.FSPath.save')
     stream = BytesIO()
-    smart.smart_save_as('s3://test/ture_case', stream)
+    smart.smart_save_as(stream, 's3://test/ture_case')
     funcA.assert_called_once_with(stream)
     smart.smart_save_as(
-        '/test/false_case',
         stream,
+        '/test/false_case',
     )
     funcB.assert_called_once_with(stream)
 

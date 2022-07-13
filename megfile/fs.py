@@ -508,7 +508,7 @@ def fs_home():
     return FSPath.home()
 
 
-def fs_save_as(path: PathLike, file_object: BinaryIO):
+def fs_save_as(file_object: BinaryIO, path: PathLike):
     '''Write the opened binary stream to path
     If parent directory of path doesn't exist, it will be created.
 

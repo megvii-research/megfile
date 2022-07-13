@@ -2171,7 +2171,7 @@ def test_group_s3path_by_prefix():
 def test_s3_save_as(s3_empty_client):
     content = b'value'
     s3_empty_client.create_bucket(Bucket='bucket')
-    s3.s3_save_as('s3://bucket/result', BytesIO(content))
+    s3.s3_save_as(BytesIO(content), 's3://bucket/result')
     body = s3_empty_client.get_object(
         Bucket='bucket', Key='result')['Body'].read()
     assert body == content
@@ -2182,15 +2182,15 @@ def test_s3_save_as_invalid(s3_empty_client):
     s3_empty_client.create_bucket(Bucket='bucket')
 
     with pytest.raises(IsADirectoryError) as error:
-        s3.s3_save_as('s3://bucket/prefix/', BytesIO(content))
+        s3.s3_save_as(BytesIO(content), 's3://bucket/prefix/')
     assert 's3://bucket/prefix/' in str(error.value)
 
     with pytest.raises(PermissionError) as error:
-        s3.s3_save_as('s3:///key', BytesIO(content))
+        s3.s3_save_as(BytesIO(content), 's3:///key')
     assert 's3:///key' in str(error.value)
 
     with pytest.raises(PermissionError) as error:
-        s3.s3_save_as('s3://notExistBucket/fileAA', BytesIO(content))
+        s3.s3_save_as(BytesIO(content), 's3://notExistBucket/fileAA')
     assert 's3://notExistBucket' in str(error.value)
 
 

@@ -854,7 +854,7 @@ def test_fs_glob_with_not_exists_directory(filesystem):
 
 def test_fs_save_as(filesystem):
     content = b'value'
-    fs.fs_save_as('/path/to/file', BytesIO(content))
+    fs.fs_save_as(BytesIO(content), '/path/to/file')
     with open('/path/to/file', 'rb') as result:
         assert content == result.read()
 
