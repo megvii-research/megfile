@@ -1,4 +1,5 @@
 import time
+from functools import partial
 from io import BufferedReader
 from logging import getLogger as get_logger
 from typing import Iterable
@@ -38,12 +39,11 @@ def get_http_session(
             kwargs)
 
     session.request = patch_method(
-        session.request,
+        partial(session.request, timeout=timeout),
         max_retries=max_retries,
         should_retry=http_should_retry,
         before_callback=before_callback,
         after_callback=after_callback,
-        timeout=timeout,
     )
     return session
 
