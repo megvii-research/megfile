@@ -23,7 +23,8 @@ _logger = get_logger(__name__)
 max_retries = 10
 
 
-def get_http_session(status_forcelist: Iterable[int] = (502, 503, 504)):
+def get_http_session(
+        timeout: int = 10, status_forcelist: Iterable[int] = (502, 503, 504)):
     session = requests.Session()
 
     def after_callback(response, *args, **kwargs):
@@ -42,6 +43,7 @@ def get_http_session(status_forcelist: Iterable[int] = (502, 503, 504)):
         should_retry=http_should_retry,
         before_callback=before_callback,
         after_callback=after_callback,
+        timeout=timeout,
     )
     return session
 
