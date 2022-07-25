@@ -80,7 +80,7 @@ class SmartPath(BasePath):
         cls._registered_protocols[protocol] = path_class
         return path_class
 
-    symlink_to = _bind_function('symlink_to')
+    symlink = _bind_function('symlink')
     readlink = _bind_function('readlink')
     is_dir = _bind_function('is_dir')
     is_file = _bind_function('is_file')
@@ -93,7 +93,6 @@ class SmartPath(BasePath):
     getmtime = _bind_function('getmtime')
     stat = _bind_function('stat')
     remove = _bind_function('remove')
-    rmdir = _bind_function('remove')
     rename = _bind_function('rename')
     replace = _bind_function('replace')
     unlink = _bind_function('unlink')

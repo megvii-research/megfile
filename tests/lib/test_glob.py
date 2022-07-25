@@ -23,7 +23,7 @@ bucketC/
 |-folder    （目录）
     |-file
 
-bucketForGlobTest/ （用于 glob 的测试，结构较复杂）
+bucketForGlobTest/ （用于 glob 的测试, 结构较复杂）
 |-1
     |-a （目录）
         |-b

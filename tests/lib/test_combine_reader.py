@@ -44,7 +44,7 @@ def test_combine_reader_read():
 
     assert reader.read(6) == b'lock1 '
 
-    # 连续读多个 block，且 size 超过剩余数据大小
+    # 连续读多个 block, 且 size 超过剩余数据大小
     assert reader.read(21 + 1) == b'block2 block3 block4 '
 
     # Seek to head then read
@@ -80,7 +80,7 @@ def test_combine_reader_read_stringio():
 
     assert reader.read(6) == 'lock1 '
 
-    # 连续读多个 block，且 size 超过剩余数据大小
+    # 连续读多个 block, 且 size 超过剩余数据大小
     assert reader.read(21 + 1) == 'block2 block3 block4 '
 
     # Seek to head then read
@@ -124,7 +124,7 @@ def test_combine_reader_read_text():
 
     assert reader.read(6) == 'lock1 '
 
-    # 连续读多个 block，且 size 超过剩余数据大小
+    # 连续读多个 block, 且 size 超过剩余数据大小
     assert reader.read(21 + 1) == 'block2 block3 block4 '
 
     # 从头再读

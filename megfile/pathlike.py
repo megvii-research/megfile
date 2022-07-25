@@ -112,7 +112,7 @@ class BasePath:
         """Return True if the path points to a directory."""
 
     @method_not_implemented
-    def is_file(self) -> bool:  # type: ignore
+    def is_file(self, followlinks: bool = False) -> bool:  # type: ignore
         """Return True if the path points to a regular file."""
 
     def is_symlink(self) -> bool:
@@ -123,7 +123,7 @@ class BasePath:
         """Return True if the path has access permission described by mode."""
 
     @method_not_implemented
-    def exists(self) -> bool:  # type: ignore
+    def exists(self, followlinks: bool = False) -> bool:  # type: ignore
         """Whether the path points to an existing file or directory."""
 
     # listdir or iterdir?
@@ -148,7 +148,7 @@ class BasePath:
         """Get the status of the path."""
 
     @method_not_implemented
-    def remove(self, missing_ok: bool = False) -> None:
+    def remove(self, missing_ok: bool = False, **kwargs) -> None:
         """Remove (delete) the file."""
 
     @method_not_implemented
@@ -169,16 +169,17 @@ class BasePath:
         """Open the file with mode."""
 
     @method_not_implemented
-    def walk(self
+    def walk(self, **kwargs
             ) -> Iterator[Tuple[str, List[str], List[str]]]:  # type: ignore
         """Generate the file names in a directory tree by walking the tree."""
 
     @method_not_implemented
-    def scan(self, missing_ok: bool = True) -> Iterator[str]:  # type: ignore
+    def scan(self, missing_ok: bool = True,
+             followlinks: bool = False) -> Iterator[str]:  # type: ignore
         """Iterate through the files in the directory."""
 
     @method_not_implemented
-    def scan_stat(self, missing_ok: bool = True
+    def scan_stat(self, missing_ok: bool = True, followlinks: bool = False
                  ) -> Iterator[FileEntry]:  # type: ignore
         """Iterate through the files in the directory, with file stat."""
 
@@ -475,7 +476,7 @@ class URIPath(BaseURIPath):
     def relpath(self, start=None) -> str:
         return self.path_with_protocol
 
-    def resolve(self, start=None):
+    def resolve(self):
         return self.path_with_protocol
 
 

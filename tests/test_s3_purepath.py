@@ -201,7 +201,7 @@ def test_reserved():
     assert not S3Path('foo/bar').is_reserved()
 
 
-# TODO: path 里 bind 了 s3 里的 s3_path_join()，该方法返回 str，后面可能要改成返回 S3Path
+# TODO: path 里 bind 了 s3 里的 s3_path_join(), 该方法返回 str, 后面可能要改成返回 S3Path
 def test_joinpath():
     assert S3Path('s3://foo').joinpath('bar') == S3Path('s3://foo/bar')
     assert S3Path('s3://foo').joinpath(S3Path('bar')) == S3Path('s3://foo/bar')

@@ -11,7 +11,7 @@ from moto import mock_s3
 import megfile
 from megfile import smart
 from megfile.interfaces import Access, StatResult
-from megfile.s3 import _s3_binary_mode
+from megfile.s3_path import _s3_binary_mode
 from megfile.smart_path import SmartPath
 
 
@@ -28,7 +28,7 @@ def s3_empty_client(mocker):
     with mock_s3():
         client = boto3.client('s3')
         client.create_bucket(Bucket=BUCKET)
-        mocker.patch('megfile.s3.get_s3_client', return_value=client)
+        mocker.patch('megfile.s3_path.get_s3_client', return_value=client)
         yield client
 
 
@@ -99,6 +99,16 @@ def test_smart_isdir(funcA):
     assert funcA.call_count == 5
 
 
+def test_smart_isdir2(mocker):
+    fs_dir = mocker.patch('megfile.fs_path.FSPath.is_dir')
+    smart.smart_isdir('/test')
+    fs_dir.assert_called_once_with(followlinks=False)
+
+    s3_dir = mocker.patch('megfile.s3_path.S3Path.is_dir')
+    smart.smart_isdir('s3://test')
+    s3_dir.assert_called_once_with(followlinks=False)
+
+
 @patch.object(SmartPath, 'is_file')
 def test_smart_isfile(funcA):
     funcA.return_value = True
@@ -119,6 +129,16 @@ def test_smart_isfile(funcA):
     assert funcA.call_count == 5
 
 
+def test_smart_isfile2(mocker):
+    fs_is_file = mocker.patch('megfile.fs_path.FSPath.is_file')
+    smart.smart_isfile('/test')
+    fs_is_file.assert_called_once_with(followlinks=False)
+
+    s3_is_file = mocker.patch('megfile.s3_path.S3Path.is_file')
+    smart.smart_isfile('s3://test')
+    s3_is_file.assert_called_once_with(followlinks=False)
+
+
 @patch.object(SmartPath, 'exists')
 def test_smart_exists(funcA):
     funcA.return_value = True
@@ -137,6 +157,16 @@ def test_smart_exists(funcA):
     res = smart.smart_exists("s3://test", followlinks=True)
     assert res == False
     assert funcA.call_count == 5
+
+
+def test_smart_exists2(mocker):
+    fs_exists = mocker.patch('megfile.fs_path.FSPath.exists')
+    smart.smart_exists('/test')
+    fs_exists.assert_called_once_with(followlinks=False)
+
+    s3_exists = mocker.patch('megfile.s3_path.S3Path.exists')
+    smart.smart_exists('s3://test')
+    s3_exists.assert_called_once_with(followlinks=False)
 
 
 @patch.object(SmartPath, 'is_symlink')
@@ -177,7 +207,7 @@ def test_smart_copy(mocker):
     s3_upload = mocker.patch('megfile.smart.s3_upload')
     fs_copy = mocker.patch('megfile.smart.fs_copy')
     default_copy_func = mocker.patch('megfile.smart._default_copy_func')
-    copyfile = mocker.patch('megfile.fs._copyfile')
+    copyfile = mocker.patch('megfile.fs_path.FSPath._copyfile')
 
     smart_islink = mocker.patch(
         'megfile.smart.smart_islink', side_effect=is_symlink)
@@ -212,17 +242,20 @@ def test_smart_copy(mocker):
         fs_copy.reset_mock()
 
         smart.smart_copy('s3://a/b', 's3://a/b')
-        s3_copy.assert_called_once_with('s3://a/b', 's3://a/b', callback=None)
+        s3_copy.assert_called_once_with(
+            's3://a/b', 's3://a/b', callback=None, followlinks=False)
 
         smart.smart_copy('http://a/b', 'fs')
         default_copy_func.assert_called_once_with(
-            'http://a/b', 'fs', callback=None)
+            'http://a/b', 'fs', callback=None, followlinks=False)
 
         smart.smart_copy('s3://a/b', 'fs')
-        s3_download.assert_called_once_with('s3://a/b', 'fs', callback=None)
+        s3_download.assert_called_once_with(
+            's3://a/b', 'fs', callback=None, followlinks=False)
 
         smart.smart_copy('fs', 's3://a/b')
-        s3_upload.assert_called_once_with('fs', 's3://a/b', callback=None)
+        s3_upload.assert_called_once_with(
+            'fs', 's3://a/b', callback=None, followlinks=False)
 
         fs_stat = mocker.patch(
             'megfile.fs.fs_stat', return_value=StatResult(islnk=False, size=10))
@@ -234,8 +267,8 @@ def test_smart_copy(mocker):
 
 
 def test_smart_copy_fs2fs(mocker):
-    fs_makedirs = mocker.patch(
-        'megfile.fs.fs_makedirs', side_effect=lambda *args, **kwargs:...)
+    fs_mkdir = mocker.patch(
+        'megfile.fs_path.FSPath.mkdir', side_effect=lambda *args, **kwargs:...)
 
     class fake_copy:
         flag = False
@@ -249,12 +282,12 @@ def test_smart_copy_fs2fs(mocker):
                 self.flag = True
                 raise error
 
-    copyfile = mocker.patch('megfile.fs._copyfile')
+    copyfile = mocker.patch('megfile.fs_path.FSPath._copyfile')
     copyfile.side_effect = fake_copy()
     smart.smart_copy('fs', 'fs/a/b/c')
-    fs_makedirs.call_count == 1
-    fs_makedirs.assert_called_once_with('fs/a/b', exist_ok=True)
-    fs_makedirs.reset_mock()
+    fs_mkdir.call_count == 1
+    fs_mkdir.assert_called_once_with(exist_ok=True)
+    fs_mkdir.reset_mock()
 
 
 def test_smart_copy_UP2UP(filesystem):
@@ -342,6 +375,16 @@ def test_smart_remove(funcA):
 
     res = smart.smart_remove("s3://test", missing_ok=True, followlinks=True)
     assert res is None
+
+
+def test_smart_remove(mocker):
+    fs_remove = mocker.patch('megfile.fs_path.FSPath.remove')
+    smart.smart_remove('/test')
+    fs_remove.assert_called_once_with(missing_ok=False, followlinks=False)
+
+    s3_remove = mocker.patch('megfile.s3_path.S3Path.remove')
+    smart.smart_remove('s3://test')
+    s3_remove.assert_called_once_with(missing_ok=False, followlinks=False)
 
 
 def test_smart_move(mocker):
@@ -543,14 +586,14 @@ def test_smart_open_custom_s3_open_func(mocker, fs):
     s3_open = mocker.Mock()
     s3_binary_open = _s3_binary_mode(s3_open)
     text_wrapper = mocker.patch('io.TextIOWrapper')
-    s3_hasbucket_func = mocker.patch('megfile.s3.s3_hasbucket')
+    s3_hasbucket_func = mocker.patch('megfile.s3_path.S3Path.hasbucket')
     s3_hasbucket_func.return_value = True
-    s3_isfile_func = mocker.patch('megfile.s3.s3_isfile')
+    s3_isfile_func = mocker.patch('megfile.s3_path.S3Path.is_file')
     s3_isfile_func.return_value = False
-    parse_s3_url = mocker.patch('megfile.s3.parse_s3_url')
+    parse_s3_url = mocker.patch('megfile.s3_path.parse_s3_url')
     parse_s3_url.return_value = ('bucket', 'key')
 
-    parse_s3_url = mocker.patch('megfile.s3.s3_get_metadata')
+    parse_s3_url = mocker.patch('megfile.s3_path._s3_get_metadata')
     parse_s3_url.return_value = {}
     smart.smart_open('s3://bucket/key', 'r', s3_open_func=s3_binary_open)
     s3_open.assert_called_once_with('s3://bucket/key', 'rb')
@@ -633,6 +676,16 @@ def test_smart_walk(funcA):
     funcA.call_count == 2
 
 
+def test_smart_walk2(mocker):
+    fs_walk = mocker.patch('megfile.fs_path.FSPath.walk')
+    smart.smart_walk('/test')
+    fs_walk.assert_called_once_with(followlinks=False)
+
+    s3_walk = mocker.patch('megfile.s3_path.S3Path.walk')
+    smart.smart_walk('s3://test')
+    s3_walk.assert_called_once_with(followlinks=False)
+
+
 @patch.object(SmartPath, "scan")
 def test_smart_scan(funcA):
     smart.smart_scan("Test Case", followlinks=True)
@@ -642,6 +695,16 @@ def test_smart_scan(funcA):
     funcA.call_count == 2
 
 
+def test_smart_scan2(mocker):
+    fs_scan = mocker.patch('megfile.fs_path.FSPath.scan')
+    smart.smart_scan('/test')
+    fs_scan.assert_called_once_with(missing_ok=True, followlinks=False)
+
+    s3_scan = mocker.patch('megfile.s3_path.S3Path.scan')
+    smart.smart_scan('s3://test')
+    s3_scan.assert_called_once_with(missing_ok=True, followlinks=False)
+
+
 @patch.object(SmartPath, "scan_stat")
 def test_smart_scan_stat(funcA):
     smart.smart_scan_stat("Test Case", followlinks=True)
@@ -649,6 +712,16 @@ def test_smart_scan_stat(funcA):
 
     smart.smart_scan_stat("s3://test", followlinks=True)
     funcA.call_count == 2
+
+
+def test_smart_scan_stat2(mocker):
+    fs_scan_stat = mocker.patch('megfile.fs_path.FSPath.scan_stat')
+    smart.smart_scan_stat('/test')
+    fs_scan_stat.assert_called_once_with(missing_ok=True, followlinks=False)
+
+    s3_scan_stat = mocker.patch('megfile.s3_path.S3Path.scan_stat')
+    smart.smart_scan_stat('s3://test')
+    s3_scan_stat.assert_called_once_with(missing_ok=True, followlinks=False)
 
 
 @patch.object(SmartPath, "glob")
@@ -691,13 +764,16 @@ def test_smart_glob_stat_cross_backend(funcA):
 
 
 def test_smart_save_as(mocker):
-    funcA = mocker.patch('megfile.s3.s3_save_as')
-    funcB = mocker.patch('megfile.fs.fs_save_as')
+    funcA = mocker.patch('megfile.s3_path.S3Path.save')
+    funcB = mocker.patch('megfile.fs_path.FSPath.save')
     stream = BytesIO()
     smart.smart_save_as(stream, 's3://test/ture_case')
-    funcA.assert_called_once_with(stream, 's3://test/ture_case')
-    smart.smart_save_as(stream, '/test/false_case')
-    funcB.assert_called_once_with(stream, '/test/false_case')
+    funcA.assert_called_once_with(stream)
+    smart.smart_save_as(
+        stream,
+        '/test/false_case',
+    )
+    funcB.assert_called_once_with(stream)
 
 
 @patch.object(SmartPath, "load")
@@ -774,7 +850,7 @@ def test_smart_open_stdin(mocker):
 
 
 def test_smart_open_stdout(mocker):
-    # TODO: 这里 pytest 会把 sys.stdout mocker 掉，导致无法测试，之后想办法解决
+    # TODO: 这里 pytest 会把 sys.stdout mocker 掉, 导致无法测试, 之后想办法解决
     return
     data = BytesIO()
 
@@ -843,7 +919,7 @@ def test_register_copy_func():
 
 
 def test_smart_cache(mocker):
-    s3_download = mocker.patch('megfile.s3.s3_download')
+    s3_download = mocker.patch('megfile.s3_path.s3_download')
     s3_download.return_value = None
 
     from megfile.interfaces import NullCacher
@@ -862,7 +938,7 @@ def test_smart_cache(mocker):
 def test_smart_symlink(mocker, s3_empty_client, filesystem):
     src_path = '/tmp/src_file'
     dst_path = '/tmp/dst_file'
-    smart.smart_symlink(dst_path, src_path)
+    smart.smart_symlink(src_path, dst_path)
 
     res = os.readlink(dst_path)
     assert res == src_path
@@ -873,8 +949,8 @@ def test_smart_symlink(mocker, s3_empty_client, filesystem):
     content = b'bytes'
     s3_empty_client.create_bucket(Bucket='bucket')
     s3_empty_client.put_object(Bucket='bucket', Key='src', Body=content)
-    smart.smart_symlink(dst_url, src_url)
-    smart.smart_symlink(dst_dst_url, dst_url)
+    smart.smart_symlink(src_url, dst_url)
+    smart.smart_symlink(dst_url, dst_dst_url)
 
     res = smart.smart_readlink(dst_dst_url)
     assert res == src_url

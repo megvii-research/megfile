@@ -303,9 +303,9 @@ def test_md5(funcA):
     funcA.assert_called_once()
 
 
-@patch.object(FSPath, 'symlink_to')
+@patch.object(FSPath, 'symlink')
 def test_symlink_to(funcA):
-    SmartPath(FS_TEST_DST_PATH).symlink_to(FS_TEST_SRC_PATH)
+    SmartPath(FS_TEST_DST_PATH).symlink(FS_TEST_SRC_PATH)
     funcA.assert_called_once()
 
 
@@ -315,9 +315,9 @@ def test_readlink(funcA):
     funcA.assert_called_once()
 
 
-@patch.object(S3Path, 'symlink_to')
+@patch.object(S3Path, 'symlink')
 def test_symlink_to_s3(funcA):
-    SmartPath(S3_TEST_PATH).symlink_to(S3_SRC_PATH)
+    SmartPath(S3_TEST_PATH).symlink(S3_SRC_PATH)
     funcA.assert_called_once()
 
 
