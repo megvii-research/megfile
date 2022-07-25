@@ -3,7 +3,8 @@ CHANGELOG
 
 ## 1.0.0 - 2022.07.25
 - refactor code
-- add smart_getmd5_by_paths 
+- add smart_getmd5_by_paths
+- change of symlink's parameters position
 
 ## 0.1.2 - 2022.04.26
 - handle s3 remove file errors
