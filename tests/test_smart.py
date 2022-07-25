@@ -1,9 +1,9 @@
+import hashlib
 import os
 from io import BytesIO, StringIO
 from pathlib import Path
 
 import boto3
-import botocore
 import pytest
 from mock import patch
 from moto import mock_s3
@@ -61,6 +61,21 @@ def test_smart_getmd5(funcA):
     res = smart.smart_getmd5("Test Case")
     assert res == 'dcddb75469b4b4875094e14561e573d8'
     funcA.assert_called_once()
+
+
+@patch.object(SmartPath, 'md5')
+def test_smart_getmd5(funcA):
+    md5 = 'dcddb75469b4b4875094e14561e573d8'
+    funcA.return_value = md5
+    paths = ["Test Case", "Test Case", "Test Case"]
+    res = smart.smart_getmd5_by_paths(paths)
+
+    hash_md5 = hashlib.md5()  # nosec
+    for _ in range(len(paths)):
+        hash_md5.update(md5.encode())
+
+    assert res == hash_md5.hexdigest()
+    assert funcA.call_count == 3
 
 
 @patch.object(SmartPath, 'getmtime')
