@@ -420,7 +420,7 @@ def test_fs_remove2(filesystem, mocker):
     fs.fs_remove('/test.txt')
     assert fs.fs_exists('/test.txt') is False
 
-    fs.fs_mkdir('/dir')
+    fs.fs_makedirs('/dir')
     with open('/dir/test.txt', 'w') as f:
         f.write('test')
 
@@ -439,21 +439,21 @@ def test_fs_unlink(filesystem, mocker):
     fs.fs_unlink('notExist', missing_ok=True)
 
 
-def test_fs_mkdir(filesystem):
-    fs.fs_mkdir('folder/folder')
+def test_fs_makedirs(filesystem):
+    fs.fs_makedirs('folder/folder')
     assert os.path.isdir('folder/folder') is True
 
     with pytest.raises(FileExistsError) as error:
-        fs.fs_mkdir('folder/blah/../folder')
+        fs.fs_makedirs('folder/blah/../folder')
     assert 'folder/folder' in str(error.value)
 
-    fs.fs_mkdir('folder/folder', exist_ok=True)
+    fs.fs_makedirs('folder/folder', exist_ok=True)
 
     with open('file', 'w') as f:
         f.write('')
 
     with pytest.raises(FileExistsError) as error:
-        fs.fs_mkdir('file', exist_ok=True)
+        fs.fs_makedirs('file', exist_ok=True)
     assert 'file' in str(error.value)
 
 
@@ -898,10 +898,10 @@ def test_fs_glob_stat(create_glob_fake_dirtree):
         list(fs.fs_glob('A/a/**.notExists', missing_ok=False))
 
 
-def test_fs_load(filesystem):
+def test_fs_load_from(filesystem):
     with open('file', 'wb') as f:
         f.write(b'value')
-    content = fs.fs_load('/file')
+    content = fs.fs_load_from('/file')
     assert content.read() == b'value'
 
 

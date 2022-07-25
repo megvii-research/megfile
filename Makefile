@@ -36,8 +36,8 @@ doc:
 	python3 setup.py build_sphinx --fresh-env --build-dir html_doc/
 
 release:
-	git tag ${VERSION}
-	git push origin ${VERSION}
+	git tag -f ${VERSION}
+	git push -f origin ${VERSION}
 
 	rm -rf build dist
 	python3 setup.py bdist_wheel

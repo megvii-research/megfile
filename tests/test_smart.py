@@ -282,7 +282,7 @@ def test_smart_copy(mocker):
 
 
 def test_smart_copy_fs2fs(mocker):
-    fs_mkdir = mocker.patch(
+    fs_makedirs = mocker.patch(
         'megfile.fs_path.FSPath.mkdir', side_effect=lambda *args, **kwargs:...)
 
     class fake_copy:
@@ -300,9 +300,9 @@ def test_smart_copy_fs2fs(mocker):
     copyfile = mocker.patch('megfile.fs_path.FSPath._copyfile')
     copyfile.side_effect = fake_copy()
     smart.smart_copy('fs', 'fs/a/b/c')
-    fs_mkdir.call_count == 1
-    fs_mkdir.assert_called_once_with(exist_ok=True)
-    fs_mkdir.reset_mock()
+    fs_makedirs.call_count == 1
+    fs_makedirs.assert_called_once_with(exist_ok=True)
+    fs_makedirs.reset_mock()
 
 
 def test_smart_copy_UP2UP(filesystem):
