@@ -1,6 +1,6 @@
 from typing import BinaryIO, Callable, Iterator, List, Optional, Tuple
 
-from megfile.fs_path import FSPath, StatResult, fs_path_join, is_fs
+from megfile.fs_path import FSPath, StatResult, _make_stat, fs_path_join, is_fs
 from megfile.interfaces import Access, FileEntry, PathLike, StatResult
 
 __all__ = [
@@ -8,6 +8,7 @@ __all__ = [
     'is_fs',
     'StatResult',
     'fs_path_join',
+    '_make_stat',
     'fs_isabs',
     'fs_abspath',
     'fs_access',
@@ -21,8 +22,8 @@ __all__ = [
     'fs_isdir',
     'fs_isfile',
     'fs_listdir',
-    'fs_load',
-    'fs_mkdir',
+    'fs_load_from',
+    'fs_makedirs',
     'fs_realpath',
     'fs_relpath',
     'fs_rename',
@@ -232,7 +233,7 @@ def fs_listdir(path: PathLike) -> List[str]:
     return FSPath(path).listdir()
 
 
-def fs_load(path: PathLike) -> BinaryIO:
+def fs_load_from(path: PathLike) -> BinaryIO:
     '''Read all content on specified path and write into memory
 
     User should close the BinaryIO manually
@@ -243,7 +244,7 @@ def fs_load(path: PathLike) -> BinaryIO:
     return FSPath(path).load()
 
 
-def fs_mkdir(path: PathLike, exist_ok: bool = False):
+def fs_makedirs(path: PathLike, exist_ok: bool = False):
     '''
     make a directory on fs, including parent directory
 

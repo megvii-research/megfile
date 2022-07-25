@@ -23,6 +23,7 @@ __all__ = [
     'is_fs',
     'StatResult',
     'fs_path_join',
+    '_make_stat',
 ]
 
 
