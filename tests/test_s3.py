@@ -2225,6 +2225,7 @@ def test_s3_prefetch_open(s3_empty_client):
     content = b'test data for s3_prefetch_open'
     s3_empty_client.create_bucket(Bucket='bucket')
     s3_empty_client.put_object(Bucket='bucket', Key='key', Body=content)
+    s3.s3_symlink('s3://bucket/key', 's3://bucket/symlink')
 
     with s3.s3_prefetch_open('s3://bucket/key') as reader:
         assert reader.name == 's3://bucket/key'
@@ -2235,6 +2236,15 @@ def test_s3_prefetch_open(s3_empty_client):
                              max_block_size=1) as reader:
         assert reader.read() == content
 
+    with s3.s3_prefetch_open('s3://bucket/symlink', followlinks=True) as reader:
+        assert reader.name == 's3://bucket/key'
+        assert reader.mode == 'rb'
+        assert reader.read() == content
+
+    with s3.s3_prefetch_open('s3://bucket/symlink', max_concurrency=1,
+                             max_block_size=1, followlinks=True) as reader:
+        assert reader.read() == content
+
     with pytest.raises(S3BucketNotFoundError):
         s3.s3_prefetch_open('s3://', max_concurrency=1, max_block_size=1)
 
@@ -2243,6 +2253,7 @@ def test_s3_share_cache_open(s3_empty_client):
     content = b'test data for s3_share_cache_open'
     s3_empty_client.create_bucket(Bucket='bucket')
     s3_empty_client.put_object(Bucket='bucket', Key='key', Body=content)
+    s3.s3_symlink('s3://bucket/key', 's3://bucket/symlink')
 
     with s3.s3_share_cache_open('s3://bucket/key') as reader:
         assert reader.name == 's3://bucket/key'
@@ -2251,6 +2262,16 @@ def test_s3_share_cache_open(s3_empty_client):
 
     with s3.s3_prefetch_open('s3://bucket/key', max_concurrency=1,
                              max_block_size=1) as reader:
+        assert reader.read() == content
+
+    with s3.s3_share_cache_open('s3://bucket/symlink',
+                                followlinks=True) as reader:
+        assert reader.name == 's3://bucket/key'
+        assert reader.mode == 'rb'
+        assert reader.read() == content
+
+    with s3.s3_prefetch_open('s3://bucket/symlink', max_concurrency=1,
+                             max_block_size=1, followlinks=True) as reader:
         assert reader.read() == content
 
 
@@ -2281,8 +2302,15 @@ def test_s3_pipe_open(s3_empty_client):
         writer.write(content)
     body = s3_empty_client.get_object(Bucket='bucket', Key='key')['Body'].read()
     assert body == content
+    s3.s3_symlink('s3://bucket/key', 's3://bucket/symlink')
 
     with s3.s3_pipe_open('s3://bucket/key', 'rb') as reader:
+        assert reader.name == 's3://bucket/key'
+        assert reader.mode == 'rb'
+        assert reader.read() == content
+
+    with s3.s3_pipe_open('s3://bucket/symlink', 'rb',
+                         followlinks=True) as reader:
         assert reader.name == 's3://bucket/key'
         assert reader.mode == 'rb'
         assert reader.read() == content
@@ -2329,8 +2357,13 @@ def test_s3_legacy_open(mocker, s3_empty_client):
         writer.write(content)
     body = s3_empty_client.get_object(Bucket='bucket', Key='key')['Body'].read()
     assert body == content
+    s3.s3_symlink('s3://bucket/key', 's3://bucket/symlink')
 
     with s3.s3_legacy_open('s3://bucket/key', 'rb') as reader:
+        assert reader.read() == content
+
+    with s3.s3_legacy_open('s3://bucket/symlink', 'rb',
+                           followlinks=True) as reader:
         assert reader.read() == content
 
 
@@ -2379,9 +2412,16 @@ def test_s3_cached_open(mocker, s3_empty_client, fs):
         writer.write(content)
     body = s3_empty_client.get_object(Bucket='bucket', Key='key')['Body'].read()
     assert body == content
+    s3.s3_symlink('s3://bucket/key', 's3://bucket/symlink')
 
     with s3.s3_cached_open('s3://bucket/key', 'rb',
                            cache_path=cache_path) as reader:
+        assert reader.name == 's3://bucket/key'
+        assert reader.mode == 'rb'
+        assert reader.read() == content
+
+    with s3.s3_cached_open('s3://bucket/symlink', 'rb', cache_path=cache_path,
+                           followlinks=True) as reader:
         assert reader.name == 's3://bucket/key'
         assert reader.mode == 'rb'
         assert reader.read() == content
@@ -2493,8 +2533,13 @@ def test_s3_memory_open(s3_empty_client):
         writer.write(content)
     body = s3_empty_client.get_object(Bucket='bucket', Key='key')['Body'].read()
     assert body == content
+    s3.s3_symlink('s3://bucket/key', 's3://bucket/symlink')
 
     with s3.s3_memory_open('s3://bucket/key', 'rb') as reader:
+        assert reader.read() == content
+
+    with s3.s3_memory_open('s3://bucket/symlink', 'rb',
+                           followlinks=True) as reader:
         assert reader.read() == content
 
     with pytest.raises(ValueError):
