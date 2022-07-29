@@ -70,7 +70,7 @@ class HttpPath(URIPath):
     protocol = "http"
 
     @binary_open
-    def open(self, mode: str = 'rb') -> BufferedReader:
+    def open(self, mode: str = 'rb', **kwargs) -> BufferedReader:
         '''Open a BytesIO to read binary data of given http(s) url
 
         .. note ::
