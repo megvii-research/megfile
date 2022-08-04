@@ -1,6 +1,10 @@
 CHANGELOG
 =========
 
+## 1.0.1 - 2022.08.04
+- fix open mode with + in different order
+- sort smart_getmd5_by_paths parameter paths
+
 ## 1.0.0 - 2022.07.25
 - refactor code
 - add smart_getmd5_by_paths
