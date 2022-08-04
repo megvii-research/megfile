@@ -805,6 +805,7 @@ def smart_getmd5_by_paths(
     param paths: list of file path
     param recalculate: calculate md5 in real-time or not return s3 etag when path is s3
     '''
+    paths.sort()
     hash_md5 = hashlib.md5()  # nosec
     for path in paths:
         chunk = SmartPath(path).md5(recalculate=recalculate).encode()
