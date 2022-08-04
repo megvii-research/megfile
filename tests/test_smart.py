@@ -64,7 +64,7 @@ def test_smart_getmd5(funcA):
 
 
 @patch.object(SmartPath, 'md5')
-def test_smart_getmd5(funcA):
+def test_smart_getmd5_by_paths(funcA):
     md5 = 'dcddb75469b4b4875094e14561e573d8'
     funcA.return_value = md5
     paths = ["Test Case", "Test Case", "Test Case"]
@@ -76,6 +76,24 @@ def test_smart_getmd5(funcA):
 
     assert res == hash_md5.hexdigest()
     assert funcA.call_count == 3
+
+
+def test_smart_getmd5_by_paths_and_smart_getmd5(fs):
+    os.mkdir('test')
+    with open('test/a', 'w') as f:
+        f.write('a')
+    with open('test/b', 'w') as f:
+        f.write('b')
+    with open('test/c', 'w') as f:
+        f.write('c')
+
+    assert smart.smart_getmd5_by_paths(['test/a', 'test/b', 'test/c'
+                                       ]) == smart.smart_getmd5_by_paths(
+                                           ['test/b', 'test/c', 'test/a'])
+    assert smart.smart_getmd5('test') == smart.smart_getmd5_by_paths(
+        ['test/b', 'test/c', 'test/a'])
+    assert smart.smart_getmd5('test') != smart.smart_getmd5_by_paths(
+        ['test/c', 'test/a'])
 
 
 @patch.object(SmartPath, 'getmtime')
