@@ -479,6 +479,23 @@ def test_smart_makedirs(funcA):
     funcA.assert_called_once_with(True)
 
 
+def test_smart_open_input_params(mocker, fs):
+    s3_open = mocker.patch('megfile.s3_path.S3Path.open')
+    with smart.smart_open('s3://test') as f:
+        pass
+    s3_open.assert_called_once()
+
+    fs_open = mocker.patch('megfile.fs_path.FSPath.open')
+    with smart.smart_open('/test') as f:
+        pass
+    fs_open.assert_called_once()
+
+    http_open = mocker.patch('megfile.http_path.HttpPath.open')
+    with smart.smart_open('http://test') as f:
+        pass
+    http_open.assert_called_once()
+
+
 def test_smart_open(mocker, fs):
     '''
     This test is pretty naïve. Feel free to improve it
