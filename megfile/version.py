@@ -1,1 +1,1 @@
-VERSION = "1.0.0.post5"
+VERSION = "1.0.1"
