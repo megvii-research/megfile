@@ -2426,6 +2426,10 @@ def test_s3_cached_open(mocker, s3_empty_client, fs):
         assert reader.mode == 'rb'
         assert reader.read() == content
 
+    with s3.s3_cached_open('s3://bucket/symlink', 'r+b', cache_path=cache_path,
+                           followlinks=True) as reader:
+        pass
+
 
 def test_s3_cached_open_raises_exceptions(mocker, s3_empty_client, fs):
     cache_path = '/tmp/tempfile'
@@ -2495,6 +2499,9 @@ def test_s3_buffered_open(mocker, s3_empty_client, fs):
         with s3.s3_buffered_open('s3://bucket/key', 'test_mode'):
             pass
 
+    with s3.s3_buffered_open('s3://bucket/key', 'r+b') as reader:
+        pass
+
 
 def test_s3_buffered_open_raises_exceptions(mocker, s3_empty_client, fs):
     with pytest.raises(IsADirectoryError) as error:
@@ -2541,6 +2548,10 @@ def test_s3_memory_open(s3_empty_client):
     with s3.s3_memory_open('s3://bucket/symlink', 'rb',
                            followlinks=True) as reader:
         assert reader.read() == content
+
+    with s3.s3_memory_open('s3://bucket/symlink', 'r+b',
+                           followlinks=True) as reader:
+        pass
 
     with pytest.raises(ValueError):
         with s3.s3_memory_open('s3://bucket/key', 'test_mode'):

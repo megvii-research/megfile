@@ -144,15 +144,14 @@ def combine(file_objects, name):
 
 def get_binary_mode(mode: str) -> str:
     '''Replace mode parameter in open() with corresponding binary mode'''
-    # TODO: some bugs in s3_cached_open, like mode should be rb+ rather than r+b, results in the slightly complicated code logic
     if 't' in mode:
         # rt / wt / rt+ => rb / wb / rb+
-        return mode.replace('t', 'b')
+        mode = mode.replace('t', 'b')
     elif 'b' not in mode:
         # r / w / r+ => rb / wb / rb+
-        return mode[:1] + 'b' + mode[1:]
-    # rb / wb / rb+ => rb / wb / rb+
-    return mode
+        mode = mode[:1] + 'b' + mode[1:]
+    # rb / wb / r+b => rb / wb / rb+
+    return "".join(sorted(mode, key=lambda k: {'b': 1, '+': 2}.get(k, 0)))
 
 
 def binary_open(open_func):
