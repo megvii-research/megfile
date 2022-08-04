@@ -151,8 +151,8 @@ def get_binary_mode(mode: str) -> str:
     elif 'b' not in mode:
         # r / w / r+ => rb / wb / rb+
         return mode[:1] + 'b' + mode[1:]
-    # rb / wb / rb+ => rb / wb / rb+
-    return mode
+    # rb / wb / r+b => rb / wb / rb+
+    return "".join(sorted(mode, key=lambda k: {'b': 1, '+': 2}.get(k, 0)))
 
 
 def binary_open(open_func):
