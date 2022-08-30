@@ -88,6 +88,9 @@ s3_retry_exceptions = [
 ]
 if hasattr(botocore.exceptions, 'ReadTimeoutError'):  # backport botocore==1.8.4
     s3_retry_exceptions.append(botocore.exceptions.ReadTimeoutError)
+if hasattr(botocore.exceptions,
+           'ResponseStreamingError'):  # backport botocore==1.23.24
+    s3_retry_exceptions.append(botocore.exceptions.ResponseStreamingError)
 s3_retry_exceptions = tuple(s3_retry_exceptions)
 
 
