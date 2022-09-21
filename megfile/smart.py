@@ -370,7 +370,7 @@ def smart_rename(src_path: PathLike, dst_path: PathLike) -> None:
     :param dst_path: Given destination path
     '''
     if smart_isdir(src_path):
-        raise IsADirectoryError('%r is a directory' % PathLike)
+        raise IsADirectoryError('%r is a directory' % src_path)
     src_protocol, _ = SmartPath._extract_protocol(src_path)
     dst_protocol, _ = SmartPath._extract_protocol(dst_path)
     if src_protocol == dst_protocol:
