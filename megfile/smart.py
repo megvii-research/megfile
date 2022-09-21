@@ -362,16 +362,14 @@ def smart_remove(path: PathLike, missing_ok: bool = False) -> None:
     SmartPath(path).remove(missing_ok=missing_ok)
 
 
-def smart_rename(
-        src_path: PathLike, dst_path: PathLike,
-        followlinks: bool = False) -> None:
+def smart_rename(src_path: PathLike, dst_path: PathLike) -> None:
     '''
     Move file on s3 or fs. `s3://` or `s3://bucket` is not allowed to move
 
     :param src_path: Given source path
     :param dst_path: Given destination path
     '''
-    if smart_isdir(src_path, followlinks=followlinks):
+    if smart_isdir(src_path):
         raise IsADirectoryError('%r is a directory' % PathLike)
     src_protocol, _ = SmartPath._extract_protocol(src_path)
     dst_protocol, _ = SmartPath._extract_protocol(dst_path)
