@@ -1300,7 +1300,7 @@ class S3Path(URIPath):
                 self.path_with_protocol, dst_url):
             S3Path(src_file_path).rename(dst_file_path)
 
-    def remove(self, missing_ok: bool = False, **kwargs) -> None:
+    def remove(self, missing_ok: bool = False) -> None:
         '''
         Remove the file or directory on s3, `s3://` and `s3://bucket` are not permitted to remove
 

@@ -276,40 +276,34 @@ def fs_relpath(path: PathLike, start: Optional[str] = None) -> str:
     return FSPath(path).relpath(start)
 
 
-def fs_rename(
-        src_path: PathLike, dst_path: PathLike,
-        followlinks: bool = False) -> None:
+def fs_rename(src_path: PathLike, dst_path: PathLike) -> None:
     '''
     rename file on fs
 
     :param src_path: Given path
     :param dst_path: Given destination path
     '''
-    return FSPath(src_path).rename(dst_path, followlinks)
+    return FSPath(src_path).rename(dst_path)
 
 
-def fs_move(
-        src_path: PathLike, dst_path: PathLike,
-        followlinks: bool = False) -> None:
+def fs_move(src_path: PathLike, dst_path: PathLike) -> None:
     '''
     move file on fs
 
     :param src_path: Given path
     :param dst_path: Given destination path
     '''
-    return FSPath(src_path).replace(dst_path, followlinks)
+    return FSPath(src_path).replace(dst_path)
 
 
-def fs_remove(
-        path: PathLike, missing_ok: bool = False,
-        followlinks: bool = False) -> None:
+def fs_remove(path: PathLike, missing_ok: bool = False) -> None:
     '''
     Remove the file or directory on fs
 
     :param path: Given path
     :param missing_ok: if False and target file/directory not exists, raise FileNotFoundError
     '''
-    return FSPath(path).remove(missing_ok, followlinks)
+    return FSPath(path).remove(missing_ok)
 
 
 def fs_scan(path: PathLike, missing_ok: bool = True,
