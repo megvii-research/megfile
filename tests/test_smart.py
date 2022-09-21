@@ -380,11 +380,11 @@ def test_smart_remove(funcA):
 def test_smart_remove(mocker):
     fs_remove = mocker.patch('megfile.fs_path.FSPath.remove')
     smart.smart_remove('/test')
-    fs_remove.assert_called_once_with(missing_ok=False, followlinks=False)
+    fs_remove.assert_called_once_with(missing_ok=False)
 
     s3_remove = mocker.patch('megfile.s3_path.S3Path.remove')
     smart.smart_remove('s3://test')
-    s3_remove.assert_called_once_with(missing_ok=False, followlinks=False)
+    s3_remove.assert_called_once_with(missing_ok=False)
 
 
 def test_smart_move(mocker):
@@ -402,8 +402,8 @@ def test_smart_move(mocker):
     func_smart_remove = mocker.patch('megfile.smart.smart_remove')
     smart.smart_move('/bucket/a', 's3://bucket/b')
     func_smart_sync.assert_called_once_with(
-        '/bucket/a', 's3://bucket/b', followlinks=False)
-    func_smart_remove.assert_called_once_with('/bucket/a', followlinks=False)
+        '/bucket/a', 's3://bucket/b', followlinks=True)
+    func_smart_remove.assert_called_once_with('/bucket/a')
 
 
 @patch.object(SmartPath, 'rename')
