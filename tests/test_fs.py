@@ -947,6 +947,34 @@ def test_fs_rename(filesystem):
     assert not os.path.exists(src)
 
 
+def test_fs_rename_file_in_diff_dir(filesystem):
+    os.makedirs('dir')
+    os.makedirs('dir2')
+    src = 'dir/file'
+    dst = 'dir2/file1'
+    with open(src, 'w') as f:
+        f.write("test")
+    assert os.path.exists(src)
+    fs.fs_rename(src, dst)
+    assert os.path.exists(dst)
+    assert not os.path.exists(src)
+
+
+def test_fs_rename_dir(filesystem):
+    src_dir = 'dir'
+    dst_dir = 'dir2'
+    file_name = 'file'
+    os.makedirs(src_dir)
+    src = os.path.join(src_dir, file_name)
+    with open(src, 'w') as f:
+        f.write("test")
+    assert os.path.exists(src)
+    fs.fs_rename(src_dir, dst_dir)
+    assert os.path.exists(dst_dir)
+    assert os.path.exists(os.path.join(dst_dir, file_name))
+    assert not os.path.exists(src_dir)
+
+
 def test_fs_rename_symlink(filesystem):
     '''
     /src/
@@ -989,7 +1017,7 @@ def test_fs_move_symlink(filesystem):
         f.write('')
     os.symlink('src', '/dst/link')
     fs.fs_exists('/dst/link', followlinks=True) is True
-    fs.fs_move('src', 'src_copy', followlinks=True)
+    fs.fs_move('src', 'src_copy')
     assert os.path.exists('src_copy')
     assert not os.path.exists('src')
     assert not os.path.exists('/dst/link')

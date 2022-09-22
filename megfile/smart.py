@@ -351,9 +351,7 @@ def smart_sync(
             followlinks=followlinks)
 
 
-def smart_remove(
-        path: PathLike, missing_ok: bool = False,
-        followlinks: bool = False) -> None:
+def smart_remove(path: PathLike, missing_ok: bool = False) -> None:
     '''
     Remove the file or directory on s3 or fs, `s3://` and `s3://bucket` are not permitted to remove
 
@@ -361,20 +359,18 @@ def smart_remove(
     :param missing_ok: if False and target file/directory not exists, raise FileNotFoundError
     :raises: PermissionError, FileNotFoundError
     '''
-    SmartPath(path).remove(missing_ok=missing_ok, followlinks=followlinks)
+    SmartPath(path).remove(missing_ok=missing_ok)
 
 
-def smart_rename(
-        src_path: PathLike, dst_path: PathLike,
-        followlinks: bool = False) -> None:
+def smart_rename(src_path: PathLike, dst_path: PathLike) -> None:
     '''
     Move file on s3 or fs. `s3://` or `s3://bucket` is not allowed to move
 
     :param src_path: Given source path
     :param dst_path: Given destination path
     '''
-    if smart_isdir(src_path, followlinks=followlinks):
-        raise IsADirectoryError('%r is a directory' % PathLike)
+    if smart_isdir(src_path):
+        raise IsADirectoryError('%r is a directory' % src_path)
     src_protocol, _ = SmartPath._extract_protocol(src_path)
     dst_protocol, _ = SmartPath._extract_protocol(dst_path)
     if src_protocol == dst_protocol:
@@ -384,9 +380,7 @@ def smart_rename(
     smart_unlink(src_path)
 
 
-def smart_move(
-        src_path: PathLike, dst_path: PathLike,
-        followlinks: bool = False) -> None:
+def smart_move(src_path: PathLike, dst_path: PathLike) -> None:
     '''
     Move file/directory on s3 or fs. `s3://` or `s3://bucket` is not allowed to move
 
@@ -396,13 +390,10 @@ def smart_move(
     src_protocol, _ = SmartPath._extract_protocol(src_path)
     dst_protocol, _ = SmartPath._extract_protocol(dst_path)
     if src_protocol == dst_protocol:
-        if src_protocol == 'file':
-            SmartPath(src_path).rename(dst_path, followlinks=followlinks)
-        else:
-            SmartPath(src_path).rename(dst_path)
+        SmartPath(src_path).rename(dst_path)
         return
-    smart_sync(src_path, dst_path, followlinks=followlinks)
-    smart_remove(src_path, followlinks=followlinks)
+    smart_sync(src_path, dst_path, followlinks=True)
+    smart_remove(src_path)
 
 
 def smart_unlink(path: PathLike, missing_ok: bool = False) -> None:

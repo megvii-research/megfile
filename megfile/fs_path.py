@@ -300,27 +300,23 @@ class FSPath(URIPath):
         '''
         return fspath(os.path.relpath(self.path_without_protocol, start=start))
 
-    def rename(self, dst_path: PathLike, followlinks: bool = False) -> None:
+    def rename(self, dst_path: PathLike) -> None:
         '''
         rename file on fs
 
         :param dst_path: Given destination path
         '''
-        if self.is_dir(followlinks=followlinks):
-            shutil.move(self.path_without_protocol, dst_path)
-        else:
-            os.rename(self.path_without_protocol, dst_path)
+        shutil.move(self.path_without_protocol, dst_path)
 
-    def replace(self, dst_path: PathLike, followlinks: bool = False) -> None:
+    def replace(self, dst_path: PathLike) -> None:
         '''
         move file on fs
 
         :param dst_path: Given destination path
         '''
-        return self.rename(dst_path=dst_path, followlinks=followlinks)
+        return self.rename(dst_path=dst_path)
 
-    def remove(
-            self, missing_ok: bool = False, followlinks: bool = False) -> None:
+    def remove(self, missing_ok: bool = False) -> None:
         '''
         Remove the file or directory on fs
 
@@ -328,7 +324,7 @@ class FSPath(URIPath):
         '''
         if missing_ok and not self.exists():
             return
-        if self.is_dir(followlinks=followlinks):
+        if self.is_dir():
             shutil.rmtree(self.path_without_protocol)
         else:
             os.remove(self.path_without_protocol)
