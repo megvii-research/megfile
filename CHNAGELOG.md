@@ -1,6 +1,12 @@
 CHANGELOG
 =========
 
+## 1.0.2 - 2022.09.22
+- remove smart_getmd5_by_paths method
+- retry when catch botocore.exceptions.ResponseStreamingError
+- remove followlinks parameter in rename, move, remove; make behavior same as standard library
+- fix smart_rename bug, when rename file cross platform or device
+
 ## 1.0.1 - 2022.08.04
 - fix open mode with + in different order
 - sort smart_getmd5_by_paths parameter paths
