@@ -12,7 +12,6 @@ from typing import Any, Dict, List
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
-
 Error = Dict[str, Any]
 Location = Dict[str, Any]
 
@@ -22,21 +21,24 @@ def _locations(errors: List[Error]) -> Dict[str, Location]:
         error["path"]: {
             "uri": f"file://{Path.cwd() / error['path']}",
             "index": 0,
-        }
-        for error in errors
+        } for error in errors
     }
     for index, location in enumerate(locations.values()):
         location["index"] = index
     return locations
 
 
-def _to_sarif_result(error: Error, locations: Dict[str, Location]) -> Dict[str, Any]:
+def _to_sarif_result(error: Error,
+                     locations: Dict[str, Location]) -> Dict[str, Any]:
     LOG.info(f"Transforming:\n{error}")
 
     return {
-        "ruleId": "type-error",
-        "ruleIndex": 0,
-        "level": "error",
+        "ruleId":
+        "type-error",
+        "ruleIndex":
+        0,
+        "level":
+        "error",
         "message": {
             "text": error["description"],
         },
@@ -58,31 +60,41 @@ def _to_sarif(errors: List[Dict[str, Any]]) -> Dict[str, Any]:
     LOG.info(f"Transforming:\n{errors}")
     locations = _locations(errors)
     return {
-        "version": "2.1.0",
-        "$schema": "http://json.schemastore.org/sarif-2.1.0-rtm.4",
+        "version":
+        "2.1.0",
+        "$schema":
+        "http://json.schemastore.org/sarif-2.1.0-rtm.4",
         "runs": [
             {
                 "tool": {
                     "driver": {
-                        "name": "Pyre",
-                        "informationUri": "https://www.pyre-check.org",
+                        "name":
+                        "Pyre",
+                        "informationUri":
+                        "https://www.pyre-check.org",
                         "rules": [
                             {
                                 "id": "type-error",
-                                "shortDescription": {"text": "Type Error"},
+                                "shortDescription": {
+                                    "text": "Type Error"
+                                },
                                 "helpUri": "https://www.pyre-check.org",
-                                "help": {"text": "Pyre is a type checker for Python"},
+                                "help": {
+                                    "text": "Pyre is a type checker for Python"
+                                },
                             },
                         ],
                     }
                 },
                 "artifacts": [
-                    {"location": location}
-                    for location in sorted(
-                        locations.values(), key=lambda location: location["index"]
-                    )
+                    {
+                        "location": location
+                    } for location in sorted(
+                        locations.values(),
+                        key=lambda location: location["index"])
                 ],
-                "results": [_to_sarif_result(error, locations) for error in errors],
+                "results":
+                [_to_sarif_result(error, locations) for error in errors],
             }
         ],
     }
@@ -90,8 +102,7 @@ def _to_sarif(errors: List[Dict[str, Any]]) -> Dict[str, Any]:
 
 if __name__ == "__main__":
     logging.basicConfig(
-        format="%(asctime)s [%(levelname)s] %(message)s", level=logging.DEBUG
-    )
+        format="%(asctime)s [%(levelname)s] %(message)s", level=logging.DEBUG)
 
     sarif = _to_sarif(json.load(sys.stdin))
     json.dump(sarif, sys.stdout, indent=4)

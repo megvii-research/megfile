@@ -31,7 +31,7 @@ from megfile.lib.s3_pipe_handler import S3PipeHandler
 from megfile.lib.s3_prefetch_reader import DEFAULT_BLOCK_SIZE, S3PrefetchReader
 from megfile.lib.s3_share_cache_reader import S3ShareCacheReader
 from megfile.smart_path import SmartPath
-from megfile.utils import calculate_md5, generate_cache_path, get_binary_mode, is_readable, necessary_params, thread_local
+from megfile.utils import cachedproperty, calculate_md5, generate_cache_path, get_binary_mode, is_readable, necessary_params, thread_local
 
 __all__ = [
     'S3Path',
@@ -58,6 +58,11 @@ __all__ = [
     's3_upload',
     's3_download',
     's3_load_content',
+    's3_readlink',
+    's3_glob',
+    's3_glob_stat',
+    's3_iglob',
+    's3_rename',
 ]
 _logger = get_logger(__name__)
 content_md5_header = 'megfile-content-md5'
@@ -988,6 +993,37 @@ def s3_load_content(
         )(client, bucket, key, range_str)
 
 
+def s3_readlink(path) -> str:
+    '''
+    Return a string representing the path to which the symbolic link points.
+
+    :returns: Return a string representing the path to which the symbolic link points.
+    :raises: S3NameTooLongError, S3BucketNotFoundError, S3IsADirectoryError, S3NotALinkError
+    '''
+    bucket, key = parse_s3_url(path)
+    if not bucket:
+        raise S3BucketNotFoundError('Empty bucket name: %r' % path)
+    if not key or key.endswith('/'):
+        raise S3IsADirectoryError('Is a directory: %r' % path)
+    metadata = _s3_get_metadata(path)
+
+    if not 'symlink_to' in metadata:
+        raise S3NotALinkError('Not a link: %r' % path)
+    else:
+        return metadata['symlink_to']
+
+
+def s3_rename(src_url: PathLike, dst_url: PathLike):
+    '''
+    Move s3 file path from src_url to dst_url
+
+    :param dst_url: Given destination path
+    '''
+    src_path_ins = S3Path(src_url)
+    src_path_ins.copy(dst_url)
+    src_path_ins.remove()
+
+
 class S3Cacher(FileCacher):
     cache_path = None
 
@@ -1009,6 +1045,64 @@ class S3Cacher(FileCacher):
             if self.mode in ('w', 'a'):
                 s3_upload(self.cache_path, self.name)
             os.unlink(self.cache_path)
+
+
+def s3_glob(path: PathLike, recursive: bool = True,
+            missing_ok: bool = True) -> List[str]:
+    '''Return s3 path list in ascending alphabetical order, in which path matches glob pattern
+    Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
+
+    :param recursive: If False, `**` will not search directory recursively
+    :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
+    :raises: UnsupportedError, when bucket part contains wildcard characters
+    :returns: A list contains paths match `s3_pathname`
+    '''
+    return list(s3_iglob(path=path, recursive=recursive, missing_ok=missing_ok))
+
+
+def s3_glob_stat(
+        path: PathLike,
+        recursive: bool = True,
+        missing_ok: bool = True,
+        followlinks: bool = False) -> Iterator[FileEntry]:
+    '''Return a generator contains tuples of path and file stat, in ascending alphabetical order, in which path matches glob pattern
+    Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
+
+    :param recursive: If False, `**` will not search directory recursively
+    :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
+    :raises: UnsupportedError, when bucket part contains wildcard characters
+    :returns: A generator contains tuples of path and file stat, in which paths match `s3_pathname`
+    '''
+    s3_pathname = fspath(path)
+
+    def create_generator():
+        for group_s3_pathname_1 in _group_s3path_by_bucket(s3_pathname):
+            for group_s3_pathname_2 in _group_s3path_by_prefix(
+                    group_s3_pathname_1):
+                yield _s3_glob_stat_single_path(
+                    group_s3_pathname_2,
+                    recursive,
+                    missing_ok,
+                    followlinks=followlinks)
+
+    return _create_missing_ok_generator(
+        create_generator(), missing_ok,
+        S3FileNotFoundError('No match file: %r' % s3_pathname))
+
+
+def s3_iglob(path: PathLike, recursive: bool = True,
+             missing_ok: bool = True) -> Iterator['S3Path']:
+    '''Return s3 path iterator in ascending alphabetical order, in which path matches glob pattern
+    Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
+
+    :param recursive: If False, `**` will not search directory recursively
+    :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
+    :raises: UnsupportedError, when bucket part contains wildcard characters
+    :returns: An iterator contains paths match `s3_pathname`
+    '''
+    for path, _ in s3_glob_stat(path=path, recursive=recursive,
+                                missing_ok=missing_ok):
+        yield path
 
 
 @SmartPath.register
@@ -1090,8 +1184,8 @@ class S3Path(URIPath):
         '''
         return self.stat(followlinks=followlinks).size
 
-    def glob(self, recursive: bool = True,
-             missing_ok: bool = True) -> List[str]:
+    def glob(self, pattern, recursive: bool = True,
+             missing_ok: bool = True) -> List['S3Path']:
         '''Return s3 path list in ascending alphabetical order, in which path matches glob pattern
         Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
 
@@ -1100,10 +1194,13 @@ class S3Path(URIPath):
         :raises: UnsupportedError, when bucket part contains wildcard characters
         :returns: A list contains paths match `s3_pathname`
         '''
-        return list(self.iglob(recursive=recursive, missing_ok=missing_ok))
+        return list(
+            self.iglob(
+                pattern=pattern, recursive=recursive, missing_ok=missing_ok))
 
     def glob_stat(
             self,
+            pattern,
             recursive: bool = True,
             missing_ok: bool = True,
             followlinks: bool = False) -> Iterator[FileEntry]:
@@ -1115,26 +1212,12 @@ class S3Path(URIPath):
         :raises: UnsupportedError, when bucket part contains wildcard characters
         :returns: A generator contains tuples of path and file stat, in which paths match `s3_pathname`
         '''
-        s3_pathname = fspath(self.path_with_protocol)
+        path = fspath(self.joinpath(pattern).path_with_protocol)
+        return s3_glob_stat(
+            path=path, recursive=recursive, missing_ok=missing_ok)
 
-        iterables = []
-        for group_s3_pathname_1 in _group_s3path_by_bucket(s3_pathname):
-            for group_s3_pathname_2 in _group_s3path_by_prefix(
-                    group_s3_pathname_1):
-                iterables.append(
-                    _s3_glob_stat_single_path(
-                        group_s3_pathname_2,
-                        recursive,
-                        missing_ok,
-                        followlinks=followlinks))
-
-        generator = chain(*iterables)
-        return _create_missing_ok_generator(
-            generator, missing_ok,
-            S3FileNotFoundError('No match file: %r' % s3_pathname))
-
-    def iglob(self, recursive: bool = True,
-              missing_ok: bool = True) -> Iterator[str]:
+    def iglob(self, pattern, recursive: bool = True,
+              missing_ok: bool = True) -> Iterator['S3Path']:
         '''Return s3 path iterator in ascending alphabetical order, in which path matches glob pattern
         Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
 
@@ -1143,14 +1226,10 @@ class S3Path(URIPath):
         :raises: UnsupportedError, when bucket part contains wildcard characters
         :returns: An iterator contains paths match `s3_pathname`
         '''
-        s3_glob_stat_iter = self.glob_stat(
-            recursive=recursive, missing_ok=missing_ok)
-
-        def create_generator() -> Iterator[str]:
-            for path, _ in s3_glob_stat_iter:
-                yield path
-
-        return create_generator()
+        glob_path = fspath(self.joinpath(pattern).path_with_protocol)
+        for path in s3_iglob(path=glob_path, recursive=recursive,
+                             missing_ok=missing_ok):
+            yield self.from_path(path)
 
     def is_dir(self, **kwargs) -> bool:
         '''
@@ -1218,6 +1297,18 @@ class S3Path(URIPath):
         '''
         entries = list(self.scandir(followlinks=followlinks))
         return sorted([entry.name for entry in entries])
+
+    def iterdir(self, followlinks: bool = False) -> List['S3Path']:
+        '''
+        Get all contents of given s3_url. The result is in acsending alphabetical order.
+
+        :returns: All contents have prefix of s3_url in acsending alphabetical order
+        :raises: S3FileNotFoundError, S3NotADirectoryError
+        '''
+        return [
+            self.from_path(path)
+            for path in self.listdir_to_str_path(followlinks=followlinks)
+        ]
 
     def load(self, followlinks: bool = False) -> BinaryIO:
         '''Read all content in binary on specified path and write into memory
@@ -1372,14 +1463,14 @@ class S3Path(URIPath):
                 raise S3UnknownError(
                     Exception(error_msg), self.path_with_protocol)
 
-    def rename(self, dst_url: PathLike) -> None:
+    def rename(self, dst_url: PathLike) -> 'S3Path':
         '''
         Move s3 file path from src_url to dst_url
 
         :param dst_url: Given destination path
         '''
-        self.copy(dst_url)
-        self.remove()
+        s3_rename(self.path_with_protocol, dst_url)
+        return self.from_path(dst_url)
 
     def scan(self, missing_ok: bool = True,
              followlinks: bool = False) -> Iterator[str]:
@@ -1771,26 +1862,14 @@ class S3Path(URIPath):
                 Key=dst_key,
                 Metadata={"symlink_to": src_url})
 
-    def readlink(self) -> PathLike:
+    def readlink(self) -> 'S3Path':
         '''
-        Return a string representing the path to which the symbolic link points.
+        Return a S3Path instance representing the path to which the symbolic link points.
 
-        :returns: Return a string representing the path to which the symbolic link points.
+        :returns: Return a S3Path instance representing the path to which the symbolic link points.
         :raises: S3NameTooLongError, S3BucketNotFoundError, S3IsADirectoryError, S3NotALinkError
         '''
-        bucket, key = parse_s3_url(self.path_with_protocol)
-        if not bucket:
-            raise S3BucketNotFoundError(
-                'Empty bucket name: %r' % self.path_with_protocol)
-        if not key or key.endswith('/'):
-            raise S3IsADirectoryError(
-                'Is a directory: %r' % self.path_with_protocol)
-        metadata = _s3_get_metadata(self.path_with_protocol)
-
-        if not 'symlink_to' in metadata:
-            raise S3NotALinkError('Not a link: %r' % self.path_with_protocol)
-        else:
-            return metadata['symlink_to']
+        return self.from_path(s3_readlink(self.path_with_protocol))
 
     def is_symlink(self) -> bool:
         '''
@@ -1833,3 +1912,34 @@ class S3Path(URIPath):
         return s3_open_func(
             self.path_with_protocol, mode,
             **necessary_params(s3_open_func, **kwargs))
+
+    @cachedproperty
+    def parts(self) -> Tuple[str]:
+        parts = [self.root]
+        path = self.path_without_protocol
+        path = path.lstrip('/')
+        if path != '':
+            parts.extend(path.split('/'))
+        return tuple(parts)
+
+    def is_mount(self) -> bool:
+        return False
+
+    def is_socket(self) -> bool:
+        return False
+
+    def is_fifo(self) -> bool:
+        return False
+
+    def is_block_device(self) -> bool:
+        return False
+
+    def is_char_device(self) -> bool:
+        return False
+
+    def rmdir(self):
+        if not self.is_dir():
+            raise NotADirectoryError("Not a directory: '%r'" % self)
+        if len(self.listdir()) > 0:
+            raise OSError("Directory not empty: '%r'" % self)
+        return self.remove()

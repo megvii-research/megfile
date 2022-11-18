@@ -1,7 +1,7 @@
 from typing import BinaryIO, Callable, Iterator, List, Optional, Tuple
 
 from megfile.interfaces import Access, FileEntry, PathLike, StatResult
-from megfile.s3_path import S3BufferedWriter, S3Cacher, S3LimitedSeekableWriter, S3Path, S3PrefetchReader, S3ShareCacheReader, get_endpoint_url, get_s3_client, get_s3_session, is_s3, parse_s3_url, s3_buffered_open, s3_cached_open, s3_download, s3_legacy_open, s3_load_content, s3_memory_open, s3_open, s3_path_join, s3_pipe_open, s3_prefetch_open, s3_share_cache_open, s3_upload
+from megfile.s3_path import S3BufferedWriter, S3Cacher, S3LimitedSeekableWriter, S3Path, S3PrefetchReader, S3ShareCacheReader, get_endpoint_url, get_s3_client, get_s3_session, is_s3, parse_s3_url, s3_buffered_open, s3_cached_open, s3_download, s3_glob, s3_glob_stat, s3_iglob, s3_legacy_open, s3_load_content, s3_memory_open, s3_open, s3_path_join, s3_pipe_open, s3_prefetch_open, s3_readlink, s3_rename, s3_share_cache_open, s3_upload
 
 __all__ = [
     'S3Path',
@@ -28,13 +28,15 @@ __all__ = [
     's3_upload',
     's3_download',
     's3_load_content',
+    's3_readlink',
+    's3_glob',
+    's3_glob_stat',
+    's3_iglob',
+    's3_rename',
     's3_access',
     's3_exists',
     's3_getmtime',
     's3_getsize',
-    's3_glob',
-    's3_glob_stat',
-    's3_iglob',
     's3_isdir',
     's3_isfile',
     's3_listdir',
@@ -43,7 +45,6 @@ __all__ = [
     's3_makedirs',
     's3_move',
     's3_remove',
-    's3_rename',
     's3_scan',
     's3_scan_stat',
     's3_scandir',
@@ -54,7 +55,6 @@ __all__ = [
     's3_copy',
     's3_sync',
     's3_symlink',
-    's3_readlink',
     's3_islink',
     's3_save_as',
 ]
@@ -113,51 +113,6 @@ def s3_getsize(path: PathLike, followlinks: bool = False) -> int:
     :raises: S3FileNotFoundError, UnsupportedError
     '''
     return S3Path(path).getsize(followlinks)
-
-
-def s3_glob(path: PathLike, recursive: bool = True,
-            missing_ok: bool = True) -> List[str]:
-    '''Return s3 path list in ascending alphabetical order, in which path matches glob pattern
-    Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
-
-    :param path: Given path
-    :param recursive: If False, `**` will not search directory recursively
-    :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
-    :raises: UnsupportedError, when bucket part contains wildcard characters
-    :returns: A list contains paths match `s3_pathname`
-    '''
-    return S3Path(path).glob(recursive, missing_ok)
-
-
-def s3_glob_stat(
-        path: PathLike,
-        recursive: bool = True,
-        missing_ok: bool = True,
-        followlinks: bool = False) -> Iterator[FileEntry]:
-    '''Return a generator contains tuples of path and file stat, in ascending alphabetical order, in which path matches glob pattern
-    Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
-
-    :param path: Given path
-    :param recursive: If False, `**` will not search directory recursively
-    :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
-    :raises: UnsupportedError, when bucket part contains wildcard characters
-    :returns: A generator contains tuples of path and file stat, in which paths match `s3_pathname`
-    '''
-    return S3Path(path).glob_stat(recursive, missing_ok, followlinks)
-
-
-def s3_iglob(path: PathLike, recursive: bool = True,
-             missing_ok: bool = True) -> Iterator[str]:
-    '''Return s3 path iterator in ascending alphabetical order, in which path matches glob pattern
-    Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
-
-    :param path: Given path
-    :param recursive: If False, `**` will not search directory recursively
-    :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
-    :raises: UnsupportedError, when bucket part contains wildcard characters
-    :returns: An iterator contains paths match `s3_pathname`
-    '''
-    return S3Path(path).iglob(recursive, missing_ok)
 
 
 def s3_isdir(path: PathLike) -> bool:
@@ -247,16 +202,6 @@ def s3_remove(path: PathLike, missing_ok: bool = False) -> None:
     :raises: S3PermissionError, S3FileNotFoundError, UnsupportedError
     '''
     return S3Path(path).remove(missing_ok)
-
-
-def s3_rename(src_url: PathLike, dst_url: PathLike) -> None:
-    '''
-    Move s3 file path from src_url to dst_url
-
-    :param src_url: Given path
-    :param dst_url: Given destination path
-    '''
-    return S3Path(src_url).rename(dst_url)
 
 
 def s3_scan(path: PathLike, missing_ok: bool = True,
@@ -406,17 +351,6 @@ def s3_symlink(src_url: PathLike, dst_url: PathLike) -> None:
     :raises: S3NameTooLongError, S3BucketNotFoundError, S3IsADirectoryError
     '''
     return S3Path(src_url).symlink(dst_url)
-
-
-def s3_readlink(path: PathLike) -> PathLike:
-    '''
-    Return a string representing the path to which the symbolic link points.
-
-    :param path: Given path
-    :returns: Return a string representing the path to which the symbolic link points.
-    :raises: S3NameTooLongError, S3BucketNotFoundError, S3IsADirectoryError, S3NotALinkError
-    '''
-    return S3Path(path).readlink()
 
 
 def s3_islink(path: PathLike) -> bool:

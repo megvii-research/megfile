@@ -1,3 +1,4 @@
+import os
 from collections.abc import Sequence
 from enum import Enum
 from functools import wraps
@@ -22,6 +23,11 @@ class StatResult(NamedTuple):
 
 in Python 3.6+
 '''
+
+# 这个需要和标准库对其么
+# os.stat_result(st_mode=33188, st_ino=7876932, st_dev=234881026,
+# st_nlink=1, st_uid=501, st_gid=501, st_size=264, st_atime=1297230295,
+# st_mtime=1297230027, st_ctime=1297230027)
 
 _StatResult = NamedTuple(
     'StatResult', [
@@ -184,18 +190,19 @@ class BasePath:
         """Iterate through the files in the directory, with file stat."""
 
     @method_not_implemented
-    def glob(self, recursive: bool = True,
-             missing_ok: bool = True) -> List[str]:  # type: ignore
+    def glob(self, pattern, recursive: bool = True,
+             missing_ok: bool = True) -> List['BasePath']:  # type: ignore
         """Return files whose paths match the glob pattern."""
 
     @method_not_implemented
-    def iglob(self, recursive: bool = True,
-              missing_ok: bool = True) -> Iterator[str]:  # type: ignore
+    def iglob(self, pattern, recursive: bool = True,
+              missing_ok: bool = True) -> Iterator['BasePath']:  # type: ignore
         """Return an iterator of files whose paths match the glob pattern."""
 
     @method_not_implemented
-    def glob_stat(self, recursive: bool = True, missing_ok: bool = True
-                 ) -> Iterator[FileEntry]:  # type: ignore
+    def glob_stat(
+            self, pattern, recursive: bool = True,
+            missing_ok: bool = True) -> Iterator[FileEntry]:  # type: ignore
         """Return an iterator of files with stat whose paths match the glob pattern."""
 
     @method_not_implemented
@@ -373,15 +380,6 @@ class URIPath(BaseURIPath):
         return self.from_path(uri_join(str(self), *map(str, other_paths)))
 
     @cachedproperty
-    def parts(self) -> Tuple[str]:
-        parts = [self.root]
-        path = self.path_without_protocol
-        path = path.lstrip('/')
-        if path != '':
-            parts.extend(path.split('/'))
-        return tuple(parts)
-
-    @cachedproperty
     def parents(self) -> "URIPathParents":
         return URIPathParents(self)
 
@@ -434,11 +432,17 @@ class URIPath(BaseURIPath):
                 return True
         return match(self.path_with_protocol) is not None
 
-    def relative_to(self, other) -> "BaseURIPath":
+    def is_relative_to(self, *other) -> bool:
+        try:
+            self.relative_to(*other)
+            return True
+        except Exception:
+            return False
+
+    def relative_to(self, *other) -> "BaseURIPath":
         if not other:
             raise TypeError("need at least one argument")
-        if not isinstance(other, str):
-            raise TypeError("%r is not 'str'" % (type(other)))
+        other = str(self.from_path(other[0]).joinpath(*other[1:]))
 
         path = self.path_without_protocol
         if other.startswith(self.root):
@@ -454,12 +458,15 @@ class URIPath(BaseURIPath):
     def with_name(self, name) -> "BaseURIPath":
         path = str(self)
         raw_name = self.name
-        return type(self)(path[:len(path) - len(raw_name)] + name)
+        return self.from_path(path[:len(path) - len(raw_name)] + name)
+
+    def with_stem(self, stem) -> "BaseURIPath":
+        return self.with_name("".join([stem, self.suffix]))
 
     def with_suffix(self, suffix) -> "BaseURIPath":
         path = str(self)
         raw_suffix = self.suffix
-        return type(self)(path[:len(path) - len(raw_suffix)] + suffix)
+        return self.from_path(path[:len(path) - len(raw_suffix)] + suffix)
 
     def is_absolute(self) -> bool:
         return True
@@ -478,6 +485,56 @@ class URIPath(BaseURIPath):
 
     def resolve(self):
         return self.path_with_protocol
+
+    def lstat(self) -> StatResult:
+        return self.stat(followlinks=False)
+
+    def lchmod(self, mode: int):
+        '''
+        Like chmod() but, if the path points to a symbolic link, the symbolic link’s mode is changed rather than its target’s.
+        '''
+        return self.chmod(mode=mode, follow_symlinks=False)
+
+    def read_bytes(self) -> bytes:
+        with self.open(mode='rb') as f:
+            return f.read()
+
+    def read_text(self) -> str:
+        with self.open(mode='r') as f:
+            return f.read()
+
+    def replace(self, dst_path: PathLike) -> 'URIPath':
+        '''
+        move file
+
+        :param dst_path: Given destination path
+        '''
+        return self.rename(dst_path=dst_path)
+
+    def rglob(self, patten) -> List['URIPath']:
+        if not patten:
+            patten = ""
+        patten += '**/'
+        return self.glob(patten=patten)
+
+    def samefile(self, other_path) -> bool:
+        return self.parts == self.from_path(str(other_path)).parts
+
+    def symlink_to(self, target, target_is_directory=False):
+        '''
+        Make this path a symbolic link to target. 
+        Target_is_directory’s value is ignored, only be compatible with pathlib.Path
+        '''
+        return self.symlink(dst_path=target)
+
+    def write_bytes(self, data: bytes):
+        with self.open(mode='wb') as f:
+            f.write(data)
+
+    def write_text(self, data: str, encoding=None, errors=None, newline=None):
+        with self.open(mode='w', encoding=encoding, errors=errors,
+                       newline=newline) as f:
+            return f.write(data)
 
 
 class URIPathParents(Sequence):
