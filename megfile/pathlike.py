@@ -380,6 +380,15 @@ class URIPath(BaseURIPath):
         return self.from_path(uri_join(str(self), *map(str, other_paths)))
 
     @cachedproperty
+    def parts(self) -> Tuple[str]:
+        parts = [self.root]
+        path = self.path_without_protocol
+        path = path.lstrip('/')
+        if path != '':
+            parts.extend(path.split('/'))
+        return tuple(parts)
+
+    @cachedproperty
     def parents(self) -> "URIPathParents":
         return URIPathParents(self)
 

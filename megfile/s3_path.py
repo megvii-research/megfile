@@ -1913,15 +1913,6 @@ class S3Path(URIPath):
             self.path_with_protocol, mode,
             **necessary_params(s3_open_func, **kwargs))
 
-    @cachedproperty
-    def parts(self) -> Tuple[str]:
-        parts = [self.root]
-        path = self.path_without_protocol
-        path = path.lstrip('/')
-        if path != '':
-            parts.extend(path.split('/'))
-        return tuple(parts)
-
     def is_mount(self) -> bool:
         return False
 
