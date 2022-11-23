@@ -1337,8 +1337,10 @@ def assert_glob(pattern, expected, recursive=True, missing_ok=True):
 
 def assert_glob_stat(pattern, expected, recursive=True, missing_ok=True):
     assert sorted(
-        s3.s3_glob_stat(pattern, recursive=recursive,
-                        missing_ok=missing_ok)) == sorted(expected)
+        list(
+            s3.s3_glob_stat(
+                pattern, recursive=recursive,
+                missing_ok=missing_ok))) == sorted(list(expected))
 
 
 def _s3_glob_with_common_wildcard():
@@ -1877,7 +1879,7 @@ def test_s3_glob_cross_bucket(truncating_client):
 
 def test_s3_iglob(truncating_client):
     with pytest.raises(UnsupportedError) as error:
-        s3.s3_iglob('s3://')
+        list(s3.s3_iglob('s3://'))
 
 
 def test_group_s3path_by_bucket(truncating_client):
@@ -1970,13 +1972,13 @@ def test_s3_glob_stat(truncating_client, mocker):
     assert original_calls == (os.path.lexists, os.path.isdir, os.scandir)
 
     with pytest.raises(UnsupportedError) as error:
-        s3.s3_glob_stat('s3://')
+        list(s3.s3_glob_stat('s3://'))
 
     with pytest.raises(S3BucketNotFoundError) as error:
-        s3.s3_glob_stat('s3:///key')
+        list(s3.s3_glob_stat('s3:///key'))
 
-    with pytest.raises(UnsupportedError) as error:
-        s3.s3_glob_stat('/')
+    with pytest.raises(ValueError) as error:
+        list(s3.s3_glob_stat('/'))
 
     with pytest.raises(FileNotFoundError):
         list(
@@ -2075,7 +2077,7 @@ def test_s3_glob_stat_cross_bucket(truncating_client, mocker):
     assert original_calls == (os.path.lexists, os.path.isdir, os.scandir)
 
     with pytest.raises(UnsupportedError) as error:
-        s3.s3_glob_stat('s3://')
+        list(s3.s3_glob_stat('s3://'))
 
     with pytest.raises(FileNotFoundError):
         list(

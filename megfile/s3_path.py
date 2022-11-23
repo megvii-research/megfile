@@ -1079,7 +1079,7 @@ def s3_glob_stat(
         for group_s3_pathname_1 in _group_s3path_by_bucket(s3_pathname):
             for group_s3_pathname_2 in _group_s3path_by_prefix(
                     group_s3_pathname_1):
-                yield _s3_glob_stat_single_path(
+                yield from _s3_glob_stat_single_path(
                     group_s3_pathname_2,
                     recursive,
                     missing_ok,

@@ -95,23 +95,8 @@ def test_uri_path(mocker):
     assert uri_path_b.suffixes == []
 
     with pytest.raises(TypeError):
-        uri_path.relative_to(None)
+        uri_path.relative_to()
 
-    with pytest.raises(TypeError):
+    with pytest.raises(ValueError):
         uri_path.relative_to(1)
     assert uri_path.resolve() == 'fs://test'
-
-
-def test_samefile():
-    from pathlib import Path
-
-    from megfile.fs_path import FSPath
-
-    a = URIPath('/a/test')
-    assert a.samefile(FSPath('/a/test')) is True
-    assert a.samefile(Path('/a/test')) is True
-
-    assert a.samefile('a/test') is False
-    assert a.samefile('/a/./test') is True
-    assert a.samefile('/a/../test') is False
-    assert a.samefile('/a/../a/test') is True

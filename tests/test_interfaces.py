@@ -142,10 +142,7 @@ def test_basepath(mocker):
 
 
 class Klass7(URIPath):
-
-    @classmethod
-    def get_protocol(cls) -> str:
-        return "test"
+    protocol = "test"
 
 
 def test_uripath_as_uri(mocker):

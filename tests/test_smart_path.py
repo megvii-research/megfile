@@ -1,5 +1,10 @@
+import os
+from io import BufferedReader, BytesIO
+
+import boto3
 import pytest
 from mock import patch
+from moto import mock_s3
 
 from megfile.errors import ProtocolExistsError, ProtocolNotFoundError
 from megfile.fs_path import FSPath
@@ -34,6 +39,17 @@ HTTPS_TEST_PATH = HTTPS_PROTOCOL_PRFIX + HTTPS_TEST_PATH_WITHOUT_PROTOCOL
 STDIO_PROTOCOL_PRFIX = StdioPath.protocol + "://"
 STDIO_TEST_PATH_WITHOUT_PROTOCOL = "-"
 STDIO_TEST_PATH = STDIO_PROTOCOL_PRFIX + STDIO_TEST_PATH_WITHOUT_PROTOCOL
+
+BUCKET = "bucket"
+
+
+@pytest.fixture
+def s3_empty_client(mocker):
+    with mock_s3():
+        client = boto3.client('s3')
+        client.create_bucket(Bucket=BUCKET)
+        mocker.patch('megfile.s3_path.get_s3_client', return_value=client)
+        yield client
 
 
 def test_register_result():
@@ -325,3 +341,47 @@ def test_symlink_to_s3(funcA):
 def test_readlink_s3(funcA):
     SmartPath(S3_TEST_PATH).readlink()
     funcA.assert_called_once()
+
+
+def test_samefile(s3_empty_client, fs, mocker):
+    from pathlib import Path
+
+    from megfile.fs_path import FSPath
+    from megfile.http_path import HttpPath
+    from megfile.s3_path import S3Path
+    from megfile.smart import smart_copy
+
+    os.makedirs('/a')
+    fs_path = FSPath('/a/test')
+    with open(fs_path, 'w') as f:
+        f.write('test')
+
+    with open('test', 'w') as f:
+        f.write('test1')
+    assert fs_path.samefile(FSPath('/a/test')) is True
+    assert fs_path.samefile(Path('/a/test')) is True
+
+    assert fs_path.samefile('a/test') is True
+    assert fs_path.samefile('/a/./test') is True
+    assert fs_path.samefile('/a/../test') is False
+    assert fs_path.samefile('/a/../a/test') is True
+
+    s3_path = S3Path(f's3://{BUCKET}/test')
+    smart_copy(fs_path, str(s3_path))
+
+    assert s3_path.samefile(FSPath('/a/test')) is True
+    assert s3_path.samefile(Path('/a/test')) is True
+    assert s3_path.samefile(f's3://{BUCKET}/test') is True
+    assert s3_path.samefile('/a/../test') is False
+
+    mocker.patch(
+        'megfile.http_path.HttpPath.open',
+        return_value=BufferedReader(BytesIO(b'test')))
+    http_path = HttpPath(f'http://test')
+    assert http_path.samefile('/a/test') is True
+
+    with pytest.raises(FileNotFoundError):
+        s3_path.samefile('/a/not_found')
+
+    with pytest.raises(FileNotFoundError):
+        s3_path.samefile(f's3://{BUCKET}/not_found')

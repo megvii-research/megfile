@@ -146,11 +146,12 @@ def test_parent():
     assert S3Path('../bar').parent == S3Path('..')
     assert S3Path('/foo/bar').parent == S3Path('/foo')
     assert S3Path('/foo').parent == S3Path('/')
+    assert S3Path('/').parent == S3Path('/')
     assert S3Path('foo').parent == S3Path('')
 
-    assert str(S3Path('foo', '../bar').parent) == 'foo/..'
-    assert str(S3Path('/').parent) == '/'
-    assert str(S3Path('s3://').parent) == 's3://'
+    assert S3Path('foo', '../bar').parent == 's3://foo/..'
+    assert S3Path('/').parent == 's3://'
+    assert S3Path('s3://').parent == 's3://'
 
 
 def test_name():

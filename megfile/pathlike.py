@@ -394,15 +394,16 @@ class URIPath(BaseURIPath):
 
     @cachedproperty
     def parent(self) -> "BaseURIPath":
-        parts = self.parts[1:]
-        if len(parts) == 0:
+        if self.path_without_protocol == "/":
             return self
-        return self.parents[0]
+        elif len(self.parents) > 0:
+            return self.parents[0]
+        return self.from_path("")
 
     @cachedproperty
     def name(self) -> str:
         parts = self.parts
-        if len(parts) == 1:
+        if len(parts) == 1 and parts[0] == self.root:
             return ''
         return parts[-1]
 
@@ -527,7 +528,12 @@ class URIPath(BaseURIPath):
         return self.glob(patten=patten)
 
     def samefile(self, other_path) -> bool:
-        return self.parts == self.from_path(str(other_path)).parts
+        '''
+        Compare files have the same md5
+        '''
+        from megfile.smart_path import SmartPath
+        other_path = SmartPath(other_path)
+        return self.md5(recalculate=True) == other_path.md5(recalculate=True)
 
     def symlink_to(self, target, target_is_directory=False):
         '''
@@ -551,18 +557,25 @@ class URIPathParents(Sequence):
     def __init__(self, path):
         # We don't store the instance to avoid reference cycles
         self.cls = type(path)
-        self.parts = path.parts[1:]
-        self.prefix = path.parts[0]
-        if not str(path).startswith(path.parts[0]):
-            if str(path).startswith('/'):
-                self.prefix = '/'
-            else:
-                self.prefix = ''
+        parts = path.parts
+        if len(parts) > 0 and parts[0] == path.root:
+            self.prefix = parts[0]
+            self.parts = parts[1:]
+        else:
+            self.prefix = ''
+            self.parts = parts
 
     def __len__(self):
-        return len(self.parts) - 1
+        return max(len(self.parts) - 1, 0)
 
     def __getitem__(self, idx):
         if idx < 0 or idx > len(self):
             raise IndexError(idx)
-        return self.cls(self.prefix + '/'.join(self.parts[:-idx - 1]))
+
+        if len(self.parts[:-idx - 1]) > 1:
+            other_path = os.path.join(*self.parts[:-idx - 1])
+        elif len(self.parts[:-idx - 1]) == 1:
+            other_path = self.parts[:-idx - 1][0]
+        else:
+            other_path = ""
+        return self.cls(self.prefix + other_path)

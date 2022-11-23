@@ -70,27 +70,23 @@ def test_operators():
 
 
 def test_parts():
-    assert FSPath('file://foo//bar').parts == ('file://', 'foo', '', 'bar')
-    assert FSPath('file://foo/./bar').parts == ('file://', 'foo', '.', 'bar')
-    assert FSPath('file://foo/../bar').parts == ('file://', 'foo', '..', 'bar')
-    assert FSPath('file://../bar').parts == ('file://', '..', 'bar')
-    assert (FSPath('file://foo') /
-            '../bar').parts == ('file://', 'foo', '..', 'bar')
-    assert FSPath('file://foo/bar').parts == ('file://', 'foo', 'bar')
+    assert FSPath('file://foo//bar').parts == ('foo', 'bar')
+    assert FSPath('file://foo/./bar').parts == ('foo', 'bar')
+    assert FSPath('file://foo/../bar').parts == ('foo', '..', 'bar')
+    assert FSPath('file://../bar').parts == ('..', 'bar')
+    assert (FSPath('file://foo') / '../bar').parts == ('foo', '..', 'bar')
+    assert FSPath('file://foo/bar').parts == ('foo', 'bar')
 
-    assert FSPath('file://foo',
-                  '../bar').parts == ('file://', 'foo', '..', 'bar')
-    assert FSPath('file://', 'foo', 'bar').parts == ('file://', 'foo', 'bar')
+    assert FSPath('file://foo', '../bar').parts == ('foo', '..', 'bar')
+    assert FSPath('file://', 'foo', 'bar').parts == ('foo', 'bar')
 
-
-#     TODO: Need discussion. parts of path stared with 'file://' should include 'file://' or not
-#     assert FSPath('foo//bar').parts == ('foo', '', 'bar')
-#     assert FSPath('foo/./bar').parts == ('foo', '.', 'bar')
-#     assert FSPath('foo/../bar').parts == ('foo', '..', 'bar')
-#     assert FSPath('../bar').parts == ('..', 'bar')
-#     assert FSPath('foo', '../bar').parts == ('foo', '..', 'bar')
-#     assert FSPath('foo/bar').parts == ('foo', 'bar')
-#     assert FSPath('/', 'foo', 'bar').parts == ('', '', 'foo', 'bar')
+    assert FSPath('foo//bar').parts == ('foo', 'bar')
+    assert FSPath('foo/./bar').parts == ('foo', 'bar')
+    assert FSPath('foo/../bar').parts == ('foo', '..', 'bar')
+    assert FSPath('../bar').parts == ('..', 'bar')
+    assert FSPath('foo', '../bar').parts == ('foo', '..', 'bar')
+    assert FSPath('foo/bar').parts == ('foo', 'bar')
+    assert FSPath('/', 'foo', 'bar').parts == ('/', 'foo', 'bar')
 
 
 def test_drive():
@@ -130,10 +126,8 @@ def test_anchor():
 
 
 def test_parents():
-    assert tuple(FSPath('foo//bar').parents) == (
-        FSPath('foo/'), FSPath('foo'), FSPath(''))
-    assert tuple(FSPath('foo/./bar').parents) == (
-        FSPath('foo/.'), FSPath('foo'), FSPath(''))
+    assert tuple(FSPath('foo//bar').parents) == (FSPath('foo'), FSPath(''))
+    assert tuple(FSPath('foo/./bar').parents) == (FSPath('foo'), FSPath(''))
     assert tuple(FSPath('foo/../bar').parents) == (
         FSPath('foo/..'), FSPath('foo'), FSPath(''))
     assert tuple(FSPath('../bar').parents) == (FSPath('..'), FSPath(''))

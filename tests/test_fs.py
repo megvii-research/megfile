@@ -1080,13 +1080,6 @@ def test_fs_expanduser(mocker):
     funcA.assert_called_once_with(path)
 
 
-def test_fs_resolve(mocker):
-    path = '/tmp/refiletest/src'
-    funcA = mocker.patch('os.path.realpath')
-    fs.fs_resolve(path)
-    funcA.assert_called_once_with(path)
-
-
 def test_fs_getmd5(filesystem):
     path = '/tmp/md5.txt'
     with open(path, 'wb') as f:

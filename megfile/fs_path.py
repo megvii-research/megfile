@@ -146,7 +146,7 @@ def fs_glob_stat(
     :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
     :returns: A list contains tuples of path and file stat, in which paths match `pathname`
     '''
-    for path in iglob(path=path, recursive=recursive, missing_ok=missing_ok):
+    for path in fs_iglob(path=path, recursive=recursive, missing_ok=missing_ok):
         yield FileEntry(path, _make_stat(os.lstat(path)))
 
 

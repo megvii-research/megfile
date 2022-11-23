@@ -91,18 +91,15 @@ def test_operators():
 
 
 def test_parts():
-    assert SmartPath('file://foo//bar').parts == ('file://', 'foo', '', 'bar')
-    assert SmartPath('file://foo/./bar').parts == ('file://', 'foo', '.', 'bar')
-    assert SmartPath('file://foo/../bar').parts == (
-        'file://', 'foo', '..', 'bar')
-    assert SmartPath('file://../bar').parts == ('file://', '..', 'bar')
-    assert (SmartPath('file://foo') /
-            '../bar').parts == ('file://', 'foo', '..', 'bar')
-    assert SmartPath('file://foo/bar').parts == ('file://', 'foo', 'bar')
+    assert SmartPath('file://foo//bar').parts == ('foo', 'bar')
+    assert SmartPath('file://foo/./bar').parts == ('foo', 'bar')
+    assert SmartPath('file://foo/../bar').parts == ('foo', '..', 'bar')
+    assert SmartPath('file://../bar').parts == ('..', 'bar')
+    assert (SmartPath('file://foo') / '../bar').parts == ('foo', '..', 'bar')
+    assert SmartPath('file://foo/bar').parts == ('foo', 'bar')
 
-    assert SmartPath('file://foo',
-                     '../bar').parts == ('file://', 'foo', '..', 'bar')
-    assert SmartPath('file://', 'foo', 'bar').parts == ('file://', 'foo', 'bar')
+    assert SmartPath('file://foo', '../bar').parts == ('foo', '..', 'bar')
+    assert SmartPath('file://', 'foo', 'bar').parts == ('foo', 'bar')
 
     assert SmartPath('s3://foo//bar').parts == ('s3://', 'foo', '', 'bar')
     assert SmartPath('s3://foo/./bar').parts == ('s3://', 'foo', '.', 'bar')
@@ -116,15 +113,13 @@ def test_parts():
                      '../bar').parts == ('s3://', 'foo', '..', 'bar')
     assert SmartPath('s3://', 'foo', 'bar').parts == ('s3://', 'foo', 'bar')
 
-
-#     TODO: 讨论这种不带 'file://' 开头的构造返回的 parts 要不要含有 'file://'
-#     assert SmartPath('foo//bar').parts == ('foo', '', 'bar')
-#     assert SmartPath('foo/./bar').parts == ('foo', '.', 'bar')
-#     assert SmartPath('foo/../bar').parts == ('foo', '..', 'bar')
-#     assert SmartPath('../bar').parts == ('..', 'bar')
-#     assert SmartPath('foo', '../bar').parts == ('foo', '..', 'bar')
-#     assert SmartPath('foo/bar').parts == ('foo', 'bar')
-#     assert SmartPath('/', 'foo', 'bar').parts == ('', '', 'foo', 'bar')
+    assert SmartPath('foo//bar').parts == ('foo', 'bar')
+    assert SmartPath('foo/./bar').parts == ('foo', 'bar')
+    assert SmartPath('foo/../bar').parts == ('foo', '..', 'bar')
+    assert SmartPath('../bar').parts == ('..', 'bar')
+    assert SmartPath('foo', '../bar').parts == ('foo', '..', 'bar')
+    assert SmartPath('foo/bar').parts == ('foo', 'bar')
+    assert SmartPath('/', 'foo', 'bar').parts == ('/', 'foo', 'bar')
 
 
 def test_drive():
@@ -147,9 +142,6 @@ def test_root():
     assert SmartPath('foo/../bar').root == 'file://'
     assert SmartPath('../bar').root == 'file://'
 
-    # TODO: 下面是还暂不支持的用法
-    # assert SmartPath('foo', '../bar').root == ''
-
 
 def test_anchor():
     assert SmartPath('file://foo/bar').anchor == 'file://'
@@ -159,15 +151,12 @@ def test_anchor():
     assert SmartPath('foo/../bar').anchor == 'file://'
     assert SmartPath('../bar').anchor == 'file://'
 
-    # TODO: 下面是还暂不支持的用法
-    # assert SmartPath('foo', '../bar').anchor == ''
-
 
 def test_parents():
-    assert tuple(SmartPath('foo//bar').parents) == (
-        SmartPath('foo/'), SmartPath('foo'), SmartPath(''))
-    assert tuple(SmartPath('foo/./bar').parents) == (
-        SmartPath('foo/.'), SmartPath('foo'), SmartPath(''))
+    assert tuple(
+        SmartPath('foo//bar').parents) == (SmartPath('foo'), SmartPath(''))
+    assert tuple(
+        SmartPath('foo/./bar').parents) == (SmartPath('foo'), SmartPath(''))
     assert tuple(SmartPath('foo/../bar').parents) == (
         SmartPath('foo/..'), SmartPath('foo'), SmartPath(''))
     assert tuple(
@@ -176,7 +165,7 @@ def test_parents():
         SmartPath('foo/..'), SmartPath('foo'), SmartPath(''))
 
     assert tuple(SmartPath('file://foo/bar').parents) == (
-        SmartPath('file://foo'), SmartPath('file://'))
+        SmartPath('foo'), SmartPath(''))
 
 
 def test_parent():
