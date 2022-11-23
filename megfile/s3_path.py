@@ -1466,14 +1466,14 @@ class S3Path(URIPath):
                 raise S3UnknownError(
                     Exception(error_msg), self.path_with_protocol)
 
-    def rename(self, dst_url: PathLike) -> 'S3Path':
+    def rename(self, dst_path: PathLike) -> 'S3Path':
         '''
         Move s3 file path from src_url to dst_url
 
-        :param dst_url: Given destination path
+        :param dst_path: Given destination path
         '''
-        s3_rename(self.path_with_protocol, dst_url)
-        return self.from_path(dst_url)
+        s3_rename(self.path_with_protocol, dst_path)
+        return self.from_path(dst_path)
 
     def scan(self, missing_ok: bool = True,
              followlinks: bool = False) -> Iterator[str]:
