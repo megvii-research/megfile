@@ -1189,6 +1189,7 @@ class S3Path(URIPath):
         '''Return s3 path list in ascending alphabetical order, in which path matches glob pattern
         Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
 
+        :param pattern: Glob the given relative pattern in the directory represented by this path
         :param recursive: If False, `**` will not search directory recursively
         :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
         :raises: UnsupportedError, when bucket part contains wildcard characters
@@ -1207,6 +1208,7 @@ class S3Path(URIPath):
         '''Return a generator contains tuples of path and file stat, in ascending alphabetical order, in which path matches glob pattern
         Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
 
+        :param pattern: Glob the given relative pattern in the directory represented by this path
         :param recursive: If False, `**` will not search directory recursively
         :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
         :raises: UnsupportedError, when bucket part contains wildcard characters
@@ -1221,6 +1223,7 @@ class S3Path(URIPath):
         '''Return s3 path iterator in ascending alphabetical order, in which path matches glob pattern
         Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
 
+        :param pattern: Glob the given relative pattern in the directory represented by this path
         :param recursive: If False, `**` will not search directory recursively
         :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
         :raises: UnsupportedError, when bucket part contains wildcard characters
@@ -1914,21 +1917,48 @@ class S3Path(URIPath):
             **necessary_params(s3_open_func, **kwargs))
 
     def is_mount(self) -> bool:
+        '''Test whether a path is a mount point
+
+        :returns: True if a path is a mount point, else False
+        '''
         return False
 
     def is_socket(self) -> bool:
+        '''
+        Return True if the path points to a Unix socket (or a symbolic link pointing to a Unix socket), False if it points to another kind of file.
+
+        False is also returned if the path doesn’t exist or is a broken symlink; other errors (such as permission errors) are propagated.
+        '''
         return False
 
     def is_fifo(self) -> bool:
+        '''
+        Return True if the path points to a FIFO (or a symbolic link pointing to a FIFO), False if it points to another kind of file.
+
+        False is also returned if the path doesn’t exist or is a broken symlink; other errors (such as permission errors) are propagated.
+        '''
         return False
 
     def is_block_device(self) -> bool:
+        '''
+        Return True if the path points to a block device (or a symbolic link pointing to a block device), False if it points to another kind of file.
+
+        False is also returned if the path doesn’t exist or is a broken symlink; other errors (such as permission errors) are propagated.
+        '''
         return False
 
     def is_char_device(self) -> bool:
+        '''
+        Return True if the path points to a character device (or a symbolic link pointing to a character device), False if it points to another kind of file.
+
+        False is also returned if the path doesn’t exist or is a broken symlink; other errors (such as permission errors) are propagated.
+        '''
         return False
 
     def rmdir(self):
+        '''
+        Remove this directory. The directory must be empty.
+        '''
         if not self.is_dir():
             raise NotADirectoryError("Not a directory: '%r'" % self)
         if len(self.listdir()) > 0:

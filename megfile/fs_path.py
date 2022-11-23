@@ -274,6 +274,7 @@ class FSPath(URIPath):
         4. fs_glob returns same as glob.glob(pathname, recursive=True) in acsending alphabetical order.
         5. Hidden files (filename stars with '.') will not be found in the result
 
+        :param pattern: Glob the given relative pattern in the directory represented by this path
         :param recursive: If False, `**` will not search directory recursively
         :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
         :returns: A list contains paths match `pathname`
@@ -296,6 +297,7 @@ class FSPath(URIPath):
         4. fs_glob returns same as glob.glob(pathname, recursive=True) in acsending alphabetical order.
         5. Hidden files (filename stars with '.') will not be found in the result
 
+        :param pattern: Glob the given relative pattern in the directory represented by this path
         :param recursive: If False, `**` will not search directory recursively
         :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
         :returns: A list contains tuples of path and file stat, in which paths match `pathname`
@@ -323,6 +325,7 @@ class FSPath(URIPath):
         4. fs_glob returns same as glob.glob(pathname, recursive=True) in acsending alphabetical order.
         5. Hidden files (filename stars with '.') will not be found in the result
 
+        :param pattern: Glob the given relative pattern in the directory represented by this path
         :param recursive: If False, `**` will not search directory recursively
         :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
         :returns: An iterator contains paths match `pathname`
@@ -771,6 +774,9 @@ class FSPath(URIPath):
 
     @cachedproperty
     def parts(self) -> Tuple[str]:
+        '''
+        A tuple giving access to the path’s various components
+        '''
         return pathlib.Path(self.path_without_protocol).parts
 
     def chmod(self, mode: int, *, follow_symlinks: bool = True):
@@ -787,25 +793,57 @@ class FSPath(URIPath):
             follow_symlinks=follow_symlinks)
 
     def group(self) -> str:
+        '''
+        Return the name of the group owning the file. KeyError is raised if the file’s gid isn’t found in the system database.
+        '''
         return pathlib.Path(self.path_without_protocol).group()
 
     def is_socket(self) -> bool:
+        '''
+        Return True if the path points to a Unix socket (or a symbolic link pointing to a Unix socket), False if it points to another kind of file.
+
+        False is also returned if the path doesn’t exist or is a broken symlink; other errors (such as permission errors) are propagated.
+        '''
         return pathlib.Path(self.path_without_protocol).is_socket()
 
     def is_fifo(self) -> bool:
+        '''
+        Return True if the path points to a FIFO (or a symbolic link pointing to a FIFO), False if it points to another kind of file.
+
+        False is also returned if the path doesn’t exist or is a broken symlink; other errors (such as permission errors) are propagated.
+        '''
         return pathlib.Path(self.path_without_protocol).is_fifo()
 
     def is_block_device(self) -> bool:
+        '''
+        Return True if the path points to a block device (or a symbolic link pointing to a block device), False if it points to another kind of file.
+
+        False is also returned if the path doesn’t exist or is a broken symlink; other errors (such as permission errors) are propagated.
+        '''
         return pathlib.Path(self.path_without_protocol).is_block_device()
 
     def is_char_device(self) -> bool:
+        '''
+        Return True if the path points to a character device (or a symbolic link pointing to a character device), False if it points to another kind of file.
+
+        False is also returned if the path doesn’t exist or is a broken symlink; other errors (such as permission errors) are propagated.
+        '''
         return pathlib.Path(self.path_without_protocol).is_char_device()
 
     def owner(self) -> str:
+        '''
+        Return the name of the user owning the file. KeyError is raised if the file’s uid isn’t found in the system database.
+        '''
         return pathlib.Path(self.path_without_protocol).owner()
 
     def absolute(self) -> bool:
+        '''
+        Make the path absolute, without normalization or resolving symlinks. Returns a new path object
+        '''
         return os.path.abspath(self.path_without_protocol)
 
     def rmdir(self):
+        '''
+        Remove this directory. The directory must be empty.
+        '''
         return os.rmdir(self.path_without_protocol)

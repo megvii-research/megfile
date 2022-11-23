@@ -24,11 +24,6 @@ class StatResult(NamedTuple):
 in Python 3.6+
 '''
 
-# 这个需要和标准库对其么
-# os.stat_result(st_mode=33188, st_ino=7876932, st_dev=234881026,
-# st_nlink=1, st_uid=501, st_gid=501, st_size=264, st_atime=1297230295,
-# st_mtime=1297230027, st_ctime=1297230027)
-
 _StatResult = NamedTuple(
     'StatResult', [
         ('size', int), ('ctime', float), ('mtime', float), ('isdir', bool),
