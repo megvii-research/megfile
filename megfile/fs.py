@@ -345,8 +345,6 @@ def fs_copy(
 
             3. This function is thread-unsafe
 
-    TODO: get shutil implementation, to make fs_copy thread-safe
-
     :param src_path: Given path
     :param dst_path: Target file path
     :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call

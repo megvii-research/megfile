@@ -342,15 +342,15 @@ def s3_sync(
     return S3Path(src_url).sync(dst_url, followlinks)
 
 
-def s3_symlink(src_url: PathLike, dst_url: PathLike) -> None:
+def s3_symlink(src_path: PathLike, dst_path: PathLike) -> None:
     '''
-    Create a symbolic link pointing to src_url named dst_url.
+    Create a symbolic link pointing to src_path named dst_path.
 
-    :param src_url: Given path
-    :param dst_url: Desination path
+    :param src_path: Given path
+    :param dst_path: Desination path
     :raises: S3NameTooLongError, S3BucketNotFoundError, S3IsADirectoryError
     '''
-    return S3Path(src_url).symlink(dst_url)
+    return S3Path(src_path).symlink(dst_path)
 
 
 def s3_islink(path: PathLike) -> bool:

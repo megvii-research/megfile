@@ -66,10 +66,6 @@ def test_operators():
         HttpPath('http://foo/bar/baz')
     }
 
-    # TODO: 下面是还暂不支持的用法
-    # assert 'http://foo' / HttpPath('bar') == HttpPath('http://foo/bar')
-    # assert 'foo' / HttpPath('bar') == HttpPath('foo/bar')
-
 
 def test_parts():
     assert HttpPath('http://foo//bar').parts == ('http://', 'foo', '', 'bar')

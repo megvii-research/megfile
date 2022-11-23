@@ -499,6 +499,9 @@ class URIPath(BaseURIPath):
     def lstat(self) -> StatResult:
         return self.stat(followlinks=False)
 
+    def chmod(self, mode: int, *, follow_symlinks: bool = True):
+        raise NotImplementedError
+
     def lchmod(self, mode: int):
         '''
         Like chmod() but, if the path points to a symbolic link, the symbolic link’s mode is changed rather than its target’s.
@@ -512,6 +515,9 @@ class URIPath(BaseURIPath):
     def read_text(self) -> str:
         with self.open(mode='r') as f:
             return f.read()
+
+    def rename(self, dst_path: PathLike) -> 'URIPath':
+        raise NotImplementedError
 
     def replace(self, dst_path: PathLike) -> 'URIPath':
         '''
@@ -527,6 +533,9 @@ class URIPath(BaseURIPath):
         patten += '**/'
         return self.glob(patten=patten)
 
+    def md5(self, recalculate: bool = False, followlinks: bool = False) -> str:
+        raise NotImplementedError
+
     def samefile(self, other_path) -> bool:
         '''
         Compare files have the same md5
@@ -534,6 +543,9 @@ class URIPath(BaseURIPath):
         from megfile.smart_path import SmartPath
         other_path = SmartPath(other_path)
         return self.md5(recalculate=True) == other_path.md5(recalculate=True)
+
+    def symlink(self, dst_path: PathLike) -> None:
+        raise NotImplementedError
 
     def symlink_to(self, target, target_is_directory=False):
         '''

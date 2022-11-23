@@ -1091,7 +1091,7 @@ def s3_glob_stat(
 
 
 def s3_iglob(path: PathLike, recursive: bool = True,
-             missing_ok: bool = True) -> Iterator['S3Path']:
+             missing_ok: bool = True) -> Iterator[str]:
     '''Return s3 path iterator in ascending alphabetical order, in which path matches glob pattern
     Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
 
@@ -1307,7 +1307,7 @@ class S3Path(URIPath):
         '''
         return [
             self.from_path(path)
-            for path in self.listdir_to_str_path(followlinks=followlinks)
+            for path in self.listdir(followlinks=followlinks)
         ]
 
     def load(self, followlinks: bool = False) -> BinaryIO:
@@ -1831,36 +1831,36 @@ class S3Path(URIPath):
                 self.path_with_protocol, dst_url):
             S3Path(src_file_path).copy(dst_file_path, followlinks=followlinks)
 
-    def symlink(self, dst_url: PathLike) -> None:
+    def symlink(self, dst_path: PathLike) -> None:
         '''
-        Create a symbolic link pointing to src_url named dst_url.
+        Create a symbolic link pointing to src_path named dst_path.
 
-        :param dst_url: Desination path
+        :param dst_path: Desination path
         :raises: S3NameTooLongError, S3BucketNotFoundError, S3IsADirectoryError
         '''
-        src_url = self.path_with_protocol
-        if len(str(src_url).encode()) > 1024:
-            raise S3NameTooLongError('File name too long: %r' % dst_url)
-        src_bucket, src_key = parse_s3_url(src_url)
-        dst_bucket, dst_key = parse_s3_url(dst_url)
+        src_path = self.path_with_protocol
+        if len(str(src_path).encode()) > 1024:
+            raise S3NameTooLongError('File name too long: %r' % dst_path)
+        src_bucket, src_key = parse_s3_url(src_path)
+        dst_bucket, dst_key = parse_s3_url(dst_path)
 
         if not src_bucket:
-            raise S3BucketNotFoundError('Empty bucket name: %r' % src_url)
+            raise S3BucketNotFoundError('Empty bucket name: %r' % src_path)
         if not dst_bucket:
-            raise S3BucketNotFoundError('Empty bucket name: %r' % dst_url)
+            raise S3BucketNotFoundError('Empty bucket name: %r' % dst_path)
         if not dst_key or dst_key.endswith('/'):
-            raise S3IsADirectoryError('Is a directory: %r' % dst_url)
+            raise S3IsADirectoryError('Is a directory: %r' % dst_path)
 
-        metadata = _s3_get_metadata(src_url)
+        metadata = _s3_get_metadata(src_path)
 
         if 'symlink_to' in metadata:
-            src_url = metadata['symlink_to']
-        with raise_s3_error(dst_url):
+            src_path = metadata['symlink_to']
+        with raise_s3_error(dst_path):
             client = get_s3_client()
             client.put_object(
                 Bucket=dst_bucket,
                 Key=dst_key,
-                Metadata={"symlink_to": src_url})
+                Metadata={"symlink_to": src_path})
 
     def readlink(self) -> 'S3Path':
         '''

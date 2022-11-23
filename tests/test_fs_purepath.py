@@ -64,10 +64,6 @@ def test_operators():
         FSPath('file://foo/bar/baz')
     }
 
-    # TODO: The following are the usages that are not yet supported
-    # assert 'file://foo' / FSPath('bar') == FSPath('file://foo/bar')
-    # assert 'foo' / FSPath('bar') == FSPath('foo/bar')
-
 
 def test_parts():
     assert FSPath('file://foo//bar').parts == ('foo', 'bar')
@@ -109,9 +105,6 @@ def test_root():
     assert FSPath('foo/../bar').root == 'file://'
     assert FSPath('../bar').root == 'file://'
 
-    # TODO: The following are the usages that are not yet supported
-    # assert FSPath('foo', '../bar').root == ''
-
 
 def test_anchor():
     assert FSPath('file://foo/bar').anchor == 'file://'
@@ -120,9 +113,6 @@ def test_anchor():
     assert FSPath('foo/./bar').anchor == 'file://'
     assert FSPath('foo/../bar').anchor == 'file://'
     assert FSPath('../bar').anchor == 'file://'
-
-    # TODO: The following are the usages that are not yet supported
-    # assert FSPath('foo', '../bar').anchor == ''
 
 
 def test_parents():

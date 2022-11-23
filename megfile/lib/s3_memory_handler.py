@@ -32,8 +32,7 @@ class S3MemoryHandler(Readable, Seekable, Writable):
         return self._fileobj.tell()
 
     def seek(self, cookie: int, whence: int = os.SEEK_SET) -> int:
-        # TODO: pytype deleted the pytype comment after being fixed
-        return self._fileobj.seek(cookie, whence)  # pytype: disable=bad-return-type
+        return self._fileobj.seek(cookie, whence)
 
     def readable(self) -> bool:
         return self._mode[0] == 'r' or self._mode[-1] == '+'

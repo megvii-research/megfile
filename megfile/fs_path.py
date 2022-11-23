@@ -584,7 +584,7 @@ class FSPath(URIPath):
             stack.extend(
                 (os.path.join(root, directory) for directory in reversed(dirs)))
 
-    def resolve(self, strict=False) -> 'FSPath':
+    def resolve(self, strict=False) -> pathlib.Path:
         '''Equal to fs_realpath
 
         :return: Return the canonical path of the specified filename, eliminating any symbolic links encountered in the path.
@@ -660,8 +660,6 @@ class FSPath(URIPath):
             the int data is means the size (in bytes) of the written data that is passed periodically
 
                 3. This function is thread-unsafe
-
-        TODO: get shutil implementation, to make fs_copy thread-safe
 
         :param dst_path: Target file path
         :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
@@ -756,7 +754,6 @@ class FSPath(URIPath):
             errors=None,
             newline=None,
             closefd=True,
-            opener=None,
             **kwargs) -> IO[AnyStr]:
         if not isinstance(self.path_without_protocol, int) and ('w' in mode or
                                                                 'x' in mode or
@@ -770,8 +767,7 @@ class FSPath(URIPath):
             encoding=encoding,
             errors=errors,
             newline=newline,
-            closefd=closefd,
-            opener=opener)
+            closefd=closefd)
 
     @cachedproperty
     def parts(self) -> Tuple[str]:
