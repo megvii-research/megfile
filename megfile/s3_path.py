@@ -1771,7 +1771,7 @@ class S3Path(URIPath):
             path_instance = self
             if followlinks:
                 try:
-                    path_instance = self.from_path(self.readlink())
+                    path_instance = self.readlink()
                 except S3NotALinkError:
                     pass
             with path_instance.open('rb') as f:
