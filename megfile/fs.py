@@ -316,13 +316,17 @@ def fs_walk(path: PathLike, followlinks: bool = False
     return FSPath(path).walk(followlinks)
 
 
-def fs_getmd5(path: PathLike, recalculate: bool = False):
+def fs_getmd5(
+        path: PathLike, recalculate: bool = False, followlinks: bool = True):
     '''
     Calculate the md5 value of the file
 
+    :param path: Given path
+    :param recalculate: Ignore this parameter, just for compatibility
+    :param followlinks: Ignore this parameter, just for compatibility
     returns: md5 of file
     '''
-    return FSPath(path).md5(recalculate)
+    return FSPath(path).md5(recalculate, followlinks)
 
 
 def fs_copy(

@@ -1750,6 +1750,7 @@ class S3Path(URIPath):
         If meta info is lost or non-existent, return None
 
         :param recalculate: calculate md5 in real-time or return s3 etag
+        :param followlinks: If is True, calculate md5 for real file
         :returns: md5 meta info
         '''
         bucket, _ = parse_s3_url(self.path_with_protocol)
@@ -1757,7 +1758,7 @@ class S3Path(URIPath):
             raise S3BucketNotFoundError(
                 'Empty bucket name: %r' % self.path_with_protocol)
         stat = self.stat(followlinks=followlinks)
-        if stat.isdir is True:
+        if stat.isdir:
             hash_md5 = hashlib.md5()  # nosec
             for file_name in self.listdir():
                 chunk = S3Path(
@@ -1766,8 +1767,14 @@ class S3Path(URIPath):
                         file_name)).md5(recalculate=recalculate).encode()
                 hash_md5.update(chunk)
             return hash_md5.hexdigest()
-        if recalculate is True:
-            with self.open('rb') as f:
+        if recalculate:
+            path_instance = self
+            if followlinks:
+                try:
+                    path_instance = self.from_path(self.readlink())
+                except S3NotALinkError:
+                    pass
+            with path_instance.open('rb') as f:
                 return calculate_md5(f)
         return stat.extra.get('ETag', '')[1:-1]
 

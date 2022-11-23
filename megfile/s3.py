@@ -309,6 +309,7 @@ def s3_getmd5(
 
     :param path: Given path
     :param recalculate: calculate md5 in real-time or return s3 etag
+    :param followlinks: If is True, calculate md5 for real file
     :returns: md5 meta info
     '''
     return S3Path(path).md5(recalculate, followlinks)

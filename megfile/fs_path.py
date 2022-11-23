@@ -595,10 +595,12 @@ class FSPath(URIPath):
         '''
         return pathlib.Path(self.path_without_protocol).resolve(strict=strict)
 
-    def md5(self, recalculate: bool = False):
+    def md5(self, recalculate: bool = False, followlinks: bool = True):
         '''
         Calculate the md5 value of the file
 
+        :param recalculate: Ignore this parameter, just for compatibility
+        :param followlinks: Ignore this parameter, just for compatibility
         returns: md5 of file
         '''
         if os.path.isdir(self.path_without_protocol):

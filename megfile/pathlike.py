@@ -514,13 +514,13 @@ class URIPath(BaseURIPath):
     def rename(self, dst_path: PathLike) -> 'URIPath':
         raise NotImplementedError
 
-    def replace(self, dst_path: PathLike) -> 'URIPath':
+    def replace(self, dst_path: PathLike) -> None:
         '''
         move file
 
         :param dst_path: Given destination path
         '''
-        return self.rename(dst_path=dst_path)
+        self.rename(dst_path=dst_path)
 
     def rglob(self, patten) -> List['URIPath']:
         if not patten:
