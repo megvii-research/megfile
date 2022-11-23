@@ -13,6 +13,7 @@ __all__ = [
     'http_stat',
     'http_getsize',
     'http_getmtime',
+    'http_md5',
 ]
 
 
@@ -65,3 +66,17 @@ def http_getmtime(path: PathLike) -> float:
     :raises: HttpPermissionError, HttpFileNotFoundError
     '''
     return HttpPath(path).getmtime()
+
+
+def http_md5(
+        path: PathLike, recalculate: bool = False,
+        followlinks: bool = False) -> str:
+    '''
+    Calculate the md5 value of the file by http download
+
+    :param path: Given path
+    :param recalculate: Not useful for http path, just for compatibility.
+    :param followlinks: Not useful for http path, just for compatibility.
+    :returns: md5 meta info
+    '''
+    return HttpPath(path).md5(recalculate, followlinks)
