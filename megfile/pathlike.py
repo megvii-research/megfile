@@ -447,14 +447,15 @@ class URIPath(BaseURIPath):
     def relative_to(self, *other) -> "BaseURIPath":
         if not other:
             raise TypeError("need at least one argument")
-        other = str(self.from_path(other[0]).joinpath(*other[1:]))
 
-        path = self.path_without_protocol
-        if other.startswith(self.root):
-            path = self.path_with_protocol
+        other_path = self.from_path(other[0])
+        if len(other) > 0:
+            other_path = other_path.joinpath(*other[1:])
+        other_path = other_path.path_with_protocol
+        path = self.path_with_protocol
 
-        if path.startswith(other):
-            relative = path[len(other):]
+        if path.startswith(other_path):
+            relative = path[len(other_path):]
             relative = relative.lstrip('/')
             return type(self)(relative)
         else:
