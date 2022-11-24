@@ -245,6 +245,9 @@ class BasePath:
         return self.is_symlink()
 
     def makedirs(self, exist_ok: bool = False) -> None:
+        '''
+        Recursive directory creation function. Like mkdir(), but makes all intermediate-level directories needed to contain the leaf directory.
+        '''
         self.mkdir(exist_ok=exist_ok)
 
     # pytype: enable=bad-return-type
@@ -275,6 +278,7 @@ class BaseURIPath(BasePath):
 
     @cachedproperty
     def path_with_protocol(self) -> str:
+        '''Return path with protocol, like file:///root, s3://bucket/key'''
         path = self.path
         if path.startswith(self.anchor):
             return path
@@ -282,16 +286,25 @@ class BaseURIPath(BasePath):
 
     @cachedproperty
     def path_without_protocol(self) -> str:
+        '''Return path without protocol, example: if path is s3://bucket/key, return bucket/key'''
         path = self.path
         if path.startswith(self.anchor):
             path = path[len(self.anchor):]
         return path
 
     def as_posix(self) -> str:
+        '''Return a string representation of the path with forward slashes (/)'''
         return self.path_with_protocol
 
     @classmethod
     def from_path(cls, path: str) -> "BaseURIPath":
+        """Return new instance of this class
+
+        :param path: new path 
+        :type path: str
+        :return: new instance of new path
+        :rtype: BaseURIPath
+        """
         return cls(path)
 
     @classmethod
@@ -372,10 +385,12 @@ class URIPath(BaseURIPath):
         return self.joinpath(other_path)
 
     def joinpath(self, *other_paths: PathLike) -> "BaseURIPath":
+        '''Calling this method is equivalent to combining the path with each of the other arguments in turn'''
         return self.from_path(uri_join(str(self), *map(str, other_paths)))
 
     @cachedproperty
     def parts(self) -> Tuple[str]:
+        '''A tuple giving access to the path’s various components'''
         parts = [self.root]
         path = self.path_without_protocol
         path = path.lstrip('/')
@@ -385,10 +400,12 @@ class URIPath(BaseURIPath):
 
     @cachedproperty
     def parents(self) -> "URIPathParents":
+        '''An immutable sequence providing access to the logical ancestors of the path'''
         return URIPathParents(self)
 
     @cachedproperty
     def parent(self) -> "BaseURIPath":
+        '''The logical parent of the path'''
         if self.path_without_protocol == "/":
             return self
         elif len(self.parents) > 0:
@@ -397,6 +414,7 @@ class URIPath(BaseURIPath):
 
     @cachedproperty
     def name(self) -> str:
+        '''A string representing the final path component, excluding the drive and root'''
         parts = self.parts
         if len(parts) == 1 and parts[0] == self.root:
             return ''
@@ -404,6 +422,7 @@ class URIPath(BaseURIPath):
 
     @cachedproperty
     def suffix(self) -> str:
+        '''The file extension of the final component'''
         name = self.name
         i = name.rfind('.')
         if 0 < i < len(name) - 1:
@@ -412,6 +431,7 @@ class URIPath(BaseURIPath):
 
     @cachedproperty
     def suffixes(self) -> List[str]:
+        '''A list of the path’s file extensions'''
         name = self.name
         if name.endswith('.'):
             return []
@@ -420,6 +440,7 @@ class URIPath(BaseURIPath):
 
     @cachedproperty
     def stem(self) -> str:
+        '''The final path component, without its suffix'''
         name = self.name
         i = name.rfind('.')
         if 0 < i < len(name) - 1:
@@ -430,6 +451,7 @@ class URIPath(BaseURIPath):
         return False
 
     def match(self, pattern) -> bool:
+        '''Match this path against the provided glob-style pattern. Return True if matching is successful, False otherwise'''
         match = _compile_pattern(pattern)
         for index in range(len(self.parts), 0, -1):
             path = '/'.join(self.parts[index:])
@@ -438,6 +460,7 @@ class URIPath(BaseURIPath):
         return match(self.path_with_protocol) is not None
 
     def is_relative_to(self, *other) -> bool:
+
         try:
             self.relative_to(*other)
             return True
@@ -445,6 +468,10 @@ class URIPath(BaseURIPath):
             return False
 
     def relative_to(self, *other) -> "BaseURIPath":
+        '''
+        Compute a version of this path relative to the path represented by other.
+        If it’s impossible, ValueError is raised.
+        '''
         if not other:
             raise TypeError("need at least one argument")
 
@@ -462,14 +489,17 @@ class URIPath(BaseURIPath):
             raise ValueError("%r does not start with %r" % (path, other))
 
     def with_name(self, name) -> "BaseURIPath":
+        '''Return a new path with the name changed'''
         path = str(self)
         raw_name = self.name
         return self.from_path(path[:len(path) - len(raw_name)] + name)
 
     def with_stem(self, stem) -> "BaseURIPath":
+        '''Return a new path with the stem changed'''
         return self.with_name("".join([stem, self.suffix]))
 
     def with_suffix(self, suffix) -> "BaseURIPath":
+        '''Return a new path with the suffix changed'''
         path = str(self)
         raw_suffix = self.suffix
         return self.from_path(path[:len(path) - len(raw_suffix)] + suffix)
@@ -493,6 +523,7 @@ class URIPath(BaseURIPath):
         return self.path_with_protocol
 
     def lstat(self) -> StatResult:
+        '''Like Path.stat() but, if the path points to a symbolic link, return the symbolic link’s information rather than its target’s.'''
         return self.stat(followlinks=False)
 
     def chmod(self, mode: int, *, follow_symlinks: bool = True):
@@ -505,10 +536,12 @@ class URIPath(BaseURIPath):
         return self.chmod(mode=mode, follow_symlinks=False)
 
     def read_bytes(self) -> bytes:
+        '''Return the binary contents of the pointed-to file as a bytes object'''
         with self.open(mode='rb') as f:
             return f.read()
 
     def read_text(self) -> str:
+        '''Return the decoded contents of the pointed-to file as a string'''
         with self.open(mode='r') as f:
             return f.read()
 
@@ -524,9 +557,12 @@ class URIPath(BaseURIPath):
         self.rename(dst_path=dst_path)
 
     def rglob(self, patten) -> List['URIPath']:
+        '''
+        This is like calling Path.glob() with “**/” added in front of the given relative pattern
+        '''
         if not patten:
             patten = ""
-        patten += '**/'
+        patten = '**/' + patten.lstrip('/')
         return self.glob(patten=patten)
 
     def md5(self, recalculate: bool = False, followlinks: bool = False) -> str:
@@ -551,10 +587,15 @@ class URIPath(BaseURIPath):
         return self.symlink(dst_path=target)
 
     def write_bytes(self, data: bytes):
+        '''Open the file pointed to in bytes mode, write data to it, and close the file'''
         with self.open(mode='wb') as f:
             f.write(data)
 
     def write_text(self, data: str, encoding=None, errors=None, newline=None):
+        '''
+        Open the file pointed to in text mode, write data to it, and close the file.
+        The optional parameters have the same meaning as in open().
+        '''
         with self.open(mode='w', encoding=encoding, errors=errors,
                        newline=newline) as f:
             return f.write(data)
