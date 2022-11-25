@@ -1020,7 +1020,10 @@ def s3_rename(src_url: PathLike, dst_url: PathLike):
     :param dst_url: Given destination path
     '''
     src_path_ins = S3Path(src_url)
-    src_path_ins.copy(dst_url)
+    if src_path_ins.is_file():
+        src_path_ins.copy(dst_url)
+    else:
+        src_path_ins.sync(dst_url)
     src_path_ins.remove()
 
 
