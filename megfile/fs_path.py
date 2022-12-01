@@ -32,6 +32,7 @@ __all__ = [
     'fs_glob',
     'fs_glob_stat',
     'fs_rename',
+    'fs_resolve',
 ]
 
 
@@ -158,6 +159,15 @@ def fs_rename(src_path: PathLike, dst_path: PathLike) -> None:
     :param dst_path: Given destination path
     '''
     shutil.move(src_path, dst_path)
+
+
+def fs_resolve(path: PathLike) -> str:
+    '''Equal to fs_realpath, return the real path of given path
+
+    :param path: Given path
+    :returns: Real path of given path
+    '''
+    return FSPath(path).realpath()
 
 
 @SmartPath.register

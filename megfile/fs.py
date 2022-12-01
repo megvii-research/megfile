@@ -1,6 +1,6 @@
 from typing import BinaryIO, Callable, Iterator, List, Optional, Tuple
 
-from megfile.fs_path import FSPath, StatResult, _make_stat, fs_cwd, fs_glob, fs_glob_stat, fs_home, fs_iglob, fs_path_join, fs_readlink, fs_rename, is_fs
+from megfile.fs_path import FSPath, StatResult, _make_stat, fs_cwd, fs_glob, fs_glob_stat, fs_home, fs_iglob, fs_path_join, fs_readlink, fs_rename, fs_resolve, is_fs
 from megfile.interfaces import Access, FileEntry, PathLike, StatResult
 
 __all__ = [
@@ -16,6 +16,7 @@ __all__ = [
     'fs_glob',
     'fs_glob_stat',
     'fs_rename',
+    'fs_resolve',
     'fs_isabs',
     'fs_abspath',
     'fs_access',
