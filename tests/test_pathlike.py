@@ -29,7 +29,7 @@ def test_base_path(mocker):
 def test_base_uri_path_as_posix(mocker):
     path = '/test'
     base_uri_path = BaseURIPath(path)
-    mocker.patch('megfile.pathlike.BaseURIPath.anchor', 'fs://')
+    mocker.patch('megfile.pathlike.BaseURIPath.protocol', 'fs')
     assert base_uri_path.as_posix() == 'fs://test'
 
 

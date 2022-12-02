@@ -97,22 +97,23 @@ def test_drive():
 
 
 def test_root():
-    assert FSPath('file://foo/bar').root == 'file://'
+    assert FSPath('file://foo/bar').root == ''
 
-    assert FSPath('/foo/bar').root == 'file://'
-    assert FSPath('foo//bar').root == 'file://'
-    assert FSPath('foo/./bar').root == 'file://'
-    assert FSPath('foo/../bar').root == 'file://'
-    assert FSPath('../bar').root == 'file://'
+    assert FSPath('/foo/bar').root == '/'
+    assert FSPath('foo//bar').root == ''
+    assert FSPath('foo/./bar').root == ''
+    assert FSPath('foo/../bar').root == ''
+    assert FSPath('../bar').root == ''
 
 
 def test_anchor():
-    assert FSPath('file://foo/bar').anchor == 'file://'
+    assert FSPath('file://foo/bar').anchor == ''
 
-    assert FSPath('foo//bar').anchor == 'file://'
-    assert FSPath('foo/./bar').anchor == 'file://'
-    assert FSPath('foo/../bar').anchor == 'file://'
-    assert FSPath('../bar').anchor == 'file://'
+    assert FSPath('foo//bar').anchor == ''
+    assert FSPath('foo/./bar').anchor == ''
+    assert FSPath('foo/../bar').anchor == ''
+    assert FSPath('../bar').anchor == ''
+    assert FSPath('/bar').anchor == '/'
 
 
 def test_parents():

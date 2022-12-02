@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 
 from megfile.lib.compat import fspath
+from megfile.s3_path import S3Path
 from megfile.smart_path import SmartPath
 
 
@@ -131,24 +132,30 @@ def test_drive():
 
     assert SmartPath('foo', '../bar').drive == ''
 
+    assert SmartPath('s3://bucket/test').drive == ''
+
 
 def test_root():
-    assert SmartPath('file://foo/bar').root == 'file://'
+    assert SmartPath('foo/bar').root == ''
 
-    assert SmartPath('/foo/bar').root == 'file://'
-    assert SmartPath('foo//bar').root == 'file://'
-    assert SmartPath('foo/./bar').root == 'file://'
-    assert SmartPath('foo/../bar').root == 'file://'
-    assert SmartPath('../bar').root == 'file://'
+    assert SmartPath('/foo/bar').root == '/'
+    assert SmartPath('foo//bar').root == ''
+    assert SmartPath('foo/./bar').root == ''
+    assert SmartPath('foo/../bar').root == ''
+    assert SmartPath('../bar').root == ''
+
+    assert SmartPath('s3://bucket/test').root == 's3://'
 
 
 def test_anchor():
-    assert SmartPath('file://foo/bar').anchor == 'file://'
+    assert SmartPath('/foo/bar').anchor == '/'
 
-    assert SmartPath('foo//bar').anchor == 'file://'
-    assert SmartPath('foo/./bar').anchor == 'file://'
-    assert SmartPath('foo/../bar').anchor == 'file://'
-    assert SmartPath('../bar').anchor == 'file://'
+    assert SmartPath('foo//bar').anchor == ''
+    assert SmartPath('foo/./bar').anchor == ''
+    assert SmartPath('foo/../bar').anchor == ''
+    assert SmartPath('../bar').anchor == ''
+
+    assert SmartPath('s3://bucket/test').anchor == 's3://'
 
 
 def test_parents():
@@ -181,6 +188,7 @@ def test_parent():
 def test_name():
     assert SmartPath('file://foo/bar/baz.py').name == 'baz.py'
     assert SmartPath('foo/bar/baz.py').name == 'baz.py'
+    assert SmartPath('s3://foo/bar/baz.py').name == 'baz.py'
 
 
 def test_suffix():
@@ -189,6 +197,9 @@ def test_suffix():
 
     assert SmartPath('foo/bar/baz.py').suffix == '.py'
     assert SmartPath('foo/bar').suffix == ''
+
+    assert SmartPath('s3://foo/bar/baz.py').suffix == '.py'
+    assert SmartPath('s3://foo/bar').suffix == ''
 
 
 def test_suffixes():
@@ -199,6 +210,10 @@ def test_suffixes():
     assert SmartPath('foo/bar.tar.gar').suffixes == ['.tar', '.gar']
     assert SmartPath('foo/bar.tar.gz').suffixes == ['.tar', '.gz']
     assert SmartPath('foo/bar').suffixes == []
+
+    assert SmartPath('s3://foo/bar.tar.gar').suffixes == ['.tar', '.gar']
+    assert SmartPath('s3://foo/bar.tar.gz').suffixes == ['.tar', '.gz']
+    assert SmartPath('s3://foo/bar').suffixes == []
 
 
 def test_stem():
@@ -230,6 +245,15 @@ def test_reserved():
     assert not SmartPath('foo/bar').is_reserved()
 
 
+def test_is_relative_to():
+    assert SmartPath('file://foo/bar').is_relative_to('foo')
+    assert not SmartPath('file:///foo/bar').is_relative_to('foo')
+
+    assert SmartPath('s3://foo/bar').is_relative_to('s3://foo')
+    assert SmartPath('s3://foo/bar').is_relative_to('foo')
+    assert not SmartPath('s3://foo/bar').is_relative_to('bar')
+
+
 def test_joinpath():
     assert SmartPath('file://foo').joinpath('bar') == SmartPath(
         'file://foo/bar')
@@ -242,6 +266,12 @@ def test_joinpath():
     assert SmartPath('foo').joinpath(SmartPath('bar')) == SmartPath('foo/bar')
     assert SmartPath('foo').joinpath('bar', 'baz') == SmartPath('foo/bar/baz')
 
+    assert SmartPath('s3://foo').joinpath('bar') == SmartPath('s3://foo/bar')
+    assert SmartPath('s3://foo').joinpath(
+        SmartPath('bar')) == SmartPath('s3://foo/bar')
+    assert SmartPath('s3://foo').joinpath(
+        'bar', 'baz') == SmartPath('s3://foo/bar/baz')
+
 
 def test_match():
     assert SmartPath('a/b.py').match('*.py')
@@ -252,6 +282,11 @@ def test_match():
     assert not SmartPath('a/b.py').match('file://*.py')
     assert not SmartPath('a/b.py').match('*.Py')
 
+    assert SmartPath('s3://a/b.py').match('*.py')
+    assert SmartPath('s3://a/b.py').match('s3://a/b.py')
+    assert not SmartPath('s3://a/b.py').match('s3://*.py')
+    assert not SmartPath('s3://a/b.py').match('*.Py')
+
 
 def test_relative_to():
     path = SmartPath('file://foo/bar')
@@ -259,6 +294,13 @@ def test_relative_to():
     assert path.relative_to('file://foo') == SmartPath('bar')
     with pytest.raises(ValueError):
         path.relative_to('file://baz')
+
+    path = SmartPath('s3://foo/bar')
+    assert path.relative_to('s3://') == S3Path('foo/bar')
+    assert path.relative_to('s3://foo') == S3Path('bar')
+    assert path.relative_to('foo') == S3Path('bar')
+    with pytest.raises(ValueError):
+        path.relative_to('s3://baz')
 
 
 def test_relative_to_relative():
@@ -272,13 +314,20 @@ def test_relative_to_relative():
 def test_with_name():
     path = SmartPath('file://foo/bar.tar.gz')
     assert path.with_name('baz.py') == SmartPath('file://foo/baz.py')
-    path = SmartPath('file://')
-
-    # with pytest.raises(ValueError):
-    #     path.with_name('baz.py')
 
     path = SmartPath('foo/bar.tar.gz')
     assert path.with_name('baz.py') == SmartPath('foo/baz.py')
+
+    path = SmartPath('s3://foo/bar.tar.gz')
+    assert path.with_name('baz.py') == SmartPath('s3://foo/baz.py')
+
+
+def test_with_stem():
+    path = SmartPath('file://foo/bar.tar.gz')
+    assert path.with_stem('baz') == SmartPath('file://foo/baz.gz')
+
+    path = SmartPath('s3://foo/bar.tar.gz')
+    assert path.with_stem('baz') == SmartPath('s3://foo/baz.gz')
 
 
 def test_with_suffix():
@@ -288,3 +337,6 @@ def test_with_suffix():
     assert path.with_suffix('.txt') == SmartPath('baz.txt')
     path = SmartPath('baz.txt')
     assert path.with_suffix('') == SmartPath('baz')
+
+    path = SmartPath('s3://foo/bar.tar.gz')
+    assert path.with_suffix('.bz2') == SmartPath('s3://foo/bar.tar.bz2')

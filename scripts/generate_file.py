@@ -11,7 +11,8 @@ ALL_IGNORE_FUNC_LIST = dict(
         "open", "from_uri", "path_with_protocol", "joinpath", "readlink",
         "iterdir", "chmod", "group", "is_socket", "is_fifo", "is_block_device",
         "is_char_device", "rmdir", "owner", "absolute", "resolve", "cwd",
-        "home", "glob", "iglob", "glob_stat", "rename", "parts"
+        "home", "glob", "iglob", "glob_stat", "rename", "parts", "root",
+        "anchor", "drive"
     ],
     http=[],
 )

@@ -188,6 +188,18 @@ class FSPath(URIPath):
     def __fspath__(self) -> str:
         return os.path.normpath(self.path_without_protocol)
 
+    @cachedproperty
+    def root(self) -> str:
+        return pathlib.Path(self.path_without_protocol).root
+
+    @cachedproperty
+    def anchor(self) -> str:
+        return pathlib.Path(self.path_without_protocol).anchor
+
+    @cachedproperty
+    def drive(self) -> str:
+        return pathlib.Path(self.path_without_protocol).drive
+
     @classmethod
     def from_uri(cls, path: str) -> "FSPath":
         return cls.from_path(path)
@@ -196,9 +208,10 @@ class FSPath(URIPath):
     def path_with_protocol(self) -> Union[str, int]:
         if isinstance(self.path, int):
             return self.path
-        if self.path.startswith(self.anchor):
+        protocol_prefix = self.protocol + "://"
+        if self.path.startswith(protocol_prefix):
             return self.path
-        return self.anchor + self.path
+        return protocol_prefix + self.path
 
     def is_absolute(self) -> bool:
         '''Test whether a path is absolute

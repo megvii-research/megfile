@@ -280,16 +280,18 @@ class BaseURIPath(BasePath):
     def path_with_protocol(self) -> str:
         '''Return path with protocol, like file:///root, s3://bucket/key'''
         path = self.path
-        if path.startswith(self.anchor):
+        protocol_prefix = self.protocol + "://"
+        if path.startswith(protocol_prefix):
             return path
-        return self.anchor + path.lstrip('/')
+        return protocol_prefix + path.lstrip('/')
 
     @cachedproperty
     def path_without_protocol(self) -> str:
         '''Return path without protocol, example: if path is s3://bucket/key, return bucket/key'''
         path = self.path
-        if path.startswith(self.anchor):
-            path = path[len(self.anchor):]
+        protocol_prefix = self.protocol + "://"
+        if path.startswith(protocol_prefix):
+            path = path[len(protocol_prefix):]
         return path
 
     def as_posix(self) -> str:
@@ -309,11 +311,12 @@ class BaseURIPath(BasePath):
 
     @classmethod
     def from_uri(cls, path: str) -> "BaseURIPath":
-        if path[:len(cls.anchor)] != cls.anchor:
+        protocol_prefix = cls.protocol + "://"
+        if path[:len(protocol_prefix)] != protocol_prefix:
             raise ValueError(
                 "protocol not match, expected: %r, got: %r" %
                 (cls.protocol, path))
-        return cls.from_path(path[len(cls.anchor):])
+        return cls.from_path(path[len(protocol_prefix):])
 
     def __fspath__(self) -> str:
         return self.as_uri()
@@ -416,7 +419,7 @@ class URIPath(BaseURIPath):
     def name(self) -> str:
         '''A string representing the final path component, excluding the drive and root'''
         parts = self.parts
-        if len(parts) == 1 and parts[0] == self.root:
+        if len(parts) == 1 and parts[0] == self.protocol + "://":
             return ''
         return parts[-1]
 
@@ -607,7 +610,7 @@ class URIPathParents(Sequence):
         # We don't store the instance to avoid reference cycles
         self.cls = type(path)
         parts = path.parts
-        if len(parts) > 0 and parts[0] == path.root:
+        if len(parts) > 0 and parts[0] == path.protocol + "://":
             self.prefix = parts[0]
             self.parts = parts[1:]
         else:
