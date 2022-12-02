@@ -391,7 +391,7 @@ class FSPath(URIPath):
         :returns: All contents have in the path in acsending alphabetical order
         '''
         for path in self.listdir():
-            yield self.joinpath(path)
+            yield self.joinpath(path)  # type: ignore
 
     def load(self) -> BinaryIO:
         '''Read all content on specified path and write into memory

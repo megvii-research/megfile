@@ -1311,7 +1311,7 @@ class S3Path(URIPath):
         :raises: S3FileNotFoundError, S3NotADirectoryError
         '''
         for path in self.listdir(followlinks=followlinks):
-            yield self.joinpath(path)
+            yield self.joinpath(path)  # type: ignore
 
     def load(self, followlinks: bool = False) -> BinaryIO:
         '''Read all content in binary on specified path and write into memory
