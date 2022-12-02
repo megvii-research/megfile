@@ -25,7 +25,6 @@ def test_fspath():
 
     assert fspath(SmartPath('s3://bucket/key')) == 's3://bucket/key'
     assert fspath(SmartPath('s3://foo.bar')) == 's3://foo.bar'
-    assert fspath(SmartPath('s3:////foo.bar')) == 's3://foo.bar'
 
 
 def test_join_strs():

@@ -5,7 +5,6 @@ import os
 import re
 import time
 from functools import lru_cache, wraps
-from itertools import chain
 from logging import getLogger as get_logger
 from typing import IO, Any, AnyStr, BinaryIO, Callable, Dict, Iterator, List, Optional, Tuple, Union
 from urllib.parse import urlsplit
@@ -31,7 +30,7 @@ from megfile.lib.s3_pipe_handler import S3PipeHandler
 from megfile.lib.s3_prefetch_reader import DEFAULT_BLOCK_SIZE, S3PrefetchReader
 from megfile.lib.s3_share_cache_reader import S3ShareCacheReader
 from megfile.smart_path import SmartPath
-from megfile.utils import cachedproperty, calculate_md5, generate_cache_path, get_binary_mode, is_readable, necessary_params, thread_local
+from megfile.utils import calculate_md5, generate_cache_path, get_binary_mode, is_readable, necessary_params, thread_local
 
 __all__ = [
     'S3Path',
@@ -1304,17 +1303,15 @@ class S3Path(URIPath):
         entries = list(self.scandir(followlinks=followlinks))
         return sorted([entry.name for entry in entries])
 
-    def iterdir(self, followlinks: bool = False) -> List['S3Path']:
+    def iterdir(self, followlinks: bool = False) -> Iterator['S3Path']:
         '''
         Get all contents of given s3_url. The result is in acsending alphabetical order.
 
         :returns: All contents have prefix of s3_url in acsending alphabetical order
         :raises: S3FileNotFoundError, S3NotADirectoryError
         '''
-        return [
-            self.from_path(path)
-            for path in self.listdir(followlinks=followlinks)
-        ]
+        for path in self.listdir(followlinks=followlinks):
+            yield self.joinpath(path)
 
     def load(self, followlinks: bool = False) -> BinaryIO:
         '''Read all content in binary on specified path and write into memory

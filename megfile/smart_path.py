@@ -65,12 +65,12 @@ class SmartPath(BasePath):
 
     @classmethod
     def _create_pathlike(cls, path: Union[PathLike, int]) -> BasePath:
-        protocol, path_without_protocol = cls._extract_protocol(path)
+        protocol, _ = cls._extract_protocol(path)
         if protocol not in cls._registered_protocols:
             raise ProtocolNotFoundError(
                 'protocol %r not found: %r' % (protocol, path))
         path_class = cls._registered_protocols[protocol]
-        return path_class(path_without_protocol)
+        return path_class(path)
 
     @classmethod
     def register(cls, path_class, override_ok: bool = False):

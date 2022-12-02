@@ -384,13 +384,14 @@ class FSPath(URIPath):
         '''
         return sorted(os.listdir(self.path_without_protocol))
 
-    def iterdir(self) -> List['FSPath']:
+    def iterdir(self) -> Iterator['FSPath']:
         '''
         Get all contents of given fs path. The result is in acsending alphabetical order.
 
         :returns: All contents have in the path in acsending alphabetical order
         '''
-        return [self.from_path(path) for path in self.listdir()]
+        for path in self.listdir():
+            yield self.joinpath(path)
 
     def load(self) -> BinaryIO:
         '''Read all content on specified path and write into memory
