@@ -862,11 +862,11 @@ class FSPath(URIPath):
         '''
         return pathlib.Path(self.path_without_protocol).owner()
 
-    def absolute(self) -> bool:
+    def absolute(self) -> 'FSPath':
         '''
         Make the path absolute, without normalization or resolving symlinks. Returns a new path object
         '''
-        return os.path.abspath(self.path_without_protocol)
+        return self.from_path(os.path.abspath(self.path_without_protocol))
 
     def rmdir(self):
         '''

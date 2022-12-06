@@ -1971,3 +1971,9 @@ class S3Path(URIPath):
         if len(self.listdir()) > 0:
             raise OSError("Directory not empty: '%r'" % self)
         return self.remove()
+
+    def absolute(self) -> 'S3Path':
+        '''
+        Make the path absolute, without normalization or resolving symlinks. Returns a new path object
+        '''
+        return self

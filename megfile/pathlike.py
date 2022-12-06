@@ -575,9 +575,17 @@ class URIPath(BaseURIPath):
         '''
         Compare files have the same md5
         '''
-        from megfile.smart_path import SmartPath
-        other_path = SmartPath(other_path)
-        return self.md5(recalculate=True) == other_path.md5(recalculate=True)
+        if hasattr(other_path, 'protocol'):
+            if other_path.protocol != self.protocol:
+                return False
+        other_path = self.from_path(other_path)
+        if other_path.is_symlink():
+            other_path = other_path.readlink()
+
+        self_real_path = self
+        if self.is_symlink():
+            self_real_path = self.readlink()
+        return self_real_path.realpath() == other_path.realpath()
 
     def symlink(self, dst_path: PathLike) -> None:
         raise NotImplementedError
