@@ -148,7 +148,8 @@ def fs_glob_stat(
     :returns: A list contains tuples of path and file stat, in which paths match `pathname`
     '''
     for path in fs_iglob(path=path, recursive=recursive, missing_ok=missing_ok):
-        yield FileEntry(path, _make_stat(os.lstat(path)))
+        yield FileEntry(
+            os.path.basename(path), path, _make_stat(os.lstat(path)))
 
 
 def fs_rename(src_path: PathLike, dst_path: PathLike) -> None:
@@ -264,16 +265,18 @@ class FSPath(URIPath):
             return os.path.exists(self.path_without_protocol)
         return os.path.lexists(self.path_without_protocol)
 
-    def getmtime(self) -> float:
+    def getmtime(self, followlinks: bool = False) -> float:
         '''
         Get last-modified time of the file on the given path (in Unix timestamp format).
         If the path is an existent directory, return the latest modified time of all file in it.
 
         :returns: last-modified time
         '''
-        return self.stat().mtime
+        if followlinks:
+            return self.stat().mtime
+        return self.lstat().mtime
 
-    def getsize(self) -> int:
+    def getsize(self, followlinks: bool = False) -> int:
         '''
         Get file size on the given file path (in bytes).
         If the path in a directory, return the sum of all file size in it, including file in subdirectories (if exist).
@@ -282,7 +285,9 @@ class FSPath(URIPath):
         :returns: File size
 
         '''
-        return self.stat().size
+        if followlinks:
+            return self.stat().size
+        return self.lstat().size
 
     def glob(self, pattern, recursive: bool = True,
              missing_ok: bool = True) -> List['FSPath']:
@@ -325,9 +330,11 @@ class FSPath(URIPath):
         :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
         :returns: A list contains tuples of path and file stat, in which paths match `pathname`
         '''
-        for path in self.iglob(pattern=pattern, recursive=recursive,
-                               missing_ok=missing_ok):
-            yield FileEntry(path, _make_stat(os.lstat(path)))
+        for path_obj in self.iglob(pattern=pattern, recursive=recursive,
+                                   missing_ok=missing_ok):
+            yield FileEntry(
+                path_obj.name, path_obj.path,
+                _make_stat(os.lstat(path_obj.path)))
 
     def expanduser(self):
         '''Expand ~ and ~user constructions.  If user or $HOME is unknown,
@@ -512,7 +519,8 @@ class FSPath(URIPath):
         :returns: A file path generator
         '''
         for path in self._scan(followlinks=followlinks):
-            yield FileEntry(path, _make_stat(os.lstat(path)))
+            yield FileEntry(
+                os.path.basename(path), path, _make_stat(os.lstat(path)))
         else:
             if missing_ok:
                 return
@@ -526,7 +534,7 @@ class FSPath(URIPath):
         :returns: An iterator contains all contents have prefix path
         '''
         for entry in os.scandir(self.path_without_protocol):
-            yield FileEntry(entry.path, _make_stat(entry.stat()))
+            yield FileEntry(entry.name, entry.path, _make_stat(entry.stat()))
 
     def stat(self) -> StatResult:
         '''
@@ -534,8 +542,8 @@ class FSPath(URIPath):
 
         :returns: StatResult
         '''
-        result = _make_stat(os.lstat(self.path_without_protocol))
-        if result.islnk or not result.isdir:
+        result = _make_stat(os.stat(self.path_without_protocol))
+        if not result.isdir:
             return result
 
         size = 0
@@ -551,6 +559,18 @@ class FSPath(URIPath):
                 if mtime < stat.st_mtime:
                     mtime = stat.st_mtime
         return result._replace(size=size, ctime=ctime, mtime=mtime)
+
+    def lstat(self) -> StatResult:
+        '''
+        Get StatResult of file on fs, including file size and mtime, referring to fs_getsize and fs_getmtime
+
+        :returns: StatResult
+        '''
+        result = _make_stat(os.lstat(self.path_without_protocol))
+        if result.islnk or not result.isdir:
+            return result
+
+        return self.stat()
 
     def unlink(self, missing_ok: bool = False) -> None:
         '''
@@ -611,13 +631,16 @@ class FSPath(URIPath):
             stack.extend(
                 (os.path.join(root, directory) for directory in reversed(dirs)))
 
-    def resolve(self, strict=False) -> pathlib.Path:
+    def resolve(self, strict=False) -> 'FSPath':
         '''Equal to fs_realpath
 
         :return: Return the canonical path of the specified filename, eliminating any symbolic links encountered in the path.
         :rtype: FSPath
         '''
-        return pathlib.Path(self.path_without_protocol).resolve(strict=strict)
+        return self.from_path(
+            str(
+                pathlib.Path(
+                    self.path_without_protocol).resolve(strict=strict)))
 
     def md5(self, recalculate: bool = False, followlinks: bool = True):
         '''
@@ -745,7 +768,7 @@ class FSPath(URIPath):
         '''
         return os.path.ismount(self.path_without_protocol)
 
-    def cwd(self) -> str:
+    def cwd(self) -> 'FSPath':
         '''Return current working directory
 
         returns: Current working directory

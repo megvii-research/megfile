@@ -1,10 +1,28 @@
-from pathlib import Path
+import os
+from typing import Generator
 
+import boto3
 import pytest
+from moto import mock_s3
 
+from megfile.fs_path import FSPath
 from megfile.lib.compat import fspath
+from megfile.pathlike import StatResult
 from megfile.s3_path import S3Path
 from megfile.smart_path import SmartPath
+
+from . import FakeStatResult, Now
+
+BUCKET = "bucket"
+
+
+@pytest.fixture
+def s3_empty_client(mocker):
+    with mock_s3():
+        client = boto3.client('s3')
+        client.create_bucket(Bucket=BUCKET)
+        mocker.patch('megfile.s3_path.get_s3_client', return_value=client)
+        yield client
 
 
 def test_repr():
@@ -340,3 +358,260 @@ def test_with_suffix():
 
     path = SmartPath('s3://foo/bar.tar.gz')
     assert path.with_suffix('.bz2') == SmartPath('s3://foo/bar.tar.bz2')
+
+
+def test_cwd(fs):
+    os.makedirs('/test')
+    os.chdir('/test')
+    path = SmartPath('/')
+    assert path.cwd() == SmartPath('/test')
+
+    path = SmartPath('s3://bucketA/test')
+    assert path.cwd() == path
+
+
+def test_home(mocker):
+    mocker.patch('os.path.expanduser', return_value='/home/test')
+    path = SmartPath('/')
+    assert path.home() == SmartPath('/home/test')
+
+    with pytest.raises(NotImplementedError):
+        SmartPath('s3://bucketA/test').home()
+
+
+def make_stat(size=0, time=Now(), isdir=False, islnk=False):
+    return StatResult(
+        size=size, ctime=time, mtime=time, isdir=isdir, islnk=islnk)
+
+
+def test_stat(fs, mocker):
+    mocker.patch('megfile.fs_path.StatResult', side_effect=FakeStatResult)
+
+    with pytest.raises(FileNotFoundError):
+        SmartPath('NotExist').stat()
+    with pytest.raises(FileNotFoundError):
+        SmartPath('').stat()
+
+    assert SmartPath('/').stat() == make_stat(isdir=True)
+    assert SmartPath('.').stat() == make_stat(isdir=True)
+
+    os.mkdir('folderA')
+    with open('/folderA/fileA', 'wb') as fileA:
+        fileA.write(b'fileA')
+    os.symlink('/folderA/fileA', '/folderA/fileA.lnk')
+    assert SmartPath('/').stat() == make_stat(size=19, isdir=True)
+    assert SmartPath('.').stat() == make_stat(size=19, isdir=True)
+    assert SmartPath('/folderA/fileA').stat() == make_stat(size=5, isdir=False)
+    assert SmartPath('/folderA/fileA.lnk').stat() == make_stat(
+        size=5, isdir=False, islnk=False)
+    assert SmartPath('/folderA/fileA.lnk').lstat() == make_stat(
+        size=14, isdir=False, islnk=True)
+
+
+def test_chmod(fs):
+    with pytest.raises(NotImplementedError):
+        SmartPath('s3://bucketA/test').chmod(0o444)
+
+    with pytest.raises(NotImplementedError):
+        SmartPath('s3://bucketA/test').lchmod(0o444)
+
+    path = '/test'
+    with open(path, 'w') as f:
+        f.write('test')
+    pathlike = SmartPath(path)
+    pathlike.chmod(0o444)
+    assert os.stat(path).st_mode == 33060
+    pathlike.lchmod(0o777)
+    assert os.stat(path).st_mode == 33279
+
+
+def test_exists(s3_empty_client, fs):
+    path = SmartPath('/test')
+    path.write_text('test')
+    assert path.exists()
+
+    path = SmartPath('s3://bucket/test')
+    path.write_text('test')
+    assert path.exists()
+
+
+def test_expanduser(fs):
+    home = os.environ['HOME']
+    os.environ['HOME'] = '/home/test'
+
+    with pytest.raises(NotImplementedError):
+        SmartPath('s3://bucketA/test').expanduser()
+
+    path = SmartPath('~/file')
+    assert path.expanduser() == SmartPath('/home/test/file')
+    os.environ['HOME'] = home
+
+
+def test_glob(s3_empty_client, fs):
+    os.mkdir('A')
+    os.mkdir('A/a')
+    os.mkdir('A/b')
+    os.mkdir('A/b/c')
+    with open('A/1.json', 'w') as f:
+        f.write('1.json')
+
+    with open('A/b/file.json', 'w') as f:
+        f.write('file')
+
+    assert SmartPath('A').glob('*') == [
+        SmartPath('A/a'),
+        SmartPath('A/b'),
+        SmartPath('A/1.json')
+    ]
+    assert SmartPath('A').rglob('*.json') == [
+        SmartPath('A/1.json'),
+        SmartPath('A/b/file.json')
+    ]
+
+    for path in SmartPath('A').glob('*'):
+        assert isinstance(path, FSPath)
+
+    SmartPath('s3://bucket/A/1').write_text('1')
+    SmartPath('s3://bucket/A/2.json').write_text('2')
+    SmartPath('s3://bucket/A/3').write_text('3')
+    SmartPath('s3://bucket/A/4/5').write_text('5')
+    SmartPath('s3://bucket/A/4/6.json').write_text('6')
+
+    assert SmartPath('s3://bucket/A').glob('*') == [
+        SmartPath('s3://bucket/A/1'),
+        SmartPath('s3://bucket/A/2.json'),
+        SmartPath('s3://bucket/A/3'),
+        SmartPath('s3://bucket/A/4'),
+    ]
+    assert SmartPath('s3://bucket/A').rglob('*.json') == [
+        SmartPath('s3://bucket/A/2.json'),
+        SmartPath('s3://bucket/A/4/6.json'),
+    ]
+
+    for path in SmartPath('s3://bucket/A').glob('*'):
+        assert isinstance(path, S3Path)
+    pass
+
+
+def test_group(mocker):
+    mocker.patch('pathlib.Path.group', return_value='test_group')
+
+    assert SmartPath('/test').group() == 'test_group'
+
+    with pytest.raises(NotImplementedError):
+        SmartPath('s3://bucketA/test').group()
+    pass
+
+
+def test_is_dir(s3_empty_client, fs):
+    os.mkdir('A')
+    with open('A/1.json', 'w') as f:
+        f.write('1.json')
+
+    assert SmartPath('A').is_dir() is True
+    assert SmartPath('A/1.json').is_dir() is False
+
+    SmartPath('s3://bucket/A/4/5').write_text('5')
+
+    assert SmartPath('s3://bucket/A').is_dir() is True
+    assert SmartPath('s3://bucket/A/4/5').is_dir() is False
+
+
+def test_is_file(s3_empty_client, fs):
+    os.mkdir('A')
+    with open('A/1.json', 'w') as f:
+        f.write('1.json')
+
+    assert SmartPath('A').is_file() is False
+    assert SmartPath('A/1.json').is_file() is True
+
+    SmartPath('s3://bucket/A/4/5').write_text('5')
+
+    assert SmartPath('s3://bucket/A').is_file() is False
+    assert SmartPath('s3://bucket/A/4/5').is_file() is True
+
+
+def test_is_mount(mocker):
+    mocker.patch('os.path.ismount', return_value=True)
+    assert SmartPath('s3://bucket/A/4/5').is_mount() is False
+    assert SmartPath('/A/4/5').is_mount() is True
+
+
+def test_is_symlink(s3_empty_client, fs):
+    os.mkdir('A')
+    with open('A/1.json', 'w') as f:
+        f.write('1.json')
+    os.symlink('A/1.json', 'A/1.lnk')
+
+    assert SmartPath('A/1.json').is_symlink() is False
+    assert SmartPath('A/1.lnk').is_symlink() is True
+
+    path = SmartPath('s3://bucket/file')
+    path.write_text('5')
+    path.symlink('s3://bucket/lnk')
+
+    assert SmartPath('s3://bucket/file').is_symlink() is False
+    assert SmartPath('s3://bucket/lnk').is_symlink() is True
+
+
+def test_is_socket(mocker):
+    mocker.patch('pathlib.Path.is_socket', return_value=True)
+    assert SmartPath('A/1.json').is_socket() is True
+    assert SmartPath('s3://bucket/file').is_socket() is False
+
+
+def test_is_fifo(mocker):
+    mocker.patch('pathlib.Path.is_fifo', return_value=True)
+    assert SmartPath('A/1.json').is_fifo() is True
+    assert SmartPath('s3://bucket/file').is_fifo() is False
+
+
+def test_is_block_device(mocker):
+    mocker.patch('pathlib.Path.is_block_device', return_value=True)
+    assert SmartPath('A/1.json').is_block_device() is True
+    assert SmartPath('s3://bucket/file').is_block_device() is False
+
+
+def test_is_char_device(mocker):
+    mocker.patch('pathlib.Path.is_char_device', return_value=True)
+    assert SmartPath('A/1.json').is_char_device() is True
+    assert SmartPath('s3://bucket/file').is_char_device() is False
+
+
+def test_iterdir(s3_empty_client, fs):
+    os.mkdir('A')
+    os.mkdir('A/a')
+    os.mkdir('A/b')
+    os.mkdir('A/b/c')
+    with open('A/1.json', 'w') as f:
+        f.write('1.json')
+
+    with open('A/b/file.json', 'w') as f:
+        f.write('file')
+
+    assert isinstance(SmartPath('A').iterdir(), Generator)
+    assert sorted(list(SmartPath('A').iterdir())) == [
+        SmartPath('A/1.json'),
+        SmartPath('A/a'),
+        SmartPath('A/b')
+    ]
+
+    for path in SmartPath('A').iterdir():
+        assert isinstance(path, FSPath)
+
+    SmartPath('s3://bucket/A/1').write_text('1')
+    SmartPath('s3://bucket/A/2.json').write_text('2')
+    SmartPath('s3://bucket/A/3').write_text('3')
+    SmartPath('s3://bucket/A/4/5').write_text('5')
+    SmartPath('s3://bucket/A/4/6.json').write_text('6')
+
+    assert sorted(list(SmartPath('s3://bucket/A').iterdir())) == [
+        SmartPath('s3://bucket/A/1'),
+        SmartPath('s3://bucket/A/2.json'),
+        SmartPath('s3://bucket/A/3'),
+        SmartPath('s3://bucket/A/4'),
+    ]
+
+    for path in SmartPath('s3://bucket/A').iterdir():
+        assert isinstance(path, S3Path)
+    pass

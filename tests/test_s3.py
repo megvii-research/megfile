@@ -1190,7 +1190,7 @@ def test_s3_scan_stat(truncating_client, mocker):
     # walk on file
     # expect: empty generator
     assert list(s3.s3_scan_stat('s3://bucketA/fileAA')) == [
-        ('s3://bucketA/fileAA', make_stat(size=6))
+        ('fileAA', 's3://bucketA/fileAA', make_stat(size=6))
     ]
 
     # walk empty bucket
@@ -1201,36 +1201,40 @@ def test_s3_scan_stat(truncating_client, mocker):
     result = list(s3.s3_scan_stat('s3://bucketA'))
     assert len(result) == 6
     assert result == [
-        ('s3://bucketA/fileAA', make_stat(size=6)),
-        ('s3://bucketA/fileAB', make_stat(size=6)),
-        ('s3://bucketA/folderAA/folderAAA/fileAAAA', make_stat(size=8)),
-        ('s3://bucketA/folderAB-C/fileAB-C', make_stat(size=8)),
-        ('s3://bucketA/folderAB/fileAB', make_stat(size=6)),
-        ('s3://bucketA/folderAB/fileAC', make_stat(size=6)),
+        ('fileAA', 's3://bucketA/fileAA', make_stat(size=6)),
+        ('fileAB', 's3://bucketA/fileAB', make_stat(size=6)),
+        (
+            'fileAAAA', 's3://bucketA/folderAA/folderAAA/fileAAAA',
+            make_stat(size=8)),
+        ('fileAB-C', 's3://bucketA/folderAB-C/fileAB-C', make_stat(size=8)),
+        ('fileAB', 's3://bucketA/folderAB/fileAB', make_stat(size=6)),
+        ('fileAC', 's3://bucketA/folderAB/fileAC', make_stat(size=6)),
     ]
 
     result = list(s3.s3_scan_stat('s3://bucketA/'))
     assert len(result) == 6
     assert result == [
-        ('s3://bucketA/fileAA', make_stat(size=6)),
-        ('s3://bucketA/fileAB', make_stat(size=6)),
-        ('s3://bucketA/folderAA/folderAAA/fileAAAA', make_stat(size=8)),
-        ('s3://bucketA/folderAB-C/fileAB-C', make_stat(size=8)),
-        ('s3://bucketA/folderAB/fileAB', make_stat(size=6)),
-        ('s3://bucketA/folderAB/fileAC', make_stat(size=6)),
+        ('fileAA', 's3://bucketA/fileAA', make_stat(size=6)),
+        ('fileAB', 's3://bucketA/fileAB', make_stat(size=6)),
+        (
+            'fileAAAA', 's3://bucketA/folderAA/folderAAA/fileAAAA',
+            make_stat(size=8)),
+        ('fileAB-C', 's3://bucketA/folderAB-C/fileAB-C', make_stat(size=8)),
+        ('fileAB', 's3://bucketA/folderAB/fileAB', make_stat(size=6)),
+        ('fileAC', 's3://bucketA/folderAB/fileAC', make_stat(size=6)),
     ]
 
     # same name of file and folder in the same folder
     result = list(s3.s3_scan_stat('s3://bucketC/folder'))
     assert len(result) == 2
     assert result == [
-        ('s3://bucketC/folder', make_stat(size=4)),
-        ('s3://bucketC/folder/file', make_stat(size=4)),
+        ('folder', 's3://bucketC/folder', make_stat(size=4)),
+        ('file', 's3://bucketC/folder/file', make_stat(size=4)),
     ]
 
     result = list(s3.s3_scan_stat('s3://bucketC/folder/'))
     assert len(result) == 1
-    assert result == [('s3://bucketC/folder/file', make_stat(size=4))]
+    assert result == [('file', 's3://bucketC/folder/file', make_stat(size=4))]
 
     with pytest.raises(UnsupportedError) as error:
         s3.s3_scan_stat('s3://')
@@ -1908,66 +1912,71 @@ def test_s3_glob_stat(truncating_client, mocker):
     # without any wildcards
     assert_glob_stat(
         's3://emptyBucketForGlobTest', [
-            ('s3://emptyBucketForGlobTest', make_stat(isdir=True)),
+            (
+                'emptyBucketForGlobTest', 's3://emptyBucketForGlobTest',
+                make_stat(isdir=True)),
         ])
     assert_glob_stat(
         's3://emptyBucketForGlobTest/', [
-            ('s3://emptyBucketForGlobTest/', make_stat(isdir=True)),
+            ('', 's3://emptyBucketForGlobTest/', make_stat(isdir=True)),
         ])
     assert_glob_stat(
         's3://bucketForGlobTest/1', [
-            ('s3://bucketForGlobTest/1', make_stat(isdir=True)),
+            ('1', 's3://bucketForGlobTest/1', make_stat(isdir=True)),
         ])
     assert_glob_stat(
         's3://bucketForGlobTest/1/', [
-            ('s3://bucketForGlobTest/1/', make_stat(isdir=True)),
+            ('', 's3://bucketForGlobTest/1/', make_stat(isdir=True)),
         ])
     assert_glob_stat(
         's3://bucketForGlobTest/1/a',
         [
-            ('s3://bucketForGlobTest/1/a', make_stat(isdir=True)),
-            ('s3://bucketForGlobTest/1/a', make_stat(size=27)),  # 同名文件
+            ('a', 's3://bucketForGlobTest/1/a', make_stat(isdir=True)),
+            ('a', 's3://bucketForGlobTest/1/a', make_stat(size=27)),  # 同名文件
         ])
     assert_glob_stat(
         's3://bucketForGlobTest/2/a/d/2.json', [
-            ('s3://bucketForGlobTest/2/a/d/2.json', make_stat(size=6)),
+            (
+                '2.json', 's3://bucketForGlobTest/2/a/d/2.json',
+                make_stat(size=6)),
         ])
 
     # '*', all files and folders
     assert_glob_stat('s3://emptyBucketForGlobTest/*', [])
     assert_glob_stat(
         's3://bucketForGlobTest/*', [
-            ('s3://bucketForGlobTest/1', make_stat(isdir=True)),
-            ('s3://bucketForGlobTest/2', make_stat(isdir=True)),
+            ('1', 's3://bucketForGlobTest/1', make_stat(isdir=True)),
+            ('2', 's3://bucketForGlobTest/2', make_stat(isdir=True)),
         ])
 
     # all files under all direct subfolders
     assert_glob_stat(
         's3://bucketForGlobTest/*/*',
         [
-            ('s3://bucketForGlobTest/1/a', make_stat(isdir=True)),
-            ('s3://bucketForGlobTest/1/a', make_stat(size=27)),  # 同名文件
-            ('s3://bucketForGlobTest/2/a', make_stat(isdir=True)),
+            ('a', 's3://bucketForGlobTest/1/a', make_stat(isdir=True)),
+            ('a', 's3://bucketForGlobTest/1/a', make_stat(size=27)),  # 同名文件
+            ('a', 's3://bucketForGlobTest/2/a', make_stat(isdir=True)),
         ])
 
     assert_glob_stat(
         's3://{bucketA/folderAB/fileAB,bucketC/folder/file}',
         [
-            ('s3://bucketA/folderAB/fileAB', make_stat(size=6)),  # 同名文件
-            ('s3://bucketC/folder/file', make_stat(size=4)),  # 同名文件
+            ('fileAB', 's3://bucketA/folderAB/fileAB',
+             make_stat(size=6)),  # 同名文件
+            ('file', 's3://bucketC/folder/file', make_stat(size=4)),  # 同名文件
         ])
 
     assert_glob_stat(
         's3://{bucket*/fileAB,bucketC/folder/file}',
         [
-            ('s3://bucketC/folder/file', make_stat(size=4)),  # 同名文件
+            ('file', 's3://bucketC/folder/file', make_stat(size=4)),  # 同名文件
         ])
 
     # combination of '?' and []
     assert_glob_stat('s3://bucketForGlobTest/[2-3]/**/*?msg', [])
     assert_glob_stat(
         's3://bucketForGlobTest/[13]/**/*?msg',
-        [('s3://bucketForGlobTest/1/a/b/c/A.msg', make_stat(size=5))])
+        [('A.msg', 's3://bucketForGlobTest/1/a/b/c/A.msg', make_stat(size=5))])
 
     assert original_calls == (os.path.lexists, os.path.isdir, os.scandir)
 
@@ -2001,31 +2010,37 @@ def test_s3_glob_stat_cross_bucket(truncating_client, mocker):
     # without any wildcards
     assert_glob_stat(
         r's3://{emptyBucketForGlobTest,bucketForGlobTest2}', [
-            ('s3://emptyBucketForGlobTest', make_stat(isdir=True)),
-            ('s3://bucketForGlobTest2', make_stat(isdir=True)),
+            (
+                'emptyBucketForGlobTest', 's3://emptyBucketForGlobTest',
+                make_stat(isdir=True)),
+            (
+                'bucketForGlobTest2', 's3://bucketForGlobTest2',
+                make_stat(isdir=True)),
         ])
     assert_glob_stat(
         r's3://{bucketForGlobTest,bucketForGlobTest2,bucketForGlobTest3}/1', [
-            ('s3://bucketForGlobTest/1', make_stat(isdir=True)),
-            ('s3://bucketForGlobTest2/1', make_stat(isdir=True)),
-            ('s3://bucketForGlobTest3/1', make_stat(isdir=True)),
+            ('1', 's3://bucketForGlobTest/1', make_stat(isdir=True)),
+            ('1', 's3://bucketForGlobTest2/1', make_stat(isdir=True)),
+            ('1', 's3://bucketForGlobTest3/1', make_stat(isdir=True)),
         ])
     assert_glob_stat(
         r's3://{bucketForGlobTest,bucketForGlobTest2}/1/', [
-            ('s3://bucketForGlobTest/1/', make_stat(isdir=True)),
-            ('s3://bucketForGlobTest2/1/', make_stat(isdir=True)),
+            ('', 's3://bucketForGlobTest/1/', make_stat(isdir=True)),
+            ('', 's3://bucketForGlobTest2/1/', make_stat(isdir=True)),
         ])
     assert_glob_stat(
         r's3://{bucketForGlobTest,bucketForGlobTest2}/1/a',
         [
-            ('s3://bucketForGlobTest/1/a', make_stat(isdir=True)),
-            ('s3://bucketForGlobTest/1/a', make_stat(size=27)),  # 同名文件
-            ('s3://bucketForGlobTest2/1/a', make_stat(isdir=True)),
-            ('s3://bucketForGlobTest2/1/a', make_stat(size=27)),  # 同名文件
+            ('a', 's3://bucketForGlobTest/1/a', make_stat(isdir=True)),
+            ('a', 's3://bucketForGlobTest/1/a', make_stat(size=27)),  # 同名文件
+            ('a', 's3://bucketForGlobTest2/1/a', make_stat(isdir=True)),
+            ('a', 's3://bucketForGlobTest2/1/a', make_stat(size=27)),  # 同名文件
         ])
     assert_glob_stat(
         r's3://{bucketForGlobTest,bucketForGlobTest2}/2/a/d/2.json', [
-            ('s3://bucketForGlobTest/2/a/d/2.json', make_stat(size=6)),
+            (
+                '2.json', 's3://bucketForGlobTest/2/a/d/2.json',
+                make_stat(size=6)),
         ])
 
     # '*', all files and folders
@@ -2033,22 +2048,22 @@ def test_s3_glob_stat_cross_bucket(truncating_client, mocker):
     assert_glob_stat(
         r's3://{bucketForGlobTest,emptyBucketForGlobTest,bucketForGlobTest2}/*',
         [
-            ('s3://bucketForGlobTest/1', make_stat(isdir=True)),
-            ('s3://bucketForGlobTest/2', make_stat(isdir=True)),
-            ('s3://bucketForGlobTest2/1', make_stat(isdir=True)),
+            ('1', 's3://bucketForGlobTest/1', make_stat(isdir=True)),
+            ('2', 's3://bucketForGlobTest/2', make_stat(isdir=True)),
+            ('1', 's3://bucketForGlobTest2/1', make_stat(isdir=True)),
         ])
 
     # all files under all direct subfolders
     assert_glob_stat(
         r's3://{bucketForGlobTest,bucketForGlobTest2,bucketForGlobTest3}/*/*',
         [
-            ('s3://bucketForGlobTest/1/a', make_stat(isdir=True)),
-            ('s3://bucketForGlobTest/1/a', make_stat(size=27)),  # 同名文件
-            ('s3://bucketForGlobTest/2/a', make_stat(isdir=True)),
-            ('s3://bucketForGlobTest2/1/a', make_stat(isdir=True)),
-            ('s3://bucketForGlobTest2/1/a', make_stat(size=27)),  # 同名文件
-            ('s3://bucketForGlobTest3/1/a', make_stat(isdir=True)),
-            ('s3://bucketForGlobTest3/1/a', make_stat(size=27)),  # 同名文件
+            ('a', 's3://bucketForGlobTest/1/a', make_stat(isdir=True)),
+            ('a', 's3://bucketForGlobTest/1/a', make_stat(size=27)),  # 同名文件
+            ('a', 's3://bucketForGlobTest/2/a', make_stat(isdir=True)),
+            ('a', 's3://bucketForGlobTest2/1/a', make_stat(isdir=True)),
+            ('a', 's3://bucketForGlobTest2/1/a', make_stat(size=27)),  # 同名文件
+            ('a', 's3://bucketForGlobTest3/1/a', make_stat(isdir=True)),
+            ('a', 's3://bucketForGlobTest3/1/a', make_stat(size=27)),  # 同名文件
         ])
 
     # combination of '?' and []
@@ -2058,19 +2073,31 @@ def test_s3_glob_stat_cross_bucket(truncating_client, mocker):
     assert_glob_stat(
         r's3://{bucketForGlobTest,bucketForGlobTest2,bucketForGlobTest3}/[13]/**/*?msg',
         [
-            ('s3://bucketForGlobTest/1/a/b/c/A.msg', make_stat(size=5)),
-            ('s3://bucketForGlobTest2/1/a/b/c/A.msg', make_stat(size=5)),
-            ('s3://bucketForGlobTest2/1/a/c/A.msg', make_stat(size=5)),
-            ('s3://bucketForGlobTest3/1/a/b/c/A.msg', make_stat(size=5)),
+            (
+                'A.msg', 's3://bucketForGlobTest/1/a/b/c/A.msg',
+                make_stat(size=5)),
+            (
+                'A.msg', 's3://bucketForGlobTest2/1/a/b/c/A.msg',
+                make_stat(size=5)),
+            ('A.msg', 's3://bucketForGlobTest2/1/a/c/A.msg', make_stat(size=5)),
+            (
+                'A.msg', 's3://bucketForGlobTest3/1/a/b/c/A.msg',
+                make_stat(size=5)),
         ])
 
     assert_glob_stat(
         r's3://{notExistsBucketForGlobTest,bucketForGlobTest,bucketForGlobTest2,bucketForGlobTest3}/[13]/**/*?msg',
         [
-            ('s3://bucketForGlobTest/1/a/b/c/A.msg', make_stat(size=5)),
-            ('s3://bucketForGlobTest2/1/a/b/c/A.msg', make_stat(size=5)),
-            ('s3://bucketForGlobTest2/1/a/c/A.msg', make_stat(size=5)),
-            ('s3://bucketForGlobTest3/1/a/b/c/A.msg', make_stat(size=5)),
+            (
+                'A.msg', 's3://bucketForGlobTest/1/a/b/c/A.msg',
+                make_stat(size=5)),
+            (
+                'A.msg', 's3://bucketForGlobTest2/1/a/b/c/A.msg',
+                make_stat(size=5)),
+            ('A.msg', 's3://bucketForGlobTest2/1/a/c/A.msg', make_stat(size=5)),
+            (
+                'A.msg', 's3://bucketForGlobTest3/1/a/b/c/A.msg',
+                make_stat(size=5)),
         ],
         missing_ok=False)
 

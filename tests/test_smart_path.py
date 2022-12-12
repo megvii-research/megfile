@@ -6,7 +6,7 @@ import pytest
 from mock import patch
 from moto import mock_s3
 
-from megfile.errors import ProtocolExistsError, ProtocolNotFoundError
+from megfile.errors import ProtocolExistsError, ProtocolNotFoundError, S3FileNotFoundError
 from megfile.fs_path import FSPath
 from megfile.http_path import HttpPath, HttpsPath
 from megfile.interfaces import Access
@@ -358,9 +358,9 @@ def test_samefile(s3_empty_client, fs, mocker):
 
     with open('test', 'w') as f:
         f.write('test1')
+
     assert fs_path.samefile(FSPath('/a/test')) is True
     assert fs_path.samefile(Path('/a/test')) is True
-
     assert fs_path.samefile('a/test') is True
     assert fs_path.samefile('/a/./test') is True
     assert fs_path.samefile('/a/../test') is False
@@ -369,19 +369,13 @@ def test_samefile(s3_empty_client, fs, mocker):
     s3_path = S3Path(f's3://{BUCKET}/test')
     smart_copy(fs_path, str(s3_path))
 
-    assert s3_path.samefile(FSPath('/a/test')) is True
-    assert s3_path.samefile(Path('/a/test')) is True
+    assert s3_path.samefile(FSPath('/a/test')) is False
+
+    assert s3_path.samefile(Path('/a/test')) is False
     assert s3_path.samefile(f's3://{BUCKET}/test') is True
-    assert s3_path.samefile('/a/../test') is False
 
-    mocker.patch(
-        'megfile.http_path.HttpPath.open',
-        return_value=BufferedReader(BytesIO(b'test')))
-    http_path = HttpPath(f'http://test')
-    assert http_path.samefile('/a/test') is True
-
-    with pytest.raises(FileNotFoundError):
+    with pytest.raises(S3FileNotFoundError):
         s3_path.samefile('/a/not_found')
 
-    with pytest.raises(FileNotFoundError):
+    with pytest.raises(S3FileNotFoundError):
         s3_path.samefile(f's3://{BUCKET}/not_found')

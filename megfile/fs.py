@@ -37,6 +37,7 @@ __all__ = [
     'fs_scan_stat',
     'fs_scandir',
     'fs_stat',
+    'fs_lstat',
     'fs_unlink',
     'fs_walk',
     'fs_getmd5',
@@ -96,7 +97,7 @@ def fs_exists(path: PathLike, followlinks: bool = False) -> bool:
     return FSPath(path).exists(followlinks)
 
 
-def fs_getmtime(path: PathLike) -> float:
+def fs_getmtime(path: PathLike, followlinks: bool = False) -> float:
     '''
     Get last-modified time of the file on the given path (in Unix timestamp format).
     If the path is an existent directory, return the latest modified time of all file in it.
@@ -104,10 +105,10 @@ def fs_getmtime(path: PathLike) -> float:
     :param path: Given path
     :returns: last-modified time
     '''
-    return FSPath(path).getmtime()
+    return FSPath(path).getmtime(followlinks)
 
 
-def fs_getsize(path: PathLike) -> int:
+def fs_getsize(path: PathLike, followlinks: bool = False) -> int:
     '''
     Get file size on the given file path (in bytes).
     If the path in a directory, return the sum of all file size in it, including file in subdirectories (if exist).
@@ -117,7 +118,7 @@ def fs_getsize(path: PathLike) -> int:
     :returns: File size
 
     '''
-    return FSPath(path).getsize()
+    return FSPath(path).getsize(followlinks)
 
 
 def fs_expanduser(path: PathLike):
@@ -281,6 +282,16 @@ def fs_stat(path: PathLike) -> StatResult:
     :returns: StatResult
     '''
     return FSPath(path).stat()
+
+
+def fs_lstat(path: PathLike) -> StatResult:
+    '''
+    Get StatResult of file on fs, including file size and mtime, referring to fs_getsize and fs_getmtime
+
+    :param path: Given path
+    :returns: StatResult
+    '''
+    return FSPath(path).lstat()
 
 
 def fs_unlink(path: PathLike, missing_ok: bool = False) -> None:

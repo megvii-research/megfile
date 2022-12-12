@@ -27,7 +27,7 @@ def test_touch(runner, tmpdir):
 
     assert result.exit_code == 0
     assert result.output == ''
-    assert runner.invoke(ls, [str(tmpdir)]).output.endswith('/hello.txt\n')
+    assert runner.invoke(ls, [str(tmpdir)]).output.endswith('hello.txt\n')
 
 
 def test_mkdir(runner, tmpdir):
@@ -35,14 +35,14 @@ def test_mkdir(runner, tmpdir):
 
     assert result.exit_code == 0
     assert result.output == ''
-    assert runner.invoke(ls, [str(tmpdir)]).output.endswith('/dir42\n')
+    assert runner.invoke(ls, [str(tmpdir)]).output.endswith('dir42\n')
 
 
 def test_ls(runner, testdir):
     result = runner.invoke(ls, [str(testdir)])
 
     assert result.exit_code == 0
-    assert result.output.endswith('/text\n')
+    assert result.output.endswith('text\n')
 
     file_name = 'text'
     result_file = runner.invoke(ls, [str(testdir / file_name)])
@@ -55,7 +55,7 @@ def test_ls_long(runner, testdir):
     result = runner.invoke(ls, ['--long', str(testdir)])
 
     assert result.exit_code == 0
-    assert result.output.endswith('/text\n')
+    assert result.output.endswith('text\n')
     assert ' 5 ' in result.output
 
 
@@ -63,7 +63,7 @@ def test_ls_hunman_readable(runner, testdir):
     result = runner.invoke(ls, ['--long', '--human-readable', str(testdir)])
 
     assert result.exit_code == 0
-    assert result.output.endswith('/text\n')
+    assert result.output.endswith('text\n')
     assert ' 5 B ' in result.output
 
 
@@ -80,8 +80,8 @@ def test_mv(runner, testdir):
         [str(testdir / 'text'), str(testdir / 'newfile')])
 
     assert result.exit_code == 0
-    assert runner.invoke(ls, [str(testdir)]).output.endswith('/newfile\n')
-    assert not runner.invoke(ls, [str(testdir)]).output.endswith('/text\n')
+    assert runner.invoke(ls, [str(testdir)]).output.endswith('newfile\n')
+    assert not runner.invoke(ls, [str(testdir)]).output.endswith('text\n')
 
     runner.invoke(mkdir, [str(testdir / 'new_dir')])
     result_dst_path_isdir = runner.invoke(
@@ -89,9 +89,8 @@ def test_mv(runner, testdir):
              str(testdir / 'new_dir')])
 
     assert result_dst_path_isdir.exit_code == 0
-    assert '/new_dir/newfile\n' in runner.invoke(
-        ls, [str(testdir / 'new_dir')]).output
-    assert not runner.invoke(ls, [str(testdir)]).output.endswith('/newfile\n')
+    assert 'newfile\n' in runner.invoke(ls, [str(testdir / 'new_dir')]).output
+    assert not runner.invoke(ls, [str(testdir)]).output.endswith('newfile\n')
 
 
 def test_rm(runner, testdir):
@@ -135,8 +134,8 @@ def test_cp(runner, testdir):
         [str(testdir / 'text'), str(testdir / 'newfile')])
 
     assert result.exit_code == 0
-    assert '/newfile\n' in runner.invoke(ls, [str(testdir)]).output
-    assert '/text\n' in runner.invoke(ls, [str(testdir)]).output
+    assert 'newfile\n' in runner.invoke(ls, [str(testdir)]).output
+    assert 'text\n' in runner.invoke(ls, [str(testdir)]).output
 
     runner.invoke(mkdir, [str(testdir / 'new_dir')])
     result_dst_path_isdir = runner.invoke(
@@ -144,9 +143,8 @@ def test_cp(runner, testdir):
         [str(testdir / 'text'), str(testdir / 'new_dir')])
 
     assert result_dst_path_isdir.exit_code == 0
-    assert '/new_dir/text\n' in runner.invoke(
-        ls, [str(testdir / 'new_dir')]).output
-    assert '/text\n' in runner.invoke(ls, [str(testdir)]).output
+    assert 'text\n' in runner.invoke(ls, [str(testdir / 'new_dir')]).output
+    assert 'text\n' in runner.invoke(ls, [str(testdir)]).output
 
 
 def test_sync(runner, testdir):
@@ -155,5 +153,5 @@ def test_sync(runner, testdir):
         [str(testdir / 'text'), str(testdir / 'newfile')])
 
     assert result.exit_code == 0
-    assert '/newfile\n' in runner.invoke(ls, [str(testdir)]).output
-    assert '/text\n' in runner.invoke(ls, [str(testdir)]).output
+    assert 'newfile\n' in runner.invoke(ls, [str(testdir)]).output
+    assert 'text\n' in runner.invoke(ls, [str(testdir)]).output

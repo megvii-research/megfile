@@ -294,10 +294,10 @@ def test_fs_stat(filesystem, mocker):
     os.link('file', 'hard_link')
     assert fs.fs_stat('hard_link') == make_stat(size=os.path.getsize("file"))
     os.symlink('file', 'soft_link_file')
-    assert fs.fs_stat('soft_link_file') == make_stat(
+    assert fs.fs_lstat('soft_link_file') == make_stat(
         size=os.lstat("soft_link_file").st_size, islnk=True)
     os.symlink('folder', 'soft_link_folder')
-    assert fs.fs_stat('soft_link_folder') == make_stat(
+    assert fs.fs_lstat('soft_link_folder') == make_stat(
         size=os.lstat("soft_link_folder").st_size, islnk=True)
 
 
@@ -711,17 +711,18 @@ def test_fs_scan_stat(filesystem, mocker):
         f.write('file1')
     os.symlink('/A/folder1', '/A/folder2/link')
     assert list(fs.fs_scan_stat('A')) == [
-        ('A/folder1/sub1/file1', make_stat(size=5)),
-        ('A/folder2/link', make_stat(size=10, islnk=True)),  # symlink size
+        ('file1', 'A/folder1/sub1/file1', make_stat(size=5)),
+        ('link', 'A/folder2/link', make_stat(size=10,
+                                             islnk=True)),  # symlink size
     ]
 
     assert list(fs.fs_scan_stat('A', followlinks=True)) == [
-        ('A/folder1/sub1/file1', make_stat(size=5)),
-        ('A/folder2/link/sub1/file1', make_stat(size=5)),
+        ('file1', 'A/folder1/sub1/file1', make_stat(size=5)),
+        ('file1', 'A/folder2/link/sub1/file1', make_stat(size=5)),
     ]
 
     assert list(fs.fs_scan_stat('A/folder1/sub1/file1')) == [
-        ('A/folder1/sub1/file1', make_stat(size=5))
+        ('file1', 'A/folder1/sub1/file1', make_stat(size=5))
     ]
 
     with pytest.raises(FileNotFoundError):
@@ -861,34 +862,43 @@ def test_fs_save_as(filesystem):
 
 def test_fs_glob_stat(create_glob_fake_dirtree):
     res = list(fs.fs_glob_stat('A/b/file'))
-    assert res[0][0] == 'A/b/file'
-    assert res[0][1].size == 4
+    assert res[0][0] == 'file'
+    assert res[0][1] == 'A/b/file'
+    assert res[0][2].size == 4
     res = list(fs.fs_glob_stat('A/a/**', recursive=True))
+    base_names = [
+        '',
+        '1.json',
+        '2.json',
+        'b',
+        'c',
+    ]
     expected_names = [
         'A/a/',
-        'A/a/b',
-        'A/a/b/c',
         'A/a/b/c/1.json',
         'A/a/b/c/2.json',
+        'A/a/b',
+        'A/a/b/c',
     ]
     expected_sizes = [
         0,
-        0,
-        0,
         6,
         6,
+        0,
+        0,
     ]
     expected_isdirs = [
         True,
-        True,
-        True,
         False,
         False,
+        True,
+        True,
     ]
     res = sorted(res)
-    assert [r[0] for r in res] == expected_names
-    assert [r[1].size for r in res] == expected_sizes
-    assert [r[1].isdir for r in res] == expected_isdirs
+    assert [r[0] for r in res] == base_names
+    assert [r[1] for r in res] == expected_names
+    assert [r[2].size for r in res] == expected_sizes
+    assert [r[2].isdir for r in res] == expected_isdirs
 
     with pytest.raises(FileNotFoundError):
         list(fs.fs_glob('B', missing_ok=False))

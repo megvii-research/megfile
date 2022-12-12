@@ -48,6 +48,149 @@ class StatResult(_StatResult):
     def is_symlink(self) -> bool:
         return self.islnk
 
+    @property
+    def st_mode(self) -> Union[int, None]:
+        '''
+        File mode: file type and file mode bits (permissions).
+        Only support fs.
+        '''
+        if self.extra and hasattr(self.extra, 'st_mode'):
+            return self.extra.st_mode
+        return None
+
+    @property
+    def st_ino(self) -> Union[int, str, None]:
+        '''
+        Platform dependent, but if non-zero, uniquely identifies the file for a given value of st_dev. Typically:
+        
+        the inode number on Unix,
+        the file index on Windows,
+        the etag on oss.
+        '''
+        if self.extra:
+            if hasattr(self.extra, 'st_ino'):
+                return self.extra.st_ino
+            elif isinstance(self.extra, dict) and self.extra.get('etag'):
+                return self.extra.get('etag')
+        return None
+
+    @property
+    def st_dev(self) -> Union[int, None]:
+        '''
+        Identifier of the device on which this file resides.
+        '''
+        if self.extra:
+            if hasattr(self.extra, 'st_dev'):
+                return self.extra.st_dev
+            elif isinstance(self.extra, dict) and self.extra.get('etag'):
+                return self.extra.get('etag')
+        return None
+
+    @property
+    def st_nlink(self) -> Union[int, None]:
+        '''
+        Number of hard links.
+        Only support fs.
+        '''
+        if self.extra and hasattr(self.extra, 'st_nlink'):
+            return self.extra.st_nlink
+        return None
+
+    @property
+    def st_uid(self) -> Union[int, None]:
+        '''
+        User identifier of the file owner.
+        Only support fs.
+        '''
+        if self.extra and hasattr(self.extra, 'st_uid'):
+            return self.extra.st_uid
+        return None
+
+    @property
+    def st_gid(self) -> Union[int, None]:
+        '''
+        Group identifier of the file owner.
+        Only support fs.
+        '''
+        if self.extra and hasattr(self.extra, 'st_gid'):
+            return self.extra.st_gid
+        return None
+
+    @property
+    def st_size(self) -> int:
+        '''
+        Size of the file in bytes.
+        '''
+        if self.extra and hasattr(self.extra, 'st_size'):
+            return self.extra.st_size
+        return self.size
+
+    @property
+    def st_atime(self) -> Union[float, None]:
+        '''
+        Time of most recent access expressed in seconds.
+        Only support fs.
+        '''
+        if self.extra and hasattr(self.extra, 'st_atime'):
+            return self.extra.st_atime
+        return None
+
+    @property
+    def st_mtime(self) -> float:
+        '''
+        Time of most recent content modification expressed in seconds.
+        '''
+        if self.extra and hasattr(self.extra, 'st_mtime'):
+            return self.extra.st_mtime
+        return self.mtime
+
+    @property
+    def st_ctime(self) -> float:
+        '''
+        Platform dependent:
+
+            the time of most recent metadata change on Unix,
+            the time of creation on Windows, expressed in seconds,
+            the time of file created on oss; if is dir, return the latest ctime of the files in dir.
+        '''
+        if self.extra and hasattr(self.extra, 'st_ctime'):
+            return self.extra.st_ctime
+        return self.ctime
+
+    @property
+    def st_atime_ns(self) -> Union[int, None]:
+        '''
+        Time of most recent access expressed in nanoseconds as an integer.
+        Only support fs.
+        '''
+        if self.extra and hasattr(self.extra, 'st_atime_ns'):
+            return self.extra.st_atime_ns
+        return None
+
+    @property
+    def st_mtime_ns(self) -> Union[int, None]:
+        '''
+        Time of most recent content modification expressed in nanoseconds as an integer.
+        Only support fs.
+        '''
+        if self.extra and hasattr(self.extra, 'st_mtime_ns'):
+            return self.extra.st_mtime_ns
+        return None
+
+    @property
+    def st_ctime_ns(self) -> Union[int, None]:
+        '''
+        Platform dependent:
+
+            the time of most recent metadata change on Unix,
+            the time of creation on Windows, expressed in nanoseconds as an integer.
+
+        Only support fs.
+        '''
+        if self.extra and hasattr(self.extra, 'st_ctime_ns'):
+            return self.extra.st_ctime_ns
+        return None
+
 
 '''
 class FileEntry(NamedTuple):
@@ -58,10 +201,14 @@ class FileEntry(NamedTuple):
 in Python 3.6+
 '''
 
-_FileEntry = NamedTuple('FileEntry', [('name', str), ('stat', StatResult)])
+_FileEntry = NamedTuple(
+    'FileEntry', [('name', str), ('path', str), ('stat', StatResult)])
 
 
 class FileEntry(_FileEntry):
+
+    def inode(self) -> Optional[Union[int, str]]:
+        return self.stat.st_ino
 
     def is_file(self) -> bool:
         return self.stat.is_file()
@@ -511,6 +658,42 @@ class URIPath(BaseURIPath):
         return True
 
     def is_mount(self) -> bool:
+        '''Test whether a path is a mount point
+
+        :returns: True if a path is a mount point, else False
+        '''
+        return False
+
+    def is_socket(self) -> bool:
+        '''
+        Return True if the path points to a Unix socket (or a symbolic link pointing to a Unix socket), False if it points to another kind of file.
+
+        False is also returned if the path doesn’t exist or is a broken symlink; other errors (such as permission errors) are propagated.
+        '''
+        return False
+
+    def is_fifo(self) -> bool:
+        '''
+        Return True if the path points to a FIFO (or a symbolic link pointing to a FIFO), False if it points to another kind of file.
+
+        False is also returned if the path doesn’t exist or is a broken symlink; other errors (such as permission errors) are propagated.
+        '''
+        return False
+
+    def is_block_device(self) -> bool:
+        '''
+        Return True if the path points to a block device (or a symbolic link pointing to a block device), False if it points to another kind of file.
+
+        False is also returned if the path doesn’t exist or is a broken symlink; other errors (such as permission errors) are propagated.
+        '''
+        return False
+
+    def is_char_device(self) -> bool:
+        '''
+        Return True if the path points to a character device (or a symbolic link pointing to a character device), False if it points to another kind of file.
+
+        False is also returned if the path doesn’t exist or is a broken symlink; other errors (such as permission errors) are propagated.
+        '''
         return False
 
     def abspath(self) -> str:
@@ -525,12 +708,8 @@ class URIPath(BaseURIPath):
     def resolve(self):
         return self.path_with_protocol
 
-    def lstat(self) -> StatResult:
-        '''Like Path.stat() but, if the path points to a symbolic link, return the symbolic link’s information rather than its target’s.'''
-        return self.stat(followlinks=False)
-
     def chmod(self, mode: int, *, follow_symlinks: bool = True):
-        raise NotImplementedError
+        raise NotImplementedError(f"'chmod' is unsupported on '{type(self)}'")
 
     def lchmod(self, mode: int):
         '''
@@ -549,7 +728,7 @@ class URIPath(BaseURIPath):
             return f.read()
 
     def rename(self, dst_path: PathLike) -> 'URIPath':
-        raise NotImplementedError
+        raise NotImplementedError(f"'rename' is unsupported on '{type(self)}'")
 
     def replace(self, dst_path: PathLike) -> None:
         '''
@@ -559,36 +738,39 @@ class URIPath(BaseURIPath):
         '''
         self.rename(dst_path=dst_path)
 
-    def rglob(self, patten) -> List['URIPath']:
+    def rglob(self, pattern) -> List['URIPath']:
         '''
         This is like calling Path.glob() with “**/” added in front of the given relative pattern
         '''
-        if not patten:
-            patten = ""
-        patten = '**/' + patten.lstrip('/')
-        return self.glob(patten=patten)
+        if not pattern:
+            pattern = ""
+        pattern = '**/' + pattern.lstrip('/')
+        return self.glob(pattern=pattern)
 
     def md5(self, recalculate: bool = False, followlinks: bool = False) -> str:
-        raise NotImplementedError
+        raise NotImplementedError(f"'md5' is unsupported on '{type(self)}'")
 
     def samefile(self, other_path) -> bool:
         '''
-        Compare files have the same md5
+        Return whether this path points to the same file
         '''
         if hasattr(other_path, 'protocol'):
             if other_path.protocol != self.protocol:
                 return False
-        other_path = self.from_path(other_path)
-        if other_path.is_symlink():
-            other_path = other_path.readlink()
 
-        self_real_path = self
-        if self.is_symlink():
-            self_real_path = self.readlink()
-        return self_real_path.realpath() == other_path.realpath()
+        stat = self.stat()
+        if hasattr(other_path, 'stat'):
+            other_path_stat = other_path.stat()
+        else:
+            other_path_stat = self.from_path(other_path).stat()
+
+        print(stat)
+        print(other_path_stat)
+
+        return stat.st_ino == other_path_stat.st_ino and stat.st_dev == other_path_stat.st_dev
 
     def symlink(self, dst_path: PathLike) -> None:
-        raise NotImplementedError
+        raise NotImplementedError(f"'symlink' is unsupported on '{type(self)}'")
 
     def symlink_to(self, target, target_is_directory=False):
         '''
@@ -610,6 +792,27 @@ class URIPath(BaseURIPath):
         with self.open(mode='w', encoding=encoding, errors=errors,
                        newline=newline) as f:
             return f.write(data)
+
+    def home(self):
+        '''Return the home directory
+
+        returns: Home directory path
+        '''
+        raise NotImplementedError(f"'home' is unsupported on '{type(self)}'")
+
+    def group(self):
+        """
+        Return the name of the group owning the file.
+        """
+        raise NotImplementedError(f"'group' is unsupported on '{type(self)}'")
+
+    def expanduser(self):
+        """
+        Return a new path with expanded ~ and ~user constructs, as returned by os.path.expanduser().
+        Only fs path support this method.
+        """
+        raise NotImplementedError(
+            f"'expanduser' is unsupported on '{type(self)}'")
 
 
 class URIPathParents(Sequence):

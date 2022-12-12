@@ -49,6 +49,7 @@ __all__ = [
     's3_scan_stat',
     's3_scandir',
     's3_stat',
+    's3_lstat',
     's3_unlink',
     's3_walk',
     's3_getmd5',
@@ -251,11 +252,10 @@ def s3_scandir(path: PathLike,
     return S3Path(path).scandir(followlinks)
 
 
-def s3_stat(path: PathLike, followlinks: bool = False) -> StatResult:
+def s3_stat(path: PathLike) -> StatResult:
     '''
     Get StatResult of s3_url file, including file size and mtime, referring to s3_getsize and s3_getmtime
 
-    Automatically identifies "islnk" of s3_url whether "followlinks" is True or not.
     If s3_url is not an existent path, which means s3_exist(s3_url) returns False, then raise S3FileNotFoundError
     If attempt to get StatResult of complete s3, such as s3_dir_url == 's3://', raise S3BucketNotFoundError
 
@@ -263,7 +263,12 @@ def s3_stat(path: PathLike, followlinks: bool = False) -> StatResult:
     :returns: StatResult
     :raises: S3FileNotFoundError, S3BucketNotFoundError
     '''
-    return S3Path(path).stat(followlinks)
+    return S3Path(path).stat()
+
+
+def s3_lstat(path: PathLike) -> StatResult:
+    '''Like Path.stat() but, if the path points to a symbolic link, return the symbolic link’s information rather than its target’s.'''
+    return S3Path(path).lstat()
 
 
 def s3_unlink(path: PathLike, missing_ok: bool = False) -> None:

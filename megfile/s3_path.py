@@ -412,12 +412,18 @@ def _s3_glob_stat_single_path(
         if not S3Path(top_dir).exists():
             return
         if not has_magic(_s3_pathname):
-            if S3Path(_s3_pathname).is_file():
+            _s3_pathname_obj = S3Path(_s3_pathname)
+            if _s3_pathname_obj.is_file():
+                if followlinks:
+                    stat = S3Path(_s3_pathname).stat()
+                else:
+                    stat = S3Path(_s3_pathname).lstat()
                 yield FileEntry(
-                    _s3_pathname,
-                    S3Path(_s3_pathname).stat(followlinks=followlinks))
-            if S3Path(_s3_pathname).is_dir():
-                yield FileEntry(_s3_pathname, StatResult(isdir=True))
+                    _s3_pathname_obj.name, _s3_pathname_obj.path, stat)
+            if _s3_pathname_obj.is_dir():
+                yield FileEntry(
+                    _s3_pathname_obj.name, _s3_pathname_obj.path,
+                    StatResult(isdir=True))
             return
 
         delimiter = ''
@@ -435,13 +441,15 @@ def _s3_glob_stat_single_path(
                 for content in resp.get('Contents', []):
                     path = s3_path_join('s3://', bucket, content['Key'])
                     if not search_dir and pattern.match(path):
-                        yield FileEntry(path, _make_stat(content))
+                        yield FileEntry(
+                            S3Path(path).name, path, _make_stat(content))
                     dirname = os.path.dirname(path)
                     while dirname not in dirnames and dirname != top_dir:
                         dirnames.add(dirname)
                         path = dirname + '/' if search_dir else dirname
                         if pattern.match(path):
-                            yield FileEntry(path, StatResult(isdir=True))
+                            yield FileEntry(
+                                S3Path(path).name, path, StatResult(isdir=True))
                         dirname = os.path.dirname(dirname)
                 for common_prefix in resp.get('CommonPrefixes', []):
                     path = s3_path_join(
@@ -451,7 +459,8 @@ def _s3_glob_stat_single_path(
                         dirnames.add(dirname)
                         path = dirname + '/' if search_dir else dirname
                         if pattern.match(path):
-                            yield FileEntry(path, StatResult(isdir=True))
+                            yield FileEntry(
+                                S3Path(path).name, path, StatResult(isdir=True))
 
     return create_generator(s3_pathname)
 
@@ -1102,9 +1111,9 @@ def s3_iglob(path: PathLike, recursive: bool = True,
     :raises: UnsupportedError, when bucket part contains wildcard characters
     :returns: An iterator contains paths match `s3_pathname`
     '''
-    for path, _ in s3_glob_stat(path=path, recursive=recursive,
-                                missing_ok=missing_ok):
-        yield path
+    for file_entry in s3_glob_stat(path=path, recursive=recursive,
+                                   missing_ok=missing_ok):
+        yield file_entry.path
 
 
 @SmartPath.register
@@ -1171,7 +1180,7 @@ class S3Path(URIPath):
         :returns: Last-modified time
         :raises: S3FileNotFoundError, UnsupportedError
         '''
-        return self.stat(followlinks=followlinks).mtime
+        return self._stat(followlinks=followlinks).mtime
 
     def getsize(self, followlinks: bool = False) -> int:
         '''
@@ -1184,7 +1193,7 @@ class S3Path(URIPath):
         :returns: File size
         :raises: S3FileNotFoundError, UnsupportedError
         '''
-        return self.stat(followlinks=followlinks).size
+        return self._stat(followlinks=followlinks).size
 
     def glob(self, pattern, recursive: bool = True,
              missing_ok: bool = True) -> List['S3Path']:
@@ -1495,8 +1504,8 @@ class S3Path(URIPath):
             missing_ok=missing_ok, followlinks=followlinks)
 
         def create_generator() -> Iterator[str]:
-            for path, _ in scan_stat_iter:
-                yield path
+            for file_entry in scan_stat_iter:
+                yield file_entry.path
 
         return create_generator()
 
@@ -1519,14 +1528,14 @@ class S3Path(URIPath):
                 if self.is_file():
                     # On s3, file and directory may be of same name and level, so need to test the path is file or directory
                     yield FileEntry(
-                        fspath(self.path_with_protocol),
-                        self.stat(followlinks=followlinks))
+                        self.name, fspath(self.path_with_protocol),
+                        self._stat(followlinks=followlinks))
                 return
 
             if not key.endswith('/') and self.is_file():
                 yield FileEntry(
-                    fspath(self.path_with_protocol),
-                    self.stat(followlinks=followlinks))
+                    self.name, fspath(self.path_with_protocol),
+                    self._stat(followlinks=followlinks))
 
             prefix = _become_prefix(key)
             client = get_s3_client()
@@ -1535,7 +1544,9 @@ class S3Path(URIPath):
                     for content in resp.get('Contents', []):
                         full_path = s3_path_join(
                             's3://', bucket, content['Key'])
-                        yield FileEntry(full_path, _make_stat(content))
+                        yield FileEntry(
+                            S3Path(full_path).name, full_path,
+                            _make_stat(content))
 
         return _create_missing_ok_generator(
             create_generator(), missing_ok,
@@ -1574,7 +1585,7 @@ class S3Path(URIPath):
                     response = client.list_buckets()
                     for content in response['Buckets']:
                         yield FileEntry(
-                            content['Name'],
+                            content['Name'], f"s3://{content['Name']}",
                             StatResult(
                                 ctime=content['CreationDate'].timestamp(),
                                 isdir=True,
@@ -1587,25 +1598,17 @@ class S3Path(URIPath):
                     for common_prefix in resp.get('CommonPrefixes', []):
                         yield FileEntry(
                             common_prefix['Prefix'][len(prefix):-1],
+                            generate_s3_path(bucket, common_prefix['Prefix']),
                             StatResult(isdir=True, extra=common_prefix))
                     for content in resp.get('Contents', []):
+                        src_url = generate_s3_path(bucket, content['Key'])
 
-                        if followlinks:
-                            content_key = content['Key']
-                            src_url = generate_s3_path(bucket, content_key)
-                            if S3Path(src_url).is_symlink():
-                                content['islnk'] = True
-                                yield FileEntry(
-                                    content['Key'][len(prefix):],
-                                    _make_stat(content))
-                            else:
-                                yield FileEntry(
-                                    content['Key'][len(prefix):],
-                                    _make_stat(content))
-                        else:
-                            yield FileEntry(
-                                content['Key'][len(prefix):],
-                                _make_stat(content))
+                        if followlinks and S3Path(src_url).is_symlink():
+                            content['islnk'] = True
+
+                        yield FileEntry(
+                            content['Key'][len(prefix):], src_url,
+                            _make_stat(content))
 
         return create_generator()
 
@@ -1638,17 +1641,23 @@ class S3Path(URIPath):
 
         return StatResult(size=size, mtime=mtime, isdir=True)
 
-    def stat(self, followlinks: bool = False) -> StatResult:
+    def stat(self) -> StatResult:
         '''
         Get StatResult of s3_url file, including file size and mtime, referring to s3_getsize and s3_getmtime
 
-        Automatically identifies "islnk" of s3_url whether "followlinks" is True or not.
         If s3_url is not an existent path, which means s3_exist(s3_url) returns False, then raise S3FileNotFoundError
         If attempt to get StatResult of complete s3, such as s3_dir_url == 's3://', raise S3BucketNotFoundError
 
         :returns: StatResult
         :raises: S3FileNotFoundError, S3BucketNotFoundError
         '''
+        return self._stat(followlinks=True)
+
+    def lstat(self) -> StatResult:
+        '''Like Path.stat() but, if the path points to a symbolic link, return the symbolic link’s information rather than its target’s.'''
+        return self._stat(followlinks=False)
+
+    def _stat(self, followlinks: bool = False) -> StatResult:
         islnk = False
         bucket, key = parse_s3_url(self.path_with_protocol)
         if not bucket:
@@ -1757,7 +1766,7 @@ class S3Path(URIPath):
         if not bucket:
             raise S3BucketNotFoundError(
                 'Empty bucket name: %r' % self.path_with_protocol)
-        stat = self.stat(followlinks=followlinks)
+        stat = self._stat(followlinks=followlinks)
         if stat.isdir:
             hash_md5 = hashlib.md5()  # nosec
             for file_name in self.listdir():
@@ -1923,45 +1932,6 @@ class S3Path(URIPath):
             self.path_with_protocol, mode,
             **necessary_params(s3_open_func, **kwargs))
 
-    def is_mount(self) -> bool:
-        '''Test whether a path is a mount point
-
-        :returns: True if a path is a mount point, else False
-        '''
-        return False
-
-    def is_socket(self) -> bool:
-        '''
-        Return True if the path points to a Unix socket (or a symbolic link pointing to a Unix socket), False if it points to another kind of file.
-
-        False is also returned if the path doesn’t exist or is a broken symlink; other errors (such as permission errors) are propagated.
-        '''
-        return False
-
-    def is_fifo(self) -> bool:
-        '''
-        Return True if the path points to a FIFO (or a symbolic link pointing to a FIFO), False if it points to another kind of file.
-
-        False is also returned if the path doesn’t exist or is a broken symlink; other errors (such as permission errors) are propagated.
-        '''
-        return False
-
-    def is_block_device(self) -> bool:
-        '''
-        Return True if the path points to a block device (or a symbolic link pointing to a block device), False if it points to another kind of file.
-
-        False is also returned if the path doesn’t exist or is a broken symlink; other errors (such as permission errors) are propagated.
-        '''
-        return False
-
-    def is_char_device(self) -> bool:
-        '''
-        Return True if the path points to a character device (or a symbolic link pointing to a character device), False if it points to another kind of file.
-
-        False is also returned if the path doesn’t exist or is a broken symlink; other errors (such as permission errors) are propagated.
-        '''
-        return False
-
     def rmdir(self):
         '''
         Remove this directory. The directory must be empty.
@@ -1977,3 +1947,10 @@ class S3Path(URIPath):
         Make the path absolute, without normalization or resolving symlinks. Returns a new path object
         '''
         return self
+
+    def cwd(self) -> 'S3Path':
+        '''Return current working directory
+
+        returns: Current working directory
+        '''
+        return self.from_path(self.path_with_protocol)
