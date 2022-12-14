@@ -975,6 +975,12 @@ def test_s3_rename(truncating_client):
     assert s3.s3_exists('s3://bucketA/folderAA/folderAAA/fileAAAA') is False
     assert s3.s3_exists('s3://bucketA/folderAA/folderAAA/fileAAAA1')
 
+    s3.s3_rename('s3://bucketA/folderAB', 's3://bucketA/folderAB1')
+    assert s3.s3_exists('s3://bucketA/folderAB/fileAB') is False
+    assert s3.s3_exists('s3://bucketA/folderAB/fileAC') is False
+    assert s3.s3_exists('s3://bucketA/folderAB1/fileAB')
+    assert s3.s3_exists('s3://bucketA/folderAB1/fileAC')
+
 
 def test_s3_unlink(s3_setup):
     with pytest.raises(IsADirectoryError) as error:
@@ -2624,6 +2630,12 @@ def test_s3_getmd5(s3_empty_client):
 
     with pytest.raises(S3BucketNotFoundError):
         s3.s3_getmd5('s3://')
+
+    symlink_s3_url = 's3://bucket/key.lnk'
+    s3.s3_symlink(s3_url, symlink_s3_url)
+    assert s3.s3_getmd5(s3_url, followlinks=True) == hash_md5.hexdigest()
+    assert s3.s3_getmd5(
+        s3_url, recalculate=True, followlinks=True) == hash_md5.hexdigest()
 
 
 def test_s3_getmd5_None(s3_empty_client):

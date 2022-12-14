@@ -778,7 +778,8 @@ class URIPath(BaseURIPath):
         symlink_to's arguments is the reverse of symlink's.
         Target_is_directory’s value is ignored, only be compatible with pathlib.Path
         '''
-        return self.from_path(target).symlink(dst_path=self.path)
+        return self.from_path(target).symlink(
+            dst_path=self.path)  # type: ignore
 
     def hardlink_to(self, target):
         '''

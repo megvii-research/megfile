@@ -502,6 +502,16 @@ def test_glob(s3_empty_client, fs):
         SmartPath('s3://bucket/A/4/6.json'),
     ]
 
+    assert [
+        file_entry.path
+        for file_entry in SmartPath('s3://bucket/A').glob_stat('*')
+    ] == [
+        SmartPath('s3://bucket/A/1'),
+        SmartPath('s3://bucket/A/2.json'),
+        SmartPath('s3://bucket/A/3'),
+        SmartPath('s3://bucket/A/4'),
+    ]
+
     for path in SmartPath('s3://bucket/A').glob('*'):
         assert isinstance(path, S3Path)
     pass
