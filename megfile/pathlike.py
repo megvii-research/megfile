@@ -763,9 +763,6 @@ class URIPath(BaseURIPath):
         else:
             other_path_stat = self.from_path(other_path).stat()
 
-        print(stat)
-        print(other_path_stat)
-
         return stat.st_ino == other_path_stat.st_ino and stat.st_dev == other_path_stat.st_dev
 
     def symlink(self, dst_path: PathLike) -> None:
@@ -777,8 +774,9 @@ class URIPath(BaseURIPath):
         symlink_to's arguments is the reverse of symlink's.
         Target_is_directory’s value is ignored, only be compatible with pathlib.Path
         '''
-        return self.from_path(  # type: ignore
-            target).symlink(dst_path=self.path)
+        return self.from_path(
+            target).symlink(  # type: ignore
+                dst_path=self.path)
 
     def hardlink_to(self, target):
         '''
