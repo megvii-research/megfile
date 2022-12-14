@@ -446,11 +446,10 @@ class BaseURIPath(BasePath):
         return self.path_with_protocol
 
     @classmethod
-    def from_path(cls, path: str) -> "BaseURIPath":
+    def from_path(cls, path) -> "BaseURIPath":
         """Return new instance of this class
 
         :param path: new path 
-        :type path: str
         :return: new instance of new path
         :rtype: BaseURIPath
         """
@@ -778,8 +777,8 @@ class URIPath(BaseURIPath):
         symlink_to's arguments is the reverse of symlink's.
         Target_is_directory’s value is ignored, only be compatible with pathlib.Path
         '''
-        return self.from_path(target).symlink(
-            dst_path=self.path)  # type: ignore
+        return self.from_path(  # type: ignore
+            target).symlink(dst_path=self.path)
 
     def hardlink_to(self, target):
         '''
