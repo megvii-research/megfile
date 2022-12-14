@@ -62,10 +62,6 @@ def test_operators():
     assert S3Path('foo') / 'bar' / 'baz' == S3Path('foo/bar/baz')
     assert S3Path('s3://foo') / 'bar' / 'baz' in {S3Path('s3://foo/bar/baz')}
 
-    # TODO: 下面是还暂不支持的用法
-    # assert 's3://foo' / S3Path('bar') == S3Path('s3://foo/bar')
-    # assert 'foo' / S3Path('bar') == S3Path('foo/bar')
-
 
 def test_parts():
     assert S3Path('s3://foo//bar').parts == ('s3://', 'foo', '', 'bar')
@@ -146,11 +142,12 @@ def test_parent():
     assert S3Path('../bar').parent == S3Path('..')
     assert S3Path('/foo/bar').parent == S3Path('/foo')
     assert S3Path('/foo').parent == S3Path('/')
+    assert S3Path('/').parent == S3Path('/')
     assert S3Path('foo').parent == S3Path('')
 
-    assert str(S3Path('foo', '../bar').parent) == 'foo/..'
-    assert str(S3Path('/').parent) == '/'
-    assert str(S3Path('s3://').parent) == 's3://'
+    assert S3Path('foo', '../bar').parent == 's3://foo/..'
+    assert S3Path('/').parent == 's3://'
+    assert S3Path('s3://').parent == 's3://'
 
 
 def test_name():
@@ -201,7 +198,6 @@ def test_reserved():
     assert not S3Path('foo/bar').is_reserved()
 
 
-# TODO: path 里 bind 了 s3 里的 s3_path_join(), 该方法返回 str, 后面可能要改成返回 S3Path
 def test_joinpath():
     assert S3Path('s3://foo').joinpath('bar') == S3Path('s3://foo/bar')
     assert S3Path('s3://foo').joinpath(S3Path('bar')) == S3Path('s3://foo/bar')

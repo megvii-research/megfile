@@ -64,33 +64,25 @@ def test_operators():
         FSPath('file://foo/bar/baz')
     }
 
-    # TODO: The following are the usages that are not yet supported
-    # assert 'file://foo' / FSPath('bar') == FSPath('file://foo/bar')
-    # assert 'foo' / FSPath('bar') == FSPath('foo/bar')
-
 
 def test_parts():
-    assert FSPath('file://foo//bar').parts == ('file://', 'foo', '', 'bar')
-    assert FSPath('file://foo/./bar').parts == ('file://', 'foo', '.', 'bar')
-    assert FSPath('file://foo/../bar').parts == ('file://', 'foo', '..', 'bar')
-    assert FSPath('file://../bar').parts == ('file://', '..', 'bar')
-    assert (FSPath('file://foo') /
-            '../bar').parts == ('file://', 'foo', '..', 'bar')
-    assert FSPath('file://foo/bar').parts == ('file://', 'foo', 'bar')
+    assert FSPath('file://foo//bar').parts == ('foo', 'bar')
+    assert FSPath('file://foo/./bar').parts == ('foo', 'bar')
+    assert FSPath('file://foo/../bar').parts == ('foo', '..', 'bar')
+    assert FSPath('file://../bar').parts == ('..', 'bar')
+    assert (FSPath('file://foo') / '../bar').parts == ('foo', '..', 'bar')
+    assert FSPath('file://foo/bar').parts == ('foo', 'bar')
 
-    assert FSPath('file://foo',
-                  '../bar').parts == ('file://', 'foo', '..', 'bar')
-    assert FSPath('file://', 'foo', 'bar').parts == ('file://', 'foo', 'bar')
+    assert FSPath('file://foo', '../bar').parts == ('foo', '..', 'bar')
+    assert FSPath('file://', 'foo', 'bar').parts == ('foo', 'bar')
 
-
-#     TODO: Need discussion. parts of path stared with 'file://' should include 'file://' or not
-#     assert FSPath('foo//bar').parts == ('foo', '', 'bar')
-#     assert FSPath('foo/./bar').parts == ('foo', '.', 'bar')
-#     assert FSPath('foo/../bar').parts == ('foo', '..', 'bar')
-#     assert FSPath('../bar').parts == ('..', 'bar')
-#     assert FSPath('foo', '../bar').parts == ('foo', '..', 'bar')
-#     assert FSPath('foo/bar').parts == ('foo', 'bar')
-#     assert FSPath('/', 'foo', 'bar').parts == ('', '', 'foo', 'bar')
+    assert FSPath('foo//bar').parts == ('foo', 'bar')
+    assert FSPath('foo/./bar').parts == ('foo', 'bar')
+    assert FSPath('foo/../bar').parts == ('foo', '..', 'bar')
+    assert FSPath('../bar').parts == ('..', 'bar')
+    assert FSPath('foo', '../bar').parts == ('foo', '..', 'bar')
+    assert FSPath('foo/bar').parts == ('foo', 'bar')
+    assert FSPath('/', 'foo', 'bar').parts == ('/', 'foo', 'bar')
 
 
 def test_drive():
@@ -105,35 +97,28 @@ def test_drive():
 
 
 def test_root():
-    assert FSPath('file://foo/bar').root == 'file://'
+    assert FSPath('file://foo/bar').root == ''
 
-    assert FSPath('/foo/bar').root == 'file://'
-    assert FSPath('foo//bar').root == 'file://'
-    assert FSPath('foo/./bar').root == 'file://'
-    assert FSPath('foo/../bar').root == 'file://'
-    assert FSPath('../bar').root == 'file://'
-
-    # TODO: The following are the usages that are not yet supported
-    # assert FSPath('foo', '../bar').root == ''
+    assert FSPath('/foo/bar').root == '/'
+    assert FSPath('foo//bar').root == ''
+    assert FSPath('foo/./bar').root == ''
+    assert FSPath('foo/../bar').root == ''
+    assert FSPath('../bar').root == ''
 
 
 def test_anchor():
-    assert FSPath('file://foo/bar').anchor == 'file://'
+    assert FSPath('file://foo/bar').anchor == ''
 
-    assert FSPath('foo//bar').anchor == 'file://'
-    assert FSPath('foo/./bar').anchor == 'file://'
-    assert FSPath('foo/../bar').anchor == 'file://'
-    assert FSPath('../bar').anchor == 'file://'
-
-    # TODO: The following are the usages that are not yet supported
-    # assert FSPath('foo', '../bar').anchor == ''
+    assert FSPath('foo//bar').anchor == ''
+    assert FSPath('foo/./bar').anchor == ''
+    assert FSPath('foo/../bar').anchor == ''
+    assert FSPath('../bar').anchor == ''
+    assert FSPath('/bar').anchor == '/'
 
 
 def test_parents():
-    assert tuple(FSPath('foo//bar').parents) == (
-        FSPath('foo/'), FSPath('foo'), FSPath(''))
-    assert tuple(FSPath('foo/./bar').parents) == (
-        FSPath('foo/.'), FSPath('foo'), FSPath(''))
+    assert tuple(FSPath('foo//bar').parents) == (FSPath('foo'), FSPath(''))
+    assert tuple(FSPath('foo/./bar').parents) == (FSPath('foo'), FSPath(''))
     assert tuple(FSPath('foo/../bar').parents) == (
         FSPath('foo/..'), FSPath('foo'), FSPath(''))
     assert tuple(FSPath('../bar').parents) == (FSPath('..'), FSPath(''))

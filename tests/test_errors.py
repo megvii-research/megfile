@@ -148,7 +148,6 @@ def test_s3_should_retry():
         elif Error is botocore.exceptions.ResponseStreamingError:
             assert s3_should_retry(Error(error='test')) is True
         else:
-            print(Error)
             assert s3_should_retry(Error()) is True
 
     error_response = {"Error": {"Code": "500"}}

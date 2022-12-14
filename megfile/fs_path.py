@@ -1,6 +1,7 @@
 import hashlib
 import io
 import os
+import pathlib
 import shutil
 from stat import S_ISDIR as stat_isdir
 from stat import S_ISLNK as stat_islnk
@@ -11,7 +12,7 @@ from urllib.parse import urlsplit
 from megfile.errors import _create_missing_ok_generator
 from megfile.interfaces import Access, FileEntry, PathLike, StatResult
 from megfile.lib.glob import iglob
-from megfile.utils import calculate_md5
+from megfile.utils import cachedproperty, calculate_md5
 
 from .interfaces import PathLike, URIPath
 from .lib.compat import fspath
@@ -24,6 +25,15 @@ __all__ = [
     'StatResult',
     'fs_path_join',
     '_make_stat',
+    'fs_readlink',
+    'fs_cwd',
+    'fs_home',
+    'fs_iglob',
+    'fs_glob',
+    'fs_glob_stat',
+    'fs_rename',
+    'fs_resolve',
+    'fs_move',
 ]
 
 
@@ -53,6 +63,125 @@ def fs_path_join(path: PathLike, *other_paths: PathLike) -> str:
     return path_join(fspath(path), *map(fspath, other_paths))
 
 
+def fs_readlink(path) -> str:
+    '''
+    Return a string representing the path to which the symbolic link points.
+    :returns: Return a string representing the path to which the symbolic link points.
+    '''
+    return os.readlink(path)
+
+
+def fs_cwd() -> str:
+    '''Return current working directory
+
+    returns: Current working directory
+    '''
+    return os.getcwd()
+
+
+def fs_home():
+    '''Return the home directory
+
+    returns: Home directory path
+    '''
+    return os.path.expanduser('~')
+
+
+def fs_iglob(path: PathLike, recursive: bool = True,
+             missing_ok: bool = True) -> Iterator[str]:
+    '''Return path iterator in ascending alphabetical order, in which path matches glob pattern
+
+    1. If doesn't match any path, return empty list
+        Notice:  ``glob.glob`` in standard library returns ['a/'] instead of empty list when pathname is like `a/**`, recursive is True and directory 'a' doesn't exist. fs_glob behaves like ``glob.glob`` in standard library under such circumstance.
+    2. No guarantee that each path in result is different, which means:
+        Assume there exists a path `/a/b/c/b/d.txt`
+        use path pattern like `/**/b/**/*.txt` to glob, the path above will be returned twice
+    3. `**` will match any matched file, directory, symlink and '' by default, when recursive is `True`
+    4. fs_glob returns same as glob.glob(pathname, recursive=True) in acsending alphabetical order.
+    5. Hidden files (filename stars with '.') will not be found in the result
+
+    :param recursive: If False, `**` will not search directory recursively
+    :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
+    :returns: An iterator contains paths match `pathname`
+    '''
+    for path in _create_missing_ok_generator(
+            iglob(fspath(path), recursive=recursive), missing_ok,
+            FileNotFoundError('No match file: %r' % path)):
+        yield path
+
+
+def fs_glob(path: PathLike, recursive: bool = True,
+            missing_ok: bool = True) -> List[str]:
+    '''Return path list in ascending alphabetical order, in which path matches glob pattern
+
+    1. If doesn't match any path, return empty list
+        Notice:  ``glob.glob`` in standard library returns ['a/'] instead of empty list when pathname is like `a/**`, recursive is True and directory 'a' doesn't exist. fs_glob behaves like ``glob.glob`` in standard library under such circumstance.
+    2. No guarantee that each path in result is different, which means:
+        Assume there exists a path `/a/b/c/b/d.txt`
+        use path pattern like `/**/b/**/*.txt` to glob, the path above will be returned twice
+    3. `**` will match any matched file, directory, symlink and '' by default, when recursive is `True`
+    4. fs_glob returns same as glob.glob(pathname, recursive=True) in acsending alphabetical order.
+    5. Hidden files (filename stars with '.') will not be found in the result
+
+    :param recursive: If False, `**` will not search directory recursively
+    :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
+    :returns: A list contains paths match `pathname`
+    '''
+    return list(fs_iglob(path=path, recursive=recursive, missing_ok=missing_ok))
+
+
+def fs_glob_stat(
+        path: PathLike, recursive: bool = True,
+        missing_ok: bool = True) -> Iterator[FileEntry]:
+    '''Return a list contains tuples of path and file stat, in ascending alphabetical order, in which path matches glob pattern
+
+    1. If doesn't match any path, return empty list
+        Notice:  ``glob.glob`` in standard library returns ['a/'] instead of empty list when pathname is like `a/**`, recursive is True and directory 'a' doesn't exist. fs_glob behaves like ``glob.glob`` in standard library under such circumstance.
+    2. No guarantee that each path in result is different, which means:
+        Assume there exists a path `/a/b/c/b/d.txt`
+        use path pattern like `/**/b/**/*.txt` to glob, the path above will be returned twice
+    3. `**` will match any matched file, directory, symlink and '' by default, when recursive is `True`
+    4. fs_glob returns same as glob.glob(pathname, recursive=True) in acsending alphabetical order.
+    5. Hidden files (filename stars with '.') will not be found in the result
+
+    :param recursive: If False, `**` will not search directory recursively
+    :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
+    :returns: A list contains tuples of path and file stat, in which paths match `pathname`
+    '''
+    for path in fs_iglob(path=path, recursive=recursive, missing_ok=missing_ok):
+        yield FileEntry(
+            os.path.basename(path), path, _make_stat(os.lstat(path)))
+
+
+def fs_rename(src_path: PathLike, dst_path: PathLike) -> None:
+    '''
+    rename file on fs
+
+    :param src_path: Given path
+    :param dst_path: Given destination path
+    '''
+    shutil.move(src_path, dst_path)
+
+
+def fs_move(src_path: PathLike, dst_path: PathLike) -> None:
+    '''
+    rename file on fs
+
+    :param src_path: Given path
+    :param dst_path: Given destination path
+    '''
+    fs_rename(src_path, dst_path)
+
+
+def fs_resolve(path: PathLike) -> str:
+    '''Equal to fs_realpath, return the real path of given path
+
+    :param path: Given path
+    :returns: Real path of given path
+    '''
+    return FSPath(path).realpath()
+
+
 @SmartPath.register
 class FSPath(URIPath):
     """file protocol
@@ -71,6 +200,18 @@ class FSPath(URIPath):
     def __fspath__(self) -> str:
         return os.path.normpath(self.path_without_protocol)
 
+    @cachedproperty
+    def root(self) -> str:
+        return pathlib.Path(self.path_without_protocol).root
+
+    @cachedproperty
+    def anchor(self) -> str:
+        return pathlib.Path(self.path_without_protocol).anchor
+
+    @cachedproperty
+    def drive(self) -> str:
+        return pathlib.Path(self.path_without_protocol).drive
+
     @classmethod
     def from_uri(cls, path: str) -> "FSPath":
         return cls.from_path(path)
@@ -79,9 +220,10 @@ class FSPath(URIPath):
     def path_with_protocol(self) -> Union[str, int]:
         if isinstance(self.path, int):
             return self.path
-        if self.path.startswith(self.anchor):
+        protocol_prefix = self.protocol + "://"
+        if self.path.startswith(protocol_prefix):
             return self.path
-        return self.anchor + self.path
+        return protocol_prefix + self.path
 
     def is_absolute(self) -> bool:
         '''Test whether a path is absolute
@@ -134,16 +276,16 @@ class FSPath(URIPath):
             return os.path.exists(self.path_without_protocol)
         return os.path.lexists(self.path_without_protocol)
 
-    def getmtime(self) -> float:
+    def getmtime(self, follow_symlinks: bool = False) -> float:
         '''
         Get last-modified time of the file on the given path (in Unix timestamp format).
         If the path is an existent directory, return the latest modified time of all file in it.
 
         :returns: last-modified time
         '''
-        return self.stat().mtime
+        return self.stat(follow_symlinks=follow_symlinks).mtime
 
-    def getsize(self) -> int:
+    def getsize(self, follow_symlinks: bool = False) -> int:
         '''
         Get file size on the given file path (in bytes).
         If the path in a directory, return the sum of all file size in it, including file in subdirectories (if exist).
@@ -152,10 +294,10 @@ class FSPath(URIPath):
         :returns: File size
 
         '''
-        return self.stat().size
+        return self.stat(follow_symlinks=follow_symlinks).size
 
-    def glob(self, recursive: bool = True,
-             missing_ok: bool = True) -> List[str]:
+    def glob(self, pattern, recursive: bool = True,
+             missing_ok: bool = True) -> List['FSPath']:
         '''Return path list in ascending alphabetical order, in which path matches glob pattern
 
         1. If doesn't match any path, return empty list
@@ -167,14 +309,18 @@ class FSPath(URIPath):
         4. fs_glob returns same as glob.glob(pathname, recursive=True) in acsending alphabetical order.
         5. Hidden files (filename stars with '.') will not be found in the result
 
+        :param pattern: Glob the given relative pattern in the directory represented by this path
         :param recursive: If False, `**` will not search directory recursively
         :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
         :returns: A list contains paths match `pathname`
         '''
-        return list(self.iglob(recursive=recursive, missing_ok=missing_ok))
+        return list(
+            self.iglob(
+                pattern=pattern, recursive=recursive, missing_ok=missing_ok))
 
-    def glob_stat(self, recursive: bool = True,
-                  missing_ok: bool = True) -> Iterator[FileEntry]:
+    def glob_stat(
+            self, pattern, recursive: bool = True,
+            missing_ok: bool = True) -> Iterator[FileEntry]:
         '''Return a list contains tuples of path and file stat, in ascending alphabetical order, in which path matches glob pattern
 
         1. If doesn't match any path, return empty list
@@ -186,12 +332,16 @@ class FSPath(URIPath):
         4. fs_glob returns same as glob.glob(pathname, recursive=True) in acsending alphabetical order.
         5. Hidden files (filename stars with '.') will not be found in the result
 
+        :param pattern: Glob the given relative pattern in the directory represented by this path
         :param recursive: If False, `**` will not search directory recursively
         :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
         :returns: A list contains tuples of path and file stat, in which paths match `pathname`
         '''
-        for path in self.iglob(recursive=recursive, missing_ok=missing_ok):
-            yield FileEntry(path, _make_stat(os.lstat(path)))
+        for path_obj in self.iglob(pattern=pattern, recursive=recursive,
+                                   missing_ok=missing_ok):
+            yield FileEntry(
+                path_obj.name, path_obj.path,
+                _make_stat(os.lstat(path_obj.path)))
 
     def expanduser(self):
         '''Expand ~ and ~user constructions.  If user or $HOME is unknown,
@@ -199,8 +349,8 @@ class FSPath(URIPath):
         '''
         return os.path.expanduser(self.path_without_protocol)
 
-    def iglob(self, recursive: bool = True,
-              missing_ok: bool = True) -> Iterator[str]:
+    def iglob(self, pattern, recursive: bool = True,
+              missing_ok: bool = True) -> Iterator['FSPath']:
         '''Return path iterator in ascending alphabetical order, in which path matches glob pattern
 
         1. If doesn't match any path, return empty list
@@ -212,14 +362,14 @@ class FSPath(URIPath):
         4. fs_glob returns same as glob.glob(pathname, recursive=True) in acsending alphabetical order.
         5. Hidden files (filename stars with '.') will not be found in the result
 
+        :param pattern: Glob the given relative pattern in the directory represented by this path
         :param recursive: If False, `**` will not search directory recursively
         :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
         :returns: An iterator contains paths match `pathname`
         '''
-        return _create_missing_ok_generator(
-            iglob(fspath(self.path_without_protocol), recursive=recursive),
-            missing_ok,
-            FileNotFoundError('No match file: %r' % self.path_without_protocol))
+        for path in fs_iglob(self.joinpath(pattern).path_without_protocol,
+                             recursive=recursive, missing_ok=missing_ok):
+            yield self.from_path(path)
 
     def is_dir(self, followlinks: bool = False) -> bool:
         '''
@@ -261,6 +411,15 @@ class FSPath(URIPath):
         '''
         return sorted(os.listdir(self.path_without_protocol))
 
+    def iterdir(self) -> Iterator['FSPath']:
+        '''
+        Get all contents of given fs path. The result is in acsending alphabetical order.
+
+        :returns: All contents have in the path in acsending alphabetical order
+        '''
+        for path in self.listdir():
+            yield self.joinpath(path)  # type: ignore
+
     def load(self) -> BinaryIO:
         '''Read all content on specified path and write into memory
 
@@ -300,15 +459,16 @@ class FSPath(URIPath):
         '''
         return fspath(os.path.relpath(self.path_without_protocol, start=start))
 
-    def rename(self, dst_path: PathLike) -> None:
+    def rename(self, dst_path: PathLike) -> 'FSPath':
         '''
         rename file on fs
 
         :param dst_path: Given destination path
         '''
-        shutil.move(self.path_without_protocol, dst_path)
+        fs_rename(self.path_without_protocol, dst_path)
+        return self.from_path(dst_path)
 
-    def replace(self, dst_path: PathLike) -> None:
+    def replace(self, dst_path: PathLike) -> 'FSPath':
         '''
         move file on fs
 
@@ -366,7 +526,8 @@ class FSPath(URIPath):
         :returns: A file path generator
         '''
         for path in self._scan(followlinks=followlinks):
-            yield FileEntry(path, _make_stat(os.lstat(path)))
+            yield FileEntry(
+                os.path.basename(path), path, _make_stat(os.lstat(path)))
         else:
             if missing_ok:
                 return
@@ -380,15 +541,19 @@ class FSPath(URIPath):
         :returns: An iterator contains all contents have prefix path
         '''
         for entry in os.scandir(self.path_without_protocol):
-            yield FileEntry(entry.path, _make_stat(entry.stat()))
+            yield FileEntry(entry.name, entry.path, _make_stat(entry.stat()))
 
-    def stat(self) -> StatResult:
+    def stat(self, follow_symlinks=True) -> StatResult:
         '''
         Get StatResult of file on fs, including file size and mtime, referring to fs_getsize and fs_getmtime
 
         :returns: StatResult
         '''
-        result = _make_stat(os.lstat(self.path_without_protocol))
+        if follow_symlinks:
+            result = _make_stat(os.stat(self.path_without_protocol))
+        else:
+            result = _make_stat(os.lstat(self.path_without_protocol))
+
         if result.islnk or not result.isdir:
             return result
 
@@ -405,6 +570,14 @@ class FSPath(URIPath):
                 if mtime < stat.st_mtime:
                     mtime = stat.st_mtime
         return result._replace(size=size, ctime=ctime, mtime=mtime)
+
+    def lstat(self) -> StatResult:
+        '''
+        Get StatResult of file on fs, including file size and mtime, referring to fs_getsize and fs_getmtime
+
+        :returns: StatResult
+        '''
+        return self.stat(follow_symlinks=False)
 
     def unlink(self, missing_ok: bool = False) -> None:
         '''
@@ -465,25 +638,30 @@ class FSPath(URIPath):
             stack.extend(
                 (os.path.join(root, directory) for directory in reversed(dirs)))
 
-    def resolve(self) -> str:
+    def resolve(self, strict=False) -> 'FSPath':
         '''Equal to fs_realpath
 
         :return: Return the canonical path of the specified filename, eliminating any symbolic links encountered in the path.
-        :rtype: str
+        :rtype: FSPath
         '''
-        return os.path.realpath(self.path_without_protocol)
+        return self.from_path(
+            str(
+                pathlib.Path(
+                    self.path_without_protocol).resolve(strict=strict)))
 
-    def md5(self, recalculate: bool = False):
+    def md5(self, recalculate: bool = False, followlinks: bool = True):
         '''
         Calculate the md5 value of the file
 
+        :param recalculate: Ignore this parameter, just for compatibility
+        :param followlinks: Ignore this parameter, just for compatibility
         returns: md5 of file
         '''
         if os.path.isdir(self.path_without_protocol):
             hash_md5 = hashlib.md5()  # nosec
             for file_name in self.listdir():
-                chunk = FSPath(self.path_without_protocol,
-                               file_name).md5(recalculate=recalculate).encode()
+                chunk = FSPath(self.path_without_protocol, file_name).md5(
+                    recalculate=recalculate, followlinks=followlinks).encode()
                 hash_md5.update(chunk)
             return hash_md5.hexdigest()
         with open(self.path_without_protocol, 'rb') as src:  # type: ignore
@@ -511,7 +689,7 @@ class FSPath(URIPath):
 
             return _copyfileobj
 
-        src_stat = self.stat()
+        src_stat = self.lstat()
         with patch('shutil.copyfileobj', _patch_copyfileobj(callback)):
             shutil.copyfile(
                 self.path_without_protocol,
@@ -541,8 +719,6 @@ class FSPath(URIPath):
             the int data is means the size (in bytes) of the written data that is passed periodically
 
                 3. This function is thread-unsafe
-
-        TODO: get shutil implementation, to make fs_copy thread-safe
 
         :param dst_path: Target file path
         :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
@@ -577,12 +753,12 @@ class FSPath(URIPath):
         '''
         return os.symlink(self.path_without_protocol, dst_path)
 
-    def readlink(self) -> PathLike:
+    def readlink(self) -> 'FSPath':
         '''
-        Return a string representing the path to which the symbolic link points.
-        :returns: Return a string representing the path to which the symbolic link points.
+        Return a FSPath instance representing the path to which the symbolic link points.
+        :returns: Return a FSPath instance representing the path to which the symbolic link points.
         '''
-        return os.readlink(self.path_without_protocol)
+        return self.from_path(fs_readlink(self.path_without_protocol))
 
     def is_symlink(self) -> bool:
         '''Test whether a path is a symbolic link
@@ -599,21 +775,19 @@ class FSPath(URIPath):
         '''
         return os.path.ismount(self.path_without_protocol)
 
-    @staticmethod
-    def cwd() -> str:
+    def cwd(self) -> 'FSPath':
         '''Return current working directory
 
         returns: Current working directory
         '''
-        return os.getcwd()
+        return self.from_path(fs_cwd())
 
-    @staticmethod
-    def home():
+    def home(self):
         '''Return the home directory
 
         returns: Home directory path
         '''
-        return os.path.expanduser('~')
+        return self.from_path(fs_home())
 
     def joinpath(self, *other_paths: PathLike) -> "FSPath":
         path = fspath(self)
@@ -631,10 +805,107 @@ class FSPath(URIPath):
         with open(self.path_without_protocol, 'wb') as output:
             output.write(file_object.read())
 
-    def open(self, mode: str, **kwargs) -> IO[AnyStr]:
+    def open(
+            self,
+            mode: str,
+            buffering=-1,
+            encoding=None,
+            errors=None,
+            newline=None,
+            closefd=True,
+            **kwargs) -> IO[AnyStr]:
         if not isinstance(self.path_without_protocol, int) and ('w' in mode or
                                                                 'x' in mode or
                                                                 'a' in mode):
             FSPath(os.path.dirname(
                 self.path_without_protocol)).mkdir(exist_ok=True)
-        return io.open(self.path_without_protocol, mode)
+        return io.open(
+            self.path_without_protocol,
+            mode,
+            buffering=buffering,
+            encoding=encoding,
+            errors=errors,
+            newline=newline,
+            closefd=closefd)
+
+    @cachedproperty
+    def parts(self) -> Tuple[str]:
+        '''
+        A tuple giving access to the path’s various components
+        '''
+        return pathlib.Path(self.path_without_protocol).parts
+
+    def chmod(self, mode: int, *, follow_symlinks: bool = True):
+        '''
+        Change the file mode and permissions, like os.chmod().
+
+        This method normally follows symlinks. 
+        Some Unix flavours support changing permissions on the symlink itself;
+        on these platforms you may add the argument follow_symlinks=False, or use lchmod().
+        '''
+        return os.chmod(
+            path=self.path_without_protocol,
+            mode=mode,
+            follow_symlinks=follow_symlinks)
+
+    def group(self) -> str:
+        '''
+        Return the name of the group owning the file. KeyError is raised if the file’s gid isn’t found in the system database.
+        '''
+        return pathlib.Path(self.path_without_protocol).group()
+
+    def is_socket(self) -> bool:
+        '''
+        Return True if the path points to a Unix socket (or a symbolic link pointing to a Unix socket), False if it points to another kind of file.
+
+        False is also returned if the path doesn’t exist or is a broken symlink; other errors (such as permission errors) are propagated.
+        '''
+        return pathlib.Path(self.path_without_protocol).is_socket()
+
+    def is_fifo(self) -> bool:
+        '''
+        Return True if the path points to a FIFO (or a symbolic link pointing to a FIFO), False if it points to another kind of file.
+
+        False is also returned if the path doesn’t exist or is a broken symlink; other errors (such as permission errors) are propagated.
+        '''
+        return pathlib.Path(self.path_without_protocol).is_fifo()
+
+    def is_block_device(self) -> bool:
+        '''
+        Return True if the path points to a block device (or a symbolic link pointing to a block device), False if it points to another kind of file.
+
+        False is also returned if the path doesn’t exist or is a broken symlink; other errors (such as permission errors) are propagated.
+        '''
+        return pathlib.Path(self.path_without_protocol).is_block_device()
+
+    def is_char_device(self) -> bool:
+        '''
+        Return True if the path points to a character device (or a symbolic link pointing to a character device), False if it points to another kind of file.
+
+        False is also returned if the path doesn’t exist or is a broken symlink; other errors (such as permission errors) are propagated.
+        '''
+        return pathlib.Path(self.path_without_protocol).is_char_device()
+
+    def owner(self) -> str:
+        '''
+        Return the name of the user owning the file. KeyError is raised if the file’s uid isn’t found in the system database.
+        '''
+        return pathlib.Path(self.path_without_protocol).owner()
+
+    def absolute(self) -> 'FSPath':
+        '''
+        Make the path absolute, without normalization or resolving symlinks. Returns a new path object
+        '''
+        return self.from_path(os.path.abspath(self.path_without_protocol))
+
+    def rmdir(self):
+        '''
+        Remove this directory. The directory must be empty.
+        '''
+        return os.rmdir(self.path_without_protocol)
+
+    def hardlink_to(self, target):
+        '''
+        Make this path a hard link to the same file as target.
+        '''
+        return os.link(target, self.path)

@@ -4,10 +4,13 @@ VERSION := $(shell cat ${PACKAGE}/version.py | sed -n -E 's/.*=//; s/ //g; s/"//
 test:
 	pytest --cov-config=setup.cfg --cov=${PACKAGE} --disable-socket --no-cov-on-fail --cov-report=html:html_cov/ --cov-report term-missing --cov-report=xml tests/ --durations=10
 
-format:
+autofile:
 	python3 -m "scripts.generate_file"
+	make format
+
+format:
 	isort ${PACKAGE} tests
-	yapf --in-place --recursive ${PACKAGE} tests
+	yapf --in-place --recursive ${PACKAGE} tests scripts
 
 style_check:
 	isort --diff --check ${PACKAGE} tests
@@ -42,7 +45,5 @@ release:
 	rm -rf build dist
 	python3 setup.py bdist_wheel
 
-	devpi login ${PYPI_USERNAME} --password=${PYPI_PASSWORD}
-	devpi upload dist/${PACKAGE}-${VERSION}-py3-none-any.whl
-
+	twine upload dist/${PACKAGE}-${VERSION}-py3-none-any.whl --username='${PYPI_USERNAME}' --password='${PYPI_PASSWORD}' --repository-url 'http://pypi.i.brainpp.cn/r-eng/dev/'
 	twine upload dist/${PACKAGE}-${VERSION}-py3-none-any.whl --username=${PYPI_USERNAME_2} --password=${PYPI_PASSWORD_2}

@@ -6,7 +6,7 @@ from megfile.pathlike import BasePath, BaseURIPath, FileEntry, StatResult, URIPa
 def test_file_entry():
     stat_result = StatResult(
         size=100, ctime=1.1, mtime=1.2, isdir=False, islnk=False)
-    file_entry = FileEntry(name='test', stat=stat_result)
+    file_entry = FileEntry(name='test', path='test', stat=stat_result)
     assert file_entry.is_file() is True
     assert file_entry.is_dir() is False
     assert file_entry.is_symlink() is False
@@ -29,7 +29,7 @@ def test_base_path(mocker):
 def test_base_uri_path_as_posix(mocker):
     path = '/test'
     base_uri_path = BaseURIPath(path)
-    mocker.patch('megfile.pathlike.BaseURIPath.anchor', 'fs://')
+    mocker.patch('megfile.pathlike.BaseURIPath.protocol', 'fs')
     assert base_uri_path.as_posix() == 'fs://test'
 
 
@@ -95,8 +95,8 @@ def test_uri_path(mocker):
     assert uri_path_b.suffixes == []
 
     with pytest.raises(TypeError):
-        uri_path.relative_to(None)
+        uri_path.relative_to()
 
-    with pytest.raises(TypeError):
+    with pytest.raises(ValueError):
         uri_path.relative_to(1)
     assert uri_path.resolve() == 'fs://test'

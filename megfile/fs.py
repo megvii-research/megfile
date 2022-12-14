@@ -1,6 +1,6 @@
 from typing import BinaryIO, Callable, Iterator, List, Optional, Tuple
 
-from megfile.fs_path import FSPath, StatResult, _make_stat, fs_path_join, is_fs
+from megfile.fs_path import FSPath, StatResult, _make_stat, fs_cwd, fs_glob, fs_glob_stat, fs_home, fs_iglob, fs_move, fs_path_join, fs_readlink, fs_rename, fs_resolve, is_fs
 from megfile.interfaces import Access, FileEntry, PathLike, StatResult
 
 __all__ = [
@@ -9,16 +9,22 @@ __all__ = [
     'StatResult',
     'fs_path_join',
     '_make_stat',
+    'fs_readlink',
+    'fs_cwd',
+    'fs_home',
+    'fs_iglob',
+    'fs_glob',
+    'fs_glob_stat',
+    'fs_rename',
+    'fs_resolve',
+    'fs_move',
     'fs_isabs',
     'fs_abspath',
     'fs_access',
     'fs_exists',
     'fs_getmtime',
     'fs_getsize',
-    'fs_glob',
-    'fs_glob_stat',
     'fs_expanduser',
-    'fs_iglob',
     'fs_isdir',
     'fs_isfile',
     'fs_listdir',
@@ -26,8 +32,6 @@ __all__ = [
     'fs_makedirs',
     'fs_realpath',
     'fs_relpath',
-    'fs_rename',
-    'fs_move',
     'fs_remove',
     'fs_scan',
     'fs_scan_stat',
@@ -35,16 +39,12 @@ __all__ = [
     'fs_stat',
     'fs_unlink',
     'fs_walk',
-    'fs_resolve',
     'fs_getmd5',
     'fs_copy',
     'fs_sync',
     'fs_symlink',
-    'fs_readlink',
     'fs_islink',
     'fs_ismount',
-    'fs_cwd',
-    'fs_home',
     'fs_save_as',
 ]
 
@@ -96,7 +96,7 @@ def fs_exists(path: PathLike, followlinks: bool = False) -> bool:
     return FSPath(path).exists(followlinks)
 
 
-def fs_getmtime(path: PathLike) -> float:
+def fs_getmtime(path: PathLike, follow_symlinks: bool = False) -> float:
     '''
     Get last-modified time of the file on the given path (in Unix timestamp format).
     If the path is an existent directory, return the latest modified time of all file in it.
@@ -104,10 +104,10 @@ def fs_getmtime(path: PathLike) -> float:
     :param path: Given path
     :returns: last-modified time
     '''
-    return FSPath(path).getmtime()
+    return FSPath(path).getmtime(follow_symlinks)
 
 
-def fs_getsize(path: PathLike) -> int:
+def fs_getsize(path: PathLike, follow_symlinks: bool = False) -> int:
     '''
     Get file size on the given file path (in bytes).
     If the path in a directory, return the sum of all file size in it, including file in subdirectories (if exist).
@@ -117,50 +117,7 @@ def fs_getsize(path: PathLike) -> int:
     :returns: File size
 
     '''
-    return FSPath(path).getsize()
-
-
-def fs_glob(path: PathLike, recursive: bool = True,
-            missing_ok: bool = True) -> List[str]:
-    '''Return path list in ascending alphabetical order, in which path matches glob pattern
-
-    1. If doesn't match any path, return empty list
-        Notice:  ``glob.glob`` in standard library returns ['a/'] instead of empty list when pathname is like `a/**`, recursive is True and directory 'a' doesn't exist. fs_glob behaves like ``glob.glob`` in standard library under such circumstance.
-    2. No guarantee that each path in result is different, which means:
-        Assume there exists a path `/a/b/c/b/d.txt`
-        use path pattern like `/**/b/**/*.txt` to glob, the path above will be returned twice
-    3. `**` will match any matched file, directory, symlink and '' by default, when recursive is `True`
-    4. fs_glob returns same as glob.glob(pathname, recursive=True) in acsending alphabetical order.
-    5. Hidden files (filename stars with '.') will not be found in the result
-
-    :param path: Given path
-    :param recursive: If False, `**` will not search directory recursively
-    :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
-    :returns: A list contains paths match `pathname`
-    '''
-    return FSPath(path).glob(recursive, missing_ok)
-
-
-def fs_glob_stat(
-        path: PathLike, recursive: bool = True,
-        missing_ok: bool = True) -> Iterator[FileEntry]:
-    '''Return a list contains tuples of path and file stat, in ascending alphabetical order, in which path matches glob pattern
-
-    1. If doesn't match any path, return empty list
-        Notice:  ``glob.glob`` in standard library returns ['a/'] instead of empty list when pathname is like `a/**`, recursive is True and directory 'a' doesn't exist. fs_glob behaves like ``glob.glob`` in standard library under such circumstance.
-    2. No guarantee that each path in result is different, which means:
-        Assume there exists a path `/a/b/c/b/d.txt`
-        use path pattern like `/**/b/**/*.txt` to glob, the path above will be returned twice
-    3. `**` will match any matched file, directory, symlink and '' by default, when recursive is `True`
-    4. fs_glob returns same as glob.glob(pathname, recursive=True) in acsending alphabetical order.
-    5. Hidden files (filename stars with '.') will not be found in the result
-
-    :param path: Given path
-    :param recursive: If False, `**` will not search directory recursively
-    :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
-    :returns: A list contains tuples of path and file stat, in which paths match `pathname`
-    '''
-    return FSPath(path).glob_stat(recursive, missing_ok)
+    return FSPath(path).getsize(follow_symlinks)
 
 
 def fs_expanduser(path: PathLike):
@@ -168,27 +125,6 @@ def fs_expanduser(path: PathLike):
        do nothing.
     '''
     return FSPath(path).expanduser()
-
-
-def fs_iglob(path: PathLike, recursive: bool = True,
-             missing_ok: bool = True) -> Iterator[str]:
-    '''Return path iterator in ascending alphabetical order, in which path matches glob pattern
-
-    1. If doesn't match any path, return empty list
-        Notice:  ``glob.glob`` in standard library returns ['a/'] instead of empty list when pathname is like `a/**`, recursive is True and directory 'a' doesn't exist. fs_glob behaves like ``glob.glob`` in standard library under such circumstance.
-    2. No guarantee that each path in result is different, which means:
-        Assume there exists a path `/a/b/c/b/d.txt`
-        use path pattern like `/**/b/**/*.txt` to glob, the path above will be returned twice
-    3. `**` will match any matched file, directory, symlink and '' by default, when recursive is `True`
-    4. fs_glob returns same as glob.glob(pathname, recursive=True) in acsending alphabetical order.
-    5. Hidden files (filename stars with '.') will not be found in the result
-
-    :param path: Given path
-    :param recursive: If False, `**` will not search directory recursively
-    :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
-    :returns: An iterator contains paths match `pathname`
-    '''
-    return FSPath(path).iglob(recursive, missing_ok)
 
 
 def fs_isdir(path: PathLike, followlinks: bool = False) -> bool:
@@ -276,26 +212,6 @@ def fs_relpath(path: PathLike, start: Optional[str] = None) -> str:
     return FSPath(path).relpath(start)
 
 
-def fs_rename(src_path: PathLike, dst_path: PathLike) -> None:
-    '''
-    rename file on fs
-
-    :param src_path: Given path
-    :param dst_path: Given destination path
-    '''
-    return FSPath(src_path).rename(dst_path)
-
-
-def fs_move(src_path: PathLike, dst_path: PathLike) -> None:
-    '''
-    move file on fs
-
-    :param src_path: Given path
-    :param dst_path: Given destination path
-    '''
-    return FSPath(src_path).replace(dst_path)
-
-
 def fs_remove(path: PathLike, missing_ok: bool = False) -> None:
     '''
     Remove the file or directory on fs
@@ -347,14 +263,14 @@ def fs_scandir(path: PathLike) -> Iterator[FileEntry]:
     return FSPath(path).scandir()
 
 
-def fs_stat(path: PathLike) -> StatResult:
+def fs_stat(path: PathLike, follow_symlinks=True) -> StatResult:
     '''
     Get StatResult of file on fs, including file size and mtime, referring to fs_getsize and fs_getmtime
 
     :param path: Given path
     :returns: StatResult
     '''
-    return FSPath(path).stat()
+    return FSPath(path).stat(follow_symlinks)
 
 
 def fs_unlink(path: PathLike, missing_ok: bool = False) -> None:
@@ -391,23 +307,17 @@ def fs_walk(path: PathLike, followlinks: bool = False
     return FSPath(path).walk(followlinks)
 
 
-def fs_resolve(path: PathLike) -> str:
-    '''Equal to fs_realpath
-
-    :param path: Given path
-    :return: Return the canonical path of the specified filename, eliminating any symbolic links encountered in the path.
-    :rtype: str
-    '''
-    return FSPath(path).resolve()
-
-
-def fs_getmd5(path: PathLike, recalculate: bool = False):
+def fs_getmd5(
+        path: PathLike, recalculate: bool = False, followlinks: bool = True):
     '''
     Calculate the md5 value of the file
 
+    :param path: Given path
+    :param recalculate: Ignore this parameter, just for compatibility
+    :param followlinks: Ignore this parameter, just for compatibility
     returns: md5 of file
     '''
-    return FSPath(path).md5(recalculate)
+    return FSPath(path).md5(recalculate, followlinks)
 
 
 def fs_copy(
@@ -429,8 +339,6 @@ def fs_copy(
         the int data is means the size (in bytes) of the written data that is passed periodically
 
             3. This function is thread-unsafe
-
-    TODO: get shutil implementation, to make fs_copy thread-safe
 
     :param src_path: Given path
     :param dst_path: Target file path
@@ -459,15 +367,6 @@ def fs_symlink(src_path: PathLike, dst_path: PathLike) -> None:
     return FSPath(src_path).symlink(dst_path)
 
 
-def fs_readlink(path: PathLike) -> PathLike:
-    '''
-    Return a string representing the path to which the symbolic link points.
-    :param path: Given path
-    :returns: Return a string representing the path to which the symbolic link points.
-    '''
-    return FSPath(path).readlink()
-
-
 def fs_islink(path: PathLike) -> bool:
     '''Test whether a path is a symbolic link
 
@@ -485,22 +384,6 @@ def fs_ismount(path: PathLike) -> bool:
     :returns: True if a path is a mount point, else False
     '''
     return FSPath(path).is_mount()
-
-
-def fs_cwd() -> str:
-    '''Return current working directory
-
-    returns: Current working directory
-    '''
-    return FSPath.cwd()
-
-
-def fs_home():
-    '''Return the home directory
-
-    returns: Home directory path
-    '''
-    return FSPath.home()
 
 
 def fs_save_as(file_object: BinaryIO, path: PathLike):

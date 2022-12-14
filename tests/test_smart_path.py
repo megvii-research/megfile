@@ -1,7 +1,12 @@
+import os
+from io import BufferedReader, BytesIO
+
+import boto3
 import pytest
 from mock import patch
+from moto import mock_s3
 
-from megfile.errors import ProtocolExistsError, ProtocolNotFoundError
+from megfile.errors import ProtocolExistsError, ProtocolNotFoundError, S3FileNotFoundError
 from megfile.fs_path import FSPath
 from megfile.http_path import HttpPath, HttpsPath
 from megfile.interfaces import Access
@@ -34,6 +39,17 @@ HTTPS_TEST_PATH = HTTPS_PROTOCOL_PRFIX + HTTPS_TEST_PATH_WITHOUT_PROTOCOL
 STDIO_PROTOCOL_PRFIX = StdioPath.protocol + "://"
 STDIO_TEST_PATH_WITHOUT_PROTOCOL = "-"
 STDIO_TEST_PATH = STDIO_PROTOCOL_PRFIX + STDIO_TEST_PATH_WITHOUT_PROTOCOL
+
+BUCKET = "bucket"
+
+
+@pytest.fixture
+def s3_empty_client(mocker):
+    with mock_s3():
+        client = boto3.client('s3')
+        client.create_bucket(Bucket=BUCKET)
+        mocker.patch('megfile.s3_path.get_s3_client', return_value=client)
+        yield client
 
 
 def test_register_result():
@@ -279,6 +295,13 @@ def test_scandir(funcA):
     funcA.assert_called_once_with()
 
 
+def test_scandir(fs):
+    os.makedirs('/test')
+    SmartPath('/test/1').write_bytes(b'test')
+    for file_entry in SmartPath('/test').scandir():
+        file_entry.inode() == os.stat('/test/1').st_ino
+
+
 @patch.object(S3Path, 'listdir')
 def test_listdir(funcA):
     SmartPath(S3_TEST_PATH).listdir()
@@ -303,6 +326,11 @@ def test_md5(funcA):
     funcA.assert_called_once()
 
 
+def test_md5_un_support():
+    with pytest.raises(NotImplementedError):
+        SmartPath('http://test/test').md5()
+
+
 @patch.object(FSPath, 'symlink')
 def test_symlink_to(funcA):
     SmartPath(FS_TEST_DST_PATH).symlink(FS_TEST_SRC_PATH)
@@ -325,3 +353,43 @@ def test_symlink_to_s3(funcA):
 def test_readlink_s3(funcA):
     SmartPath(S3_TEST_PATH).readlink()
     funcA.assert_called_once()
+
+
+def test_stat(s3_empty_client, fs):
+    path = SmartPath('/test')
+    path.write_text('test')
+    path_stat = path.stat()
+    origin_stat = os.stat('/test')
+    assert path_stat.st_mode == origin_stat.st_mode
+    assert path_stat.st_ino == origin_stat.st_ino
+    assert path_stat.st_dev == origin_stat.st_dev
+    assert path_stat.st_nlink == origin_stat.st_nlink
+    assert path_stat.st_uid == origin_stat.st_uid
+    assert path_stat.st_gid == origin_stat.st_gid
+    assert path_stat.st_size == origin_stat.st_size
+    assert path_stat.st_atime == origin_stat.st_atime
+    assert path_stat.st_mtime == origin_stat.st_mtime
+    assert path_stat.st_ctime == origin_stat.st_ctime
+    assert path_stat.st_atime_ns == origin_stat.st_atime_ns
+    assert path_stat.st_mtime_ns == origin_stat.st_mtime_ns
+    assert path_stat.st_ctime_ns == origin_stat.st_ctime_ns
+
+    path = SmartPath(f's3://{BUCKET}/testA')
+    path.write_bytes(b'test')
+    path_stat = path.stat()
+    assert path_stat.st_mode is None
+
+    content = s3_empty_client.head_object(Bucket=BUCKET, Key='testA')
+
+    assert path_stat.st_ino == content['ETag']
+    assert path_stat.st_dev == content['ETag']
+    assert path_stat.st_nlink is None
+    assert path_stat.st_uid is None
+    assert path_stat.st_gid is None
+    assert path_stat.st_size == content['ContentLength']
+    assert path_stat.st_atime is None
+    assert path_stat.st_mtime == content['LastModified'].timestamp()
+    assert path_stat.st_ctime == 0.0
+    assert path_stat.st_atime_ns is None
+    assert path_stat.st_mtime_ns is None
+    assert path_stat.st_ctime_ns is None

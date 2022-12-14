@@ -1,7 +1,7 @@
 from typing import BinaryIO, Callable, Iterator, List, Optional, Tuple
 
 from megfile.interfaces import Access, FileEntry, PathLike, StatResult
-from megfile.s3_path import S3BufferedWriter, S3Cacher, S3LimitedSeekableWriter, S3Path, S3PrefetchReader, S3ShareCacheReader, get_endpoint_url, get_s3_client, get_s3_session, is_s3, parse_s3_url, s3_buffered_open, s3_cached_open, s3_download, s3_legacy_open, s3_load_content, s3_memory_open, s3_open, s3_path_join, s3_pipe_open, s3_prefetch_open, s3_share_cache_open, s3_upload
+from megfile.s3_path import S3BufferedWriter, S3Cacher, S3LimitedSeekableWriter, S3Path, S3PrefetchReader, S3ShareCacheReader, get_endpoint_url, get_s3_client, get_s3_session, is_s3, parse_s3_url, s3_buffered_open, s3_cached_open, s3_download, s3_glob, s3_glob_stat, s3_iglob, s3_legacy_open, s3_load_content, s3_memory_open, s3_open, s3_path_join, s3_pipe_open, s3_prefetch_open, s3_readlink, s3_rename, s3_share_cache_open, s3_upload
 
 __all__ = [
     'S3Path',
@@ -28,13 +28,15 @@ __all__ = [
     's3_upload',
     's3_download',
     's3_load_content',
+    's3_readlink',
+    's3_glob',
+    's3_glob_stat',
+    's3_iglob',
+    's3_rename',
     's3_access',
     's3_exists',
     's3_getmtime',
     's3_getsize',
-    's3_glob',
-    's3_glob_stat',
-    's3_iglob',
     's3_isdir',
     's3_isfile',
     's3_listdir',
@@ -43,7 +45,6 @@ __all__ = [
     's3_makedirs',
     's3_move',
     's3_remove',
-    's3_rename',
     's3_scan',
     's3_scan_stat',
     's3_scandir',
@@ -54,7 +55,6 @@ __all__ = [
     's3_copy',
     's3_sync',
     's3_symlink',
-    's3_readlink',
     's3_islink',
     's3_save_as',
 ]
@@ -86,7 +86,7 @@ def s3_exists(path: PathLike, followlinks: bool = False) -> bool:
     return S3Path(path).exists(followlinks)
 
 
-def s3_getmtime(path: PathLike, followlinks: bool = False) -> float:
+def s3_getmtime(path: PathLike, follow_symlinks: bool = False) -> float:
     '''
     Get last-modified time of the file on the given s3_url path (in Unix timestamp format).
     If the path is an existent directory, return the latest modified time of all file in it. The mtime of empty directory is 1970-01-01 00:00:00
@@ -97,10 +97,10 @@ def s3_getmtime(path: PathLike, followlinks: bool = False) -> float:
     :returns: Last-modified time
     :raises: S3FileNotFoundError, UnsupportedError
     '''
-    return S3Path(path).getmtime(followlinks)
+    return S3Path(path).getmtime(follow_symlinks)
 
 
-def s3_getsize(path: PathLike, followlinks: bool = False) -> int:
+def s3_getsize(path: PathLike, follow_symlinks: bool = False) -> int:
     '''
     Get file size on the given s3_url path (in bytes).
     If the path in a directory, return the sum of all file size in it, including file in subdirectories (if exist).
@@ -112,52 +112,7 @@ def s3_getsize(path: PathLike, followlinks: bool = False) -> int:
     :returns: File size
     :raises: S3FileNotFoundError, UnsupportedError
     '''
-    return S3Path(path).getsize(followlinks)
-
-
-def s3_glob(path: PathLike, recursive: bool = True,
-            missing_ok: bool = True) -> List[str]:
-    '''Return s3 path list in ascending alphabetical order, in which path matches glob pattern
-    Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
-
-    :param path: Given path
-    :param recursive: If False, `**` will not search directory recursively
-    :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
-    :raises: UnsupportedError, when bucket part contains wildcard characters
-    :returns: A list contains paths match `s3_pathname`
-    '''
-    return S3Path(path).glob(recursive, missing_ok)
-
-
-def s3_glob_stat(
-        path: PathLike,
-        recursive: bool = True,
-        missing_ok: bool = True,
-        followlinks: bool = False) -> Iterator[FileEntry]:
-    '''Return a generator contains tuples of path and file stat, in ascending alphabetical order, in which path matches glob pattern
-    Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
-
-    :param path: Given path
-    :param recursive: If False, `**` will not search directory recursively
-    :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
-    :raises: UnsupportedError, when bucket part contains wildcard characters
-    :returns: A generator contains tuples of path and file stat, in which paths match `s3_pathname`
-    '''
-    return S3Path(path).glob_stat(recursive, missing_ok, followlinks)
-
-
-def s3_iglob(path: PathLike, recursive: bool = True,
-             missing_ok: bool = True) -> Iterator[str]:
-    '''Return s3 path iterator in ascending alphabetical order, in which path matches glob pattern
-    Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
-
-    :param path: Given path
-    :param recursive: If False, `**` will not search directory recursively
-    :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
-    :raises: UnsupportedError, when bucket part contains wildcard characters
-    :returns: An iterator contains paths match `s3_pathname`
-    '''
-    return S3Path(path).iglob(recursive, missing_ok)
+    return S3Path(path).getsize(follow_symlinks)
 
 
 def s3_isdir(path: PathLike) -> bool:
@@ -249,16 +204,6 @@ def s3_remove(path: PathLike, missing_ok: bool = False) -> None:
     return S3Path(path).remove(missing_ok)
 
 
-def s3_rename(src_url: PathLike, dst_url: PathLike) -> None:
-    '''
-    Move s3 file path from src_url to dst_url
-
-    :param src_url: Given path
-    :param dst_url: Given destination path
-    '''
-    return S3Path(src_url).rename(dst_url)
-
-
 def s3_scan(path: PathLike, missing_ok: bool = True,
             followlinks: bool = False) -> Iterator[str]:
     '''
@@ -306,11 +251,10 @@ def s3_scandir(path: PathLike,
     return S3Path(path).scandir(followlinks)
 
 
-def s3_stat(path: PathLike, followlinks: bool = False) -> StatResult:
+def s3_stat(path: PathLike, follow_symlinks=True) -> StatResult:
     '''
     Get StatResult of s3_url file, including file size and mtime, referring to s3_getsize and s3_getmtime
 
-    Automatically identifies "islnk" of s3_url whether "followlinks" is True or not.
     If s3_url is not an existent path, which means s3_exist(s3_url) returns False, then raise S3FileNotFoundError
     If attempt to get StatResult of complete s3, such as s3_dir_url == 's3://', raise S3BucketNotFoundError
 
@@ -318,7 +262,7 @@ def s3_stat(path: PathLike, followlinks: bool = False) -> StatResult:
     :returns: StatResult
     :raises: S3FileNotFoundError, S3BucketNotFoundError
     '''
-    return S3Path(path).stat(followlinks)
+    return S3Path(path).stat(follow_symlinks)
 
 
 def s3_unlink(path: PathLike, missing_ok: bool = False) -> None:
@@ -364,6 +308,7 @@ def s3_getmd5(
 
     :param path: Given path
     :param recalculate: calculate md5 in real-time or return s3 etag
+    :param followlinks: If is True, calculate md5 for real file
     :returns: md5 meta info
     '''
     return S3Path(path).md5(recalculate, followlinks)
@@ -397,26 +342,15 @@ def s3_sync(
     return S3Path(src_url).sync(dst_url, followlinks)
 
 
-def s3_symlink(src_url: PathLike, dst_url: PathLike) -> None:
+def s3_symlink(src_path: PathLike, dst_path: PathLike) -> None:
     '''
-    Create a symbolic link pointing to src_url named dst_url.
+    Create a symbolic link pointing to src_path named dst_path.
 
-    :param src_url: Given path
-    :param dst_url: Desination path
+    :param src_path: Given path
+    :param dst_path: Desination path
     :raises: S3NameTooLongError, S3BucketNotFoundError, S3IsADirectoryError
     '''
-    return S3Path(src_url).symlink(dst_url)
-
-
-def s3_readlink(path: PathLike) -> PathLike:
-    '''
-    Return a string representing the path to which the symbolic link points.
-
-    :param path: Given path
-    :returns: Return a string representing the path to which the symbolic link points.
-    :raises: S3NameTooLongError, S3BucketNotFoundError, S3IsADirectoryError, S3NotALinkError
-    '''
-    return S3Path(path).readlink()
+    return S3Path(src_path).symlink(dst_path)
 
 
 def s3_islink(path: PathLike) -> bool:

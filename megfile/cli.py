@@ -38,7 +38,7 @@ def human_echo(file):
 
 def smart_list_stat(path):
     if smart_isfile(path):
-        yield FileEntry(os.path.basename(path), smart_stat(path))
+        yield FileEntry(os.path.basename(path), path, smart_stat(path))
     else:
         yield from smart_scandir(path)
 

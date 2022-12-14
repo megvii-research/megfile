@@ -2,8 +2,18 @@ import importlib
 import re
 
 ALL_IGNORE_FUNC_LIST = dict(
-    s3=["open"],
-    fs=["open", "from_uri", "path_with_protocol", "joinpath"],
+    s3=[
+        "open", "readlink", "iterdir", "is_mount", "is_socket", "is_fifo",
+        "is_block_device", "is_char_device", "owner", "absolute", "rmdir",
+        "glob", "iglob", "glob_stat", "rename", "cwd", "lstat"
+    ],
+    fs=[
+        "open", "from_uri", "path_with_protocol", "joinpath", "readlink",
+        "iterdir", "chmod", "group", "is_socket", "is_fifo", "is_block_device",
+        "is_char_device", "rmdir", "owner", "absolute", "resolve", "cwd",
+        "home", "glob", "iglob", "glob_stat", "rename", "parts", "root",
+        "anchor", "drive", "replace", "hardlink_to", "lstat"
+    ],
     http=[],
 )
 
@@ -56,12 +66,15 @@ ALL_FUNC_NAME_MAPPING = dict(
 )
 PARAMETER_PATTERN = re.compile(r'\[.*\]')
 
+
 def get_class_name(current_file_type: str):
     if current_file_type == 'fs':
         return 'FSPath'
     return f'{current_file_type.capitalize()}Path'
 
-def insert_class_method_lines(func_params: list, annotation_lines: list, current_file_type: str):
+
+def insert_class_method_lines(
+        func_params: list, annotation_lines: list, current_file_type: str):
     ignore_func_list = ALL_IGNORE_FUNC_LIST.get(current_file_type, [])
     func_name_mapping = ALL_FUNC_NAME_MAPPING.get(current_file_type, {})
 
@@ -69,7 +82,9 @@ def insert_class_method_lines(func_params: list, annotation_lines: list, current
     if func_params:
         func_first_line = "".join(func_params)
         path_param_name = "path"
-        current_params_line = PARAMETER_PATTERN.sub("", func_first_line.split("(", maxsplit=1)[1].split(")", maxsplit=1)[0])
+        current_params_line = PARAMETER_PATTERN.sub(
+            "",
+            func_first_line.split("(", maxsplit=1)[1].split(")", maxsplit=1)[0])
         current_params = []
         for params_words in current_params_line.split(","):
             if ":" in params_words:
@@ -82,35 +97,57 @@ def insert_class_method_lines(func_params: list, annotation_lines: list, current
                 if 'dst' in param:
                     path_param_name = param.replace("dst", "src")
                 current_params.append(param)
-        func_name = func_first_line.strip().split("def ", maxsplit=1)[1].split("(", maxsplit=1)[0]
+        func_name = func_first_line.strip().split(
+            "def ", maxsplit=1)[1].split(
+                "(", maxsplit=1)[0]
         if func_name == 'save':
-            func_first_line = func_first_line.replace("self", f"{path_param_name}: PathLike")
-            special_order_params = [param.strip() for param in func_first_line.split('(', 1)[1].split(')', 1)[0].split(',')]
-            special_order_params[0], special_order_params[1] = special_order_params[1], special_order_params[0]
-            func_first_line = "".join([func_first_line.split('(', 1)[0], "(", ", ".join(special_order_params), ")", func_first_line.split(')', 1)[1]])
+            func_first_line = func_first_line.replace(
+                "self", f"{path_param_name}: PathLike")
+            special_order_params = [
+                param.strip() for param in func_first_line.split('(', 1)
+                [1].split(')', 1)[0].split(',')
+            ]
+            special_order_params[0], special_order_params[
+                1] = special_order_params[1], special_order_params[0]
+            func_first_line = "".join(
+                [
+                    func_first_line.split('(', 1)[0], "(",
+                    ", ".join(special_order_params), ")",
+                    func_first_line.split(')', 1)[1]
+                ])
         else:
-            func_first_line = func_first_line.replace("self", f"{path_param_name}: PathLike")
+            func_first_line = func_first_line.replace(
+                "self", f"{path_param_name}: PathLike")
 
         if not func_name.startswith("_") and func_name not in ignore_func_list:
             real_func_name = f"{current_file_type}_{func_name_mapping.get(func_name, func_name)}"
-            func_content_lines.append(func_first_line.replace(func_name, real_func_name).replace(', **kwargs', ''))
+            func_content_lines.append(
+                func_first_line.replace(func_name, real_func_name).replace(
+                    ', **kwargs', ''))
 
             insert_log = False
             for annotation_line in annotation_lines:
-                if insert_log is False and annotation_line.strip().startswith(":"):
-                    func_content_lines.append(f"    :param {path_param_name}: Given path")
+                if insert_log is False and annotation_line.strip().startswith(
+                        ":"):
+                    func_content_lines.append(
+                        f"    :param {path_param_name}: Given path")
                     insert_log = True
                 func_content_lines.append(annotation_line)
 
             if current_params:
-                func_content_lines.append(f"    return {get_class_name(current_file_type)}({path_param_name}).{func_name}({', '.join(current_params[1:])})\n\n")
+                func_content_lines.append(
+                    f"    return {get_class_name(current_file_type)}({path_param_name}).{func_name}({', '.join(current_params[1:])})\n\n"
+                )
             else:
-                func_content_lines.append(f"    return {get_class_name(current_file_type)}.{func_name}({', '.join(current_params[1:])})\n\n")
+                func_content_lines.append(
+                    f"    return {get_class_name(current_file_type)}.{func_name}({', '.join(current_params[1:])})\n\n"
+                )
     return real_func_name, func_content_lines
 
 
 def get_methods_from_path_file(current_file_type: str):
-    all_func_list = importlib.import_module(f'megfile.{current_file_type}_path').__all__
+    all_func_list = importlib.import_module(
+        f'megfile.{current_file_type}_path').__all__
     methods_content = []
     import_lines = ALL_IMPORT_LINES.get(current_file_type, [])
     import_lines.append(
@@ -123,7 +160,8 @@ def get_methods_from_path_file(current_file_type: str):
         annotation_lines = []
         annotation_start = False
         for line in f.readlines():
-            if line.strip().startswith(f'class {get_class_name(current_file_type)}('):
+            if line.strip().startswith(
+                    f'class {get_class_name(current_file_type)}('):
                 class_start = True
             elif class_start is True:
                 if line.strip() and not line.startswith(" " * 4):
@@ -143,14 +181,16 @@ def get_methods_from_path_file(current_file_type: str):
                         func_start = False
                     else:
                         func_start = True
-                    func_name, func_content_lines = insert_class_method_lines(func_params, annotation_lines, current_file_type)
+                    func_name, func_content_lines = insert_class_method_lines(
+                        func_params, annotation_lines, current_file_type)
                     if func_name:
                         all_func_list.append(func_name)
                     if func_content_lines:
                         methods_content.extend(func_content_lines)
                     func_params = [line.strip()]
                     annotation_lines = []
-        func_name, func_content_lines = insert_class_method_lines(func_params, annotation_lines, current_file_type)
+        func_name, func_content_lines = insert_class_method_lines(
+            func_params, annotation_lines, current_file_type)
         if func_name:
             all_func_list.append(func_name)
         if func_content_lines:
@@ -159,7 +199,8 @@ def get_methods_from_path_file(current_file_type: str):
 
 
 def generate_file(current_file_type: str):
-    import_lines, all_func_list, methods_content = get_methods_from_path_file(current_file_type)
+    import_lines, all_func_list, methods_content = get_methods_from_path_file(
+        current_file_type)
     with open(f"megfile/{current_file_type}.py", 'w') as f:
         for line in import_lines:
             f.write('\n')
