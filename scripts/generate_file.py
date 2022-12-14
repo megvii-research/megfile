@@ -5,14 +5,14 @@ ALL_IGNORE_FUNC_LIST = dict(
     s3=[
         "open", "readlink", "iterdir", "is_mount", "is_socket", "is_fifo",
         "is_block_device", "is_char_device", "owner", "absolute", "rmdir",
-        "glob", "iglob", "glob_stat", "rename", "cwd"
+        "glob", "iglob", "glob_stat", "rename", "cwd", "lstat"
     ],
     fs=[
         "open", "from_uri", "path_with_protocol", "joinpath", "readlink",
         "iterdir", "chmod", "group", "is_socket", "is_fifo", "is_block_device",
         "is_char_device", "rmdir", "owner", "absolute", "resolve", "cwd",
         "home", "glob", "iglob", "glob_stat", "rename", "parts", "root",
-        "anchor", "drive"
+        "anchor", "drive", "replace", "hardlink_to", "lstat"
     ],
     http=[],
 )

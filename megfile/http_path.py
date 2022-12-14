@@ -1,4 +1,3 @@
-import hashlib
 import time
 from functools import partial
 from io import BufferedReader
@@ -12,7 +11,7 @@ from megfile.errors import http_should_retry, patch_method, translate_http_error
 from megfile.interfaces import PathLike, StatResult, URIPath
 from megfile.lib.compat import fspath
 from megfile.smart_path import SmartPath
-from megfile.utils import binary_open, calculate_md5
+from megfile.utils import binary_open
 
 __all__ = [
     'HttpPath',
@@ -143,17 +142,6 @@ class HttpPath(URIPath):
         :raises: HttpPermissionError, HttpFileNotFoundError
         '''
         return self.stat().mtime
-
-    def md5(self, recalculate: bool = False, followlinks: bool = False) -> str:
-        '''
-        Calculate the md5 value of the file by http download
-
-        :param recalculate: Not useful for http path, just for compatibility.
-        :param followlinks: Not useful for http path, just for compatibility.
-        :returns: md5 meta info
-        '''
-        with self.open('rb') as f:
-            return calculate_md5(f)
 
 
 @SmartPath.register

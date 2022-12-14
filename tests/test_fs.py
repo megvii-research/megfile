@@ -112,10 +112,13 @@ def test_fs_getsize(filesystem):
     os.link('file', 'hard_link')
     assert fs.fs_getsize('hard_link') == os.path.getsize("file")
     os.symlink('file', 'soft_link_file')
-    assert fs.fs_getsize('soft_link_file') == os.lstat("soft_link_file").st_size
+    assert fs.fs_getsize(
+        'soft_link_file',
+        follow_symlinks=False) == os.lstat("soft_link_file").st_size
     os.symlink('folder', 'soft_link_folder')
-    assert fs.fs_getsize('soft_link_folder') == os.lstat(
-        "soft_link_folder").st_size
+    assert fs.fs_getsize(
+        'soft_link_folder',
+        follow_symlinks=False) == os.lstat("soft_link_folder").st_size
 
 
 def test_fs_abspath(filesystem):
@@ -218,8 +221,12 @@ def test_fs_getmtime(filesystem):
     assert fs.fs_getmtime('hard_link') == Now()
     os.symlink('file', 'soft_link_file')
     assert fs.fs_getmtime('soft_link_file') == Now()
+    assert fs.fs_getmtime(
+        'soft_link_file', follow_symlinks=True) == os.stat('file').st_mtime
     os.symlink('folder', 'soft_link_folder')
     assert fs.fs_getmtime('soft_link_folder') == Now()
+    assert fs.fs_getmtime(
+        'soft_link_folder', follow_symlinks=True) == os.stat('folder').st_mtime
 
 
 def test_fs_stat(filesystem, mocker):
@@ -294,11 +301,13 @@ def test_fs_stat(filesystem, mocker):
     os.link('file', 'hard_link')
     assert fs.fs_stat('hard_link') == make_stat(size=os.path.getsize("file"))
     os.symlink('file', 'soft_link_file')
-    assert fs.fs_lstat('soft_link_file') == make_stat(
-        size=os.lstat("soft_link_file").st_size, islnk=True)
+    assert fs.fs_stat(
+        'soft_link_file', follow_symlinks=False) == make_stat(
+            size=os.lstat("soft_link_file").st_size, islnk=True)
     os.symlink('folder', 'soft_link_folder')
-    assert fs.fs_lstat('soft_link_folder') == make_stat(
-        size=os.lstat("soft_link_folder").st_size, islnk=True)
+    assert fs.fs_stat(
+        'soft_link_folder', follow_symlinks=False) == make_stat(
+            size=os.lstat("soft_link_folder").st_size, islnk=True)
 
 
 def test_fs_stat2(filesystem, mocker):
@@ -920,7 +929,7 @@ def test_fs_copy(filesystem):
         f.write(b'0' * (16 * 1024 + 1))
     dst = 'dst_file'
     os.symlink('/file', dst)
-    symlink_src_stat = fs.fs_stat(dst)
+    symlink_src_stat = fs.fs_stat(dst, follow_symlinks=False)
 
     class bar:
 
@@ -943,7 +952,7 @@ def test_fs_copy(filesystem):
 
     fs.fs_copy('/file', '/file1', callback=callback_file)
     fs.fs_copy(dst, '/file2', followlinks=True)
-    fs.fs_copy(dst, '/file3', callback=callback_symlink)
+    fs.fs_copy(dst, '/file3', followlinks=False, callback=callback_symlink)
 
 
 def test_fs_rename(filesystem):
@@ -1112,3 +1121,14 @@ def test_fs_readlink(filesystem):
     dst_path = '/tmp/dst_file'
     os.symlink(src_path, dst_path)
     assert fs.fs_readlink(dst_path) == src_path
+
+
+def test_fs_resolve(filesystem):
+    os.makedirs('/test/a')
+    with open('/test/a/file', 'w'):
+        pass
+    os.chdir('/test/a')
+    os.symlink('/test/a/file', '/test/a/file.lnk')
+    assert fs.fs_resolve('file') == '/test/a/file'
+    assert fs.fs_resolve('/test/a/../a/file') == '/test/a/file'
+    assert fs.fs_resolve('file.lnk') == '/test/a/file'

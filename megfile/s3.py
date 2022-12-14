@@ -49,7 +49,6 @@ __all__ = [
     's3_scan_stat',
     's3_scandir',
     's3_stat',
-    's3_lstat',
     's3_unlink',
     's3_walk',
     's3_getmd5',
@@ -87,7 +86,7 @@ def s3_exists(path: PathLike, followlinks: bool = False) -> bool:
     return S3Path(path).exists(followlinks)
 
 
-def s3_getmtime(path: PathLike, followlinks: bool = False) -> float:
+def s3_getmtime(path: PathLike, follow_symlinks: bool = False) -> float:
     '''
     Get last-modified time of the file on the given s3_url path (in Unix timestamp format).
     If the path is an existent directory, return the latest modified time of all file in it. The mtime of empty directory is 1970-01-01 00:00:00
@@ -98,10 +97,10 @@ def s3_getmtime(path: PathLike, followlinks: bool = False) -> float:
     :returns: Last-modified time
     :raises: S3FileNotFoundError, UnsupportedError
     '''
-    return S3Path(path).getmtime(followlinks)
+    return S3Path(path).getmtime(follow_symlinks)
 
 
-def s3_getsize(path: PathLike, followlinks: bool = False) -> int:
+def s3_getsize(path: PathLike, follow_symlinks: bool = False) -> int:
     '''
     Get file size on the given s3_url path (in bytes).
     If the path in a directory, return the sum of all file size in it, including file in subdirectories (if exist).
@@ -113,7 +112,7 @@ def s3_getsize(path: PathLike, followlinks: bool = False) -> int:
     :returns: File size
     :raises: S3FileNotFoundError, UnsupportedError
     '''
-    return S3Path(path).getsize(followlinks)
+    return S3Path(path).getsize(follow_symlinks)
 
 
 def s3_isdir(path: PathLike) -> bool:
@@ -252,7 +251,7 @@ def s3_scandir(path: PathLike,
     return S3Path(path).scandir(followlinks)
 
 
-def s3_stat(path: PathLike) -> StatResult:
+def s3_stat(path: PathLike, follow_symlinks=True) -> StatResult:
     '''
     Get StatResult of s3_url file, including file size and mtime, referring to s3_getsize and s3_getmtime
 
@@ -263,12 +262,7 @@ def s3_stat(path: PathLike) -> StatResult:
     :returns: StatResult
     :raises: S3FileNotFoundError, S3BucketNotFoundError
     '''
-    return S3Path(path).stat()
-
-
-def s3_lstat(path: PathLike) -> StatResult:
-    '''Like Path.stat() but, if the path points to a symbolic link, return the symbolic link’s information rather than its target’s.'''
-    return S3Path(path).lstat()
+    return S3Path(path).stat(follow_symlinks)
 
 
 def s3_unlink(path: PathLike, missing_ok: bool = False) -> None:

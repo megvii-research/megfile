@@ -414,10 +414,7 @@ def _s3_glob_stat_single_path(
         if not has_magic(_s3_pathname):
             _s3_pathname_obj = S3Path(_s3_pathname)
             if _s3_pathname_obj.is_file():
-                if followlinks:
-                    stat = S3Path(_s3_pathname).stat()
-                else:
-                    stat = S3Path(_s3_pathname).lstat()
+                stat = S3Path(_s3_pathname).stat(follow_symlinks=followlinks)
                 yield FileEntry(
                     _s3_pathname_obj.name, _s3_pathname_obj.path, stat)
             if _s3_pathname_obj.is_dir():
@@ -903,7 +900,7 @@ def s3_download(
         raise S3BucketNotFoundError('Empty bucket name: %r' % src_url)
 
     if not S3Path(src_url).exists():
-        raise FileNotFoundError('File not found: %r' % src_url)
+        raise S3FileNotFoundError('File not found: %r' % src_url)
 
     if not S3Path(src_url).is_file():
         raise S3IsADirectoryError('Is a directory: %r' % src_url)
@@ -987,7 +984,9 @@ def s3_load_content(
     if not key or key.endswith('/'):
         raise S3IsADirectoryError('Is a directory: %r' % s3_url)
 
-    start, stop = get_content_offset(start, stop, S3Path(s3_url).getsize())
+    start, stop = get_content_offset(
+        start, stop,
+        S3Path(s3_url).getsize(follow_symlinks=followlinks))
     if start == 0 and stop == 0:
         return b''
     range_str = 'bytes=%d-%d' % (start, stop - 1)
@@ -1170,7 +1169,7 @@ class S3Path(URIPath):
 
         return self.is_dir() or self.is_file(followlinks)
 
-    def getmtime(self, followlinks: bool = False) -> float:
+    def getmtime(self, follow_symlinks: bool = False) -> float:
         '''
         Get last-modified time of the file on the given s3_url path (in Unix timestamp format).
         If the path is an existent directory, return the latest modified time of all file in it. The mtime of empty directory is 1970-01-01 00:00:00
@@ -1180,9 +1179,9 @@ class S3Path(URIPath):
         :returns: Last-modified time
         :raises: S3FileNotFoundError, UnsupportedError
         '''
-        return self._stat(followlinks=followlinks).mtime
+        return self.stat(follow_symlinks=follow_symlinks).mtime
 
-    def getsize(self, followlinks: bool = False) -> int:
+    def getsize(self, follow_symlinks: bool = False) -> int:
         '''
         Get file size on the given s3_url path (in bytes).
         If the path in a directory, return the sum of all file size in it, including file in subdirectories (if exist).
@@ -1193,7 +1192,7 @@ class S3Path(URIPath):
         :returns: File size
         :raises: S3FileNotFoundError, UnsupportedError
         '''
-        return self._stat(followlinks=followlinks).size
+        return self.stat(follow_symlinks=follow_symlinks).size
 
     def glob(self, pattern, recursive: bool = True,
              missing_ok: bool = True) -> List['S3Path']:
@@ -1529,13 +1528,13 @@ class S3Path(URIPath):
                     # On s3, file and directory may be of same name and level, so need to test the path is file or directory
                     yield FileEntry(
                         self.name, fspath(self.path_with_protocol),
-                        self._stat(followlinks=followlinks))
+                        self.stat(follow_symlinks=followlinks))
                 return
 
             if not key.endswith('/') and self.is_file():
                 yield FileEntry(
                     self.name, fspath(self.path_with_protocol),
-                    self._stat(followlinks=followlinks))
+                    self.stat(follow_symlinks=followlinks))
 
             prefix = _become_prefix(key)
             client = get_s3_client()
@@ -1641,7 +1640,7 @@ class S3Path(URIPath):
 
         return StatResult(size=size, mtime=mtime, isdir=True)
 
-    def stat(self) -> StatResult:
+    def stat(self, follow_symlinks=True) -> StatResult:
         '''
         Get StatResult of s3_url file, including file size and mtime, referring to s3_getsize and s3_getmtime
 
@@ -1651,13 +1650,6 @@ class S3Path(URIPath):
         :returns: StatResult
         :raises: S3FileNotFoundError, S3BucketNotFoundError
         '''
-        return self._stat(followlinks=True)
-
-    def lstat(self) -> StatResult:
-        '''Like Path.stat() but, if the path points to a symbolic link, return the symbolic link’s information rather than its target’s.'''
-        return self._stat(followlinks=False)
-
-    def _stat(self, followlinks: bool = False) -> StatResult:
         islnk = False
         bucket, key = parse_s3_url(self.path_with_protocol)
         if not bucket:
@@ -1676,7 +1668,7 @@ class S3Path(URIPath):
                     for key, value in content['Metadata'].items())
                 if metadata and 'symlink_to' in metadata:
                     islnk = True
-                    if islnk and followlinks:
+                    if islnk and follow_symlinks:
                         s3_url = metadata['symlink_to']
                         bucket, key = parse_s3_url(s3_url)
                         content = client.head_object(Bucket=bucket, Key=key)
@@ -1686,6 +1678,10 @@ class S3Path(URIPath):
                 mtime=content['LastModified'].timestamp(),
                 extra=content)
         return stat_record
+
+    def lstat(self) -> StatResult:
+        '''Like Path.stat() but, if the path points to a symbolic link, return the symbolic link’s information rather than its target’s.'''
+        return self.stat(follow_symlinks=False)
 
     def unlink(self, missing_ok: bool = False) -> None:
         '''
@@ -1766,7 +1762,7 @@ class S3Path(URIPath):
         if not bucket:
             raise S3BucketNotFoundError(
                 'Empty bucket name: %r' % self.path_with_protocol)
-        stat = self._stat(followlinks=followlinks)
+        stat = self.stat(follow_symlinks=followlinks)
         if stat.isdir:
             hash_md5 = hashlib.md5()  # nosec
             for file_name in self.listdir():
@@ -1931,16 +1927,6 @@ class S3Path(URIPath):
         return s3_open_func(
             self.path_with_protocol, mode,
             **necessary_params(s3_open_func, **kwargs))
-
-    def rmdir(self):
-        '''
-        Remove this directory. The directory must be empty.
-        '''
-        if not self.is_dir():
-            raise NotADirectoryError("Not a directory: '%r'" % self)
-        if len(self.listdir()) > 0:
-            raise OSError("Directory not empty: '%r'" % self)
-        return self.remove()
 
     def absolute(self) -> 'S3Path':
         '''

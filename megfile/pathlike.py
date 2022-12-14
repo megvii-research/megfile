@@ -70,9 +70,9 @@ class StatResult(_StatResult):
         if self.extra:
             if hasattr(self.extra, 'st_ino'):
                 return self.extra.st_ino
-            elif isinstance(self.extra, dict) and self.extra.get('etag'):
-                return self.extra.get('etag')
-        return None
+            elif isinstance(self.extra, dict) and self.extra.get('ETag'):
+                return self.extra.get('ETag')
+        return None  # pragma: no cover
 
     @property
     def st_dev(self) -> Union[int, None]:
@@ -82,9 +82,9 @@ class StatResult(_StatResult):
         if self.extra:
             if hasattr(self.extra, 'st_dev'):
                 return self.extra.st_dev
-            elif isinstance(self.extra, dict) and self.extra.get('etag'):
-                return self.extra.get('etag')
-        return None
+            elif isinstance(self.extra, dict) and self.extra.get('ETag'):
+                return self.extra.get('ETag')
+        return None  # pragma: no cover
 
     @property
     def st_nlink(self) -> Union[int, None]:
@@ -284,15 +284,15 @@ class BasePath:
         """Return an iterator of FileEntry objects corresponding to the entries in the directory."""
 
     @method_not_implemented
-    def getsize(self) -> int:  # type: ignore
+    def getsize(self, follow_symlinks: bool = True) -> int:  # type: ignore
         """Return the size, in bytes."""
 
     @method_not_implemented
-    def getmtime(self) -> float:  # type: ignore
+    def getmtime(self, follow_symlinks: bool = True) -> float:  # type: ignore
         """Return the time of last modification."""
 
     @method_not_implemented
-    def stat(self) -> StatResult:  # type: ignore
+    def stat(self, follow_symlinks=True) -> StatResult:  # type: ignore
         """Get the status of the path."""
 
     @method_not_implemented
@@ -730,13 +730,13 @@ class URIPath(BaseURIPath):
     def rename(self, dst_path: PathLike) -> 'URIPath':
         raise NotImplementedError(f"'rename' is unsupported on '{type(self)}'")
 
-    def replace(self, dst_path: PathLike) -> None:
+    def replace(self, dst_path: PathLike) -> 'URIPath':
         '''
         move file
 
         :param dst_path: Given destination path
         '''
-        self.rename(dst_path=dst_path)
+        return self.rename(dst_path=dst_path)
 
     def rglob(self, pattern) -> List['URIPath']:
         '''
@@ -775,14 +775,22 @@ class URIPath(BaseURIPath):
     def symlink_to(self, target, target_is_directory=False):
         '''
         Make this path a symbolic link to target. 
+        symlink_to's arguments is the reverse of symlink's.
         Target_is_directory’s value is ignored, only be compatible with pathlib.Path
         '''
-        return self.symlink(dst_path=target)
+        return self.from_path(target).symlink(dst_path=self.path)
+
+    def hardlink_to(self, target):
+        '''
+        Make this path a hard link to the same file as target.
+        '''
+        raise NotImplementedError(
+            f"'hardlink_to' is unsupported on '{type(self)}'")
 
     def write_bytes(self, data: bytes):
         '''Open the file pointed to in bytes mode, write data to it, and close the file'''
         with self.open(mode='wb') as f:
-            f.write(data)
+            return f.write(data)
 
     def write_text(self, data: str, encoding=None, errors=None, newline=None):
         '''
@@ -813,6 +821,34 @@ class URIPath(BaseURIPath):
         """
         raise NotImplementedError(
             f"'expanduser' is unsupported on '{type(self)}'")
+
+    def cwd(self) -> 'URIPath':
+        '''Return current working directory
+
+        returns: Current working directory
+        '''
+        raise NotImplementedError(f"'cwd' is unsupported on '{type(self)}'")
+
+    def iterdir(self) -> Iterator['URIPath']:
+        '''
+        Get all contents of given fs path. The result is in acsending alphabetical order.
+
+        :returns: All contents have in the path in acsending alphabetical order
+        '''
+        raise NotImplementedError(f"'iterdir' is unsupported on '{type(self)}'")
+
+    def owner(self) -> str:
+        '''
+        Return the name of the user owning the file.
+        '''
+        raise NotImplementedError(f"'owner' is unsupported on '{type(self)}'")
+
+    def absolute(self) -> 'URIPath':
+        '''
+        Make the path absolute, without normalization or resolving symlinks. Returns a new path object
+        '''
+        raise NotImplementedError(
+            f"'absolute' is unsupported on '{type(self)}'")
 
 
 class URIPathParents(Sequence):

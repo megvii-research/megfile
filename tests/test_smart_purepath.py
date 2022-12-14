@@ -5,6 +5,7 @@ import boto3
 import pytest
 from moto import mock_s3
 
+from megfile.errors import S3FileExistsError, S3FileNotFoundError
 from megfile.fs_path import FSPath
 from megfile.lib.compat import fspath
 from megfile.pathlike import StatResult
@@ -369,6 +370,9 @@ def test_cwd(fs):
     path = SmartPath('s3://bucketA/test')
     assert path.cwd() == path
 
+    with pytest.raises(NotImplementedError):
+        SmartPath('http://test/test').cwd()
+
 
 def test_home(mocker):
     mocker.patch('os.path.expanduser', return_value='/home/test')
@@ -467,6 +471,16 @@ def test_glob(s3_empty_client, fs):
         SmartPath('A/1.json'),
         SmartPath('A/b/file.json')
     ]
+    assert SmartPath('A').rglob(None) == [
+        SmartPath('A/'),
+        SmartPath('A/a/'),
+        SmartPath('A/b/'),
+        SmartPath('A/b/c/'),
+    ]
+    assert [file_entry.path for file_entry in SmartPath('A').glob_stat('*')
+           ] == [SmartPath('A/a'),
+                 SmartPath('A/b'),
+                 SmartPath('A/1.json')]
 
     for path in SmartPath('A').glob('*'):
         assert isinstance(path, FSPath)
@@ -614,4 +628,262 @@ def test_iterdir(s3_empty_client, fs):
 
     for path in SmartPath('s3://bucket/A').iterdir():
         assert isinstance(path, S3Path)
+
+    with pytest.raises(NotImplementedError):
+        list(SmartPath('http://test/test').iterdir())
+
+
+def test_mkdir(s3_empty_client, fs):
+    path = SmartPath('/test')
+    path.mkdir()
+    assert path.is_dir() is True
+
+    with pytest.raises(FileExistsError):
+        path.mkdir()
+
+    path = SmartPath('s3://bucket/A/1')
+    path.touch()
+    with pytest.raises(S3FileExistsError):
+        SmartPath('s3://bucket/A').mkdir()
     pass
+
+
+def test_open(s3_empty_client, fs):
+    path = SmartPath('/test')
+    with path.open(mode='w') as f:
+        f.write('1')
+
+    with path.open(mode='r') as f:
+        assert f.read() == '1'
+
+    path = SmartPath('s3://bucket/A/1')
+    with path.open(mode='w') as f:
+        f.write('1')
+
+    with path.open(mode='r') as f:
+        assert f.read() == '1'
+
+    with pytest.raises(ValueError):
+        SmartPath('http://bucket/A').open('wb')
+    pass
+
+
+def test_owner(fs, mocker):
+
+    class Fake:
+        pw_name = 'test_owner'
+
+    mocker.patch('pwd.getpwuid', return_value=Fake)
+    path = SmartPath('/test')
+    path.touch()
+    assert path.owner() == 'test_owner'
+
+    with pytest.raises(NotImplementedError):
+        SmartPath('http://bucket/A').owner()
+
+
+def test_read_bytes(s3_empty_client, fs):
+    path = SmartPath('/test')
+    with path.open(mode='w') as f:
+        f.write('1')
+    assert path.read_bytes() == b'1'
+
+    path = SmartPath('s3://bucket/A/1')
+    with path.open(mode='w') as f:
+        f.write('1')
+    assert path.read_bytes() == b'1'
+
+
+def test_read_text(s3_empty_client, fs):
+    path = SmartPath('/test')
+    with path.open(mode='w') as f:
+        f.write('1')
+    assert path.read_text() == '1'
+
+    path = SmartPath('s3://bucket/A/1')
+    with path.open(mode='w') as f:
+        f.write('1')
+    assert path.read_text() == '1'
+
+
+def test_readlink(s3_empty_client, fs):
+    path = SmartPath('/test')
+    path.touch()
+    SmartPath('/test.lnk').symlink_to(path)
+    assert SmartPath('/test.lnk').readlink() == path
+
+    path = SmartPath('s3://bucket/A/1')
+    path.touch()
+    SmartPath('s3://bucket/A/1.lnk').symlink_to(path)
+    assert SmartPath('s3://bucket/A/1.lnk').readlink() == path
+
+
+def test_rename(s3_empty_client, fs):
+    path = SmartPath('/test')
+    path.touch()
+    assert path.rename('/test-rename') == SmartPath('/test-rename')
+    assert path.exists() is False
+
+    path = SmartPath('s3://bucket/A/1')
+    path.touch()
+    assert path.rename('s3://bucket/A/1-rename') == SmartPath(
+        's3://bucket/A/1-rename')
+    assert path.exists() is False
+
+    with pytest.raises(NotImplementedError):
+        SmartPath('http://test/test').rename('test')
+
+
+def test_replace(s3_empty_client, fs):
+    path = SmartPath('/test')
+    path.touch()
+    assert path.replace('/test-rename') == SmartPath('/test-rename')
+    assert path.exists() is False
+
+    path = SmartPath('s3://bucket/A/1')
+    path.touch()
+    assert path.replace('s3://bucket/A/1-rename') == SmartPath(
+        's3://bucket/A/1-rename')
+    assert path.exists() is False
+
+
+def test_absolute(s3_empty_client, fs):
+    os.makedirs('/test/a')
+    SmartPath('/test/a/file').touch()
+    os.chdir('/test/a')
+    assert SmartPath('file').absolute() == '/test/a/file'
+
+    path = SmartPath('s3://bucket/A/1')
+    assert path.absolute() == path
+
+    with pytest.raises(NotImplementedError):
+        SmartPath('http://test/test').absolute()
+
+
+def test_resolve(fs):
+    os.makedirs('/test/a')
+    SmartPath('/test/a/file').touch()
+    os.chdir('/test/a')
+    os.symlink('/test/a/file', '/test/a/file.lnk')
+    assert SmartPath('file').resolve() == '/test/a/file'
+    assert SmartPath('/test/a/../a/file').resolve() == '/test/a/file'
+    assert SmartPath('file.lnk').resolve() == '/test/a/file'
+
+
+def test_rmdir(fs):
+    os.makedirs('/test/a')
+    SmartPath('/test/a/file').touch()
+
+    with pytest.raises(OSError):
+        SmartPath('/test/a').rmdir()
+
+    with pytest.raises(NotADirectoryError):
+        SmartPath('/test/a/file').rmdir()
+
+    with pytest.raises(NotImplementedError):
+        SmartPath('s3://bucket/A/1').rmdir()
+
+
+def test_samefile(s3_empty_client, fs, mocker):
+    from pathlib import Path
+
+    from megfile.fs_path import FSPath
+    from megfile.http_path import HttpPath
+    from megfile.s3_path import S3Path
+    from megfile.smart import smart_copy
+
+    os.makedirs('/a')
+    fs_path = FSPath('/a/test')
+    with open(fs_path, 'w') as f:
+        f.write('test')
+
+    with open('test', 'w') as f:
+        f.write('test1')
+
+    assert fs_path.samefile(FSPath('/a/test')) is True
+    assert fs_path.samefile(Path('/a/test')) is True
+    assert fs_path.samefile('a/test') is True
+    assert fs_path.samefile('/a/./test') is True
+    assert fs_path.samefile('/a/../test') is False
+    assert fs_path.samefile('/a/../a/test') is True
+
+    s3_path = S3Path(f's3://{BUCKET}/test')
+    smart_copy(fs_path, str(s3_path))
+
+    assert s3_path.samefile(FSPath('/a/test')) is False
+
+    assert s3_path.samefile(Path('/a/test')) is False
+    assert s3_path.samefile(f's3://{BUCKET}/test') is True
+
+    with pytest.raises(S3FileNotFoundError):
+        s3_path.samefile('/a/not_found')
+
+    with pytest.raises(S3FileNotFoundError):
+        s3_path.samefile(f's3://{BUCKET}/not_found')
+
+
+def test_symlink_to(s3_empty_client, fs):
+    SmartPath('/test').touch()
+    SmartPath('/test.lnk').symlink_to('/test')
+    assert SmartPath('/test.lnk').lstat().is_symlink()
+
+    SmartPath('s3://bucket/A/1').touch()
+    SmartPath('s3://bucket/A/1.lnk').symlink_to('s3://bucket/A/1')
+    assert SmartPath('s3://bucket/A/1.lnk').lstat().is_symlink()
+
+    with pytest.raises(NotImplementedError):
+        SmartPath('http://test/test').symlink_to('http://test/test2')
+
+
+def teste_hardlink_to(fs):
+    SmartPath('/test').touch()
+    SmartPath('/test.lnk').hardlink_to('/test')
+    assert os.stat('/test.lnk').st_nlink == 2
+
+    with pytest.raises(NotImplementedError):
+        SmartPath('http://test/test').hardlink_to('http://test/test2')
+
+
+def test_unlink(s3_empty_client, fs):
+    path = SmartPath('/test')
+    path.touch()
+    assert path.exists()
+    path.unlink()
+    assert path.exists() is False
+
+    path = SmartPath('s3://bucket/A/1')
+    path.touch()
+    assert path.exists()
+    path.unlink()
+    assert path.exists() is False
+
+    with pytest.raises(NotImplementedError):
+        SmartPath('http://test/test').unlink()
+
+
+def test_write_bytes(s3_empty_client, fs):
+    content = b'test'
+    path = SmartPath('/test')
+    path.write_bytes(content)
+    assert path.read_bytes() == content
+
+    path = SmartPath('s3://bucket/A/1')
+    path.write_bytes(content)
+    assert path.read_bytes() == content
+
+    with pytest.raises(ValueError):
+        SmartPath('http://test/test').write_bytes(content)
+
+
+def test_write_text(s3_empty_client, fs):
+    content = 'test'
+    path = SmartPath('/test')
+    path.write_text(content)
+    assert path.read_text() == content
+
+    path = SmartPath('s3://bucket/A/1')
+    path.write_text(content)
+    assert path.read_text() == content
+
+    with pytest.raises(ValueError):
+        SmartPath('http://test/test').write_text(content)

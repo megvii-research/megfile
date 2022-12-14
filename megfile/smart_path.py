@@ -82,6 +82,7 @@ class SmartPath(BasePath):
 
     symlink = _bind_function('symlink')
     symlink_to = _bind_function('symlink_to')
+    hardlink_to = _bind_function('hardlink_to')
     readlink = _bind_function('readlink')
     is_dir = _bind_function('is_dir')
     is_file = _bind_function('is_file')

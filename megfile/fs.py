@@ -1,6 +1,6 @@
 from typing import BinaryIO, Callable, Iterator, List, Optional, Tuple
 
-from megfile.fs_path import FSPath, StatResult, _make_stat, fs_cwd, fs_glob, fs_glob_stat, fs_home, fs_iglob, fs_path_join, fs_readlink, fs_rename, fs_resolve, is_fs
+from megfile.fs_path import FSPath, StatResult, _make_stat, fs_cwd, fs_glob, fs_glob_stat, fs_home, fs_iglob, fs_move, fs_path_join, fs_readlink, fs_rename, fs_resolve, is_fs
 from megfile.interfaces import Access, FileEntry, PathLike, StatResult
 
 __all__ = [
@@ -17,6 +17,7 @@ __all__ = [
     'fs_glob_stat',
     'fs_rename',
     'fs_resolve',
+    'fs_move',
     'fs_isabs',
     'fs_abspath',
     'fs_access',
@@ -31,13 +32,11 @@ __all__ = [
     'fs_makedirs',
     'fs_realpath',
     'fs_relpath',
-    'fs_move',
     'fs_remove',
     'fs_scan',
     'fs_scan_stat',
     'fs_scandir',
     'fs_stat',
-    'fs_lstat',
     'fs_unlink',
     'fs_walk',
     'fs_getmd5',
@@ -97,7 +96,7 @@ def fs_exists(path: PathLike, followlinks: bool = False) -> bool:
     return FSPath(path).exists(followlinks)
 
 
-def fs_getmtime(path: PathLike, followlinks: bool = False) -> float:
+def fs_getmtime(path: PathLike, follow_symlinks: bool = False) -> float:
     '''
     Get last-modified time of the file on the given path (in Unix timestamp format).
     If the path is an existent directory, return the latest modified time of all file in it.
@@ -105,10 +104,10 @@ def fs_getmtime(path: PathLike, followlinks: bool = False) -> float:
     :param path: Given path
     :returns: last-modified time
     '''
-    return FSPath(path).getmtime(followlinks)
+    return FSPath(path).getmtime(follow_symlinks)
 
 
-def fs_getsize(path: PathLike, followlinks: bool = False) -> int:
+def fs_getsize(path: PathLike, follow_symlinks: bool = False) -> int:
     '''
     Get file size on the given file path (in bytes).
     If the path in a directory, return the sum of all file size in it, including file in subdirectories (if exist).
@@ -118,7 +117,7 @@ def fs_getsize(path: PathLike, followlinks: bool = False) -> int:
     :returns: File size
 
     '''
-    return FSPath(path).getsize(followlinks)
+    return FSPath(path).getsize(follow_symlinks)
 
 
 def fs_expanduser(path: PathLike):
@@ -213,16 +212,6 @@ def fs_relpath(path: PathLike, start: Optional[str] = None) -> str:
     return FSPath(path).relpath(start)
 
 
-def fs_move(src_path: PathLike, dst_path: PathLike) -> None:
-    '''
-    move file on fs
-
-    :param src_path: Given path
-    :param dst_path: Given destination path
-    '''
-    return FSPath(src_path).replace(dst_path)
-
-
 def fs_remove(path: PathLike, missing_ok: bool = False) -> None:
     '''
     Remove the file or directory on fs
@@ -274,24 +263,14 @@ def fs_scandir(path: PathLike) -> Iterator[FileEntry]:
     return FSPath(path).scandir()
 
 
-def fs_stat(path: PathLike) -> StatResult:
+def fs_stat(path: PathLike, follow_symlinks=True) -> StatResult:
     '''
     Get StatResult of file on fs, including file size and mtime, referring to fs_getsize and fs_getmtime
 
     :param path: Given path
     :returns: StatResult
     '''
-    return FSPath(path).stat()
-
-
-def fs_lstat(path: PathLike) -> StatResult:
-    '''
-    Get StatResult of file on fs, including file size and mtime, referring to fs_getsize and fs_getmtime
-
-    :param path: Given path
-    :returns: StatResult
-    '''
-    return FSPath(path).lstat()
+    return FSPath(path).stat(follow_symlinks)
 
 
 def fs_unlink(path: PathLike, missing_ok: bool = False) -> None:

@@ -295,6 +295,13 @@ def test_scandir(funcA):
     funcA.assert_called_once_with()
 
 
+def test_scandir(fs):
+    os.makedirs('/test')
+    SmartPath('/test/1').write_bytes(b'test')
+    for file_entry in SmartPath('/test').scandir():
+        file_entry.inode() == os.stat('/test/1').st_ino
+
+
 @patch.object(S3Path, 'listdir')
 def test_listdir(funcA):
     SmartPath(S3_TEST_PATH).listdir()
@@ -317,6 +324,11 @@ def test_load_from(funcA):
 def test_md5(funcA):
     SmartPath(FS_TEST_ABSOLUTE_PATH).md5()
     funcA.assert_called_once()
+
+
+def test_md5_un_support():
+    with pytest.raises(NotImplementedError):
+        SmartPath('http://test/test').md5()
 
 
 @patch.object(FSPath, 'symlink')
@@ -343,39 +355,41 @@ def test_readlink_s3(funcA):
     funcA.assert_called_once()
 
 
-def test_samefile(s3_empty_client, fs, mocker):
-    from pathlib import Path
+def test_stat(s3_empty_client, fs):
+    path = SmartPath('/test')
+    path.write_text('test')
+    path_stat = path.stat()
+    origin_stat = os.stat('/test')
+    assert path_stat.st_mode == origin_stat.st_mode
+    assert path_stat.st_ino == origin_stat.st_ino
+    assert path_stat.st_dev == origin_stat.st_dev
+    assert path_stat.st_nlink == origin_stat.st_nlink
+    assert path_stat.st_uid == origin_stat.st_uid
+    assert path_stat.st_gid == origin_stat.st_gid
+    assert path_stat.st_size == origin_stat.st_size
+    assert path_stat.st_atime == origin_stat.st_atime
+    assert path_stat.st_mtime == origin_stat.st_mtime
+    assert path_stat.st_ctime == origin_stat.st_ctime
+    assert path_stat.st_atime_ns == origin_stat.st_atime_ns
+    assert path_stat.st_mtime_ns == origin_stat.st_mtime_ns
+    assert path_stat.st_ctime_ns == origin_stat.st_ctime_ns
 
-    from megfile.fs_path import FSPath
-    from megfile.http_path import HttpPath
-    from megfile.s3_path import S3Path
-    from megfile.smart import smart_copy
+    path = SmartPath(f's3://{BUCKET}/testA')
+    path.write_bytes(b'test')
+    path_stat = path.stat()
+    assert path_stat.st_mode is None
 
-    os.makedirs('/a')
-    fs_path = FSPath('/a/test')
-    with open(fs_path, 'w') as f:
-        f.write('test')
+    content = s3_empty_client.head_object(Bucket=BUCKET, Key='testA')
 
-    with open('test', 'w') as f:
-        f.write('test1')
-
-    assert fs_path.samefile(FSPath('/a/test')) is True
-    assert fs_path.samefile(Path('/a/test')) is True
-    assert fs_path.samefile('a/test') is True
-    assert fs_path.samefile('/a/./test') is True
-    assert fs_path.samefile('/a/../test') is False
-    assert fs_path.samefile('/a/../a/test') is True
-
-    s3_path = S3Path(f's3://{BUCKET}/test')
-    smart_copy(fs_path, str(s3_path))
-
-    assert s3_path.samefile(FSPath('/a/test')) is False
-
-    assert s3_path.samefile(Path('/a/test')) is False
-    assert s3_path.samefile(f's3://{BUCKET}/test') is True
-
-    with pytest.raises(S3FileNotFoundError):
-        s3_path.samefile('/a/not_found')
-
-    with pytest.raises(S3FileNotFoundError):
-        s3_path.samefile(f's3://{BUCKET}/not_found')
+    assert path_stat.st_ino == content['ETag']
+    assert path_stat.st_dev == content['ETag']
+    assert path_stat.st_nlink is None
+    assert path_stat.st_uid is None
+    assert path_stat.st_gid is None
+    assert path_stat.st_size == content['ContentLength']
+    assert path_stat.st_atime is None
+    assert path_stat.st_mtime == content['LastModified'].timestamp()
+    assert path_stat.st_ctime == 0.0
+    assert path_stat.st_atime_ns is None
+    assert path_stat.st_mtime_ns is None
+    assert path_stat.st_ctime_ns is None

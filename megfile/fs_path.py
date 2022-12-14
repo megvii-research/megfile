@@ -33,6 +33,7 @@ __all__ = [
     'fs_glob_stat',
     'fs_rename',
     'fs_resolve',
+    'fs_move',
 ]
 
 
@@ -162,6 +163,16 @@ def fs_rename(src_path: PathLike, dst_path: PathLike) -> None:
     shutil.move(src_path, dst_path)
 
 
+def fs_move(src_path: PathLike, dst_path: PathLike) -> None:
+    '''
+    rename file on fs
+
+    :param src_path: Given path
+    :param dst_path: Given destination path
+    '''
+    fs_rename(src_path, dst_path)
+
+
 def fs_resolve(path: PathLike) -> str:
     '''Equal to fs_realpath, return the real path of given path
 
@@ -265,18 +276,16 @@ class FSPath(URIPath):
             return os.path.exists(self.path_without_protocol)
         return os.path.lexists(self.path_without_protocol)
 
-    def getmtime(self, followlinks: bool = False) -> float:
+    def getmtime(self, follow_symlinks: bool = False) -> float:
         '''
         Get last-modified time of the file on the given path (in Unix timestamp format).
         If the path is an existent directory, return the latest modified time of all file in it.
 
         :returns: last-modified time
         '''
-        if followlinks:
-            return self.stat().mtime
-        return self.lstat().mtime
+        return self.stat(follow_symlinks=follow_symlinks).mtime
 
-    def getsize(self, followlinks: bool = False) -> int:
+    def getsize(self, follow_symlinks: bool = False) -> int:
         '''
         Get file size on the given file path (in bytes).
         If the path in a directory, return the sum of all file size in it, including file in subdirectories (if exist).
@@ -285,9 +294,7 @@ class FSPath(URIPath):
         :returns: File size
 
         '''
-        if followlinks:
-            return self.stat().size
-        return self.lstat().size
+        return self.stat(follow_symlinks=follow_symlinks).size
 
     def glob(self, pattern, recursive: bool = True,
              missing_ok: bool = True) -> List['FSPath']:
@@ -461,13 +468,13 @@ class FSPath(URIPath):
         fs_rename(self.path_without_protocol, dst_path)
         return self.from_path(dst_path)
 
-    def replace(self, dst_path: PathLike) -> None:
+    def replace(self, dst_path: PathLike) -> 'FSPath':
         '''
         move file on fs
 
         :param dst_path: Given destination path
         '''
-        self.rename(dst_path=dst_path)
+        return self.rename(dst_path=dst_path)
 
     def remove(self, missing_ok: bool = False) -> None:
         '''
@@ -536,14 +543,18 @@ class FSPath(URIPath):
         for entry in os.scandir(self.path_without_protocol):
             yield FileEntry(entry.name, entry.path, _make_stat(entry.stat()))
 
-    def stat(self) -> StatResult:
+    def stat(self, follow_symlinks=True) -> StatResult:
         '''
         Get StatResult of file on fs, including file size and mtime, referring to fs_getsize and fs_getmtime
 
         :returns: StatResult
         '''
-        result = _make_stat(os.stat(self.path_without_protocol))
-        if not result.isdir:
+        if follow_symlinks:
+            result = _make_stat(os.stat(self.path_without_protocol))
+        else:
+            result = _make_stat(os.lstat(self.path_without_protocol))
+
+        if result.islnk or not result.isdir:
             return result
 
         size = 0
@@ -566,11 +577,7 @@ class FSPath(URIPath):
 
         :returns: StatResult
         '''
-        result = _make_stat(os.lstat(self.path_without_protocol))
-        if result.islnk or not result.isdir:
-            return result
-
-        return self.stat()
+        return self.stat(follow_symlinks=False)
 
     def unlink(self, missing_ok: bool = False) -> None:
         '''
@@ -653,8 +660,8 @@ class FSPath(URIPath):
         if os.path.isdir(self.path_without_protocol):
             hash_md5 = hashlib.md5()  # nosec
             for file_name in self.listdir():
-                chunk = FSPath(self.path_without_protocol,
-                               file_name).md5(recalculate=recalculate).encode()
+                chunk = FSPath(self.path_without_protocol, file_name).md5(
+                    recalculate=recalculate, followlinks=followlinks).encode()
                 hash_md5.update(chunk)
             return hash_md5.hexdigest()
         with open(self.path_without_protocol, 'rb') as src:  # type: ignore
@@ -682,7 +689,7 @@ class FSPath(URIPath):
 
             return _copyfileobj
 
-        src_stat = self.stat()
+        src_stat = self.lstat()
         with patch('shutil.copyfileobj', _patch_copyfileobj(callback)):
             shutil.copyfile(
                 self.path_without_protocol,
@@ -896,3 +903,9 @@ class FSPath(URIPath):
         Remove this directory. The directory must be empty.
         '''
         return os.rmdir(self.path_without_protocol)
+
+    def hardlink_to(self, target):
+        '''
+        Make this path a hard link to the same file as target.
+        '''
+        return os.link(target, self.path)

@@ -2935,13 +2935,13 @@ def test_symlink_relevant_functions(s3_empty_client, fs):
     assert s3.s3_islink(dst_url) is True
     assert s3.s3_exists(A_dst_dst_url) is True
     assert s3.s3_access(A_dst_url, Access.READ, followlinks=True) is True
-    assert s3.s3_getsize(dst_url, followlinks=False) == 0
+    assert s3.s3_getsize(dst_url, follow_symlinks=False) == 0
     assert s3.s3_getsize(
-        dst_url, followlinks=True) == s3.s3_getsize(
-            src_url, followlinks=True)
+        dst_url, follow_symlinks=True) == s3.s3_getsize(
+            src_url, follow_symlinks=True)
     assert s3.s3_getmtime(
-        dst_url, followlinks=True) == s3.s3_getmtime(
-            src_url, followlinks=True)
+        dst_url, follow_symlinks=True) == s3.s3_getmtime(
+            src_url, follow_symlinks=True)
     assert s3.s3_getmd5(
         dst_url, followlinks=True) == s3.s3_getmd5(
             src_url, followlinks=True)
