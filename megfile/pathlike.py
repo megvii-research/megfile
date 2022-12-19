@@ -304,7 +304,9 @@ class BasePath:
         """Remove (delete) the file."""
 
     @method_not_implemented
-    def mkdir(self, exist_ok: bool = False) -> None:
+    def mkdir(
+            self, mode=0o777, parents: bool = False,
+            exist_ok: bool = False) -> None:
         """Create a directory."""
 
     @method_not_implemented
@@ -395,7 +397,7 @@ class BasePath:
         '''
         Recursive directory creation function. Like mkdir(), but makes all intermediate-level directories needed to contain the leaf directory.
         '''
-        self.mkdir(exist_ok=exist_ok)
+        self.mkdir(parents=True, exist_ok=exist_ok)
 
     # pytype: enable=bad-return-type
 

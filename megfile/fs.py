@@ -1,6 +1,6 @@
 from typing import BinaryIO, Callable, Iterator, List, Optional, Tuple
 
-from megfile.fs_path import FSPath, StatResult, _make_stat, fs_cwd, fs_glob, fs_glob_stat, fs_home, fs_iglob, fs_move, fs_path_join, fs_readlink, fs_rename, fs_resolve, is_fs
+from megfile.fs_path import FSPath, StatResult, _make_stat, fs_cwd, fs_glob, fs_glob_stat, fs_home, fs_iglob, fs_makedirs, fs_move, fs_path_join, fs_readlink, fs_rename, fs_resolve, is_fs
 from megfile.interfaces import Access, FileEntry, PathLike, StatResult
 
 __all__ = [
@@ -18,6 +18,7 @@ __all__ = [
     'fs_rename',
     'fs_resolve',
     'fs_move',
+    'fs_makedirs',
     'fs_isabs',
     'fs_abspath',
     'fs_access',
@@ -29,7 +30,6 @@ __all__ = [
     'fs_isfile',
     'fs_listdir',
     'fs_load_from',
-    'fs_makedirs',
     'fs_realpath',
     'fs_relpath',
     'fs_remove',
@@ -178,19 +178,6 @@ def fs_load_from(path: PathLike) -> BinaryIO:
     :returns: Binary stream
     '''
     return FSPath(path).load()
-
-
-def fs_makedirs(path: PathLike, exist_ok: bool = False):
-    '''
-    make a directory on fs, including parent directory
-
-    If there exists a file on the path, raise FileExistsError
-
-    :param path: Given path
-    :param exist_ok: If False and target directory exists, raise FileExistsError
-    :raises: FileExistsError
-    '''
-    return FSPath(path).mkdir(exist_ok)
 
 
 def fs_realpath(path: PathLike) -> str:

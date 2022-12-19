@@ -286,7 +286,7 @@ def test_smart_copy_fs2fs(mocker):
     copyfile.side_effect = fake_copy()
     smart.smart_copy('fs', 'fs/a/b/c')
     fs_makedirs.call_count == 1
-    fs_makedirs.assert_called_once_with(exist_ok=True)
+    fs_makedirs.assert_called_once_with(parents=True, exist_ok=True)
     fs_makedirs.reset_mock()
 
 
