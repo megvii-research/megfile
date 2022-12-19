@@ -651,6 +651,14 @@ def test_mkdir(s3_empty_client, fs):
     with pytest.raises(FileExistsError):
         path.mkdir()
 
+    path.mkdir(exist_ok=True)
+
+    with pytest.raises(FileNotFoundError):
+        SmartPath('/test/notExist/testA').mkdir()
+
+    SmartPath('/test/notExist/testA').mkdir(parents=True)
+    assert os.path.exists('/test/notExist/testA')
+
     path = SmartPath('s3://bucket/A/1')
     path.touch()
     with pytest.raises(S3FileExistsError):
