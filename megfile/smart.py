@@ -176,7 +176,7 @@ def smart_getmtime(path: PathLike) -> float:
     return SmartPath(path).getmtime()
 
 
-def smart_stat(path: PathLike) -> StatResult:
+def smart_stat(path: PathLike, follow_symlinks=True) -> StatResult:
     '''
     Get StatResult of s3_url or file path
 
@@ -184,7 +184,7 @@ def smart_stat(path: PathLike) -> StatResult:
     :returns: StatResult
     :raises: FileNotFoundError
     '''
-    return SmartPath(path).stat()
+    return SmartPath(path).stat(follow_symlinks=follow_symlinks)
 
 
 _copy_funcs = {
