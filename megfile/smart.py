@@ -576,7 +576,10 @@ def smart_glob(
     result = []
     group_glob_list = _group_glob(pathname)
     for glob_path in group_glob_list:
-        result.extend(SmartPath(glob_path).glob(recursive, missing_ok))
+        for path_obj in SmartPath(glob_path).glob(pattern='',
+                                                  recursive=recursive,
+                                                  missing_ok=missing_ok):
+            result.append(path_obj.path)
     return result
 
 
@@ -592,12 +595,12 @@ def smart_iglob(
     '''
     # Split pathname, group by protocol, call glob respectively
     # SmartPath(pathname).glob(recursive, missing_ok)
-    result = []
     group_glob_list = _group_glob(pathname)
     for glob_path in group_glob_list:
-        result.append(SmartPath(glob_path).iglob(recursive, missing_ok))
-    iterableres = chain(*result)
-    return iterableres
+        for path_obj in SmartPath(glob_path).iglob(pattern='',
+                                                   recursive=recursive,
+                                                   missing_ok=missing_ok):
+            yield path_obj.path
 
 
 def smart_glob_stat(
@@ -612,12 +615,10 @@ def smart_glob_stat(
     '''
     # Split pathname, group by protocol, call glob respectively
     # SmartPath(pathname).glob(recursive, missing_ok)
-    result = []
     group_glob_list = _group_glob(pathname)
     for glob_path in group_glob_list:
-        result.append(SmartPath(glob_path).glob_stat(recursive, missing_ok))
-    iterableres = chain(*result)
-    return iterableres
+        yield from SmartPath(glob_path).glob_stat(
+            pattern='', recursive=recursive, missing_ok=missing_ok)
 
 
 def smart_save_as(file_object: BinaryIO, path: PathLike) -> None:

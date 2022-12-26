@@ -1238,9 +1238,11 @@ class S3Path(URIPath):
         :raises: UnsupportedError, when bucket part contains wildcard characters
         :returns: A generator contains tuples of path and file stat, in which paths match `s3_pathname`
         '''
-        path = fspath(self.joinpath(pattern).path_with_protocol)
+        glob_path = self.path_with_protocol
+        if pattern:
+            glob_path = self.joinpath(pattern).path_with_protocol
         return s3_glob_stat(
-            path=path, recursive=recursive, missing_ok=missing_ok)
+            path=glob_path, recursive=recursive, missing_ok=missing_ok)
 
     def iglob(self, pattern, recursive: bool = True,
               missing_ok: bool = True) -> Iterator['S3Path']:
@@ -1253,7 +1255,9 @@ class S3Path(URIPath):
         :raises: UnsupportedError, when bucket part contains wildcard characters
         :returns: An iterator contains paths match `s3_pathname`
         '''
-        glob_path = fspath(self.joinpath(pattern).path_with_protocol)
+        glob_path = self.path_with_protocol
+        if pattern:
+            glob_path = self.joinpath(pattern).path_with_protocol
         for path in s3_iglob(path=glob_path, recursive=recursive,
                              missing_ok=missing_ok):
             yield self.from_path(path)

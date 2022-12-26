@@ -381,8 +381,11 @@ class FSPath(URIPath):
         :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
         :returns: An iterator contains paths match `pathname`
         '''
-        for path in fs_iglob(self.joinpath(pattern).path_without_protocol,
-                             recursive=recursive, missing_ok=missing_ok):
+        glob_path = self.path_without_protocol
+        if pattern:
+            glob_path = self.joinpath(pattern).path_without_protocol
+        for path in fs_iglob(glob_path, recursive=recursive,
+                             missing_ok=missing_ok):
             yield self.from_path(path)
 
     def is_dir(self, followlinks: bool = False) -> bool:

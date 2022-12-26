@@ -741,10 +741,50 @@ def test_smart_scan_stat2(mocker):
     s3_scan_stat.assert_called_once_with(missing_ok=True, followlinks=False)
 
 
-@patch.object(SmartPath, "glob")
-def test_smart_glob(funcA):
-    smart.smart_glob('s3://bucket/*')
-    funcA.assert_called_once()
+def test_smart_glob(s3_empty_client, fs):
+    os.mkdir('A')
+    os.mkdir('A/a')
+    os.mkdir('A/b')
+    os.mkdir('A/b/c')
+    with open('A/1.json', 'w') as f:
+        f.write('1.json')
+
+    with open('A/b/file.json', 'w') as f:
+        f.write('file')
+
+    assert smart.smart_glob('A/*') == ['A/a', 'A/b', 'A/1.json']
+    assert [file_entry.path for file_entry in smart.smart_glob_stat('A/*')
+           ] == ['A/a', 'A/b', 'A/1.json']
+
+    for path in smart.smart_glob('A/*'):
+        assert isinstance(path, str)
+
+    SmartPath('s3://bucket/A/1').write_text('1')
+    SmartPath('s3://bucket/A/2.json').write_text('2')
+    SmartPath('s3://bucket/A/3').write_text('3')
+    SmartPath('s3://bucket/A/4/5').write_text('5')
+    SmartPath('s3://bucket/A/4/6.json').write_text('6')
+
+    assert smart.smart_glob('s3://bucket/A/*') == [
+        's3://bucket/A/1',
+        's3://bucket/A/2.json',
+        's3://bucket/A/3',
+        's3://bucket/A/4',
+    ]
+
+    assert [
+        file_entry.path
+        for file_entry in smart.smart_glob_stat('s3://bucket/A/*')
+    ] == [
+        's3://bucket/A/1',
+        's3://bucket/A/2.json',
+        's3://bucket/A/3',
+        's3://bucket/A/4',
+    ]
+
+    for path in smart.smart_glob('s3://bucket/A/*'):
+        assert isinstance(path, str)
+    pass
 
 
 @patch.object(SmartPath, "glob")
@@ -758,25 +798,27 @@ def test_smart_glob_cross_backend(funcA):
 
 @patch.object(SmartPath, "iglob")
 def test_smart_iglob(funcA):
-    smart.smart_iglob('s3://bucket/*')
+    list(smart.smart_iglob('s3://bucket/*'))
     funcA.assert_called_once()
 
 
 @patch.object(SmartPath, "iglob")
 def test_smart_iglob_cross_backend(funcA):
-    smart.smart_iglob(r'{/a,s3://bucket/key,s3://bucket2/key}/filename')
+    list(smart.smart_iglob(r'{/a,s3://bucket/key,s3://bucket2/key}/filename'))
     assert funcA.call_count == 2
 
 
 @patch.object(SmartPath, "glob_stat")
 def test_smart_glob_stat(funcA):
-    smart.smart_glob_stat('s3://bucket/*')
+    list(smart.smart_glob_stat('s3://bucket/*'))
     funcA.assert_called_once()
 
 
 @patch.object(SmartPath, "glob_stat")
 def test_smart_glob_stat_cross_backend(funcA):
-    smart.smart_glob_stat(r'{/a,s3://bucket/key,s3://bucket2/key}/filename')
+    list(
+        smart.smart_glob_stat(
+            r'{/a,s3://bucket/key,s3://bucket2/key}/filename'))
     assert funcA.call_count == 2
 
 
