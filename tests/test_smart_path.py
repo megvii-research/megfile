@@ -251,10 +251,10 @@ def test_path_join(funcA):
     funcA.assert_called_once_with(S3_TEST_PATH)
 
 
-@patch.object(FSPath, 'makedirs')
+@patch.object(FSPath, 'mkdir')
 def test_makedirs(funcA):
     SmartPath(FS_TEST_ABSOLUTE_PATH).makedirs(exist_ok=True)
-    funcA.assert_called_once_with(exist_ok=True)
+    funcA.assert_called_once_with(parents=True, exist_ok=True)
 
 
 @patch.object(FSPath, 'glob_stat')

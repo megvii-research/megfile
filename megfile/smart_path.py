@@ -99,7 +99,7 @@ class SmartPath(BasePath):
     rename = _bind_function('rename')
     replace = _bind_function('replace')
     unlink = _bind_function('unlink')
-    mkdir = _bind_function('makedirs')
+    mkdir = _bind_function('mkdir')
     open = _bind_function('open')
     touch = _bind_function('touch')
     walk = _bind_function('walk')

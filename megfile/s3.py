@@ -1,7 +1,7 @@
 from typing import BinaryIO, Callable, Iterator, List, Optional, Tuple
 
 from megfile.interfaces import Access, FileEntry, PathLike, StatResult
-from megfile.s3_path import S3BufferedWriter, S3Cacher, S3LimitedSeekableWriter, S3Path, S3PrefetchReader, S3ShareCacheReader, get_endpoint_url, get_s3_client, get_s3_session, is_s3, parse_s3_url, s3_buffered_open, s3_cached_open, s3_download, s3_glob, s3_glob_stat, s3_iglob, s3_legacy_open, s3_load_content, s3_memory_open, s3_open, s3_path_join, s3_pipe_open, s3_prefetch_open, s3_readlink, s3_rename, s3_share_cache_open, s3_upload
+from megfile.s3_path import S3BufferedWriter, S3Cacher, S3LimitedSeekableWriter, S3Path, S3PrefetchReader, S3ShareCacheReader, get_endpoint_url, get_s3_client, get_s3_session, is_s3, parse_s3_url, s3_buffered_open, s3_cached_open, s3_download, s3_glob, s3_glob_stat, s3_iglob, s3_legacy_open, s3_load_content, s3_makedirs, s3_memory_open, s3_open, s3_path_join, s3_pipe_open, s3_prefetch_open, s3_readlink, s3_rename, s3_share_cache_open, s3_upload
 
 __all__ = [
     'S3Path',
@@ -33,6 +33,7 @@ __all__ = [
     's3_glob_stat',
     's3_iglob',
     's3_rename',
+    's3_makedirs',
     's3_access',
     's3_exists',
     's3_getmtime',
@@ -42,7 +43,6 @@ __all__ = [
     's3_listdir',
     's3_load_from',
     's3_hasbucket',
-    's3_makedirs',
     's3_move',
     's3_remove',
     's3_scan',
@@ -168,19 +168,6 @@ def s3_hasbucket(path: PathLike) -> bool:
     :returns: True if bucket of s3_url eixsts, else False
     '''
     return S3Path(path).hasbucket()
-
-
-def s3_makedirs(path: PathLike, exist_ok: bool = False):
-    '''
-    Create an s3 directory.
-    Purely creating directory is invalid because it's unavailable on OSS.
-    This function is to test the target bucket have WRITE access.
-
-    :param path: Given path
-    :param exist_ok: If False and target directory exists, raise S3FileExistsError
-    :raises: S3BucketNotFoundError, S3FileExistsError
-    '''
-    return S3Path(path).mkdir(exist_ok)
 
 
 def s3_move(src_url: PathLike, dst_url: PathLike) -> None:

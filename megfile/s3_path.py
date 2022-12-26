@@ -62,6 +62,7 @@ __all__ = [
     's3_glob_stat',
     's3_iglob',
     's3_rename',
+    's3_makedirs',
 ]
 _logger = get_logger(__name__)
 content_md5_header = 'megfile-content-md5'
@@ -1115,6 +1116,19 @@ def s3_iglob(path: PathLike, recursive: bool = True,
         yield file_entry.path
 
 
+def s3_makedirs(path: PathLike, exist_ok: bool = False):
+    '''
+    Create an s3 directory.
+    Purely creating directory is invalid because it's unavailable on OSS.
+    This function is to test the target bucket have WRITE access.
+
+    :param path: Given path
+    :param exist_ok: If False and target directory exists, raise S3FileExistsError
+    :raises: S3BucketNotFoundError, S3FileExistsError
+    '''
+    return S3Path(path).mkdir(parents=True, exist_ok=exist_ok)
+
+
 @SmartPath.register
 class S3Path(URIPath):
 
@@ -1368,12 +1382,14 @@ class S3Path(URIPath):
 
         return True
 
-    def mkdir(self, exist_ok: bool = False):
+    def mkdir(self, mode=0o777, parents: bool = False, exist_ok: bool = False):
         '''
         Create an s3 directory.
         Purely creating directory is invalid because it's unavailable on OSS.
         This function is to test the target bucket have WRITE access.
 
+        :param mode: mode is ignored, only be compatible with pathlib.Path
+        :param parents: parents is ignored, only be compatible with pathlib.Path
         :param exist_ok: If False and target directory exists, raise S3FileExistsError
         :raises: S3BucketNotFoundError, S3FileExistsError
         '''

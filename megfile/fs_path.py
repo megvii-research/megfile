@@ -34,6 +34,7 @@ __all__ = [
     'fs_rename',
     'fs_resolve',
     'fs_move',
+    'fs_makedirs',
 ]
 
 
@@ -180,6 +181,19 @@ def fs_resolve(path: PathLike) -> str:
     :returns: Real path of given path
     '''
     return FSPath(path).realpath()
+
+
+def fs_makedirs(path: PathLike, exist_ok: bool = False):
+    '''
+    make a directory on fs, including parent directory
+
+    If there exists a file on the path, raise FileExistsError
+
+    :param path: Given path
+    :param exist_ok: If False and target directory exists, raise FileExistsError
+    :raises: FileExistsError
+    '''
+    return FSPath(path).mkdir(parents=True, exist_ok=exist_ok)
 
 
 @SmartPath.register
@@ -431,18 +445,22 @@ class FSPath(URIPath):
             data = f.read()
         return io.BytesIO(data)
 
-    def mkdir(self, exist_ok: bool = False):
+    def mkdir(self, mode=0o777, parents: bool = False, exist_ok: bool = False):
         '''
         make a directory on fs, including parent directory
 
         If there exists a file on the path, raise FileExistsError
 
+        :param mode: If mode is given, it is combined with the process’ umask value to determine the file mode and access flags.
+        :param parents: If parents is true, any missing parents of this path are created as needed;
+        If parents is false (the default), a missing parent raises FileNotFoundError.
         :param exist_ok: If False and target directory exists, raise FileExistsError
         :raises: FileExistsError
         '''
         if exist_ok and self.path_without_protocol == '':
             return
-        return os.makedirs(self.path_without_protocol, exist_ok=exist_ok)
+        return pathlib.Path(self.path_without_protocol).mkdir(
+            mode=mode, parents=parents, exist_ok=exist_ok)
 
     def realpath(self) -> str:
         '''Return the real path of given path
@@ -729,7 +747,8 @@ class FSPath(URIPath):
         except FileNotFoundError as error:
             # Prevent the dst_path directory from being created when src_path does not exist
             if dst_path == error.filename:
-                FSPath(os.path.dirname(dst_path)).mkdir(exist_ok=True)
+                FSPath(os.path.dirname(dst_path)).mkdir(
+                    parents=True, exist_ok=True)
                 self._copyfile(
                     dst_path, callback=callback, followlinks=followlinks)
             else:
@@ -801,7 +820,8 @@ class FSPath(URIPath):
 
         :param file_object: stream to be read
         '''
-        FSPath(os.path.dirname(self.path_without_protocol)).mkdir(exist_ok=True)
+        FSPath(os.path.dirname(self.path_without_protocol)).mkdir(
+            parents=True, exist_ok=True)
         with open(self.path_without_protocol, 'wb') as output:
             output.write(file_object.read())
 
@@ -817,8 +837,8 @@ class FSPath(URIPath):
         if not isinstance(self.path_without_protocol, int) and ('w' in mode or
                                                                 'x' in mode or
                                                                 'a' in mode):
-            FSPath(os.path.dirname(
-                self.path_without_protocol)).mkdir(exist_ok=True)
+            FSPath(os.path.dirname(self.path_without_protocol)).mkdir(
+                parents=True, exist_ok=True)
         return io.open(
             self.path_without_protocol,
             mode,
