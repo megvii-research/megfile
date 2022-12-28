@@ -15,6 +15,11 @@ ALL_IGNORE_FUNC_LIST = dict(
         "anchor", "drive", "replace", "hardlink_to", "lstat", "mkdir"
     ],
     http=[],
+    sftp=[
+        "path_without_protocol", "expanduser", "iterdir", "readlink", "cwd",
+        "absolute", "glob", "iglob", "glob_stat", "resolve", "exists", "is_dir",
+        "scandir"
+    ],
 )
 
 ALL_IMPORT_LINES = dict(
@@ -34,6 +39,10 @@ ALL_IMPORT_LINES = dict(
     stdio=[
         "from typing import IO, AnyStr",
         "from megfile.interfaces import PathLike",
+    ],
+    sftp=[
+        "from typing import IO, AnyStr, BinaryIO, Iterator, List, Tuple, Callable, Optional",
+        "from megfile.interfaces import FileEntry, PathLike, StatResult",
     ],
 )
 
@@ -63,6 +72,18 @@ ALL_FUNC_NAME_MAPPING = dict(
         replace="move",
     ),
     http=dict(),
+    sftp=dict(
+        is_dir="isdir",
+        is_file="isfile",
+        md5="getmd5",
+        load="load_from",
+        mkdir="makedirs",
+        symlink_to="symlink",
+        is_symlink="islink",
+        save="save_as",
+        is_absolute="isabs",
+        replace="move",
+    ),
 )
 PARAMETER_PATTERN = re.compile(r'\[.*\]')
 
@@ -217,5 +238,5 @@ def generate_file(current_file_type: str):
 
 
 if __name__ == "__main__":
-    for t in ['s3', 'fs', 'http', 'stdio']:
+    for t in ['s3', 'fs', 'http', 'stdio', 'sftp']:
         generate_file(t)
