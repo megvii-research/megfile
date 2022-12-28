@@ -1,6 +1,6 @@
 from typing import BinaryIO, Callable, Iterator, List, Optional, Tuple
 
-from megfile.fs_path import FSPath, StatResult, _make_stat, fs_cwd, fs_glob, fs_glob_stat, fs_home, fs_iglob, fs_makedirs, fs_move, fs_path_join, fs_readlink, fs_rename, fs_resolve, is_fs
+from megfile.fs_path import FSPath, StatResult, _make_stat, fs_cwd, fs_glob, fs_glob_stat, fs_home, fs_iglob, fs_makedirs, fs_move, fs_path_join, fs_readlink, fs_relpath, fs_rename, fs_resolve, is_fs
 from megfile.interfaces import Access, FileEntry, PathLike, StatResult
 
 __all__ = [
@@ -19,6 +19,7 @@ __all__ = [
     'fs_resolve',
     'fs_move',
     'fs_makedirs',
+    'fs_relpath',
     'fs_isabs',
     'fs_abspath',
     'fs_access',
@@ -31,7 +32,6 @@ __all__ = [
     'fs_listdir',
     'fs_load_from',
     'fs_realpath',
-    'fs_relpath',
     'fs_remove',
     'fs_scan',
     'fs_scan_stat',
@@ -187,16 +187,6 @@ def fs_realpath(path: PathLike) -> str:
     :returns: Real path of given path
     '''
     return FSPath(path).realpath()
-
-
-def fs_relpath(path: PathLike, start: Optional[str] = None) -> str:
-    '''Return the relative path of given path
-
-    :param path: Given path
-    :param start: Given start directory
-    :returns: Relative path from start
-    '''
-    return FSPath(path).relpath(start)
 
 
 def fs_remove(path: PathLike, missing_ok: bool = False) -> None:
