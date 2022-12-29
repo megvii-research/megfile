@@ -512,7 +512,6 @@ def test_sftp_save_as(sftp_mocker):
 def test_sftp_chmod(sftp_mocker):
     path = 'sftp://username@host/test'
     sftp.sftp_save_as(io.BytesIO(b'test'), path)
-    assert stat.S_IMODE(os.stat('/test').st_mode) == 0o664
 
     sftp.sftp_chmod(path, mode=0o777)
     assert stat.S_IMODE(os.stat('/test').st_mode) == 0o777
