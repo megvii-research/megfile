@@ -341,8 +341,8 @@ def smart_sync(
     src_path, dst_path = get_traditional_path(src_path), get_traditional_path(
         dst_path)
     for src_file_path in smart_scan(src_path, followlinks=followlinks):
-        content_path = smart_relpath(src_file_path, start=src_path)
-        if len(content_path):
+        content_path = os.path.relpath(src_file_path, start=src_path)
+        if len(content_path) and content_path != '.':
             content_path = content_path.lstrip('/')
             dst_abs_file_path = smart_path_join(dst_path, content_path)
         else:

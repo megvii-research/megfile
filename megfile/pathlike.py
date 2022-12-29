@@ -705,14 +705,6 @@ class URIPath(BaseURIPath):
         """Return the canonical path of the path."""
         return self.path_with_protocol
 
-    def relpath(self, start: Optional[str] = None) -> str:
-        '''Return the relative path of given path
-
-        :param start: Given start directory
-        :returns: Relative path from start
-        '''
-        return fspath(os.path.relpath(self.path_without_protocol, start=start))
-
     def resolve(self):
         """Alias of realpath."""
         return self.path_with_protocol

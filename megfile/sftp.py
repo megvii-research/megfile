@@ -1,14 +1,12 @@
 from typing import IO, AnyStr, BinaryIO, Callable, Iterator, List, Optional, Tuple
 
 from megfile.interfaces import FileEntry, PathLike, StatResult
-from megfile.sftp_path import SftpPath, is_sftp, sftp_absolute, sftp_cwd, sftp_exists, sftp_glob, sftp_glob_stat, sftp_iglob, sftp_isdir, sftp_readlink, sftp_resolve, sftp_scandir
+from megfile.sftp_path import SftpPath, is_sftp, sftp_download, sftp_exists, sftp_glob, sftp_glob_stat, sftp_iglob, sftp_isdir, sftp_path_join, sftp_readlink, sftp_resolve, sftp_scandir, sftp_upload
 
 __all__ = [
     'SftpPath',
     'is_sftp',
     'sftp_readlink',
-    'sftp_absolute',
-    'sftp_cwd',
     'sftp_glob',
     'sftp_iglob',
     'sftp_glob_stat',
@@ -16,6 +14,9 @@ __all__ = [
     'sftp_isdir',
     'sftp_exists',
     'sftp_scandir',
+    'sftp_download',
+    'sftp_upload',
+    'sftp_path_join',
     'sftp_getmtime',
     'sftp_getsize',
     'sftp_isfile',
@@ -38,6 +39,7 @@ __all__ = [
     'sftp_save_as',
     'sftp_open',
     'sftp_chmod',
+    'sftp_absolute',
     'sftp_rmdir',
     'sftp_copy',
     'sftp_sync',
@@ -304,6 +306,13 @@ def sftp_chmod(path: PathLike, mode: int, follow_symlinks: bool = True):
     :param followlinks: Ignore this parameter, just for compatibility
     '''
     return SftpPath(path).chmod(mode, follow_symlinks)
+
+
+def sftp_absolute(path: PathLike) -> 'SftpPath':
+    '''
+    Make the path absolute, without normalization or resolving symlinks. Returns a new path object
+    '''
+    return SftpPath(path).absolute()
 
 
 def sftp_rmdir(path: PathLike):

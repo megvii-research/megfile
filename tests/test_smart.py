@@ -361,6 +361,14 @@ def test_smart_sync(mocker):
     smart_copy.assert_any_call('a/d', 'dst/d', callback=None, followlinks=True)
 
 
+def test_smart_sync_file(fs):
+    smart.smart_makedirs('/A')
+    smart.smart_touch('/A/file')
+
+    smart.smart_sync('/A/file', '/file')
+    assert smart.smart_exists('/file') is True
+
+
 @patch.object(SmartPath, 'remove')
 def test_smart_remove(funcA):
     funcA.return_value = None
@@ -753,6 +761,7 @@ def test_smart_glob(s3_empty_client, fs):
         f.write('file')
 
     assert smart.smart_glob('A/*') == ['A/a', 'A/b', 'A/1.json']
+    assert list(smart.smart_iglob('A/*')) == ['A/a', 'A/b', 'A/1.json']
     assert [file_entry.path for file_entry in smart.smart_glob_stat('A/*')
            ] == ['A/a', 'A/b', 'A/1.json']
 
@@ -896,7 +905,8 @@ def test_smart_realpath(s3_path, abs_path, link_path):
 
 def test_smart_relpath(mocker, s3_path, abs_path, rel_path):
     mocker.patch('os.getcwd', return_value=os.path.dirname(__file__))
-    assert smart.smart_relpath(s3_path) == s3_path
+    with pytest.raises(NotImplementedError):
+        assert smart.smart_relpath(s3_path) == s3_path
     assert smart.smart_relpath(abs_path, os.path.dirname(__file__)) == rel_path
 
 
