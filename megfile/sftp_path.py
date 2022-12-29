@@ -8,7 +8,7 @@ from urllib.parse import urlsplit, urlunsplit
 
 import paramiko
 
-from megfile.errors import UnsupportedError, _create_missing_ok_generator
+from megfile.errors import _create_missing_ok_generator
 from megfile.interfaces import FileEntry, PathLike, StatResult
 from megfile.lib.glob import FSFunc, iglob
 from megfile.lib.joinpath import uri_join
@@ -53,9 +53,9 @@ def _make_stat(stat: paramiko.SFTPAttributes) -> StatResult:
 
 def provide_connect_info(
         hostname: str,
-        port: int = None,
-        username: str = None,
-        password: str = None,
+        port: Optional[int] = None,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
 ):
     if not port:
         port = 22
@@ -77,10 +77,10 @@ def provide_connect_info(
 
 def get_sftp_client(
         hostname: str,
-        port: int = None,
-        username: str = None,
-        password: str = None,
-):
+        port: Optional[int] = None,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+):  # pragma: no cover
     '''Get sftp client
 
     :returns: sftp client
@@ -98,10 +98,10 @@ def get_sftp_client(
 
 def get_ssh_client(
         hostname: str,
-        port: int = None,
-        username: str = None,
-        password: str = None,
-):
+        port: Optional[int] = None,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+):  # pragma: no cover
     hostname, port, username, password, private_key = provide_connect_info(
         hostname=hostname,
         port=port,
@@ -188,7 +188,7 @@ def sftp_glob_stat(
         path_object = SftpPath(path)
         yield FileEntry(
             path_object.name, path_object.path_with_protocol,
-            _make_stat(path_object.lstat()))
+            path_object.lstat())
 
 
 def sftp_isdir(path: PathLike, followlinks: bool = False) -> bool:
@@ -254,10 +254,10 @@ def sftp_iglob(path: PathLike, recursive: bool = True,
             yield entry.name, entry.is_dir()
 
     fs = FSFunc(sftp_exists, sftp_isdir, _scandir)
-    for path in _create_missing_ok_generator(
+    for real_path in _create_missing_ok_generator(
             iglob(fspath(path), recursive=recursive, fs=fs), missing_ok,
             FileNotFoundError('No match file: %r' % path)):
-        yield path
+        yield real_path
 
 
 def sftp_resolve(path: PathLike, strict=False) -> 'str':
@@ -293,9 +293,9 @@ def sftp_download(
     '''
     from megfile.fs import is_fs
     if not is_fs(dst_url):
-        raise UnsupportedError(f'dst_url is not fs path: {dst_url}')
+        raise OSError(f'dst_url is not fs path: {dst_url}')
     if not is_sftp(src_url):
-        raise UnsupportedError(f'src_url is not sftp path: {src_url}')
+        raise OSError(f'src_url is not sftp path: {src_url}')
 
     src_url = SftpPath(src_url)
     if followlinks and SftpPath(src_url).is_symlink():
@@ -317,9 +317,9 @@ def sftp_upload(
     '''
     from megfile.fs import is_fs
     if not is_fs(src_url):
-        raise UnsupportedError(f'src_url is not fs path: {src_url}')
+        raise OSError(f'src_url is not fs path: {src_url}')
     if not is_sftp(dst_url):
-        raise UnsupportedError(f'dst_url is not sftp path: {dst_url}')
+        raise OSError(f'dst_url is not sftp path: {dst_url}')
 
     if followlinks and os.path.islink(src_url):
         src_url = os.readlink(src_url)
@@ -459,9 +459,7 @@ class SftpPath(URIPath):
         '''
         for path_obj in self.iglob(pattern=pattern, recursive=recursive,
                                    missing_ok=missing_ok):
-            yield FileEntry(
-                path_obj.name, path_obj.path,
-                _make_stat(os.lstat(path_obj.path)))
+            yield FileEntry(path_obj.name, path_obj.path, path_obj.lstat())
 
     def iglob(self, pattern, recursive: bool = True,
               missing_ok: bool = True) -> Iterator['SftpPath']:
@@ -662,19 +660,19 @@ class SftpPath(URIPath):
 
         def create_generator() -> Iterator[FileEntry]:
             path = self
-            if followlinks and self.stat(follow_symlinks=False).is_symlink():
-                path = self.readlink()
             if path.is_file():
                 # On s3, file and directory may be of same name and level, so need to test the path is file or directory
                 yield FileEntry(
-                    path.name, path.path_with_protocol, path.lstat())
+                    path.name, path.path_with_protocol,
+                    path.stat(follow_symlinks=followlinks))
                 return
 
             for name in path.listdir():
                 current_path = self.joinpath(name)
                 yield FileEntry(
-                    current_path.name, current_path.path_with_protocol,
-                    current_path.lstat())
+                    current_path.name,  # type: ignore
+                    current_path.path_with_protocol,
+                    current_path.stat(follow_symlinks=followlinks))
 
         return _create_missing_ok_generator(
             create_generator(), missing_ok,
@@ -697,8 +695,9 @@ class SftpPath(URIPath):
         for name in self.listdir():
             current_path = self.joinpath(name)
             yield FileEntry(
-                current_path.name, current_path.path_with_protocol,
-                current_path.lstat())
+                current_path.name,  # type: ignore
+                current_path.path_with_protocol,
+                current_path.lstat())  # type: ignore
 
     def stat(self, follow_symlinks=True) -> StatResult:
         '''
@@ -802,7 +801,7 @@ class SftpPath(URIPath):
         if self.is_dir():
             hash_md5 = hashlib.md5()  # nosec
             for file_name in self.listdir():
-                chunk = self.joinpath(file_name).md5(
+                chunk = self.joinpath(file_name).md5(  # type: ignore
                     recalculate=recalculate, followlinks=followlinks).encode()
                 hash_md5.update(chunk)
             return hash_md5.hexdigest()
@@ -873,7 +872,7 @@ class SftpPath(URIPath):
         with self._client as client:
             return client.chmod(path=self._real_path, mode=mode)
 
-    def absolute(self) -> 'SftpPath':
+    def absolute(self) -> str:
         '''
         Make the path absolute, without normalization or resolving symlinks. Returns a new path object
         '''
@@ -897,7 +896,7 @@ class SftpPath(URIPath):
         File copy
         '''
         if not is_sftp(dst_path):
-            raise UnsupportedError(f'dst_path is not sftp path: {dst_path}')
+            raise OSError(f'dst_path is not sftp path: {dst_path}')
 
         if followlinks and self.is_symlink():
             return self.readlink().copy(dst_path=dst_path, callback=callback)
@@ -916,10 +915,10 @@ class SftpPath(URIPath):
             )
             _stdin, _stdout, stderr = ssh_client.exec_command(
                 f"cp {self._real_path} {dst_path._real_path}")
-            if not dst_path.exists():
+            if not dst_path.exists():  # pragma: no cover
                 _logger.error(stderr)
                 raise OSError('Copy file error')
-            elif dst_path.lstat().size != self.lstat().size:
+            elif dst_path.lstat().size != self.lstat().size:  # pragma: no cover
                 raise OSError('Copy file error, size mismatch')
 
         with self.open('rb') as fsrc:
@@ -941,7 +940,7 @@ class SftpPath(URIPath):
         :param dst_url: Given destination path
         '''
         if not is_sftp(dst_path):
-            raise UnsupportedError(f'dst_path is not sftp path: {dst_path}')
+            raise OSError(f'dst_path is not sftp path: {dst_path}')
         for src_file_path, dst_file_path in _sftp_scan_pairs(
                 self.path_with_protocol, dst_path):
             self.from_path(os.path.dirname(dst_file_path)).mkdir(
