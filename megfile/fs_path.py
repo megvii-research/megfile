@@ -35,7 +35,6 @@ __all__ = [
     'fs_resolve',
     'fs_move',
     'fs_makedirs',
-    'fs_relpath',
 ]
 
 
@@ -195,16 +194,6 @@ def fs_makedirs(path: PathLike, exist_ok: bool = False):
     :raises: FileExistsError
     '''
     return FSPath(path).mkdir(parents=True, exist_ok=exist_ok)
-
-
-def fs_relpath(path: PathLike, start: Optional[str] = None) -> str:
-    '''Return the relative path of given path
-
-    :param path: Given path
-    :param start: Given start directory
-    :returns: Relative path from start
-    '''
-    return FSPath(path).relpath(start)
 
 
 @SmartPath.register
@@ -482,6 +471,14 @@ class FSPath(URIPath):
         :returns: Real path of given path
         '''
         return fspath(os.path.realpath(self.path_without_protocol))
+
+    def relpath(self, start: Optional[str] = None) -> str:
+        '''Return the relative path of given path
+
+        :param start: Given start directory
+        :returns: Relative path from start
+        '''
+        return fspath(os.path.relpath(self.path_without_protocol, start=start))
 
     def rename(self, dst_path: PathLike) -> 'FSPath':
         '''
