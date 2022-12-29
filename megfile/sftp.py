@@ -308,7 +308,7 @@ def sftp_chmod(path: PathLike, mode: int, follow_symlinks: bool = True):
     return SftpPath(path).chmod(mode, follow_symlinks)
 
 
-def sftp_absolute(path: PathLike) -> 'SftpPath':
+def sftp_absolute(path: PathLike) -> str:
     '''
     Make the path absolute, without normalization or resolving symlinks. Returns a new path object
     '''
