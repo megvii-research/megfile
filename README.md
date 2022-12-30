@@ -146,7 +146,7 @@ $ export SFTP_USERNAME=user
 $ export SFTP_PASSWORD=user_password
 
 # You can also set private key for sftp connection 
-$ export SFTP_PRIVATE_KEY_PATH=/home/user/custom_private_key_path
+$ export SFTP_PRIVATE_KEY_PATH=/home/user/custom_private_key_path  # default find ~/.ssh/id_rsa
 $ export SFTP_PRIVATE_KEY_TYPE=RSA  # default is RSA
 $ export SFTP_PRIVATE_KEY_PASSWORD=private_key_password
 ```
