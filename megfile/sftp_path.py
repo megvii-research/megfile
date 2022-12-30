@@ -39,6 +39,8 @@ __all__ = [
 SFTP_USERNAME = "SFTP_USERNAME"
 SFTP_PASSWORD = "SFTP_PASSWORD"
 SFTP_PRIVATE_KEY_PATH = "SFTP_PRIVATE_KEY_PATH"
+SFTP_PRIVATE_KEY_TYPE = "SFTP_PRIVATE_KEY_TYPE"
+SFTP_PRIVATE_KEY_PASSWORD = "SFTP_PRIVATE_KEY_PASSWORD"
 
 
 def _make_stat(stat: paramiko.SFTPAttributes) -> StatResult:
@@ -49,6 +51,26 @@ def _make_stat(stat: paramiko.SFTPAttributes) -> StatResult:
         islnk=S_ISLNK(stat.st_mode),
         extra=stat,
     )
+
+
+def get_private_key():
+    key_with_types = {
+        'DSA': paramiko.DSSKey,
+        'RSA': paramiko.RSAKey,
+        'ECDSA': paramiko.ECDSAKey,
+        'ED25519': paramiko.Ed25519Key,
+    }
+    key_type = os.getenv(SFTP_PRIVATE_KEY_TYPE, 'RSA').upper()
+    if os.getenv(SFTP_PRIVATE_KEY_PATH):
+        private_key_path = os.getenv(SFTP_PRIVATE_KEY_PATH)
+    else:
+        private_key_path = os.path.join(
+            os.path.expanduser('~'), '.ssh', 'id_rsa')
+    private_key = None
+    if os.path.exists(private_key_path):
+        private_key = key_with_types[key_type].from_private_key_file(
+            private_key_path, password=os.getenv(SFTP_PRIVATE_KEY_PASSWORD))
+    return private_key
 
 
 def provide_connect_info(
@@ -63,15 +85,7 @@ def provide_connect_info(
         username = os.getenv(SFTP_USERNAME)
     if not password:
         password = os.getenv(SFTP_PASSWORD)
-
-    private_key = None
-    if os.getenv(SFTP_PRIVATE_KEY_PATH):
-        private_key_path = os.getenv(SFTP_PRIVATE_KEY_PATH)
-    else:
-        private_key_path = os.path.join(
-            os.path.expanduser('~'), '.ssh', 'id_rsa')
-    if os.path.exists(private_key_path):
-        private_key = paramiko.RSAKey.from_private_key_file(private_key_path)
+    private_key = get_private_key()
     return hostname, port, username, password, private_key
 
 
@@ -351,8 +365,8 @@ def sftp_path_join(path: PathLike, *other_paths: PathLike) -> str:
 class SftpPath(URIPath):
     """sftp protocol
 
-    uri format: sftp://[username[:password]@]hostname[:port]/path
-    e.g. sftp://127.0.0.1/data/test/
+    uri format: sftp://[username[:password]@]hostname[:port]/file_path
+    e.g. sftp://username:password@127.0.0.1:22/data/test/
     """
 
     protocol = "sftp"
