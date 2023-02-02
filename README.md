@@ -29,7 +29,7 @@ megfile - Megvii FILE library
 
 ## Quick Start
 
-Here's an example of writing a file to s3, syncing to local, reading and finally deleting it.
+Here's an example of writing a file to s3 / sftp / fs, syncing to local, reading and finally deleting it.
 
 ### Functional Interface
 ```python
@@ -56,6 +56,9 @@ smart_glob('s3://playground/megfile-?.{mp4,avi}')
 
 # smart_open also support protocols like http / https
 smart_open('https://www.google.com')
+
+# smart_open also support protocols like sftp
+smart_open('https://username:password@sftp.server.com:22/path/to/file')
 ```
 
 ### SmartPath Interface
@@ -134,6 +137,18 @@ aws_access_key_id = secretkey
 s3 =
     addressing_style = virtual
     endpoint_url = http://oss-cn-hangzhou.aliyuncs.com
+```
+
+sftp path format is `sftp://[username[:password]@]hostname[:port]/file_path`, and sftp support some environments:
+```
+# If you are not set username or password in path, you can set them in environments
+$ export SFTP_USERNAME=user
+$ export SFTP_PASSWORD=user_password
+
+# You can also set private key for sftp connection 
+$ export SFTP_PRIVATE_KEY_PATH=/home/user/custom_private_key_path  # default find ~/.ssh/id_rsa
+$ export SFTP_PRIVATE_KEY_TYPE=RSA  # default is RSA
+$ export SFTP_PRIVATE_KEY_PASSWORD=private_key_password
 ```
 
 ## How to Contribute

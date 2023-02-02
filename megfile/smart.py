@@ -11,6 +11,7 @@ from megfile.lib.combine_reader import CombineReader
 from megfile.lib.compat import fspath
 from megfile.lib.glob import globlize, ungloblize
 from megfile.s3 import S3Cacher, is_s3, s3_copy, s3_download, s3_load_content, s3_open, s3_upload
+from megfile.sftp_path import sftp_download, sftp_upload
 from megfile.smart_path import SmartPath, get_traditional_path
 from megfile.utils import combine, get_content_offset
 
@@ -195,7 +196,11 @@ _copy_funcs = {
     'file': {
         's3': s3_upload,
         'file': fs_copy,
-    }
+        'sftp': sftp_upload,
+    },
+    'sftp': {
+        'file': sftp_download,
+    },
 }
 
 
@@ -336,8 +341,8 @@ def smart_sync(
     src_path, dst_path = get_traditional_path(src_path), get_traditional_path(
         dst_path)
     for src_file_path in smart_scan(src_path, followlinks=followlinks):
-        content_path = src_file_path[len(src_path):]
-        if len(content_path):
+        content_path = os.path.relpath(src_file_path, start=src_path)
+        if len(content_path) and content_path != '.':
             content_path = content_path.lstrip('/')
             dst_abs_file_path = smart_path_join(dst_path, content_path)
         else:
