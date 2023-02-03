@@ -16,6 +16,8 @@ Submodules
    megfile.http_path
    megfile.stdio
    megfile.stdio_path
+   megfile.sftp
+   megfile.sftp_path
 
 Module contents
 ---------------

@@ -1,19 +1,16 @@
-CHANGELOG
-=========
-
 ## 1.0.2 - 2022.09.22
-- remove smart_getmd5_by_paths method
-- retry when catch botocore.exceptions.ResponseStreamingError
-- remove followlinks parameter in rename, move, remove; make behavior same as standard library
-- fix smart_rename bug, when rename file cross platform or device
+- remove `smart_getmd5_by_paths` method
+- retry when catch `botocore.exceptions.ResponseStreamingError`
+- remove `followlinks` parameter in rename, move, remove; make behavior same as standard library
+- fix `smart_rename` bug, when rename file cross platform or device
 
 ## 1.0.1 - 2022.08.04
 - fix open mode with + in different order
-- sort smart_getmd5_by_paths parameter paths
+- sort `smart_getmd5_by_paths` parameter paths
 
 ## 1.0.0 - 2022.07.25
 - refactor code
-- add smart_getmd5_by_paths
+- add `smart_getmd5_by_paths`
 - change of symlink's parameters position
 
 ## 0.1.2 - 2022.04.26
@@ -32,12 +29,12 @@ CHANGELOG
 
 ## 0.0.11 - 2021.12.08
 
-- smart_open support read and write pipe
+- `smart_open` support read and write pipe
 
 ## 0.0.10 - 2021.11.29
 
 - add info log about environ OSS_ENDPOINT and oss config file
-- smart_getsize and smart_getmtime support http
+- `smart_getsize` and `smart_getmtime` support http
 - update cli cp and mv, make them like cp and mv in linux
 - fix sed warning in macOS
 - add some test code
