@@ -5,8 +5,6 @@ from megfile.http_path import HttpPath, HttpsPath, get_http_session, is_http
 from megfile.interfaces import Access, FileEntry, PathLike, StatResult
 
 __all__ = [
-    'HttpPath',
-    'HttpsPath',
     'get_http_session',
     'is_http',
     'http_open',

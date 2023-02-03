@@ -2,6 +2,6 @@ megfile.s3_path module
 ======================
 
 .. automodule:: megfile.s3_path
-    :members:
+    :members: S3Path
     :undoc-members:
     :show-inheritance:

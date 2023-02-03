@@ -4,7 +4,6 @@ from megfile.interfaces import PathLike
 from megfile.stdio_path import StdioPath, is_stdio
 
 __all__ = [
-    'StdioPath',
     'is_stdio',
     'stdio_open',
 ]

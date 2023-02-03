@@ -2,6 +2,6 @@ megfile.stdio_path module
 =========================
 
 .. automodule:: megfile.stdio_path
-    :members:
+    :members: StdioPath
     :undoc-members:
     :show-inheritance:

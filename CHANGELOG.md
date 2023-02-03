@@ -1,19 +1,29 @@
-CHANGELOG
-=========
+## 2.0.0 - 2023.02.10
+- path classes align with `pathlib.Path`
+    - methods(`glob`, `iglob`, `glob_stat`, `resolve`, `home`, `cwd`, `readlink`) in all path classes return path object
+    - methods(`glob`, `iglob`, `glob_stat`) in all path classes add `pattern` parameter. Functions(like smart_glob, s3_glob) not change.
+    - `relative_to`'s parameter `other` in all path classes change to `*other`
+    - `FSPath.parts` align with `pathlib.Path.parts`, return value `parts[0]` will not be `file://` any more.
+    - `mkdir` in all path classes add `pattern` parameters(`mode=0o777`, `parents=False`), Functions(like smart_makedirs) not change.
+- change `s3_symlink`, `S3Path.symlink`, `s3_rename`, `S3Path.rename` parameter name, change `src_url`, `dst_url` to `src_path`, `dst_path`
+- change `fs_stat`, `FSPath.stat`, `s3_stat`, `S3Path.stat` parameter name, change `followlinks` to `follow_symlinks`
+- `FileEntry` add method `inode`
+- `StatResult` add propertys(`st_mode`, `st_ino`, `st_dev`, `st_nlink`, `st_uid`, `st_gid`, `st_size`, `st_atime`, `st_mtime`, `st_ctime`, `st_atime_ns`, `st_mtime_ns`, `st_ctime_ns`)
+- support sftp protocol
 
 ## 1.0.2 - 2022.09.22
-- remove smart_getmd5_by_paths method
-- retry when catch botocore.exceptions.ResponseStreamingError
-- remove followlinks parameter in rename, move, remove; make behavior same as standard library
-- fix smart_rename bug, when rename file cross platform or device
+- remove `smart_getmd5_by_paths` method
+- retry when catch `botocore.exceptions.ResponseStreamingError`
+- remove `followlinks` parameter in rename, move, remove; make behavior same as standard library
+- fix `smart_rename` bug, when rename file cross platform or device
 
 ## 1.0.1 - 2022.08.04
 - fix open mode with + in different order
-- sort smart_getmd5_by_paths parameter paths
+- sort `smart_getmd5_by_paths` parameter paths
 
 ## 1.0.0 - 2022.07.25
 - refactor code
-- add smart_getmd5_by_paths
+- add `smart_getmd5_by_paths`
 - change of symlink's parameters position
 
 ## 0.1.2 - 2022.04.26
@@ -32,12 +42,12 @@ CHANGELOG
 
 ## 0.0.11 - 2021.12.08
 
-- smart_open support read and write pipe
+- `smart_open` support read and write pipe
 
 ## 0.0.10 - 2021.11.29
 
 - add info log about environ OSS_ENDPOINT and oss config file
-- smart_getsize and smart_getmtime support http
+- `smart_getsize` and `smart_getmtime` support http
 - update cli cp and mv, make them like cp and mv in linux
 - fix sed warning in macOS
 - add some test code

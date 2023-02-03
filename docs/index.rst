@@ -13,8 +13,8 @@ Welcome to megfile's documentation!
    readme
    megfile
    cli
+   changelog
    GitHub <https://github.com/megvii-research/megfile>
-
 
 Indices and tables
 ==================
