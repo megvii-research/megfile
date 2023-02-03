@@ -220,6 +220,7 @@ def get_methods_from_path_file(current_file_type: str):
 
 
 def generate_file(current_file_type: str):
+    current_class_name = get_class_name(current_file_type)
     import_lines, all_func_list, methods_content = get_methods_from_path_file(
         current_file_type)
     with open(f"megfile/{current_file_type}.py", 'w') as f:
@@ -229,7 +230,8 @@ def generate_file(current_file_type: str):
 
         f.write("\n\n__all__ = [\n")
         for func_name in all_func_list:
-            f.write(f"    '{func_name}',\n")
+            if func_name != current_class_name and func_name != 'HttpsPath':
+                f.write(f"    '{func_name}',\n")
         f.write("]\n\n")
 
         for line in methods_content:

@@ -4,7 +4,6 @@ from megfile.interfaces import FileEntry, PathLike, StatResult
 from megfile.sftp_path import SftpPath, is_sftp, sftp_download, sftp_exists, sftp_glob, sftp_glob_stat, sftp_iglob, sftp_isdir, sftp_path_join, sftp_readlink, sftp_resolve, sftp_scandir, sftp_upload
 
 __all__ = [
-    'SftpPath',
     'is_sftp',
     'sftp_readlink',
     'sftp_glob',

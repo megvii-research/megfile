@@ -4,7 +4,6 @@ from megfile.fs_path import FSPath, StatResult, _make_stat, fs_cwd, fs_glob, fs_
 from megfile.interfaces import Access, FileEntry, PathLike, StatResult
 
 __all__ = [
-    'FSPath',
     'is_fs',
     'StatResult',
     'fs_path_join',
