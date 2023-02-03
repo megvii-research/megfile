@@ -8,7 +8,7 @@
 - change `s3_symlink`, `S3Path.symlink`, `s3_rename`, `S3Path.rename` parameter name, change `src_url`, `dst_url` to `src_path`, `dst_path`
 - change `fs_stat`, `FSPath.stat`, `s3_stat`, `S3Path.stat` parameter name, change `followlinks` to `follow_symlinks`
 - `FileEntry` add method `inode`
-- `StatResult` add propertys(`st_mode`, `st_ino`, `st_dev`, `st_nlink`, `st_uid`, `st_gid`, `st_size`, `st_atime`, `st_mtime`, `st_ctime`, `st_atime_ns`, `st_mtime_ns`, `st_ctime_ns`)
+- `StatResult` add properties(`st_mode`, `st_ino`, `st_dev`, `st_nlink`, `st_uid`, `st_gid`, `st_size`, `st_atime`, `st_mtime`, `st_ctime`, `st_atime_ns`, `st_mtime_ns`, `st_ctime_ns`)
 - support sftp protocol
 
 ## 1.0.2 - 2022.09.22
