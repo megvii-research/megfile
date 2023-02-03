@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>megfile.http &mdash; megfile  documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> megfile
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../readme.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../megfile.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/megvii-research/megfile">GitHub</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">megfile</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">megfile.http</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for megfile.http</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">BufferedReader</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">BinaryIO</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="kn">from</span> <span class="nn">megfile.http_path</span> <span class="kn">import</span> <span class="n">HttpPath</span><span class="p">,</span> <span class="n">HttpsPath</span><span class="p">,</span> <span class="n">get_http_session</span><span class="p">,</span> <span class="n">is_http</span>
+<span class="kn">from</span> <span class="nn">megfile.interfaces</span> <span class="kn">import</span> <span class="n">Access</span><span class="p">,</span> <span class="n">FileEntry</span><span class="p">,</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">StatResult</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;HttpPath&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;HttpsPath&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;get_http_session&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;is_http&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;http_open&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;http_stat&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;http_getsize&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;http_getmtime&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<div class="viewcode-block" id="http_open"><a class="viewcode-back" href="../../megfile.http.html#megfile.http.http_open">[docs]</a><span class="k">def</span> <span class="nf">http_open</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BufferedReader</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;Open a BytesIO to read binary data of given http(s) url</span>
+
+<span class="sd">    .. note ::</span>
+
+<span class="sd">        Essentially, it reads data of http(s) url to memory by requests, and then return BytesIO to user.</span>
+
+<span class="sd">    :param path: Given path</span>
+<span class="sd">    :param mode: Only supports &#39;rb&#39; mode now</span>
+<span class="sd">    :return: BytesIO initialized with http(s) data</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">HttpPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="http_stat"><a class="viewcode-back" href="../../megfile.http.html#megfile.http.http_stat">[docs]</a><span class="k">def</span> <span class="nf">http_stat</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StatResult</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Get StatResult of http_url response, including size and mtime, referring to http_getsize and http_getmtime</span>
+
+<span class="sd">    :param path: Given path</span>
+<span class="sd">    :returns: StatResult</span>
+<span class="sd">    :raises: HttpPermissionError, HttpFileNotFoundError</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">HttpPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="http_getsize"><a class="viewcode-back" href="../../megfile.http.html#megfile.http.http_getsize">[docs]</a><span class="k">def</span> <span class="nf">http_getsize</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Get file size on the given http_url path.</span>
+
+<span class="sd">    If http response header don&#39;t support Content-Length, will return None</span>
+
+<span class="sd">    :param path: Given path</span>
+<span class="sd">    :returns: File size (in bytes)</span>
+<span class="sd">    :raises: HttpPermissionError, HttpFileNotFoundError</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">HttpPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">getsize</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="http_getmtime"><a class="viewcode-back" href="../../megfile.http.html#megfile.http.http_getmtime">[docs]</a><span class="k">def</span> <span class="nf">http_getmtime</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Get Last-Modified time of the http request on the given http_url path.</span>
+
+<span class="sd">    If http response header don&#39;t support Last-Modified, will return None</span>
+
+<span class="sd">    :param path: Given path</span>
+<span class="sd">    :returns: Last-Modified time (in Unix timestamp format)</span>
+<span class="sd">    :raises: HttpPermissionError, HttpFileNotFoundError</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">HttpPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">getmtime</span><span class="p">()</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, r-eng.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

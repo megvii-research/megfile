@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>megfile.http module &mdash; megfile  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="megfile.http_path module" href="megfile.http_path.html" />
+    <link rel="prev" title="megfile.smart_path module" href="megfile.smart_path.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> megfile
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="readme.html">Getting Started</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="megfile.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="megfile.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs.html">megfile.fs module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html">megfile.fs_path module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3.html">megfile.s3 module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html">megfile.s3_path module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart.html">megfile.smart module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html">megfile.smart_path module</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">megfile.http module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.http.HttpPath"><code class="docutils literal notranslate"><span class="pre">HttpPath</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.http.HttpsPath"><code class="docutils literal notranslate"><span class="pre">HttpsPath</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.http.get_http_session"><code class="docutils literal notranslate"><span class="pre">get_http_session()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.http.http_getmtime"><code class="docutils literal notranslate"><span class="pre">http_getmtime()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.http.http_getsize"><code class="docutils literal notranslate"><span class="pre">http_getsize()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.http.http_open"><code class="docutils literal notranslate"><span class="pre">http_open()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.http.http_stat"><code class="docutils literal notranslate"><span class="pre">http_stat()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.http.is_http"><code class="docutils literal notranslate"><span class="pre">is_http()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.http_path.html">megfile.http_path module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.stdio.html">megfile.stdio module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.stdio_path.html">megfile.stdio_path module</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.html#module-megfile">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/megvii-research/megfile">GitHub</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">megfile</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="megfile.html">API Reference</a></li>
+      <li class="breadcrumb-item active">megfile.http module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/megfile.http.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-megfile.http">
+<span id="megfile-http-module"></span><h1>megfile.http module<a class="headerlink" href="#module-megfile.http" title="Permalink to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="megfile.http.HttpPath">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">megfile.http.</span></span><span class="sig-name descname"><span class="pre">HttpPath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">other_paths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/http_path.html#HttpPath"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.http.HttpPath" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">URIPath</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.http.HttpPath.getmtime">
+<span class="sig-name descname"><span class="pre">getmtime</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="_modules/megfile/http_path.html#HttpPath.getmtime"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.http.HttpPath.getmtime" title="Permalink to this definition"></a></dt>
+<dd><p>Get Last-Modified time of the http request on the given http_url path.</p>
+<p>If http response header don’t support Last-Modified, will return None</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Last-Modified time (in Unix timestamp format)</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p>HttpPermissionError, HttpFileNotFoundError</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.http.HttpPath.getsize">
+<span class="sig-name descname"><span class="pre">getsize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/megfile/http_path.html#HttpPath.getsize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.http.HttpPath.getsize" title="Permalink to this definition"></a></dt>
+<dd><p>Get file size on the given http_url path.</p>
+<p>If http response header don’t support Content-Length, will return None</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>File size (in bytes)</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p>HttpPermissionError, HttpFileNotFoundError</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.http.HttpPath.open">
+<span class="sig-name descname"><span class="pre">open</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'rb'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">BufferedReader</span></span></span><a class="reference internal" href="_modules/megfile/http_path.html#HttpPath.open"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.http.HttpPath.open" title="Permalink to this definition"></a></dt>
+<dd><p>Open a BytesIO to read binary data of given http(s) url</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Essentially, it reads data of http(s) url to memory by requests, and then return BytesIO to user.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>mode</strong> – Only supports ‘rb’ mode now</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>BytesIO initialized with http(s) data</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="megfile.http.HttpPath.protocol">
+<span class="sig-name descname"><span class="pre">protocol</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'http'</span></em><a class="headerlink" href="#megfile.http.HttpPath.protocol" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.http.HttpPath.stat">
+<span class="sig-name descname"><span class="pre">stat</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.StatResult" title="megfile.pathlike.StatResult"><span class="pre">StatResult</span></a></span></span><a class="reference internal" href="_modules/megfile/http_path.html#HttpPath.stat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.http.HttpPath.stat" title="Permalink to this definition"></a></dt>
+<dd><p>Get StatResult of http_url response, including size and mtime, referring to http_getsize and http_getmtime</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>StatResult</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p>HttpPermissionError, HttpFileNotFoundError</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="megfile.http.HttpsPath">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">megfile.http.</span></span><span class="sig-name descname"><span class="pre">HttpsPath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">other_paths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/http_path.html#HttpsPath"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.http.HttpsPath" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="megfile.http_path.html#megfile.http_path.HttpPath" title="megfile.http_path.HttpPath"><code class="xref py py-class docutils literal notranslate"><span class="pre">HttpPath</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="megfile.http.HttpsPath.protocol">
+<span class="sig-name descname"><span class="pre">protocol</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'https'</span></em><a class="headerlink" href="#megfile.http.HttpsPath.protocol" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="megfile.http.get_http_session">
+<span class="sig-prename descclassname"><span class="pre">megfile.http.</span></span><span class="sig-name descname"><span class="pre">get_http_session</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_forcelist</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(502,</span> <span class="pre">503,</span> <span class="pre">504)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/http_path.html#get_http_session"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.http.get_http_session" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="megfile.http.http_getmtime">
+<span class="sig-prename descclassname"><span class="pre">megfile.http.</span></span><span class="sig-name descname"><span class="pre">http_getmtime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="_modules/megfile/http.html#http_getmtime"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.http.http_getmtime" title="Permalink to this definition"></a></dt>
+<dd><p>Get Last-Modified time of the http request on the given http_url path.</p>
+<p>If http response header don’t support Last-Modified, will return None</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>path</strong> – Given path</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Last-Modified time (in Unix timestamp format)</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p>HttpPermissionError, HttpFileNotFoundError</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="megfile.http.http_getsize">
+<span class="sig-prename descclassname"><span class="pre">megfile.http.</span></span><span class="sig-name descname"><span class="pre">http_getsize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/megfile/http.html#http_getsize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.http.http_getsize" title="Permalink to this definition"></a></dt>
+<dd><p>Get file size on the given http_url path.</p>
+<p>If http response header don’t support Content-Length, will return None</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>path</strong> – Given path</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>File size (in bytes)</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p>HttpPermissionError, HttpFileNotFoundError</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="megfile.http.http_open">
+<span class="sig-prename descclassname"><span class="pre">megfile.http.</span></span><span class="sig-name descname"><span class="pre">http_open</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'rb'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">BufferedReader</span></span></span><a class="reference internal" href="_modules/megfile/http.html#http_open"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.http.http_open" title="Permalink to this definition"></a></dt>
+<dd><p>Open a BytesIO to read binary data of given http(s) url</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Essentially, it reads data of http(s) url to memory by requests, and then return BytesIO to user.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> – Given path</p></li>
+<li><p><strong>mode</strong> – Only supports ‘rb’ mode now</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>BytesIO initialized with http(s) data</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="megfile.http.http_stat">
+<span class="sig-prename descclassname"><span class="pre">megfile.http.</span></span><span class="sig-name descname"><span class="pre">http_stat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.StatResult" title="megfile.pathlike.StatResult"><span class="pre">StatResult</span></a></span></span><a class="reference internal" href="_modules/megfile/http.html#http_stat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.http.http_stat" title="Permalink to this definition"></a></dt>
+<dd><p>Get StatResult of http_url response, including size and mtime, referring to http_getsize and http_getmtime</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>path</strong> – Given path</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>StatResult</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p>HttpPermissionError, HttpFileNotFoundError</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="megfile.http.is_http">
+<span class="sig-prename descclassname"><span class="pre">megfile.http.</span></span><span class="sig-name descname"><span class="pre">is_http</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/megfile/http_path.html#is_http"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.http.is_http" title="Permalink to this definition"></a></dt>
+<dd><p>http scheme definition: http(s)://domain/path</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>path</strong> – Path to be tested</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>True if path is http url, else False</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="megfile.smart_path.html" class="btn btn-neutral float-left" title="megfile.smart_path module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="megfile.http_path.html" class="btn btn-neutral float-right" title="megfile.http_path module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, r-eng.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
