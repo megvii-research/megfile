@@ -318,6 +318,8 @@ def sftp_download(
         raise IsADirectoryError('Is a directory: %r' % src_url)
 
     with src_url._client as client:
+        dir_path = os.path.dirname(dst_url)
+        os.makedirs(dir_path, exist_ok=True)
         client.get(src_url._real_path, dst_url, callback=callback)
 
 
