@@ -318,6 +318,8 @@ def sftp_download(
         raise IsADirectoryError('Is a directory: %r' % src_url)
 
     with src_url._client as client:
+        dir_path = os.path.dirname(dst_url)
+        os.makedirs(dir_path, exist_ok=True)
         client.get(src_url._real_path, dst_url, callback=callback)
 
 
@@ -342,6 +344,8 @@ def sftp_upload(
 
     dst_url = SftpPath(dst_url)
     with dst_url._client as client:
+        dir_path = dst_url.parent
+        dir_path.makedirs(exist_ok=True)
         client.put(src_url, dst_url._real_path, callback=callback)
 
 
@@ -683,10 +687,13 @@ class SftpPath(URIPath):
 
             for name in path.listdir():
                 current_path = self.joinpath(name)
-                yield FileEntry(
-                    current_path.name,  # type: ignore
-                    current_path.path_with_protocol,
-                    current_path.stat(follow_symlinks=followlinks))
+                if current_path.is_dir():
+                    yield from current_path.scan_stat()
+                else:
+                    yield FileEntry(
+                        current_path.name,  # type: ignore
+                        current_path.path_with_protocol,
+                        current_path.stat(follow_symlinks=followlinks))
 
         return _create_missing_ok_generator(
             create_generator(), missing_ok,
