@@ -406,15 +406,13 @@ def test_sftp_scan(sftp_mocker):
     assert list(sftp.sftp_scan('sftp://username@host/A')) == [
         'sftp://username@host/A/1.json',
         'sftp://username@host/A/1.json.lnk',
-        'sftp://username@host/A/a',
-        'sftp://username@host/A/b',
+        'sftp://username@host/A/b/file.json',
     ]
 
     assert list(sftp.sftp_scan('sftp://username@host/A', followlinks=True)) == [
         'sftp://username@host/A/1.json',
         'sftp://username@host/A/1.json.lnk',
-        'sftp://username@host/A/a',
-        'sftp://username@host/A/b',
+        'sftp://username@host/A/b/file.json',
     ]
 
     assert [
@@ -423,8 +421,7 @@ def test_sftp_scan(sftp_mocker):
     ] == [
         'sftp://username@host/A/1.json',
         'sftp://username@host/A/1.json.lnk',
-        'sftp://username@host/A/a',
-        'sftp://username@host/A/b',
+        'sftp://username@host/A/b/file.json',
     ]
 
     assert [
@@ -433,8 +430,7 @@ def test_sftp_scan(sftp_mocker):
     ] == [
         os.stat('/A/1.json').st_size,
         os.stat('/A/1.json').st_size,
-        os.stat('/A/a').st_size,
-        os.stat('/A/b').st_size,
+        os.stat('/A/b/file.json').st_size,
     ]
 
 
