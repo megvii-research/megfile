@@ -561,8 +561,14 @@ def test_sftp_copy_with_different_host(sftp_mocker):
     with sftp.sftp_open('sftp://username@host/A/1.json', 'w') as f:
         f.write('1.json')
 
+    def callback(length):
+        assert length == len('1.json')
+
     sftp.sftp_copy(
-        'sftp://username@host/A/1.json', 'sftp://username@host2/A/2.json')
+        'sftp://username@host/A/1.json',
+        'sftp://username@host2/A/2.json',
+        callback=callback,
+    )
 
     assert sftp.sftp_stat(
         'sftp://username@host/A/1.json').size == sftp.sftp_stat(

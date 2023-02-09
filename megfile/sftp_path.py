@@ -931,16 +931,14 @@ class SftpPath(URIPath):
         else:
             with self.open('rb') as fsrc:
                 with dst_path.open('wb') as fdst:
-                    # This magic number is copied from  copyfileobj
                     length = 16 * 1024
                     while True:
                         buf = fsrc.read(length)
                         if not buf:
                             break
                         fdst.write(buf)
-                        if callback is None:
-                            continue
-                        callback(len(buf))
+                        if callback:
+                            callback(len(buf))
 
     def sync(self, dst_path: PathLike, followlinks: bool = False):
         '''Copy file/directory on src_url to dst_url
