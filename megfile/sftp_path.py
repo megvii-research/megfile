@@ -909,6 +909,10 @@ class SftpPath(URIPath):
         if followlinks and self.is_symlink():
             return self.readlink().copy(dst_path=dst_path, callback=callback)
 
+        if self.is_dir():
+            raise IsADirectoryError(
+                'Is a directory: %r' % self.path_with_protocol)
+
         dst_path = self.from_path(dst_path)
         if self._urlsplit_parts.hostname == dst_path._urlsplit_parts.hostname and self._urlsplit_parts.username == dst_path._urlsplit_parts.username and self._urlsplit_parts.password == dst_path._urlsplit_parts.password and self._urlsplit_parts.port == dst_path._urlsplit_parts.port:
             ssh_client = get_ssh_client(
@@ -925,10 +929,6 @@ class SftpPath(URIPath):
             elif dst_path.lstat().size != self.lstat().size:  # pragma: no cover
                 raise OSError('Copy file error, size mismatch')
         else:
-            if self.is_dir():
-                raise IsADirectoryError(
-                    'Is a directory: %r' % self.path_with_protocol)
-
             with self.open('rb') as fsrc:
                 with dst_path.open('wb') as fdst:
                     length = 16 * 1024
