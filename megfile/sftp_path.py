@@ -64,9 +64,11 @@ def get_private_key():
     key_type = os.getenv(SFTP_PRIVATE_KEY_TYPE, 'RSA').upper()
     if os.getenv(SFTP_PRIVATE_KEY_PATH):
         private_key_path = os.getenv(SFTP_PRIVATE_KEY_PATH)
-        if os.path.exists(private_key_path):
-            return key_with_types[key_type].from_private_key_file(
-                private_key_path, password=os.getenv(SFTP_PRIVATE_KEY_PASSWORD))
+        if not os.path.exists(private_key_path):
+            raise FileNotFoundError(
+                f"Private key file not exist: '{SFTP_PRIVATE_KEY_PATH}'")
+        return key_with_types[key_type].from_private_key_file(
+            private_key_path, password=os.getenv(SFTP_PRIVATE_KEY_PASSWORD))
     return None
 
 
