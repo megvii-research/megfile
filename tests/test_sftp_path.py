@@ -3,7 +3,7 @@ import os
 import pytest
 
 from megfile import sftp
-from megfile.sftp_path import SFTP_PASSWORD, SFTP_PRIVATE_KEY_PATH, SFTP_USERNAME, SftpPath, provide_connect_info
+from megfile.sftp_path import SFTP_PASSWORD, SFTP_PRIVATE_KEY_PATH, SFTP_USERNAME, SftpPath, get_private_key, provide_connect_info
 
 from .test_sftp import sftp_mocker
 
@@ -79,3 +79,14 @@ def test_iterdir(sftp_mocker):
 
 def test_cwd(sftp_mocker):
     assert SftpPath('sftp://username@host/A').cwd() == 'sftp://username@host'
+
+
+def test_sync(sftp_mocker):
+    with pytest.raises(OSError):
+        SftpPath('sftp://username@host/A').sync('/data/test')
+
+
+def test_get_private_key(fs):
+    with pytest.raises(FileNotFoundError):
+        os.environ['SFTP_PRIVATE_KEY_PATH'] = '/file_not_exist'
+        get_private_key()

@@ -1,10 +1,10 @@
 ## 2.0.0 - 2023.02.10
 - path classes align with `pathlib.Path`
     - methods(`glob`, `iglob`, `glob_stat`, `resolve`, `home`, `cwd`, `readlink`) in all path classes return path object
-    - methods(`glob`, `iglob`, `glob_stat`) in all path classes add `pattern` parameter. Functions(like smart_glob, s3_glob) not change.
+    - methods(`glob`, `iglob`, `glob_stat`) in all path classes add `pattern` parameter. Functions(like `smart_glob`, `s3_glob`) not change.
     - `relative_to`'s parameter `other` in all path classes change to `*other`
     - `FSPath.parts` align with `pathlib.Path.parts`, return value `parts[0]` will not be `file://` any more.
-    - `mkdir` in all path classes add `pattern` parameters(`mode=0o777`, `parents=False`), Functions(like smart_makedirs) not change.
+    - `mkdir` in all path classes add parameters(`mode=0o777`, `parents=False`), Functions(like `smart_makedirs`) not change.
 - change `s3_symlink`, `S3Path.symlink`, `s3_rename`, `S3Path.rename` parameter name, change `src_url`, `dst_url` to `src_path`, `dst_path`
 - change `fs_stat`, `FSPath.stat`, `s3_stat`, `S3Path.stat` parameter name, change `followlinks` to `follow_symlinks`
 - `FileEntry` add method `inode`

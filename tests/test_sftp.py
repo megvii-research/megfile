@@ -556,6 +556,25 @@ def test_sftp_copy(sftp_mocker):
             'sftp://username@host/A/1.json.bak').size
 
 
+def test_sftp_copy_with_different_host(sftp_mocker):
+    sftp.sftp_makedirs('sftp://username@host/A')
+    with sftp.sftp_open('sftp://username@host/A/1.json', 'w') as f:
+        f.write('1.json')
+
+    def callback(length):
+        assert length == len('1.json')
+
+    sftp.sftp_copy(
+        'sftp://username@host/A/1.json',
+        'sftp://username@host2/A/2.json',
+        callback=callback,
+    )
+
+    assert sftp.sftp_stat(
+        'sftp://username@host/A/1.json').size == sftp.sftp_stat(
+            'sftp://username@host2/A/2.json').size
+
+
 def test_sftp_sync(sftp_mocker):
     sftp.sftp_makedirs('sftp://username@host/A')
     with sftp.sftp_open('sftp://username@host/A/1.json', 'w') as f:

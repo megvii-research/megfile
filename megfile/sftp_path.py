@@ -1,6 +1,7 @@
 import hashlib
 import io
 import os
+from functools import lru_cache
 from logging import getLogger as get_logger
 from stat import S_ISDIR, S_ISLNK, S_ISREG
 from typing import IO, AnyStr, BinaryIO, Callable, Iterator, List, Optional, Tuple
@@ -63,14 +64,12 @@ def get_private_key():
     key_type = os.getenv(SFTP_PRIVATE_KEY_TYPE, 'RSA').upper()
     if os.getenv(SFTP_PRIVATE_KEY_PATH):
         private_key_path = os.getenv(SFTP_PRIVATE_KEY_PATH)
-    else:
-        private_key_path = os.path.join(
-            os.path.expanduser('~'), '.ssh', 'id_rsa')
-    private_key = None
-    if os.path.exists(private_key_path):
-        private_key = key_with_types[key_type].from_private_key_file(
+        if not os.path.exists(private_key_path):
+            raise FileNotFoundError(
+                f"Private key file not exist: '{SFTP_PRIVATE_KEY_PATH}'")
+        return key_with_types[key_type].from_private_key_file(
             private_key_path, password=os.getenv(SFTP_PRIVATE_KEY_PASSWORD))
-    return private_key
+    return None
 
 
 def provide_connect_info(
@@ -89,6 +88,7 @@ def provide_connect_info(
     return hostname, port, username, password, private_key
 
 
+@lru_cache()
 def get_sftp_client(
         hostname: str,
         port: Optional[int] = None,
@@ -110,6 +110,7 @@ def get_sftp_client(
     return paramiko.SFTPClient.from_transport(transport)
 
 
+@lru_cache()
 def get_ssh_client(
         hostname: str,
         port: Optional[int] = None,
@@ -405,11 +406,10 @@ class SftpPath(URIPath):
 
         '''
         try:
-            with self._client as client:
-                if followlinks:
-                    client.stat(self._real_path)
-                else:
-                    client.lstat(self._real_path)
+            if followlinks:
+                self._client.stat(self._real_path)
+            else:
+                self._client.lstat(self._real_path)
             return True
         except FileNotFoundError:
             return False
@@ -547,8 +547,7 @@ class SftpPath(URIPath):
         if not self.is_dir():
             raise NotADirectoryError(
                 f"Not a directory: '{self.path_with_protocol}'")
-        with self._client as client:
-            return sorted(client.listdir(self._real_path))
+        return sorted(self._client.listdir(self._real_path))
 
     def iterdir(self) -> Iterator['SftpPath']:
         '''
@@ -601,8 +600,7 @@ class SftpPath(URIPath):
             for parent_path_object in parent_path_objects[::-1]:
                 parent_path_object.mkdir(
                     mode=mode, parents=False, exist_ok=True)
-        with self._client as client:
-            client.mkdir(path=self._real_path, mode=mode)
+        self._client.mkdir(path=self._real_path, mode=mode)
 
     def realpath(self) -> str:
         '''Return the real path of given path
@@ -618,8 +616,7 @@ class SftpPath(URIPath):
         :param dst_path: Given destination path
         '''
         dst_path = self.from_path(dst_path)
-        with self._client as client:
-            client.rename(self._real_path, dst_path._real_path)
+        self._client.rename(self._real_path, dst_path._real_path)
         return dst_path
 
     def replace(self, dst_path: PathLike) -> 'SftpPath':
@@ -641,11 +638,9 @@ class SftpPath(URIPath):
         if self.is_dir():
             for file_entry in self.scandir():
                 self.from_path(file_entry.path).remove(missing_ok=missing_ok)
-            with self._client as client:
-                client.rmdir(self._real_path)
+            self._client.rmdir(self._real_path)
         else:
-            with self._client as client:
-                client.unlink(self._real_path)
+            self._client.unlink(self._real_path)
 
     def scan(self, missing_ok: bool = True,
              followlinks: bool = False) -> Iterator[str]:
@@ -726,11 +721,10 @@ class SftpPath(URIPath):
 
         :returns: StatResult
         '''
-        with self._client as client:
-            if follow_symlinks:
-                result = _make_stat(client.stat(self._real_path))
-            else:
-                result = _make_stat(client.lstat(self._real_path))
+        if follow_symlinks:
+            result = _make_stat(self._client.stat(self._real_path))
+        else:
+            result = _make_stat(self._client.lstat(self._real_path))
         return result
 
     def lstat(self) -> StatResult:
@@ -749,8 +743,7 @@ class SftpPath(URIPath):
         '''
         if missing_ok and not self.exists():
             return
-        with self._client as client:
-            client.unlink(self._real_path)
+        self._client.unlink(self._real_path)
 
     def walk(self, followlinks: bool = False
             ) -> Iterator[Tuple[str, List[str], List[str]]]:
@@ -782,8 +775,7 @@ class SftpPath(URIPath):
         while stack:
             root = stack.pop()
             dirs, files = [], []
-            with self._client as client:
-                filenames = client.listdir(root)
+            filenames = self._client.listdir(root)
             for name in filenames:
                 current_path = self._generate_path_object(root).joinpath(name)
                 if current_path.is_file(followlinks=followlinks):
@@ -807,8 +799,7 @@ class SftpPath(URIPath):
         :return: Return the canonical path of the specified filename, eliminating any symbolic links encountered in the path.
         :rtype: SftpPath
         '''
-        with self._client as client:
-            path = client.normalize(self._real_path)
+        path = self._client.normalize(self._real_path)
         return self._generate_path_object(path)
 
     def md5(self, recalculate: bool = False, followlinks: bool = True):
@@ -840,16 +831,15 @@ class SftpPath(URIPath):
         if dst_path.exists(followlinks=False):
             raise FileExistsError(
                 f"File exists: '{dst_path.path_with_protocol}'")
-        with self._client as client:
-            return client.symlink(self._real_path, dst_path._real_path)
+        return self._client.symlink(self._real_path, dst_path._real_path)
 
     def readlink(self) -> 'SftpPath':
         '''
         Return a SftpPath instance representing the path to which the symbolic link points.
         :returns: Return a SftpPath instance representing the path to which the symbolic link points.
         '''
-        with self._client as client:
-            return self._generate_path_object(client.readlink(self._real_path))
+        return self._generate_path_object(
+            self._client.readlink(self._real_path))
 
     def is_symlink(self) -> bool:
         '''Test whether a path is a symbolic link
@@ -864,8 +854,7 @@ class SftpPath(URIPath):
 
         returns: Current working directory
         '''
-        with self._client as client:
-            return self._generate_path_object(client.getcwd())
+        return self._generate_path_object(self._client.getcwd())
 
     def save(self, file_object: BinaryIO):
         '''Write the opened binary stream to path
@@ -890,8 +879,7 @@ class SftpPath(URIPath):
         :param mode: the file mode you want to change
         :param followlinks: Ignore this parameter, just for compatibility
         '''
-        with self._client as client:
-            return client.chmod(path=self._real_path, mode=mode)
+        return self._client.chmod(path=self._real_path, mode=mode)
 
     def absolute(self) -> str:
         '''
@@ -905,8 +893,7 @@ class SftpPath(URIPath):
         '''
         if len(self.listdir()) > 0:
             raise OSError(f"Directory not empty: '{self.path_with_protocol}'")
-        with self._client as client:
-            return client.rmdir(self._real_path)
+        return self._client.rmdir(self._real_path)
 
     def copy(
             self,
@@ -941,19 +928,17 @@ class SftpPath(URIPath):
                 raise OSError('Copy file error')
             elif dst_path.lstat().size != self.lstat().size:  # pragma: no cover
                 raise OSError('Copy file error, size mismatch')
-
-        with self.open('rb') as fsrc:
-            with dst_path.open('wb') as fdst:
-                # This magic number is copied from  copyfileobj
-                length = 16 * 1024
-                while True:
-                    buf = fsrc.read(length)
-                    if not buf:
-                        break
-                    fdst.write(buf)
-                    if callback is None:
-                        continue
-                    callback(len(buf))
+        else:
+            with self.open('rb') as fsrc:
+                with dst_path.open('wb') as fdst:
+                    length = 16 * 1024
+                    while True:
+                        buf = fsrc.read(length)
+                        if not buf:
+                            break
+                        fdst.write(buf)
+                        if callback:
+                            callback(len(buf))
 
     def sync(self, dst_path: PathLike, followlinks: bool = False):
         '''Copy file/directory on src_url to dst_url
