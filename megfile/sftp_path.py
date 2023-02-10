@@ -865,6 +865,9 @@ class SftpPath(URIPath):
             output.write(file_object.read())
 
     def open(self, mode: str, buffering=-1, **kwargs) -> IO[AnyStr]:
+        if 'w' in mode or 'x' in mode or 'a' in mode:
+            self.from_path(os.path.dirname(self.path_without_protocol)).mkdir(
+                parents=True, exist_ok=True)
         fileobj = self._client.open(self._real_path, mode, bufsize=buffering)
         if 'r' in mode and 'b' not in mode:
             return io.TextIOWrapper(fileobj)
