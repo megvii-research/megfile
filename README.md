@@ -58,7 +58,7 @@ smart_glob('s3://playground/megfile-?.{mp4,avi}')
 smart_open('https://www.google.com')
 
 # smart_open also support protocols like sftp
-smart_open('https://username:password@sftp.server.com:22/path/to/file')
+smart_open('sftp://username:password@sftp.server.com:22/path/to/file')
 ```
 
 ### SmartPath Interface
