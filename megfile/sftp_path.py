@@ -318,10 +318,9 @@ def sftp_download(
     if SftpPath(src_url).is_dir():
         raise IsADirectoryError('Is a directory: %r' % src_url)
 
-    with src_url._client as client:
-        dir_path = os.path.dirname(dst_url)
-        os.makedirs(dir_path, exist_ok=True)
-        client.get(src_url._real_path, dst_url, callback=callback)
+    dir_path = os.path.dirname(dst_url)
+    os.makedirs(dir_path, exist_ok=True)
+    src_url._client.get(src_url._real_path, dst_url, callback=callback)
 
 
 def sftp_upload(
@@ -344,10 +343,9 @@ def sftp_upload(
         raise IsADirectoryError('Is a directory: %r' % src_url)
 
     dst_url = SftpPath(dst_url)
-    with dst_url._client as client:
-        dir_path = dst_url.parent
-        dir_path.makedirs(exist_ok=True)
-        client.put(src_url, dst_url._real_path, callback=callback)
+    dir_path = dst_url.parent
+    dir_path.makedirs(exist_ok=True)
+    dst_url._client.put(src_url, dst_url._real_path, callback=callback)
 
 
 def sftp_path_join(path: PathLike, *other_paths: PathLike) -> str:
