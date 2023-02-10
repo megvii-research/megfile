@@ -860,11 +860,12 @@ class SftpPath(URIPath):
 
         :param file_object: stream to be read
         '''
-        self.parent.mkdir(parents=True, exist_ok=True)
         with self.open(mode='wb') as output:
             output.write(file_object.read())
 
     def open(self, mode: str, buffering=-1, **kwargs) -> IO[AnyStr]:
+        if 'w' in mode or 'x' in mode or 'a' in mode:
+            self.parent.mkdir(parents=True, exist_ok=True)
         fileobj = self._client.open(self._real_path, mode, bufsize=buffering)
         if 'r' in mode and 'b' not in mode:
             return io.TextIOWrapper(fileobj)
