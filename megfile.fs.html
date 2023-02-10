@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>megfile.fs module &mdash; megfile  documentation</title>
@@ -29,11 +29,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> megfile
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            megfile
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -45,7 +49,6 @@
 <li class="toctree-l1 current"><a class="reference internal" href="megfile.html">API Reference</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="megfile.html#submodules">Submodules</a><ul class="current">
 <li class="toctree-l3 current"><a class="current reference internal" href="#">megfile.fs module</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#megfile.fs.FSPath"><code class="docutils literal notranslate"><span class="pre">FSPath</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#megfile.fs.StatResult"><code class="docutils literal notranslate"><span class="pre">StatResult</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#megfile.fs.fs_abspath"><code class="docutils literal notranslate"><span class="pre">fs_abspath()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#megfile.fs.fs_access"><code class="docutils literal notranslate"><span class="pre">fs_access()</span></code></a></li>
@@ -97,12 +100,15 @@
 <li class="toctree-l3"><a class="reference internal" href="megfile.http_path.html">megfile.http_path module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="megfile.stdio.html">megfile.stdio module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="megfile.stdio_path.html">megfile.stdio_path module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.sftp.html">megfile.sftp module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html">megfile.sftp_path module</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="megfile.html#module-megfile">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">CHANGELOG</a></li>
 <li class="toctree-l1"><a class="reference external" href="https://github.com/megvii-research/megfile">GitHub</a></li>
 </ul>
 
@@ -119,7 +125,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a></li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="megfile.html">API Reference</a></li>
       <li class="breadcrumb-item active">megfile.fs module</li>
       <li class="wy-breadcrumbs-aside">
@@ -134,587 +140,9 @@
   <section id="module-megfile.fs">
 <span id="megfile-fs-module"></span><h1>megfile.fs module<a class="headerlink" href="#module-megfile.fs" title="Permalink to this heading"></a></h1>
 <dl class="py class">
-<dt class="sig sig-object py" id="megfile.fs.FSPath">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">FSPath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">other_paths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/fs_path.html#FSPath"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.FSPath" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">URIPath</span></code></p>
-<p>file protocol
-e.g. <a class="reference external" href="file:///data/test/">file:///data/test/</a> or /data/test</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="megfile.fs.FSPath.abspath">
-<span class="sig-name descname"><span class="pre">abspath</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#FSPath.abspath"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.FSPath.abspath" title="Permalink to this definition"></a></dt>
-<dd><p>Return the absolute path of given path</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Absolute path of given path</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="megfile.fs.FSPath.access">
-<span class="sig-name descname"><span class="pre">access</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Access</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">Access.READ</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#FSPath.access"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.FSPath.access" title="Permalink to this definition"></a></dt>
-<dd><p>Test if path has access permission described by mode
-Using <code class="docutils literal notranslate"><span class="pre">os.access</span></code></p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>mode</strong> – access mode</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Access: Enum, the read/write access that path has.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="megfile.fs.FSPath.copy">
-<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dst_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callback</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/fs_path.html#FSPath.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.FSPath.copy" title="Permalink to this definition"></a></dt>
-<dd><p>File copy on file system
-Copy content (excluding meta date) of file on <cite>src_path</cite> to <cite>dst_path</cite>. <cite>dst_path</cite> must be a complete file name</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The differences between this function and shutil.copyfile are:</p>
-<blockquote>
-<div><ol class="arabic simple">
-<li><p>If parent directory of dst_path doesn’t exist, create it</p></li>
-<li><p>Allow callback function, None by default. callback: Optional[Callable[[int], None]],</p></li>
-</ol>
-</div></blockquote>
-<p>the int data is means the size (in bytes) of the written data that is passed periodically</p>
-<blockquote>
-<div><ol class="arabic simple" start="3">
-<li><p>This function is thread-unsafe</p></li>
-</ol>
-</div></blockquote>
-</div>
-<p>TODO: get shutil implementation, to make fs_copy thread-safe</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>dst_path</strong> – Target file path</p></li>
-<li><p><strong>callback</strong> – Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call</p></li>
-<li><p><strong>followlinks</strong> – False if regard symlink as file, else True</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="megfile.fs.FSPath.cwd">
-<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">cwd</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#FSPath.cwd"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.FSPath.cwd" title="Permalink to this definition"></a></dt>
-<dd><p>Return current working directory</p>
-<p>returns: Current working directory</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="megfile.fs.FSPath.exists">
-<span class="sig-name descname"><span class="pre">exists</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#FSPath.exists"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.FSPath.exists" title="Permalink to this definition"></a></dt>
-<dd><p>Test if the path exists</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The difference between this function and <code class="docutils literal notranslate"><span class="pre">os.path.exists</span></code> is that this function regard symlink as file.
-In other words, this function is equal to <code class="docutils literal notranslate"><span class="pre">os.path.lexists</span></code></p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>followlinks</strong> – False if regard symlink as file, else True</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>True if the path exists, else False</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="megfile.fs.FSPath.expanduser">
-<span class="sig-name descname"><span class="pre">expanduser</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/fs_path.html#FSPath.expanduser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.FSPath.expanduser" title="Permalink to this definition"></a></dt>
-<dd><p>Expand ~ and ~user constructions.  If user or $HOME is unknown,
-do nothing.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="megfile.fs.FSPath.from_uri">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_uri</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath" title="megfile.fs_path.FSPath"><span class="pre">FSPath</span></a></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#FSPath.from_uri"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.FSPath.from_uri" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="megfile.fs.FSPath.getmtime">
-<span class="sig-name descname"><span class="pre">getmtime</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#FSPath.getmtime"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.FSPath.getmtime" title="Permalink to this definition"></a></dt>
-<dd><p>Get last-modified time of the file on the given path (in Unix timestamp format).
-If the path is an existent directory, return the latest modified time of all file in it.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>last-modified time</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="megfile.fs.FSPath.getsize">
-<span class="sig-name descname"><span class="pre">getsize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#FSPath.getsize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.FSPath.getsize" title="Permalink to this definition"></a></dt>
-<dd><p>Get file size on the given file path (in bytes).
-If the path in a directory, return the sum of all file size in it, including file in subdirectories (if exist).
-The result excludes the size of directory itself. In other words, return 0 Byte on an empty directory path.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>File size</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="megfile.fs.FSPath.glob">
-<span class="sig-name descname"><span class="pre">glob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#FSPath.glob"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.FSPath.glob" title="Permalink to this definition"></a></dt>
-<dd><p>Return path list in ascending alphabetical order, in which path matches glob pattern</p>
-<ol class="arabic simple">
-<li><dl class="simple">
-<dt>If doesn’t match any path, return empty list</dt><dd><p>Notice:  <code class="docutils literal notranslate"><span class="pre">glob.glob</span></code> in standard library returns [‘a/’] instead of empty list when pathname is like <cite>a/**</cite>, recursive is True and directory ‘a’ doesn’t exist. fs_glob behaves like <code class="docutils literal notranslate"><span class="pre">glob.glob</span></code> in standard library under such circumstance.</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>No guarantee that each path in result is different, which means:</dt><dd><p>Assume there exists a path <cite>/a/b/c/b/d.txt</cite>
-use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will be returned twice</p>
-</dd>
-</dl>
-</li>
-<li><p><cite>**</cite> will match any matched file, directory, symlink and ‘’ by default, when recursive is <cite>True</cite></p></li>
-<li><p>fs_glob returns same as glob.glob(pathname, recursive=True) in acsending alphabetical order.</p></li>
-<li><p>Hidden files (filename stars with ‘.’) will not be found in the result</p></li>
-</ol>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>recursive</strong> – If False, <cite>**</cite> will not search directory recursively</p></li>
-<li><p><strong>missing_ok</strong> – If False and target path doesn’t match any file, raise FileNotFoundError</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>A list contains paths match <cite>pathname</cite></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="megfile.fs.FSPath.glob_stat">
-<span class="sig-name descname"><span class="pre">glob_stat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">FileEntry</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#FSPath.glob_stat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.FSPath.glob_stat" title="Permalink to this definition"></a></dt>
-<dd><p>Return a list contains tuples of path and file stat, in ascending alphabetical order, in which path matches glob pattern</p>
-<ol class="arabic simple">
-<li><dl class="simple">
-<dt>If doesn’t match any path, return empty list</dt><dd><p>Notice:  <code class="docutils literal notranslate"><span class="pre">glob.glob</span></code> in standard library returns [‘a/’] instead of empty list when pathname is like <cite>a/**</cite>, recursive is True and directory ‘a’ doesn’t exist. fs_glob behaves like <code class="docutils literal notranslate"><span class="pre">glob.glob</span></code> in standard library under such circumstance.</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>No guarantee that each path in result is different, which means:</dt><dd><p>Assume there exists a path <cite>/a/b/c/b/d.txt</cite>
-use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will be returned twice</p>
-</dd>
-</dl>
-</li>
-<li><p><cite>**</cite> will match any matched file, directory, symlink and ‘’ by default, when recursive is <cite>True</cite></p></li>
-<li><p>fs_glob returns same as glob.glob(pathname, recursive=True) in acsending alphabetical order.</p></li>
-<li><p>Hidden files (filename stars with ‘.’) will not be found in the result</p></li>
-</ol>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>recursive</strong> – If False, <cite>**</cite> will not search directory recursively</p></li>
-<li><p><strong>missing_ok</strong> – If False and target path doesn’t match any file, raise FileNotFoundError</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>A list contains tuples of path and file stat, in which paths match <cite>pathname</cite></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="megfile.fs.FSPath.home">
-<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">home</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/fs_path.html#FSPath.home"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.FSPath.home" title="Permalink to this definition"></a></dt>
-<dd><p>Return the home directory</p>
-<p>returns: Home directory path</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="megfile.fs.FSPath.iglob">
-<span class="sig-name descname"><span class="pre">iglob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#FSPath.iglob"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.FSPath.iglob" title="Permalink to this definition"></a></dt>
-<dd><p>Return path iterator in ascending alphabetical order, in which path matches glob pattern</p>
-<ol class="arabic simple">
-<li><dl class="simple">
-<dt>If doesn’t match any path, return empty list</dt><dd><p>Notice:  <code class="docutils literal notranslate"><span class="pre">glob.glob</span></code> in standard library returns [‘a/’] instead of empty list when pathname is like <cite>a/**</cite>, recursive is True and directory ‘a’ doesn’t exist. fs_glob behaves like <code class="docutils literal notranslate"><span class="pre">glob.glob</span></code> in standard library under such circumstance.</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>No guarantee that each path in result is different, which means:</dt><dd><p>Assume there exists a path <cite>/a/b/c/b/d.txt</cite>
-use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will be returned twice</p>
-</dd>
-</dl>
-</li>
-<li><p><cite>**</cite> will match any matched file, directory, symlink and ‘’ by default, when recursive is <cite>True</cite></p></li>
-<li><p>fs_glob returns same as glob.glob(pathname, recursive=True) in acsending alphabetical order.</p></li>
-<li><p>Hidden files (filename stars with ‘.’) will not be found in the result</p></li>
-</ol>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>recursive</strong> – If False, <cite>**</cite> will not search directory recursively</p></li>
-<li><p><strong>missing_ok</strong> – If False and target path doesn’t match any file, raise FileNotFoundError</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>An iterator contains paths match <cite>pathname</cite></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="megfile.fs.FSPath.is_absolute">
-<span class="sig-name descname"><span class="pre">is_absolute</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#FSPath.is_absolute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.FSPath.is_absolute" title="Permalink to this definition"></a></dt>
-<dd><p>Test whether a path is absolute</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>True if a path is absolute, else False</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="megfile.fs.FSPath.is_dir">
-<span class="sig-name descname"><span class="pre">is_dir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#FSPath.is_dir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.FSPath.is_dir" title="Permalink to this definition"></a></dt>
-<dd><p>Test if a path is directory</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The difference between this function and <code class="docutils literal notranslate"><span class="pre">os.path.isdir</span></code> is that this function regard symlink as file</p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>followlinks</strong> – False if regard symlink as file, else True</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>True if the path is a directory, else False</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="megfile.fs.FSPath.is_file">
-<span class="sig-name descname"><span class="pre">is_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#FSPath.is_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.FSPath.is_file" title="Permalink to this definition"></a></dt>
-<dd><p>Test if a path is file</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The difference between this function and <code class="docutils literal notranslate"><span class="pre">os.path.isfile</span></code> is that this function regard symlink as file</p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>followlinks</strong> – False if regard symlink as file, else True</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>True if the path is a file, else False</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="megfile.fs.FSPath.is_mount">
-<span class="sig-name descname"><span class="pre">is_mount</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#FSPath.is_mount"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.FSPath.is_mount" title="Permalink to this definition"></a></dt>
-<dd><p>Test whether a path is a mount point</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>True if a path is a mount point, else False</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="megfile.fs.FSPath.is_symlink">
-<span class="sig-name descname"><span class="pre">is_symlink</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#FSPath.is_symlink"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.FSPath.is_symlink" title="Permalink to this definition"></a></dt>
-<dd><p>Test whether a path is a symbolic link</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>If path is a symbolic link return True, else False</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>bool</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="megfile.fs.FSPath.joinpath">
-<span class="sig-name descname"><span class="pre">joinpath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">other_paths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath" title="megfile.fs_path.FSPath"><span class="pre">FSPath</span></a></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#FSPath.joinpath"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.FSPath.joinpath" title="Permalink to this definition"></a></dt>
-<dd><p>Join or or more path.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="megfile.fs.FSPath.listdir">
-<span class="sig-name descname"><span class="pre">listdir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#FSPath.listdir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.FSPath.listdir" title="Permalink to this definition"></a></dt>
-<dd><p>Get all contents of given fs path. The result is in acsending alphabetical order.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>All contents have in the path in acsending alphabetical order</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="megfile.fs.FSPath.load">
-<span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">BinaryIO</span></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#FSPath.load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.FSPath.load" title="Permalink to this definition"></a></dt>
-<dd><p>Read all content on specified path and write into memory</p>
-<p>User should close the BinaryIO manually</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Binary stream</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="megfile.fs.FSPath.md5">
-<span class="sig-name descname"><span class="pre">md5</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">recalculate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/fs_path.html#FSPath.md5"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.FSPath.md5" title="Permalink to this definition"></a></dt>
-<dd><p>Calculate the md5 value of the file</p>
-<p>returns: md5 of file</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="megfile.fs.FSPath.mkdir">
-<span class="sig-name descname"><span class="pre">mkdir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exist_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/fs_path.html#FSPath.mkdir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.FSPath.mkdir" title="Permalink to this definition"></a></dt>
-<dd><p>make a directory on fs, including parent directory</p>
-<p>If there exists a file on the path, raise FileExistsError</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>exist_ok</strong> – If False and target directory exists, raise FileExistsError</p>
-</dd>
-<dt class="field-even">Raises</dt>
-<dd class="field-even"><p>FileExistsError</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="megfile.fs.FSPath.open">
-<span class="sig-name descname"><span class="pre">open</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">IO</span><span class="p"><span class="pre">[</span></span><span class="pre">AnyStr</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#FSPath.open"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.FSPath.open" title="Permalink to this definition"></a></dt>
-<dd><p>Open the file with mode.</p>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="megfile.fs.FSPath.path_with_protocol">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">path_with_protocol</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#megfile.fs.FSPath.path_with_protocol" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="megfile.fs.FSPath.protocol">
-<span class="sig-name descname"><span class="pre">protocol</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'file'</span></em><a class="headerlink" href="#megfile.fs.FSPath.protocol" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="megfile.fs.FSPath.readlink">
-<span class="sig-name descname"><span class="pre">readlink</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#FSPath.readlink"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.FSPath.readlink" title="Permalink to this definition"></a></dt>
-<dd><p>Return a string representing the path to which the symbolic link points.
-:returns: Return a string representing the path to which the symbolic link points.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="megfile.fs.FSPath.realpath">
-<span class="sig-name descname"><span class="pre">realpath</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#FSPath.realpath"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.FSPath.realpath" title="Permalink to this definition"></a></dt>
-<dd><p>Return the real path of given path</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Real path of given path</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="megfile.fs.FSPath.relpath">
-<span class="sig-name descname"><span class="pre">relpath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#FSPath.relpath"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.FSPath.relpath" title="Permalink to this definition"></a></dt>
-<dd><p>Return the relative path of given path</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>start</strong> – Given start directory</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Relative path from start</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="megfile.fs.FSPath.remove">
-<span class="sig-name descname"><span class="pre">remove</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">missing_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#FSPath.remove"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.FSPath.remove" title="Permalink to this definition"></a></dt>
-<dd><p>Remove the file or directory on fs</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>missing_ok</strong> – if False and target file/directory not exists, raise FileNotFoundError</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="megfile.fs.FSPath.rename">
-<span class="sig-name descname"><span class="pre">rename</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dst_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#FSPath.rename"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.FSPath.rename" title="Permalink to this definition"></a></dt>
-<dd><p>rename file on fs</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>dst_path</strong> – Given destination path</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="megfile.fs.FSPath.replace">
-<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dst_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#FSPath.replace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.FSPath.replace" title="Permalink to this definition"></a></dt>
-<dd><p>move file on fs</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>dst_path</strong> – Given destination path</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="megfile.fs.FSPath.resolve">
-<span class="sig-name descname"><span class="pre">resolve</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#FSPath.resolve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.FSPath.resolve" title="Permalink to this definition"></a></dt>
-<dd><p>Equal to fs_realpath</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Return the canonical path of the specified filename, eliminating any symbolic links encountered in the path.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="megfile.fs.FSPath.save">
-<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_object</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">BinaryIO</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/fs_path.html#FSPath.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.FSPath.save" title="Permalink to this definition"></a></dt>
-<dd><p>Write the opened binary stream to path
-If parent directory of path doesn’t exist, it will be created.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>file_object</strong> – stream to be read</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="megfile.fs.FSPath.scan">
-<span class="sig-name descname"><span class="pre">scan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">missing_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#FSPath.scan"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.FSPath.scan" title="Permalink to this definition"></a></dt>
-<dd><p>Iteratively traverse only files in given directory, in alphabetical order.
-Every iteration on generator yields a path string.</p>
-<p>If path is a file path, yields the file only
-If path is a non-existent path, return an empty generator
-If path is a bucket path, return all file paths in the bucket</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>missing_ok</strong> – If False and there’s no file in the directory, raise FileNotFoundError</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>A file path generator</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="megfile.fs.FSPath.scan_stat">
-<span class="sig-name descname"><span class="pre">scan_stat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">missing_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">FileEntry</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#FSPath.scan_stat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.FSPath.scan_stat" title="Permalink to this definition"></a></dt>
-<dd><p>Iteratively traverse only files in given directory, in alphabetical order.
-Every iteration on generator yields a tuple of path string and file stat</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>missing_ok</strong> – If False and there’s no file in the directory, raise FileNotFoundError</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>A file path generator</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="megfile.fs.FSPath.scandir">
-<span class="sig-name descname"><span class="pre">scandir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">FileEntry</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#FSPath.scandir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.FSPath.scandir" title="Permalink to this definition"></a></dt>
-<dd><p>Get all content of given file path.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>An iterator contains all contents have prefix path</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="megfile.fs.FSPath.stat">
-<span class="sig-name descname"><span class="pre">stat</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.StatResult" title="megfile.pathlike.StatResult"><span class="pre">StatResult</span></a></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#FSPath.stat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.FSPath.stat" title="Permalink to this definition"></a></dt>
-<dd><p>Get StatResult of file on fs, including file size and mtime, referring to fs_getsize and fs_getmtime</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>StatResult</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="megfile.fs.FSPath.symlink">
-<span class="sig-name descname"><span class="pre">symlink</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dst_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#FSPath.symlink"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.FSPath.symlink" title="Permalink to this definition"></a></dt>
-<dd><p>Create a symbolic link pointing to src_path named dst_path.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>dst_path</strong> – Desination path</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="megfile.fs.FSPath.sync">
-<span class="sig-name descname"><span class="pre">sync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dst_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/fs_path.html#FSPath.sync"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.FSPath.sync" title="Permalink to this definition"></a></dt>
-<dd><p>Force write of everything to disk.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>dst_path</strong> – Target file path</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="megfile.fs.FSPath.unlink">
-<span class="sig-name descname"><span class="pre">unlink</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">missing_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#FSPath.unlink"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.FSPath.unlink" title="Permalink to this definition"></a></dt>
-<dd><p>Remove the file on fs</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>missing_ok</strong> – if False and target file not exists, raise FileNotFoundError</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="megfile.fs.FSPath.walk">
-<span class="sig-name descname"><span class="pre">walk</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#FSPath.walk"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.FSPath.walk" title="Permalink to this definition"></a></dt>
-<dd><p>Generate the file names in a directory tree by walking the tree top-down.
-For each directory in the tree rooted at directory path (including path itself),
-it yields a 3-tuple (root, dirs, files).</p>
-<p>root: a string of current path
-dirs: name list of subdirectories (excluding ‘.’ and ‘..’ if they exist) in ‘root’. The list is sorted by ascending alphabetical order
-files: name list of non-directory files (link is regarded as file) in ‘root’. The list is sorted by ascending alphabetical order</p>
-<p>If path not exists, or path is a file (link is regarded as file), return an empty generator</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Be aware that setting <code class="docutils literal notranslate"><span class="pre">followlinks</span></code> to True can lead to infinite recursion if a link points to a parent directory of itself. fs_walk() does not keep track of the directories it visited already.</p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>followlinks</strong> – False if regard symlink as file, else True</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>A 3-tuple generator</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
 <dt class="sig sig-object py" id="megfile.fs.StatResult">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">StatResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mtime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">isdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">islnk</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/pathlike.html#StatResult"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.StatResult" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.StatResult" title="megfile.pathlike.StatResult"><code class="xref py py-class docutils literal notranslate"><span class="pre">StatResult</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#megfile.fs.StatResult" title="megfile.pathlike.StatResult"><code class="xref py py-class docutils literal notranslate"><span class="pre">StatResult</span></code></a></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.fs.StatResult.is_dir">
 <span class="sig-name descname"><span class="pre">is_dir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/megfile/pathlike.html#StatResult.is_dir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.StatResult.is_dir" title="Permalink to this definition"></a></dt>
@@ -730,6 +158,104 @@ files: name list of non-directory files (link is regarded as file) in ‘root’
 <span class="sig-name descname"><span class="pre">is_symlink</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/megfile/pathlike.html#StatResult.is_symlink"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.StatResult.is_symlink" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
+<dl class="py property">
+<dt class="sig sig-object py" id="megfile.fs.StatResult.st_atime">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">st_atime</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#megfile.fs.StatResult.st_atime" title="Permalink to this definition"></a></dt>
+<dd><p>Time of most recent access expressed in seconds.
+Only support fs.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="megfile.fs.StatResult.st_atime_ns">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">st_atime_ns</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#megfile.fs.StatResult.st_atime_ns" title="Permalink to this definition"></a></dt>
+<dd><p>Time of most recent access expressed in nanoseconds as an integer.
+Only support fs.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="megfile.fs.StatResult.st_ctime">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">st_ctime</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#megfile.fs.StatResult.st_ctime" title="Permalink to this definition"></a></dt>
+<dd><p>Platform dependent:</p>
+<blockquote>
+<div><p>the time of most recent metadata change on Unix,
+the time of creation on Windows, expressed in seconds,
+the time of file created on oss; if is dir, return the latest ctime of the files in dir.</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="megfile.fs.StatResult.st_ctime_ns">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">st_ctime_ns</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#megfile.fs.StatResult.st_ctime_ns" title="Permalink to this definition"></a></dt>
+<dd><p>Platform dependent:</p>
+<blockquote>
+<div><p>the time of most recent metadata change on Unix,
+the time of creation on Windows, expressed in nanoseconds as an integer.</p>
+</div></blockquote>
+<p>Only support fs.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="megfile.fs.StatResult.st_dev">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">st_dev</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#megfile.fs.StatResult.st_dev" title="Permalink to this definition"></a></dt>
+<dd><p>Identifier of the device on which this file resides.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="megfile.fs.StatResult.st_gid">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">st_gid</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#megfile.fs.StatResult.st_gid" title="Permalink to this definition"></a></dt>
+<dd><p>Group identifier of the file owner.
+Only support fs.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="megfile.fs.StatResult.st_ino">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">st_ino</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#megfile.fs.StatResult.st_ino" title="Permalink to this definition"></a></dt>
+<dd><p>Platform dependent, but if non-zero, uniquely identifies the file for a given value of st_dev. Typically:</p>
+<p>the inode number on Unix,
+the file index on Windows,
+the etag on oss.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="megfile.fs.StatResult.st_mode">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">st_mode</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#megfile.fs.StatResult.st_mode" title="Permalink to this definition"></a></dt>
+<dd><p>File mode: file type and file mode bits (permissions).
+Only support fs.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="megfile.fs.StatResult.st_mtime">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">st_mtime</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#megfile.fs.StatResult.st_mtime" title="Permalink to this definition"></a></dt>
+<dd><p>Time of most recent content modification expressed in seconds.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="megfile.fs.StatResult.st_mtime_ns">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">st_mtime_ns</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#megfile.fs.StatResult.st_mtime_ns" title="Permalink to this definition"></a></dt>
+<dd><p>Time of most recent content modification expressed in nanoseconds as an integer.
+Only support fs.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="megfile.fs.StatResult.st_nlink">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">st_nlink</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#megfile.fs.StatResult.st_nlink" title="Permalink to this definition"></a></dt>
+<dd><p>Number of hard links.
+Only support fs.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="megfile.fs.StatResult.st_size">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">st_size</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#megfile.fs.StatResult.st_size" title="Permalink to this definition"></a></dt>
+<dd><p>Size of the file in bytes.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="megfile.fs.StatResult.st_uid">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">st_uid</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#megfile.fs.StatResult.st_uid" title="Permalink to this definition"></a></dt>
+<dd><p>User identifier of the file owner.
+Only support fs.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py function">
@@ -737,10 +263,10 @@ files: name list of non-directory files (link is regarded as file) in ‘root’
 <span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">fs_abspath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/megfile/fs.html#fs_abspath"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.fs_abspath" title="Permalink to this definition"></a></dt>
 <dd><p>Return the absolute path of given path</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>path</strong> – Given path</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Absolute path of given path</p>
 </dd>
 </dl>
@@ -752,13 +278,13 @@ files: name list of non-directory files (link is regarded as file) in ‘root’
 <dd><p>Test if path has access permission described by mode
 Using <code class="docutils literal notranslate"><span class="pre">os.access</span></code></p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>path</strong> – Given path</p></li>
 <li><p><strong>mode</strong> – access mode</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Access: Enum, the read/write access that path has.</p>
 </dd>
 </dl>
@@ -785,9 +311,8 @@ Copy content (excluding meta date) of file on <cite>src_path</cite> to <cite>dst
 </ol>
 </div></blockquote>
 </div>
-<p>TODO: get shutil implementation, to make fs_copy thread-safe</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>src_path</strong> – Given path</p></li>
 <li><p><strong>dst_path</strong> – Target file path</p></li>
@@ -800,7 +325,7 @@ Copy content (excluding meta date) of file on <cite>src_path</cite> to <cite>dst
 
 <dl class="py function">
 <dt class="sig sig-object py" id="megfile.fs.fs_cwd">
-<span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">fs_cwd</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/megfile/fs.html#fs_cwd"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.fs_cwd" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">fs_cwd</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#fs_cwd"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.fs_cwd" title="Permalink to this definition"></a></dt>
 <dd><p>Return current working directory</p>
 <p>returns: Current working directory</p>
 </dd></dl>
@@ -815,13 +340,13 @@ Copy content (excluding meta date) of file on <cite>src_path</cite> to <cite>dst
 In other words, this function is equal to <code class="docutils literal notranslate"><span class="pre">os.path.lexists</span></code></p>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>path</strong> – Given path</p></li>
 <li><p><strong>followlinks</strong> – False if regard symlink as file, else True</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>True if the path exists, else False</p>
 </dd>
 </dl>
@@ -836,21 +361,30 @@ do nothing.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="megfile.fs.fs_getmd5">
-<span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">fs_getmd5</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recalculate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/fs.html#fs_getmd5"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.fs_getmd5" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">fs_getmd5</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recalculate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/fs.html#fs_getmd5"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.fs_getmd5" title="Permalink to this definition"></a></dt>
 <dd><p>Calculate the md5 value of the file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> – Given path</p></li>
+<li><p><strong>recalculate</strong> – Ignore this parameter, just for compatibility</p></li>
+<li><p><strong>followlinks</strong> – Ignore this parameter, just for compatibility</p></li>
+</ul>
+</dd>
+</dl>
 <p>returns: md5 of file</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="megfile.fs.fs_getmtime">
-<span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">fs_getmtime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="_modules/megfile/fs.html#fs_getmtime"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.fs_getmtime" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">fs_getmtime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">follow_symlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="_modules/megfile/fs.html#fs_getmtime"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.fs_getmtime" title="Permalink to this definition"></a></dt>
 <dd><p>Get last-modified time of the file on the given path (in Unix timestamp format).
 If the path is an existent directory, return the latest modified time of all file in it.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>path</strong> – Given path</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>last-modified time</p>
 </dd>
 </dl>
@@ -858,15 +392,15 @@ If the path is an existent directory, return the latest modified time of all fil
 
 <dl class="py function">
 <dt class="sig sig-object py" id="megfile.fs.fs_getsize">
-<span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">fs_getsize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/megfile/fs.html#fs_getsize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.fs_getsize" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">fs_getsize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">follow_symlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/megfile/fs.html#fs_getsize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.fs_getsize" title="Permalink to this definition"></a></dt>
 <dd><p>Get file size on the given file path (in bytes).
 If the path in a directory, return the sum of all file size in it, including file in subdirectories (if exist).
 The result excludes the size of directory itself. In other words, return 0 Byte on an empty directory path.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>path</strong> – Given path</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>File size</p>
 </dd>
 </dl>
@@ -874,7 +408,7 @@ The result excludes the size of directory itself. In other words, return 0 Byte 
 
 <dl class="py function">
 <dt class="sig sig-object py" id="megfile.fs.fs_glob">
-<span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">fs_glob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/fs.html#fs_glob"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.fs_glob" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">fs_glob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#fs_glob"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.fs_glob" title="Permalink to this definition"></a></dt>
 <dd><p>Return path list in ascending alphabetical order, in which path matches glob pattern</p>
 <ol class="arabic simple">
 <li><dl class="simple">
@@ -893,14 +427,13 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 <li><p>Hidden files (filename stars with ‘.’) will not be found in the result</p></li>
 </ol>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>path</strong> – Given path</p></li>
 <li><p><strong>recursive</strong> – If False, <cite>**</cite> will not search directory recursively</p></li>
 <li><p><strong>missing_ok</strong> – If False and target path doesn’t match any file, raise FileNotFoundError</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A list contains paths match <cite>pathname</cite></p>
 </dd>
 </dl>
@@ -908,7 +441,7 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 
 <dl class="py function">
 <dt class="sig sig-object py" id="megfile.fs.fs_glob_stat">
-<span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">fs_glob_stat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">FileEntry</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/fs.html#fs_glob_stat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.fs_glob_stat" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">fs_glob_stat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">FileEntry</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#fs_glob_stat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.fs_glob_stat" title="Permalink to this definition"></a></dt>
 <dd><p>Return a list contains tuples of path and file stat, in ascending alphabetical order, in which path matches glob pattern</p>
 <ol class="arabic simple">
 <li><dl class="simple">
@@ -927,14 +460,13 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 <li><p>Hidden files (filename stars with ‘.’) will not be found in the result</p></li>
 </ol>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>path</strong> – Given path</p></li>
 <li><p><strong>recursive</strong> – If False, <cite>**</cite> will not search directory recursively</p></li>
 <li><p><strong>missing_ok</strong> – If False and target path doesn’t match any file, raise FileNotFoundError</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A list contains tuples of path and file stat, in which paths match <cite>pathname</cite></p>
 </dd>
 </dl>
@@ -942,14 +474,14 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 
 <dl class="py function">
 <dt class="sig sig-object py" id="megfile.fs.fs_home">
-<span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">fs_home</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/fs.html#fs_home"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.fs_home" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">fs_home</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/fs_path.html#fs_home"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.fs_home" title="Permalink to this definition"></a></dt>
 <dd><p>Return the home directory</p>
 <p>returns: Home directory path</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="megfile.fs.fs_iglob">
-<span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">fs_iglob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/fs.html#fs_iglob"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.fs_iglob" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">fs_iglob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#fs_iglob"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.fs_iglob" title="Permalink to this definition"></a></dt>
 <dd><p>Return path iterator in ascending alphabetical order, in which path matches glob pattern</p>
 <ol class="arabic simple">
 <li><dl class="simple">
@@ -968,14 +500,13 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 <li><p>Hidden files (filename stars with ‘.’) will not be found in the result</p></li>
 </ol>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>path</strong> – Given path</p></li>
 <li><p><strong>recursive</strong> – If False, <cite>**</cite> will not search directory recursively</p></li>
 <li><p><strong>missing_ok</strong> – If False and target path doesn’t match any file, raise FileNotFoundError</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>An iterator contains paths match <cite>pathname</cite></p>
 </dd>
 </dl>
@@ -986,10 +517,10 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 <span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">fs_isabs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/megfile/fs.html#fs_isabs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.fs_isabs" title="Permalink to this definition"></a></dt>
 <dd><p>Test whether a path is absolute</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>path</strong> – Given path</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>True if a path is absolute, else False</p>
 </dd>
 </dl>
@@ -1004,13 +535,13 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 <p>The difference between this function and <code class="docutils literal notranslate"><span class="pre">os.path.isdir</span></code> is that this function regard symlink as file</p>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>path</strong> – Given path</p></li>
 <li><p><strong>followlinks</strong> – False if regard symlink as file, else True</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>True if the path is a directory, else False</p>
 </dd>
 </dl>
@@ -1025,13 +556,13 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 <p>The difference between this function and <code class="docutils literal notranslate"><span class="pre">os.path.isfile</span></code> is that this function regard symlink as file</p>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>path</strong> – Given path</p></li>
 <li><p><strong>followlinks</strong> – False if regard symlink as file, else True</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>True if the path is a file, else False</p>
 </dd>
 </dl>
@@ -1042,13 +573,13 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 <span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">fs_islink</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/megfile/fs.html#fs_islink"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.fs_islink" title="Permalink to this definition"></a></dt>
 <dd><p>Test whether a path is a symbolic link</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>path</strong> – Given path</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>If path is a symbolic link return True, else False</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>bool</p>
 </dd>
 </dl>
@@ -1059,10 +590,10 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 <span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">fs_ismount</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/megfile/fs.html#fs_ismount"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.fs_ismount" title="Permalink to this definition"></a></dt>
 <dd><p>Test whether a path is a mount point</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>path</strong> – Given path</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>True if a path is a mount point, else False</p>
 </dd>
 </dl>
@@ -1073,10 +604,10 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 <span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">fs_listdir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/fs.html#fs_listdir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.fs_listdir" title="Permalink to this definition"></a></dt>
 <dd><p>Get all contents of given fs path. The result is in acsending alphabetical order.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>path</strong> – Given path</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>All contents have in the path in acsending alphabetical order</p>
 </dd>
 </dl>
@@ -1088,10 +619,10 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 <dd><p>Read all content on specified path and write into memory</p>
 <p>User should close the BinaryIO manually</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>path</strong> – Given path</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Binary stream</p>
 </dd>
 </dl>
@@ -1099,17 +630,17 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 
 <dl class="py function">
 <dt class="sig sig-object py" id="megfile.fs.fs_makedirs">
-<span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">fs_makedirs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exist_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/fs.html#fs_makedirs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.fs_makedirs" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">fs_makedirs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exist_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/fs_path.html#fs_makedirs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.fs_makedirs" title="Permalink to this definition"></a></dt>
 <dd><p>make a directory on fs, including parent directory</p>
 <p>If there exists a file on the path, raise FileExistsError</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>path</strong> – Given path</p></li>
 <li><p><strong>exist_ok</strong> – If False and target directory exists, raise FileExistsError</p></li>
 </ul>
 </dd>
-<dt class="field-even">Raises</dt>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><p>FileExistsError</p>
 </dd>
 </dl>
@@ -1117,10 +648,10 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 
 <dl class="py function">
 <dt class="sig sig-object py" id="megfile.fs.fs_move">
-<span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">fs_move</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/megfile/fs.html#fs_move"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.fs_move" title="Permalink to this definition"></a></dt>
-<dd><p>move file on fs</p>
+<span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">fs_move</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#fs_move"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.fs_move" title="Permalink to this definition"></a></dt>
+<dd><p>rename file on fs</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>src_path</strong> – Given path</p></li>
 <li><p><strong>dst_path</strong> – Given destination path</p></li>
@@ -1136,9 +667,8 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 
 <dl class="py function">
 <dt class="sig sig-object py" id="megfile.fs.fs_readlink">
-<span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">fs_readlink</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/fs.html#fs_readlink"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.fs_readlink" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">fs_readlink</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#fs_readlink"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.fs_readlink" title="Permalink to this definition"></a></dt>
 <dd><p>Return a string representing the path to which the symbolic link points.
-:param path: Given path
 :returns: Return a string representing the path to which the symbolic link points.</p>
 </dd></dl>
 
@@ -1147,10 +677,10 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 <span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">fs_realpath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/megfile/fs.html#fs_realpath"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.fs_realpath" title="Permalink to this definition"></a></dt>
 <dd><p>Return the real path of given path</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>path</strong> – Given path</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Real path of given path</p>
 </dd>
 </dl>
@@ -1161,13 +691,13 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 <span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">fs_relpath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/megfile/fs.html#fs_relpath"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.fs_relpath" title="Permalink to this definition"></a></dt>
 <dd><p>Return the relative path of given path</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>path</strong> – Given path</p></li>
 <li><p><strong>start</strong> – Given start directory</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Relative path from start</p>
 </dd>
 </dl>
@@ -1178,7 +708,7 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 <span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">fs_remove</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/megfile/fs.html#fs_remove"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.fs_remove" title="Permalink to this definition"></a></dt>
 <dd><p>Remove the file or directory on fs</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>path</strong> – Given path</p></li>
 <li><p><strong>missing_ok</strong> – if False and target file/directory not exists, raise FileNotFoundError</p></li>
@@ -1189,10 +719,10 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 
 <dl class="py function">
 <dt class="sig sig-object py" id="megfile.fs.fs_rename">
-<span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">fs_rename</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/megfile/fs.html#fs_rename"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.fs_rename" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">fs_rename</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#fs_rename"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.fs_rename" title="Permalink to this definition"></a></dt>
 <dd><p>rename file on fs</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>src_path</strong> – Given path</p></li>
 <li><p><strong>dst_path</strong> – Given destination path</p></li>
@@ -1203,17 +733,14 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 
 <dl class="py function">
 <dt class="sig sig-object py" id="megfile.fs.fs_resolve">
-<span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">fs_resolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/megfile/fs.html#fs_resolve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.fs_resolve" title="Permalink to this definition"></a></dt>
-<dd><p>Equal to fs_realpath</p>
+<span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">fs_resolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#fs_resolve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.fs_resolve" title="Permalink to this definition"></a></dt>
+<dd><p>Equal to fs_realpath, return the real path of given path</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>path</strong> – Given path</p>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Return the canonical path of the specified filename, eliminating any symbolic links encountered in the path.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>str</p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Real path of given path</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1224,7 +751,7 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 <dd><p>Write the opened binary stream to path
 If parent directory of path doesn’t exist, it will be created.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>path</strong> – Given path</p></li>
 <li><p><strong>file_object</strong> – stream to be read</p></li>
@@ -1242,13 +769,13 @@ Every iteration on generator yields a path string.</p>
 If path is a non-existent path, return an empty generator
 If path is a bucket path, return all file paths in the bucket</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>path</strong> – Given path</p></li>
 <li><p><strong>missing_ok</strong> – If False and there’s no file in the directory, raise FileNotFoundError</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A file path generator</p>
 </dd>
 </dl>
@@ -1260,13 +787,13 @@ If path is a bucket path, return all file paths in the bucket</p>
 <dd><p>Iteratively traverse only files in given directory, in alphabetical order.
 Every iteration on generator yields a tuple of path string and file stat</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>path</strong> – Given path</p></li>
 <li><p><strong>missing_ok</strong> – If False and there’s no file in the directory, raise FileNotFoundError</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A file path generator</p>
 </dd>
 </dl>
@@ -1277,10 +804,10 @@ Every iteration on generator yields a tuple of path string and file stat</p>
 <span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">fs_scandir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">FileEntry</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/fs.html#fs_scandir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.fs_scandir" title="Permalink to this definition"></a></dt>
 <dd><p>Get all content of given file path.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>path</strong> – Given path</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>An iterator contains all contents have prefix path</p>
 </dd>
 </dl>
@@ -1288,13 +815,13 @@ Every iteration on generator yields a tuple of path string and file stat</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="megfile.fs.fs_stat">
-<span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">fs_stat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.StatResult" title="megfile.pathlike.StatResult"><span class="pre">StatResult</span></a></span></span><a class="reference internal" href="_modules/megfile/fs.html#fs_stat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.fs_stat" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">fs_stat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">follow_symlinks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#megfile.fs.StatResult" title="megfile.pathlike.StatResult"><span class="pre">StatResult</span></a></span></span><a class="reference internal" href="_modules/megfile/fs.html#fs_stat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.fs_stat" title="Permalink to this definition"></a></dt>
 <dd><p>Get StatResult of file on fs, including file size and mtime, referring to fs_getsize and fs_getmtime</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>path</strong> – Given path</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>StatResult</p>
 </dd>
 </dl>
@@ -1305,7 +832,7 @@ Every iteration on generator yields a tuple of path string and file stat</p>
 <span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">fs_symlink</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/megfile/fs.html#fs_symlink"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.fs_symlink" title="Permalink to this definition"></a></dt>
 <dd><p>Create a symbolic link pointing to src_path named dst_path.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>src_path</strong> – Given path</p></li>
 <li><p><strong>dst_path</strong> – Desination path</p></li>
@@ -1319,7 +846,7 @@ Every iteration on generator yields a tuple of path string and file stat</p>
 <span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">fs_sync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/fs.html#fs_sync"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.fs_sync" title="Permalink to this definition"></a></dt>
 <dd><p>Force write of everything to disk.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>src_path</strong> – Given path</p></li>
 <li><p><strong>dst_path</strong> – Target file path</p></li>
@@ -1333,7 +860,7 @@ Every iteration on generator yields a tuple of path string and file stat</p>
 <span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">fs_unlink</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/megfile/fs.html#fs_unlink"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.fs_unlink" title="Permalink to this definition"></a></dt>
 <dd><p>Remove the file on fs</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>path</strong> – Given path</p></li>
 <li><p><strong>missing_ok</strong> – if False and target file not exists, raise FileNotFoundError</p></li>
@@ -1357,13 +884,13 @@ files: name list of non-directory files (link is regarded as file) in ‘root’
 <p>Be aware that setting <code class="docutils literal notranslate"><span class="pre">followlinks</span></code> to True can lead to infinite recursion if a link points to a parent directory of itself. fs_walk() does not keep track of the directories it visited already.</p>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>path</strong> – Given path</p></li>
 <li><p><strong>followlinks</strong> – False if regard symlink as file, else True</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A 3-tuple generator</p>
 </dd>
 </dl>
@@ -1374,10 +901,10 @@ files: name list of non-directory files (link is regarded as file) in ‘root’
 <span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">is_fs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#is_fs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.is_fs" title="Permalink to this definition"></a></dt>
 <dd><p>Test if a path is fs path</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>path</strong> – Path to be tested</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>True of a path is fs path, else False</p>
 </dd>
 </dl>

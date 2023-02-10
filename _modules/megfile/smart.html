@@ -26,11 +26,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../index.html" class="icon icon-home"> megfile
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            megfile
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -41,6 +45,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../readme.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../megfile.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">CHANGELOG</a></li>
 <li class="toctree-l1"><a class="reference external" href="https://github.com/megvii-research/megfile">GitHub</a></li>
 </ul>
 
@@ -57,7 +62,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../index.html" class="icon icon-home"></a></li>
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
       <li class="breadcrumb-item active">megfile.smart</li>
       <li class="wy-breadcrumbs-aside">
@@ -82,6 +87,7 @@
 <span class="kn">from</span> <span class="nn">megfile.lib.compat</span> <span class="kn">import</span> <span class="n">fspath</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.glob</span> <span class="kn">import</span> <span class="n">globlize</span><span class="p">,</span> <span class="n">ungloblize</span>
 <span class="kn">from</span> <span class="nn">megfile.s3</span> <span class="kn">import</span> <span class="n">S3Cacher</span><span class="p">,</span> <span class="n">is_s3</span><span class="p">,</span> <span class="n">s3_copy</span><span class="p">,</span> <span class="n">s3_download</span><span class="p">,</span> <span class="n">s3_load_content</span><span class="p">,</span> <span class="n">s3_open</span><span class="p">,</span> <span class="n">s3_upload</span>
+<span class="kn">from</span> <span class="nn">megfile.sftp</span> <span class="kn">import</span> <span class="n">sftp_copy</span><span class="p">,</span> <span class="n">sftp_download</span><span class="p">,</span> <span class="n">sftp_upload</span>
 <span class="kn">from</span> <span class="nn">megfile.smart_path</span> <span class="kn">import</span> <span class="n">SmartPath</span><span class="p">,</span> <span class="n">get_traditional_path</span>
 <span class="kn">from</span> <span class="nn">megfile.utils</span> <span class="kn">import</span> <span class="n">combine</span><span class="p">,</span> <span class="n">get_content_offset</span>
 
@@ -247,7 +253,7 @@
     <span class="k">return</span> <span class="n">SmartPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">getmtime</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="smart_stat"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_stat">[docs]</a><span class="k">def</span> <span class="nf">smart_stat</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StatResult</span><span class="p">:</span>
+<div class="viewcode-block" id="smart_stat"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_stat">[docs]</a><span class="k">def</span> <span class="nf">smart_stat</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StatResult</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Get StatResult of s3_url or file path</span>
 
@@ -255,7 +261,7 @@
 <span class="sd">    :returns: StatResult</span>
 <span class="sd">    :raises: FileNotFoundError</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="k">return</span> <span class="n">SmartPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span></div>
+    <span class="k">return</span> <span class="n">SmartPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">follow_symlinks</span><span class="o">=</span><span class="n">follow_symlinks</span><span class="p">)</span></div>
 
 
 <span class="n">_copy_funcs</span> <span class="o">=</span> <span class="p">{</span>
@@ -266,7 +272,12 @@
     <span class="s1">&#39;file&#39;</span><span class="p">:</span> <span class="p">{</span>
         <span class="s1">&#39;s3&#39;</span><span class="p">:</span> <span class="n">s3_upload</span><span class="p">,</span>
         <span class="s1">&#39;file&#39;</span><span class="p">:</span> <span class="n">fs_copy</span><span class="p">,</span>
-    <span class="p">}</span>
+        <span class="s1">&#39;sftp&#39;</span><span class="p">:</span> <span class="n">sftp_upload</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s1">&#39;sftp&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;file&#39;</span><span class="p">:</span> <span class="n">sftp_download</span><span class="p">,</span>
+        <span class="s1">&#39;sftp&#39;</span><span class="p">:</span> <span class="n">sftp_copy</span><span class="p">,</span>
+    <span class="p">},</span>
 <span class="p">}</span>
 
 
@@ -407,8 +418,8 @@
     <span class="n">src_path</span><span class="p">,</span> <span class="n">dst_path</span> <span class="o">=</span> <span class="n">get_traditional_path</span><span class="p">(</span><span class="n">src_path</span><span class="p">),</span> <span class="n">get_traditional_path</span><span class="p">(</span>
         <span class="n">dst_path</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">src_file_path</span> <span class="ow">in</span> <span class="n">smart_scan</span><span class="p">(</span><span class="n">src_path</span><span class="p">,</span> <span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">):</span>
-        <span class="n">content_path</span> <span class="o">=</span> <span class="n">src_file_path</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">src_path</span><span class="p">):]</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">content_path</span><span class="p">):</span>
+        <span class="n">content_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">relpath</span><span class="p">(</span><span class="n">src_file_path</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">src_path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">content_path</span><span class="p">)</span> <span class="ow">and</span> <span class="n">content_path</span> <span class="o">!=</span> <span class="s1">&#39;.&#39;</span><span class="p">:</span>
             <span class="n">content_path</span> <span class="o">=</span> <span class="n">content_path</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
             <span class="n">dst_abs_file_path</span> <span class="o">=</span> <span class="n">smart_path_join</span><span class="p">(</span><span class="n">dst_path</span><span class="p">,</span> <span class="n">content_path</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -647,7 +658,10 @@
     <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">group_glob_list</span> <span class="o">=</span> <span class="n">_group_glob</span><span class="p">(</span><span class="n">pathname</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">glob_path</span> <span class="ow">in</span> <span class="n">group_glob_list</span><span class="p">:</span>
-        <span class="n">result</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">SmartPath</span><span class="p">(</span><span class="n">glob_path</span><span class="p">)</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">recursive</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">path_obj</span> <span class="ow">in</span> <span class="n">SmartPath</span><span class="p">(</span><span class="n">glob_path</span><span class="p">)</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">pattern</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+                                                  <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">,</span>
+                                                  <span class="n">missing_ok</span><span class="o">=</span><span class="n">missing_ok</span><span class="p">):</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path_obj</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">result</span></div>
 
 
@@ -663,12 +677,12 @@
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="c1"># Split pathname, group by protocol, call glob respectively</span>
     <span class="c1"># SmartPath(pathname).glob(recursive, missing_ok)</span>
-    <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">group_glob_list</span> <span class="o">=</span> <span class="n">_group_glob</span><span class="p">(</span><span class="n">pathname</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">glob_path</span> <span class="ow">in</span> <span class="n">group_glob_list</span><span class="p">:</span>
-        <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">SmartPath</span><span class="p">(</span><span class="n">glob_path</span><span class="p">)</span><span class="o">.</span><span class="n">iglob</span><span class="p">(</span><span class="n">recursive</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">))</span>
-    <span class="n">iterableres</span> <span class="o">=</span> <span class="n">chain</span><span class="p">(</span><span class="o">*</span><span class="n">result</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">iterableres</span></div>
+        <span class="k">for</span> <span class="n">path_obj</span> <span class="ow">in</span> <span class="n">SmartPath</span><span class="p">(</span><span class="n">glob_path</span><span class="p">)</span><span class="o">.</span><span class="n">iglob</span><span class="p">(</span><span class="n">pattern</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+                                                   <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">,</span>
+                                                   <span class="n">missing_ok</span><span class="o">=</span><span class="n">missing_ok</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="n">path_obj</span><span class="o">.</span><span class="n">path</span></div>
 
 
 <div class="viewcode-block" id="smart_glob_stat"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_glob_stat">[docs]</a><span class="k">def</span> <span class="nf">smart_glob_stat</span><span class="p">(</span>
@@ -683,12 +697,10 @@
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="c1"># Split pathname, group by protocol, call glob respectively</span>
     <span class="c1"># SmartPath(pathname).glob(recursive, missing_ok)</span>
-    <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">group_glob_list</span> <span class="o">=</span> <span class="n">_group_glob</span><span class="p">(</span><span class="n">pathname</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">glob_path</span> <span class="ow">in</span> <span class="n">group_glob_list</span><span class="p">:</span>
-        <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">SmartPath</span><span class="p">(</span><span class="n">glob_path</span><span class="p">)</span><span class="o">.</span><span class="n">glob_stat</span><span class="p">(</span><span class="n">recursive</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">))</span>
-    <span class="n">iterableres</span> <span class="o">=</span> <span class="n">chain</span><span class="p">(</span><span class="o">*</span><span class="n">result</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">iterableres</span></div>
+        <span class="k">yield from</span> <span class="n">SmartPath</span><span class="p">(</span><span class="n">glob_path</span><span class="p">)</span><span class="o">.</span><span class="n">glob_stat</span><span class="p">(</span>
+            <span class="n">pattern</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">,</span> <span class="n">missing_ok</span><span class="o">=</span><span class="n">missing_ok</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="smart_save_as"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_save_as">[docs]</a><span class="k">def</span> <span class="nf">smart_save_as</span><span class="p">(</span><span class="n">file_object</span><span class="p">:</span> <span class="n">BinaryIO</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>

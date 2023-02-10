@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Getting Started &mdash; megfile  documentation</title>
@@ -29,11 +29,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> megfile
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            megfile
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -61,6 +65,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="megfile.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">CHANGELOG</a></li>
 <li class="toctree-l1"><a class="reference external" href="https://github.com/megvii-research/megfile">GitHub</a></li>
 </ul>
 
@@ -77,7 +82,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a></li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
       <li class="breadcrumb-item active">Getting Started</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/readme.rst.txt" rel="nofollow"> View page source</a>
@@ -120,7 +125,7 @@
 </section>
 <section id="quick-start">
 <h2>Quick Start<a class="headerlink" href="#quick-start" title="Permalink to this heading"></a></h2>
-<p>Here’s an example of writing a file to s3, syncing to local, reading and finally deleting it.</p>
+<p>Here’s an example of writing a file to s3 / sftp / fs, syncing to local, reading and finally deleting it.</p>
 <section id="functional-interface">
 <h3>Functional Interface<a class="headerlink" href="#functional-interface" title="Permalink to this heading"></a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">megfile</span> <span class="kn">import</span> <span class="n">smart_open</span><span class="p">,</span> <span class="n">smart_exists</span><span class="p">,</span> <span class="n">smart_sync</span><span class="p">,</span> <span class="n">smart_remove</span><span class="p">,</span> <span class="n">smart_glob</span>
@@ -146,6 +151,9 @@
 
 <span class="c1"># smart_open also support protocols like http / https</span>
 <span class="n">smart_open</span><span class="p">(</span><span class="s1">&#39;https://www.google.com&#39;</span><span class="p">)</span>
+
+<span class="c1"># smart_open also support protocols like sftp</span>
+<span class="n">smart_open</span><span class="p">(</span><span class="s1">&#39;sftp://username:password@sftp.server.com:22/path/to/file&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -226,6 +234,17 @@ aws_access_key_id = secretkey
 s3 =
     addressing_style = virtual
     endpoint_url = http://oss-cn-hangzhou.aliyuncs.com
+</pre></div>
+</div>
+<p>sftp path format is <code class="docutils literal notranslate"><span class="pre">sftp://[username[:password]&#64;]hostname[:port]/file_path</span></code>, and sftp support some environments:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span># If you are not set username or password in path, you can set them in environments
+$ export SFTP_USERNAME=user
+$ export SFTP_PASSWORD=user_password
+
+# You can also set private key for sftp connection
+$ export SFTP_PRIVATE_KEY_PATH=/home/user/custom_private_key_path  # default not use private key
+$ export SFTP_PRIVATE_KEY_TYPE=RSA  # default is RSA
+$ export SFTP_PRIVATE_KEY_PASSWORD=private_key_password
 </pre></div>
 </div>
 </section>

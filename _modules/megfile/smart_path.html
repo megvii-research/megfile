@@ -26,11 +26,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../index.html" class="icon icon-home"> megfile
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            megfile
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -41,6 +45,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../readme.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../megfile.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">CHANGELOG</a></li>
 <li class="toctree-l1"><a class="reference external" href="https://github.com/megvii-research/megfile">GitHub</a></li>
 </ul>
 
@@ -57,7 +62,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../index.html" class="icon icon-home"></a></li>
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
       <li class="breadcrumb-item active">megfile.smart_path</li>
       <li class="wy-breadcrumbs-aside">
@@ -136,12 +141,12 @@
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">_create_pathlike</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">PathLike</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">BasePath</span><span class="p">:</span>
-        <span class="n">protocol</span><span class="p">,</span> <span class="n">path_without_protocol</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_extract_protocol</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="n">protocol</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_extract_protocol</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">protocol</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_registered_protocols</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">ProtocolNotFoundError</span><span class="p">(</span>
                 <span class="s1">&#39;protocol </span><span class="si">%r</span><span class="s1"> not found: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">path</span><span class="p">))</span>
         <span class="n">path_class</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_registered_protocols</span><span class="p">[</span><span class="n">protocol</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">path_class</span><span class="p">(</span><span class="n">path_without_protocol</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">path_class</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
 
 <div class="viewcode-block" id="SmartPath.register"><a class="viewcode-back" href="../../megfile.smart_path.html#megfile.SmartPath.register">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">register</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path_class</span><span class="p">,</span> <span class="n">override_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
@@ -152,6 +157,8 @@
         <span class="k">return</span> <span class="n">path_class</span></div>
 
     <span class="n">symlink</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;symlink&#39;</span><span class="p">)</span>
+    <span class="n">symlink_to</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;symlink_to&#39;</span><span class="p">)</span>
+    <span class="n">hardlink_to</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;hardlink_to&#39;</span><span class="p">)</span>
     <span class="n">readlink</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;readlink&#39;</span><span class="p">)</span>
     <span class="n">is_dir</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;is_dir&#39;</span><span class="p">)</span>
     <span class="n">is_file</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;is_file&#39;</span><span class="p">)</span>
@@ -163,11 +170,12 @@
     <span class="n">getsize</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;getsize&#39;</span><span class="p">)</span>
     <span class="n">getmtime</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;getmtime&#39;</span><span class="p">)</span>
     <span class="n">stat</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;stat&#39;</span><span class="p">)</span>
+    <span class="n">lstat</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;lstat&#39;</span><span class="p">)</span>
     <span class="n">remove</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;remove&#39;</span><span class="p">)</span>
     <span class="n">rename</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;rename&#39;</span><span class="p">)</span>
     <span class="n">replace</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;replace&#39;</span><span class="p">)</span>
     <span class="n">unlink</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;unlink&#39;</span><span class="p">)</span>
-    <span class="n">mkdir</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;makedirs&#39;</span><span class="p">)</span>
+    <span class="n">mkdir</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;mkdir&#39;</span><span class="p">)</span>
     <span class="nb">open</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;open&#39;</span><span class="p">)</span>
     <span class="n">touch</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;touch&#39;</span><span class="p">)</span>
     <span class="n">walk</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;walk&#39;</span><span class="p">)</span>
@@ -209,11 +217,34 @@
     <span class="n">relative_to</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;relative_to&#39;</span><span class="p">)</span>
     <span class="n">with_name</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;with_name&#39;</span><span class="p">)</span>
     <span class="n">with_suffix</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;with_suffix&#39;</span><span class="p">)</span>
+    <span class="n">with_stem</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;with_stem&#39;</span><span class="p">)</span>
     <span class="n">is_absolute</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;is_absolute&#39;</span><span class="p">)</span>
     <span class="n">is_mount</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;is_mount&#39;</span><span class="p">)</span>
     <span class="n">abspath</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;abspath&#39;</span><span class="p">)</span>
     <span class="n">realpath</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;realpath&#39;</span><span class="p">)</span>
     <span class="n">relpath</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;relpath&#39;</span><span class="p">)</span>
+    <span class="n">iterdir</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;iterdir&#39;</span><span class="p">)</span>
+    <span class="n">cwd</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;cwd&#39;</span><span class="p">)</span>
+    <span class="n">home</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;home&#39;</span><span class="p">)</span>
+    <span class="n">expanduser</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;expanduser&#39;</span><span class="p">)</span>
+    <span class="n">resolve</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;resolve&#39;</span><span class="p">)</span>
+    <span class="n">chmod</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;chmod&#39;</span><span class="p">)</span>
+    <span class="n">lchmod</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;lchmod&#39;</span><span class="p">)</span>
+    <span class="n">group</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;group&#39;</span><span class="p">)</span>
+    <span class="n">is_socket</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;is_socket&#39;</span><span class="p">)</span>
+    <span class="n">is_fifo</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;is_fifo&#39;</span><span class="p">)</span>
+    <span class="n">is_block_device</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;is_block_device&#39;</span><span class="p">)</span>
+    <span class="n">is_char_device</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;is_char_device&#39;</span><span class="p">)</span>
+    <span class="n">owner</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;owner&#39;</span><span class="p">)</span>
+    <span class="n">absolute</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;absolute&#39;</span><span class="p">)</span>
+    <span class="n">rmdir</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;rmdir&#39;</span><span class="p">)</span>
+    <span class="n">is_relative_to</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;is_relative_to&#39;</span><span class="p">)</span>
+    <span class="n">read_bytes</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;read_bytes&#39;</span><span class="p">)</span>
+    <span class="n">read_text</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;read_text&#39;</span><span class="p">)</span>
+    <span class="n">rglob</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;rglob&#39;</span><span class="p">)</span>
+    <span class="n">samefile</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;samefile&#39;</span><span class="p">)</span>
+    <span class="n">write_bytes</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;write_bytes&#39;</span><span class="p">)</span>
+    <span class="n">write_text</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s1">&#39;write_text&#39;</span><span class="p">)</span>
 
     <span class="n">drive</span> <span class="o">=</span> <span class="n">_bind_property</span><span class="p">(</span><span class="s1">&#39;drive&#39;</span><span class="p">)</span>
     <span class="n">root</span> <span class="o">=</span> <span class="n">_bind_property</span><span class="p">(</span><span class="s1">&#39;root&#39;</span><span class="p">)</span>

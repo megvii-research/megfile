@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>megfile.stdio module &mdash; megfile  documentation</title>
@@ -29,11 +29,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> megfile
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            megfile
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -53,18 +57,20 @@
 <li class="toctree-l3"><a class="reference internal" href="megfile.http.html">megfile.http module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="megfile.http_path.html">megfile.http_path module</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">megfile.stdio module</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#megfile.stdio.StdioPath"><code class="docutils literal notranslate"><span class="pre">StdioPath</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#megfile.stdio.is_stdio"><code class="docutils literal notranslate"><span class="pre">is_stdio()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#megfile.stdio.stdio_open"><code class="docutils literal notranslate"><span class="pre">stdio_open()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="megfile.stdio_path.html">megfile.stdio_path module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.sftp.html">megfile.sftp module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html">megfile.sftp_path module</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="megfile.html#module-megfile">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">CHANGELOG</a></li>
 <li class="toctree-l1"><a class="reference external" href="https://github.com/megvii-research/megfile">GitHub</a></li>
 </ul>
 
@@ -81,7 +87,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a></li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="megfile.html">API Reference</a></li>
       <li class="breadcrumb-item active">megfile.stdio module</li>
       <li class="wy-breadcrumbs-aside">
@@ -95,35 +101,6 @@
              
   <section id="module-megfile.stdio">
 <span id="megfile-stdio-module"></span><h1>megfile.stdio module<a class="headerlink" href="#module-megfile.stdio" title="Permalink to this heading"></a></h1>
-<dl class="py class">
-<dt class="sig sig-object py" id="megfile.stdio.StdioPath">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">megfile.stdio.</span></span><span class="sig-name descname"><span class="pre">StdioPath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/stdio_path.html#StdioPath"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.stdio.StdioPath" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseURIPath</span></code></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="megfile.stdio.StdioPath.open">
-<span class="sig-name descname"><span class="pre">open</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">IO</span><span class="p"><span class="pre">[</span></span><span class="pre">AnyStr</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/stdio_path.html#StdioPath.open"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.stdio.StdioPath.open" title="Permalink to this definition"></a></dt>
-<dd><p>Used to read or write stdio</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Essentially invoke sys.stdin.buffer | sys.stdout.buffer to read or write</p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>mode</strong> – Only supports ‘rb’ and ‘wb’ now</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>STDReader, STDWriter</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="megfile.stdio.StdioPath.protocol">
-<span class="sig-name descname"><span class="pre">protocol</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'stdio'</span></em><a class="headerlink" href="#megfile.stdio.StdioPath.protocol" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
 <dl class="py function">
 <dt class="sig sig-object py" id="megfile.stdio.is_stdio">
 <span class="sig-prename descclassname"><span class="pre">megfile.stdio.</span></span><span class="sig-name descname"><span class="pre">is_stdio</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/megfile/stdio_path.html#is_stdio"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.stdio.is_stdio" title="Permalink to this definition"></a></dt>
@@ -133,10 +110,10 @@
 <p>Only tests protocol</p>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>path</strong> – Path to be tested</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>True of a path is stdio url, else False</p>
 </dd>
 </dl>
@@ -151,13 +128,13 @@
 <p>Essentially invoke sys.stdin.buffer | sys.stdout.buffer to read or write</p>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>path</strong> – Given path</p></li>
 <li><p><strong>mode</strong> – Only supports ‘rb’ and ‘wb’ now</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>STDReader, STDWriter</p>
 </dd>
 </dl>

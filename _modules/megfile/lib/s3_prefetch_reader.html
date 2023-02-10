@@ -26,11 +26,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../../index.html" class="icon icon-home"> megfile
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            megfile
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -41,6 +45,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../readme.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../megfile.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">CHANGELOG</a></li>
 <li class="toctree-l1"><a class="reference external" href="https://github.com/megvii-research/megfile">GitHub</a></li>
 </ul>
 
@@ -57,7 +62,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../../index.html" class="icon icon-home"></a></li>
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
       <li class="breadcrumb-item active">megfile.lib.s3_prefetch_reader</li>
       <li class="wy-breadcrumbs-aside">
@@ -102,7 +107,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">read_count</span> <span class="o">=</span> <span class="mi">0</span>
 
 
-<div class="viewcode-block" id="S3PrefetchReader"><a class="viewcode-back" href="../../../megfile.s3_path.html#megfile.s3.S3PrefetchReader">[docs]</a><span class="k">class</span> <span class="nc">S3PrefetchReader</span><span class="p">(</span><span class="n">Readable</span><span class="p">,</span> <span class="n">Seekable</span><span class="p">):</span>
+<div class="viewcode-block" id="S3PrefetchReader"><a class="viewcode-back" href="../../../megfile.s3.html#megfile.s3.S3PrefetchReader">[docs]</a><span class="k">class</span> <span class="nc">S3PrefetchReader</span><span class="p">(</span><span class="n">Readable</span><span class="p">,</span> <span class="n">Seekable</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Reader to fast read the s3 content. This will divide the file content into equal parts of block_size size, and will use LRU to cache at most block_capacity blocks in memory.</span>
 <span class="sd">    open(), seek() and read() will trigger prefetch read. The prefetch will cached block_forward blocks of data from offset position (the position after reading if the called function is read).</span>
@@ -178,7 +183,7 @@
     <span class="k">def</span> <span class="nf">mode</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="s1">&#39;rb&#39;</span>
 
-<div class="viewcode-block" id="S3PrefetchReader.tell"><a class="viewcode-back" href="../../../megfile.s3_path.html#megfile.s3.S3PrefetchReader.tell">[docs]</a>    <span class="k">def</span> <span class="nf">tell</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<div class="viewcode-block" id="S3PrefetchReader.tell"><a class="viewcode-back" href="../../../megfile.s3.html#megfile.s3.S3PrefetchReader.tell">[docs]</a>    <span class="k">def</span> <span class="nf">tell</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_offset</span></div>
 
     <span class="nd">@property</span>
@@ -196,7 +201,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_backoff_size</span> <span class="o">*=</span> <span class="n">BACKOFF_FACTOR</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__offset</span> <span class="o">=</span> <span class="n">value</span>
 
-<div class="viewcode-block" id="S3PrefetchReader.seek"><a class="viewcode-back" href="../../../megfile.s3_path.html#megfile.s3.S3PrefetchReader.seek">[docs]</a>    <span class="k">def</span> <span class="nf">seek</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cookie</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">whence</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">SEEK_SET</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<div class="viewcode-block" id="S3PrefetchReader.seek"><a class="viewcode-back" href="../../../megfile.s3.html#megfile.s3.S3PrefetchReader.seek">[docs]</a>    <span class="k">def</span> <span class="nf">seek</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cookie</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">whence</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">SEEK_SET</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;Change stream position.</span>
 
 <span class="sd">        Seek to byte offset pos relative to position indicated by whence:</span>
@@ -228,7 +233,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_seek_buffer</span><span class="p">(</span><span class="n">block_index</span><span class="p">,</span> <span class="n">block_offset</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_offset</span></div>
 
-<div class="viewcode-block" id="S3PrefetchReader.read"><a class="viewcode-back" href="../../../megfile.s3_path.html#megfile.s3.S3PrefetchReader.read">[docs]</a>    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+<div class="viewcode-block" id="S3PrefetchReader.read"><a class="viewcode-back" href="../../../megfile.s3.html#megfile.s3.S3PrefetchReader.read">[docs]</a>    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;Read at most size bytes, returned as a bytes object.</span>
 
 <span class="sd">        If the size argument is negative, read until EOF is reached.</span>
@@ -275,7 +280,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_offset</span> <span class="o">+=</span> <span class="n">buffer</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">buffer</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="S3PrefetchReader.readline"><a class="viewcode-back" href="../../../megfile.s3_path.html#megfile.s3.S3PrefetchReader.readline">[docs]</a>    <span class="k">def</span> <span class="nf">readline</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+<div class="viewcode-block" id="S3PrefetchReader.readline"><a class="viewcode-back" href="../../../megfile.s3.html#megfile.s3.S3PrefetchReader.readline">[docs]</a>    <span class="k">def</span> <span class="nf">readline</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;Next line from the file, as a bytes object.</span>
 
 <span class="sd">        Retain newline.  A non-negative size argument limits the maximum</span>
@@ -324,7 +329,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">SEEK_CUR</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span>
 
-<div class="viewcode-block" id="S3PrefetchReader.readinto"><a class="viewcode-back" href="../../../megfile.s3_path.html#megfile.s3.S3PrefetchReader.readinto">[docs]</a>    <span class="k">def</span> <span class="nf">readinto</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">buffer</span><span class="p">:</span> <span class="nb">bytearray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<div class="viewcode-block" id="S3PrefetchReader.readinto"><a class="viewcode-back" href="../../../megfile.s3.html#megfile.s3.S3PrefetchReader.readinto">[docs]</a>    <span class="k">def</span> <span class="nf">readinto</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">buffer</span><span class="p">:</span> <span class="nb">bytearray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;Read bytes into buffer.</span>
 
 <span class="sd">        Returns number of bytes read (0 for EOF), or None if the object</span>
