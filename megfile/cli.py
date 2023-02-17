@@ -21,10 +21,10 @@ def cli():
 
 
 def safe_cli():
-    # try:
-    cli()
-    # except Exception as e:
-    # click.echo(f"\n{e}")
+    try:
+        cli()
+    except Exception as e:
+        click.echo(f"\n[{type(e).__name__}] {e}")
 
 
 def get_no_glob_root_path(path):

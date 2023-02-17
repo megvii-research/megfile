@@ -802,6 +802,8 @@ class SftpPath(URIPath):
         Return a SftpPath instance representing the path to which the symbolic link points.
         :returns: Return a SftpPath instance representing the path to which the symbolic link points.
         '''
+        if not self.is_symlink():
+            raise OSError('Not a symlink: %s' % self.path_with_protocol)
         return self._generate_path_object(
             self._client.readlink(self._real_path))
 
@@ -829,9 +831,12 @@ class SftpPath(URIPath):
         with self.open(mode='wb') as output:
             output.write(file_object.read())
 
-    def open(self, mode: str, buffering=-1, **kwargs) -> IO[AnyStr]:
+    def open(self, mode: str = 'r', buffering=-1, **kwargs) -> IO[AnyStr]:
         if 'w' in mode or 'x' in mode or 'a' in mode:
             self.parent.mkdir(parents=True, exist_ok=True)
+        elif not self.is_file():
+            raise IsADirectoryError(
+                'Is a directory: %r' % self.path_with_protocol)
         fileobj = self._client.open(self._real_path, mode, bufsize=buffering)
         if 'r' in mode and 'b' not in mode:
             return io.TextIOWrapper(fileobj)
