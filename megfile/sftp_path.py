@@ -29,9 +29,6 @@ __all__ = [
     'sftp_iglob',
     'sftp_glob_stat',
     'sftp_resolve',
-    'sftp_isdir',
-    'sftp_exists',
-    'sftp_scandir',
     'sftp_download',
     'sftp_upload',
     'sftp_path_join',
@@ -206,44 +203,6 @@ def sftp_glob_stat(
             path_object.lstat())
 
 
-def sftp_isdir(path: PathLike, followlinks: bool = False) -> bool:
-    '''
-    Test if a path is directory
-
-    .. note::
-
-        The difference between this function and ``os.path.isdir`` is that this function regard symlink as file
-
-    :param path: Given path
-    :param followlinks: False if regard symlink as file, else True
-    :returns: True if the path is a directory, else False
-
-    '''
-    return SftpPath(path).is_dir(followlinks)
-
-
-def sftp_scandir(path: PathLike) -> Iterator[FileEntry]:
-    '''
-    Get all content of given file path.
-
-    :param path: Given path
-    :returns: An iterator contains all contents have prefix path
-    '''
-    return SftpPath(path).scandir()
-
-
-def sftp_exists(path: PathLike, followlinks: bool = False) -> bool:
-    '''
-    Test if the path exists
-
-    :param path: Given path
-    :param followlinks: False if regard symlink as file, else True
-    :returns: True if the path exists, else False
-
-    '''
-    return SftpPath(path).exists(followlinks)
-
-
 def sftp_iglob(path: PathLike, recursive: bool = True,
                missing_ok: bool = True) -> Iterator[str]:
     '''Return path iterator in ascending alphabetical order, in which path matches glob pattern
@@ -264,15 +223,9 @@ def sftp_iglob(path: PathLike, recursive: bool = True,
     :returns: An iterator contains paths match `pathname`
     '''
 
-    def _scandir(dirname: str) -> Iterator[Tuple[str, bool]]:
-        for entry in sftp_scandir(dirname):
-            yield entry.name, entry.is_dir()
-
-    fs = FSFunc(sftp_exists, sftp_isdir, _scandir)
-    for real_path in _create_missing_ok_generator(
-            iglob(fspath(path), recursive=recursive, fs=fs), missing_ok,
-            FileNotFoundError('No match file: %r' % path)):
-        yield real_path
+    for path in SftpPath(path).iglob(pattern="", recursive=recursive,
+                                     missing_ok=missing_ok):
+        yield path.path_with_protocol
 
 
 def sftp_resolve(path: PathLike, strict=False) -> 'str':
@@ -498,9 +451,22 @@ class SftpPath(URIPath):
         glob_path = self.path_with_protocol
         if pattern:
             glob_path = self.joinpath(pattern).path_with_protocol
-        for path in sftp_iglob(glob_path, recursive=recursive,
-                               missing_ok=missing_ok):
-            yield self.from_path(path)
+
+        def _scandir(dirname: str) -> Iterator[Tuple[str, bool]]:
+            for entry in self.from_path(dirname).scandir():
+                yield entry.name, entry.is_dir()
+
+        def _exist(path: PathLike, followlinks: bool = False):
+            return self.from_path(path).exists(followlinks=followlinks)
+
+        def _is_dir(path: PathLike, followlinks: bool = False):
+            return self.from_path(path).is_dir(followlinks=followlinks)
+
+        fs = FSFunc(_exist, _is_dir, _scandir)
+        for real_path in _create_missing_ok_generator(
+                iglob(fspath(glob_path), recursive=recursive, fs=fs),
+                missing_ok, FileNotFoundError('No match file: %r' % glob_path)):
+            yield self.from_path(real_path)
 
     def is_dir(self, followlinks: bool = False) -> bool:
         '''
