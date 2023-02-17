@@ -256,7 +256,7 @@ class BasePath:
     # pytype: disable=bad-return-type
 
     @method_not_implemented
-    def is_dir(self) -> bool:  # type: ignore
+    def is_dir(self, followlinks: bool = False) -> bool:  # type: ignore
         """Return True if the path points to a directory."""
 
     @method_not_implemented
@@ -296,7 +296,7 @@ class BasePath:
         """Get the status of the path."""
 
     @method_not_implemented
-    def remove(self, missing_ok: bool = False, **kwargs) -> None:
+    def remove(self, missing_ok: bool = False) -> None:
         """Remove (delete) the file."""
 
     @method_not_implemented
@@ -319,7 +319,7 @@ class BasePath:
         """Open the file with mode."""
 
     @method_not_implemented
-    def walk(self, **kwargs
+    def walk(self, followlinks: bool = False
             ) -> Iterator[Tuple[str, List[str], List[str]]]:  # type: ignore
         """Generate the file names in a directory tree by walking the tree."""
 

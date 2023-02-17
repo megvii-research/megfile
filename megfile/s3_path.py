@@ -1058,8 +1058,12 @@ class S3Cacher(FileCacher):
             os.unlink(self.cache_path)
 
 
-def s3_glob(path: PathLike, recursive: bool = True,
-            missing_ok: bool = True) -> List[str]:
+def s3_glob(
+        path: PathLike,
+        recursive: bool = True,
+        missing_ok: bool = True,
+        followlinks: bool = False,
+) -> List[str]:
     '''Return s3 path list in ascending alphabetical order, in which path matches glob pattern
     Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
 
@@ -1068,7 +1072,12 @@ def s3_glob(path: PathLike, recursive: bool = True,
     :raises: UnsupportedError, when bucket part contains wildcard characters
     :returns: A list contains paths match `s3_pathname`
     '''
-    return list(s3_iglob(path=path, recursive=recursive, missing_ok=missing_ok))
+    return list(
+        s3_iglob(
+            path=path,
+            recursive=recursive,
+            missing_ok=missing_ok,
+            followlinks=followlinks))
 
 
 def s3_glob_stat(
@@ -1101,8 +1110,12 @@ def s3_glob_stat(
         S3FileNotFoundError('No match file: %r' % s3_pathname))
 
 
-def s3_iglob(path: PathLike, recursive: bool = True,
-             missing_ok: bool = True) -> Iterator[str]:
+def s3_iglob(
+        path: PathLike,
+        recursive: bool = True,
+        missing_ok: bool = True,
+        followlinks: bool = False,
+) -> Iterator[str]:
     '''Return s3 path iterator in ascending alphabetical order, in which path matches glob pattern
     Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
 
@@ -1112,7 +1125,8 @@ def s3_iglob(path: PathLike, recursive: bool = True,
     :returns: An iterator contains paths match `s3_pathname`
     '''
     for file_entry in s3_glob_stat(path=path, recursive=recursive,
-                                   missing_ok=missing_ok):
+                                   missing_ok=missing_ok,
+                                   followlinks=followlinks):
         yield file_entry.path
 
 
@@ -1208,8 +1222,13 @@ class S3Path(URIPath):
         '''
         return self.stat(follow_symlinks=follow_symlinks).size
 
-    def glob(self, pattern, recursive: bool = True,
-             missing_ok: bool = True) -> List['S3Path']:
+    def glob(
+            self,
+            pattern,
+            recursive: bool = True,
+            missing_ok: bool = True,
+            followlinks: bool = False,
+    ) -> List['S3Path']:
         '''Return s3 path list in ascending alphabetical order, in which path matches glob pattern
         Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
 
@@ -1221,7 +1240,10 @@ class S3Path(URIPath):
         '''
         return list(
             self.iglob(
-                pattern=pattern, recursive=recursive, missing_ok=missing_ok))
+                pattern=pattern,
+                recursive=recursive,
+                missing_ok=missing_ok,
+                followlinks=followlinks))
 
     def glob_stat(
             self,
@@ -1242,10 +1264,18 @@ class S3Path(URIPath):
         if pattern:
             glob_path = self.joinpath(pattern).path_with_protocol
         return s3_glob_stat(
-            path=glob_path, recursive=recursive, missing_ok=missing_ok)
+            path=glob_path,
+            recursive=recursive,
+            missing_ok=missing_ok,
+            followlinks=followlinks)
 
-    def iglob(self, pattern, recursive: bool = True,
-              missing_ok: bool = True) -> Iterator['S3Path']:
+    def iglob(
+            self,
+            pattern,
+            recursive: bool = True,
+            missing_ok: bool = True,
+            followlinks: bool = False,
+    ) -> Iterator['S3Path']:
         '''Return s3 path iterator in ascending alphabetical order, in which path matches glob pattern
         Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
 
@@ -1259,16 +1289,17 @@ class S3Path(URIPath):
         if pattern:
             glob_path = self.joinpath(pattern).path_with_protocol
         for path in s3_iglob(path=glob_path, recursive=recursive,
-                             missing_ok=missing_ok):
+                             missing_ok=missing_ok, followlinks=followlinks):
             yield self.from_path(path)
 
-    def is_dir(self, **kwargs) -> bool:
+    def is_dir(self, followlinks: bool = False) -> bool:
         '''
         Test if an s3 url is directory
         Specific procedures are as follows:
         If there exists a suffix, of which ``os.path.join(s3_url, suffix)`` is a file
         If the url is empty bucket or s3://
 
+        :param followlinks: whether followlinks is True or False, result is the same. Because s3 symlink not support dir.
         :returns: True if path is s3 directory, else False
         '''
         bucket, key = parse_s3_url(self.path_with_protocol)
@@ -1724,7 +1755,8 @@ class S3Path(URIPath):
         with raise_s3_error(self.path_with_protocol):
             client.delete_object(Bucket=bucket, Key=key)
 
-    def walk(self, **kwargs) -> Iterator[Tuple[str, List[str], List[str]]]:
+    def walk(self, followlinks: bool = False
+            ) -> Iterator[Tuple[str, List[str], List[str]]]:
         '''
         Iteratively traverse the given s3 directory, in top-bottom order. In other words, firstly traverse parent directory, if subdirectories exist, traverse the subdirectories in alphabetical order.
         Every iteration on generator yields a 3-tuple: (root, dirs, files)
@@ -1739,6 +1771,7 @@ class S3Path(URIPath):
         If s3_url is an empty bucket, only yield one 3-tuple (notes: s3 doesn't have empty directory)
         If s3_url doesn't contain any bucket, which is s3_url == 's3://', raise UnsupportedError. walk() on complete s3 is not supported in megfile
 
+        :param followlinks: whether followlinks is True or False, result is the same. Because s3 symlink not support dir.
         :raises: UnsupportedError
         :returns: A 3-tuple generator
         '''
