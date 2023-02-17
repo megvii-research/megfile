@@ -1,7 +1,7 @@
 import pytest
 from click.testing import CliRunner
 
-from megfile.cli import cat, cp, ls, md5sum, mkdir, mtime, mv, rm, size, stat, sync, touch, version
+from megfile.cli import cat, cp, get_no_glob_root_path, ls, md5sum, mkdir, mtime, mv, rm, size, stat, sync, touch, version
 
 
 @pytest.fixture
@@ -46,6 +46,11 @@ def test_ls(runner, testdir):
 
     file_name = 'text'
     result_file = runner.invoke(ls, [str(testdir / file_name)])
+
+    assert result_file.exit_code == 0
+    assert result_file.output == "%s\n" % file_name
+
+    result_file = runner.invoke(ls, ['-r', str(testdir)])
 
     assert result_file.exit_code == 0
     assert result_file.output == "%s\n" % file_name
@@ -159,3 +164,19 @@ def test_sync(runner, testdir):
     assert result.exit_code == 0
     assert 'newfile\n' in runner.invoke(ls, [str(testdir)]).output
     assert 'text\n' in runner.invoke(ls, [str(testdir)]).output
+
+    runner.invoke(mkdir, [str(testdir / 'newdir')])
+    glob_result = runner.invoke(
+        sync, ['-g', str(testdir / '*'),
+               str(testdir / 'newdir')])
+
+    assert glob_result.exit_code == 0
+    assert 'newfile\n' in runner.invoke(ls, [str(testdir / 'newdir')]).output
+    assert 'text\n' in runner.invoke(ls, [str(testdir / 'newdir')]).output
+
+
+def test_get_no_glob_root_path():
+    assert get_no_glob_root_path('/data/**/*.py') == '/data'
+    assert get_no_glob_root_path('/**/*.py') == '/'
+    assert get_no_glob_root_path('./**/*.py') == '.'
+    assert get_no_glob_root_path('**/*.py') == '.'

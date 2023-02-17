@@ -833,6 +833,12 @@ class SftpPath(URIPath):
 
     def open(self, mode: str = 'r', buffering=-1, **kwargs) -> IO[AnyStr]:
         if 'w' in mode or 'x' in mode or 'a' in mode:
+            try:
+                if self.is_dir():
+                    raise IsADirectoryError(
+                        'Is a directory: %r' % self.path_with_protocol)
+            except FileNotFoundError:
+                pass
             self.parent.mkdir(parents=True, exist_ok=True)
         elif not self.is_file():
             raise IsADirectoryError(

@@ -154,6 +154,12 @@ def test_sftp_readlink(sftp_mocker):
     sftp.sftp_symlink(path, link_path)
     assert sftp.sftp_readlink(link_path) == path
 
+    with pytest.raises(FileNotFoundError):
+        sftp.sftp_readlink('sftp://username@host/notFound')
+
+    with pytest.raises(OSError):
+        sftp.sftp_readlink('sftp://username@host/file')
+
 
 def test_sftp_absolute(sftp_mocker):
     assert sftp.sftp_absolute(
@@ -197,6 +203,16 @@ def test_sftp_glob(sftp_mocker):
         'sftp://username@host/A/1.json',
         'sftp://username@host/A/a',
         'sftp://username@host/A/b',
+    ]
+    assert sftp.sftp_glob('sftp://username@host/A/**/*') == [
+        'sftp://username@host/A/1.json',
+        'sftp://username@host/A/a',
+        'sftp://username@host/A/b',
+        'sftp://username@host/A/b/c',
+        'sftp://username@host/A/b/file.json',
+    ]
+    assert sftp.sftp_glob('sftp://username@host/A/') == [
+        'sftp://username@host/A/',
     ]
 
 
@@ -371,6 +387,18 @@ def test_sftp_open(sftp_mocker):
 
     with sftp.sftp_open('sftp://username@host/A/test', 'rb') as f:
         assert f.read() == b'test'
+
+    with pytest.raises(FileNotFoundError):
+        with sftp.sftp_open('sftp://username@host/A/notFound', 'r') as f:
+            f.read()
+
+    with pytest.raises(IsADirectoryError):
+        with sftp.sftp_open('sftp://username@host/A', 'r') as f:
+            f.read()
+
+    with pytest.raises(IsADirectoryError):
+        with sftp.sftp_open('sftp://username@host/A', 'w') as f:
+            f.read()
 
 
 def test_sftp_remove(sftp_mocker):

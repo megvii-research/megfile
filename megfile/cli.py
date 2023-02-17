@@ -20,7 +20,7 @@ def cli():
     """Megfile Client"""
 
 
-def safe_cli():
+def safe_cli():  # pragma: no cover
     try:
         cli()
     except Exception as e:
@@ -29,6 +29,8 @@ def safe_cli():
 
 def get_no_glob_root_path(path):
     root_dir = []
+    if path.startswith('/'):
+        root_dir.append('/')
     for name in path.split('/'):
         if has_magic(name):
             break
@@ -36,7 +38,7 @@ def get_no_glob_root_path(path):
     if root_dir:
         root_dir = os.path.join(*root_dir)
     else:
-        root_dir = "/" if path.startswith('/') else "."
+        root_dir = "."
     return root_dir
 
 
@@ -192,12 +194,8 @@ def sync(src_path: str, dst_path: str, progress_bar: bool):
 
         def sync_magic_path(src_file_path):
             content_path = os.path.relpath(src_file_path, start=root_dir)
-            if len(content_path) and content_path != '.':
-                dst_abs_file_path = smart_path_join(
-                    dst_path, content_path.lstrip('/'))
-            else:
-                # if content_path is empty, which means smart_isfile(src_path) is True, this function is equal to smart_copy
-                dst_abs_file_path = dst_path
+            dst_abs_file_path = smart_path_join(
+                dst_path, content_path.lstrip('/'))
             smart_sync(src_file_path, dst_abs_file_path)
 
         if progress_bar:
@@ -207,7 +205,7 @@ def sync(src_path: str, dst_path: str, progress_bar: bool):
                 for src_file_path in glob_paths:
                     sync_magic_path(src_file_path)
                     t.update(1)
-        else:
+        else:  # pragma: no cover
             for src_file_path in smart_glob(src_path, recursive=True,
                                             missing_ok=True):
                 sync_magic_path(src_file_path)
@@ -269,4 +267,4 @@ def version():
 
 if __name__ == '__main__':
     # Usage: python -m megfile.cli
-    cli()  # pragma: no cover
+    safe_cli()  # pragma: no cover

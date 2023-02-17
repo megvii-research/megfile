@@ -294,7 +294,7 @@ def smart_copy(
         copy_func = _copy_funcs[src_protocol][dst_protocol]
     except KeyError:
         copy_func = _default_copy_func
-    if show_progress:
+    if show_progress:  # pragma: no cover
         with tqdm(total=1) as t:
             copy_func(
                 src_path, dst_path, callback=callback,
@@ -368,7 +368,7 @@ def smart_sync(
             callback=copy_callback,
             followlinks=followlinks)
 
-    if show_progress:
+    if show_progress:  # pragma: no cover
         file_paths = list(smart_scan(src_path, followlinks=followlinks))
         with tqdm(total=len(file_paths)) as t:
             for src_file_path in file_paths:
@@ -412,7 +412,7 @@ def smart_rename(
         smart_copy(src_path, dst_path)
         smart_unlink(src_path)
 
-    if show_progress:
+    if show_progress:  # pragma: no cover
         with tqdm(total=1) as t:
             rename(src_path, dst_path)
             t.update(1)
@@ -432,7 +432,7 @@ def smart_move(
     src_protocol, _ = SmartPath._extract_protocol(src_path)
     dst_protocol, _ = SmartPath._extract_protocol(dst_path)
     if src_protocol == dst_protocol:
-        if show_progress:
+        if show_progress:  # pragma: no cover
             with tqdm(total=1) as t:
                 SmartPath(src_path).rename(dst_path)
                 t.update(1)
