@@ -30,7 +30,7 @@ setup(
     author_email='megfile@megvii.com',
     url='https://github.com/megvii-research/megfile',
     packages=find_packages(exclude=('tests', 'tests*', 'remof')),
-    entry_points={'console_scripts': ['megfile = megfile.cli:cli']},
+    entry_points={'console_scripts': ['megfile = megfile.cli:safe_cli']},
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Console',

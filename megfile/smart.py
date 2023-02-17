@@ -5,6 +5,8 @@ from functools import partial
 from itertools import chain
 from typing import IO, AnyStr, BinaryIO, Callable, Iterator, List, Optional, Tuple
 
+from tqdm import tqdm
+
 from megfile.fs import fs_copy, fs_getsize, fs_scandir
 from megfile.interfaces import Access, FileEntry, NullCacher, PathLike, StatResult
 from megfile.lib.combine_reader import CombineReader
@@ -255,7 +257,8 @@ def smart_copy(
         src_path: PathLike,
         dst_path: PathLike,
         callback: Optional[Callable[[int], None]] = None,
-        followlinks: bool = False) -> None:
+        followlinks: bool = False,
+        show_progress: bool = False) -> None:
     '''
     Copy file from source path to destination path
 
@@ -291,16 +294,24 @@ def smart_copy(
         copy_func = _copy_funcs[src_protocol][dst_protocol]
     except KeyError:
         copy_func = _default_copy_func
-    copy_func(
-        src_path, dst_path, callback=callback,
-        followlinks=followlinks)  # type: ignore
+    if show_progress:
+        with tqdm(total=1) as t:
+            copy_func(
+                src_path, dst_path, callback=callback,
+                followlinks=followlinks)  # type: ignore
+            t.update(1)
+    else:
+        copy_func(
+            src_path, dst_path, callback=callback,
+            followlinks=followlinks)  # type: ignore
 
 
 def smart_sync(
         src_path: PathLike,
         dst_path: PathLike,
         callback: Optional[Callable[[str, int], None]] = None,
-        followlinks: bool = False) -> None:
+        followlinks: bool = False,
+        show_progress: bool = False) -> None:
     '''
     Sync file or directory on s3 and fs
 
@@ -341,7 +352,8 @@ def smart_sync(
     '''
     src_path, dst_path = get_traditional_path(src_path), get_traditional_path(
         dst_path)
-    for src_file_path in smart_scan(src_path, followlinks=followlinks):
+
+    def copy_file(src_file_path):
         content_path = os.path.relpath(src_file_path, start=src_path)
         if len(content_path) and content_path != '.':
             content_path = content_path.lstrip('/')
@@ -356,6 +368,17 @@ def smart_sync(
             callback=copy_callback,
             followlinks=followlinks)
 
+    if show_progress:
+        file_paths = list(smart_scan(src_path, followlinks=followlinks))
+        with tqdm(total=len(file_paths)) as t:
+            for src_file_path in file_paths:
+                copy_file(src_file_path)
+                t.update(1)
+    else:
+        file_paths = smart_scan(src_path, followlinks=followlinks)
+        for src_file_path in file_paths:
+            copy_file(src_file_path)
+
 
 def smart_remove(path: PathLike, missing_ok: bool = False) -> None:
     '''
@@ -368,7 +391,9 @@ def smart_remove(path: PathLike, missing_ok: bool = False) -> None:
     SmartPath(path).remove(missing_ok=missing_ok)
 
 
-def smart_rename(src_path: PathLike, dst_path: PathLike) -> None:
+def smart_rename(
+        src_path: PathLike, dst_path: PathLike,
+        show_progress: bool = False) -> None:
     '''
     Move file on s3 or fs. `s3://` or `s3://bucket` is not allowed to move
 
@@ -377,16 +402,27 @@ def smart_rename(src_path: PathLike, dst_path: PathLike) -> None:
     '''
     if smart_isdir(src_path):
         raise IsADirectoryError('%r is a directory' % src_path)
-    src_protocol, _ = SmartPath._extract_protocol(src_path)
-    dst_protocol, _ = SmartPath._extract_protocol(dst_path)
-    if src_protocol == dst_protocol:
-        SmartPath(src_path).rename(dst_path)
-        return
-    smart_copy(src_path, dst_path)
-    smart_unlink(src_path)
+
+    def rename(src_path: PathLike, dst_path: PathLike):
+        src_protocol, _ = SmartPath._extract_protocol(src_path)
+        dst_protocol, _ = SmartPath._extract_protocol(dst_path)
+        if src_protocol == dst_protocol:
+            SmartPath(src_path).rename(dst_path)
+            return
+        smart_copy(src_path, dst_path)
+        smart_unlink(src_path)
+
+    if show_progress:
+        with tqdm(total=1) as t:
+            rename(src_path, dst_path)
+            t.update(1)
+    else:
+        rename(src_path, dst_path)
 
 
-def smart_move(src_path: PathLike, dst_path: PathLike) -> None:
+def smart_move(
+        src_path: PathLike, dst_path: PathLike,
+        show_progress: bool = False) -> None:
     '''
     Move file/directory on s3 or fs. `s3://` or `s3://bucket` is not allowed to move
 
@@ -396,9 +432,15 @@ def smart_move(src_path: PathLike, dst_path: PathLike) -> None:
     src_protocol, _ = SmartPath._extract_protocol(src_path)
     dst_protocol, _ = SmartPath._extract_protocol(dst_path)
     if src_protocol == dst_protocol:
-        SmartPath(src_path).rename(dst_path)
+        if show_progress:
+            with tqdm(total=1) as t:
+                SmartPath(src_path).rename(dst_path)
+                t.update(1)
+        else:
+            SmartPath(src_path).rename(dst_path)
         return
-    smart_sync(src_path, dst_path, followlinks=True)
+    smart_sync(
+        src_path, dst_path, followlinks=True, show_progress=show_progress)
     smart_remove(src_path)
 
 
