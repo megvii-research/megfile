@@ -1,7 +1,11 @@
+import os
+
 import pytest
 from click.testing import CliRunner
 
 from megfile.cli import cat, cp, get_no_glob_root_path, ls, md5sum, mkdir, mtime, mv, rm, size, stat, sync, touch, version
+
+from .test_smart import s3_empty_client
 
 
 @pytest.fixture
@@ -83,7 +87,7 @@ def test_cat(runner, testdir):
     assert result.output == 'hello'
 
 
-def test_mv(runner, testdir):
+def test_mv(runner, testdir, s3_empty_client):
     result = runner.invoke(
         mv,
         [str(testdir / 'text'), str(testdir / 'newfile')])
@@ -99,6 +103,39 @@ def test_mv(runner, testdir):
 
     assert result_dst_path_isdir.exit_code == 0
     assert 'newfile\n' in runner.invoke(ls, [str(testdir / 'new_dir')]).output
+    assert not runner.invoke(ls, [str(testdir)]).output.endswith('newfile\n')
+
+    runner.invoke(mkdir, [str(testdir / 'new_dir2')])
+    result_dst_path_isdir = runner.invoke(
+        mv, ['-r', '-g',
+             str(testdir / 'new_dir'),
+             str(testdir / 'new_dir2')])
+
+    assert result_dst_path_isdir.exit_code == 0
+    assert '100%' in result_dst_path_isdir.output
+    assert 'newfile\n' in runner.invoke(
+        ls, [str(testdir / 'new_dir2' / 'new_dir')]).output
+    assert not runner.invoke(ls, [str(testdir)]).output.endswith('new_dir\n')
+
+    result_dst_path_isdir = runner.invoke(
+        mv,
+        ['-g',
+         str(testdir / 'new_dir2' / 'new_dir' / 'newfile'),
+         str(testdir)])
+
+    assert result_dst_path_isdir.exit_code == 0
+    assert '100%' in result_dst_path_isdir.output
+    assert 'newfile\n' in runner.invoke(ls, [str(testdir)]).output
+    assert not runner.invoke(ls, [str(testdir / 'new_dir2' / 'new_dir')
+                                 ]).output.endswith('newfile\n')
+
+    result_dst_path_isdir = runner.invoke(
+        mv, ['-r', '-g', str(testdir), 's3://bucket/'])
+
+    assert result_dst_path_isdir.exit_code == 0
+    assert '100%' in result_dst_path_isdir.output
+    assert 'newfile\n' in runner.invoke(
+        ls, [f's3://bucket/{os.path.basename(str(testdir))}']).output
     assert not runner.invoke(ls, [str(testdir)]).output.endswith('newfile\n')
 
 
@@ -152,8 +189,36 @@ def test_cp(runner, testdir):
         [str(testdir / 'text'), str(testdir / 'new_dir')])
 
     assert result_dst_path_isdir.exit_code == 0
-    assert 'text\n' in runner.invoke(ls, [str(testdir / 'new_dir')]).output
-    assert 'text\n' in runner.invoke(ls, [str(testdir)]).output
+    assert 'text' in runner.invoke(ls, [str(testdir / 'new_dir')]).output
+
+    runner.invoke(mkdir, [str(testdir / 'new_dir2')])
+    result_dst_path_isdir = runner.invoke(
+        cp, ['-g', str(testdir / 'text'),
+             str(testdir / 'new_dir2')])
+
+    assert result_dst_path_isdir.exit_code == 0
+    assert '100%' in result_dst_path_isdir.output
+    assert 'text' in runner.invoke(ls, [str(testdir / 'new_dir2')]).output
+
+    runner.invoke(mkdir, [str(testdir / 'new_dir3')])
+    result_dst_path_isdir = runner.invoke(
+        cp, ['-r', str(testdir / 'new_dir'),
+             str(testdir / 'new_dir3')])
+
+    assert result_dst_path_isdir.exit_code == 0
+    assert 'text' in runner.invoke(
+        ls, [str(testdir / 'new_dir3' / 'new_dir')]).output
+
+    runner.invoke(mkdir, [str(testdir / 'new_dir4')])
+    result_dst_path_isdir = runner.invoke(
+        cp, ['-r', '-g',
+             str(testdir / 'new_dir'),
+             str(testdir / 'new_dir4')])
+
+    assert result_dst_path_isdir.exit_code == 0
+    assert '100%' in result_dst_path_isdir.output
+    assert 'text' in runner.invoke(
+        ls, [str(testdir / 'new_dir4' / 'new_dir')]).output
 
 
 def test_sync(runner, testdir):
@@ -166,13 +231,24 @@ def test_sync(runner, testdir):
     assert 'text\n' in runner.invoke(ls, [str(testdir)]).output
 
     runner.invoke(mkdir, [str(testdir / 'newdir')])
+    result = runner.invoke(
+        sync,
+        ['-g', str(testdir / 'text'),
+         str(testdir / 'newdir' / 'newfile')])
+
+    assert result.exit_code == 0
+    assert '100%' in result.output
+    assert 'newfile\n' in runner.invoke(ls, [str(testdir / 'newdir')]).output
+
+    runner.invoke(mkdir, [str(testdir / 'newdir2')])
     glob_result = runner.invoke(
         sync, ['-g', str(testdir / '*'),
-               str(testdir / 'newdir')])
+               str(testdir / 'newdir2')])
 
     assert glob_result.exit_code == 0
-    assert 'newfile\n' in runner.invoke(ls, [str(testdir / 'newdir')]).output
-    assert 'text\n' in runner.invoke(ls, [str(testdir / 'newdir')]).output
+    assert '100%' in glob_result.output
+    assert 'newfile\n' in runner.invoke(ls, [str(testdir / 'newdir2')]).output
+    assert 'text\n' in runner.invoke(ls, [str(testdir / 'newdir2')]).output
 
 
 def test_get_no_glob_root_path():

@@ -2,15 +2,14 @@ import os
 import shutil
 import sys
 import time
-from functools import wraps
 
 import click
 from tqdm import tqdm
 
-from megfile import errors
 from megfile.interfaces import FileEntry
 from megfile.lib.glob import has_magic
-from megfile.smart import smart_copy, smart_getmd5, smart_getmtime, smart_getsize, smart_glob, smart_glob_stat, smart_isdir, smart_isfile, smart_makedirs, smart_move, smart_open, smart_path_join, smart_remove, smart_rename, smart_scan_stat, smart_scandir, smart_stat, smart_sync, smart_touch, smart_unlink
+from megfile.smart import smart_copy, smart_getmd5, smart_getmtime, smart_getsize, smart_glob, smart_glob_stat, smart_isdir, smart_isfile, smart_makedirs, smart_move, smart_open, smart_path_join, smart_remove, smart_rename, smart_scan_stat, smart_scandir, smart_stat, smart_sync, smart_sync_with_progress, smart_touch, smart_unlink
+from megfile.smart_path import SmartPath
 from megfile.utils import get_human_size
 from megfile.version import VERSION
 
@@ -136,8 +135,18 @@ def cp(
 ):
     if smart_isdir(dst_path) and not no_target_directory:
         dst_path = smart_path_join(dst_path, os.path.basename(src_path))
-    copy_func = smart_sync if recursive else smart_copy
-    copy_func(src_path, dst_path, show_progress=progress_bar)
+    if recursive:
+        if progress_bar:
+            smart_sync_with_progress(src_path, dst_path, followlinks=True)
+        else:
+            smart_sync(src_path, dst_path, followlinks=True)
+    else:
+        if progress_bar:
+            with tqdm(total=1) as t:
+                smart_copy(src_path, dst_path)
+                t.update(1)
+        else:
+            smart_copy(src_path, dst_path)
 
 
 @cli.command(short_help='Move files from source to dest.')
@@ -165,8 +174,24 @@ def mv(
 ):
     if smart_isdir(dst_path) and not no_target_directory:
         dst_path = smart_path_join(dst_path, os.path.basename(src_path))
-    move_func = smart_move if recursive else smart_rename
-    move_func(src_path, dst_path, show_progress=progress_bar)
+    if progress_bar:
+        if recursive:
+            src_protocol, _ = SmartPath._extract_protocol(src_path)
+            dst_protocol, _ = SmartPath._extract_protocol(dst_path)
+            if src_protocol == dst_protocol:
+                with tqdm(total=1) as t:
+                    SmartPath(src_path).rename(dst_path)
+                    t.update(1)
+            else:
+                smart_sync_with_progress(src_path, dst_path, followlinks=True)
+                smart_remove(src_path)
+        else:
+            with tqdm(total=1) as t:
+                smart_rename(src_path, dst_path)
+                t.update(1)
+    else:
+        move_func = smart_move if recursive else smart_rename
+        move_func(src_path, dst_path)
 
 
 @cli.command(short_help='Remove files from path.')
@@ -196,7 +221,7 @@ def sync(src_path: str, dst_path: str, progress_bar: bool):
             content_path = os.path.relpath(src_file_path, start=root_dir)
             dst_abs_file_path = smart_path_join(
                 dst_path, content_path.lstrip('/'))
-            smart_sync(src_file_path, dst_abs_file_path)
+            smart_sync(src_file_path, dst_abs_file_path, followlinks=True)
 
         if progress_bar:
             glob_paths = list(
@@ -211,7 +236,10 @@ def sync(src_path: str, dst_path: str, progress_bar: bool):
                 sync_magic_path(src_file_path)
 
     else:
-        smart_sync(src_path, dst_path, show_progress=progress_bar)
+        if progress_bar:
+            smart_sync_with_progress(src_path, dst_path, followlinks=True)
+        else:
+            smart_sync(src_path, dst_path, followlinks=True)
 
 
 @cli.command(short_help="Make the path if it doesn't already exist.")
