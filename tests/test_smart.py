@@ -410,7 +410,7 @@ def test_smart_move(mocker):
     func_smart_remove = mocker.patch('megfile.smart.smart_remove')
     smart.smart_move('/bucket/a', 's3://bucket/b')
     func_smart_sync.assert_called_once_with(
-        '/bucket/a', 's3://bucket/b', followlinks=True)
+        '/bucket/a', 's3://bucket/b', followlinks=True, show_progress=False)
     func_smart_remove.assert_called_once_with('/bucket/a')
 
 

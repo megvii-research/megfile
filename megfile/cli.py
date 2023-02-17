@@ -40,24 +40,24 @@ def get_no_glob_root_path(path):
     return root_dir
 
 
-def simple_echo(file):
-    click.echo(file.path)
+def simple_echo(file, show_full_path: bool = False):
+    click.echo(file.path if show_full_path else file.name)
 
 
-def long_echo(file):
+def long_echo(file, show_full_path: bool = False):
     click.echo(
         '%12d %s %s' % (
             file.stat.size,
             time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(
-                file.stat.mtime)), file.path))
+                file.stat.mtime)), file.path if show_full_path else file.name))
 
 
-def human_echo(file):
+def human_echo(file, show_full_path: bool = False):
     click.echo(
         '%10s %s %s' % (
             get_human_size(file.stat.size),
             time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(
-                file.stat.mtime)), file.path))
+                file.stat.mtime)), file.path if show_full_path else file.name))
 
 
 def smart_list_stat(path):
@@ -88,8 +88,10 @@ def smart_list_stat(path):
     is_flag=True,
     help='Displays file sizes in human readable format.')
 def ls(path: str, long: bool, recursive: bool, human_readable: bool):
+    show_full_path = False
     if has_magic(path):
         scan_func = smart_glob_stat
+        show_full_path = True
     elif recursive:
         scan_func = smart_scan_stat
     else:
@@ -103,7 +105,7 @@ def ls(path: str, long: bool, recursive: bool, human_readable: bool):
         echo_func = simple_echo
 
     for file in scan_func(path):
-        echo_func(file)
+        echo_func(file, show_full_path)
 
 
 @cli.command(
