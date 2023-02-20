@@ -1,3 +1,4 @@
+import atexit
 import hashlib
 import io
 import os
@@ -104,7 +105,9 @@ def get_sftp_client(
     )
     transport = paramiko.Transport((hostname, port))
     transport.connect(username=username, password=password, pkey=private_key)
-    return paramiko.SFTPClient.from_transport(transport)
+    client = paramiko.SFTPClient.from_transport(transport)
+    atexit.register(client.close)
+    return client
 
 
 @lru_cache()
@@ -129,6 +132,7 @@ def get_ssh_client(
         password=password,
         pkey=private_key,
     )
+    atexit.register(ssh_client.close)
     return ssh_client
 
 
