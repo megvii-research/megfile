@@ -106,6 +106,8 @@ def get_sftp_client(
     transport = paramiko.Transport((hostname, port))
     transport.connect(username=username, password=password, pkey=private_key)
     client = paramiko.SFTPClient.from_transport(transport)
+    if not client:
+        raise ConnectionError('SFTP connect error')
     atexit.register(client.close)
     return client
 
