@@ -374,12 +374,20 @@ def smart_sync_with_progress(
     src_path, dst_path = get_traditional_path(src_path), get_traditional_path(
         dst_path)
     files = list(smart_scan(src_path, followlinks=followlinks))
-    with tqdm(total=len(files)) as t:
+    tbar = tqdm(total=len(files), ascii=True)
+    sbar = tqdm(unit='B', ascii=True, unit_scale=True)
 
-        for src_file_path in files:
-            _smart_sync_single_file(
-                src_path, dst_path, src_file_path, callback, followlinks)
-            t.update(1)
+    def tqdm_callback(current_src_path, length: int):
+        sbar.update(length)
+        if callback:
+            callback(current_src_path, length)
+
+    for src_file_path in files:
+        _smart_sync_single_file(
+            src_path, dst_path, src_file_path, tqdm_callback, followlinks)
+        tbar.update(1)
+    tbar.close()
+    sbar.close()
 
 
 def smart_remove(path: PathLike, missing_ok: bool = False) -> None:

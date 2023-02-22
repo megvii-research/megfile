@@ -138,6 +138,18 @@ def test_mv(runner, testdir, s3_empty_client):
         ls, [f's3://bucket/{os.path.basename(str(testdir))}']).output
     assert not runner.invoke(ls, [str(testdir)]).output.endswith('newfile\n')
 
+    result_dst_path_notdir = runner.invoke(
+        mv, [
+            '-g', f's3://bucket/{os.path.basename(str(testdir))}/newfile',
+            str(testdir / 'newfile')
+        ])
+
+    assert result_dst_path_notdir.exit_code == 0
+    assert '100%' in result_dst_path_notdir.output
+    assert 'newfile\n' not in runner.invoke(
+        ls, [f's3://bucket/{os.path.basename(str(testdir))}']).output
+    assert runner.invoke(ls, [str(testdir)]).output.endswith('newfile\n')
+
 
 def test_rm(runner, testdir):
     result = runner.invoke(rm, [str(testdir / 'text')])

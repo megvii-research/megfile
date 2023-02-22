@@ -142,9 +142,14 @@ def cp(
             smart_sync(src_path, dst_path, followlinks=True)
     else:
         if progress_bar:
-            with tqdm(total=1) as t:
-                smart_copy(src_path, dst_path)
-                t.update(1)
+            file_size = smart_stat(src_path).size
+            sbar = tqdm(total=file_size, unit='B', ascii=True, unit_scale=True)
+
+            def callback(length: int):
+                sbar.update(length)
+
+            smart_copy(src_path, dst_path, callback=callback)
+            sbar.close()
         else:
             smart_copy(src_path, dst_path)
 
@@ -175,9 +180,10 @@ def mv(
     if smart_isdir(dst_path) and not no_target_directory:
         dst_path = smart_path_join(dst_path, os.path.basename(src_path))
     if progress_bar:
+        src_protocol, _ = SmartPath._extract_protocol(src_path)
+        dst_protocol, _ = SmartPath._extract_protocol(dst_path)
+
         if recursive:
-            src_protocol, _ = SmartPath._extract_protocol(src_path)
-            dst_protocol, _ = SmartPath._extract_protocol(dst_path)
             if src_protocol == dst_protocol:
                 with tqdm(total=1) as t:
                     SmartPath(src_path).rename(dst_path)
@@ -186,9 +192,21 @@ def mv(
                 smart_sync_with_progress(src_path, dst_path, followlinks=True)
                 smart_remove(src_path)
         else:
-            with tqdm(total=1) as t:
-                smart_rename(src_path, dst_path)
-                t.update(1)
+            if src_protocol == dst_protocol:
+                with tqdm(total=1) as t:
+                    SmartPath(src_path).rename(dst_path)
+                    t.update(1)
+            else:
+                file_size = smart_stat(src_path).size
+                sbar = tqdm(
+                    total=file_size, unit='B', ascii=True, unit_scale=True)
+
+                def callback(length: int):
+                    sbar.update(length)
+
+                smart_copy(src_path, dst_path, callback=callback)
+                smart_unlink(src_path)
+                sbar.close()
     else:
         move_func = smart_move if recursive else smart_rename
         move_func(src_path, dst_path)
@@ -217,19 +235,30 @@ def sync(src_path: str, dst_path: str, progress_bar: bool):
     if has_magic(src_path):
         root_dir = get_no_glob_root_path(src_path)
 
-        def sync_magic_path(src_file_path):
+        def sync_magic_path(src_file_path, callback=None):
             content_path = os.path.relpath(src_file_path, start=root_dir)
             dst_abs_file_path = smart_path_join(
                 dst_path, content_path.lstrip('/'))
-            smart_sync(src_file_path, dst_abs_file_path, followlinks=True)
+            smart_sync(
+                src_file_path,
+                dst_abs_file_path,
+                callback=callback,
+                followlinks=True)
 
         if progress_bar:
             glob_paths = list(
                 smart_glob(src_path, recursive=True, missing_ok=True))
-            with tqdm(total=len(glob_paths)) as t:
-                for src_file_path in glob_paths:
-                    sync_magic_path(src_file_path)
-                    t.update(1)
+            tbar = tqdm(total=len(glob_paths), ascii=True)
+            sbar = tqdm(unit='B', ascii=True, unit_scale=True)
+
+            def callback(_filename: str, length: int):
+                sbar.update(length)
+
+            for src_file_path in glob_paths:
+                sync_magic_path(src_file_path, callback=callback)
+                tbar.update(1)
+            tbar.close()
+            sbar.close()
         else:  # pragma: no cover
             for src_file_path in smart_glob(src_path, recursive=True,
                                             missing_ok=True):
