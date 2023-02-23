@@ -114,7 +114,7 @@ def s3_getsize(path: PathLike, follow_symlinks: bool = False) -> int:
     return S3Path(path).getsize(follow_symlinks)
 
 
-def s3_isdir(path: PathLike) -> bool:
+def s3_isdir(path: PathLike, followlinks: bool = False) -> bool:
     '''
     Test if an s3 url is directory
     Specific procedures are as follows:
@@ -122,9 +122,10 @@ def s3_isdir(path: PathLike) -> bool:
     If the url is empty bucket or s3://
 
     :param path: Given path
+    :param followlinks: whether followlinks is True or False, result is the same. Because s3 symlink not support dir.
     :returns: True if path is s3 directory, else False
     '''
-    return S3Path(path).is_dir()
+    return S3Path(path).is_dir(followlinks)
 
 
 def s3_isfile(path: PathLike, followlinks: bool = False) -> bool:
@@ -262,7 +263,8 @@ def s3_unlink(path: PathLike, missing_ok: bool = False) -> None:
     return S3Path(path).unlink(missing_ok)
 
 
-def s3_walk(path: PathLike) -> Iterator[Tuple[str, List[str], List[str]]]:
+def s3_walk(path: PathLike, followlinks: bool = False
+           ) -> Iterator[Tuple[str, List[str], List[str]]]:
     '''
     Iteratively traverse the given s3 directory, in top-bottom order. In other words, firstly traverse parent directory, if subdirectories exist, traverse the subdirectories in alphabetical order.
     Every iteration on generator yields a 3-tuple: (root, dirs, files)
@@ -278,10 +280,11 @@ def s3_walk(path: PathLike) -> Iterator[Tuple[str, List[str], List[str]]]:
     If s3_url doesn't contain any bucket, which is s3_url == 's3://', raise UnsupportedError. walk() on complete s3 is not supported in megfile
 
     :param path: Given path
+    :param followlinks: whether followlinks is True or False, result is the same. Because s3 symlink not support dir.
     :raises: UnsupportedError
     :returns: A 3-tuple generator
     '''
-    return S3Path(path).walk()
+    return S3Path(path).walk(followlinks)
 
 
 def s3_getmd5(
