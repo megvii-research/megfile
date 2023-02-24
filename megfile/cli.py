@@ -7,7 +7,7 @@ import click
 from tqdm import tqdm
 
 from megfile.interfaces import FileEntry
-from megfile.lib.glob import has_magic
+from megfile.lib.glob import get_non_glob_dir, has_magic
 from megfile.smart import smart_copy, smart_getmd5, smart_getmtime, smart_getsize, smart_glob, smart_glob_stat, smart_isdir, smart_isfile, smart_makedirs, smart_move, smart_open, smart_path_join, smart_remove, smart_rename, smart_scan_stat, smart_scandir, smart_stat, smart_sync, smart_sync_with_progress, smart_touch, smart_unlink
 from megfile.smart_path import SmartPath
 from megfile.utils import get_human_size
@@ -23,22 +23,7 @@ def safe_cli():  # pragma: no cover
     try:
         cli()
     except Exception as e:
-        click.echo(f"\n[{type(e).__name__}] {e}")
-
-
-def get_no_glob_root_path(path):
-    root_dir = []
-    if path.startswith('/'):
-        root_dir.append('/')
-    for name in path.split('/'):
-        if has_magic(name):
-            break
-        root_dir.append(name)
-    if root_dir:
-        root_dir = os.path.join(*root_dir)
-    else:
-        root_dir = "."
-    return root_dir
+        click.echo(f"\n[{type(e).__name__}] {e}", err=True)
 
 
 def simple_echo(file, show_full_path: bool = False):
@@ -233,7 +218,7 @@ def rm(path: str, recursive: bool):
 @click.option('-g', '--progress-bar', is_flag=True, help='Show progress bar.')
 def sync(src_path: str, dst_path: str, progress_bar: bool):
     if has_magic(src_path):
-        root_dir = get_no_glob_root_path(src_path)
+        root_dir = get_non_glob_dir(src_path)
 
         def sync_magic_path(src_file_path, callback=None):
             content_path = os.path.relpath(src_file_path, start=root_dir)

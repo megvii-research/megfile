@@ -3,7 +3,7 @@ import os
 import pytest
 from click.testing import CliRunner
 
-from megfile.cli import cat, cp, get_no_glob_root_path, ls, md5sum, mkdir, mtime, mv, rm, size, stat, sync, touch, version
+from megfile.cli import cat, cp, ls, md5sum, mkdir, mtime, mv, rm, size, stat, sync, touch, version
 
 from .test_smart import s3_empty_client
 
@@ -261,10 +261,3 @@ def test_sync(runner, testdir):
     assert '%' in glob_result.output
     assert 'newfile\n' in runner.invoke(ls, [str(testdir / 'newdir2')]).output
     assert 'text\n' in runner.invoke(ls, [str(testdir / 'newdir2')]).output
-
-
-def test_get_no_glob_root_path():
-    assert get_no_glob_root_path('/data/**/*.py') == '/data'
-    assert get_no_glob_root_path('/**/*.py') == '/'
-    assert get_no_glob_root_path('./**/*.py') == '.'
-    assert get_no_glob_root_path('**/*.py') == '.'
