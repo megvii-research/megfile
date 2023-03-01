@@ -1,9 +1,10 @@
-import hashlib
 import os
 from collections import defaultdict
 from functools import partial
 from itertools import chain
 from typing import IO, AnyStr, BinaryIO, Callable, Iterator, List, Optional, Tuple
+
+from tqdm import tqdm
 
 from megfile.fs import fs_copy, fs_getsize, fs_scandir
 from megfile.interfaces import Access, FileEntry, NullCacher, PathLike, StatResult
@@ -47,6 +48,7 @@ __all__ = [
     'smart_scandir',
     'smart_stat',
     'smart_sync',
+    'smart_sync_with_progress',
     'smart_touch',
     'smart_unlink',
     'smart_walk',
@@ -296,6 +298,23 @@ def smart_copy(
         followlinks=followlinks)  # type: ignore
 
 
+def _smart_sync_single_file(
+        src_path, dst_path, src_file_path, callback, followlinks):
+    content_path = os.path.relpath(src_file_path, start=src_path)
+    if len(content_path) and content_path != '.':
+        content_path = content_path.lstrip('/')
+        dst_abs_file_path = smart_path_join(dst_path, content_path)
+    else:
+        # if content_path is empty, which means smart_isfile(src_path) is True, this function is equal to smart_copy
+        dst_abs_file_path = dst_path
+    copy_callback = partial(callback, src_file_path) if callback else None
+    smart_copy(
+        src_file_path,
+        dst_abs_file_path,
+        callback=copy_callback,
+        followlinks=followlinks)
+
+
 def smart_sync(
         src_path: PathLike,
         dst_path: PathLike,
@@ -341,20 +360,34 @@ def smart_sync(
     '''
     src_path, dst_path = get_traditional_path(src_path), get_traditional_path(
         dst_path)
+
     for src_file_path in smart_scan(src_path, followlinks=followlinks):
-        content_path = os.path.relpath(src_file_path, start=src_path)
-        if len(content_path) and content_path != '.':
-            content_path = content_path.lstrip('/')
-            dst_abs_file_path = smart_path_join(dst_path, content_path)
-        else:
-            # if content_path is empty, which means smart_isfile(src_path) is True, this function is equal to smart_copy
-            dst_abs_file_path = dst_path
-        copy_callback = partial(callback, src_file_path) if callback else None
-        smart_copy(
-            src_file_path,
-            dst_abs_file_path,
-            callback=copy_callback,
-            followlinks=followlinks)
+        _smart_sync_single_file(
+            src_path, dst_path, src_file_path, callback, followlinks)
+
+
+def smart_sync_with_progress(
+        src_path,
+        dst_path,
+        callback: Optional[Callable[[str, int], None]] = None,
+        followlinks: bool = False):  # pragma: no cover
+    src_path, dst_path = get_traditional_path(src_path), get_traditional_path(
+        dst_path)
+    files = list(smart_scan(src_path, followlinks=followlinks))
+    tbar = tqdm(total=len(files), ascii=True)
+    sbar = tqdm(unit='B', ascii=True, unit_scale=True)
+
+    def tqdm_callback(current_src_path, length: int):
+        sbar.update(length)
+        if callback:
+            callback(current_src_path, length)
+
+    for src_file_path in files:
+        _smart_sync_single_file(
+            src_path, dst_path, src_file_path, tqdm_callback, followlinks)
+        tbar.update(1)
+    tbar.close()
+    sbar.close()
 
 
 def smart_remove(path: PathLike, missing_ok: bool = False) -> None:

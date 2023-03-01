@@ -1,7 +1,7 @@
 from typing import IO, AnyStr, BinaryIO, Callable, Iterator, List, Optional, Tuple
 
 from megfile.interfaces import FileEntry, PathLike, StatResult
-from megfile.sftp_path import SftpPath, is_sftp, sftp_download, sftp_exists, sftp_glob, sftp_glob_stat, sftp_iglob, sftp_isdir, sftp_path_join, sftp_readlink, sftp_resolve, sftp_scandir, sftp_upload
+from megfile.sftp_path import SftpPath, is_sftp, sftp_download, sftp_glob, sftp_glob_stat, sftp_iglob, sftp_path_join, sftp_readlink, sftp_resolve, sftp_upload
 
 __all__ = [
     'is_sftp',
@@ -10,14 +10,13 @@ __all__ = [
     'sftp_iglob',
     'sftp_glob_stat',
     'sftp_resolve',
-    'sftp_isdir',
-    'sftp_exists',
-    'sftp_scandir',
     'sftp_download',
     'sftp_upload',
     'sftp_path_join',
+    'sftp_exists',
     'sftp_getmtime',
     'sftp_getsize',
+    'sftp_isdir',
     'sftp_isfile',
     'sftp_listdir',
     'sftp_load_from',
@@ -28,6 +27,7 @@ __all__ = [
     'sftp_remove',
     'sftp_scan',
     'sftp_scan_stat',
+    'sftp_scandir',
     'sftp_stat',
     'sftp_lstat',
     'sftp_unlink',
@@ -43,6 +43,18 @@ __all__ = [
     'sftp_copy',
     'sftp_sync',
 ]
+
+
+def sftp_exists(path: PathLike, followlinks: bool = False) -> bool:
+    '''
+    Test if the path exists
+
+    :param path: Given path
+    :param followlinks: False if regard symlink as file, else True
+    :returns: True if the path exists, else False
+
+    '''
+    return SftpPath(path).exists(followlinks)
 
 
 def sftp_getmtime(path: PathLike, follow_symlinks: bool = False) -> float:
@@ -67,6 +79,22 @@ def sftp_getsize(path: PathLike, follow_symlinks: bool = False) -> int:
 
     '''
     return SftpPath(path).getsize(follow_symlinks)
+
+
+def sftp_isdir(path: PathLike, followlinks: bool = False) -> bool:
+    '''
+    Test if a path is directory
+
+    .. note::
+
+        The difference between this function and ``os.path.isdir`` is that this function regard symlink as file
+
+    :param path: Given path
+    :param followlinks: False if regard symlink as file, else True
+    :returns: True if the path is a directory, else False
+
+    '''
+    return SftpPath(path).is_dir(followlinks)
 
 
 def sftp_isfile(path: PathLike, followlinks: bool = False) -> bool:
@@ -195,6 +223,16 @@ def sftp_scan_stat(
     return SftpPath(path).scan_stat(missing_ok, followlinks)
 
 
+def sftp_scandir(path: PathLike) -> Iterator[FileEntry]:
+    '''
+    Get all content of given file path.
+
+    :param path: Given path
+    :returns: An iterator contains all contents have prefix path
+    '''
+    return SftpPath(path).scandir()
+
+
 def sftp_stat(path: PathLike, follow_symlinks=True) -> StatResult:
     '''
     Get StatResult of file on sftp, including file size and mtime, referring to fs_getsize and fs_getmtime
@@ -292,7 +330,7 @@ def sftp_save_as(file_object: BinaryIO, path: PathLike):
     return SftpPath(path).save(file_object)
 
 
-def sftp_open(path: PathLike, mode: str, buffering=-1) -> IO[AnyStr]:
+def sftp_open(path: PathLike, mode: str = 'r', buffering=-1) -> IO[AnyStr]:
     return SftpPath(path).open(mode, buffering)
 
 

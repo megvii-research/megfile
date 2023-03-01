@@ -4,9 +4,12 @@ import sys
 import time
 
 import click
+from tqdm import tqdm
 
 from megfile.interfaces import FileEntry
-from megfile.smart import smart_copy, smart_getmd5, smart_getmtime, smart_getsize, smart_isdir, smart_isfile, smart_makedirs, smart_move, smart_open, smart_path_join, smart_remove, smart_rename, smart_scan_stat, smart_scandir, smart_stat, smart_sync, smart_touch, smart_unlink
+from megfile.lib.glob import get_non_glob_dir, has_magic
+from megfile.smart import smart_copy, smart_getmd5, smart_getmtime, smart_getsize, smart_glob, smart_glob_stat, smart_isdir, smart_isfile, smart_makedirs, smart_move, smart_open, smart_path_join, smart_remove, smart_rename, smart_scan_stat, smart_scandir, smart_stat, smart_sync, smart_sync_with_progress, smart_touch, smart_unlink
+from megfile.smart_path import SmartPath
 from megfile.utils import get_human_size
 from megfile.version import VERSION
 
@@ -16,24 +19,31 @@ def cli():
     """Megfile Client"""
 
 
-def simple_echo(file):
-    click.echo(file.name)
+def safe_cli():  # pragma: no cover
+    try:
+        cli()
+    except Exception as e:
+        click.echo(f"\n[{type(e).__name__}] {e}", err=True)
 
 
-def long_echo(file):
+def simple_echo(file, show_full_path: bool = False):
+    click.echo(file.path if show_full_path else file.name)
+
+
+def long_echo(file, show_full_path: bool = False):
     click.echo(
         '%12d %s %s' % (
             file.stat.size,
             time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(
-                file.stat.mtime)), file.name))
+                file.stat.mtime)), file.path if show_full_path else file.name))
 
 
-def human_echo(file):
+def human_echo(file, show_full_path: bool = False):
     click.echo(
         '%10s %s %s' % (
             get_human_size(file.stat.size),
             time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(
-                file.stat.mtime)), file.name))
+                file.stat.mtime)), file.path if show_full_path else file.name))
 
 
 def smart_list_stat(path):
@@ -64,7 +74,14 @@ def smart_list_stat(path):
     is_flag=True,
     help='Displays file sizes in human readable format.')
 def ls(path: str, long: bool, recursive: bool, human_readable: bool):
-    scan_func = smart_scan_stat if recursive else smart_list_stat
+    show_full_path = False
+    if has_magic(path):
+        scan_func = smart_glob_stat
+        show_full_path = True
+    elif recursive:
+        scan_func = smart_scan_stat
+    else:
+        scan_func = smart_list_stat
     if long:
         if human_readable:
             echo_func = human_echo
@@ -74,7 +91,7 @@ def ls(path: str, long: bool, recursive: bool, human_readable: bool):
         echo_func = simple_echo
 
     for file in scan_func(path):
-        echo_func(file)
+        echo_func(file, show_full_path)
 
 
 @cli.command(
@@ -93,13 +110,33 @@ def ls(path: str, long: bool, recursive: bool, human_readable: bool):
     '--no-target-directory',
     is_flag=True,
     help='treat dst_path as a normal file.')
+@click.option('-g', '--progress-bar', is_flag=True, help='Show progress bar.')
 def cp(
-        src_path: str, dst_path: str, recursive: bool,
-        no_target_directory: bool):
+        src_path: str,
+        dst_path: str,
+        recursive: bool,
+        no_target_directory: bool,
+        progress_bar: bool,
+):
     if smart_isdir(dst_path) and not no_target_directory:
         dst_path = smart_path_join(dst_path, os.path.basename(src_path))
-    copy_func = smart_sync if recursive else smart_copy
-    copy_func(src_path, dst_path)
+    if recursive:
+        if progress_bar:
+            smart_sync_with_progress(src_path, dst_path, followlinks=True)
+        else:
+            smart_sync(src_path, dst_path, followlinks=True)
+    else:
+        if progress_bar:
+            file_size = smart_stat(src_path).size
+            sbar = tqdm(total=file_size, unit='B', ascii=True, unit_scale=True)
+
+            def callback(length: int):
+                sbar.update(length)
+
+            smart_copy(src_path, dst_path, callback=callback)
+            sbar.close()
+        else:
+            smart_copy(src_path, dst_path)
 
 
 @cli.command(short_help='Move files from source to dest.')
@@ -117,13 +154,47 @@ def cp(
     '--no-target-directory',
     is_flag=True,
     help='treat dst_path as a normal file.')
+@click.option('-g', '--progress-bar', is_flag=True, help='Show progress bar.')
 def mv(
-        src_path: str, dst_path: str, recursive: bool,
-        no_target_directory: bool):
+        src_path: str,
+        dst_path: str,
+        recursive: bool,
+        no_target_directory: bool,
+        progress_bar: bool,
+):
     if smart_isdir(dst_path) and not no_target_directory:
         dst_path = smart_path_join(dst_path, os.path.basename(src_path))
-    move_func = smart_move if recursive else smart_rename
-    move_func(src_path, dst_path)
+    if progress_bar:
+        src_protocol, _ = SmartPath._extract_protocol(src_path)
+        dst_protocol, _ = SmartPath._extract_protocol(dst_path)
+
+        if recursive:
+            if src_protocol == dst_protocol:
+                with tqdm(total=1) as t:
+                    SmartPath(src_path).rename(dst_path)
+                    t.update(1)
+            else:
+                smart_sync_with_progress(src_path, dst_path, followlinks=True)
+                smart_remove(src_path)
+        else:
+            if src_protocol == dst_protocol:
+                with tqdm(total=1) as t:
+                    SmartPath(src_path).rename(dst_path)
+                    t.update(1)
+            else:
+                file_size = smart_stat(src_path).size
+                sbar = tqdm(
+                    total=file_size, unit='B', ascii=True, unit_scale=True)
+
+                def callback(length: int):
+                    sbar.update(length)
+
+                smart_copy(src_path, dst_path, callback=callback)
+                smart_unlink(src_path)
+                sbar.close()
+    else:
+        move_func = smart_move if recursive else smart_rename
+        move_func(src_path, dst_path)
 
 
 @cli.command(short_help='Remove files from path.')
@@ -144,8 +215,45 @@ def rm(path: str, recursive: bool):
     short_help='Make source and dest identical, modifying destination only.')
 @click.argument('src_path')
 @click.argument('dst_path')
-def sync(src_path: str, dst_path: str):
-    smart_sync(src_path, dst_path)
+@click.option('-g', '--progress-bar', is_flag=True, help='Show progress bar.')
+def sync(src_path: str, dst_path: str, progress_bar: bool):
+    if has_magic(src_path):
+        root_dir = get_non_glob_dir(src_path)
+
+        def sync_magic_path(src_file_path, callback=None):
+            content_path = os.path.relpath(src_file_path, start=root_dir)
+            dst_abs_file_path = smart_path_join(
+                dst_path, content_path.lstrip('/'))
+            smart_sync(
+                src_file_path,
+                dst_abs_file_path,
+                callback=callback,
+                followlinks=True)
+
+        if progress_bar:
+            glob_paths = list(
+                smart_glob(src_path, recursive=True, missing_ok=True))
+            tbar = tqdm(total=len(glob_paths), ascii=True)
+            sbar = tqdm(unit='B', ascii=True, unit_scale=True)
+
+            def callback(_filename: str, length: int):
+                sbar.update(length)
+
+            for src_file_path in glob_paths:
+                sync_magic_path(src_file_path, callback=callback)
+                tbar.update(1)
+            tbar.close()
+            sbar.close()
+        else:  # pragma: no cover
+            for src_file_path in smart_glob(src_path, recursive=True,
+                                            missing_ok=True):
+                sync_magic_path(src_file_path)
+
+    else:
+        if progress_bar:
+            smart_sync_with_progress(src_path, dst_path, followlinks=True)
+        else:
+            smart_sync(src_path, dst_path, followlinks=True)
 
 
 @cli.command(short_help="Make the path if it doesn't already exist.")
@@ -201,4 +309,4 @@ def version():
 
 if __name__ == '__main__':
     # Usage: python -m megfile.cli
-    cli()  # pragma: no cover
+    safe_cli()  # pragma: no cover

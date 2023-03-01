@@ -17,8 +17,7 @@ ALL_IGNORE_FUNC_LIST = dict(
     http=[],
     sftp=[
         "path_without_protocol", "expanduser", "iterdir", "readlink", "cwd",
-        "glob", "iglob", "glob_stat", "resolve", "exists", "is_dir", "scandir",
-        "relpath"
+        "glob", "iglob", "glob_stat", "resolve", "relpath"
     ],
 )
 

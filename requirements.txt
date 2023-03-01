@@ -4,3 +4,4 @@ botocore >= 1.13.0
 smart-open >= 1.6.0
 requests
 paramiko
+tqdm

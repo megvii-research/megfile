@@ -1,3 +1,4 @@
+import atexit
 import hashlib
 import io
 import os
@@ -29,9 +30,6 @@ __all__ = [
     'sftp_iglob',
     'sftp_glob_stat',
     'sftp_resolve',
-    'sftp_isdir',
-    'sftp_exists',
-    'sftp_scandir',
     'sftp_download',
     'sftp_upload',
     'sftp_path_join',
@@ -107,7 +105,11 @@ def get_sftp_client(
     )
     transport = paramiko.Transport((hostname, port))
     transport.connect(username=username, password=password, pkey=private_key)
-    return paramiko.SFTPClient.from_transport(transport)
+    client = paramiko.SFTPClient.from_transport(transport)
+    if not client:
+        raise ConnectionError('SFTP connect error')
+    atexit.register(client.close)
+    return client
 
 
 @lru_cache()
@@ -132,6 +134,7 @@ def get_ssh_client(
         password=password,
         pkey=private_key,
     )
+    atexit.register(ssh_client.close)
     return ssh_client
 
 
@@ -206,44 +209,6 @@ def sftp_glob_stat(
             path_object.lstat())
 
 
-def sftp_isdir(path: PathLike, followlinks: bool = False) -> bool:
-    '''
-    Test if a path is directory
-
-    .. note::
-
-        The difference between this function and ``os.path.isdir`` is that this function regard symlink as file
-
-    :param path: Given path
-    :param followlinks: False if regard symlink as file, else True
-    :returns: True if the path is a directory, else False
-
-    '''
-    return SftpPath(path).is_dir(followlinks)
-
-
-def sftp_scandir(path: PathLike) -> Iterator[FileEntry]:
-    '''
-    Get all content of given file path.
-
-    :param path: Given path
-    :returns: An iterator contains all contents have prefix path
-    '''
-    return SftpPath(path).scandir()
-
-
-def sftp_exists(path: PathLike, followlinks: bool = False) -> bool:
-    '''
-    Test if the path exists
-
-    :param path: Given path
-    :param followlinks: False if regard symlink as file, else True
-    :returns: True if the path exists, else False
-
-    '''
-    return SftpPath(path).exists(followlinks)
-
-
 def sftp_iglob(path: PathLike, recursive: bool = True,
                missing_ok: bool = True) -> Iterator[str]:
     '''Return path iterator in ascending alphabetical order, in which path matches glob pattern
@@ -264,15 +229,9 @@ def sftp_iglob(path: PathLike, recursive: bool = True,
     :returns: An iterator contains paths match `pathname`
     '''
 
-    def _scandir(dirname: str) -> Iterator[Tuple[str, bool]]:
-        for entry in sftp_scandir(dirname):
-            yield entry.name, entry.is_dir()
-
-    fs = FSFunc(sftp_exists, sftp_isdir, _scandir)
-    for real_path in _create_missing_ok_generator(
-            iglob(fspath(path), recursive=recursive, fs=fs), missing_ok,
-            FileNotFoundError('No match file: %r' % path)):
-        yield real_path
+    for path in SftpPath(path).iglob(pattern="", recursive=recursive,
+                                     missing_ok=missing_ok):
+        yield path.path_with_protocol
 
 
 def sftp_resolve(path: PathLike, strict=False) -> 'str':
@@ -498,9 +457,22 @@ class SftpPath(URIPath):
         glob_path = self.path_with_protocol
         if pattern:
             glob_path = self.joinpath(pattern).path_with_protocol
-        for path in sftp_iglob(glob_path, recursive=recursive,
-                               missing_ok=missing_ok):
-            yield self.from_path(path)
+
+        def _scandir(dirname: str) -> Iterator[Tuple[str, bool]]:
+            for entry in self.from_path(dirname).scandir():
+                yield entry.name, entry.is_dir()
+
+        def _exist(path: PathLike, followlinks: bool = False):
+            return self.from_path(path).exists(followlinks=followlinks)
+
+        def _is_dir(path: PathLike, followlinks: bool = False):
+            return self.from_path(path).is_dir(followlinks=followlinks)
+
+        fs = FSFunc(_exist, _is_dir, _scandir)
+        for real_path in _create_missing_ok_generator(
+                iglob(fspath(glob_path), recursive=recursive, fs=fs),
+                missing_ok, FileNotFoundError('No match file: %r' % glob_path)):
+            yield self.from_path(real_path)
 
     def is_dir(self, followlinks: bool = False) -> bool:
         '''
@@ -836,6 +808,8 @@ class SftpPath(URIPath):
         Return a SftpPath instance representing the path to which the symbolic link points.
         :returns: Return a SftpPath instance representing the path to which the symbolic link points.
         '''
+        if not self.is_symlink():
+            raise OSError('Not a symlink: %s' % self.path_with_protocol)
         return self._generate_path_object(
             self._client.readlink(self._real_path))
 
@@ -863,9 +837,18 @@ class SftpPath(URIPath):
         with self.open(mode='wb') as output:
             output.write(file_object.read())
 
-    def open(self, mode: str, buffering=-1, **kwargs) -> IO[AnyStr]:
+    def open(self, mode: str = 'r', buffering=-1, **kwargs) -> IO[AnyStr]:
         if 'w' in mode or 'x' in mode or 'a' in mode:
+            try:
+                if self.is_dir():
+                    raise IsADirectoryError(
+                        'Is a directory: %r' % self.path_with_protocol)
+            except FileNotFoundError:
+                pass
             self.parent.mkdir(parents=True, exist_ok=True)
+        elif not self.is_file():
+            raise IsADirectoryError(
+                'Is a directory: %r' % self.path_with_protocol)
         fileobj = self._client.open(self._real_path, mode, bufsize=buffering)
         if 'r' in mode and 'b' not in mode:
             return io.TextIOWrapper(fileobj)

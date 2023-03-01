@@ -524,3 +524,10 @@ def test_ungloblize():
     ]
     assert sorted(path_list) == sorted(
         glob.ungloblize(glob.globlize(path_list)))
+
+
+def test_get_no_glob_root_path():
+    assert glob.get_non_glob_dir('/data/**/*.py') == '/data'
+    assert glob.get_non_glob_dir('/**/*.py') == '/'
+    assert glob.get_non_glob_dir('./**/*.py') == '.'
+    assert glob.get_non_glob_dir('**/*.py') == '.'

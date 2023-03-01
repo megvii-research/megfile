@@ -292,3 +292,18 @@ def ungloblize(glob: str) -> List[str]:
             path = temp_path[:begin] + escape(subpath) + temp_path[end + 1:]
             path_list.append(path)
     return path_list
+
+
+def get_non_glob_dir(glob: str):
+    root_dir = []
+    if glob.startswith('/'):
+        root_dir.append('/')
+    for name in glob.split('/'):
+        if has_magic(name):
+            break
+        root_dir.append(name)
+    if root_dir:
+        root_dir = os.path.join(*root_dir)
+    else:
+        root_dir = "."
+    return root_dir
