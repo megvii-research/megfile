@@ -74,12 +74,13 @@
            <div itemprop="articleBody">
              
   <h1>Source code for megfile.smart</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">hashlib</span>
-<span class="kn">import</span> <span class="nn">os</span>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
 <span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">chain</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">IO</span><span class="p">,</span> <span class="n">AnyStr</span><span class="p">,</span> <span class="n">BinaryIO</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
 
 <span class="kn">from</span> <span class="nn">megfile.fs</span> <span class="kn">import</span> <span class="n">fs_copy</span><span class="p">,</span> <span class="n">fs_getsize</span><span class="p">,</span> <span class="n">fs_scandir</span>
 <span class="kn">from</span> <span class="nn">megfile.interfaces</span> <span class="kn">import</span> <span class="n">Access</span><span class="p">,</span> <span class="n">FileEntry</span><span class="p">,</span> <span class="n">NullCacher</span><span class="p">,</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">StatResult</span>
@@ -123,6 +124,7 @@
     <span class="s1">&#39;smart_scandir&#39;</span><span class="p">,</span>
     <span class="s1">&#39;smart_stat&#39;</span><span class="p">,</span>
     <span class="s1">&#39;smart_sync&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;smart_sync_with_progress&#39;</span><span class="p">,</span>
     <span class="s1">&#39;smart_touch&#39;</span><span class="p">,</span>
     <span class="s1">&#39;smart_unlink&#39;</span><span class="p">,</span>
     <span class="s1">&#39;smart_walk&#39;</span><span class="p">,</span>
@@ -372,6 +374,23 @@
         <span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span>  <span class="c1"># type: ignore</span></div>
 
 
+<span class="k">def</span> <span class="nf">_smart_sync_single_file</span><span class="p">(</span>
+        <span class="n">src_path</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">,</span> <span class="n">src_file_path</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">):</span>
+    <span class="n">content_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">relpath</span><span class="p">(</span><span class="n">src_file_path</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">src_path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">content_path</span><span class="p">)</span> <span class="ow">and</span> <span class="n">content_path</span> <span class="o">!=</span> <span class="s1">&#39;.&#39;</span><span class="p">:</span>
+        <span class="n">content_path</span> <span class="o">=</span> <span class="n">content_path</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+        <span class="n">dst_abs_file_path</span> <span class="o">=</span> <span class="n">smart_path_join</span><span class="p">(</span><span class="n">dst_path</span><span class="p">,</span> <span class="n">content_path</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># if content_path is empty, which means smart_isfile(src_path) is True, this function is equal to smart_copy</span>
+        <span class="n">dst_abs_file_path</span> <span class="o">=</span> <span class="n">dst_path</span>
+    <span class="n">copy_callback</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">callback</span><span class="p">,</span> <span class="n">src_file_path</span><span class="p">)</span> <span class="k">if</span> <span class="n">callback</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="n">smart_copy</span><span class="p">(</span>
+        <span class="n">src_file_path</span><span class="p">,</span>
+        <span class="n">dst_abs_file_path</span><span class="p">,</span>
+        <span class="n">callback</span><span class="o">=</span><span class="n">copy_callback</span><span class="p">,</span>
+        <span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span>
+
+
 <div class="viewcode-block" id="smart_sync"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_sync">[docs]</a><span class="k">def</span> <span class="nf">smart_sync</span><span class="p">(</span>
         <span class="n">src_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
         <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
@@ -417,20 +436,34 @@
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">src_path</span><span class="p">,</span> <span class="n">dst_path</span> <span class="o">=</span> <span class="n">get_traditional_path</span><span class="p">(</span><span class="n">src_path</span><span class="p">),</span> <span class="n">get_traditional_path</span><span class="p">(</span>
         <span class="n">dst_path</span><span class="p">)</span>
+
     <span class="k">for</span> <span class="n">src_file_path</span> <span class="ow">in</span> <span class="n">smart_scan</span><span class="p">(</span><span class="n">src_path</span><span class="p">,</span> <span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">):</span>
-        <span class="n">content_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">relpath</span><span class="p">(</span><span class="n">src_file_path</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">src_path</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">content_path</span><span class="p">)</span> <span class="ow">and</span> <span class="n">content_path</span> <span class="o">!=</span> <span class="s1">&#39;.&#39;</span><span class="p">:</span>
-            <span class="n">content_path</span> <span class="o">=</span> <span class="n">content_path</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
-            <span class="n">dst_abs_file_path</span> <span class="o">=</span> <span class="n">smart_path_join</span><span class="p">(</span><span class="n">dst_path</span><span class="p">,</span> <span class="n">content_path</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># if content_path is empty, which means smart_isfile(src_path) is True, this function is equal to smart_copy</span>
-            <span class="n">dst_abs_file_path</span> <span class="o">=</span> <span class="n">dst_path</span>
-        <span class="n">copy_callback</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">callback</span><span class="p">,</span> <span class="n">src_file_path</span><span class="p">)</span> <span class="k">if</span> <span class="n">callback</span> <span class="k">else</span> <span class="kc">None</span>
-        <span class="n">smart_copy</span><span class="p">(</span>
-            <span class="n">src_file_path</span><span class="p">,</span>
-            <span class="n">dst_abs_file_path</span><span class="p">,</span>
-            <span class="n">callback</span><span class="o">=</span><span class="n">copy_callback</span><span class="p">,</span>
-            <span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span></div>
+        <span class="n">_smart_sync_single_file</span><span class="p">(</span>
+            <span class="n">src_path</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">,</span> <span class="n">src_file_path</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="smart_sync_with_progress"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_sync_with_progress">[docs]</a><span class="k">def</span> <span class="nf">smart_sync_with_progress</span><span class="p">(</span>
+        <span class="n">src_path</span><span class="p">,</span>
+        <span class="n">dst_path</span><span class="p">,</span>
+        <span class="n">callback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+    <span class="n">src_path</span><span class="p">,</span> <span class="n">dst_path</span> <span class="o">=</span> <span class="n">get_traditional_path</span><span class="p">(</span><span class="n">src_path</span><span class="p">),</span> <span class="n">get_traditional_path</span><span class="p">(</span>
+        <span class="n">dst_path</span><span class="p">)</span>
+    <span class="n">files</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">smart_scan</span><span class="p">(</span><span class="n">src_path</span><span class="p">,</span> <span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">))</span>
+    <span class="n">tbar</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">),</span> <span class="n">ascii</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">sbar</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">unit</span><span class="o">=</span><span class="s1">&#39;B&#39;</span><span class="p">,</span> <span class="n">ascii</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">unit_scale</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">tqdm_callback</span><span class="p">(</span><span class="n">current_src_path</span><span class="p">,</span> <span class="n">length</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="n">sbar</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">callback</span><span class="p">:</span>
+            <span class="n">callback</span><span class="p">(</span><span class="n">current_src_path</span><span class="p">,</span> <span class="n">length</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">src_file_path</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+        <span class="n">_smart_sync_single_file</span><span class="p">(</span>
+            <span class="n">src_path</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">,</span> <span class="n">src_file_path</span><span class="p">,</span> <span class="n">tqdm_callback</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">)</span>
+        <span class="n">tbar</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">tbar</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">sbar</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="smart_remove"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_remove">[docs]</a><span class="k">def</span> <span class="nf">smart_remove</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>

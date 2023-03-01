@@ -190,7 +190,7 @@
     <span class="k">return</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">getsize</span><span class="p">(</span><span class="n">follow_symlinks</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="s3_isdir"><a class="viewcode-back" href="../../megfile.s3.html#megfile.s3_isdir">[docs]</a><span class="k">def</span> <span class="nf">s3_isdir</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<div class="viewcode-block" id="s3_isdir"><a class="viewcode-back" href="../../megfile.s3.html#megfile.s3_isdir">[docs]</a><span class="k">def</span> <span class="nf">s3_isdir</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Test if an s3 url is directory</span>
 <span class="sd">    Specific procedures are as follows:</span>
@@ -198,9 +198,10 @@
 <span class="sd">    If the url is empty bucket or s3://</span>
 
 <span class="sd">    :param path: Given path</span>
+<span class="sd">    :param followlinks: whether followlinks is True or False, result is the same. Because s3 symlink not support dir.</span>
 <span class="sd">    :returns: True if path is s3 directory, else False</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="k">return</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()</span></div>
+    <span class="k">return</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">is_dir</span><span class="p">(</span><span class="n">followlinks</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="s3_isfile"><a class="viewcode-back" href="../../megfile.s3.html#megfile.s3_isfile">[docs]</a><span class="k">def</span> <span class="nf">s3_isfile</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
@@ -338,7 +339,8 @@
     <span class="k">return</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">missing_ok</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="s3_walk"><a class="viewcode-back" href="../../megfile.s3.html#megfile.s3_walk">[docs]</a><span class="k">def</span> <span class="nf">s3_walk</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]]:</span>
+<div class="viewcode-block" id="s3_walk"><a class="viewcode-back" href="../../megfile.s3.html#megfile.s3_walk">[docs]</a><span class="k">def</span> <span class="nf">s3_walk</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+           <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]]:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Iteratively traverse the given s3 directory, in top-bottom order. In other words, firstly traverse parent directory, if subdirectories exist, traverse the subdirectories in alphabetical order.</span>
 <span class="sd">    Every iteration on generator yields a 3-tuple: (root, dirs, files)</span>
@@ -354,10 +356,11 @@
 <span class="sd">    If s3_url doesn&#39;t contain any bucket, which is s3_url == &#39;s3://&#39;, raise UnsupportedError. walk() on complete s3 is not supported in megfile</span>
 
 <span class="sd">    :param path: Given path</span>
+<span class="sd">    :param followlinks: whether followlinks is True or False, result is the same. Because s3 symlink not support dir.</span>
 <span class="sd">    :raises: UnsupportedError</span>
 <span class="sd">    :returns: A 3-tuple generator</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="k">return</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">walk</span><span class="p">()</span></div>
+    <span class="k">return</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">followlinks</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="s3_getmd5"><a class="viewcode-back" href="../../megfile.s3.html#megfile.s3_getmd5">[docs]</a><span class="k">def</span> <span class="nf">s3_getmd5</span><span class="p">(</span>
