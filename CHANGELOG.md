@@ -1,3 +1,11 @@
+## 2.0.1 - 2023.03.01
+- cli 
+    - `megfile ls` support glob path
+    - `megfile cp`, `megfile mv` and `megfile sync` support `-g`, `--progress-bar`
+    - perf err output
+    - `megfile sync` support glob path
+- close ssh connection before process exit
+
 ## 2.0.0 - 2023.02.10
 - path classes align with `pathlib.Path`
     - methods(`glob`, `iglob`, `glob_stat`, `resolve`, `home`, `cwd`, `readlink`) in all path classes return path object
