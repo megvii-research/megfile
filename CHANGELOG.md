@@ -1,3 +1,6 @@
+## 2.0.2 - 2023.03.13
+- support s3 endpoint env: AWS_ENDPOINT
+
 ## 2.0.1 - 2023.03.01
 - cli 
     - `megfile ls` support glob path
