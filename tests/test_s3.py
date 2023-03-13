@@ -251,6 +251,13 @@ def test_get_endpoint_url(mocker):
     assert s3.get_endpoint_url() == 'https://s3.amazonaws.com'
 
 
+def test_get_endpoint_url_from_aws_env(mocker):
+    mocker.patch('megfile.s3_path.get_scoped_config', return_value={})
+    mocker.patch.dict(os.environ, {'AWS_ENDPOINT': 'aws-endpoint'})
+
+    assert s3.get_endpoint_url() == 'aws-endpoint'
+
+
 def test_get_endpoint_url_from_env(mocker):
     mocker.patch('megfile.s3_path.get_scoped_config', return_value={})
     mocker.patch.dict(os.environ, {'OSS_ENDPOINT': 'oss-endpoint'})
