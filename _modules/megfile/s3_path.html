@@ -238,6 +238,10 @@
 
 <span class="sd">    :returns: S3 endpoint url</span>
 <span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">aws_environ_endpoint_url</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;AWS_ENDPOINT&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">aws_environ_endpoint_url</span><span class="p">:</span>
+        <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;using AWS_ENDPOINT: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">aws_environ_endpoint_url</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">aws_environ_endpoint_url</span>
     <span class="n">environ_endpoint_url</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;OSS_ENDPOINT&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">environ_endpoint_url</span><span class="p">:</span>
         <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;using OSS_ENDPOINT: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">environ_endpoint_url</span><span class="p">)</span>
