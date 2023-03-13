@@ -162,6 +162,10 @@ def get_endpoint_url() -> str:
 
     :returns: S3 endpoint url
     '''
+    aws_environ_endpoint_url = os.environ.get('AWS_ENDPOINT')
+    if aws_environ_endpoint_url:
+        _logger.info("using AWS_ENDPOINT: %s" % aws_environ_endpoint_url)
+        return aws_environ_endpoint_url
     environ_endpoint_url = os.environ.get('OSS_ENDPOINT')
     if environ_endpoint_url:
         _logger.info("using OSS_ENDPOINT: %s" % environ_endpoint_url)
