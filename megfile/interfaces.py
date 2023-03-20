@@ -208,3 +208,18 @@ class NullCacher(FileCacher):
 
     def _close(self):
         pass
+
+
+class ContextIterator(Closable):
+
+    def __init__(self, iterable: Iterable) -> None:
+        self._iter = iter(iterable)
+
+    def _close(self) -> None:
+        pass
+
+    def __next__(self):
+        return next(self._iter)
+
+    def __iter__(self):
+        return self

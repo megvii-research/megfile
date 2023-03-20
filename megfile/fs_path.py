@@ -10,7 +10,7 @@ from unittest.mock import patch
 from urllib.parse import urlsplit
 
 from megfile.errors import _create_missing_ok_generator
-from megfile.interfaces import Access, FileEntry, PathLike, StatResult
+from megfile.interfaces import Access, ContextIterator, FileEntry, PathLike, StatResult
 from megfile.lib.glob import iglob
 from megfile.utils import cachedproperty, calculate_md5
 
@@ -561,8 +561,14 @@ class FSPath(URIPath):
 
         :returns: An iterator contains all contents have prefix path
         '''
-        for entry in os.scandir(self.path_without_protocol):
-            yield FileEntry(entry.name, entry.path, _make_stat(entry.stat()))
+
+        def create_generator():
+            with os.scandir(self.path_without_protocol) as entries:
+                for entry in entries:
+                    yield FileEntry(
+                        entry.name, entry.path, _make_stat(entry.stat()))
+
+        return ContextIterator(create_generator())
 
     def stat(self, follow_symlinks=True) -> StatResult:
         '''
