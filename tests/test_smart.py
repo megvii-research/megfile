@@ -79,6 +79,14 @@ def test_smart_stat(funcA):
     funcA.assert_called_once()
 
 
+@patch.object(SmartPath, 'lstat')
+def test_smart_stat(funcA):
+    funcA.return_value = StatResult()
+    res = smart.smart_lstat("Test Case")
+    assert res == StatResult()
+    funcA.assert_called_once()
+
+
 @patch.object(SmartPath, 'is_dir')
 def test_smart_isdir(funcA):
     funcA.return_value = True

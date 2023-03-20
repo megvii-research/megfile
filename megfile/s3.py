@@ -48,6 +48,7 @@ __all__ = [
     's3_scan_stat',
     's3_scandir',
     's3_stat',
+    's3_lstat',
     's3_unlink',
     's3_walk',
     's3_getmd5',
@@ -250,6 +251,11 @@ def s3_stat(path: PathLike, follow_symlinks=True) -> StatResult:
     :raises: S3FileNotFoundError, S3BucketNotFoundError
     '''
     return S3Path(path).stat(follow_symlinks)
+
+
+def s3_lstat(path: PathLike) -> StatResult:
+    '''Like Path.stat() but, if the path points to a symbolic link, return the symbolic link’s information rather than its target’s.'''
+    return S3Path(path).lstat()
 
 
 def s3_unlink(path: PathLike, missing_ok: bool = False) -> None:

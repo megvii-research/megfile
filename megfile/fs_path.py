@@ -594,7 +594,7 @@ class FSPath(URIPath):
 
     def lstat(self) -> StatResult:
         '''
-        Get StatResult of file on fs, including file size and mtime, referring to fs_getsize and fs_getmtime
+        Like Path.stat() but, if the path points to a symbolic link, return the symbolic link’s information rather than its target’s.
 
         :returns: StatResult
         '''

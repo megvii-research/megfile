@@ -36,6 +36,7 @@ __all__ = [
     'fs_scan_stat',
     'fs_scandir',
     'fs_stat',
+    'fs_lstat',
     'fs_unlink',
     'fs_walk',
     'fs_getmd5',
@@ -257,6 +258,16 @@ def fs_stat(path: PathLike, follow_symlinks=True) -> StatResult:
     :returns: StatResult
     '''
     return FSPath(path).stat(follow_symlinks)
+
+
+def fs_lstat(path: PathLike) -> StatResult:
+    '''
+    Like Path.stat() but, if the path points to a symbolic link, return the symbolic link’s information rather than its target’s.
+
+    :param path: Given path
+    :returns: StatResult
+    '''
+    return FSPath(path).lstat()
 
 
 def fs_unlink(path: PathLike, missing_ok: bool = False) -> None:

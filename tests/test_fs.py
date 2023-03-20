@@ -310,6 +310,77 @@ def test_fs_stat(filesystem, mocker):
             size=os.lstat("soft_link_folder").st_size, islnk=True)
 
 
+def test_fs_lstat(filesystem, mocker):
+    mocker.patch('megfile.fs_path.StatResult', side_effect=FakeStatResult)
+
+    with pytest.raises(FileNotFoundError):
+        fs.fs_lstat('NotExist')
+    with pytest.raises(FileNotFoundError):
+        fs.fs_lstat('')
+
+    # nothing in the root
+    assert fs.fs_lstat('/') == make_stat(isdir=True)
+    assert fs.fs_lstat('.') == make_stat(isdir=True)
+
+    # /
+    #   - empty-folder
+    os.mkdir('empty-folder')
+    assert fs.fs_lstat('/') == make_stat(isdir=True)
+    assert fs.fs_lstat('.') == make_stat(isdir=True)
+
+    # /
+    #   - empty-folder
+    #   - folderA/fileA, content: 'fileA'
+    if not os.path.exists('folderA'):
+        os.mkdir('folderA')
+    with open('/folderA/fileA', 'wb') as fileA:
+        fileA.write(b'fileA')
+    assert fs.fs_lstat('/') == make_stat(size=5, isdir=True)
+    assert fs.fs_lstat('.') == make_stat(size=5, isdir=True)
+
+    # /
+    #   - empty-folder
+    #   - folderA/fileA, content: 'fileA'
+    #   - fileB, content: 'fileB'
+    with open('/fileB', 'wb') as fileB:
+        fileB.write(b'fileB')
+    assert fs.fs_lstat('/') == make_stat(size=10, isdir=True)
+    assert fs.fs_lstat('.') == make_stat(size=10, isdir=True)
+
+    # /
+    #   - empty-folder
+    #   - folderA/
+    #               - fileA, content: 'fileA'
+    #               - symbol-link -> /fileB
+    #   - fileB, content: 'fileB'
+    os.symlink('fileB', '/folderA/symbol-link')
+    assert fs.fs_lstat('/folderA/symbol-link') == make_stat(
+        size=os.lstat('/folderA/symbol-link').st_size, isdir=False, islnk=True)
+
+    # /
+    #   - empty-folder
+    #   - folderA/
+    #               - fileA, content: 'fileA'
+    #               - symbol-link -> /fileB
+    #               - hard-link -> /fileB
+    #   - fileB, content: 'fileB'
+    os.link('fileB', '/folderA/hard-link')
+    assert fs.fs_lstat('/folderA/hard-link') == make_stat(
+        size=os.lstat('/folderA/hard-link').st_size)
+
+    os.mkdir('folder')
+    assert fs.fs_lstat('folder') == make_stat(isdir=True)
+    with open('file', 'wb') as f:
+        f.write(b"This is a file.")
+    assert fs.fs_lstat('file') == make_stat(size=os.path.getsize("file"))
+    os.symlink('file', 'soft_link_file')
+    assert fs.fs_lstat('soft_link_file') == make_stat(
+        size=os.lstat("soft_link_file").st_size, islnk=True)
+    os.symlink('folder', 'soft_link_folder')
+    assert fs.fs_lstat('soft_link_folder') == make_stat(
+        size=os.lstat("soft_link_folder").st_size, islnk=True)
+
+
 def test_fs_stat2(filesystem, mocker):
     import os
     import time

@@ -5,7 +5,7 @@ from megfile.s3 import is_s3, s3_access, s3_buffered_open, s3_cached_open, s3_co
 from megfile.s3_path import S3Path
 from megfile.sftp import is_sftp, sftp_absolute, sftp_chmod, sftp_copy, sftp_exists, sftp_getmd5, sftp_getmtime, sftp_getsize, sftp_glob, sftp_glob_stat, sftp_iglob, sftp_isdir, sftp_isfile, sftp_islink, sftp_listdir, sftp_load_from, sftp_lstat, sftp_makedirs, sftp_move, sftp_open, sftp_path_join, sftp_readlink, sftp_realpath, sftp_remove, sftp_rename, sftp_resolve, sftp_rmdir, sftp_save_as, sftp_scan, sftp_scan_stat, sftp_scandir, sftp_stat, sftp_symlink, sftp_sync, sftp_unlink, sftp_walk
 from megfile.sftp_path import SftpPath
-from megfile.smart import smart_access, smart_cache, smart_combine_open, smart_copy, smart_exists, smart_getmd5, smart_getmtime, smart_getsize, smart_glob, smart_glob_stat, smart_iglob, smart_isdir, smart_isfile, smart_islink, smart_listdir, smart_load_content, smart_load_from, smart_load_text, smart_makedirs, smart_move, smart_open, smart_path_join, smart_readlink, smart_realpath, smart_remove, smart_rename, smart_save_as, smart_save_content, smart_save_text, smart_scan, smart_scan_stat, smart_scandir, smart_stat, smart_symlink, smart_sync, smart_touch, smart_unlink, smart_walk
+from megfile.smart import smart_access, smart_cache, smart_combine_open, smart_copy, smart_exists, smart_getmd5, smart_getmtime, smart_getsize, smart_glob, smart_glob_stat, smart_iglob, smart_isdir, smart_isfile, smart_islink, smart_listdir, smart_load_content, smart_load_from, smart_load_text, smart_lstat, smart_makedirs, smart_move, smart_open, smart_path_join, smart_readlink, smart_realpath, smart_remove, smart_rename, smart_save_as, smart_save_content, smart_save_text, smart_scan, smart_scan_stat, smart_scandir, smart_stat, smart_symlink, smart_sync, smart_touch, smart_unlink, smart_walk
 from megfile.smart_path import SmartPath
 from megfile.stdio_path import StdioPath
 from megfile.version import VERSION as __version__
@@ -52,6 +52,7 @@ __all__ = [
     'smart_getmd5',
     'smart_symlink',
     'smart_readlink',
+    'smart_lstat',
     's3_access',
     's3_buffered_open',
     's3_cached_open',
