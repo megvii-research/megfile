@@ -190,6 +190,17 @@ def smart_stat(path: PathLike, follow_symlinks=True) -> StatResult:
     return SmartPath(path).stat(follow_symlinks=follow_symlinks)
 
 
+def smart_lstat(path: PathLike) -> StatResult:
+    '''
+    Get StatResult of path but do not follow symbolic links
+
+    :param path: Given path
+    :returns: StatResult
+    :raises: FileNotFoundError
+    '''
+    return SmartPath(path).lstat()
+
+
 _copy_funcs = {
     's3': {
         's3': s3_copy,

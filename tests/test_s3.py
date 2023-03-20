@@ -730,6 +730,36 @@ def test_s3_stat(truncating_client, mocker):
         s3.s3_stat('s3:///bucketA/')
 
 
+def test_s3_lstat(truncating_client, mocker):
+    mocker.patch('megfile.s3_path.StatResult', side_effect=FakeStatResult)
+
+    bucket_A_stat = s3.s3_lstat('s3://bucketA')
+    assert bucket_A_stat == make_stat(
+        size=8 + 6 + 6 + 6 + 6 +
+        8,  # folderAA/folderAAA/fileAAAA + folderAB/fileAB + folderAB/fileAC + folderAB-C/fileAB-C + fileAA + fileAB
+        mtime=Now(),
+        isdir=True)
+    assert s3.s3_lstat('s3://bucketA/fileAA') == make_stat(size=6)
+    assert s3.s3_lstat('s3://bucketA/folderAB') == make_stat(
+        size=6 + 6, mtime=Now(), isdir=True)
+
+    # 有同名目录时, 优先返回文件的状态
+    assert s3.s3_lstat('s3://bucketC/folder') == StatResult(size=4, mtime=Now())
+
+    with pytest.raises(S3BucketNotFoundError) as error:
+        assert s3.s3_lstat('s3://')
+    assert 's3://' in str(error.value)
+
+    with pytest.raises(FileNotFoundError) as error:
+        s3.s3_lstat('s3://notExistBucket')
+    with pytest.raises(FileNotFoundError) as error:
+        s3.s3_lstat('s3://bucketA/notExistFile')
+    with pytest.raises(FileNotFoundError) as error:
+        s3.s3_lstat('s3:///notExistFile')
+    with pytest.raises(S3FileNotFoundError) as error:
+        s3.s3_lstat('s3:///bucketA/')
+
+
 def test_s3_upload(s3_empty_client, fs):
     src_url = '/path/to/file'
 
