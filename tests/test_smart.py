@@ -10,7 +10,7 @@ from moto import mock_s3
 
 import megfile
 from megfile import smart
-from megfile.interfaces import Access, StatResult
+from megfile.interfaces import Access, FileEntry, StatResult
 from megfile.s3_path import _s3_binary_mode
 from megfile.smart_path import SmartPath
 
@@ -321,7 +321,7 @@ def test_smart_sync(mocker):
     smart_isdir = mocker.patch('megfile.smart.smart_isdir', side_effect=isdir)
     smart_isfile = mocker.patch(
         'megfile.smart.smart_isfile', side_effect=isfile)
-    smart_scan = mocker.patch('megfile.smart.smart_scan')
+    smart_scan_stat = mocker.patch('megfile.smart.smart_scan_stat')
     '''
       folder/
         - folderA/
@@ -334,15 +334,24 @@ def test_smart_sync(mocker):
       - a
     '''
 
-    def listdir(path: str, followlinks: bool):
+    def scan_stat(path: str, followlinks: bool):
         if path == 'folder':
-            return ["folder/folderA/fileB", "folder/fileA"]
+            return [
+                FileEntry(name='fileB', path="folder/folderA/fileB", stat=None),
+                FileEntry(name='fileA', path="folder/fileA", stat=None),
+            ]
         if path == 'folder/fileA':
-            return ["folder/fileA"]
+            return [
+                FileEntry(name='fileA', path="folder/fileA", stat=None),
+            ]
         if path == 'a':
-            return ['a', 'a/b/c', 'a/d']
+            return [
+                FileEntry(name='a', path="a", stat=None),
+                FileEntry(name='c', path="a/b/c", stat=None),
+                FileEntry(name='d', path="a/d", stat=None),
+            ]
 
-    smart_scan.side_effect = listdir
+    smart_scan_stat.side_effect = scan_stat
 
     smart.smart_sync('folder', 'dst', followlinks=True)
     assert smart_copy.call_count == 2
