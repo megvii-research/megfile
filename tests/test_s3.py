@@ -533,6 +533,9 @@ def test_s3_scandir(truncating_client, mocker):
                  s3.s3_scandir('s3://bucketA/folderAB/')))) == [
                      'fileAB', 'fileAC'
                  ]
+    with s3.s3_scandir('s3://bucketA/folderAB/') as file_entries:
+        assert sorted(list(map(lambda x: x.name,
+                               file_entries))) == ['fileAB', 'fileAC']
 
     with pytest.raises(NotADirectoryError) as error:
         s3.s3_scandir('s3://bucketA/fileAA')
