@@ -361,9 +361,11 @@ def smart_sync(
     src_path, dst_path = get_traditional_path(src_path), get_traditional_path(
         dst_path)
 
-    for src_file_path in smart_scan(src_path, followlinks=followlinks):
-        _smart_sync_single_file(
-            src_path, dst_path, src_file_path, callback, followlinks)
+    for src_file_entry in smart_scan_stat(src_path, followlinks=followlinks):
+        if src_file_entry.name:
+            src_file_path = src_file_entry.path
+            _smart_sync_single_file(
+                src_path, dst_path, src_file_path, callback, followlinks)
 
 
 def smart_sync_with_progress(
