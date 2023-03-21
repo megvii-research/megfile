@@ -11,5 +11,5 @@ jobs:
         uses: mheap/automatic-approve-action@v1
         with:
           token: ${{ secrets.PAT }}
-          workflows: "on-push.yaml,publish-docs.yml"
+          workflows: "run-tests.yml,publish-docs.yml"
           dangerous_files: "requirements.txt,requirements-dev.txt,scripts/convert_results_to_sarif.py"
