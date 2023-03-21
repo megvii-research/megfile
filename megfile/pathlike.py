@@ -1,4 +1,5 @@
 import os
+import stat
 from collections.abc import Sequence
 from enum import Enum
 from functools import wraps
@@ -49,72 +50,74 @@ class StatResult(_StatResult):
         return self.islnk
 
     @property
-    def st_mode(self) -> Union[int, None]:
+    def st_mode(self) -> int:
         '''
         File mode: file type and file mode bits (permissions).
         Only support fs.
         '''
         if self.extra and hasattr(self.extra, 'st_mode'):
             return self.extra.st_mode
-        return None
+        if self.is_symlink():
+            return stat.S_IFLNK
+        elif self.is_dir():
+            return stat.S_IFDIR
+        return stat.S_IFREG
 
     @property
-    def st_ino(self) -> Union[int, str, None]:
+    def st_ino(self) -> int:
         '''
         Platform dependent, but if non-zero, uniquely identifies the file for a given value of st_dev. Typically:
         
         the inode number on Unix,
         the file index on Windows,
-        the etag on oss.
+        the decimal of etag on oss.
         '''
         if self.extra:
             if hasattr(self.extra, 'st_ino'):
                 return self.extra.st_ino
             elif isinstance(self.extra, dict) and self.extra.get('ETag'):
-                return self.extra.get('ETag')
-        return None  # pragma: no cover
+                return int(self.extra['ETag'][1:-1], 16)
+        return 0
 
     @property
-    def st_dev(self) -> Union[int, None]:
+    def st_dev(self) -> int:
         '''
         Identifier of the device on which this file resides.
         '''
         if self.extra:
             if hasattr(self.extra, 'st_dev'):
                 return self.extra.st_dev
-            elif isinstance(self.extra, dict) and self.extra.get('ETag'):
-                return self.extra.get('ETag')
-        return None  # pragma: no cover
+        return 0
 
     @property
-    def st_nlink(self) -> Union[int, None]:
+    def st_nlink(self) -> int:
         '''
         Number of hard links.
         Only support fs.
         '''
         if self.extra and hasattr(self.extra, 'st_nlink'):
             return self.extra.st_nlink
-        return None
+        return 0
 
     @property
-    def st_uid(self) -> Union[int, None]:
+    def st_uid(self) -> int:
         '''
         User identifier of the file owner.
         Only support fs.
         '''
         if self.extra and hasattr(self.extra, 'st_uid'):
             return self.extra.st_uid
-        return None
+        return 0
 
     @property
-    def st_gid(self) -> Union[int, None]:
+    def st_gid(self) -> int:
         '''
         Group identifier of the file owner.
         Only support fs.
         '''
         if self.extra and hasattr(self.extra, 'st_gid'):
             return self.extra.st_gid
-        return None
+        return 0
 
     @property
     def st_size(self) -> int:
@@ -126,14 +129,14 @@ class StatResult(_StatResult):
         return self.size
 
     @property
-    def st_atime(self) -> Union[float, None]:
+    def st_atime(self) -> float:
         '''
         Time of most recent access expressed in seconds.
         Only support fs.
         '''
         if self.extra and hasattr(self.extra, 'st_atime'):
             return self.extra.st_atime
-        return None
+        return 0.0
 
     @property
     def st_mtime(self) -> float:
@@ -158,27 +161,27 @@ class StatResult(_StatResult):
         return self.ctime
 
     @property
-    def st_atime_ns(self) -> Union[int, None]:
+    def st_atime_ns(self) -> int:
         '''
         Time of most recent access expressed in nanoseconds as an integer.
         Only support fs.
         '''
         if self.extra and hasattr(self.extra, 'st_atime_ns'):
             return self.extra.st_atime_ns
-        return None
+        return 0
 
     @property
-    def st_mtime_ns(self) -> Union[int, None]:
+    def st_mtime_ns(self) -> int:
         '''
         Time of most recent content modification expressed in nanoseconds as an integer.
         Only support fs.
         '''
         if self.extra and hasattr(self.extra, 'st_mtime_ns'):
             return self.extra.st_mtime_ns
-        return None
+        return 0
 
     @property
-    def st_ctime_ns(self) -> Union[int, None]:
+    def st_ctime_ns(self) -> int:
         '''
         Platform dependent:
 
@@ -189,7 +192,7 @@ class StatResult(_StatResult):
         '''
         if self.extra and hasattr(self.extra, 'st_ctime_ns'):
             return self.extra.st_ctime_ns
-        return None
+        return 0
 
 
 '''

@@ -1,4 +1,5 @@
 import os
+import stat
 from io import BufferedReader, BytesIO
 
 import boto3
@@ -379,19 +380,30 @@ def test_stat(s3_empty_client, fs):
     path = SmartPath(f's3://{BUCKET}/testA')
     path.write_bytes(b'test')
     path_stat = path.stat()
-    assert path_stat.st_mode is None
+    assert path_stat.st_mode == stat.S_IFREG
 
     content = s3_empty_client.head_object(Bucket=BUCKET, Key='testA')
+    etag_int = int(content['ETag'][1:-1], 16)
 
-    assert path_stat.st_ino == content['ETag']
-    assert path_stat.st_dev == content['ETag']
-    assert path_stat.st_nlink is None
-    assert path_stat.st_uid is None
-    assert path_stat.st_gid is None
+    assert path_stat.st_ino == etag_int
+    assert path_stat.st_dev == 0
+    assert path_stat.st_nlink == 0
+    assert path_stat.st_uid == 0
+    assert path_stat.st_gid == 0
     assert path_stat.st_size == content['ContentLength']
-    assert path_stat.st_atime is None
+    assert path_stat.st_atime == 0.0
     assert path_stat.st_mtime == content['LastModified'].timestamp()
     assert path_stat.st_ctime == 0.0
-    assert path_stat.st_atime_ns is None
-    assert path_stat.st_mtime_ns is None
-    assert path_stat.st_ctime_ns is None
+    assert path_stat.st_atime_ns == 0
+    assert path_stat.st_mtime_ns == 0
+    assert path_stat.st_ctime_ns == 0
+
+    path = SmartPath(f's3://{BUCKET}/dir/testA')
+    path.write_bytes(b'test')
+    path_stat = SmartPath(f's3://{BUCKET}/dir').stat()
+    assert path_stat.st_mode == stat.S_IFDIR
+
+    lnk_path = SmartPath(f's3://{BUCKET}/dir/testA.lnk')
+    path.symlink(lnk_path)
+    lnk_stat = lnk_path.lstat()
+    assert lnk_stat.st_mode == stat.S_IFLNK

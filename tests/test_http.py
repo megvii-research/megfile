@@ -120,6 +120,7 @@ def test_http_getstat(mocker):
         time.strptime(
             "Wed, 24 Nov 2021 07:18:41 GMT", "%a, %d %b %Y %H:%M:%S %Z"))
     assert stat.size == 999
+    assert stat.st_ino == 0
 
     class FakeResponse404(FakeResponse):
         status_code = 404
