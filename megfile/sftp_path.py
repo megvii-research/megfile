@@ -11,7 +11,7 @@ from urllib.parse import urlsplit, urlunsplit
 import paramiko
 
 from megfile.errors import _create_missing_ok_generator
-from megfile.interfaces import FileEntry, PathLike, StatResult
+from megfile.interfaces import ContextIterator, FileEntry, PathLike, StatResult
 from megfile.lib.glob import FSFunc, iglob
 from megfile.lib.joinpath import uri_join
 from megfile.utils import calculate_md5
@@ -678,12 +678,15 @@ class SftpPath(URIPath):
             raise NotADirectoryError(
                 'Not a directory: %r' % self.path_with_protocol)
 
-        for name in self.listdir():
-            current_path = self.joinpath(name)
-            yield FileEntry(
-                current_path.name,  # type: ignore
-                current_path.path_with_protocol,
-                current_path.lstat())  # type: ignore
+        def create_generator():
+            for name in self.listdir():
+                current_path = self.joinpath(name)
+                yield FileEntry(
+                    current_path.name,  # type: ignore
+                    current_path.path_with_protocol,
+                    current_path.lstat())  # type: ignore
+
+        return ContextIterator(create_generator())
 
     def stat(self, follow_symlinks=True) -> StatResult:
         '''

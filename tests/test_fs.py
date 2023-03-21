@@ -834,6 +834,8 @@ def test_fs_scandir(filesystem):
     os.symlink('/A/folder1', '/A/folder2/link')
     assert len(list(fs.fs_scandir('A'))) == 2
     assert len(list(fs.fs_scandir('A/folder1'))) == 2
+    with fs.fs_scandir('A') as file_entries:
+        assert len(list(file_entries)) == 2
 
 
 @pytest.fixture
