@@ -525,7 +525,7 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.fs_path.FSPath.lstat">
 <span class="sig-name descname"><span class="pre">lstat</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="megfile.fs.html#megfile.fs.StatResult" title="megfile.pathlike.StatResult"><span class="pre">StatResult</span></a></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#FSPath.lstat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs_path.FSPath.lstat" title="Permalink to this definition"></a></dt>
-<dd><p>Get StatResult of file on fs, including file size and mtime, referring to fs_getsize and fs_getmtime</p>
+<dd><p>Like Path.stat() but, if the path points to a symbolic link, return the symbolic link’s information rather than its target’s.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>StatResult</p>

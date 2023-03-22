@@ -321,6 +321,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#megfile.fs_ismount"><code class="docutils literal notranslate"><span class="pre">fs_ismount()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#megfile.fs_listdir"><code class="docutils literal notranslate"><span class="pre">fs_listdir()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#megfile.fs_load_from"><code class="docutils literal notranslate"><span class="pre">fs_load_from()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#megfile.fs_lstat"><code class="docutils literal notranslate"><span class="pre">fs_lstat()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#megfile.fs_makedirs"><code class="docutils literal notranslate"><span class="pre">fs_makedirs()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#megfile.fs_move"><code class="docutils literal notranslate"><span class="pre">fs_move()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#megfile.fs_readlink"><code class="docutils literal notranslate"><span class="pre">fs_readlink()</span></code></a></li>
@@ -360,6 +361,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#megfile.s3_listdir"><code class="docutils literal notranslate"><span class="pre">s3_listdir()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#megfile.s3_load_content"><code class="docutils literal notranslate"><span class="pre">s3_load_content()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#megfile.s3_load_from"><code class="docutils literal notranslate"><span class="pre">s3_load_from()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#megfile.s3_lstat"><code class="docutils literal notranslate"><span class="pre">s3_lstat()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#megfile.s3_makedirs"><code class="docutils literal notranslate"><span class="pre">s3_makedirs()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#megfile.s3_memory_open"><code class="docutils literal notranslate"><span class="pre">s3_memory_open()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#megfile.s3_move"><code class="docutils literal notranslate"><span class="pre">s3_move()</span></code></a></li>
@@ -433,6 +435,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#megfile.smart_load_content"><code class="docutils literal notranslate"><span class="pre">smart_load_content()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#megfile.smart_load_from"><code class="docutils literal notranslate"><span class="pre">smart_load_from()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#megfile.smart_load_text"><code class="docutils literal notranslate"><span class="pre">smart_load_text()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#megfile.smart_lstat"><code class="docutils literal notranslate"><span class="pre">smart_lstat()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#megfile.smart_makedirs"><code class="docutils literal notranslate"><span class="pre">smart_makedirs()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#megfile.smart_move"><code class="docutils literal notranslate"><span class="pre">smart_move()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#megfile.smart_open"><code class="docutils literal notranslate"><span class="pre">smart_open()</span></code></a></li>
@@ -532,6 +535,7 @@
 <li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_ismount"><code class="docutils literal notranslate"><span class="pre">fs_ismount()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_listdir"><code class="docutils literal notranslate"><span class="pre">fs_listdir()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_load_from"><code class="docutils literal notranslate"><span class="pre">fs_load_from()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_lstat"><code class="docutils literal notranslate"><span class="pre">fs_lstat()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_makedirs"><code class="docutils literal notranslate"><span class="pre">fs_makedirs()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_move"><code class="docutils literal notranslate"><span class="pre">fs_move()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_path_join"><code class="docutils literal notranslate"><span class="pre">fs_path_join()</span></code></a></li>
@@ -670,6 +674,7 @@
 <li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_listdir"><code class="docutils literal notranslate"><span class="pre">s3_listdir()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_load_content"><code class="docutils literal notranslate"><span class="pre">s3_load_content()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_load_from"><code class="docutils literal notranslate"><span class="pre">s3_load_from()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_lstat"><code class="docutils literal notranslate"><span class="pre">s3_lstat()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_makedirs"><code class="docutils literal notranslate"><span class="pre">s3_makedirs()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_memory_open"><code class="docutils literal notranslate"><span class="pre">s3_memory_open()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_move"><code class="docutils literal notranslate"><span class="pre">s3_move()</span></code></a></li>
@@ -1419,7 +1424,7 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.FSPath.lstat">
 <span class="sig-name descname"><span class="pre">lstat</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="megfile.fs.html#megfile.fs.StatResult" title="megfile.pathlike.StatResult"><span class="pre">StatResult</span></a></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#FSPath.lstat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.FSPath.lstat" title="Permalink to this definition"></a></dt>
-<dd><p>Get StatResult of file on fs, including file size and mtime, referring to fs_getsize and fs_getmtime</p>
+<dd><p>Like Path.stat() but, if the path points to a symbolic link, return the symbolic link’s information rather than its target’s.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>StatResult</p>
@@ -3619,6 +3624,20 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="megfile.fs_lstat">
+<span class="sig-prename descclassname"><span class="pre">megfile.</span></span><span class="sig-name descname"><span class="pre">fs_lstat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="megfile.fs.html#megfile.fs.StatResult" title="megfile.pathlike.StatResult"><span class="pre">StatResult</span></a></span></span><a class="reference internal" href="_modules/megfile/fs.html#fs_lstat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs_lstat" title="Permalink to this definition"></a></dt>
+<dd><p>Like Path.stat() but, if the path points to a symbolic link, return the symbolic link’s information rather than its target’s.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> – Given path</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>StatResult</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="megfile.fs_makedirs">
 <span class="sig-prename descclassname"><span class="pre">megfile.</span></span><span class="sig-name descname"><span class="pre">fs_makedirs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exist_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/fs_path.html#fs_makedirs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs_makedirs" title="Permalink to this definition"></a></dt>
 <dd><p>make a directory on fs, including parent directory</p>
@@ -4269,6 +4288,12 @@ If the url is empty bucket or s3://</p>
 <dd class="field-even"><p>BinaryIO</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="megfile.s3_lstat">
+<span class="sig-prename descclassname"><span class="pre">megfile.</span></span><span class="sig-name descname"><span class="pre">s3_lstat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="megfile.fs.html#megfile.fs.StatResult" title="megfile.pathlike.StatResult"><span class="pre">StatResult</span></a></span></span><a class="reference internal" href="_modules/megfile/s3.html#s3_lstat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.s3_lstat" title="Permalink to this definition"></a></dt>
+<dd><p>Like Path.stat() but, if the path points to a symbolic link, return the symbolic link’s information rather than its target’s.</p>
 </dd></dl>
 
 <dl class="py function">
@@ -5503,6 +5528,23 @@ The result excludes the size of directory itself. In other words, return 0 Byte 
 <span class="sig-prename descclassname"><span class="pre">megfile.</span></span><span class="sig-name descname"><span class="pre">smart_load_text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/megfile/smart.html#smart_load_text"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.smart_load_text" title="Permalink to this definition"></a></dt>
 <dd><p>Read content from path</p>
 <p>param path: Path to be read</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="megfile.smart_lstat">
+<span class="sig-prename descclassname"><span class="pre">megfile.</span></span><span class="sig-name descname"><span class="pre">smart_lstat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="megfile.fs.html#megfile.fs.StatResult" title="megfile.pathlike.StatResult"><span class="pre">StatResult</span></a></span></span><a class="reference internal" href="_modules/megfile/smart.html#smart_lstat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.smart_lstat" title="Permalink to this definition"></a></dt>
+<dd><p>Get StatResult of path but do not follow symbolic links</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> – Given path</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>StatResult</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p>FileNotFoundError</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">

@@ -124,6 +124,7 @@
     <span class="s1">&#39;s3_scan_stat&#39;</span><span class="p">,</span>
     <span class="s1">&#39;s3_scandir&#39;</span><span class="p">,</span>
     <span class="s1">&#39;s3_stat&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;s3_lstat&#39;</span><span class="p">,</span>
     <span class="s1">&#39;s3_unlink&#39;</span><span class="p">,</span>
     <span class="s1">&#39;s3_walk&#39;</span><span class="p">,</span>
     <span class="s1">&#39;s3_getmd5&#39;</span><span class="p">,</span>
@@ -326,6 +327,11 @@
 <span class="sd">    :raises: S3FileNotFoundError, S3BucketNotFoundError</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">return</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">follow_symlinks</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="s3_lstat"><a class="viewcode-back" href="../../megfile.s3.html#megfile.s3_lstat">[docs]</a><span class="k">def</span> <span class="nf">s3_lstat</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StatResult</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;Like Path.stat() but, if the path points to a symbolic link, return the symbolic link’s information rather than its target’s.&#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">lstat</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="s3_unlink"><a class="viewcode-back" href="../../megfile.s3.html#megfile.s3_unlink">[docs]</a><span class="k">def</span> <span class="nf">s3_unlink</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>

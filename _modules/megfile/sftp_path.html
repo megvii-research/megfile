@@ -87,7 +87,7 @@
 <span class="kn">import</span> <span class="nn">paramiko</span>
 
 <span class="kn">from</span> <span class="nn">megfile.errors</span> <span class="kn">import</span> <span class="n">_create_missing_ok_generator</span>
-<span class="kn">from</span> <span class="nn">megfile.interfaces</span> <span class="kn">import</span> <span class="n">FileEntry</span><span class="p">,</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">StatResult</span>
+<span class="kn">from</span> <span class="nn">megfile.interfaces</span> <span class="kn">import</span> <span class="n">ContextIterator</span><span class="p">,</span> <span class="n">FileEntry</span><span class="p">,</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">StatResult</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.glob</span> <span class="kn">import</span> <span class="n">FSFunc</span><span class="p">,</span> <span class="n">iglob</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.joinpath</span> <span class="kn">import</span> <span class="n">uri_join</span>
 <span class="kn">from</span> <span class="nn">megfile.utils</span> <span class="kn">import</span> <span class="n">calculate_md5</span>
@@ -754,12 +754,15 @@
             <span class="k">raise</span> <span class="ne">NotADirectoryError</span><span class="p">(</span>
                 <span class="s1">&#39;Not a directory: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">)</span>
 
-        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">listdir</span><span class="p">():</span>
-            <span class="n">current_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-            <span class="k">yield</span> <span class="n">FileEntry</span><span class="p">(</span>
-                <span class="n">current_path</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
-                <span class="n">current_path</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">,</span>
-                <span class="n">current_path</span><span class="o">.</span><span class="n">lstat</span><span class="p">())</span>  <span class="c1"># type: ignore</span></div>
+        <span class="k">def</span> <span class="nf">create_generator</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">listdir</span><span class="p">():</span>
+                <span class="n">current_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+                <span class="k">yield</span> <span class="n">FileEntry</span><span class="p">(</span>
+                    <span class="n">current_path</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
+                    <span class="n">current_path</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">,</span>
+                    <span class="n">current_path</span><span class="o">.</span><span class="n">lstat</span><span class="p">())</span>  <span class="c1"># type: ignore</span>
+
+        <span class="k">return</span> <span class="n">ContextIterator</span><span class="p">(</span><span class="n">create_generator</span><span class="p">())</span></div>
 
 <div class="viewcode-block" id="SftpPath.stat"><a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.SftpPath.stat">[docs]</a>    <span class="k">def</span> <span class="nf">stat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StatResult</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>

@@ -86,7 +86,7 @@
 <span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="kn">import</span> <span class="n">urlsplit</span>
 
 <span class="kn">from</span> <span class="nn">megfile.errors</span> <span class="kn">import</span> <span class="n">_create_missing_ok_generator</span>
-<span class="kn">from</span> <span class="nn">megfile.interfaces</span> <span class="kn">import</span> <span class="n">Access</span><span class="p">,</span> <span class="n">FileEntry</span><span class="p">,</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">StatResult</span>
+<span class="kn">from</span> <span class="nn">megfile.interfaces</span> <span class="kn">import</span> <span class="n">Access</span><span class="p">,</span> <span class="n">ContextIterator</span><span class="p">,</span> <span class="n">FileEntry</span><span class="p">,</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">StatResult</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.glob</span> <span class="kn">import</span> <span class="n">iglob</span>
 <span class="kn">from</span> <span class="nn">megfile.utils</span> <span class="kn">import</span> <span class="n">cachedproperty</span><span class="p">,</span> <span class="n">calculate_md5</span>
 
@@ -637,8 +637,14 @@
 
 <span class="sd">        :returns: An iterator contains all contents have prefix path</span>
 <span class="sd">        &#39;&#39;&#39;</span>
-        <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">scandir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">):</span>
-            <span class="k">yield</span> <span class="n">FileEntry</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">entry</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">_make_stat</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">stat</span><span class="p">()))</span></div>
+
+        <span class="k">def</span> <span class="nf">create_generator</span><span class="p">():</span>
+            <span class="k">with</span> <span class="n">os</span><span class="o">.</span><span class="n">scandir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span> <span class="k">as</span> <span class="n">entries</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">entries</span><span class="p">:</span>
+                    <span class="k">yield</span> <span class="n">FileEntry</span><span class="p">(</span>
+                        <span class="n">entry</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">entry</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">_make_stat</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">stat</span><span class="p">()))</span>
+
+        <span class="k">return</span> <span class="n">ContextIterator</span><span class="p">(</span><span class="n">create_generator</span><span class="p">())</span></div>
 
 <div class="viewcode-block" id="FSPath.stat"><a class="viewcode-back" href="../../megfile.fs_path.html#megfile.FSPath.stat">[docs]</a>    <span class="k">def</span> <span class="nf">stat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StatResult</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
@@ -670,7 +676,7 @@
 
 <div class="viewcode-block" id="FSPath.lstat"><a class="viewcode-back" href="../../megfile.fs_path.html#megfile.FSPath.lstat">[docs]</a>    <span class="k">def</span> <span class="nf">lstat</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StatResult</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        Get StatResult of file on fs, including file size and mtime, referring to fs_getsize and fs_getmtime</span>
+<span class="sd">        Like Path.stat() but, if the path points to a symbolic link, return the symbolic link’s information rather than its target’s.</span>
 
 <span class="sd">        :returns: StatResult</span>
 <span class="sd">        &#39;&#39;&#39;</span>

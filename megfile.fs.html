@@ -70,6 +70,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#megfile.fs.fs_ismount"><code class="docutils literal notranslate"><span class="pre">fs_ismount()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#megfile.fs.fs_listdir"><code class="docutils literal notranslate"><span class="pre">fs_listdir()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#megfile.fs.fs_load_from"><code class="docutils literal notranslate"><span class="pre">fs_load_from()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.fs.fs_lstat"><code class="docutils literal notranslate"><span class="pre">fs_lstat()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#megfile.fs.fs_makedirs"><code class="docutils literal notranslate"><span class="pre">fs_makedirs()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#megfile.fs.fs_move"><code class="docutils literal notranslate"><span class="pre">fs_move()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#megfile.fs.fs_path_join"><code class="docutils literal notranslate"><span class="pre">fs_path_join()</span></code></a></li>
@@ -160,14 +161,14 @@
 
 <dl class="py property">
 <dt class="sig sig-object py" id="megfile.fs.StatResult.st_atime">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">st_atime</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#megfile.fs.StatResult.st_atime" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">st_atime</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#megfile.fs.StatResult.st_atime" title="Permalink to this definition"></a></dt>
 <dd><p>Time of most recent access expressed in seconds.
 Only support fs.</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="megfile.fs.StatResult.st_atime_ns">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">st_atime_ns</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#megfile.fs.StatResult.st_atime_ns" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">st_atime_ns</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#megfile.fs.StatResult.st_atime_ns" title="Permalink to this definition"></a></dt>
 <dd><p>Time of most recent access expressed in nanoseconds as an integer.
 Only support fs.</p>
 </dd></dl>
@@ -185,7 +186,7 @@ the time of file created on oss; if is dir, return the latest ctime of the files
 
 <dl class="py property">
 <dt class="sig sig-object py" id="megfile.fs.StatResult.st_ctime_ns">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">st_ctime_ns</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#megfile.fs.StatResult.st_ctime_ns" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">st_ctime_ns</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#megfile.fs.StatResult.st_ctime_ns" title="Permalink to this definition"></a></dt>
 <dd><p>Platform dependent:</p>
 <blockquote>
 <div><p>the time of most recent metadata change on Unix,
@@ -196,29 +197,29 @@ the time of creation on Windows, expressed in nanoseconds as an integer.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="megfile.fs.StatResult.st_dev">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">st_dev</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#megfile.fs.StatResult.st_dev" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">st_dev</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#megfile.fs.StatResult.st_dev" title="Permalink to this definition"></a></dt>
 <dd><p>Identifier of the device on which this file resides.</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="megfile.fs.StatResult.st_gid">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">st_gid</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#megfile.fs.StatResult.st_gid" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">st_gid</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#megfile.fs.StatResult.st_gid" title="Permalink to this definition"></a></dt>
 <dd><p>Group identifier of the file owner.
 Only support fs.</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="megfile.fs.StatResult.st_ino">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">st_ino</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#megfile.fs.StatResult.st_ino" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">st_ino</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#megfile.fs.StatResult.st_ino" title="Permalink to this definition"></a></dt>
 <dd><p>Platform dependent, but if non-zero, uniquely identifies the file for a given value of st_dev. Typically:</p>
 <p>the inode number on Unix,
 the file index on Windows,
-the etag on oss.</p>
+the decimal of etag on oss.</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="megfile.fs.StatResult.st_mode">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">st_mode</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#megfile.fs.StatResult.st_mode" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">st_mode</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#megfile.fs.StatResult.st_mode" title="Permalink to this definition"></a></dt>
 <dd><p>File mode: file type and file mode bits (permissions).
 Only support fs.</p>
 </dd></dl>
@@ -231,14 +232,14 @@ Only support fs.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="megfile.fs.StatResult.st_mtime_ns">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">st_mtime_ns</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#megfile.fs.StatResult.st_mtime_ns" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">st_mtime_ns</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#megfile.fs.StatResult.st_mtime_ns" title="Permalink to this definition"></a></dt>
 <dd><p>Time of most recent content modification expressed in nanoseconds as an integer.
 Only support fs.</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="megfile.fs.StatResult.st_nlink">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">st_nlink</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#megfile.fs.StatResult.st_nlink" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">st_nlink</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#megfile.fs.StatResult.st_nlink" title="Permalink to this definition"></a></dt>
 <dd><p>Number of hard links.
 Only support fs.</p>
 </dd></dl>
@@ -251,7 +252,7 @@ Only support fs.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="megfile.fs.StatResult.st_uid">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">st_uid</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#megfile.fs.StatResult.st_uid" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">st_uid</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#megfile.fs.StatResult.st_uid" title="Permalink to this definition"></a></dt>
 <dd><p>User identifier of the file owner.
 Only support fs.</p>
 </dd></dl>
@@ -624,6 +625,20 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Binary stream</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="megfile.fs.fs_lstat">
+<span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">fs_lstat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#megfile.fs.StatResult" title="megfile.pathlike.StatResult"><span class="pre">StatResult</span></a></span></span><a class="reference internal" href="_modules/megfile/fs.html#fs_lstat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.fs_lstat" title="Permalink to this definition"></a></dt>
+<dd><p>Like Path.stat() but, if the path points to a symbolic link, return the symbolic link’s information rather than its target’s.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> – Given path</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>StatResult</p>
 </dd>
 </dl>
 </dd></dl>

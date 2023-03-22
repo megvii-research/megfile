@@ -81,6 +81,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#megfile.s3.s3_listdir"><code class="docutils literal notranslate"><span class="pre">s3_listdir()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#megfile.s3.s3_load_content"><code class="docutils literal notranslate"><span class="pre">s3_load_content()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#megfile.s3.s3_load_from"><code class="docutils literal notranslate"><span class="pre">s3_load_from()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.s3.s3_lstat"><code class="docutils literal notranslate"><span class="pre">s3_lstat()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#megfile.s3.s3_makedirs"><code class="docutils literal notranslate"><span class="pre">s3_makedirs()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#megfile.s3.s3_memory_open"><code class="docutils literal notranslate"><span class="pre">s3_memory_open()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#megfile.s3.s3_move"><code class="docutils literal notranslate"><span class="pre">s3_move()</span></code></a></li>
@@ -706,6 +707,12 @@ If the url is empty bucket or s3://</p>
 <dd class="field-even"><p>BinaryIO</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="megfile.s3.s3_lstat">
+<span class="sig-prename descclassname"><span class="pre">megfile.s3.</span></span><span class="sig-name descname"><span class="pre">s3_lstat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="megfile.fs.html#megfile.fs.StatResult" title="megfile.pathlike.StatResult"><span class="pre">StatResult</span></a></span></span><a class="reference internal" href="_modules/megfile/s3.html#s3_lstat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.s3.s3_lstat" title="Permalink to this definition"></a></dt>
+<dd><p>Like Path.stat() but, if the path points to a symbolic link, return the symbolic link’s information rather than its target’s.</p>
 </dd></dl>
 
 <dl class="py function">

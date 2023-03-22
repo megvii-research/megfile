@@ -112,6 +112,7 @@
     <span class="s1">&#39;fs_scan_stat&#39;</span><span class="p">,</span>
     <span class="s1">&#39;fs_scandir&#39;</span><span class="p">,</span>
     <span class="s1">&#39;fs_stat&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;fs_lstat&#39;</span><span class="p">,</span>
     <span class="s1">&#39;fs_unlink&#39;</span><span class="p">,</span>
     <span class="s1">&#39;fs_walk&#39;</span><span class="p">,</span>
     <span class="s1">&#39;fs_getmd5&#39;</span><span class="p">,</span>
@@ -333,6 +334,16 @@
 <span class="sd">    :returns: StatResult</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">return</span> <span class="n">FSPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">follow_symlinks</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="fs_lstat"><a class="viewcode-back" href="../../megfile.fs.html#megfile.fs_lstat">[docs]</a><span class="k">def</span> <span class="nf">fs_lstat</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StatResult</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Like Path.stat() but, if the path points to a symbolic link, return the symbolic link’s information rather than its target’s.</span>
+
+<span class="sd">    :param path: Given path</span>
+<span class="sd">    :returns: StatResult</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">FSPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">lstat</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="fs_unlink"><a class="viewcode-back" href="../../megfile.fs.html#megfile.fs_unlink">[docs]</a><span class="k">def</span> <span class="nf">fs_unlink</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
