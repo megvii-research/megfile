@@ -66,6 +66,8 @@ class SmartPath(BasePath):
     @classmethod
     def _create_pathlike(cls, path: Union[PathLike, int]) -> BasePath:
         protocol, _ = cls._extract_protocol(path)
+        if protocol.startswith('s3+'):
+            protocol = 's3'
         if protocol not in cls._registered_protocols:
             raise ProtocolNotFoundError(
                 'protocol %r not found: %r' % (protocol, path))

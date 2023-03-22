@@ -30,7 +30,7 @@ from megfile.lib.s3_pipe_handler import S3PipeHandler
 from megfile.lib.s3_prefetch_reader import DEFAULT_BLOCK_SIZE, S3PrefetchReader
 from megfile.lib.s3_share_cache_reader import S3ShareCacheReader
 from megfile.smart_path import SmartPath
-from megfile.utils import calculate_md5, generate_cache_path, get_binary_mode, is_readable, necessary_params, thread_local
+from megfile.utils import calculate_md5, generate_cache_path, get_binary_mode, is_readable, necessary_params, thread_local, cachedproperty
 
 __all__ = [
     'S3Path',
@@ -178,25 +178,50 @@ def get_endpoint_url() -> str:
     return endpoint_url
 
 
-def get_s3_session():
+def get_s3_session(profile_name=None):
     '''Get S3 session
 
     :returns: S3 session
     '''
-    return thread_local('s3_session', boto3.session.Session)
+    return thread_local(f's3_session:{profile_name}', boto3.Session, profile_name=profile_name)
+
+
+def get_access_token(profile_name=None):
+    access_key_env_name = f"{profile_name}__AWS_ACCESS_KEY_ID".upper() if profile_name else "AWS_ACCESS_KEY_ID"
+    secret_key_env_name = f"{profile_name}__AWS_SECRET_ACCESS_KEY".upper() if profile_name else "AWS_SECRET_ACCESS_KEY"
+    access_key = os.getenv(access_key_env_name)
+    secret_key = os.getenv(secret_key_env_name)
+    if access_key and secret_key:
+        return access_key, secret_key
+    
+    credentials = get_s3_session(profile_name=profile_name).get_credentials()
+    if credentials:
+        if not access_key:
+            access_key = credentials.access_key
+        if not secret_key:
+            secret_key = credentials.secret_key
+    return access_key, secret_key
 
 
 def get_s3_client(
         config: Optional[botocore.config.Config] = None,
-        cache_key: Optional[str] = None):
+        cache_key: Optional[str] = None,
+        profile_name=None):
     '''Get S3 client
 
     :returns: S3 client
     '''
     if cache_key is not None:
-        return thread_local(cache_key, get_s3_client, config)
-    client = get_s3_session().client(
-        's3', endpoint_url=get_endpoint_url(), config=config)
+        return thread_local(cache_key, get_s3_client, config=config, profile_name=profile_name)
+    
+    access_key, secret_key = get_access_token(profile_name)
+    client = get_s3_session(profile_name=profile_name).client(
+        's3', 
+        endpoint_url=get_endpoint_url(), 
+        config=config,
+        aws_access_key_id=access_key,
+        aws_secret_access_key=secret_key,
+    )
     client = _patch_make_request(client)
     return client
 
@@ -511,7 +536,7 @@ def is_s3(path: PathLike) -> bool:
     if not path.startswith('s3://'):
         return False
     parts = urlsplit(path)
-    return parts.scheme == 's3'
+    return parts.scheme == 's3' or parts.scheme.startswith('s3+')
 
 
 def _s3_binary_mode(s3_open_func):
@@ -1097,21 +1122,7 @@ def s3_glob_stat(
     :raises: UnsupportedError, when bucket part contains wildcard characters
     :returns: A generator contains tuples of path and file stat, in which paths match `s3_pathname`
     '''
-    s3_pathname = fspath(path)
-
-    def create_generator():
-        for group_s3_pathname_1 in _group_s3path_by_bucket(s3_pathname):
-            for group_s3_pathname_2 in _group_s3path_by_prefix(
-                    group_s3_pathname_1):
-                yield from _s3_glob_stat_single_path(
-                    group_s3_pathname_2,
-                    recursive,
-                    missing_ok,
-                    followlinks=followlinks)
-
-    return _create_missing_ok_generator(
-        create_generator(), missing_ok,
-        S3FileNotFoundError('No match file: %r' % s3_pathname))
+    return S3Path(path).glob_stat(pattern="", recursive=recursive, missing_ok=missing_ok, followlinks=followlinks)
 
 
 def s3_iglob(
@@ -1128,10 +1139,8 @@ def s3_iglob(
     :raises: UnsupportedError, when bucket part contains wildcard characters
     :returns: An iterator contains paths match `s3_pathname`
     '''
-    for file_entry in s3_glob_stat(path=path, recursive=recursive,
-                                   missing_ok=missing_ok,
-                                   followlinks=followlinks):
-        yield file_entry.path
+    for path_obj in S3Path(path).iglob(pattern="", recursive=recursive, missing_ok=missing_ok, followlinks=followlinks):
+        yield path_obj.path_with_protocol
 
 
 def s3_makedirs(path: PathLike, exist_ok: bool = False):
@@ -1152,6 +1161,26 @@ class S3Path(URIPath):
 
     protocol = "s3"
 
+    def __init__(self, path: "PathLike", *other_paths: "PathLike"):
+        super().__init__(path, *other_paths)
+        protocol = urlsplit(self.path).scheme
+        self._protocol_with_profile = self.protocol
+        self._profile_name = None
+        if protocol.startswith('s3+'):
+            self._protocol_with_profile = protocol
+            self._profile_name = protocol[3:]
+            self.path = f"s3://{self.path[len(protocol)+3:]}"
+        elif not protocol:
+            self.path = f"s3://{self.path.lstrip('/')}"
+
+    @cachedproperty
+    def path_with_protocol(self) -> str:
+        '''Return path with protocol, like file:///root, s3://bucket/key'''
+        return self._protocol_with_profile + "://" + self.path_without_protocol.lstrip('/')
+
+    def _client(self):
+        return get_s3_client(self._profile_name)
+
     def access(
             self, mode: Access = Access.READ,
             followlinks: bool = False) -> bool:
@@ -1162,7 +1191,7 @@ class S3Path(URIPath):
         :param mode: access mode
         :returns: bool, if the bucket of s3_url has read/write access.
         '''
-        s3_url = self.path_with_protocol
+        s3_url = self.path
         if followlinks:
             metadata = _s3_get_metadata(s3_url)
             if metadata and 'symlink_to' in metadata:
@@ -1195,7 +1224,7 @@ class S3Path(URIPath):
 
         :returns: True if s3_url eixsts, else False
         '''
-        bucket, key = parse_s3_url(self.path_with_protocol)
+        bucket, key = parse_s3_url(self.path)
         if not bucket:  # s3:// => True, s3:///key => False
             return not key
 
@@ -1264,14 +1293,28 @@ class S3Path(URIPath):
         :raises: UnsupportedError, when bucket part contains wildcard characters
         :returns: A generator contains tuples of path and file stat, in which paths match `s3_pathname`
         '''
-        glob_path = self.path_with_protocol
+        glob_path = self.path
         if pattern:
-            glob_path = self.joinpath(pattern).path_with_protocol
-        return s3_glob_stat(
-            path=glob_path,
-            recursive=recursive,
-            missing_ok=missing_ok,
-            followlinks=followlinks)
+            glob_path = self.joinpath(pattern).path
+        s3_pathname = fspath(glob_path)
+
+        def create_generator():
+            for group_s3_pathname_1 in _group_s3path_by_bucket(s3_pathname):
+                for group_s3_pathname_2 in _group_s3path_by_prefix(
+                        group_s3_pathname_1):
+                    for file_entry in _s3_glob_stat_single_path(
+                        group_s3_pathname_2,
+                        recursive,
+                        missing_ok,
+                        followlinks=followlinks):
+                        if self._profile_name:
+                            file_entry.path = f"{self._protocol_with_profile}://{file_entry.path[5:]}"
+                            yield file_entry
+
+        return _create_missing_ok_generator(
+            create_generator(), missing_ok,
+            S3FileNotFoundError('No match file: %r' % s3_pathname))
+
 
     def iglob(
             self,
@@ -1289,12 +1332,10 @@ class S3Path(URIPath):
         :raises: UnsupportedError, when bucket part contains wildcard characters
         :returns: An iterator contains paths match `s3_pathname`
         '''
-        glob_path = self.path_with_protocol
-        if pattern:
-            glob_path = self.joinpath(pattern).path_with_protocol
-        for path in s3_iglob(path=glob_path, recursive=recursive,
-                             missing_ok=missing_ok, followlinks=followlinks):
-            yield self.from_path(path)
+        for file_entry in self.glob_stat(pattern=pattern, recursive=recursive,
+                                   missing_ok=missing_ok,
+                                   followlinks=followlinks):
+            yield self.from_path(file_entry.path)
 
     def is_dir(self, followlinks: bool = False) -> bool:
         '''
@@ -1306,7 +1347,7 @@ class S3Path(URIPath):
         :param followlinks: whether followlinks is True or False, result is the same. Because s3 symlink not support dir.
         :returns: True if path is s3 directory, else False
         '''
-        bucket, key = parse_s3_url(self.path_with_protocol)
+        bucket, key = parse_s3_url(self.path)
         if not bucket:  # s3:// => True, s3:///key => False
             return not key
         prefix = _become_prefix(key)
@@ -1335,7 +1376,7 @@ class S3Path(URIPath):
 
         :returns: True if path is s3 file, else False
         '''
-        s3_url = self.path_with_protocol
+        s3_url = self.path
         if followlinks:
             metadata = _s3_get_metadata(s3_url)
             if metadata and 'symlink_to' in metadata:
@@ -1381,7 +1422,7 @@ class S3Path(URIPath):
 
         :returns: BinaryIO
         '''
-        s3_url = self.path_with_protocol
+        s3_url = self.path
         if followlinks:
             metadata = _s3_get_metadata(s3_url)
             if metadata and 'symlink_to' in metadata:
@@ -1405,7 +1446,7 @@ class S3Path(URIPath):
 
         :returns: True if bucket of s3_url eixsts, else False
         '''
-        bucket, _ = parse_s3_url(self.path_with_protocol)
+        bucket, _ = parse_s3_url(self.path)
         if not bucket:
             return False
 
@@ -1432,7 +1473,7 @@ class S3Path(URIPath):
         :param exist_ok: If False and target directory exists, raise S3FileExistsError
         :raises: S3BucketNotFoundError, S3FileExistsError
         '''
-        bucket, _ = parse_s3_url(self.path_with_protocol)
+        bucket, _ = parse_s3_url(self.path)
         if not bucket:
             raise S3BucketNotFoundError(
                 'Empty bucket name: %r' % self.path_with_protocol)
@@ -1454,7 +1495,7 @@ class S3Path(URIPath):
         :param dst_url: Given destination path
         '''
         for src_file_path, dst_file_path in _s3_scan_pairs(
-                self.path_with_protocol, dst_url):
+                self.path, dst_url):
             S3Path(src_file_path).rename(dst_file_path)
 
     def remove(self, missing_ok: bool = False) -> None:
@@ -1464,7 +1505,7 @@ class S3Path(URIPath):
         :param missing_ok: if False and target file/directory not exists, raise S3FileNotFoundError
         :raises: S3PermissionError, S3FileNotFoundError, UnsupportedError
         '''
-        bucket, key = parse_s3_url(self.path_with_protocol)
+        bucket, key = parse_s3_url(self.path)
         if not bucket:
             if not key:
                 raise UnsupportedError(
