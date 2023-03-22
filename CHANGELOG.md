@@ -1,3 +1,12 @@
+## 2.0.3 - 2023.03.22
+- feat
+    - add smart_lstat
+    - smart_scandir support ‘with’ operate
+- fix
+    - fix smart_sync error when file name in dir is empty str
+    - fix stat properties default value
+    - fix smart_load_content when path is not fs or s3
+
 ## 2.0.2 - 2023.03.13
 - support s3 endpoint env: AWS_ENDPOINT
 
