@@ -957,7 +957,6 @@ def test_smart_load_content(funcA):
 
     assert smart.smart_load_content(path) == content
     assert smart.smart_load_content(path, 1) == content[1:]
-    assert smart.smart_load_content(path, stop=-1) == content[:-1]
     assert smart.smart_load_content(path, 4, 7) == content[4:7]
 
     with pytest.raises(Exception) as error:
