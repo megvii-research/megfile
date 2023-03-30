@@ -767,11 +767,13 @@ def smart_load_content(
     if is_s3(path):
         return s3_load_content(path, start, stop)
 
-    start, stop = get_content_offset(start, stop, fs_getsize(path))
-
-    with open(path, 'rb') as fd:
-        fd.seek(start)
-        return fd.read(stop - start)
+    with smart_open(path, 'rb') as fd:
+        if start:
+            fd.seek(start)
+        offset = -1
+        if start and stop:
+            offset = stop - start
+        return fd.read(offset)
 
 
 def smart_save_content(path: PathLike, content: bytes) -> None:

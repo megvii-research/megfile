@@ -2544,64 +2544,6 @@ def test_s3_pipe_open_raises_exceptions(s3_empty_client):
     assert 's3://bucket/keyy' in str(error.value)
 
 
-def test_s3_legacy_open(mocker, s3_empty_client):
-    resource = boto3.resource('s3')
-    mocker.patch('boto3.Session.resource', return_value=resource)
-    mocker.patch('megfile.s3_path.get_endpoint_url', return_value=None)
-
-    content = b'test data for s3_legacy_open'
-    s3_empty_client.create_bucket(Bucket='bucket')
-
-    with s3.s3_legacy_open('s3://bucket/key', 'wb') as writer:
-        writer.write(content)
-    body = s3_empty_client.get_object(Bucket='bucket', Key='key')['Body'].read()
-    assert body == content
-    s3.s3_symlink('s3://bucket/key', 's3://bucket/symlink')
-
-    with s3.s3_legacy_open('s3://bucket/key', 'rb') as reader:
-        assert reader.read() == content
-
-    with s3.s3_legacy_open('s3://bucket/key', 'rb', followlinks=True) as reader:
-        assert reader.read() == content
-
-    with s3.s3_legacy_open('s3://bucket/symlink', 'rb',
-                           followlinks=True) as reader:
-        assert reader.read() == content
-
-
-def test_s3_legacy_open_raises_exceptions(mocker, s3_empty_client):
-    resource = boto3.resource('s3')
-    mocker.patch('boto3.Session.resource', return_value=resource)
-    mocker.patch('megfile.s3_path.get_endpoint_url', return_value=None)
-
-    with pytest.raises(IsADirectoryError) as error:
-        s3.s3_legacy_open('s3://bucket', 'wb')
-    assert 's3://bucket' in str(error.value)
-
-    with pytest.raises(IsADirectoryError) as error:
-        s3.s3_legacy_open('s3://bucket/', 'wb')
-    assert 's3://bucket/' in str(error.value)
-
-    with pytest.raises(FileNotFoundError) as error:
-        s3.s3_legacy_open('s3://bucket/key', 'wb')
-    assert 's3://bucket/key' in str(error.value)
-
-    s3_empty_client.create_bucket(Bucket='bucket')
-    s3_empty_client.put_object(Bucket='bucket', Key='key')
-
-    with pytest.raises(IsADirectoryError) as error:
-        s3.s3_legacy_open('s3://bucket', 'rb')
-    assert 's3://bucket' in str(error.value)
-
-    with pytest.raises(IsADirectoryError) as error:
-        s3.s3_legacy_open('s3://bucket/', 'rb')
-    assert 's3://bucket/' in str(error.value)
-
-    with pytest.raises(FileNotFoundError) as error:
-        s3.s3_legacy_open('s3://bucket/keyy', 'rb')
-    assert 's3://bucket/keyy' in str(error.value)
-
-
 def test_s3_cached_open(mocker, s3_empty_client, fs):
     content = b'test data for s3_cached_open'
     s3_empty_client.create_bucket(Bucket='bucket')

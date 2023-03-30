@@ -1,5 +1,4 @@
 import hashlib
-import inspect
 import io
 import os
 import re
@@ -11,7 +10,6 @@ from urllib.parse import urlsplit
 
 import boto3
 import botocore
-import smart_open.s3
 from botocore.awsrequest import AWSResponse
 
 from megfile.errors import S3BucketNotFoundError, S3ConfigError, S3FileExistsError, S3FileNotFoundError, S3IsADirectoryError, S3NameTooLongError, S3NotADirectoryError, S3NotALinkError, S3PermissionError, S3UnknownError, UnsupportedError, _create_missing_ok_generator
@@ -43,7 +41,6 @@ __all__ = [
     's3_buffered_open',
     's3_cached_open',
     's3_download',
-    's3_legacy_open',
     's3_memory_open',
     's3_pipe_open',
     's3_prefetch_open',
@@ -71,43 +68,6 @@ max_pool_connections = 32
 max_retries = 10
 max_keys = 1000
 S3_PATH_CHECK_PATTERN = re.compile(r'^s3(\+\w+)?:\/\/')
-
-# Monkey patch for smart_open
-_smart_open_parameters = inspect.signature(smart_open.s3.open).parameters
-if 'resource_kwargs' in _smart_open_parameters:
-    # smart_open >= 1.8.1
-    def _s3_open(
-            bucket: str, key: str, mode: str,
-            profile_name: Optional[str] = None):  # pragma: no cover
-        return smart_open.s3.open(
-            bucket,
-            key,
-            mode,
-            session=get_s3_session(profile_name=profile_name),
-            resource_kwargs={
-                'endpoint_url': get_endpoint_url(profile_name=profile_name)
-            })
-
-elif 'client' in _smart_open_parameters:
-    # smart_open >= 5.0.0
-    def _s3_open(
-            bucket: str, key: str, mode: str,
-            profile_name: Optional[str] = None):
-        return smart_open.s3.open(
-            bucket, key, mode, client=get_s3_client(profile_name=profile_name))
-
-else:
-    # smart_open < 1.8.1, >= 1.6.0
-    def _s3_open(
-            bucket: str, key: str, mode: str,
-            profile_name: Optional[str] = None):  # pragma: no cover
-        return smart_open.s3.open(
-            bucket,
-            key,
-            mode,
-            s3_session=get_s3_session(profile_name=profile_name),
-            endpoint_url=get_endpoint_url(
-                profile_name=profile_name))  # type: ignore
 
 
 def _patch_make_request(client: botocore.client.BaseClient):
@@ -895,53 +855,6 @@ def s3_memory_open(
         cache_key='s3_filelike_client',
         profile_name=s3_url._profile_name)
     return S3MemoryHandler(bucket, key, mode, s3_client=client)
-
-
-@_s3_binary_mode
-def s3_legacy_open(s3_url: PathLike, mode: str, followlinks: bool = False):
-    '''Use smart_open.s3.open open a reader / writer
-
-    .. note ::
-
-        User should make sure that reader / writer are closed correctly
-
-        Supports context manager
-
-    :param mode: Mode to open file, either "rb" or "wb"
-    :returns: File-Like Object
-    '''
-    if mode not in ('rb', 'wb'):  # pragma: no cover
-        raise ValueError('unacceptable mode: %r' % mode)
-    s3_url = S3Path(s3_url)
-    if followlinks:
-        try:
-            s3_url = s3_url.readlink()
-        except S3NotALinkError:
-            pass
-
-    bucket, key = parse_s3_url(s3_url.path_with_protocol)
-    try:
-        return _s3_open(bucket, key, mode, profile_name=s3_url._profile_name)
-    except Exception as error:  # pragma: no cover
-        if isinstance(error, IOError):
-            error_str = str(error)
-            if 'NoSuchKey' in error_str:
-                raise S3FileNotFoundError('No such file: %r' % s3_url)
-            if 'NoSuchBucket' in error_str:
-                raise S3BucketNotFoundError('No such bucket: %r' % s3_url)
-            for code in ('AccessDenied', 'InvalidAccessKeyId',
-                         'SignatureDoesNotMatch'):
-                if code in error_str:
-                    raise S3PermissionError(
-                        'Permission denied: %r, code: %s' % (s3_url, code))
-            raise S3UnknownError(error, s3_url)
-        elif isinstance(error, ValueError):
-            error_str = str(error)
-            if 'does not exist' in error_str:
-                # if bucket is non-existent or has no WRITE access
-                raise S3BucketNotFoundError('No such bucket: %r' % s3_url)
-            raise S3UnknownError(error, s3_url)
-        raise translate_s3_error(error, s3_url)
 
 
 s3_open = s3_buffered_open
