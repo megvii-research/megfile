@@ -485,7 +485,7 @@ def _s3_glob_stat_single_path(
         pattern = re.compile(translate(_s3_pathname))
         bucket, key = parse_s3_url(top_dir)
         prefix = _become_prefix(key)
-        client = get_s3_client(profile_name)
+        client = get_s3_client(profile_name=profile_name)
         with raise_s3_error(_s3_pathname):
             for resp in _list_objects_recursive(client, bucket, prefix,
                                                 delimiter):
@@ -1232,7 +1232,7 @@ class S3Path(URIPath):
 
     @cachedproperty
     def _client(self):
-        return get_s3_client(self._profile_name)
+        return get_s3_client(profile_name=self._profile_name)
 
     def _s3_get_metadata(self) -> dict:
         '''
