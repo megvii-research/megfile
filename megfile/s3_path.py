@@ -1368,7 +1368,7 @@ class S3Path(URIPath):
         '''
         glob_path = self._s3_path
         if pattern:
-            glob_path = self.joinpath(pattern)._s3_path
+            glob_path = self.joinpath(pattern)._s3_path  # pytype: disable=attribute-error
         s3_pathname = fspath(glob_path)
 
         def create_generator():
