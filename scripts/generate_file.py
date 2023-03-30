@@ -5,7 +5,8 @@ ALL_IGNORE_FUNC_LIST = dict(
     s3=[
         "open", "readlink", "iterdir", "is_mount", "is_socket", "is_fifo",
         "is_block_device", "is_char_device", "owner", "absolute", "rmdir",
-        "glob", "iglob", "glob_stat", "rename", "cwd", "mkdir"
+        "glob", "iglob", "glob_stat", "rename", "cwd", "mkdir",
+        "path_without_protocol", "path_with_protocol"
     ],
     fs=[
         "open", "from_uri", "path_with_protocol", "joinpath", "readlink",

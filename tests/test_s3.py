@@ -18,8 +18,7 @@ from moto import mock_s3
 from megfile import s3, s3_path, smart
 from megfile.errors import S3BucketNotFoundError, S3FileNotFoundError, S3IsADirectoryError, S3NameTooLongError, S3NotALinkError, S3UnknownError, UnknownError, UnsupportedError, translate_s3_error
 from megfile.interfaces import Access, FileEntry, StatResult
-from megfile.s3 import s3_islink
-from megfile.s3_path import DEFAULT_MAX_BUFFER_SIZE, S3CachedHandler, S3MemoryHandler, _group_s3path_by_bucket, _group_s3path_by_prefix, _list_objects_recursive, _parse_s3_url_ignore_brace, _patch_make_request, _s3_get_metadata, _s3_split_magic, _s3_split_magic_ignore_brace
+from megfile.s3_path import DEFAULT_MAX_BUFFER_SIZE, S3CachedHandler, S3MemoryHandler, _group_s3path_by_bucket, _group_s3path_by_prefix, _list_objects_recursive, _parse_s3_url_ignore_brace, _patch_make_request, _s3_split_magic, _s3_split_magic_ignore_brace
 
 from . import Any, FakeStatResult, Now
 
@@ -276,46 +275,64 @@ def test_get_endpoint_url_from_scoped_config(mocker):
 
 
 def test_get_s3_client(mocker):
-    mock_session = mocker.Mock(spec=boto3.session.Session)
+    mock_session = mocker.Mock(spec=boto3.Session)
     mocker.patch('megfile.s3_path.get_scoped_config', return_value={})
     mocker.patch('megfile.s3_path.get_s3_session', return_value=mock_session)
 
     s3.get_s3_client()
+    access_key, secret_key = s3_path.get_access_token()
 
     mock_session.client.assert_called_with(
-        's3', endpoint_url='https://s3.amazonaws.com', config=Any())
+        's3',
+        endpoint_url='https://s3.amazonaws.com',
+        config=Any(),
+        aws_access_key_id=access_key,
+        aws_secret_access_key=secret_key,
+    )
 
     client = s3.get_s3_client(cache_key='test')
     assert client is s3.get_s3_client(cache_key='test')
 
 
 def test_get_s3_client_from_env(mocker):
-    mock_session = mocker.Mock(spec=boto3.session.Session)
+    mock_session = mocker.Mock(spec=boto3.Session)
     mocker.patch('megfile.s3_path.get_scoped_config', return_value={})
     mocker.patch('megfile.s3_path.get_s3_session', return_value=mock_session)
     mocker.patch.dict(os.environ, {'OSS_ENDPOINT': 'oss-endpoint'})
 
     s3.get_s3_client()
+    access_key, secret_key = s3_path.get_access_token()
 
     mock_session.client.assert_called_with(
-        's3', endpoint_url='oss-endpoint', config=Any())
+        's3',
+        endpoint_url='oss-endpoint',
+        config=Any(),
+        aws_access_key_id=access_key,
+        aws_secret_access_key=secret_key,
+    )
 
 
 def test_get_s3_client_with_config(mocker):
-    mock_session = mocker.Mock(spec=boto3.session.Session)
+    mock_session = mocker.Mock(spec=boto3.Session)
     mocker.patch('megfile.s3_path.get_scoped_config', return_value={})
     mocker.patch('megfile.s3_path.get_s3_session', return_value=mock_session)
 
     config = botocore.config.Config(max_pool_connections=20)
 
     s3.get_s3_client(config)
+    access_key, secret_key = s3_path.get_access_token()
 
     mock_session.client.assert_called_with(
-        's3', endpoint_url='https://s3.amazonaws.com', config=config)
+        's3',
+        endpoint_url='https://s3.amazonaws.com',
+        config=config,
+        aws_access_key_id=access_key,
+        aws_secret_access_key=secret_key,
+    )
 
 
 def test_get_s3_session_threading(mocker):
-    session_call = mocker.patch('boto3.session.Session')
+    session_call = mocker.patch('boto3.Session')
     for i in range(2):
         thread = threading.Thread(target=s3.get_s3_session)
         thread.start()
@@ -325,7 +342,7 @@ def test_get_s3_session_threading(mocker):
 
 
 def test_get_s3_session_threading_reuse(mocker):
-    session_call = mocker.patch('boto3.session.Session')
+    session_call = mocker.patch('boto3.Session')
 
     def session_twice():
         s3.get_s3_session()
@@ -340,91 +357,95 @@ def test_get_s3_session_threading_reuse(mocker):
 
 def test_is_s3():
     # 不以 s3:// 开头
-    assert s3.is_s3('') == False
-    assert s3.is_s3('s') == False
-    assert s3.is_s3('s3') == False
-    assert s3.is_s3('s3:') == False
-    assert s3.is_s3('s3:bucket') == False
-    assert s3.is_s3('S3:bucket') == False
-    assert s3.is_s3('s3:/') == False
-    assert s3.is_s3('s3:/xxx') == False
-    assert s3.is_s3('s3:/foo/bar') == False
-    assert s3.is_s3('s3://') == True
-    assert s3.is_s3('s4://') == False
-    assert s3.is_s3('s3:://') == False
-    assert s3.is_s3('s3:/path/to/file') == False
-    assert s3.is_s3('s3:base') == False
-    assert s3.is_s3('/xxx') == False
-    assert s3.is_s3('/path/to/file') == False
+    assert s3.is_s3('') is False
+    assert s3.is_s3('s') is False
+    assert s3.is_s3('s3') is False
+    assert s3.is_s3('s3:') is False
+    assert s3.is_s3('s3:bucket') is False
+    assert s3.is_s3('S3:bucket') is False
+    assert s3.is_s3('s3:/') is False
+    assert s3.is_s3('s3:/xxx') is False
+    assert s3.is_s3('s3:/foo/bar') is False
+    assert s3.is_s3('s3://') is True
+    assert s3.is_s3('s4://') is False
+    assert s3.is_s3('s3:://') is False
+    assert s3.is_s3('s3:/path/to/file') is False
+    assert s3.is_s3('s3:base') is False
+    assert s3.is_s3('/xxx') is False
+    assert s3.is_s3('/path/to/file') is False
+    assert s3.is_s3('s3+://') is False
+    assert s3.is_s3('s3+test://') is True
+    assert s3.is_s3('s3+test:/') is False
+    assert s3.is_s3('s3+test:') is False
 
     # 以非小写字母开头的 bucket
-    assert s3.is_s3('s3://Bucket') == True
-    assert s3.is_s3('s3:// ucket') == True
-    assert s3.is_s3('s3://.ucket') == True
-    assert s3.is_s3('s3://?ucket') == True
-    assert s3.is_s3('s3://\rucket') == True
-    assert s3.is_s3('s3://\ncket') == True
-    assert s3.is_s3('s3://\bcket') == True
-    assert s3.is_s3('s3://\tcket') == True
-    assert s3.is_s3('s3://-bucket') == True
+    assert s3.is_s3('s3://Bucket') is True
+    assert s3.is_s3('s3:// ucket') is True
+    assert s3.is_s3('s3://.ucket') is True
+    assert s3.is_s3('s3://?ucket') is True
+    assert s3.is_s3('s3://\rucket') is True
+    assert s3.is_s3('s3://\ncket') is True
+    assert s3.is_s3('s3://\bcket') is True
+    assert s3.is_s3('s3://\tcket') is True
+    assert s3.is_s3('s3://-bucket') is True
 
     # 以非小写字母结尾的 bucket
-    assert s3.is_s3('s3://buckeT') == True
-    assert s3.is_s3('s3://bucke ') == True
-    assert s3.is_s3('s3://bucke.') == True
-    assert s3.is_s3('s3://bucke?') == True
-    assert s3.is_s3('s3://bucke\r') == True
-    assert s3.is_s3('s3://bucke\n') == True
-    assert s3.is_s3('s3://bucke\t') == True
-    assert s3.is_s3('s3://bucke\b') == True
-    assert s3.is_s3('s3://bucket0') == True
+    assert s3.is_s3('s3://buckeT') is True
+    assert s3.is_s3('s3://bucke ') is True
+    assert s3.is_s3('s3://bucke.') is True
+    assert s3.is_s3('s3://bucke?') is True
+    assert s3.is_s3('s3://bucke\r') is True
+    assert s3.is_s3('s3://bucke\n') is True
+    assert s3.is_s3('s3://bucke\t') is True
+    assert s3.is_s3('s3://bucke\b') is True
+    assert s3.is_s3('s3://bucket0') is True
 
     # 中间含有非字母、数字且非 '-' 字符的 bucket
-    assert s3.is_s3('s3://buc.ket') == True
-    assert s3.is_s3('s3://buc?ket') == True
-    assert s3.is_s3('s3://buc ket') == True
-    assert s3.is_s3('s3://buc\tket') == True
-    assert s3.is_s3('s3://buc\rket') == True
-    assert s3.is_s3('s3://buc\bket') == True
-    assert s3.is_s3('s3://buc\vket') == True
-    assert s3.is_s3('s3://buc\aket') == True
-    assert s3.is_s3('s3://buc\nket') == True
+    assert s3.is_s3('s3://buc.ket') is True
+    assert s3.is_s3('s3://buc?ket') is True
+    assert s3.is_s3('s3://buc ket') is True
+    assert s3.is_s3('s3://buc\tket') is True
+    assert s3.is_s3('s3://buc\rket') is True
+    assert s3.is_s3('s3://buc\bket') is True
+    assert s3.is_s3('s3://buc\vket') is True
+    assert s3.is_s3('s3://buc\aket') is True
+    assert s3.is_s3('s3://buc\nket') is True
 
     # bucket 长度不位于闭区间 [3, 63]
-    assert s3.is_s3('s3://bu') == True
-    assert s3.is_s3('s3://%s' % ('b' * 64)) == True
+    assert s3.is_s3('s3://bu') is True
+    assert s3.is_s3('s3://%s' % ('b' * 64)) is True
 
     # prefix, 可以为 '', 或包含连续的 '/'
-    assert s3.is_s3('s3://bucket') == True
-    assert s3.is_s3('s3://bucket/') == True
-    assert s3.is_s3('s3://bucket//') == True
-    assert s3.is_s3('s3://bucket//prefix') == True
-    assert s3.is_s3('s3://bucket/key/') == True
-    assert s3.is_s3('s3://bucket/key//') == True
-    assert s3.is_s3('s3://bucket/prefix/key/') == True
-    assert s3.is_s3('s3://bucket/prefix//key/') == True
-    assert s3.is_s3('s3://bucket//prefix//key/') == True
-    assert s3.is_s3('s3://bucket//prefix//key') == True
-    assert s3.is_s3('s3://bucket//////') == True
+    assert s3.is_s3('s3://bucket') is True
+    assert s3.is_s3('s3://bucket/') is True
+    assert s3.is_s3('s3://bucket//') is True
+    assert s3.is_s3('s3://bucket//prefix') is True
+    assert s3.is_s3('s3://bucket/key/') is True
+    assert s3.is_s3('s3://bucket/key//') is True
+    assert s3.is_s3('s3://bucket/prefix/key/') is True
+    assert s3.is_s3('s3://bucket/prefix//key/') is True
+    assert s3.is_s3('s3://bucket//prefix//key/') is True
+    assert s3.is_s3('s3://bucket//prefix//key') is True
+    assert s3.is_s3('s3://bucket//////') is True
 
     # path 以不可见字符结尾
-    assert s3.is_s3('s3://bucket/ ') == True
-    assert s3.is_s3('s3://bucket/\r') == True
-    assert s3.is_s3('s3://bucket/\n') == True
-    assert s3.is_s3('s3://bucket/\a') == True
-    assert s3.is_s3('s3://bucket/\b') == True
-    assert s3.is_s3('s3://bucket/\t') == True
-    assert s3.is_s3('s3://bucket/\v') == True
-    assert s3.is_s3('s3://bucket/key ') == True
-    assert s3.is_s3('s3://bucket/key\n') == True
-    assert s3.is_s3('s3://bucket/key\r') == True
-    assert s3.is_s3('s3://bucket/key\a') == True
-    assert s3.is_s3('s3://bucket/key\b') == True
-    assert s3.is_s3('s3://bucket/key\t') == True
-    assert s3.is_s3('s3://bucket/key\v') == True
+    assert s3.is_s3('s3://bucket/ ') is True
+    assert s3.is_s3('s3://bucket/\r') is True
+    assert s3.is_s3('s3://bucket/\n') is True
+    assert s3.is_s3('s3://bucket/\a') is True
+    assert s3.is_s3('s3://bucket/\b') is True
+    assert s3.is_s3('s3://bucket/\t') is True
+    assert s3.is_s3('s3://bucket/\v') is True
+    assert s3.is_s3('s3://bucket/key ') is True
+    assert s3.is_s3('s3://bucket/key\n') is True
+    assert s3.is_s3('s3://bucket/key\r') is True
+    assert s3.is_s3('s3://bucket/key\a') is True
+    assert s3.is_s3('s3://bucket/key\b') is True
+    assert s3.is_s3('s3://bucket/key\t') is True
+    assert s3.is_s3('s3://bucket/key\v') is True
 
     # PathLike
-    assert s3.is_s3(Path('/bucket/key')) == False
+    assert s3.is_s3(Path('/bucket/key')) is False
 
 
 def test_parse_s3_url():
@@ -2032,7 +2053,7 @@ def test_s3_glob_stat(truncating_client, mocker):
     with pytest.raises(S3BucketNotFoundError) as error:
         list(s3.s3_glob_stat('s3:///key'))
 
-    with pytest.raises(ValueError) as error:
+    with pytest.raises(UnsupportedError) as error:
         list(s3.s3_glob_stat('/'))
 
     with pytest.raises(FileNotFoundError):
@@ -2982,8 +3003,8 @@ def test_symlink_relevant_functions(s3_empty_client, fs):
     s3.s3_symlink(dst_url, dst_dst_url)
     s3.s3_copy(dst_url, copy_url, followlinks=True)
 
-    assert _s3_get_metadata('s3://') == {}
-    assert _s3_get_metadata('s3://bucket') == {}
+    assert s3_path.S3Path('s3://')._s3_get_metadata() == {}
+    assert s3_path.S3Path('s3://bucket')._s3_get_metadata() == {}
     assert s3.s3_islink(dst_url) is True
     assert s3.s3_exists(A_dst_dst_url) is True
     assert s3.s3_access(A_dst_url, Access.READ, followlinks=True) is True
@@ -3004,26 +3025,26 @@ def test_symlink_relevant_functions(s3_empty_client, fs):
     assert s3.s3_load_content(dst_url, followlinks=False) == b''
     assert s3.s3_load_content(copy_url, followlinks=True) == content
 
-    assert list(s3.s3_scan_stat(A_dst_url))[0].is_symlink() == True
+    assert list(s3.s3_scan_stat(A_dst_url))[0].is_symlink() is True
     s3.s3_sync(A_dst_url, sync_url)
     assert s3.s3_exists(sync_url, followlinks=False) is True
     assert s3.s3_islink(sync_url) is True
-    assert list(s3.s3_scan_stat(sync_url))[0].is_symlink() == True
+    assert list(s3.s3_scan_stat(sync_url))[0].is_symlink() is True
     assert list(s3.s3_scan_stat(sync_url,
-                                followlinks=True))[0].is_symlink() == True
+                                followlinks=True))[0].is_symlink() is True
     assert list(s3.s3_scan_stat(A_dst_url,
-                                followlinks=True))[0].is_symlink() == True
+                                followlinks=True))[0].is_symlink() is True
 
     s3.s3_remove(sync_url)
     s3.s3_sync(A_dst_url, sync_url, followlinks=True)
     assert s3.s3_exists(sync_url, followlinks=False) is True
     assert s3.s3_islink(sync_url) is False
 
-    assert list(s3.s3_scan_stat(sync_url))[0].is_symlink() == False
+    assert list(s3.s3_scan_stat(sync_url))[0].is_symlink() is False
     assert list(s3.s3_scan_stat(sync_url,
-                                followlinks=True))[0].is_symlink() == False
+                                followlinks=True))[0].is_symlink() is False
     assert list(s3.s3_scan_stat(src_url,
-                                followlinks=True))[0].is_symlink() == False
+                                followlinks=True))[0].is_symlink() is False
 
     for scan_entry in s3.s3_scan_stat('s3://bucketA/pass/', followlinks=True):
         if scan_entry.name == dst_url:

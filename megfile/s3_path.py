@@ -30,7 +30,7 @@ from megfile.lib.s3_pipe_handler import S3PipeHandler
 from megfile.lib.s3_prefetch_reader import DEFAULT_BLOCK_SIZE, S3PrefetchReader
 from megfile.lib.s3_share_cache_reader import S3ShareCacheReader
 from megfile.smart_path import SmartPath
-from megfile.utils import calculate_md5, generate_cache_path, get_binary_mode, is_readable, necessary_params, thread_local, cachedproperty
+from megfile.utils import cachedproperty, calculate_md5, generate_cache_path, get_binary_mode, is_readable, necessary_params, thread_local
 
 __all__ = [
     'S3Path',
@@ -70,33 +70,44 @@ endpoint_url = 'https://s3.amazonaws.com'
 max_pool_connections = 32
 max_retries = 10
 max_keys = 1000
+S3_PATH_CHECK_PATTERN = re.compile(r'^s3(\+\w+)?:\/\/')
 
 # Monkey patch for smart_open
 _smart_open_parameters = inspect.signature(smart_open.s3.open).parameters
 if 'resource_kwargs' in _smart_open_parameters:
     # smart_open >= 1.8.1
-    def _s3_open(bucket: str, key: str, mode: str):  # pragma: no cover
+    def _s3_open(
+            bucket: str, key: str, mode: str,
+            profile_name: Optional[str] = None):  # pragma: no cover
         return smart_open.s3.open(
             bucket,
             key,
             mode,
-            session=get_s3_session(),
-            resource_kwargs={'endpoint_url': get_endpoint_url()})
+            session=get_s3_session(profile_name=profile_name),
+            resource_kwargs={
+                'endpoint_url': get_endpoint_url(profile_name=profile_name)
+            })
 
 elif 'client' in _smart_open_parameters:
     # smart_open >= 5.0.0
-    def _s3_open(bucket: str, key: str, mode: str):
-        return smart_open.s3.open(bucket, key, mode, client=get_s3_client())
+    def _s3_open(
+            bucket: str, key: str, mode: str,
+            profile_name: Optional[str] = None):
+        return smart_open.s3.open(
+            bucket, key, mode, client=get_s3_client(profile_name=profile_name))
 
 else:
     # smart_open < 1.8.1, >= 1.6.0
-    def _s3_open(bucket: str, key: str, mode: str):  # pragma: no cover
+    def _s3_open(
+            bucket: str, key: str, mode: str,
+            profile_name: Optional[str] = None):  # pragma: no cover
         return smart_open.s3.open(
             bucket,
             key,
             mode,
-            s3_session=get_s3_session(),
-            endpoint_url=get_endpoint_url())  # type: ignore
+            s3_session=get_s3_session(profile_name=profile_name),
+            endpoint_url=get_endpoint_url(
+                profile_name=profile_name))  # type: ignore
 
 
 def _patch_make_request(client: botocore.client.BaseClient):
@@ -140,8 +151,8 @@ def _patch_make_request(client: botocore.client.BaseClient):
 
 def parse_s3_url(s3_url: PathLike) -> Tuple[str, str]:
     s3_url = fspath(s3_url)
-    s3_scheme, rightpart = s3_url[:5], s3_url[5:]
-    if s3_scheme != 's3://':
+    s3_scheme, rightpart = s3_url.split('://', maxsplit=1)
+    if s3_scheme != 's3' and not s3_scheme.startswith('s3+'):
         raise ValueError('Not a s3 url: %r' % s3_url)
     bucketmatch = re.match('(.*?)/', rightpart)
     if bucketmatch is None:
@@ -157,18 +168,23 @@ def get_scoped_config() -> Dict:
     return get_s3_session()._session.get_scoped_config()
 
 
-def get_endpoint_url() -> str:
+def get_endpoint_url(profile_name: Optional[str] = None) -> str:
     '''Get the endpoint url of S3
 
     :returns: S3 endpoint url
     '''
-    aws_environ_endpoint_url = os.environ.get('AWS_ENDPOINT')
+    aws_environ_key = f'{profile_name}__AWS_ENDPOINT'.upper(
+    ) if profile_name else 'AWS_ENDPOINT'
+    aws_environ_endpoint_url = os.environ.get(aws_environ_key)
     if aws_environ_endpoint_url:
-        _logger.info("using AWS_ENDPOINT: %s" % aws_environ_endpoint_url)
+        _logger.info(
+            "using %s: %s" % (aws_environ_key, aws_environ_endpoint_url))
         return aws_environ_endpoint_url
-    environ_endpoint_url = os.environ.get('OSS_ENDPOINT')
+    environ_key = f'{profile_name}__OSS_ENDPOINT'.upper(
+    ) if profile_name else 'OSS_ENDPOINT'
+    environ_endpoint_url = os.environ.get(environ_key)
     if environ_endpoint_url:
-        _logger.info("using OSS_ENDPOINT: %s" % environ_endpoint_url)
+        _logger.info("using %s: %s" % (environ_key, environ_endpoint_url))
         return environ_endpoint_url
     config_endpoint_url = get_scoped_config().get('s3', {}).get('endpoint_url')
     if config_endpoint_url:
@@ -183,17 +199,20 @@ def get_s3_session(profile_name=None):
 
     :returns: S3 session
     '''
-    return thread_local(f's3_session:{profile_name}', boto3.Session, profile_name=profile_name)
+    return thread_local(
+        f's3_session:{profile_name}', boto3.Session, profile_name=profile_name)
 
 
 def get_access_token(profile_name=None):
-    access_key_env_name = f"{profile_name}__AWS_ACCESS_KEY_ID".upper() if profile_name else "AWS_ACCESS_KEY_ID"
-    secret_key_env_name = f"{profile_name}__AWS_SECRET_ACCESS_KEY".upper() if profile_name else "AWS_SECRET_ACCESS_KEY"
+    access_key_env_name = f"{profile_name}__AWS_ACCESS_KEY_ID".upper(
+    ) if profile_name else "AWS_ACCESS_KEY_ID"
+    secret_key_env_name = f"{profile_name}__AWS_SECRET_ACCESS_KEY".upper(
+    ) if profile_name else "AWS_SECRET_ACCESS_KEY"
     access_key = os.getenv(access_key_env_name)
     secret_key = os.getenv(secret_key_env_name)
     if access_key and secret_key:
         return access_key, secret_key
-    
+
     credentials = get_s3_session(profile_name=profile_name).get_credentials()
     if credentials:
         if not access_key:
@@ -206,18 +225,19 @@ def get_access_token(profile_name=None):
 def get_s3_client(
         config: Optional[botocore.config.Config] = None,
         cache_key: Optional[str] = None,
-        profile_name=None):
+        profile_name: Optional[str] = None):
     '''Get S3 client
 
     :returns: S3 client
     '''
     if cache_key is not None:
-        return thread_local(cache_key, get_s3_client, config=config, profile_name=profile_name)
-    
+        return thread_local(
+            cache_key, get_s3_client, config=config, profile_name=profile_name)
+
     access_key, secret_key = get_access_token(profile_name)
     client = get_s3_session(profile_name=profile_name).client(
-        's3', 
-        endpoint_url=get_endpoint_url(), 
+        's3',
+        endpoint_url=get_endpoint_url(profile_name=profile_name),
         config=config,
         aws_access_key_id=access_key,
         aws_secret_access_key=secret_key,
@@ -242,8 +262,8 @@ def s3_path_join(path: PathLike, *other_paths: PathLike) -> str:
     return uri_join(fspath(path), *map(fspath, other_paths))
 
 
-def _list_all_buckets() -> List[str]:
-    client = get_s3_client()
+def _list_all_buckets(profile_name: Optional[str] = None) -> List[str]:
+    client = get_s3_client(profile_name=profile_name)
     response = client.list_buckets()
     return [content['Name'] for content in response['Buckets']]
 
@@ -264,7 +284,8 @@ def _parse_s3_url_ignore_brace(s3_url: str) -> Tuple[str, str]:
     return rightpart, ""
 
 
-def _group_s3path_by_bucket(s3_pathname: str) -> List[str]:
+def _group_s3path_by_bucket(
+        s3_pathname: str, profile_name: Optional[str] = None) -> List[str]:
     bucket, key = _parse_s3_url_ignore_brace(s3_pathname)
     if not bucket:
         if not key:
@@ -287,7 +308,7 @@ def _group_s3path_by_bucket(s3_pathname: str) -> List[str]:
                 bucketname, path_part = split_bucketname
             pattern = re.compile(translate(re.sub(r'\*{2,}', '*', bucketname)))
 
-            for bucket in all_bucket():
+            for bucket in all_bucket(profile_name):
                 if pattern.fullmatch(bucket) is not None:
                     if path_part is not None:
                         bucket = "%s/%s" % (
@@ -422,7 +443,8 @@ def _s3_glob_stat_single_path(
         s3_pathname: PathLike,
         recursive: bool = True,
         missing_ok: bool = True,
-        followlinks: bool = False) -> Iterator[FileEntry]:
+        followlinks: bool = False,
+        profile_name: Optional[str] = None) -> Iterator[FileEntry]:
     if not recursive:
         # If not recursive, replace ** with *
         s3_pathname = re.sub(r'\*{2,}', '*', s3_pathname)
@@ -461,7 +483,7 @@ def _s3_glob_stat_single_path(
         pattern = re.compile(translate(_s3_pathname))
         bucket, key = parse_s3_url(top_dir)
         prefix = _become_prefix(key)
-        client = get_s3_client()
+        client = get_s3_client(profile_name)
         with raise_s3_error(_s3_pathname):
             for resp in _list_objects_recursive(client, bucket, prefix,
                                                 delimiter):
@@ -503,28 +525,6 @@ def _s3_scan_pairs(src_url: PathLike,
         yield src_file_path, dst_file_path
 
 
-def _s3_get_metadata(src_url: PathLike) -> dict:
-    '''
-    Get object metadata
-
-    :param path: Object path
-    :returns: Object metadata
-    '''
-    bucket, key = parse_s3_url(src_url)
-    if not bucket:
-        return {}
-    if not key or key.endswith('/'):
-        return {}
-    client = get_s3_client()
-    try:
-        with raise_s3_error(src_url):
-            resp = client.head_object(Bucket=bucket, Key=key)
-        return dict(
-            (key.lower(), value) for key, value in resp['Metadata'].items())
-    except Exception:
-        return {}
-
-
 def is_s3(path: PathLike) -> bool:
     '''
     According to `aws-cli <https://docs.aws.amazon.com/cli/latest/reference/s3/index.html>`_ , test if a path is s3 path
@@ -533,10 +533,9 @@ def is_s3(path: PathLike) -> bool:
     :returns: True if path is s3 path, else False
     '''
     path = fspath(path)
-    if not path.startswith('s3://'):
-        return False
-    parts = urlsplit(path)
-    return parts.scheme == 's3' or parts.scheme.startswith('s3+')
+    if S3_PATH_CHECK_PATTERN.match(path):
+        return True
+    return False
 
 
 def _s3_binary_mode(s3_open_func):
@@ -593,14 +592,19 @@ def s3_prefetch_open(
     '''
     if mode != 'rb':
         raise ValueError('unacceptable mode: %r' % mode)  # pragma: no cover
+    s3_url = S3Path(s3_url)
     if followlinks:
-        metadata = _s3_get_metadata(s3_url)
-        if metadata and 'symlink_to' in metadata:
-            s3_url = metadata['symlink_to']
+        try:
+            s3_url = s3_url.readlink()
+        except S3NotALinkError:
+            pass
 
-    bucket, key = parse_s3_url(s3_url)
+    bucket, key = parse_s3_url(s3_url.path_with_protocol)
     config = botocore.config.Config(max_pool_connections=max_pool_connections)
-    client = get_s3_client(config=config, cache_key='s3_filelike_client')
+    client = get_s3_client(
+        config=config,
+        cache_key='s3_filelike_client',
+        profile_name=s3_url._profile_name)
     return S3PrefetchReader(
         bucket,
         key,
@@ -636,14 +640,20 @@ def s3_share_cache_open(
     '''
     if mode != 'rb':
         raise ValueError('unacceptable mode: %r' % mode)  # pragma: no cover
-    if followlinks:
-        metadata = _s3_get_metadata(s3_url)
-        if metadata and 'symlink_to' in metadata:
-            s3_url = metadata['symlink_to']
 
-    bucket, key = parse_s3_url(s3_url)
+    s3_url = S3Path(s3_url)
+    if followlinks:
+        try:
+            s3_url = s3_url.readlink()
+        except S3NotALinkError:
+            pass
+
+    bucket, key = parse_s3_url(s3_url.path_with_protocol)
     config = botocore.config.Config(max_pool_connections=max_pool_connections)
-    client = get_s3_client(config=config, cache_key='s3_filelike_client')
+    client = get_s3_client(
+        config=config,
+        cache_key='s3_filelike_client',
+        profile_name=s3_url._profile_name)
     return S3ShareCacheReader(
         bucket,
         key,
@@ -683,14 +693,19 @@ def s3_pipe_open(
     if mode[0] == 'r' and not S3Path(s3_url).is_file():
         raise S3FileNotFoundError('No such file: %r' % s3_url)
 
+    s3_url = S3Path(s3_url)
     if followlinks:
-        metadata = _s3_get_metadata(s3_url)
-        if metadata and 'symlink_to' in metadata:
-            s3_url = metadata['symlink_to']
+        try:
+            s3_url = s3_url.readlink()
+        except S3NotALinkError:
+            pass
 
-    bucket, key = parse_s3_url(s3_url)
+    bucket, key = parse_s3_url(s3_url.path_with_protocol)
     config = botocore.config.Config(max_pool_connections=max_pool_connections)
-    client = get_s3_client(config=config, cache_key='s3_filelike_client')
+    client = get_s3_client(
+        config=config,
+        cache_key='s3_filelike_client',
+        profile_name=s3_url._profile_name)
     return S3PipeHandler(
         bucket, key, mode, s3_client=client, join_thread=join_thread)
 
@@ -718,14 +733,19 @@ def s3_cached_open(
     '''
     if mode not in ('rb', 'wb', 'ab', 'rb+', 'wb+', 'ab+'):
         raise ValueError('unacceptable mode: %r' % mode)  # pragma: no cover
+    s3_url = S3Path(s3_url)
     if followlinks:
-        metadata = _s3_get_metadata(s3_url)
-        if metadata and 'symlink_to' in metadata:
-            s3_url = metadata['symlink_to']
+        try:
+            s3_url = s3_url.readlink()
+        except S3NotALinkError:
+            pass
 
-    bucket, key = parse_s3_url(s3_url)
+    bucket, key = parse_s3_url(s3_url.path_with_protocol)
     config = botocore.config.Config(max_pool_connections=max_pool_connections)
-    client = get_s3_client(config=config, cache_key='s3_filelike_client')
+    client = get_s3_client(
+        config=config,
+        cache_key='s3_filelike_client',
+        profile_name=s3_url._profile_name)
     return S3CachedHandler(
         bucket, key, mode, s3_client=client, cache_path=cache_path)
 
@@ -765,14 +785,19 @@ def s3_buffered_open(
     '''
     if mode not in ('rb', 'wb', 'ab', 'rb+', 'wb+', 'ab+'):
         raise ValueError('unacceptable mode: %r' % mode)
+    s3_url = S3Path(s3_url)
     if followlinks:
-        metadata = _s3_get_metadata(s3_url)
-        if metadata and 'symlink_to' in metadata:
-            s3_url = metadata['symlink_to']
+        try:
+            s3_url = s3_url.readlink()
+        except S3NotALinkError:
+            pass
 
-    bucket, key = parse_s3_url(s3_url)
+    bucket, key = parse_s3_url(s3_url.path_with_protocol)
     config = botocore.config.Config(max_pool_connections=max_pool_connections)
-    client = get_s3_client(config=config, cache_key='s3_filelike_client')
+    client = get_s3_client(
+        config=config,
+        cache_key='s3_filelike_client',
+        profile_name=s3_url._profile_name)
 
     if 'a' in mode or '+' in mode:
         if cache_path is None:
@@ -850,14 +875,19 @@ def s3_memory_open(
     '''
     if mode not in ('rb', 'wb', 'ab', 'rb+', 'wb+', 'ab+'):
         raise ValueError('unacceptable mode: %r' % mode)
+    s3_url = S3Path(s3_url)
     if followlinks:
-        metadata = _s3_get_metadata(s3_url)
-        if metadata and 'symlink_to' in metadata:
-            s3_url = metadata['symlink_to']
+        try:
+            s3_url = s3_url.readlink()
+        except S3NotALinkError:
+            pass
 
-    bucket, key = parse_s3_url(s3_url)
+    bucket, key = parse_s3_url(s3_url.path_with_protocol)
     config = botocore.config.Config(max_pool_connections=max_pool_connections)
-    client = get_s3_client(config=config, cache_key='s3_filelike_client')
+    client = get_s3_client(
+        config=config,
+        cache_key='s3_filelike_client',
+        profile_name=s3_url._profile_name)
     return S3MemoryHandler(bucket, key, mode, s3_client=client)
 
 
@@ -876,15 +906,16 @@ def s3_legacy_open(s3_url: PathLike, mode: str, followlinks: bool = False):
     '''
     if mode not in ('rb', 'wb'):  # pragma: no cover
         raise ValueError('unacceptable mode: %r' % mode)
+    s3_url = S3Path(s3_url)
     if followlinks:
-        metadata = _s3_get_metadata(s3_url)
-        if metadata and 'symlink_to' in metadata:
-            s3_url = metadata['symlink_to']
+        try:
+            s3_url = s3_url.readlink()
+        except S3NotALinkError:
+            pass
 
-    bucket, key = parse_s3_url(s3_url)
-
+    bucket, key = parse_s3_url(s3_url.path_with_protocol)
     try:
-        return _s3_open(bucket, key, mode)
+        return _s3_open(bucket, key, mode, profile_name=s3_url._profile_name)
     except Exception as error:  # pragma: no cover
         if isinstance(error, IOError):
             error_str = str(error)
@@ -921,19 +952,24 @@ def s3_download(
     :param dst_url: target fs path
     :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
     '''
+    src_url = S3Path(src_url)
     if followlinks:
-        metadata = _s3_get_metadata(src_url)
-        if metadata and 'symlink_to' in metadata:
-            src_url = metadata['symlink_to']
-    src_bucket, src_key = parse_s3_url(src_url)
+        try:
+            src_url = src_url.readlink()
+        except S3NotALinkError:
+            pass
+    src_bucket, src_key = parse_s3_url(src_url.path_with_protocol)
     if not src_bucket:
-        raise S3BucketNotFoundError('Empty bucket name: %r' % src_url)
+        raise S3BucketNotFoundError(
+            'Empty bucket name: %r' % src_url.path_with_protocol)
 
-    if not S3Path(src_url).exists():
-        raise S3FileNotFoundError('File not found: %r' % src_url)
+    if not src_url.exists():
+        raise S3FileNotFoundError(
+            'File not found: %r' % src_url.path_with_protocol)
 
-    if not S3Path(src_url).is_file():
-        raise S3IsADirectoryError('Is a directory: %r' % src_url)
+    if not src_url.is_file():
+        raise S3IsADirectoryError(
+            'Is a directory: %r' % src_url.path_with_protocol)
 
     dst_url = fspath(dst_url)
     if not dst_url or dst_url.endswith('/'):
@@ -943,12 +979,12 @@ def s3_download(
     if dst_directory != '':
         os.makedirs(dst_directory, exist_ok=True)
 
-    client = get_s3_client()
+    client = get_s3_client(profile_name=src_url._profile_name)
     try:
         client.download_file(src_bucket, src_key, dst_url, Callback=callback)
     except Exception as error:  # pragma: no cover
         error = translate_fs_error(error, dst_url)
-        error = translate_s3_error(error, src_url)
+        error = translate_s3_error(error, src_url.path_with_protocol)
         raise error
 
 
@@ -969,7 +1005,7 @@ def s3_upload(
     if not dst_key or dst_key.endswith('/'):
         raise S3IsADirectoryError('Is a directory: %r' % dst_url)
 
-    client = get_s3_client()
+    client = get_s3_client(profile_name=S3Path(dst_url)._profile_name)
     with open(src_url, 'rb') as src:
         with raise_s3_error(dst_url):
             client.upload_fileobj(
@@ -1000,29 +1036,31 @@ def s3_load_content(
     :returns: bytes content in range [start, stop)
     '''
 
-    def _get_object(client, buckey, key, range_str):
+    def _get_object(client, bucket, key, range_str):
         return client.get_object(
             Bucket=bucket, Key=key, Range=range_str)['Body'].read()
 
+    s3_url = S3Path(s3_url)
     if followlinks:
-        metadata = _s3_get_metadata(s3_url)
-        if metadata and 'symlink_to' in metadata:
-            s3_url = metadata['symlink_to']
-    bucket, key = parse_s3_url(s3_url)
+        try:
+            s3_url = s3_url.readlink()
+        except S3NotALinkError:
+            pass
+
+    bucket, key = parse_s3_url(s3_url.path_with_protocol)
     if not bucket:
         raise S3BucketNotFoundError('Empty bucket name: %r' % s3_url)
     if not key or key.endswith('/'):
         raise S3IsADirectoryError('Is a directory: %r' % s3_url)
 
     start, stop = get_content_offset(
-        start, stop,
-        S3Path(s3_url).getsize(follow_symlinks=followlinks))
+        start, stop, s3_url.getsize(follow_symlinks=False))
     if start == 0 and stop == 0:
         return b''
     range_str = 'bytes=%d-%d' % (start, stop - 1)
 
-    client = get_s3_client()
-    with raise_s3_error(s3_url):
+    client = get_s3_client(profile_name=s3_url._profile_name)
+    with raise_s3_error(s3_url.path):
         return patch_method(
             _get_object,
             max_retries=max_retries,
@@ -1037,17 +1075,7 @@ def s3_readlink(path) -> str:
     :returns: Return a string representing the path to which the symbolic link points.
     :raises: S3NameTooLongError, S3BucketNotFoundError, S3IsADirectoryError, S3NotALinkError
     '''
-    bucket, key = parse_s3_url(path)
-    if not bucket:
-        raise S3BucketNotFoundError('Empty bucket name: %r' % path)
-    if not key or key.endswith('/'):
-        raise S3IsADirectoryError('Is a directory: %r' % path)
-    metadata = _s3_get_metadata(path)
-
-    if not 'symlink_to' in metadata:
-        raise S3NotALinkError('Not a link: %r' % path)
-    else:
-        return metadata['symlink_to']
+    return S3Path(path).readlink().path_with_protocol
 
 
 def s3_rename(src_url: PathLike, dst_url: PathLike):
@@ -1122,7 +1150,11 @@ def s3_glob_stat(
     :raises: UnsupportedError, when bucket part contains wildcard characters
     :returns: A generator contains tuples of path and file stat, in which paths match `s3_pathname`
     '''
-    return S3Path(path).glob_stat(pattern="", recursive=recursive, missing_ok=missing_ok, followlinks=followlinks)
+    return S3Path(path).glob_stat(
+        pattern="",
+        recursive=recursive,
+        missing_ok=missing_ok,
+        followlinks=followlinks)
 
 
 def s3_iglob(
@@ -1139,7 +1171,9 @@ def s3_iglob(
     :raises: UnsupportedError, when bucket part contains wildcard characters
     :returns: An iterator contains paths match `s3_pathname`
     '''
-    for path_obj in S3Path(path).iglob(pattern="", recursive=recursive, missing_ok=missing_ok, followlinks=followlinks):
+    for path_obj in S3Path(path).iglob(pattern="", recursive=recursive,
+                                       missing_ok=missing_ok,
+                                       followlinks=followlinks):
         yield path_obj.path_with_protocol
 
 
@@ -1169,17 +1203,53 @@ class S3Path(URIPath):
         if protocol.startswith('s3+'):
             self._protocol_with_profile = protocol
             self._profile_name = protocol[3:]
-            self.path = f"s3://{self.path[len(protocol)+3:]}"
+            self._s3_path = f"s3://{self.path[len(protocol)+3:]}"
         elif not protocol:
-            self.path = f"s3://{self.path.lstrip('/')}"
+            self._s3_path = f"s3://{self.path.lstrip('/')}"
+        else:
+            self._s3_path = self.path
 
     @cachedproperty
     def path_with_protocol(self) -> str:
         '''Return path with protocol, like file:///root, s3://bucket/key'''
-        return self._protocol_with_profile + "://" + self.path_without_protocol.lstrip('/')
+        path = self.path
+        protocol_prefix = self._protocol_with_profile + "://"
+        if path.startswith(protocol_prefix):
+            return path
+        return protocol_prefix + path.lstrip('/')
 
+    @cachedproperty
+    def path_without_protocol(self) -> str:
+        '''Return path without protocol, example: if path is s3://bucket/key, return bucket/key'''
+        path = self.path
+        protocol_prefix = self._protocol_with_profile + "://"
+        if path.startswith(protocol_prefix):
+            path = path[len(protocol_prefix):]
+        return path
+
+    @cachedproperty
     def _client(self):
         return get_s3_client(self._profile_name)
+
+    def _s3_get_metadata(self) -> dict:
+        '''
+        Get object metadata
+
+        :param path: Object path
+        :returns: Object metadata
+        '''
+        bucket, key = parse_s3_url(self.path_with_protocol)
+        if not bucket:
+            return {}
+        if not key or key.endswith('/'):
+            return {}
+        try:
+            with raise_s3_error(self.path_with_protocol):
+                resp = self._client.head_object(Bucket=bucket, Key=key)
+            return dict(
+                (key.lower(), value) for key, value in resp['Metadata'].items())
+        except Exception:
+            return {}
 
     def access(
             self, mode: Access = Access.READ,
@@ -1191,11 +1261,12 @@ class S3Path(URIPath):
         :param mode: access mode
         :returns: bool, if the bucket of s3_url has read/write access.
         '''
-        s3_url = self.path
+        s3_url = self.path_with_protocol
         if followlinks:
-            metadata = _s3_get_metadata(s3_url)
-            if metadata and 'symlink_to' in metadata:
-                s3_url = metadata['symlink_to']
+            try:
+                s3_url = self.readlink().path_with_protocol
+            except S3NotALinkError:
+                pass
         bucket, _ = parse_s3_url(s3_url)  # only check bucket accessibility
         if not bucket:
             raise Exception("No available bucket")
@@ -1205,9 +1276,8 @@ class S3Path(URIPath):
                 .format(mode, ', '.join([str(a) for a in Access])))
         if mode not in (Access.READ, Access.WRITE):
             raise TypeError('Unsupported mode: {}'.format(mode))
-        client = get_s3_client()
         try:
-            client.head_bucket(Bucket=bucket)
+            self._client.head_bucket(Bucket=bucket)
         except Exception as error:
             error = translate_s3_error(error, s3_url)
             if isinstance(error, (S3PermissionError, S3FileNotFoundError,
@@ -1224,7 +1294,7 @@ class S3Path(URIPath):
 
         :returns: True if s3_url eixsts, else False
         '''
-        bucket, key = parse_s3_url(self.path)
+        bucket, key = parse_s3_url(self.path_with_protocol)
         if not bucket:  # s3:// => True, s3:///key => False
             return not key
 
@@ -1293,28 +1363,27 @@ class S3Path(URIPath):
         :raises: UnsupportedError, when bucket part contains wildcard characters
         :returns: A generator contains tuples of path and file stat, in which paths match `s3_pathname`
         '''
-        glob_path = self.path
+        glob_path = self._s3_path
         if pattern:
-            glob_path = self.joinpath(pattern).path
+            glob_path = self.joinpath(pattern)._s3_path
         s3_pathname = fspath(glob_path)
 
         def create_generator():
-            for group_s3_pathname_1 in _group_s3path_by_bucket(s3_pathname):
+            for group_s3_pathname_1 in _group_s3path_by_bucket(
+                    s3_pathname, self._profile_name):
                 for group_s3_pathname_2 in _group_s3path_by_prefix(
                         group_s3_pathname_1):
                     for file_entry in _s3_glob_stat_single_path(
-                        group_s3_pathname_2,
-                        recursive,
-                        missing_ok,
-                        followlinks=followlinks):
+                            group_s3_pathname_2, recursive, missing_ok,
+                            followlinks=followlinks,
+                            profile_name=self._profile_name):
                         if self._profile_name:
                             file_entry.path = f"{self._protocol_with_profile}://{file_entry.path[5:]}"
-                            yield file_entry
+                        yield file_entry
 
         return _create_missing_ok_generator(
             create_generator(), missing_ok,
             S3FileNotFoundError('No match file: %r' % s3_pathname))
-
 
     def iglob(
             self,
@@ -1333,8 +1402,8 @@ class S3Path(URIPath):
         :returns: An iterator contains paths match `s3_pathname`
         '''
         for file_entry in self.glob_stat(pattern=pattern, recursive=recursive,
-                                   missing_ok=missing_ok,
-                                   followlinks=followlinks):
+                                         missing_ok=missing_ok,
+                                         followlinks=followlinks):
             yield self.from_path(file_entry.path)
 
     def is_dir(self, followlinks: bool = False) -> bool:
@@ -1347,13 +1416,12 @@ class S3Path(URIPath):
         :param followlinks: whether followlinks is True or False, result is the same. Because s3 symlink not support dir.
         :returns: True if path is s3 directory, else False
         '''
-        bucket, key = parse_s3_url(self.path)
+        bucket, key = parse_s3_url(self.path_with_protocol)
         if not bucket:  # s3:// => True, s3:///key => False
             return not key
         prefix = _become_prefix(key)
-        client = get_s3_client()
         try:
-            resp = client.list_objects_v2(
+            resp = self._client.list_objects_v2(
                 Bucket=bucket, Prefix=prefix, Delimiter='/', MaxKeys=1)
         except Exception as error:
             error = translate_s3_error(error, self.path_with_protocol)
@@ -1376,18 +1444,18 @@ class S3Path(URIPath):
 
         :returns: True if path is s3 file, else False
         '''
-        s3_url = self.path
+        s3_url = self.path_with_protocol
         if followlinks:
-            metadata = _s3_get_metadata(s3_url)
-            if metadata and 'symlink_to' in metadata:
-                s3_url = metadata['symlink_to']
+            try:
+                s3_url = self.readlink().path_with_protocol
+            except S3NotALinkError:
+                pass
         bucket, key = parse_s3_url(s3_url)
         if not bucket or not key or key.endswith('/'):
             # s3://, s3:///key, s3://bucket, s3://bucket/prefix/
             return False
-        client = get_s3_client()
         try:
-            client.head_object(Bucket=bucket, Key=key)
+            self._client.head_object(Bucket=bucket, Key=key)
         except Exception as error:
             error = translate_s3_error(error, s3_url)
             if isinstance(error, (S3UnknownError, S3ConfigError)):
@@ -1422,11 +1490,12 @@ class S3Path(URIPath):
 
         :returns: BinaryIO
         '''
-        s3_url = self.path
+        s3_url = self.path_with_protocol
         if followlinks:
-            metadata = _s3_get_metadata(s3_url)
-            if metadata and 'symlink_to' in metadata:
-                s3_url = metadata['symlink_to']
+            try:
+                s3_url = self.readlink().path_with_protocol
+            except S3NotALinkError:
+                pass
         bucket, key = parse_s3_url(s3_url)
         if not bucket:
             raise S3BucketNotFoundError('Empty bucket name: %r' % s3_url)
@@ -1434,9 +1503,8 @@ class S3Path(URIPath):
             raise S3IsADirectoryError('Is a directory: %r' % s3_url)
 
         buffer = io.BytesIO()
-        client = get_s3_client()
         with raise_s3_error(s3_url):
-            client.download_fileobj(bucket, key, buffer)
+            self._client.download_fileobj(bucket, key, buffer)
         buffer.seek(0)
         return buffer
 
@@ -1446,13 +1514,12 @@ class S3Path(URIPath):
 
         :returns: True if bucket of s3_url eixsts, else False
         '''
-        bucket, _ = parse_s3_url(self.path)
+        bucket, _ = parse_s3_url(self.path_with_protocol)
         if not bucket:
             return False
 
-        client = get_s3_client()
         try:
-            client.head_bucket(Bucket=bucket)
+            self._client.head_bucket(Bucket=bucket)
         except Exception as error:
             error = translate_s3_error(error, self.path_with_protocol)
             if isinstance(error, (S3UnknownError, S3ConfigError)):
@@ -1473,7 +1540,7 @@ class S3Path(URIPath):
         :param exist_ok: If False and target directory exists, raise S3FileExistsError
         :raises: S3BucketNotFoundError, S3FileExistsError
         '''
-        bucket, _ = parse_s3_url(self.path)
+        bucket, _ = parse_s3_url(self.path_with_protocol)
         if not bucket:
             raise S3BucketNotFoundError(
                 'Empty bucket name: %r' % self.path_with_protocol)
@@ -1495,7 +1562,7 @@ class S3Path(URIPath):
         :param dst_url: Given destination path
         '''
         for src_file_path, dst_file_path in _s3_scan_pairs(
-                self.path, dst_url):
+                self.path_with_protocol, dst_url):
             S3Path(src_file_path).rename(dst_file_path)
 
     def remove(self, missing_ok: bool = False) -> None:
@@ -1505,7 +1572,7 @@ class S3Path(URIPath):
         :param missing_ok: if False and target file/directory not exists, raise S3FileNotFoundError
         :raises: S3PermissionError, S3FileNotFoundError, UnsupportedError
         '''
-        bucket, key = parse_s3_url(self.path)
+        bucket, key = parse_s3_url(self.path_with_protocol)
         if not bucket:
             if not key:
                 raise UnsupportedError(
@@ -1520,7 +1587,7 @@ class S3Path(URIPath):
             raise S3FileNotFoundError(
                 'No such file or directory: %r' % self.path_with_protocol)
 
-        client = get_s3_client()
+        client = self._client
         with raise_s3_error(self.path_with_protocol):
             if self.is_file():
                 client.delete_object(Bucket=bucket, Key=key)
@@ -1633,12 +1700,13 @@ class S3Path(URIPath):
                     self.stat(follow_symlinks=followlinks))
 
             prefix = _become_prefix(key)
-            client = get_s3_client()
+            client = self._client
             with raise_s3_error(self.path_with_protocol):
                 for resp in _list_objects_recursive(client, bucket, prefix):
                     for content in resp.get('Contents', []):
                         full_path = s3_path_join(
-                            's3://', bucket, content['Key'])
+                            f'{self._protocol_with_profile}://', bucket,
+                            content['Key'])
                         yield FileEntry(
                             S3Path(full_path).name, full_path,
                             _make_stat(content))
@@ -1666,15 +1734,16 @@ class S3Path(URIPath):
             raise S3FileNotFoundError(
                 'No such directory: %r' % self.path_with_protocol)
         prefix = _become_prefix(key)
-        client = get_s3_client()
+        client = self._client
 
         # In order to do check on creation,
         # we need to wrap the iterator in another function
         def create_generator() -> Iterator[FileEntry]:
             with raise_s3_error(self.path_with_protocol):
 
-                def generate_s3_path(bucket: str, key: str) -> str:
-                    return "s3://%s/%s" % (bucket, key)
+                def generate_s3_path(
+                        protocol: str, bucket: str, key: str) -> str:
+                    return "%s://%s/%s" % (protocol, bucket, key)
 
                 if not bucket and not key:  # list buckets
                     response = client.list_buckets()
@@ -1693,10 +1762,13 @@ class S3Path(URIPath):
                     for common_prefix in resp.get('CommonPrefixes', []):
                         yield FileEntry(
                             common_prefix['Prefix'][len(prefix):-1],
-                            generate_s3_path(bucket, common_prefix['Prefix']),
+                            generate_s3_path(
+                                self._protocol_with_profile, bucket,
+                                common_prefix['Prefix']),
                             StatResult(isdir=True, extra=common_prefix))
                     for content in resp.get('Contents', []):
-                        src_url = generate_s3_path(bucket, content['Key'])
+                        src_url = generate_s3_path(
+                            self._protocol_with_profile, bucket, content['Key'])
 
                         if followlinks and S3Path(src_url).is_symlink():
                             content['islnk'] = True
@@ -1723,7 +1795,7 @@ class S3Path(URIPath):
 
         bucket, key = parse_s3_url(self.path_with_protocol)
         prefix = _become_prefix(key)
-        client = get_s3_client()
+        client = self._client
         size = 0
         mtime = 0.0
         with raise_s3_error(self.path_with_protocol):
@@ -1755,7 +1827,7 @@ class S3Path(URIPath):
         if not self.is_file():
             return self._getdirstat()
 
-        client = get_s3_client()
+        client = self._client
         with raise_s3_error(self.path_with_protocol):
             content = client.head_object(Bucket=bucket, Key=key)
             if 'Metadata' in content:
@@ -1796,9 +1868,8 @@ class S3Path(URIPath):
             raise S3FileNotFoundError(
                 'No such file: %r' % self.path_with_protocol)
 
-        client = get_s3_client()
         with raise_s3_error(self.path_with_protocol):
-            client.delete_object(Bucket=bucket, Key=key)
+            self._client.delete_object(Bucket=bucket, Key=key)
 
     def walk(self, followlinks: bool = False
             ) -> Iterator[Tuple[str, List[str], List[str]]]:
@@ -1828,7 +1899,7 @@ class S3Path(URIPath):
             return
 
         stack = [key]
-        client = get_s3_client()
+        client = self._client
         while len(stack) > 0:
             current = _become_prefix(stack.pop())
             dirs, files = [], []
@@ -1841,7 +1912,8 @@ class S3Path(URIPath):
             dirs = sorted(dirs)
             stack.extend(reversed(dirs))
 
-            root = s3_path_join('s3://', bucket, current)[:-1]
+            root = s3_path_join(
+                f'{self._protocol_with_profile}://', bucket, current)[:-1]
             dirs = [path[len(current):] for path in dirs]
             files = sorted(path[len(current):] for path in files)
             yield root, dirs, files
@@ -1908,14 +1980,14 @@ class S3Path(URIPath):
             raise S3IsADirectoryError('Is a directory: %r' % dst_url)
 
         if followlinks:
-            metadata = _s3_get_metadata(src_url)
-            if metadata and 'symlink_to' in metadata:
-                src_url = metadata['symlink_to']
-                src_bucket, src_key = parse_s3_url(src_url)
+            try:
+                s3_url = self.readlink().path
+                src_bucket, src_key = parse_s3_url(s3_url)
+            except S3NotALinkError:
+                pass
 
-        client = get_s3_client()
         try:
-            client.copy(
+            self._client.copy(
                 {
                     'Bucket': src_bucket,
                     'Key': src_key,
@@ -1951,26 +2023,25 @@ class S3Path(URIPath):
         :param dst_path: Desination path
         :raises: S3NameTooLongError, S3BucketNotFoundError, S3IsADirectoryError
         '''
-        src_path = self.path_with_protocol
-        if len(str(src_path).encode()) > 1024:
+        if len(str(self._s3_path).encode()) > 1024:
             raise S3NameTooLongError('File name too long: %r' % dst_path)
-        src_bucket, src_key = parse_s3_url(src_path)
+        src_bucket, src_key = parse_s3_url(self.path_with_protocol)
         dst_bucket, dst_key = parse_s3_url(dst_path)
 
         if not src_bucket:
-            raise S3BucketNotFoundError('Empty bucket name: %r' % src_path)
+            raise S3BucketNotFoundError('Empty bucket name: %r' % self.path)
         if not dst_bucket:
             raise S3BucketNotFoundError('Empty bucket name: %r' % dst_path)
         if not dst_key or dst_key.endswith('/'):
             raise S3IsADirectoryError('Is a directory: %r' % dst_path)
 
-        metadata = _s3_get_metadata(src_path)
-
-        if 'symlink_to' in metadata:
-            src_path = metadata['symlink_to']
+        src_path = self._s3_path
+        try:
+            src_path = self.readlink()._s3_path
+        except S3NotALinkError:
+            pass
         with raise_s3_error(dst_path):
-            client = get_s3_client()
-            client.put_object(
+            self._client.put_object(
                 Bucket=dst_bucket,
                 Key=dst_key,
                 Metadata={"symlink_to": src_path})
@@ -1982,7 +2053,19 @@ class S3Path(URIPath):
         :returns: Return a S3Path instance representing the path to which the symbolic link points.
         :raises: S3NameTooLongError, S3BucketNotFoundError, S3IsADirectoryError, S3NotALinkError
         '''
-        return self.from_path(s3_readlink(self.path_with_protocol))
+        bucket, key = parse_s3_url(self.path_with_protocol)
+        if not bucket:
+            raise S3BucketNotFoundError(
+                'Empty bucket name: %r' % self.path_with_protocol)
+        if not key or key.endswith('/'):
+            raise S3IsADirectoryError(
+                'Is a directory: %r' % self.path_with_protocol)
+        metadata = self._s3_get_metadata()
+
+        if not 'symlink_to' in metadata:
+            raise S3NotALinkError('Not a link: %r' % self.path_with_protocol)
+        else:
+            return self.from_path(metadata['symlink_to'])
 
     def is_symlink(self) -> bool:
         '''
@@ -1996,7 +2079,7 @@ class S3Path(URIPath):
             return False
         if not key or key.endswith('/'):
             return False
-        metadata = _s3_get_metadata(self.path_with_protocol)
+        metadata = self._s3_get_metadata()
         return 'symlink_to' in metadata
 
     def save(self, file_object: BinaryIO):
@@ -2012,9 +2095,8 @@ class S3Path(URIPath):
             raise S3IsADirectoryError(
                 'Is a directory: %r' % self.path_with_protocol)
 
-        client = get_s3_client()
         with raise_s3_error(self.path_with_protocol):
-            client.upload_fileobj(file_object, Bucket=bucket, Key=key)
+            self._client.upload_fileobj(file_object, Bucket=bucket, Key=key)
 
     def open(
             self,
