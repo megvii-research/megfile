@@ -151,9 +151,9 @@ def _patch_make_request(client: botocore.client.BaseClient):
 
 def parse_s3_url(s3_url: PathLike) -> Tuple[str, str]:
     s3_url = fspath(s3_url)
-    s3_scheme, rightpart = s3_url.split('://', maxsplit=1)
-    if s3_scheme != 's3' and not s3_scheme.startswith('s3+'):
+    if not is_s3(s3_url):
         raise ValueError('Not a s3 url: %r' % s3_url)
+    rightpart = s3_url.split('://', maxsplit=1)[1]
     bucketmatch = re.match('(.*?)/', rightpart)
     if bucketmatch is None:
         bucket = rightpart
@@ -164,8 +164,9 @@ def parse_s3_url(s3_url: PathLike) -> Tuple[str, str]:
     return bucket, path
 
 
-def get_scoped_config() -> Dict:
-    return get_s3_session()._session.get_scoped_config()
+def get_scoped_config(profile_name: Optional[str] = None) -> Dict:
+    return get_s3_session(
+        profile_name=profile_name)._session.get_scoped_config()
 
 
 def get_endpoint_url(profile_name: Optional[str] = None) -> str:
@@ -186,7 +187,8 @@ def get_endpoint_url(profile_name: Optional[str] = None) -> str:
     if environ_endpoint_url:
         _logger.info("using %s: %s" % (environ_key, environ_endpoint_url))
         return environ_endpoint_url
-    config_endpoint_url = get_scoped_config().get('s3', {}).get('endpoint_url')
+    config_endpoint_url = get_scoped_config(profile_name=profile_name).get(
+        's3', {}).get('endpoint_url')
     if config_endpoint_url:
         _logger.info(
             "using ~/.aws/config: endpoint_url=%s" % config_endpoint_url)
@@ -527,7 +529,8 @@ def _s3_scan_pairs(src_url: PathLike,
 
 def is_s3(path: PathLike) -> bool:
     '''
-    According to `aws-cli <https://docs.aws.amazon.com/cli/latest/reference/s3/index.html>`_ , test if a path is s3 path
+    1. According to `aws-cli <https://docs.aws.amazon.com/cli/latest/reference/s3/index.html>`_ , test if a path is s3 path.
+    2. megfile also support the path like `s3[+profile_name]://bucket/key`
 
     :param path: Path to be tested
     :returns: True if path is s3 path, else False
@@ -1378,7 +1381,10 @@ class S3Path(URIPath):
                             followlinks=followlinks,
                             profile_name=self._profile_name):
                         if self._profile_name:
-                            file_entry.path = f"{self._protocol_with_profile}://{file_entry.path[5:]}"
+                            file_entry = file_entry._replace(
+                                path=
+                                f"{self._protocol_with_profile}://{file_entry.path[5:]}"
+                            )
                         yield file_entry
 
         return _create_missing_ok_generator(

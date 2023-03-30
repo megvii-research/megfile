@@ -451,11 +451,13 @@ def test_is_s3():
 def test_parse_s3_url():
     assert s3.parse_s3_url('s3://bucket/prefix/key') == ('bucket', 'prefix/key')
     assert s3.parse_s3_url('s3://bucket') == ('bucket', '')
+    assert s3.parse_s3_url('s3+test://bucket') == ('bucket', '')
     assert s3.parse_s3_url('s3://') == ('', '')
     assert s3.parse_s3_url('s3:///') == ('', '')
     assert s3.parse_s3_url('s3:////') == ('', '/')
     assert s3.parse_s3_url('s3:///prefix/') == ('', 'prefix/')
     assert s3.parse_s3_url('s3:///prefix/key') == ('', 'prefix/key')
+    assert s3.parse_s3_url('s3+test:///prefix/key') == ('', 'prefix/key')
 
     assert s3.parse_s3_url('s3://bucket/prefix?') == ('bucket', 'prefix?')
     assert s3.parse_s3_url('s3://bucket/prefix#') == ('bucket', 'prefix#')
@@ -471,6 +473,20 @@ def test_parse_s3_url():
 
     with pytest.raises(ValueError):
         s3.parse_s3_url('/test')
+
+    with pytest.raises(ValueError):
+        s3.parse_s3_url('s3test://test')
+
+
+def test_get_access_token():
+    os.environ['AWS_ACCESS_KEY_ID'] = 'default-key'
+    os.environ['AWS_SECRET_ACCESS_KEY'] = 'default-secret'
+
+    os.environ['TEST__AWS_ACCESS_KEY_ID'] = 'test-key'
+    os.environ['TEST__AWS_SECRET_ACCESS_KEY'] = 'test-secret'
+
+    assert s3_path.get_access_token() == ('default-key', 'default-secret')
+    assert s3_path.get_access_token('test') == ('test-key', 'test-secret')
 
 
 def test_s3_scandir_internal(truncating_client, mocker):
@@ -639,7 +655,7 @@ def test_s3_copy(s3_empty_client):
     s3_empty_client.create_bucket(Bucket='bucket')
     s3_empty_client.put_object(Bucket='bucket', Key='key', Body='value')
 
-    s3.s3_copy('s3://bucket/key', 's3://bucket/result')
+    s3.s3_copy('s3://bucket/key', 's3://bucket/result', followlinks=True)
 
     body = s3_empty_client.get_object(
         Bucket='bucket', Key='result')['Body'].read().decode("utf-8")
@@ -876,7 +892,7 @@ def test_s3_download_makedirs(s3_setup, mocker, fs):
     os.makedirs(dst_dir)
 
     mocker.patch('os.makedirs')
-    s3.s3_download('s3://bucketA/fileAA', dst_url)
+    s3.s3_download('s3://bucketA/fileAA', dst_url, followlinks=True)
     os.makedirs.assert_called_once_with(dst_dir, exist_ok=True)
     os.makedirs.reset_mock()
 
@@ -1192,10 +1208,15 @@ def test_s3_scan(truncating_client):
     # expect: empty generator
     assert list(s3.s3_scan('s3://notExistBucket')) == []
     assert list(s3.s3_scan('s3://bucketA/notExistFile')) == []
+    assert list(s3.s3_scan('s3+test://notExistBucket')) == []
+    assert list(s3.s3_scan('s3+test://bucketA/notExistFile')) == []
 
     # walk on file
     # expect: empty generator
-    assert list(s3.s3_scan('s3://bucketA/fileAA')) == ['s3://bucketA/fileAA']
+    assert list(
+        s3.s3_scan('s3+test://bucketA/fileAA')) == ['s3+test://bucketA/fileAA']
+    assert list(
+        s3.s3_scan('s3+test://bucketA/fileAA')) == ['s3+test://bucketA/fileAA']
 
     # walk empty bucket
     # expect: 1 tuple only contains the folder(bucket) path
@@ -1211,6 +1232,17 @@ def test_s3_scan(truncating_client):
         's3://bucketA/folderAB-C/fileAB-C',
         's3://bucketA/folderAB/fileAB',
         's3://bucketA/folderAB/fileAC',
+    ]
+
+    result = list(s3.s3_scan('s3+test://bucketA'))
+    assert len(result) == 6
+    assert result == [
+        's3+test://bucketA/fileAA',
+        's3+test://bucketA/fileAB',
+        's3+test://bucketA/folderAA/folderAAA/fileAAAA',
+        's3+test://bucketA/folderAB-C/fileAB-C',
+        's3+test://bucketA/folderAB/fileAB',
+        's3+test://bucketA/folderAB/fileAC',
     ]
 
     result = list(s3.s3_scan('s3://bucketA/'))
@@ -1526,6 +1558,61 @@ def _s3_glob_with_recursive_pathname():
             's3://bucketForGlobTest/2/a/d/2.json',
             's3://bucketForGlobTest/2/a/d/c/1.json',
             's3://bucketForGlobTest/2/a/d/c',
+        ])
+
+
+def _s3_glob_with_recursive_pathname_and_custom_protocol():
+    '''
+    scenario: recursively search target folder
+    expectation: returns all subdirectory and files, without check of lexicographical order
+    '''
+    # recursive all files and folders
+    assert_glob(
+        's3+test://bucketForGlobTest/**', [
+            's3+test://bucketForGlobTest/1',
+            's3+test://bucketForGlobTest/1/a',
+            's3+test://bucketForGlobTest/1/a',
+            's3+test://bucketForGlobTest/1/a/b',
+            's3+test://bucketForGlobTest/1/a/b/1.json',
+            's3+test://bucketForGlobTest/1/a/b/c',
+            's3+test://bucketForGlobTest/1/a/b/c/1.json',
+            's3+test://bucketForGlobTest/1/a/b/c/A.msg',
+            's3+test://bucketForGlobTest/2',
+            's3+test://bucketForGlobTest/2/a',
+            's3+test://bucketForGlobTest/2/a/b',
+            's3+test://bucketForGlobTest/2/a/b/a',
+            's3+test://bucketForGlobTest/2/a/b/a/1.json',
+            's3+test://bucketForGlobTest/2/a/b/c',
+            's3+test://bucketForGlobTest/2/a/b/c/1.json',
+            's3+test://bucketForGlobTest/2/a/b/c/2.json',
+            's3+test://bucketForGlobTest/2/a/d',
+            's3+test://bucketForGlobTest/2/a/d/2.json',
+            's3+test://bucketForGlobTest/2/a/d/c/1.json',
+            's3+test://bucketForGlobTest/2/a/d/c',
+        ])
+
+    assert_glob(
+        's3+test://bucketForGlobTest/**/*', [
+            's3+test://bucketForGlobTest/1',
+            's3+test://bucketForGlobTest/1/a',
+            's3+test://bucketForGlobTest/1/a',
+            's3+test://bucketForGlobTest/1/a/b',
+            's3+test://bucketForGlobTest/1/a/b/1.json',
+            's3+test://bucketForGlobTest/1/a/b/c',
+            's3+test://bucketForGlobTest/1/a/b/c/1.json',
+            's3+test://bucketForGlobTest/1/a/b/c/A.msg',
+            's3+test://bucketForGlobTest/2',
+            's3+test://bucketForGlobTest/2/a',
+            's3+test://bucketForGlobTest/2/a/b',
+            's3+test://bucketForGlobTest/2/a/b/a',
+            's3+test://bucketForGlobTest/2/a/b/a/1.json',
+            's3+test://bucketForGlobTest/2/a/b/c',
+            's3+test://bucketForGlobTest/2/a/b/c/1.json',
+            's3+test://bucketForGlobTest/2/a/b/c/2.json',
+            's3+test://bucketForGlobTest/2/a/d',
+            's3+test://bucketForGlobTest/2/a/d/2.json',
+            's3+test://bucketForGlobTest/2/a/d/c/1.json',
+            's3+test://bucketForGlobTest/2/a/d/c',
         ])
 
 
@@ -1929,6 +2016,7 @@ def test_s3_glob(truncating_client):
     _s3_glob_with_bucket_match()
     _s3_glob_with_common_wildcard()
     _s3_glob_with_recursive_pathname()
+    _s3_glob_with_recursive_pathname_and_custom_protocol()
     _s3_glob_with_same_file_and_folder()
     _s3_glob_with_nested_pathname()
     _s3_glob_with_not_exists_dir()
@@ -2293,7 +2381,7 @@ def test_s3_save_as_invalid(s3_empty_client):
 def test_s3_load_from(s3_empty_client):
     s3_empty_client.create_bucket(Bucket='bucket')
     s3_empty_client.put_object(Bucket='bucket', Key='key', Body=b'value')
-    content = s3.s3_load_from('s3://bucket/key')
+    content = s3.s3_load_from('s3://bucket/key', followlinks=True)
     assert content.read() == b'value'
 
 
@@ -2328,6 +2416,11 @@ def test_s3_prefetch_open(s3_empty_client):
         assert reader.mode == 'rb'
         assert reader.read() == content
 
+    with s3.s3_prefetch_open('s3://bucket/key', followlinks=True) as reader:
+        assert reader.name == 's3://bucket/key'
+        assert reader.mode == 'rb'
+        assert reader.read() == content
+
     with s3.s3_prefetch_open('s3://bucket/key', max_concurrency=1,
                              max_block_size=1) as reader:
         assert reader.read() == content
@@ -2352,6 +2445,11 @@ def test_s3_share_cache_open(s3_empty_client):
     s3.s3_symlink('s3://bucket/key', 's3://bucket/symlink')
 
     with s3.s3_share_cache_open('s3://bucket/key') as reader:
+        assert reader.name == 's3://bucket/key'
+        assert reader.mode == 'rb'
+        assert reader.read() == content
+
+    with s3.s3_share_cache_open('s3://bucket/key', followlinks=True) as reader:
         assert reader.name == 's3://bucket/key'
         assert reader.mode == 'rb'
         assert reader.read() == content
@@ -2401,6 +2499,11 @@ def test_s3_pipe_open(s3_empty_client):
     s3.s3_symlink('s3://bucket/key', 's3://bucket/symlink')
 
     with s3.s3_pipe_open('s3://bucket/key', 'rb') as reader:
+        assert reader.name == 's3://bucket/key'
+        assert reader.mode == 'rb'
+        assert reader.read() == content
+
+    with s3.s3_pipe_open('s3://bucket/key', 'rb', followlinks=True) as reader:
         assert reader.name == 's3://bucket/key'
         assert reader.mode == 'rb'
         assert reader.read() == content
@@ -2458,6 +2561,9 @@ def test_s3_legacy_open(mocker, s3_empty_client):
     with s3.s3_legacy_open('s3://bucket/key', 'rb') as reader:
         assert reader.read() == content
 
+    with s3.s3_legacy_open('s3://bucket/key', 'rb', followlinks=True) as reader:
+        assert reader.read() == content
+
     with s3.s3_legacy_open('s3://bucket/symlink', 'rb',
                            followlinks=True) as reader:
         assert reader.read() == content
@@ -2512,6 +2618,12 @@ def test_s3_cached_open(mocker, s3_empty_client, fs):
 
     with s3.s3_cached_open('s3://bucket/key', 'rb',
                            cache_path=cache_path) as reader:
+        assert reader.name == 's3://bucket/key'
+        assert reader.mode == 'rb'
+        assert reader.read() == content
+
+    with s3.s3_cached_open('s3://bucket/key', 'rb', cache_path=cache_path,
+                           followlinks=True) as reader:
         assert reader.name == 's3://bucket/key'
         assert reader.mode == 'rb'
         assert reader.read() == content
@@ -2591,6 +2703,12 @@ def test_s3_buffered_open(mocker, s3_empty_client, fs):
         assert reader.mode == 'rb'
         assert reader.read() == content
 
+    with s3.s3_buffered_open('s3://bucket/key', 'rb',
+                             followlinks=True) as reader:
+        assert reader.name == 's3://bucket/key'
+        assert reader.mode == 'rb'
+        assert reader.read() == content
+
     with pytest.raises(ValueError):
         with s3.s3_buffered_open('s3://bucket/key', 'test_mode'):
             pass
@@ -2639,6 +2757,9 @@ def test_s3_memory_open(s3_empty_client):
     s3.s3_symlink('s3://bucket/key', 's3://bucket/symlink')
 
     with s3.s3_memory_open('s3://bucket/key', 'rb') as reader:
+        assert reader.read() == content
+
+    with s3.s3_memory_open('s3://bucket/key', 'rb', followlinks=True) as reader:
         assert reader.read() == content
 
     with s3.s3_memory_open('s3://bucket/symlink', 'rb',
