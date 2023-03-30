@@ -67,7 +67,6 @@ endpoint_url = 'https://s3.amazonaws.com'
 max_pool_connections = 32
 max_retries = 10
 max_keys = 1000
-S3_PATH_CHECK_PATTERN = re.compile(r'^s3(\+\w+)?:\/\/')
 
 
 def _patch_make_request(client: botocore.client.BaseClient):
@@ -499,7 +498,7 @@ def is_s3(path: PathLike) -> bool:
     :returns: True if path is s3 path, else False
     '''
     path = fspath(path)
-    if S3_PATH_CHECK_PATTERN.match(path):
+    if re.match(r'^s3(\+\w+)?:\/\/', path):
         return True
     return False
 
