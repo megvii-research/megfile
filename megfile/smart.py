@@ -14,7 +14,7 @@ from megfile.lib.glob import globlize, ungloblize
 from megfile.s3 import S3Cacher, is_s3, s3_copy, s3_download, s3_load_content, s3_open, s3_upload
 from megfile.sftp import sftp_copy, sftp_download, sftp_upload
 from megfile.smart_path import SmartPath, get_traditional_path
-from megfile.utils import combine, get_content_offset
+from megfile.utils import combine
 
 __all__ = [
     'smart_access',

@@ -28,7 +28,7 @@ from megfile.lib.s3_pipe_handler import S3PipeHandler
 from megfile.lib.s3_prefetch_reader import DEFAULT_BLOCK_SIZE, S3PrefetchReader
 from megfile.lib.s3_share_cache_reader import S3ShareCacheReader
 from megfile.smart_path import SmartPath
-from megfile.utils import cachedproperty, calculate_md5, generate_cache_path, get_binary_mode, is_readable, necessary_params, thread_local
+from megfile.utils import cachedproperty, calculate_md5, generate_cache_path, get_binary_mode, get_content_offset, is_readable, necessary_params, thread_local
 
 __all__ = [
     'S3Path',
@@ -153,7 +153,7 @@ def get_endpoint_url(profile_name: Optional[str] = None) -> str:
             _logger.info(
                 "using ~/.aws/config: endpoint_url=%s" % config_endpoint_url)
             return config_endpoint_url
-    except botocore.exceptions.ProfileNotFound:
+    except botocore.exceptions.ProfileNotFound:  # pragma: no cover
         pass
     return endpoint_url
 
@@ -928,16 +928,6 @@ def s3_upload(
         with raise_s3_error(dst_url):
             client.upload_fileobj(
                 src, Bucket=dst_bucket, Key=dst_key, Callback=callback)
-
-
-def get_content_offset(start: Optional[int], stop: Optional[int], size: int):
-    if start is None:
-        start = 0
-    if stop is None or stop < 0 or start < 0:
-        start, stop, _ = slice(start, stop).indices(size)
-    if stop < start:
-        raise ValueError('read length must be positive')
-    return start, stop
 
 
 def s3_load_content(
