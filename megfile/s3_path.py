@@ -187,12 +187,15 @@ def get_endpoint_url(profile_name: Optional[str] = None) -> str:
     if environ_endpoint_url:
         _logger.info("using %s: %s" % (environ_key, environ_endpoint_url))
         return environ_endpoint_url
-    config_endpoint_url = get_scoped_config(profile_name=profile_name).get(
-        's3', {}).get('endpoint_url')
-    if config_endpoint_url:
-        _logger.info(
-            "using ~/.aws/config: endpoint_url=%s" % config_endpoint_url)
-        return config_endpoint_url
+    try:
+        config_endpoint_url = get_scoped_config(profile_name=profile_name).get(
+            's3', {}).get('endpoint_url')
+        if config_endpoint_url:
+            _logger.info(
+                "using ~/.aws/config: endpoint_url=%s" % config_endpoint_url)
+            return config_endpoint_url
+    except botocore.exceptions.ProfileNotFound:
+        pass
     return endpoint_url
 
 
@@ -237,7 +240,7 @@ def get_s3_client(
             cache_key, get_s3_client, config=config, profile_name=profile_name)
 
     access_key, secret_key = get_access_token(profile_name)
-    client = get_s3_session(profile_name=profile_name).client(
+    client = get_s3_session().client(
         's3',
         endpoint_url=get_endpoint_url(profile_name=profile_name),
         config=config,
