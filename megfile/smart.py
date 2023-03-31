@@ -1,12 +1,12 @@
 import os
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor
 from functools import partial
-from itertools import chain
-from typing import IO, AnyStr, BinaryIO, Callable, Iterator, List, Optional, Tuple
+from typing import IO, AnyStr, BinaryIO, Callable, Iterator, List, Optional, Tuple, Union
 
 from tqdm import tqdm
 
-from megfile.fs import fs_copy, fs_getsize, fs_scandir
+from megfile.fs import fs_copy, fs_scandir
 from megfile.interfaces import Access, FileEntry, NullCacher, PathLike, StatResult
 from megfile.lib.combine_reader import CombineReader
 from megfile.lib.compat import fspath
@@ -310,27 +310,38 @@ def smart_copy(
 
 
 def _smart_sync_single_file(
-        src_path, dst_path, src_file_path, callback, followlinks):
-    content_path = os.path.relpath(src_file_path, start=src_path)
+        src_root_path,
+        dst_root_path,
+        src_file_path,
+        callback,
+        followlinks,
+        callback_after_copy_file: Optional[Callable[[str, str], None]] = None,
+):
+    content_path = os.path.relpath(src_file_path, start=src_root_path)
     if len(content_path) and content_path != '.':
         content_path = content_path.lstrip('/')
-        dst_abs_file_path = smart_path_join(dst_path, content_path)
+        dst_abs_file_path = smart_path_join(dst_root_path, content_path)
     else:
         # if content_path is empty, which means smart_isfile(src_path) is True, this function is equal to smart_copy
-        dst_abs_file_path = dst_path
+        dst_abs_file_path = dst_root_path
     copy_callback = partial(callback, src_file_path) if callback else None
     smart_copy(
         src_file_path,
         dst_abs_file_path,
         callback=copy_callback,
         followlinks=followlinks)
+    if callback_after_copy_file:
+        callback_after_copy_file(src_file_path, dst_abs_file_path)
 
 
 def smart_sync(
-        src_path: PathLike,
+        src_path: Union[PathLike, List[PathLike]],
         dst_path: PathLike,
         callback: Optional[Callable[[str, int], None]] = None,
-        followlinks: bool = False) -> None:
+        followlinks: bool = False,
+        callback_after_copy_file: Optional[Callable[[str, str], None]] = None,
+        src_file_stats: Optional[List[FileEntry]] = None,
+        max_workers: Optional[int] = None) -> None:
     '''
     Sync file or directory on s3 and fs
 
@@ -368,26 +379,44 @@ def smart_sync(
     :param src_path: Given source path
     :param dst_path: Given destination path
     :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
+    :param followlinks: False if regard symlink as file, else True
+    :param callback_after_copy_file: Called after copy success, and the input parameter is src file path and dst file path
+    :param src_file_stats: If this parameter is not None, only this parameter's files will be synced, 
+            and src_path is the root_path of these files used to calculate the path of the target file. 
+            This parameter is in order to reduce file traversal times.
+    :param max_workers: number of threads used by smart_sync
     '''
     src_path, dst_path = get_traditional_path(src_path), get_traditional_path(
         dst_path)
+    if not src_file_stats:
+        src_file_stats = smart_scan_stat(src_path, followlinks=followlinks)
 
-    for src_file_entry in smart_scan_stat(src_path, followlinks=followlinks):
-        if src_file_entry.name:
-            src_file_path = src_file_entry.path
-            _smart_sync_single_file(
-                src_path, dst_path, src_file_path, callback, followlinks)
+    with ThreadPoolExecutor(
+            max_workers=max_workers or os.cpu_count() * 2) as executor:
+        for src_file_entry in src_file_stats:
+            if src_file_entry.name:
+                src_file_path = src_file_entry.path
+                executor.submit(
+                    _smart_sync_single_file,
+                    src_path,
+                    dst_path,
+                    src_file_path,
+                    callback,
+                    followlinks,
+                    callback_after_copy_file,
+                )
 
 
 def smart_sync_with_progress(
         src_path,
         dst_path,
         callback: Optional[Callable[[str, int], None]] = None,
-        followlinks: bool = False):  # pragma: no cover
+        followlinks: bool = False,
+        max_workers: Optional[int] = None):  # pragma: no cover
     src_path, dst_path = get_traditional_path(src_path), get_traditional_path(
         dst_path)
-    files = list(smart_scan(src_path, followlinks=followlinks))
-    tbar = tqdm(total=len(files), ascii=True)
+    file_stats = list(smart_scan_stat(src_path, followlinks=followlinks))
+    tbar = tqdm(total=len(file_stats), ascii=True)
     sbar = tqdm(unit='B', ascii=True, unit_scale=True)
 
     def tqdm_callback(current_src_path, length: int):
@@ -395,10 +424,18 @@ def smart_sync_with_progress(
         if callback:
             callback(current_src_path, length)
 
-    for src_file_path in files:
-        _smart_sync_single_file(
-            src_path, dst_path, src_file_path, tqdm_callback, followlinks)
+    def callback_after_copy_file(src_file_path, dst_file_path):
         tbar.update(1)
+
+    smart_sync(
+        src_path,
+        dst_path,
+        callback=tqdm_callback,
+        followlinks=followlinks,
+        callback_after_copy_file=callback_after_copy_file,
+        src_file_stats=file_stats,
+        max_workers=max_workers,
+    )
     tbar.close()
     sbar.close()
 

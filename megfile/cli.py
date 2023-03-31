@@ -219,36 +219,37 @@ def rm(path: str, recursive: bool):
 def sync(src_path: str, dst_path: str, progress_bar: bool):
     if has_magic(src_path):
         root_dir = get_non_glob_dir(src_path)
-
-        def sync_magic_path(src_file_path, callback=None):
-            content_path = os.path.relpath(src_file_path, start=root_dir)
-            dst_abs_file_path = smart_path_join(
-                dst_path, content_path.lstrip('/'))
-            smart_sync(
-                src_file_path,
-                dst_abs_file_path,
-                callback=callback,
-                followlinks=True)
+        path_stats = []
+        for dir_or_file in smart_glob(src_path, recursive=True,
+                                      missing_ok=True):
+            path_stats.extend(list(smart_scan_stat(dir_or_file)))
 
         if progress_bar:
-            glob_paths = list(
-                smart_glob(src_path, recursive=True, missing_ok=True))
-            tbar = tqdm(total=len(glob_paths), ascii=True)
+            tbar = tqdm(total=len(path_stats), ascii=True)
             sbar = tqdm(unit='B', ascii=True, unit_scale=True)
 
             def callback(_filename: str, length: int):
                 sbar.update(length)
 
-            for src_file_path in glob_paths:
-                sync_magic_path(src_file_path, callback=callback)
+            def callback_after_copy_file(src_file_path, dst_file_path):
                 tbar.update(1)
+
+            smart_sync(
+                root_dir,
+                dst_path,
+                callback=callback,
+                callback_after_copy_file=callback_after_copy_file,
+                src_file_stats=path_stats,
+            )
+
             tbar.close()
             sbar.close()
         else:  # pragma: no cover
-            for src_file_path in smart_glob(src_path, recursive=True,
-                                            missing_ok=True):
-                sync_magic_path(src_file_path)
-
+            smart_sync(
+                root_dir,
+                dst_path,
+                src_file_stats=path_stats,
+            )
     else:
         if progress_bar:
             smart_sync_with_progress(src_path, dst_path, followlinks=True)
