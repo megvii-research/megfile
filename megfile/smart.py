@@ -2,7 +2,7 @@ import os
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
-from typing import IO, AnyStr, BinaryIO, Callable, Iterator, List, Optional, Tuple, Iterable
+from typing import IO, AnyStr, BinaryIO, Callable, Iterable, Iterator, List, Optional, Tuple
 
 from tqdm import tqdm
 
