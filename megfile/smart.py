@@ -2,7 +2,7 @@ import os
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
-from typing import IO, AnyStr, BinaryIO, Callable, Iterator, List, Optional, Tuple, Union
+from typing import IO, AnyStr, BinaryIO, Callable, Iterator, List, Optional, Tuple, Iterable
 
 from tqdm import tqdm
 
@@ -340,7 +340,7 @@ def smart_sync(
         callback: Optional[Callable[[str, int], None]] = None,
         followlinks: bool = False,
         callback_after_copy_file: Optional[Callable[[str, str], None]] = None,
-        src_file_stats: Optional[Iterator[FileEntry]] = None,
+        src_file_stats: Optional[Iterable[FileEntry]] = None,
         max_workers: Optional[int] = None) -> None:
     '''
     Sync file or directory on s3 and fs
