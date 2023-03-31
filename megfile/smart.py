@@ -340,7 +340,7 @@ def smart_sync(
         callback: Optional[Callable[[str, int], None]] = None,
         followlinks: bool = False,
         callback_after_copy_file: Optional[Callable[[str, str], None]] = None,
-        src_file_stats: Optional[List[FileEntry]] = None,
+        src_file_stats: Optional[Iterator[FileEntry]] = None,
         max_workers: Optional[int] = None) -> None:
     '''
     Sync file or directory on s3 and fs
@@ -392,7 +392,7 @@ def smart_sync(
         src_file_stats = smart_scan_stat(src_path, followlinks=followlinks)
 
     with ThreadPoolExecutor(
-            max_workers=max_workers or os.cpu_count() * 2) as executor:
+            max_workers=max_workers or (os.cpu_count() or 1) * 2) as executor:
         for src_file_entry in src_file_stats:
             if src_file_entry.name:
                 src_file_path = src_file_entry.path
