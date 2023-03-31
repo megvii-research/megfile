@@ -335,7 +335,7 @@ def _smart_sync_single_file(
 
 
 def smart_sync(
-        src_path: Union[PathLike, List[PathLike]],
+        src_path: PathLike,
         dst_path: PathLike,
         callback: Optional[Callable[[str, int], None]] = None,
         followlinks: bool = False,
