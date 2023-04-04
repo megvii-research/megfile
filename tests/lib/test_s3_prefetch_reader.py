@@ -481,7 +481,7 @@ def test_s3_prefetch_reader_fetch_buffer_error(client_for_get_object):
 def test_empty_file(client):
     with S3PrefetchReader(BUCKET, KEY, s3_client=client) as reader:
         reader._fetch_response(index=0)
-    
+
     KEY2 = 'key2'
     client.put_object(Bucket=BUCKET, Key=KEY2, Body=b'')
 
