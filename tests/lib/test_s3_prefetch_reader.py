@@ -8,7 +8,7 @@ import boto3
 import pytest
 from moto import mock_s3
 
-from megfile.errors import S3FileChangedError
+from megfile.errors import S3FileChangedError, S3InvalidRangeError
 from megfile.lib.s3_prefetch_reader import S3PrefetchReader
 from tests.test_s3 import s3_empty_client
 
@@ -160,7 +160,7 @@ def test_s3_prefetch_reader_fetch(client, mocker):
     ) as reader:
         # 打开 reader, _executor 没有执行
         # get_object_func.assert_not_called() in Python 3.6+
-        assert get_object_func.call_count == 0
+        assert get_object_func.call_count == 1
 
         reader._buffer
         # 调用 _buffer 会导致 _executor 开始执行
@@ -259,7 +259,7 @@ def test_s3_prefetch_reader_backward_seek_and_the_target_in_remains(
     with S3PrefetchReader(BUCKET, KEY, s3_client=client, max_workers=2,
                           block_size=3, block_capacity=3,
                           block_forward=2) as reader:
-        assert reader._cached_blocks == []
+        assert reader._cached_blocks == [0]
 
         reader._buffer
         sleep_until_downloaded(reader)
@@ -285,11 +285,11 @@ def test_s3_prefetch_reader_backward_block_forward_eq_1(client, mocker):
                           block_size=3, block_capacity=3,
                           block_forward=1) as reader:
         assert reader.read(6) == b'block0'
-        assert reader._cached_blocks == []
+        assert reader._cached_blocks == [0, 1]
 
         reader._seek_history = [FakeHistory()]
         assert reader.read(7) == b' block1'
-        assert reader._cached_blocks == []
+        assert reader._cached_blocks == [0, 1]
 
         assert reader.read(7) == b' block2'
         assert reader._cached_blocks == [4, 5, 6]
@@ -301,7 +301,7 @@ def test_s3_prefetch_reader_backward_seek_and_the_target_out_of_remains(
     with S3PrefetchReader(BUCKET, KEY, s3_client=client, max_workers=2,
                           block_size=3, block_capacity=3,
                           block_forward=2) as reader:  # buffer 最大为 6B
-        assert reader._cached_blocks == []
+        assert reader._cached_blocks == [0]
 
         reader._buffer
         sleep_until_downloaded(reader)
@@ -325,7 +325,7 @@ def test_s3_prefetch_reader_seek_and_the_target_in_buffer(client, mocker):
     with S3PrefetchReader(BUCKET, KEY, s3_client=client, max_workers=3,
                           block_size=3, block_capacity=3,
                           block_forward=2) as reader:  # buffer 最长为 9B
-        assert reader._cached_blocks == []
+        assert reader._cached_blocks == [0]
 
         reader._buffer
         sleep_until_downloaded(reader)
@@ -352,7 +352,7 @@ def test_s3_prefetch_reader_seek_and_the_target_out_of_buffer(client, mocker):
     with S3PrefetchReader(BUCKET, KEY, s3_client=client, max_workers=2,
                           block_size=3, block_capacity=3,
                           block_forward=2) as reader:  # buffer 最大为 6B
-        assert reader._cached_blocks == []
+        assert reader._cached_blocks == [0]
 
         reader._buffer
         sleep_until_downloaded(reader)
@@ -456,7 +456,12 @@ def test_s3_prefetch_reader_seek_history(client):
 def client_for_get_object(s3_empty_client):
 
     def fake_get_object(*args, **kwargs):
-        return {'ETag': 'test'}
+        import random
+        return {
+            'ETag': f'test-{random.randint(0, 1000)}',
+            'ContentRange': 'bytes 0-1/1',
+            'Body': BytesIO(b't')
+        }
 
     s3_empty_client.create_bucket(Bucket=BUCKET)
     s3_empty_client.put_object(Bucket=BUCKET, Key=KEY, Body=CONTENT)
@@ -471,3 +476,15 @@ def test_s3_prefetch_reader_fetch_buffer_error(client_for_get_object):
 
         with pytest.raises(S3FileChangedError):
             reader._fetch_buffer(1)
+
+
+def test_empty_file(client):
+    with S3PrefetchReader(BUCKET, KEY, s3_client=client) as reader:
+        reader._fetch_response(index=0)
+
+    KEY2 = 'key2'
+    client.put_object(Bucket=BUCKET, Key=KEY2, Body=b'')
+
+    with pytest.raises(S3InvalidRangeError):
+        with S3PrefetchReader(BUCKET, KEY2, s3_client=client) as error_reader:
+            error_reader._fetch_response(index=0)
