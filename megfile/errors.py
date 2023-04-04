@@ -252,6 +252,10 @@ class S3NameTooLongError(S3FileNotFoundError, PermissionError):
     pass
 
 
+class S3InvalidRangeError(S3Exception):
+    pass
+
+
 class S3UnknownError(S3Exception, UnknownError):
 
     def __init__(self, error: Exception, path: PathLike):
@@ -315,6 +319,12 @@ def translate_s3_error(s3_error: Exception, s3_url: PathLike) -> Exception:
             return S3ConfigError(
                 'Invalid configuration: %r, code: %r, message: %r, endpoint: %r'
                 % (s3_url, code, message, s3_endpoint_url()))
+        if code in ('InvalidRange'):
+            return S3InvalidRangeError(
+                'Index out of range: %r, code: %r, message: %r, endpoint: %r' %
+                (
+                    s3_url, code, client_error_message(s3_error),
+                    s3_endpoint_url()))
         return S3UnknownError(s3_error, s3_url)
     elif isinstance(s3_error, ParamValidationError):
         report = param_validation_error_report(s3_error)

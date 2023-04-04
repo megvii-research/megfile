@@ -1,4 +1,5 @@
 from collections import Counter
+from concurrent.futures import Future
 from logging import getLogger as get_logger
 from typing import Optional
 
@@ -71,6 +72,9 @@ class S3ShareCacheReader(S3PrefetchReader):
             return  # pragma: no cover
         self._futures.submit(
             self._executor, (self.name, index), self._fetch_buffer, index)
+
+    def _insert_futures(self, index: int, future: Future):
+        self._futures[(self.name, index)] = future
 
     def _fetch_future_result(self, index: int):
         return self._futures.result((self.name, index))

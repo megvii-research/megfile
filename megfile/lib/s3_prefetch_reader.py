@@ -7,7 +7,7 @@ from math import ceil
 from statistics import mean
 from typing import Optional
 
-from megfile.errors import S3FileChangedError, patch_method, raise_s3_error, s3_should_retry
+from megfile.errors import S3FileChangedError, S3InvalidRangeError, patch_method, raise_s3_error, s3_should_retry
 from megfile.interfaces import Readable, Seekable
 from megfile.utils import get_human_size, process_local
 
@@ -62,15 +62,21 @@ class S3PrefetchReader(Readable, Seekable):
         self._block_capacity = block_capacity  # Max number of blocks
         self._block_forward = block_forward  # Number of blocks every prefetch, which should be smaller than block_capacity
 
-        first_index_response = self._fetch_response(0)
-        print(first_index_response, flush=True)
-        self._content_size = first_index_response['ContentLength']
-        self._content_etag = first_index_response['ETag']
-        self._content_info = first_index_response
+        try:
+            first_index_response = self._fetch_response(index=0)
+            self._content_size = int(
+                first_index_response['ContentRange'].split('/')[-1])
+        except S3InvalidRangeError as e:
+            # usually when read a empty file
+            first_index_response = e.response
+            self._content_size = int(first_index_response['ContentLength'])
+
         first_future = Future()
         first_future.set_result(BytesIO(first_index_response['Body'].read()))
         self._futures = self._get_futures()
-        self._futures[0] = first_future
+        self._insert_futures(index=0, future=first_future)
+        self._content_etag = first_index_response['ETag']
+        self._content_info = first_index_response
 
         self._block_stop = ceil(self._content_size / block_size)
 
@@ -345,11 +351,15 @@ class S3PrefetchReader(Readable, Seekable):
         self._cached_offset = offset
         self._block_index = index
 
-    def _fetch_response(self, index: int) -> BytesIO:
-        range_str = 'bytes=%d-%d' % (
-            index * self._block_size, (index + 1) * self._block_size - 1)
+    def _fetch_response(self, index: Optional[int] = None) -> BytesIO:
 
         def fetch_response() -> dict:
+            if index is None:
+                return self._client.get_object(
+                    Bucket=self._bucket, Key=self._key)
+
+            range_str = 'bytes=%d-%d' % (
+                index * self._block_size, (index + 1) * self._block_size - 1)
             return self._client.get_object(
                 Bucket=self._bucket, Key=self._key, Range=range_str)
 
@@ -375,6 +385,9 @@ class S3PrefetchReader(Readable, Seekable):
         if index < 0 or index >= self._block_stop:
             return  # pragma: no cover
         self._futures.submit(self._executor, index, self._fetch_buffer, index)
+
+    def _insert_futures(self, index: int, future: Future):
+        self._futures[index] = future
 
     def _fetch_future_result(self, index: int):
         return self._futures.result(index)
