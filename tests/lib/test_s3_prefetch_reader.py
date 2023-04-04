@@ -8,7 +8,7 @@ import boto3
 import pytest
 from moto import mock_s3
 
-from megfile.errors import S3FileChangedError
+from megfile.errors import S3FileChangedError, S3InvalidRangeError
 from megfile.lib.s3_prefetch_reader import S3PrefetchReader
 from tests.test_s3 import s3_empty_client
 
@@ -476,3 +476,15 @@ def test_s3_prefetch_reader_fetch_buffer_error(client_for_get_object):
 
         with pytest.raises(S3FileChangedError):
             reader._fetch_buffer(1)
+
+
+def test_empty_file(client):
+    with S3PrefetchReader(BUCKET, KEY, s3_client=client) as reader:
+        reader._fetch_response(index=0)
+    
+    KEY2 = 'key2'
+    client.put_object(Bucket=BUCKET, Key=KEY2, Body=b'')
+
+    with pytest.raises(S3InvalidRangeError):
+        with S3PrefetchReader(BUCKET, KEY2, s3_client=client) as error_reader:
+            error_reader._fetch_response(index=0)
