@@ -352,7 +352,7 @@ class S3PrefetchReader(Readable, Seekable):
         self._cached_offset = offset
         self._block_index = index
 
-    def _fetch_response(self, index: Optional[int] = None) -> BytesIO:
+    def _fetch_response(self, index: Optional[int] = None) -> dict:
 
         def fetch_response() -> dict:
             if index is None:
