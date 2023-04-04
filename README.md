@@ -139,6 +139,37 @@ s3 =
     endpoint_url = http://oss-cn-hangzhou.aliyuncs.com
 ```
 
+You also can operate s3 files with different endpoint urls, access keys and secret keys. You can set config for different profiles by environment(`PROFILE_NAME__AWS_ACCESS_KEY_ID`, `PROFILE_NAME__AWS_SECRET_ACCESS_KEY`, `PROFILE_NAME__AWS_ENDPOINT` or `PROFILE_NAME__OSS_ENDPOINT`) or `~/.aws/config`. Then you can operate files with path `s3+profile_name://bucket/key`.
+For example:
+```
+# set config with environment
+$ export PROFILE1__AWS_ACCESS_KEY_ID=profile1-accesskey
+$ export PROFILE1__AWS_SECRET_ACCESS_KEY=profile1-secretkey
+$ export PROFILE1__AWS_ENDPOINT=https://profile1.s3.custom.com
+
+$ export PROFILE2__AWS_ACCESS_KEY_ID=profile2-accesskey
+$ export PROFILE2__AWS_SECRET_ACCESS_KEY=profile2-secretkey
+$ export PROFILE2__AWS_ENDPOINT=https://profile2.s3.custom.com
+
+# set config with file
+$ cat ~/.aws/config
+[profile1]
+aws_secret_access_key = profile1-accesskey
+aws_access_key_id = profile1-secretkey
+s3 =
+    endpoint_url = https://profile1.s3.custom.com
+
+[profile2]
+aws_secret_access_key = profile2-accesskey
+aws_access_key_id = profile2-secretkey
+s3 =
+    endpoint_url = https://profile2.s3.custom.com
+
+
+# python
+megfile.smart_copy('s3+profile1://bucket/key', 's3+profile2://bucket/key')
+```
+
 sftp path format is `sftp://[username[:password]@]hostname[:port]/file_path`, and sftp support some environments:
 ```
 # If you are not set username or password in path, you can set them in environments
