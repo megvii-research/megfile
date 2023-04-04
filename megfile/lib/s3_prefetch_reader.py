@@ -66,7 +66,7 @@ class S3PrefetchReader(Readable, Seekable):
             first_index_response = self._fetch_response(index=0)
             self._content_size = int(
                 first_index_response['ContentRange'].split('/')[-1])
-        except S3InvalidRangeError as e:
+        except S3InvalidRangeError:
             # usually when read a empty file
             first_index_response = self._fetch_response(index=None)
             self._content_size = int(first_index_response['ContentLength'])
