@@ -216,6 +216,7 @@ def test_smart_copy(mocker):
     fs_copy = mocker.patch('megfile.smart.fs_copy')
     default_copy_func = mocker.patch('megfile.smart._default_copy_func')
     copyfile = mocker.patch('megfile.fs_path.FSPath._copyfile')
+    s3path_open = mocker.patch('megfile.s3_path.S3Path.open')
 
     smart_islink = mocker.patch(
         'megfile.smart.smart_islink', side_effect=is_symlink)
@@ -272,6 +273,9 @@ def test_smart_copy(mocker):
             'fs', 'fs', callback=None, followlinks=False)
         fs_copy.reset_mock()
         fs_stat.stop()
+
+        smart.smart_copy('s3+test1://a/b', 's3+test2://a/b')
+        s3path_open.call_count == 2
 
 
 def test_smart_copy_fs2fs(mocker):
@@ -635,7 +639,7 @@ def test_smart_open_custom_s3_open_func(mocker, fs):
     parse_s3_url = mocker.patch('megfile.s3_path.parse_s3_url')
     parse_s3_url.return_value = ('bucket', 'key')
 
-    parse_s3_url = mocker.patch('megfile.s3_path._s3_get_metadata')
+    parse_s3_url = mocker.patch('megfile.s3_path.S3Path._s3_get_metadata')
     parse_s3_url.return_value = {}
     smart.smart_open('s3://bucket/key', 'r', s3_open_func=s3_binary_open)
     s3_open.assert_called_once_with('s3://bucket/key', 'rb')
@@ -796,6 +800,13 @@ def test_smart_glob(s3_empty_client, fs):
         's3://bucket/A/2.json',
         's3://bucket/A/3',
         's3://bucket/A/4',
+    ]
+
+    assert smart.smart_glob('s3+test://bucket/A/*') == [
+        's3+test://bucket/A/1',
+        's3+test://bucket/A/2.json',
+        's3+test://bucket/A/3',
+        's3+test://bucket/A/4',
     ]
 
     assert [

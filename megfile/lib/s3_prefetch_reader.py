@@ -1,13 +1,13 @@
 import os
 from collections import OrderedDict
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import Future, ThreadPoolExecutor
 from io import BytesIO
 from logging import getLogger as get_logger
 from math import ceil
 from statistics import mean
 from typing import Optional
 
-from megfile.errors import S3FileChangedError, patch_method, raise_s3_error, s3_should_retry
+from megfile.errors import S3FileChangedError, S3InvalidRangeError, patch_method, raise_s3_error, s3_should_retry
 from megfile.interfaces import Readable, Seekable
 from megfile.utils import get_human_size, process_local
 
@@ -58,16 +58,27 @@ class S3PrefetchReader(Readable, Seekable):
         self._key = key
         self._client = s3_client
         self._max_retries = max_retries
-
-        with raise_s3_error(self.name):
-            data = self._client.head_object(Bucket=self._bucket, Key=self._key)
-            self._content_size = data['ContentLength']
-            self._content_etag = data['ETag']
-            self._content_info = data
-
         self._block_size = block_size
         self._block_capacity = block_capacity  # Max number of blocks
         self._block_forward = block_forward  # Number of blocks every prefetch, which should be smaller than block_capacity
+
+        try:
+            first_index_response = self._fetch_response(index=0)
+            self._content_size = int(
+                first_index_response['ContentRange'].split('/')[-1])
+        except S3InvalidRangeError:
+            # usually when read a empty file
+            # TODO: use minio test empty file: https://hub.docker.com/r/minio/minio
+            first_index_response = self._fetch_response(index=None)
+            self._content_size = int(first_index_response['ContentLength'])
+
+        first_future = Future()
+        first_future.set_result(BytesIO(first_index_response['Body'].read()))
+        self._futures = self._get_futures()
+        self._insert_futures(index=0, future=first_future)
+        self._content_etag = first_index_response['ETag']
+        self._content_info = first_index_response
+
         self._block_stop = ceil(self._content_size / block_size)
 
         self.__offset = 0
@@ -75,7 +86,6 @@ class S3PrefetchReader(Readable, Seekable):
         self._block_index = None  # Current block index
         self._seek_history = []
 
-        self._futures = self._get_futures()
         self._is_global_executor = False
         if max_workers is None:
             self._executor = process_local(
@@ -342,32 +352,43 @@ class S3PrefetchReader(Readable, Seekable):
         self._cached_offset = offset
         self._block_index = index
 
-    def _fetch_buffer(self, index: int) -> BytesIO:
-        range_str = 'bytes=%d-%d' % (
-            index * self._block_size, (index + 1) * self._block_size - 1)
+    def _fetch_response(self, index: Optional[int] = None) -> dict:
 
-        def fetch_bytes() -> bytes:
-            data = self._client.get_object(
+        def fetch_response() -> dict:
+            if index is None:
+                return self._client.get_object(
+                    Bucket=self._bucket, Key=self._key)
+
+            range_str = 'bytes=%d-%d' % (
+                index * self._block_size, (index + 1) * self._block_size - 1)
+            return self._client.get_object(
                 Bucket=self._bucket, Key=self._key, Range=range_str)
-            etag = data.get('ETag', None)
-            if etag is not None and etag != self._content_etag:
-                raise S3FileChangedError(
-                    'File changed: %r, etag before: %s, after: %s' %
-                    (self.name, self._content_info, data))
-            return data['Body'].read()
 
-        fetch_bytes = patch_method(
-            fetch_bytes,
+        fetch_response = patch_method(
+            fetch_response,
             max_retries=self._max_retries,
             should_retry=s3_should_retry)
 
         with raise_s3_error(self.name):
-            return BytesIO(fetch_bytes())
+            return fetch_response()
+
+    def _fetch_buffer(self, index: int) -> BytesIO:
+        response = self._fetch_response(index=index)
+        etag = response.get('ETag', None)
+        if etag is not None and etag != self._content_etag:
+            raise S3FileChangedError(
+                'File changed: %r, etag before: %s, after: %s' %
+                (self.name, self._content_info, response))
+
+        return BytesIO(response['Body'].read())
 
     def _submit_future(self, index: int):
         if index < 0 or index >= self._block_stop:
             return  # pragma: no cover
         self._futures.submit(self._executor, index, self._fetch_buffer, index)
+
+    def _insert_futures(self, index: int, future: Future):
+        self._futures[index] = future
 
     def _fetch_future_result(self, index: int):
         return self._futures.result(index)
