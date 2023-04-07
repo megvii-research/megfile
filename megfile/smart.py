@@ -391,23 +391,6 @@ def smart_sync(
     if not src_file_stats:
         src_file_stats = smart_scan_stat(src_path, followlinks=followlinks)
 
-    def copy_file(items):
-        src_root_path = items['src_root_path']
-        dst_root_path = items['dst_root_path']
-        src_file_path = items['src_file_path']
-        callback = items['callback']
-        followlinks = items['followlinks']
-        callback_after_copy_file = items['callback_after_copy_file']
-
-        return _smart_sync_single_file(
-            src_root_path,
-            dst_root_path,
-            src_file_path,
-            callback,
-            followlinks,
-            callback_after_copy_file,
-        )
-
     def create_generator():
         for src_file_entry in src_file_stats:
             if src_file_entry.name:
@@ -429,7 +412,7 @@ def smart_sync_with_progress(
         dst_path,
         callback: Optional[Callable[[str, int], None]] = None,
         followlinks: bool = False,
-        concurrent_map: Callable[[Callable, Iterable], Iterator] = map
+        map_func: Callable[[Callable, Iterable], Iterator] = map
 ):  # pragma: no cover
     src_path, dst_path = get_traditional_path(src_path), get_traditional_path(
         dst_path)
@@ -452,7 +435,7 @@ def smart_sync_with_progress(
         followlinks=followlinks,
         callback_after_copy_file=callback_after_copy_file,
         src_file_stats=file_stats,
-        concurrent_map=concurrent_map,
+        map_func=map_func,
     )
     tbar.close()
     sbar.close()
