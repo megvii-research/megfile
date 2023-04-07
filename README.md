@@ -139,7 +139,7 @@ s3 =
     endpoint_url = http://oss-cn-hangzhou.aliyuncs.com
 ```
 
-You also can operate s3 files with different endpoint urls, access keys and secret keys. You can set config for different profiles by environment(`PROFILE_NAME__AWS_ACCESS_KEY_ID`, `PROFILE_NAME__AWS_SECRET_ACCESS_KEY`, `PROFILE_NAME__AWS_ENDPOINT` or `PROFILE_NAME__OSS_ENDPOINT`) or `~/.aws/config`. Then you can operate files with path `s3+profile_name://bucket/key`.
+You also can operate s3 files with different endpoint urls, access keys and secret keys. You can set config for different profiles by environment(`PROFILE_NAME__AWS_ACCESS_KEY_ID`, `PROFILE_NAME__AWS_SECRET_ACCESS_KEY`, `PROFILE_NAME__OSS_ENDPOINT`) or `~/.aws/config`. Then you can operate files with path `s3+profile_name://bucket/key`.
 For example:
 ```
 # set config with environment
