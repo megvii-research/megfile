@@ -133,13 +133,6 @@ def get_endpoint_url(profile_name: Optional[str] = None) -> str:
 
     :returns: S3 endpoint url
     '''
-    aws_environ_key = f'{profile_name}__AWS_ENDPOINT'.upper(
-    ) if profile_name else 'AWS_ENDPOINT'
-    aws_environ_endpoint_url = os.environ.get(aws_environ_key)
-    if aws_environ_endpoint_url:
-        _logger.info(
-            "using %s: %s" % (aws_environ_key, aws_environ_endpoint_url))
-        return aws_environ_endpoint_url
     environ_key = f'{profile_name}__OSS_ENDPOINT'.upper(
     ) if profile_name else 'OSS_ENDPOINT'
     environ_endpoint_url = os.environ.get(environ_key)
