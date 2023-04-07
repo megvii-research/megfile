@@ -1,8 +1,7 @@
 import os
 from collections import defaultdict
-from concurrent.futures import ThreadPoolExecutor
 from functools import partial
-from typing import IO, AnyStr, BinaryIO, Callable, Iterable, Iterator, List, Optional, Tuple
+from typing import IO, Any, AnyStr, BinaryIO, Callable, Iterable, Iterator, List, Optional, Tuple
 
 from tqdm import tqdm
 
@@ -309,14 +308,14 @@ def smart_copy(
         followlinks=followlinks)  # type: ignore
 
 
-def _smart_sync_single_file(
-        src_root_path,
-        dst_root_path,
-        src_file_path,
-        callback,
-        followlinks,
-        callback_after_copy_file: Optional[Callable[[str, str], None]] = None,
-):
+def _smart_sync_single_file(items: dict):
+    src_root_path = items['src_root_path']
+    dst_root_path = items['dst_root_path']
+    src_file_path = items['src_file_path']
+    callback = items['callback']
+    followlinks = items['followlinks']
+    callback_after_copy_file = items['callback_after_copy_file']
+
     content_path = os.path.relpath(src_file_path, start=src_root_path)
     if len(content_path) and content_path != '.':
         content_path = content_path.lstrip('/')
@@ -341,7 +340,7 @@ def smart_sync(
         followlinks: bool = False,
         callback_after_copy_file: Optional[Callable[[str, str], None]] = None,
         src_file_stats: Optional[Iterable[FileEntry]] = None,
-        max_workers: Optional[int] = None) -> None:
+        map_func: Callable[[Callable, Iterable], Any] = map) -> None:
     '''
     Sync file or directory on s3 and fs
 
@@ -384,27 +383,45 @@ def smart_sync(
     :param src_file_stats: If this parameter is not None, only this parameter's files will be synced, 
             and src_path is the root_path of these files used to calculate the path of the target file. 
             This parameter is in order to reduce file traversal times.
-    :param max_workers: number of threads used by smart_sync
+    :param map_func: A Callable func like `map`. You can use ThreadPoolExecutor.map, Pool.map and so on if you need concurrent capability.
+            default is standard library `map`.
     '''
     src_path, dst_path = get_traditional_path(src_path), get_traditional_path(
         dst_path)
     if not src_file_stats:
         src_file_stats = smart_scan_stat(src_path, followlinks=followlinks)
 
-    with ThreadPoolExecutor(
-            max_workers=max_workers or (os.cpu_count() or 1) * 2) as executor:
+    def copy_file(items):
+        src_root_path = items['src_root_path']
+        dst_root_path = items['dst_root_path']
+        src_file_path = items['src_file_path']
+        callback = items['callback']
+        followlinks = items['followlinks']
+        callback_after_copy_file = items['callback_after_copy_file']
+
+        return _smart_sync_single_file(
+            src_root_path,
+            dst_root_path,
+            src_file_path,
+            callback,
+            followlinks,
+            callback_after_copy_file,
+        )
+
+    def create_generator():
         for src_file_entry in src_file_stats:
             if src_file_entry.name:
                 src_file_path = src_file_entry.path
-                executor.submit(
-                    _smart_sync_single_file,
-                    src_path,
-                    dst_path,
-                    src_file_path,
-                    callback,
-                    followlinks,
-                    callback_after_copy_file,
+                yield dict(
+                    src_root_path=src_path,
+                    dst_root_path=dst_path,
+                    src_file_path=src_file_path,
+                    callback=callback,
+                    followlinks=followlinks,
+                    callback_after_copy_file=callback_after_copy_file,
                 )
+
+    list(map_func(_smart_sync_single_file, create_generator()))
 
 
 def smart_sync_with_progress(
@@ -412,7 +429,8 @@ def smart_sync_with_progress(
         dst_path,
         callback: Optional[Callable[[str, int], None]] = None,
         followlinks: bool = False,
-        max_workers: Optional[int] = None):  # pragma: no cover
+        concurrent_map: Callable[[Callable, Iterable], Iterator] = map
+):  # pragma: no cover
     src_path, dst_path = get_traditional_path(src_path), get_traditional_path(
         dst_path)
     file_stats = list(smart_scan_stat(src_path, followlinks=followlinks))
@@ -434,7 +452,7 @@ def smart_sync_with_progress(
         followlinks=followlinks,
         callback_after_copy_file=callback_after_copy_file,
         src_file_stats=file_stats,
-        max_workers=max_workers,
+        concurrent_map=concurrent_map,
     )
     tbar.close()
     sbar.close()
