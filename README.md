@@ -116,7 +116,7 @@ pip3 install -r requirements.txt -r requirements-dev.txt
 
 ## Configuration
 
-Before using `megfile` to access files on s3, you need to set up authentication credentials for your s3 account using the [AWS CLI](https://docs.aws.amazon.com/cli/latest/reference/configure/index.html) or editing the file `~/.aws/config` directly, see also: [boto3 configuration](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html) & [boto3 credentials](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html). You can set your endpoint url with environments `AWS_ENDPOINT` or `OSS_ENDPOINT`.
+Before using `megfile` to access files on s3, you need to set up authentication credentials for your s3 account using the [AWS CLI](https://docs.aws.amazon.com/cli/latest/reference/configure/index.html) or editing the file `~/.aws/config` directly, see also: [boto3 configuration](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html) & [boto3 credentials](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html). You can set your endpoint url with environments `OSS_ENDPOINT`.
 
 ```
 $ aws configure
