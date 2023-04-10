@@ -863,8 +863,8 @@ class SftpPath(URIPath):
                 'Is a directory: %r' % self.path_with_protocol)
         fileobj = self._client.open(self._real_path, mode, bufsize=buffering)
         if 'r' in mode and 'b' not in mode:
-            return io.TextIOWrapper(fileobj)
-        return fileobj
+            return io.TextIOWrapper(fileobj)  # type: ignore
+        return fileobj  # type: ignore
 
     def chmod(self, mode: int, follow_symlinks: bool = True):
         '''
@@ -894,7 +894,7 @@ class SftpPath(URIPath):
             command: List[str],
             bufsize: int = -1,
             timeout: Optional[int] = None,
-            environment: Optional[int] = None,
+            environment: Optional[dict] = None,
     ) -> subprocess.CompletedProcess:  # pragma: no cover
         ssh_client = get_ssh_client(
             hostname=self._urlsplit_parts.hostname,
@@ -902,7 +902,10 @@ class SftpPath(URIPath):
             username=self._urlsplit_parts.username,
             password=self._urlsplit_parts.password,
         )
-        chan = ssh_client.get_transport().open_session(timeout=timeout)
+        transport = ssh_client.get_transport()
+        if not transport:
+            raise OSError(f"SSH client error: {self.path_with_protocol}")
+        chan = transport.open_session(timeout=timeout)
         chan.settimeout(timeout)
         if environment:
             chan.update_environment(environment)
