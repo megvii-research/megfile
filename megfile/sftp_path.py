@@ -2,6 +2,7 @@ import atexit
 import hashlib
 import io
 import os
+import subprocess
 from functools import lru_cache
 from logging import getLogger as get_logger
 from stat import S_ISDIR, S_ISLNK, S_ISREG
@@ -92,7 +93,7 @@ def get_sftp_client(
         port: Optional[int] = None,
         username: Optional[str] = None,
         password: Optional[str] = None,
-):  # pragma: no cover
+) -> paramiko.SFTPClient:  # pragma: no cover
     '''Get sftp client
 
     :returns: sftp client
@@ -107,7 +108,7 @@ def get_ssh_client(
         port: Optional[int] = None,
         username: Optional[str] = None,
         password: Optional[str] = None,
-):  # pragma: no cover
+) -> paramiko.SSHClient:  # pragma: no cover
     hostname, port, username, password, private_key = provide_connect_info(
         hostname=hostname,
         port=port,
@@ -888,6 +889,32 @@ class SftpPath(URIPath):
             raise OSError(f"Directory not empty: '{self.path_with_protocol}'")
         return self._client.rmdir(self._real_path)
 
+    def _exec_command(
+            self,
+            command: List[str],
+            bufsize: int = -1,
+            timeout: Optional[int] = None,
+            environment: Optional[int] = None,
+    ) -> subprocess.CompletedProcess:  # pragma: no cover
+        ssh_client = get_ssh_client(
+            hostname=self._urlsplit_parts.hostname,
+            port=self._urlsplit_parts.port,
+            username=self._urlsplit_parts.username,
+            password=self._urlsplit_parts.password,
+        )
+        chan = ssh_client._transport.open_session(timeout=timeout)
+        chan.settimeout(timeout)
+        if environment:
+            chan.update_environment(environment)
+        chan.exec_command(" ".join(command))
+        stdout = chan.makefile("r", bufsize)
+        stderr = chan.makefile_stderr("r", bufsize)
+        return subprocess.CompletedProcess(
+            args=command,
+            returncode=chan.recv_exit_status(),
+            stdout=stdout,
+            stderr=stderr)
+
     def copy(
             self,
             dst_path: PathLike,
@@ -908,19 +935,12 @@ class SftpPath(URIPath):
 
         dst_path = self.from_path(dst_path)
         if self._is_same_backend(dst_path):
-            ssh_client = get_ssh_client(
-                hostname=self._urlsplit_parts.hostname,
-                port=self._urlsplit_parts.port,
-                username=self._urlsplit_parts.username,
-                password=self._urlsplit_parts.password,
-            )
-            _stdin, _stdout, stderr = ssh_client.exec_command(
-                f"cp {self._real_path} {dst_path._real_path}")
-            if not dst_path.exists():  # pragma: no cover
-                _logger.error(stderr)
+            exec_result = self._exec_command(
+                ["cp", self._real_path, dst_path._real_path])
+            _logger.info(f"exec_result.returncode: {exec_result.returncode}")
+            if exec_result.returncode != 0:  # pragma: no cover
+                _logger.error(exec_result.stderr)
                 raise OSError('Copy file error')
-            elif dst_path.lstat().size != self.lstat().size:  # pragma: no cover
-                raise OSError('Copy file error, size mismatch')
         else:
             with self.open('rb') as fsrc:
                 with dst_path.open('wb') as fdst:
