@@ -97,19 +97,8 @@ def get_sftp_client(
 
     :returns: sftp client
     '''
-    hostname, port, username, password, private_key = provide_connect_info(
-        hostname=hostname,
-        port=port,
-        username=username,
-        password=password,
-    )
-    transport = paramiko.Transport((hostname, port))
-    transport.connect(username=username, password=password, pkey=private_key)
-    client = paramiko.SFTPClient.from_transport(transport)
-    if not client:
-        raise ConnectionError('SFTP connect error')
-    atexit.register(client.close)
-    return client
+    ssh_client = get_ssh_client(hostname, port, username, password)
+    return ssh_client.open_sftp()
 
 
 @lru_cache()
