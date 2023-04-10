@@ -569,7 +569,7 @@ class SftpPath(URIPath):
         '''
         return self.resolve().path_with_protocol
 
-    def _is_same_backend(self, other: PathLike) -> bool:
+    def _is_same_backend(self, other: 'SftpPath') -> bool:
         return self._urlsplit_parts.hostname == other._urlsplit_parts.hostname and self._urlsplit_parts.username == other._urlsplit_parts.username and self._urlsplit_parts.password == other._urlsplit_parts.password and self._urlsplit_parts.port == other._urlsplit_parts.port
 
     def rename(self, dst_path: PathLike) -> 'SftpPath':
@@ -902,7 +902,7 @@ class SftpPath(URIPath):
             username=self._urlsplit_parts.username,
             password=self._urlsplit_parts.password,
         )
-        chan = ssh_client._transport.open_session(timeout=timeout)
+        chan = ssh_client.get_transport().open_session(timeout=timeout)
         chan.settimeout(timeout)
         if environment:
             chan.update_environment(environment)
