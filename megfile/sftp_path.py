@@ -579,6 +579,9 @@ class SftpPath(URIPath):
         '''
         return self.resolve().path_with_protocol
 
+    def _is_same_backend(self, other: PathLike) -> bool:
+        return self._urlsplit_parts.hostname == other._urlsplit_parts.hostname and self._urlsplit_parts.username == other._urlsplit_parts.username and self._urlsplit_parts.password == other._urlsplit_parts.password and self._urlsplit_parts.port == other._urlsplit_parts.port
+
     def rename(self, dst_path: PathLike) -> 'SftpPath':
         '''
         rename file on sftp
@@ -586,7 +589,23 @@ class SftpPath(URIPath):
         :param dst_path: Given destination path
         '''
         dst_path = self.from_path(dst_path)
-        self._client.rename(self._real_path, dst_path._real_path)
+        if self._is_same_backend(dst_path):
+            self._client.rename(self._real_path, dst_path._real_path)
+        else:
+            if self.is_dir():
+                for file_entry in self.scandir():
+                    self.from_path(file_entry.path).rename(
+                        dst_path.joinpath(file_entry.name))
+            else:
+                with self.open('rb') as fsrc:
+                    with dst_path.open('wb') as fdst:
+                        length = 16 * 1024
+                        while True:
+                            buf = fsrc.read(length)
+                            if not buf:
+                                break
+                            fdst.write(buf)
+                self.unlink()
         return dst_path
 
     def replace(self, dst_path: PathLike) -> 'SftpPath':
@@ -899,7 +918,7 @@ class SftpPath(URIPath):
                 'Is a directory: %r' % self.path_with_protocol)
 
         dst_path = self.from_path(dst_path)
-        if self._urlsplit_parts.hostname == dst_path._urlsplit_parts.hostname and self._urlsplit_parts.username == dst_path._urlsplit_parts.username and self._urlsplit_parts.password == dst_path._urlsplit_parts.password and self._urlsplit_parts.port == dst_path._urlsplit_parts.port:
+        if self._is_same_backend(dst_path):
             ssh_client = get_ssh_client(
                 hostname=self._urlsplit_parts.hostname,
                 port=self._urlsplit_parts.port,

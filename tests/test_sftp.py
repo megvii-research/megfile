@@ -360,6 +360,15 @@ def test_sftp_rename(sftp_mocker):
     assert sftp.sftp_exists('sftp://username@host/A/test2') is False
     assert sftp.sftp_exists('sftp://username@host/A2/test2') is True
 
+    sftp.sftp_rename(
+        'sftp://username@host/A2/test2', 'sftp://username2@host2/A2/test')
+    assert sftp.sftp_exists('sftp://username@host/A2/test2') is False
+    assert sftp.sftp_exists('sftp://username2@host2/A2/test') is True
+
+    sftp.sftp_rename('sftp://username@host/A2', 'sftp://username2@host2/A')
+    assert sftp.sftp_exists('sftp://username@host/A2/test') is False
+    assert sftp.sftp_exists('sftp://username2@host2/A/test') is True
+
 
 def test_sftp_move(sftp_mocker):
     sftp.sftp_makedirs('sftp://username@host/A')

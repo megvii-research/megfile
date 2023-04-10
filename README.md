@@ -145,11 +145,11 @@ For example:
 # set config with environment
 $ export PROFILE1__AWS_ACCESS_KEY_ID=profile1-accesskey
 $ export PROFILE1__AWS_SECRET_ACCESS_KEY=profile1-secretkey
-$ export PROFILE1__AWS_ENDPOINT=https://profile1.s3.custom.com
+$ export PROFILE1__OSS_ENDPOINT=https://profile1.s3.custom.com
 
 $ export PROFILE2__AWS_ACCESS_KEY_ID=profile2-accesskey
 $ export PROFILE2__AWS_SECRET_ACCESS_KEY=profile2-secretkey
-$ export PROFILE2__AWS_ENDPOINT=https://profile2.s3.custom.com
+$ export PROFILE2__OSS_ENDPOINT=https://profile2.s3.custom.com
 
 # set config with file
 $ cat ~/.aws/config
