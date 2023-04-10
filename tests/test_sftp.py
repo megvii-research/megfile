@@ -2,7 +2,9 @@ import io
 import os
 import shutil
 import stat
+import subprocess
 import time
+from typing import List, Optional
 
 import paramiko
 import pytest
@@ -122,13 +124,23 @@ class FakeSFTPClient:
         with io.open(localpath, "wb") as fl:
             self.getfo(remotepath, fl, callback, prefetch)
 
-    def exec_command(self, command: str):
-        command = command.split(' ')
-        if command[0] == 'cp':
-            shutil.copy(command[1], command[2])
-            return b"", b"", b""
-        else:
-            raise OSError('Nonsupport command')
+
+def _fake_exec_command(
+        command: List[str],
+        bufsize: int = -1,
+        timeout: Optional[int] = None,
+        environment: Optional[int] = None,
+) -> subprocess.CompletedProcess:
+    if command[0] == 'cp':
+        shutil.copy(command[1], command[2])
+    else:
+        raise OSError('Nonsupport command')
+    return subprocess.CompletedProcess(
+        args=command,
+        returncode=0,
+        stdout=b'',
+        stderr=b'',
+    )
 
 
 @pytest.fixture
@@ -136,6 +148,9 @@ def sftp_mocker(fs, mocker):
     client = FakeSFTPClient()
     mocker.patch('megfile.sftp_path.get_sftp_client', return_value=client)
     mocker.patch('megfile.sftp_path.get_ssh_client', return_value=client)
+    mocker.patch(
+        'megfile.sftp_path.SftpPath._exec_command',
+        side_effect=_fake_exec_command)
     yield client
 
 
@@ -359,6 +374,15 @@ def test_sftp_rename(sftp_mocker):
     sftp.sftp_rename('sftp://username@host/A', 'sftp://username@host/A2')
     assert sftp.sftp_exists('sftp://username@host/A/test2') is False
     assert sftp.sftp_exists('sftp://username@host/A2/test2') is True
+
+    sftp.sftp_rename(
+        'sftp://username@host/A2/test2', 'sftp://username2@host2/A2/test')
+    assert sftp.sftp_exists('sftp://username@host/A2/test2') is False
+    assert sftp.sftp_exists('sftp://username2@host2/A2/test') is True
+
+    sftp.sftp_rename('sftp://username@host/A2', 'sftp://username2@host2/A')
+    assert sftp.sftp_exists('sftp://username@host/A2/test') is False
+    assert sftp.sftp_exists('sftp://username2@host2/A/test') is True
 
 
 def test_sftp_move(sftp_mocker):

@@ -2,6 +2,7 @@ import atexit
 import hashlib
 import io
 import os
+import subprocess
 from functools import lru_cache
 from logging import getLogger as get_logger
 from stat import S_ISDIR, S_ISLNK, S_ISREG
@@ -92,24 +93,13 @@ def get_sftp_client(
         port: Optional[int] = None,
         username: Optional[str] = None,
         password: Optional[str] = None,
-):  # pragma: no cover
+) -> paramiko.SFTPClient:  # pragma: no cover
     '''Get sftp client
 
     :returns: sftp client
     '''
-    hostname, port, username, password, private_key = provide_connect_info(
-        hostname=hostname,
-        port=port,
-        username=username,
-        password=password,
-    )
-    transport = paramiko.Transport((hostname, port))
-    transport.connect(username=username, password=password, pkey=private_key)
-    client = paramiko.SFTPClient.from_transport(transport)
-    if not client:
-        raise ConnectionError('SFTP connect error')
-    atexit.register(client.close)
-    return client
+    ssh_client = get_ssh_client(hostname, port, username, password)
+    return ssh_client.open_sftp()
 
 
 @lru_cache()
@@ -118,7 +108,7 @@ def get_ssh_client(
         port: Optional[int] = None,
         username: Optional[str] = None,
         password: Optional[str] = None,
-):  # pragma: no cover
+) -> paramiko.SSHClient:  # pragma: no cover
     hostname, port, username, password, private_key = provide_connect_info(
         hostname=hostname,
         port=port,
@@ -579,6 +569,9 @@ class SftpPath(URIPath):
         '''
         return self.resolve().path_with_protocol
 
+    def _is_same_backend(self, other: 'SftpPath') -> bool:
+        return self._urlsplit_parts.hostname == other._urlsplit_parts.hostname and self._urlsplit_parts.username == other._urlsplit_parts.username and self._urlsplit_parts.password == other._urlsplit_parts.password and self._urlsplit_parts.port == other._urlsplit_parts.port
+
     def rename(self, dst_path: PathLike) -> 'SftpPath':
         '''
         rename file on sftp
@@ -586,7 +579,23 @@ class SftpPath(URIPath):
         :param dst_path: Given destination path
         '''
         dst_path = self.from_path(dst_path)
-        self._client.rename(self._real_path, dst_path._real_path)
+        if self._is_same_backend(dst_path):
+            self._client.rename(self._real_path, dst_path._real_path)
+        else:
+            if self.is_dir():
+                for file_entry in self.scandir():
+                    self.from_path(file_entry.path).rename(
+                        dst_path.joinpath(file_entry.name))
+            else:
+                with self.open('rb') as fsrc:
+                    with dst_path.open('wb') as fdst:
+                        length = 16 * 1024
+                        while True:
+                            buf = fsrc.read(length)
+                            if not buf:
+                                break
+                            fdst.write(buf)
+                self.unlink()
         return dst_path
 
     def replace(self, dst_path: PathLike) -> 'SftpPath':
@@ -854,8 +863,8 @@ class SftpPath(URIPath):
                 'Is a directory: %r' % self.path_with_protocol)
         fileobj = self._client.open(self._real_path, mode, bufsize=buffering)
         if 'r' in mode and 'b' not in mode:
-            return io.TextIOWrapper(fileobj)
-        return fileobj
+            return io.TextIOWrapper(fileobj)  # type: ignore
+        return fileobj  # type: ignore
 
     def chmod(self, mode: int, follow_symlinks: bool = True):
         '''
@@ -880,6 +889,35 @@ class SftpPath(URIPath):
             raise OSError(f"Directory not empty: '{self.path_with_protocol}'")
         return self._client.rmdir(self._real_path)
 
+    def _exec_command(
+            self,
+            command: List[str],
+            bufsize: int = -1,
+            timeout: Optional[int] = None,
+            environment: Optional[dict] = None,
+    ) -> subprocess.CompletedProcess:  # pragma: no cover
+        ssh_client = get_ssh_client(
+            hostname=self._urlsplit_parts.hostname,
+            port=self._urlsplit_parts.port,
+            username=self._urlsplit_parts.username,
+            password=self._urlsplit_parts.password,
+        )
+        transport = ssh_client.get_transport()
+        if not transport:
+            raise OSError(f"SSH client error: {self.path_with_protocol}")
+        chan = transport.open_session(timeout=timeout)
+        chan.settimeout(timeout)
+        if environment:
+            chan.update_environment(environment)
+        chan.exec_command(" ".join(command))
+        stdout = chan.makefile("r", bufsize)
+        stderr = chan.makefile_stderr("r", bufsize)
+        return subprocess.CompletedProcess(
+            args=command,
+            returncode=chan.recv_exit_status(),
+            stdout=stdout,
+            stderr=stderr)
+
     def copy(
             self,
             dst_path: PathLike,
@@ -899,20 +937,13 @@ class SftpPath(URIPath):
                 'Is a directory: %r' % self.path_with_protocol)
 
         dst_path = self.from_path(dst_path)
-        if self._urlsplit_parts.hostname == dst_path._urlsplit_parts.hostname and self._urlsplit_parts.username == dst_path._urlsplit_parts.username and self._urlsplit_parts.password == dst_path._urlsplit_parts.password and self._urlsplit_parts.port == dst_path._urlsplit_parts.port:
-            ssh_client = get_ssh_client(
-                hostname=self._urlsplit_parts.hostname,
-                port=self._urlsplit_parts.port,
-                username=self._urlsplit_parts.username,
-                password=self._urlsplit_parts.password,
-            )
-            _stdin, _stdout, stderr = ssh_client.exec_command(
-                f"cp {self._real_path} {dst_path._real_path}")
-            if not dst_path.exists():  # pragma: no cover
-                _logger.error(stderr)
+        if self._is_same_backend(dst_path):
+            exec_result = self._exec_command(
+                ["cp", self._real_path, dst_path._real_path])
+            _logger.info(f"exec_result.returncode: {exec_result.returncode}")
+            if exec_result.returncode != 0:  # pragma: no cover
+                _logger.error(exec_result.stderr)
                 raise OSError('Copy file error')
-            elif dst_path.lstat().size != self.lstat().size:  # pragma: no cover
-                raise OSError('Copy file error, size mismatch')
         else:
             with self.open('rb') as fsrc:
                 with dst_path.open('wb') as fdst:
