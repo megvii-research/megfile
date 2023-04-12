@@ -10,8 +10,8 @@ from megfile.interfaces import Access, FileEntry, NullCacher, PathLike, StatResu
 from megfile.lib.combine_reader import CombineReader
 from megfile.lib.compat import fspath
 from megfile.lib.glob import globlize, ungloblize
-from megfile.s3 import S3Cacher, is_s3, s3_copy, s3_download, s3_load_content, s3_open, s3_upload
-from megfile.sftp import sftp_copy, sftp_download, sftp_upload
+from megfile.s3 import S3Cacher, is_s3, s3_concat, s3_copy, s3_download, s3_load_content, s3_open, s3_upload
+from megfile.sftp import sftp_concat, sftp_copy, sftp_download, sftp_upload
 from megfile.smart_path import SmartPath, get_traditional_path
 from megfile.utils import combine
 
@@ -870,3 +870,42 @@ def smart_getmd5(path: PathLike, recalculate: bool = False):
     param recalculate: calculate md5 in real-time or not return s3 etag when path is s3
     '''
     return SmartPath(path).md5(recalculate=recalculate)
+
+
+_concat_funcs = {
+    's3': s3_concat,
+    'sftp': sftp_concat,
+}
+
+
+def _default_concat_func(src_paths: List[PathLike], dst_path: PathLike) -> None:
+    length = 16 * 1024
+    with smart_open(dst_path, 'wb') as dst_fd:
+        for src_path in src_paths:
+            with smart_open(src_path, 'rb') as src_fd:
+                while True:
+                    buf = src_fd.read(length)
+                    if not buf:
+                        break
+                    dst_fd.write(buf)
+
+
+def smart_concat(src_paths: List[PathLike], dst_path: PathLike) -> None:
+    '''
+    Concatenate src_paths to dst_path
+    
+    :param src_paths: List of source paths
+    :param dst_path: Destination path
+    '''
+    if not src_paths:  # pragma: no cover
+        return
+
+    dst_protocol, _ = SmartPath._extract_protocol(dst_path)
+    for src_path in src_paths:
+        src_protocol, _ = SmartPath._extract_protocol(src_path)
+        if src_protocol != dst_protocol:
+            concat_func = _default_concat_func
+            break
+    else:
+        concat_func = _concat_funcs.get(dst_protocol, _default_concat_func)
+    concat_func(src_paths, dst_path)

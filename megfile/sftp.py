@@ -1,7 +1,7 @@
 from typing import IO, AnyStr, BinaryIO, Callable, Iterator, List, Optional, Tuple
 
 from megfile.interfaces import FileEntry, PathLike, StatResult
-from megfile.sftp_path import SftpPath, is_sftp, sftp_download, sftp_glob, sftp_glob_stat, sftp_iglob, sftp_path_join, sftp_readlink, sftp_resolve, sftp_upload
+from megfile.sftp_path import SftpPath, is_sftp, sftp_concat, sftp_download, sftp_glob, sftp_glob_stat, sftp_iglob, sftp_path_join, sftp_readlink, sftp_resolve, sftp_upload
 
 __all__ = [
     'is_sftp',
@@ -13,6 +13,7 @@ __all__ = [
     'sftp_download',
     'sftp_upload',
     'sftp_path_join',
+    'sftp_concat',
     'sftp_exists',
     'sftp_getmtime',
     'sftp_getsize',

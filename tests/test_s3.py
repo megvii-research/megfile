@@ -3176,3 +3176,128 @@ def test_symlink_relevant_functions(s3_empty_client, fs):
     s3.s3_remove(sync_url)
     s3_empty_client.delete_bucket(Bucket='bucketA')
     assert s3.s3_access(A_dst_dst_url, Access.READ, followlinks=True) is False
+
+
+def test_s3_concat_small_file(s3_empty_client):
+    s3_empty_client.create_bucket(Bucket='bucket')
+
+    with s3.s3_open('s3://bucket/a', 'w') as f:
+        f.write('a')
+
+    with s3.s3_open('s3://bucket/b', 'w') as f:
+        f.write('b')
+
+    with s3.s3_open('s3://bucket/c', 'w') as f:
+        f.write('c')
+
+    s3.s3_concat(
+        ['s3://bucket/a', 's3://bucket/b', 's3://bucket/c'], 's3://bucket/d')
+    with s3.s3_open('s3://bucket/d', 'r') as f:
+        assert f.read() == 'abc'
+
+
+def test_s3_concat_case1(s3_empty_client):
+    one_mb_block = b'0' * 1024 * 1024
+    s3_empty_client.create_bucket(Bucket='bucket')
+
+    with s3.s3_open('s3://bucket/a', 'wb') as f:
+        f.write(b'a')
+
+    with s3.s3_open('s3://bucket/b', 'wb') as f:
+        for _ in range(18):
+            f.write(one_mb_block)
+
+    with s3.s3_open('s3://bucket/c', 'wb') as f:
+        f.write(b'c')
+
+    assert s3_path._group_src_paths_by_block(
+        ['s3://bucket/a', 's3://bucket/b', 's3://bucket/c']) == [
+            [
+                ('s3://bucket/a', None),
+                ('s3://bucket/b', f'bytes=0-{8 * 1024 * 1024 - 2}')
+            ],
+            [
+                (
+                    's3://bucket/b',
+                    f'bytes={8 * 1024 * 1024 - 1}-{18 * 1024 * 1024 - 1}')
+            ], [('s3://bucket/c', None)]
+        ]
+    s3.s3_concat(
+        ['s3://bucket/a', 's3://bucket/b', 's3://bucket/c'], 's3://bucket/d')
+    with s3.s3_open('s3://bucket/d', 'rb') as f:
+        assert f.read(1) == b'a'
+        for _ in range(18):
+            assert f.read(1024 * 1024) == one_mb_block
+        assert f.read() == b'c'
+
+
+def test_s3_concat_case2(s3_empty_client):
+    one_mb_block = b'0' * 1024 * 1024
+    s3_empty_client.create_bucket(Bucket='bucket')
+
+    for index in range(15):
+        with s3.s3_open(f's3://bucket/{index}', 'wb') as f:
+            f.write(one_mb_block)
+
+    assert s3_path._group_src_paths_by_block(
+        [f's3://bucket/{index}' for index in range(15)]) == [
+            [(f's3://bucket/{index}', None) for index in range(8)],
+            [(f's3://bucket/{index}', None) for index in range(8, 15)]
+        ]
+
+    s3.s3_concat(
+        [f's3://bucket/{index}' for index in range(15)], 's3://bucket/all')
+    assert s3.s3_stat('s3://bucket/all').size == 15 * 1024 * 1024
+
+
+def test_s3_concat_case3(s3_empty_client):
+    one_mb_block = b'0' * 1024 * 1024
+    s3_empty_client.create_bucket(Bucket='bucket')
+
+    for index in range(8):
+        with s3.s3_open(f's3://bucket/{index}', 'wb') as f:
+            f.write(one_mb_block)
+
+    with s3.s3_open('s3://bucket/8', 'wb') as f:
+        for _ in range(10):
+            f.write(one_mb_block)
+
+    with s3.s3_open('s3://bucket/9', 'wb') as f:
+        f.write(b'9')
+
+    assert s3_path._group_src_paths_by_block(
+        [f's3://bucket/{index}' for index in range(10)]) == [
+            [(f's3://bucket/{index}', None) for index in range(8)],
+            [('s3://bucket/8', None)], [('s3://bucket/9', None)]
+        ]
+
+    s3.s3_concat(
+        [f's3://bucket/{index}' for index in range(10)], 's3://bucket/all')
+    assert s3.s3_stat('s3://bucket/all').size == 18 * 1024 * 1024 + 1
+    assert s3.s3_load_content('s3://bucket/all', start=18 * 1024 * 1024) == b'9'
+
+
+def test_s3_concat_case4(s3_empty_client):
+    one_mb_block = b'0' * 1024 * 1024
+    s3_empty_client.create_bucket(Bucket='bucket')
+
+    with s3.s3_open(f's3://bucket/0', 'wb') as f:
+        f.write(one_mb_block)
+
+    with s3.s3_open('s3://bucket/1', 'wb') as f:
+        for _ in range(9):
+            f.write(one_mb_block)
+
+    with s3.s3_open('s3://bucket/2', 'wb') as f:
+        f.write(b'9')
+
+    assert s3_path._group_src_paths_by_block(
+        [f's3://bucket/{index}' for index in range(3)]) == [
+            [('s3://bucket/0', None), ('s3://bucket/1', None)],
+            [('s3://bucket/2', None)]
+        ]
+
+    s3.s3_concat(
+        [f's3://bucket/{index}' for index in range(3)], 's3://bucket/all')
+    assert s3.s3_stat('s3://bucket/all').size == 10 * 1024 * 1024 + 1
+    assert s3.s3_load_content('s3://bucket/all', start=10 * 1024 * 1024) == b'9'
