@@ -62,6 +62,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#megfile.sftp.is_sftp"><code class="docutils literal notranslate"><span class="pre">is_sftp()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#megfile.sftp.sftp_absolute"><code class="docutils literal notranslate"><span class="pre">sftp_absolute()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#megfile.sftp.sftp_chmod"><code class="docutils literal notranslate"><span class="pre">sftp_chmod()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.sftp.sftp_concat"><code class="docutils literal notranslate"><span class="pre">sftp_concat()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#megfile.sftp.sftp_copy"><code class="docutils literal notranslate"><span class="pre">sftp_copy()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#megfile.sftp.sftp_download"><code class="docutils literal notranslate"><span class="pre">sftp_download()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#megfile.sftp.sftp_exists"><code class="docutils literal notranslate"><span class="pre">sftp_exists()</span></code></a></li>
@@ -167,6 +168,20 @@
 <li><p><strong>path</strong> – Given path</p></li>
 <li><p><strong>mode</strong> – the file mode you want to change</p></li>
 <li><p><strong>followlinks</strong> – Ignore this parameter, just for compatibility</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="megfile.sftp.sftp_concat">
+<span class="sig-prename descclassname"><span class="pre">megfile.sftp.</span></span><span class="sig-name descname"><span class="pre">sftp_concat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_paths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#sftp_concat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp.sftp_concat" title="Permalink to this definition"></a></dt>
+<dd><p>Concatenate sftp files to one file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>src_paths</strong> – Given source paths</p></li>
+<li><p><strong>dst_path</strong> – Given destination path</p></li>
 </ul>
 </dd>
 </dl>

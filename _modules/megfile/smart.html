@@ -77,20 +77,19 @@
 <span></span><span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
-<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">chain</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">IO</span><span class="p">,</span> <span class="n">AnyStr</span><span class="p">,</span> <span class="n">BinaryIO</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">IO</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">AnyStr</span><span class="p">,</span> <span class="n">BinaryIO</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
 
 <span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
 
-<span class="kn">from</span> <span class="nn">megfile.fs</span> <span class="kn">import</span> <span class="n">fs_copy</span><span class="p">,</span> <span class="n">fs_getsize</span><span class="p">,</span> <span class="n">fs_scandir</span>
+<span class="kn">from</span> <span class="nn">megfile.fs</span> <span class="kn">import</span> <span class="n">fs_copy</span><span class="p">,</span> <span class="n">fs_scandir</span>
 <span class="kn">from</span> <span class="nn">megfile.interfaces</span> <span class="kn">import</span> <span class="n">Access</span><span class="p">,</span> <span class="n">FileEntry</span><span class="p">,</span> <span class="n">NullCacher</span><span class="p">,</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">StatResult</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.combine_reader</span> <span class="kn">import</span> <span class="n">CombineReader</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.compat</span> <span class="kn">import</span> <span class="n">fspath</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.glob</span> <span class="kn">import</span> <span class="n">globlize</span><span class="p">,</span> <span class="n">ungloblize</span>
-<span class="kn">from</span> <span class="nn">megfile.s3</span> <span class="kn">import</span> <span class="n">S3Cacher</span><span class="p">,</span> <span class="n">is_s3</span><span class="p">,</span> <span class="n">s3_copy</span><span class="p">,</span> <span class="n">s3_download</span><span class="p">,</span> <span class="n">s3_load_content</span><span class="p">,</span> <span class="n">s3_open</span><span class="p">,</span> <span class="n">s3_upload</span>
-<span class="kn">from</span> <span class="nn">megfile.sftp</span> <span class="kn">import</span> <span class="n">sftp_copy</span><span class="p">,</span> <span class="n">sftp_download</span><span class="p">,</span> <span class="n">sftp_upload</span>
+<span class="kn">from</span> <span class="nn">megfile.s3</span> <span class="kn">import</span> <span class="n">S3Cacher</span><span class="p">,</span> <span class="n">is_s3</span><span class="p">,</span> <span class="n">s3_concat</span><span class="p">,</span> <span class="n">s3_copy</span><span class="p">,</span> <span class="n">s3_download</span><span class="p">,</span> <span class="n">s3_load_content</span><span class="p">,</span> <span class="n">s3_open</span><span class="p">,</span> <span class="n">s3_upload</span>
+<span class="kn">from</span> <span class="nn">megfile.sftp</span> <span class="kn">import</span> <span class="n">sftp_concat</span><span class="p">,</span> <span class="n">sftp_copy</span><span class="p">,</span> <span class="n">sftp_download</span><span class="p">,</span> <span class="n">sftp_upload</span>
 <span class="kn">from</span> <span class="nn">megfile.smart_path</span> <span class="kn">import</span> <span class="n">SmartPath</span><span class="p">,</span> <span class="n">get_traditional_path</span>
-<span class="kn">from</span> <span class="nn">megfile.utils</span> <span class="kn">import</span> <span class="n">combine</span><span class="p">,</span> <span class="n">get_content_offset</span>
+<span class="kn">from</span> <span class="nn">megfile.utils</span> <span class="kn">import</span> <span class="n">combine</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s1">&#39;smart_access&#39;</span><span class="p">,</span>
@@ -385,28 +384,39 @@
         <span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span>  <span class="c1"># type: ignore</span></div>
 
 
-<span class="k">def</span> <span class="nf">_smart_sync_single_file</span><span class="p">(</span>
-        <span class="n">src_path</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">,</span> <span class="n">src_file_path</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">):</span>
-    <span class="n">content_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">relpath</span><span class="p">(</span><span class="n">src_file_path</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">src_path</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">_smart_sync_single_file</span><span class="p">(</span><span class="n">items</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+    <span class="n">src_root_path</span> <span class="o">=</span> <span class="n">items</span><span class="p">[</span><span class="s1">&#39;src_root_path&#39;</span><span class="p">]</span>
+    <span class="n">dst_root_path</span> <span class="o">=</span> <span class="n">items</span><span class="p">[</span><span class="s1">&#39;dst_root_path&#39;</span><span class="p">]</span>
+    <span class="n">src_file_path</span> <span class="o">=</span> <span class="n">items</span><span class="p">[</span><span class="s1">&#39;src_file_path&#39;</span><span class="p">]</span>
+    <span class="n">callback</span> <span class="o">=</span> <span class="n">items</span><span class="p">[</span><span class="s1">&#39;callback&#39;</span><span class="p">]</span>
+    <span class="n">followlinks</span> <span class="o">=</span> <span class="n">items</span><span class="p">[</span><span class="s1">&#39;followlinks&#39;</span><span class="p">]</span>
+    <span class="n">callback_after_copy_file</span> <span class="o">=</span> <span class="n">items</span><span class="p">[</span><span class="s1">&#39;callback_after_copy_file&#39;</span><span class="p">]</span>
+
+    <span class="n">content_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">relpath</span><span class="p">(</span><span class="n">src_file_path</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">src_root_path</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">content_path</span><span class="p">)</span> <span class="ow">and</span> <span class="n">content_path</span> <span class="o">!=</span> <span class="s1">&#39;.&#39;</span><span class="p">:</span>
         <span class="n">content_path</span> <span class="o">=</span> <span class="n">content_path</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
-        <span class="n">dst_abs_file_path</span> <span class="o">=</span> <span class="n">smart_path_join</span><span class="p">(</span><span class="n">dst_path</span><span class="p">,</span> <span class="n">content_path</span><span class="p">)</span>
+        <span class="n">dst_abs_file_path</span> <span class="o">=</span> <span class="n">smart_path_join</span><span class="p">(</span><span class="n">dst_root_path</span><span class="p">,</span> <span class="n">content_path</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># if content_path is empty, which means smart_isfile(src_path) is True, this function is equal to smart_copy</span>
-        <span class="n">dst_abs_file_path</span> <span class="o">=</span> <span class="n">dst_path</span>
+        <span class="n">dst_abs_file_path</span> <span class="o">=</span> <span class="n">dst_root_path</span>
     <span class="n">copy_callback</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">callback</span><span class="p">,</span> <span class="n">src_file_path</span><span class="p">)</span> <span class="k">if</span> <span class="n">callback</span> <span class="k">else</span> <span class="kc">None</span>
     <span class="n">smart_copy</span><span class="p">(</span>
         <span class="n">src_file_path</span><span class="p">,</span>
         <span class="n">dst_abs_file_path</span><span class="p">,</span>
         <span class="n">callback</span><span class="o">=</span><span class="n">copy_callback</span><span class="p">,</span>
         <span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">callback_after_copy_file</span><span class="p">:</span>
+        <span class="n">callback_after_copy_file</span><span class="p">(</span><span class="n">src_file_path</span><span class="p">,</span> <span class="n">dst_abs_file_path</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="smart_sync"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_sync">[docs]</a><span class="k">def</span> <span class="nf">smart_sync</span><span class="p">(</span>
         <span class="n">src_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
         <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
         <span class="n">callback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">callback_after_copy_file</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">src_file_stats</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="n">FileEntry</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">map_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Callable</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">],</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="nb">map</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Sync file or directory on s3 and fs</span>
 
@@ -444,26 +454,46 @@
 <span class="sd">    :param src_path: Given source path</span>
 <span class="sd">    :param dst_path: Given destination path</span>
 <span class="sd">    :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call</span>
+<span class="sd">    :param followlinks: False if regard symlink as file, else True</span>
+<span class="sd">    :param callback_after_copy_file: Called after copy success, and the input parameter is src file path and dst file path</span>
+<span class="sd">    :param src_file_stats: If this parameter is not None, only this parameter&#39;s files will be synced, </span>
+<span class="sd">            and src_path is the root_path of these files used to calculate the path of the target file. </span>
+<span class="sd">            This parameter is in order to reduce file traversal times.</span>
+<span class="sd">    :param map_func: A Callable func like `map`. You can use ThreadPoolExecutor.map, Pool.map and so on if you need concurrent capability.</span>
+<span class="sd">            default is standard library `map`.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">src_path</span><span class="p">,</span> <span class="n">dst_path</span> <span class="o">=</span> <span class="n">get_traditional_path</span><span class="p">(</span><span class="n">src_path</span><span class="p">),</span> <span class="n">get_traditional_path</span><span class="p">(</span>
         <span class="n">dst_path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">src_file_stats</span><span class="p">:</span>
+        <span class="n">src_file_stats</span> <span class="o">=</span> <span class="n">smart_scan_stat</span><span class="p">(</span><span class="n">src_path</span><span class="p">,</span> <span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span>
 
-    <span class="k">for</span> <span class="n">src_file_entry</span> <span class="ow">in</span> <span class="n">smart_scan_stat</span><span class="p">(</span><span class="n">src_path</span><span class="p">,</span> <span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">src_file_entry</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
-            <span class="n">src_file_path</span> <span class="o">=</span> <span class="n">src_file_entry</span><span class="o">.</span><span class="n">path</span>
-            <span class="n">_smart_sync_single_file</span><span class="p">(</span>
-                <span class="n">src_path</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">,</span> <span class="n">src_file_path</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">)</span></div>
+    <span class="k">def</span> <span class="nf">create_generator</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">src_file_entry</span> <span class="ow">in</span> <span class="n">src_file_stats</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">src_file_entry</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+                <span class="n">src_file_path</span> <span class="o">=</span> <span class="n">src_file_entry</span><span class="o">.</span><span class="n">path</span>
+                <span class="k">yield</span> <span class="nb">dict</span><span class="p">(</span>
+                    <span class="n">src_root_path</span><span class="o">=</span><span class="n">src_path</span><span class="p">,</span>
+                    <span class="n">dst_root_path</span><span class="o">=</span><span class="n">dst_path</span><span class="p">,</span>
+                    <span class="n">src_file_path</span><span class="o">=</span><span class="n">src_file_path</span><span class="p">,</span>
+                    <span class="n">callback</span><span class="o">=</span><span class="n">callback</span><span class="p">,</span>
+                    <span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">,</span>
+                    <span class="n">callback_after_copy_file</span><span class="o">=</span><span class="n">callback_after_copy_file</span><span class="p">,</span>
+                <span class="p">)</span>
+
+    <span class="nb">list</span><span class="p">(</span><span class="n">map_func</span><span class="p">(</span><span class="n">_smart_sync_single_file</span><span class="p">,</span> <span class="n">create_generator</span><span class="p">()))</span></div>
 
 
 <div class="viewcode-block" id="smart_sync_with_progress"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_sync_with_progress">[docs]</a><span class="k">def</span> <span class="nf">smart_sync_with_progress</span><span class="p">(</span>
         <span class="n">src_path</span><span class="p">,</span>
         <span class="n">dst_path</span><span class="p">,</span>
         <span class="n">callback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+        <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">map_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Callable</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">],</span> <span class="n">Iterator</span><span class="p">]</span> <span class="o">=</span> <span class="nb">map</span>
+<span class="p">):</span>  <span class="c1"># pragma: no cover</span>
     <span class="n">src_path</span><span class="p">,</span> <span class="n">dst_path</span> <span class="o">=</span> <span class="n">get_traditional_path</span><span class="p">(</span><span class="n">src_path</span><span class="p">),</span> <span class="n">get_traditional_path</span><span class="p">(</span>
         <span class="n">dst_path</span><span class="p">)</span>
-    <span class="n">files</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">smart_scan</span><span class="p">(</span><span class="n">src_path</span><span class="p">,</span> <span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">))</span>
-    <span class="n">tbar</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">),</span> <span class="n">ascii</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">file_stats</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">smart_scan_stat</span><span class="p">(</span><span class="n">src_path</span><span class="p">,</span> <span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">))</span>
+    <span class="n">tbar</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">file_stats</span><span class="p">),</span> <span class="n">ascii</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">sbar</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">unit</span><span class="o">=</span><span class="s1">&#39;B&#39;</span><span class="p">,</span> <span class="n">ascii</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">unit_scale</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">tqdm_callback</span><span class="p">(</span><span class="n">current_src_path</span><span class="p">,</span> <span class="n">length</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
@@ -471,10 +501,18 @@
         <span class="k">if</span> <span class="n">callback</span><span class="p">:</span>
             <span class="n">callback</span><span class="p">(</span><span class="n">current_src_path</span><span class="p">,</span> <span class="n">length</span><span class="p">)</span>
 
-    <span class="k">for</span> <span class="n">src_file_path</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
-        <span class="n">_smart_sync_single_file</span><span class="p">(</span>
-            <span class="n">src_path</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">,</span> <span class="n">src_file_path</span><span class="p">,</span> <span class="n">tqdm_callback</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">callback_after_copy_file</span><span class="p">(</span><span class="n">src_file_path</span><span class="p">,</span> <span class="n">dst_file_path</span><span class="p">):</span>
         <span class="n">tbar</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">smart_sync</span><span class="p">(</span>
+        <span class="n">src_path</span><span class="p">,</span>
+        <span class="n">dst_path</span><span class="p">,</span>
+        <span class="n">callback</span><span class="o">=</span><span class="n">tqdm_callback</span><span class="p">,</span>
+        <span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">,</span>
+        <span class="n">callback_after_copy_file</span><span class="o">=</span><span class="n">callback_after_copy_file</span><span class="p">,</span>
+        <span class="n">src_file_stats</span><span class="o">=</span><span class="n">file_stats</span><span class="p">,</span>
+        <span class="n">map_func</span><span class="o">=</span><span class="n">map_func</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">tbar</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
     <span class="n">sbar</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
@@ -908,6 +946,45 @@
 <span class="sd">    param recalculate: calculate md5 in real-time or not return s3 etag when path is s3</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">return</span> <span class="n">SmartPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">md5</span><span class="p">(</span><span class="n">recalculate</span><span class="o">=</span><span class="n">recalculate</span><span class="p">)</span></div>
+
+
+<span class="n">_concat_funcs</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;s3&#39;</span><span class="p">:</span> <span class="n">s3_concat</span><span class="p">,</span>
+    <span class="s1">&#39;sftp&#39;</span><span class="p">:</span> <span class="n">sftp_concat</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<span class="k">def</span> <span class="nf">_default_concat_func</span><span class="p">(</span><span class="n">src_paths</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">PathLike</span><span class="p">],</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">length</span> <span class="o">=</span> <span class="mi">16</span> <span class="o">*</span> <span class="mi">1024</span>
+    <span class="k">with</span> <span class="n">smart_open</span><span class="p">(</span><span class="n">dst_path</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">dst_fd</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">src_path</span> <span class="ow">in</span> <span class="n">src_paths</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">smart_open</span><span class="p">(</span><span class="n">src_path</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">src_fd</span><span class="p">:</span>
+                <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                    <span class="n">buf</span> <span class="o">=</span> <span class="n">src_fd</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">buf</span><span class="p">:</span>
+                        <span class="k">break</span>
+                    <span class="n">dst_fd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="smart_concat"><a class="viewcode-back" href="../../megfile.html#megfile.smart_concat">[docs]</a><span class="k">def</span> <span class="nf">smart_concat</span><span class="p">(</span><span class="n">src_paths</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">PathLike</span><span class="p">],</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Concatenate src_paths to dst_path</span>
+<span class="sd">    </span>
+<span class="sd">    :param src_paths: List of source paths</span>
+<span class="sd">    :param dst_path: Destination path</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">src_paths</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+        <span class="k">return</span>
+
+    <span class="n">dst_protocol</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">SmartPath</span><span class="o">.</span><span class="n">_extract_protocol</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">src_path</span> <span class="ow">in</span> <span class="n">src_paths</span><span class="p">:</span>
+        <span class="n">src_protocol</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">SmartPath</span><span class="o">.</span><span class="n">_extract_protocol</span><span class="p">(</span><span class="n">src_path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">src_protocol</span> <span class="o">!=</span> <span class="n">dst_protocol</span><span class="p">:</span>
+            <span class="n">concat_func</span> <span class="o">=</span> <span class="n">_default_concat_func</span>
+            <span class="k">break</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">concat_func</span> <span class="o">=</span> <span class="n">_concat_funcs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">dst_protocol</span><span class="p">,</span> <span class="n">_default_concat_func</span><span class="p">)</span>
+    <span class="n">concat_func</span><span class="p">(</span><span class="n">src_paths</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">)</span></div>
 </pre></div>
 
            </div>

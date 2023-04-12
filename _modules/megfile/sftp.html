@@ -77,7 +77,7 @@
 <span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">IO</span><span class="p">,</span> <span class="n">AnyStr</span><span class="p">,</span> <span class="n">BinaryIO</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
 
 <span class="kn">from</span> <span class="nn">megfile.interfaces</span> <span class="kn">import</span> <span class="n">FileEntry</span><span class="p">,</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">StatResult</span>
-<span class="kn">from</span> <span class="nn">megfile.sftp_path</span> <span class="kn">import</span> <span class="n">SftpPath</span><span class="p">,</span> <span class="n">is_sftp</span><span class="p">,</span> <span class="n">sftp_download</span><span class="p">,</span> <span class="n">sftp_glob</span><span class="p">,</span> <span class="n">sftp_glob_stat</span><span class="p">,</span> <span class="n">sftp_iglob</span><span class="p">,</span> <span class="n">sftp_path_join</span><span class="p">,</span> <span class="n">sftp_readlink</span><span class="p">,</span> <span class="n">sftp_resolve</span><span class="p">,</span> <span class="n">sftp_upload</span>
+<span class="kn">from</span> <span class="nn">megfile.sftp_path</span> <span class="kn">import</span> <span class="n">SftpPath</span><span class="p">,</span> <span class="n">is_sftp</span><span class="p">,</span> <span class="n">sftp_concat</span><span class="p">,</span> <span class="n">sftp_download</span><span class="p">,</span> <span class="n">sftp_glob</span><span class="p">,</span> <span class="n">sftp_glob_stat</span><span class="p">,</span> <span class="n">sftp_iglob</span><span class="p">,</span> <span class="n">sftp_path_join</span><span class="p">,</span> <span class="n">sftp_readlink</span><span class="p">,</span> <span class="n">sftp_resolve</span><span class="p">,</span> <span class="n">sftp_upload</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s1">&#39;is_sftp&#39;</span><span class="p">,</span>
@@ -89,6 +89,7 @@
     <span class="s1">&#39;sftp_download&#39;</span><span class="p">,</span>
     <span class="s1">&#39;sftp_upload&#39;</span><span class="p">,</span>
     <span class="s1">&#39;sftp_path_join&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;sftp_concat&#39;</span><span class="p">,</span>
     <span class="s1">&#39;sftp_exists&#39;</span><span class="p">,</span>
     <span class="s1">&#39;sftp_getmtime&#39;</span><span class="p">,</span>
     <span class="s1">&#39;sftp_getsize&#39;</span><span class="p">,</span>

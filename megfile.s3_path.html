@@ -413,6 +413,18 @@ This function is to test the target bucket have WRITE access.</p>
 <dd><p>Open the file with mode.</p>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.s3_path.S3Path.path_with_protocol">
+<span class="sig-name descname"><span class="pre">path_with_protocol</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/s3_path.html#S3Path.path_with_protocol"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.s3_path.S3Path.path_with_protocol" title="Permalink to this definition"></a></dt>
+<dd><p>Return path with protocol, like <a class="reference external" href="file:///root">file:///root</a>, s3://bucket/key</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.s3_path.S3Path.path_without_protocol">
+<span class="sig-name descname"><span class="pre">path_without_protocol</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/s3_path.html#S3Path.path_without_protocol"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.s3_path.S3Path.path_without_protocol" title="Permalink to this definition"></a></dt>
+<dd><p>Return path without protocol, example: if path is s3://bucket/key, return bucket/key</p>
+</dd></dl>
+
 <dl class="py attribute">
 <dt class="sig sig-object py" id="megfile.s3_path.S3Path.protocol">
 <span class="sig-name descname"><span class="pre">protocol</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'s3'</span></em><a class="headerlink" href="#megfile.s3_path.S3Path.protocol" title="Permalink to this definition"></a></dt>

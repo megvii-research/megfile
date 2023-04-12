@@ -78,6 +78,7 @@
 <span class="kn">import</span> <span class="nn">hashlib</span>
 <span class="kn">import</span> <span class="nn">io</span>
 <span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">lru_cache</span>
 <span class="kn">from</span> <span class="nn">logging</span> <span class="kn">import</span> <span class="n">getLogger</span> <span class="k">as</span> <span class="n">get_logger</span>
 <span class="kn">from</span> <span class="nn">stat</span> <span class="kn">import</span> <span class="n">S_ISDIR</span><span class="p">,</span> <span class="n">S_ISLNK</span><span class="p">,</span> <span class="n">S_ISREG</span>
@@ -109,6 +110,7 @@
     <span class="s1">&#39;sftp_download&#39;</span><span class="p">,</span>
     <span class="s1">&#39;sftp_upload&#39;</span><span class="p">,</span>
     <span class="s1">&#39;sftp_path_join&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;sftp_concat&#39;</span><span class="p">,</span>
 <span class="p">]</span>
 
 <span class="n">SFTP_USERNAME</span> <span class="o">=</span> <span class="s2">&quot;SFTP_USERNAME&quot;</span>
@@ -168,24 +170,13 @@
         <span class="n">port</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">username</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">password</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">SFTPClient</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;Get sftp client</span>
 
 <span class="sd">    :returns: sftp client</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="n">hostname</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">,</span> <span class="n">private_key</span> <span class="o">=</span> <span class="n">provide_connect_info</span><span class="p">(</span>
-        <span class="n">hostname</span><span class="o">=</span><span class="n">hostname</span><span class="p">,</span>
-        <span class="n">port</span><span class="o">=</span><span class="n">port</span><span class="p">,</span>
-        <span class="n">username</span><span class="o">=</span><span class="n">username</span><span class="p">,</span>
-        <span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">,</span>
-    <span class="p">)</span>
-    <span class="n">transport</span> <span class="o">=</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">Transport</span><span class="p">((</span><span class="n">hostname</span><span class="p">,</span> <span class="n">port</span><span class="p">))</span>
-    <span class="n">transport</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">,</span> <span class="n">pkey</span><span class="o">=</span><span class="n">private_key</span><span class="p">)</span>
-    <span class="n">client</span> <span class="o">=</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">SFTPClient</span><span class="o">.</span><span class="n">from_transport</span><span class="p">(</span><span class="n">transport</span><span class="p">)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">client</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ConnectionError</span><span class="p">(</span><span class="s1">&#39;SFTP connect error&#39;</span><span class="p">)</span>
-    <span class="n">atexit</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">client</span><span class="o">.</span><span class="n">close</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">client</span>
+    <span class="n">ssh_client</span> <span class="o">=</span> <span class="n">get_ssh_client</span><span class="p">(</span><span class="n">hostname</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ssh_client</span><span class="o">.</span><span class="n">open_sftp</span><span class="p">()</span>
 
 
 <span class="nd">@lru_cache</span><span class="p">()</span>
@@ -194,7 +185,7 @@
         <span class="n">port</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">username</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">password</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">SSHClient</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
     <span class="n">hostname</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">,</span> <span class="n">private_key</span> <span class="o">=</span> <span class="n">provide_connect_info</span><span class="p">(</span>
         <span class="n">hostname</span><span class="o">=</span><span class="n">hostname</span><span class="p">,</span>
         <span class="n">port</span><span class="o">=</span><span class="n">port</span><span class="p">,</span>
@@ -397,6 +388,26 @@
 <span class="sd">        e.g. os.path.join(&#39;/path&#39;, &#39;to&#39;, &#39;/file&#39;) =&gt; &#39;/file&#39;, but sftp_path_join(&#39;/path&#39;, &#39;to&#39;, &#39;/file&#39;) =&gt; &#39;/path/to/file&#39;</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">return</span> <span class="n">uri_join</span><span class="p">(</span><span class="n">fspath</span><span class="p">(</span><span class="n">path</span><span class="p">),</span> <span class="o">*</span><span class="nb">map</span><span class="p">(</span><span class="n">fspath</span><span class="p">,</span> <span class="n">other_paths</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="sftp_concat"><a class="viewcode-back" href="../../megfile.sftp.html#megfile.sftp_concat">[docs]</a><span class="k">def</span> <span class="nf">sftp_concat</span><span class="p">(</span><span class="n">src_paths</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">PathLike</span><span class="p">],</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;Concatenate sftp files to one file.</span>
+
+<span class="sd">    :param src_paths: Given source paths</span>
+<span class="sd">    :param dst_path: Given destination path</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">dst_path_obj</span> <span class="o">=</span> <span class="n">SftpPath</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_real_path</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">SftpPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">_real_path</span>
+
+    <span class="n">command</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;cat&#39;</span><span class="p">,</span> <span class="o">*</span><span class="nb">map</span><span class="p">(</span><span class="n">get_real_path</span><span class="p">,</span> <span class="n">src_paths</span><span class="p">),</span> <span class="s1">&#39;&gt;&#39;</span><span class="p">,</span>
+        <span class="n">get_real_path</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="n">exec_result</span> <span class="o">=</span> <span class="n">dst_path_obj</span><span class="o">.</span><span class="n">_exec_command</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">exec_result</span><span class="o">.</span><span class="n">returncode</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Failed to concat </span><span class="si">{</span><span class="n">src_paths</span><span class="si">}</span><span class="s1"> to </span><span class="si">{</span><span class="n">dst_path</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="SftpPath"><a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.SftpPath">[docs]</a><span class="nd">@SmartPath</span><span class="o">.</span><span class="n">register</span>
@@ -655,6 +666,9 @@
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">path_with_protocol</span></div>
 
+    <span class="k">def</span> <span class="nf">_is_same_backend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s1">&#39;SftpPath&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_urlsplit_parts</span><span class="o">.</span><span class="n">hostname</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">_urlsplit_parts</span><span class="o">.</span><span class="n">hostname</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_urlsplit_parts</span><span class="o">.</span><span class="n">username</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">_urlsplit_parts</span><span class="o">.</span><span class="n">username</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_urlsplit_parts</span><span class="o">.</span><span class="n">password</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">_urlsplit_parts</span><span class="o">.</span><span class="n">password</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_urlsplit_parts</span><span class="o">.</span><span class="n">port</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">_urlsplit_parts</span><span class="o">.</span><span class="n">port</span>
+
 <div class="viewcode-block" id="SftpPath.rename"><a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.SftpPath.rename">[docs]</a>    <span class="k">def</span> <span class="nf">rename</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;SftpPath&#39;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        rename file on sftp</span>
@@ -662,7 +676,23 @@
 <span class="sd">        :param dst_path: Given destination path</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">dst_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_real_path</span><span class="p">,</span> <span class="n">dst_path</span><span class="o">.</span><span class="n">_real_path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_same_backend</span><span class="p">(</span><span class="n">dst_path</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_real_path</span><span class="p">,</span> <span class="n">dst_path</span><span class="o">.</span><span class="n">_real_path</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+                <span class="k">for</span> <span class="n">file_entry</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">scandir</span><span class="p">():</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">file_entry</span><span class="o">.</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+                        <span class="n">dst_path</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">file_entry</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fsrc</span><span class="p">:</span>
+                    <span class="k">with</span> <span class="n">dst_path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fdst</span><span class="p">:</span>
+                        <span class="n">length</span> <span class="o">=</span> <span class="mi">16</span> <span class="o">*</span> <span class="mi">1024</span>
+                        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                            <span class="n">buf</span> <span class="o">=</span> <span class="n">fsrc</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="ow">not</span> <span class="n">buf</span><span class="p">:</span>
+                                <span class="k">break</span>
+                            <span class="n">fdst</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">dst_path</span></div>
 
 <div class="viewcode-block" id="SftpPath.replace"><a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.SftpPath.replace">[docs]</a>    <span class="k">def</span> <span class="nf">replace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;SftpPath&#39;</span><span class="p">:</span>
@@ -930,8 +960,8 @@
                 <span class="s1">&#39;Is a directory: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">)</span>
         <span class="n">fileobj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_real_path</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">bufsize</span><span class="o">=</span><span class="n">buffering</span><span class="p">)</span>
         <span class="k">if</span> <span class="s1">&#39;r&#39;</span> <span class="ow">in</span> <span class="n">mode</span> <span class="ow">and</span> <span class="s1">&#39;b&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">mode</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">io</span><span class="o">.</span><span class="n">TextIOWrapper</span><span class="p">(</span><span class="n">fileobj</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">fileobj</span></div>
+            <span class="k">return</span> <span class="n">io</span><span class="o">.</span><span class="n">TextIOWrapper</span><span class="p">(</span><span class="n">fileobj</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+        <span class="k">return</span> <span class="n">fileobj</span>  <span class="c1"># type: ignore</span></div>
 
 <div class="viewcode-block" id="SftpPath.chmod"><a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.SftpPath.chmod">[docs]</a>    <span class="k">def</span> <span class="nf">chmod</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
@@ -956,6 +986,35 @@
             <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Directory not empty: &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">rmdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_real_path</span><span class="p">)</span></div>
 
+    <span class="k">def</span> <span class="nf">_exec_command</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">command</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+            <span class="n">bufsize</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">timeout</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">environment</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CompletedProcess</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+        <span class="n">ssh_client</span> <span class="o">=</span> <span class="n">get_ssh_client</span><span class="p">(</span>
+            <span class="n">hostname</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_urlsplit_parts</span><span class="o">.</span><span class="n">hostname</span><span class="p">,</span>
+            <span class="n">port</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_urlsplit_parts</span><span class="o">.</span><span class="n">port</span><span class="p">,</span>
+            <span class="n">username</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_urlsplit_parts</span><span class="o">.</span><span class="n">username</span><span class="p">,</span>
+            <span class="n">password</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_urlsplit_parts</span><span class="o">.</span><span class="n">password</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">transport</span> <span class="o">=</span> <span class="n">ssh_client</span><span class="o">.</span><span class="n">get_transport</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">transport</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SSH client error: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">chan</span> <span class="o">=</span> <span class="n">transport</span><span class="o">.</span><span class="n">open_session</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span>
+        <span class="n">chan</span><span class="o">.</span><span class="n">settimeout</span><span class="p">(</span><span class="n">timeout</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">environment</span><span class="p">:</span>
+            <span class="n">chan</span><span class="o">.</span><span class="n">update_environment</span><span class="p">(</span><span class="n">environment</span><span class="p">)</span>
+        <span class="n">chan</span><span class="o">.</span><span class="n">exec_command</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">command</span><span class="p">))</span>
+        <span class="n">stdout</span> <span class="o">=</span> <span class="n">chan</span><span class="o">.</span><span class="n">makefile</span><span class="p">(</span><span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="n">bufsize</span><span class="p">)</span>
+        <span class="n">stderr</span> <span class="o">=</span> <span class="n">chan</span><span class="o">.</span><span class="n">makefile_stderr</span><span class="p">(</span><span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="n">bufsize</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CompletedProcess</span><span class="p">(</span>
+            <span class="n">args</span><span class="o">=</span><span class="n">command</span><span class="p">,</span>
+            <span class="n">returncode</span><span class="o">=</span><span class="n">chan</span><span class="o">.</span><span class="n">recv_exit_status</span><span class="p">(),</span>
+            <span class="n">stdout</span><span class="o">=</span><span class="n">stdout</span><span class="p">,</span>
+            <span class="n">stderr</span><span class="o">=</span><span class="n">stderr</span><span class="p">)</span>
+
 <div class="viewcode-block" id="SftpPath.copy"><a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.SftpPath.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
@@ -975,20 +1034,13 @@
                 <span class="s1">&#39;Is a directory: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">)</span>
 
         <span class="n">dst_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_urlsplit_parts</span><span class="o">.</span><span class="n">hostname</span> <span class="o">==</span> <span class="n">dst_path</span><span class="o">.</span><span class="n">_urlsplit_parts</span><span class="o">.</span><span class="n">hostname</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_urlsplit_parts</span><span class="o">.</span><span class="n">username</span> <span class="o">==</span> <span class="n">dst_path</span><span class="o">.</span><span class="n">_urlsplit_parts</span><span class="o">.</span><span class="n">username</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_urlsplit_parts</span><span class="o">.</span><span class="n">password</span> <span class="o">==</span> <span class="n">dst_path</span><span class="o">.</span><span class="n">_urlsplit_parts</span><span class="o">.</span><span class="n">password</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_urlsplit_parts</span><span class="o">.</span><span class="n">port</span> <span class="o">==</span> <span class="n">dst_path</span><span class="o">.</span><span class="n">_urlsplit_parts</span><span class="o">.</span><span class="n">port</span><span class="p">:</span>
-            <span class="n">ssh_client</span> <span class="o">=</span> <span class="n">get_ssh_client</span><span class="p">(</span>
-                <span class="n">hostname</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_urlsplit_parts</span><span class="o">.</span><span class="n">hostname</span><span class="p">,</span>
-                <span class="n">port</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_urlsplit_parts</span><span class="o">.</span><span class="n">port</span><span class="p">,</span>
-                <span class="n">username</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_urlsplit_parts</span><span class="o">.</span><span class="n">username</span><span class="p">,</span>
-                <span class="n">password</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_urlsplit_parts</span><span class="o">.</span><span class="n">password</span><span class="p">,</span>
-            <span class="p">)</span>
-            <span class="n">_stdin</span><span class="p">,</span> <span class="n">_stdout</span><span class="p">,</span> <span class="n">stderr</span> <span class="o">=</span> <span class="n">ssh_client</span><span class="o">.</span><span class="n">exec_command</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;cp </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_real_path</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">dst_path</span><span class="o">.</span><span class="n">_real_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">dst_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>  <span class="c1"># pragma: no cover</span>
-                <span class="n">_logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">stderr</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_same_backend</span><span class="p">(</span><span class="n">dst_path</span><span class="p">):</span>
+            <span class="n">exec_result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exec_command</span><span class="p">(</span>
+                <span class="p">[</span><span class="s2">&quot;cp&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_real_path</span><span class="p">,</span> <span class="n">dst_path</span><span class="o">.</span><span class="n">_real_path</span><span class="p">])</span>
+            <span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;exec_result.returncode: </span><span class="si">{</span><span class="n">exec_result</span><span class="o">.</span><span class="n">returncode</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">exec_result</span><span class="o">.</span><span class="n">returncode</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                <span class="n">_logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">exec_result</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
                 <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="s1">&#39;Copy file error&#39;</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="n">dst_path</span><span class="o">.</span><span class="n">lstat</span><span class="p">()</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lstat</span><span class="p">()</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
-                <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="s1">&#39;Copy file error, size mismatch&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fsrc</span><span class="p">:</span>
                 <span class="k">with</span> <span class="n">dst_path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fdst</span><span class="p">:</span>

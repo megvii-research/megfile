@@ -159,6 +159,8 @@
 <li class="toctree-l4"><a class="reference internal" href="#megfile.S3Path.mkdir"><code class="docutils literal notranslate"><span class="pre">S3Path.mkdir()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#megfile.S3Path.move"><code class="docutils literal notranslate"><span class="pre">S3Path.move()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#megfile.S3Path.open"><code class="docutils literal notranslate"><span class="pre">S3Path.open()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.S3Path.path_with_protocol"><code class="docutils literal notranslate"><span class="pre">S3Path.path_with_protocol()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.S3Path.path_without_protocol"><code class="docutils literal notranslate"><span class="pre">S3Path.path_without_protocol()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#megfile.S3Path.protocol"><code class="docutils literal notranslate"><span class="pre">S3Path.protocol</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#megfile.S3Path.readlink"><code class="docutils literal notranslate"><span class="pre">S3Path.readlink()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#megfile.S3Path.remove"><code class="docutils literal notranslate"><span class="pre">S3Path.remove()</span></code></a></li>
@@ -345,6 +347,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#megfile.s3_access"><code class="docutils literal notranslate"><span class="pre">s3_access()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#megfile.s3_buffered_open"><code class="docutils literal notranslate"><span class="pre">s3_buffered_open()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#megfile.s3_cached_open"><code class="docutils literal notranslate"><span class="pre">s3_cached_open()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#megfile.s3_concat"><code class="docutils literal notranslate"><span class="pre">s3_concat()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#megfile.s3_copy"><code class="docutils literal notranslate"><span class="pre">s3_copy()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#megfile.s3_download"><code class="docutils literal notranslate"><span class="pre">s3_download()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#megfile.s3_exists"><code class="docutils literal notranslate"><span class="pre">s3_exists()</span></code></a></li>
@@ -357,7 +360,6 @@
 <li class="toctree-l3"><a class="reference internal" href="#megfile.s3_iglob"><code class="docutils literal notranslate"><span class="pre">s3_iglob()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#megfile.s3_isdir"><code class="docutils literal notranslate"><span class="pre">s3_isdir()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#megfile.s3_isfile"><code class="docutils literal notranslate"><span class="pre">s3_isfile()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#megfile.s3_legacy_open"><code class="docutils literal notranslate"><span class="pre">s3_legacy_open()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#megfile.s3_listdir"><code class="docutils literal notranslate"><span class="pre">s3_listdir()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#megfile.s3_load_content"><code class="docutils literal notranslate"><span class="pre">s3_load_content()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#megfile.s3_load_from"><code class="docutils literal notranslate"><span class="pre">s3_load_from()</span></code></a></li>
@@ -384,6 +386,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#megfile.s3_walk"><code class="docutils literal notranslate"><span class="pre">s3_walk()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#megfile.sftp_absolute"><code class="docutils literal notranslate"><span class="pre">sftp_absolute()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#megfile.sftp_chmod"><code class="docutils literal notranslate"><span class="pre">sftp_chmod()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#megfile.sftp_concat"><code class="docutils literal notranslate"><span class="pre">sftp_concat()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#megfile.sftp_copy"><code class="docutils literal notranslate"><span class="pre">sftp_copy()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#megfile.sftp_exists"><code class="docutils literal notranslate"><span class="pre">sftp_exists()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#megfile.sftp_getmd5"><code class="docutils literal notranslate"><span class="pre">sftp_getmd5()</span></code></a></li>
@@ -420,6 +423,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#megfile.smart_access"><code class="docutils literal notranslate"><span class="pre">smart_access()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#megfile.smart_cache"><code class="docutils literal notranslate"><span class="pre">smart_cache()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#megfile.smart_combine_open"><code class="docutils literal notranslate"><span class="pre">smart_combine_open()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#megfile.smart_concat"><code class="docutils literal notranslate"><span class="pre">smart_concat()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#megfile.smart_copy"><code class="docutils literal notranslate"><span class="pre">smart_copy()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#megfile.smart_exists"><code class="docutils literal notranslate"><span class="pre">smart_exists()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#megfile.smart_getmd5"><code class="docutils literal notranslate"><span class="pre">smart_getmd5()</span></code></a></li>
@@ -657,6 +661,7 @@
 <li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_access"><code class="docutils literal notranslate"><span class="pre">s3_access()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_buffered_open"><code class="docutils literal notranslate"><span class="pre">s3_buffered_open()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_cached_open"><code class="docutils literal notranslate"><span class="pre">s3_cached_open()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_concat"><code class="docutils literal notranslate"><span class="pre">s3_concat()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_copy"><code class="docutils literal notranslate"><span class="pre">s3_copy()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_download"><code class="docutils literal notranslate"><span class="pre">s3_download()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_exists"><code class="docutils literal notranslate"><span class="pre">s3_exists()</span></code></a></li>
@@ -670,7 +675,6 @@
 <li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_isdir"><code class="docutils literal notranslate"><span class="pre">s3_isdir()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_isfile"><code class="docutils literal notranslate"><span class="pre">s3_isfile()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_islink"><code class="docutils literal notranslate"><span class="pre">s3_islink()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_legacy_open"><code class="docutils literal notranslate"><span class="pre">s3_legacy_open()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_listdir"><code class="docutils literal notranslate"><span class="pre">s3_listdir()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_load_content"><code class="docutils literal notranslate"><span class="pre">s3_load_content()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_load_from"><code class="docutils literal notranslate"><span class="pre">s3_load_from()</span></code></a></li>
@@ -722,6 +726,8 @@
 <li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.mkdir"><code class="docutils literal notranslate"><span class="pre">S3Path.mkdir()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.move"><code class="docutils literal notranslate"><span class="pre">S3Path.move()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.open"><code class="docutils literal notranslate"><span class="pre">S3Path.open()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.path_with_protocol"><code class="docutils literal notranslate"><span class="pre">S3Path.path_with_protocol()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.path_without_protocol"><code class="docutils literal notranslate"><span class="pre">S3Path.path_without_protocol()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.protocol"><code class="docutils literal notranslate"><span class="pre">S3Path.protocol</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.readlink"><code class="docutils literal notranslate"><span class="pre">S3Path.readlink()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.remove"><code class="docutils literal notranslate"><span class="pre">S3Path.remove()</span></code></a></li>
@@ -914,6 +920,7 @@
 <li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.is_sftp"><code class="docutils literal notranslate"><span class="pre">is_sftp()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.sftp_absolute"><code class="docutils literal notranslate"><span class="pre">sftp_absolute()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.sftp_chmod"><code class="docutils literal notranslate"><span class="pre">sftp_chmod()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.sftp_concat"><code class="docutils literal notranslate"><span class="pre">sftp_concat()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.sftp_copy"><code class="docutils literal notranslate"><span class="pre">sftp_copy()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.sftp_download"><code class="docutils literal notranslate"><span class="pre">sftp_download()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.sftp_exists"><code class="docutils literal notranslate"><span class="pre">sftp_exists()</span></code></a></li>
@@ -2105,6 +2112,18 @@ This function is to test the target bucket have WRITE access.</p>
 <dt class="sig sig-object py" id="megfile.S3Path.open">
 <span class="sig-name descname"><span class="pre">open</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">mode:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'r',</span> <span class="pre">*,</span> <span class="pre">s3_open_func:</span> <span class="pre">~typing.Callable[[str,</span> <span class="pre">str],</span> <span class="pre">BinaryIO]</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">s3_buffered_open&gt;,</span> <span class="pre">**kwargs</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">IO</span><span class="p"><span class="pre">[</span></span><span class="pre">AnyStr</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/s3_path.html#S3Path.open"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.S3Path.open" title="Permalink to this definition"></a></dt>
 <dd><p>Open the file with mode.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.S3Path.path_with_protocol">
+<span class="sig-name descname"><span class="pre">path_with_protocol</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/s3_path.html#S3Path.path_with_protocol"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.S3Path.path_with_protocol" title="Permalink to this definition"></a></dt>
+<dd><p>Return path with protocol, like <a class="reference external" href="file:///root">file:///root</a>, s3://bucket/key</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.S3Path.path_without_protocol">
+<span class="sig-name descname"><span class="pre">path_without_protocol</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/s3_path.html#S3Path.path_without_protocol"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.S3Path.path_without_protocol" title="Permalink to this definition"></a></dt>
+<dd><p>Return path without protocol, example: if path is s3://bucket/key, return bucket/key</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -3917,7 +3936,10 @@ files: name list of non-directory files (link is regarded as file) in ‘root’
 <dl class="py function">
 <dt class="sig sig-object py" id="megfile.is_s3">
 <span class="sig-prename descclassname"><span class="pre">megfile.</span></span><span class="sig-name descname"><span class="pre">is_s3</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/megfile/s3_path.html#is_s3"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.is_s3" title="Permalink to this definition"></a></dt>
-<dd><p>According to <a class="reference external" href="https://docs.aws.amazon.com/cli/latest/reference/s3/index.html">aws-cli</a> , test if a path is s3 path</p>
+<dd><ol class="arabic simple">
+<li><p>According to <a class="reference external" href="https://docs.aws.amazon.com/cli/latest/reference/s3/index.html">aws-cli</a> , test if a path is s3 path.</p></li>
+<li><p>megfile also support the path like <cite>s3[+profile_name]://bucket/key</cite></p></li>
+</ol>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>path</strong> – Path to be tested</p>
@@ -4007,6 +4029,20 @@ Using head_bucket(), now READ/WRITE are same.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>An opened BufferedReader / BufferedWriter object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="megfile.s3_concat">
+<span class="sig-prename descclassname"><span class="pre">megfile.</span></span><span class="sig-name descname"><span class="pre">s3_concat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_paths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">block_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">8388608</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_workers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">128</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/megfile/s3_path.html#s3_concat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.s3_concat" title="Permalink to this definition"></a></dt>
+<dd><p>Concatenate s3 files to one file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>src_paths</strong> – Given source paths</p></li>
+<li><p><strong>dst_path</strong> – Given destination path</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -4217,25 +4253,6 @@ If the url is empty bucket or s3://</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>True if path is s3 file, else False</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="megfile.s3_legacy_open">
-<span class="sig-prename descclassname"><span class="pre">megfile.</span></span><span class="sig-name descname"><span class="pre">s3_legacy_open</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s3_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/s3_path.html#s3_legacy_open"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.s3_legacy_open" title="Permalink to this definition"></a></dt>
-<dd><p>Use smart_open.s3.open open a reader / writer</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>User should make sure that reader / writer are closed correctly</p>
-<p>Supports context manager</p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>mode</strong> – Mode to open file, either “rb” or “wb”</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>File-Like Object</p>
 </dd>
 </dl>
 </dd></dl>
@@ -4692,6 +4709,20 @@ If s3_url doesn’t contain any bucket, which is s3_url == ‘s3://’, raise Un
 <li><p><strong>path</strong> – Given path</p></li>
 <li><p><strong>mode</strong> – the file mode you want to change</p></li>
 <li><p><strong>followlinks</strong> – Ignore this parameter, just for compatibility</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="megfile.sftp_concat">
+<span class="sig-prename descclassname"><span class="pre">megfile.</span></span><span class="sig-name descname"><span class="pre">sftp_concat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_paths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#sftp_concat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_concat" title="Permalink to this definition"></a></dt>
+<dd><p>Concatenate sftp files to one file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>src_paths</strong> – Given source paths</p></li>
+<li><p><strong>dst_path</strong> – Given destination path</p></li>
 </ul>
 </dd>
 </dl>
@@ -5305,6 +5336,20 @@ param options: Optional arguments for s3_cacher</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="megfile.smart_concat">
+<span class="sig-prename descclassname"><span class="pre">megfile.</span></span><span class="sig-name descname"><span class="pre">smart_concat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_paths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/megfile/smart.html#smart_concat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.smart_concat" title="Permalink to this definition"></a></dt>
+<dd><p>Concatenate src_paths to dst_path</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>src_paths</strong> – List of source paths</p></li>
+<li><p><strong>dst_path</strong> – Destination path</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="megfile.smart_copy">
 <span class="sig-prename descclassname"><span class="pre">megfile.</span></span><span class="sig-name descname"><span class="pre">smart_copy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callback</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/megfile/smart.html#smart_copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.smart_copy" title="Permalink to this definition"></a></dt>
 <dd><p>Copy file from source path to destination path</p>
@@ -5818,7 +5863,7 @@ Every iteration on generator yields a tuple of path string and file stat</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="megfile.smart_sync">
-<span class="sig-prename descclassname"><span class="pre">megfile.</span></span><span class="sig-name descname"><span class="pre">smart_sync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callback</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/megfile/smart.html#smart_sync"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.smart_sync" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">megfile.</span></span><span class="sig-name descname"><span class="pre">smart_sync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">src_path:</span> <span class="pre">~typing.Union[str,</span> <span class="pre">~os.PathLike],</span> <span class="pre">dst_path:</span> <span class="pre">~typing.Union[str,</span> <span class="pre">~os.PathLike],</span> <span class="pre">callback:</span> <span class="pre">~typing.Optional[~typing.Callable[[str,</span> <span class="pre">int],</span> <span class="pre">None]]</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">followlinks:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False,</span> <span class="pre">callback_after_copy_file:</span> <span class="pre">~typing.Optional[~typing.Callable[[str,</span> <span class="pre">str],</span> <span class="pre">None]]</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">src_file_stats:</span> <span class="pre">~typing.Optional[~typing.Iterable[~megfile.pathlike.FileEntry]]</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">map_func:</span> <span class="pre">~typing.Callable[[~typing.Callable,</span> <span class="pre">~typing.Iterable],</span> <span class="pre">Any]</span> <span class="pre">=</span> <span class="pre">&lt;class</span> <span class="pre">'map'&gt;</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/megfile/smart.html#smart_sync"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.smart_sync" title="Permalink to this definition"></a></dt>
 <dd><p>Sync file or directory on s3 and fs</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -5856,6 +5901,13 @@ Every iteration on generator yields a tuple of path string and file stat</p>
 <li><p><strong>src_path</strong> – Given source path</p></li>
 <li><p><strong>dst_path</strong> – Given destination path</p></li>
 <li><p><strong>callback</strong> – Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call</p></li>
+<li><p><strong>followlinks</strong> – False if regard symlink as file, else True</p></li>
+<li><p><strong>callback_after_copy_file</strong> – Called after copy success, and the input parameter is src file path and dst file path</p></li>
+<li><p><strong>src_file_stats</strong> – If this parameter is not None, only this parameter’s files will be synced, 
+and src_path is the root_path of these files used to calculate the path of the target file. 
+This parameter is in order to reduce file traversal times.</p></li>
+<li><p><strong>map_func</strong> – A Callable func like <cite>map</cite>. You can use ThreadPoolExecutor.map, Pool.map and so on if you need concurrent capability.
+default is standard library <cite>map</cite>.</p></li>
 </ul>
 </dd>
 </dl>
