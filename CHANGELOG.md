@@ -1,3 +1,12 @@
+## 2.0.4 - 2023.04.12
+- feat
+    - s3 path support custom profile name, like `s3[+profile_name]://bucket/key`
+    - remove `smart-open` from requirements
+    - `smart_sync` support `map_func` parameter for concurrent
+    - add `smart_concat`
+- perf
+    - reduce the number of `s3_open`'s requests
+
 ## 2.0.3 - 2023.03.22
 - feat
     - add smart_lstat
