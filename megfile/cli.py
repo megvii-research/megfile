@@ -122,7 +122,7 @@ def cp(
     if smart_isdir(dst_path) and not no_target_directory:
         dst_path = smart_path_join(dst_path, os.path.basename(src_path))
     if recursive:
-        with ThreadPoolExecutor(max_workers=os.cpu_count() * 2) as executor:
+        with ThreadPoolExecutor(max_workers=(os.cpu_count() or 1) * 2) as executor:
             if progress_bar:
                 smart_sync_with_progress(
                     src_path, dst_path, followlinks=True, map_func=executor.map)
@@ -221,7 +221,7 @@ def rm(path: str, recursive: bool):
 @click.argument('dst_path')
 @click.option('-g', '--progress-bar', is_flag=True, help='Show progress bar.')
 def sync(src_path: str, dst_path: str, progress_bar: bool):
-    with ThreadPoolExecutor(max_workers=os.cpu_count() * 2) as executor:
+    with ThreadPoolExecutor(max_workers=(os.cpu_count() or 1) * 2) as executor:
         if has_magic(src_path):
             root_dir = get_non_glob_dir(src_path)
             path_stats = []
