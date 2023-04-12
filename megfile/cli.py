@@ -122,7 +122,8 @@ def cp(
     if smart_isdir(dst_path) and not no_target_directory:
         dst_path = smart_path_join(dst_path, os.path.basename(src_path))
     if recursive:
-        with ThreadPoolExecutor(max_workers=(os.cpu_count() or 1) * 2) as executor:
+        with ThreadPoolExecutor(max_workers=(os.cpu_count() or 1) *
+                                2) as executor:
             if progress_bar:
                 smart_sync_with_progress(
                     src_path, dst_path, followlinks=True, map_func=executor.map)
