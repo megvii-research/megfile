@@ -2168,13 +2168,16 @@ class MultiPartWriter:
                 'ETag': response['CopyPartResult']['ETag']
             })
 
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def close(self):
         self._multipart_upload_info.sort(key=lambda t: t['PartNumber'])
         self._client.complete_multipart_upload(
             UploadId=self._upload_id,
             Bucket=self._bucket,
             Key=self._key,
             MultipartUpload={'Parts': self._multipart_upload_info})
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
