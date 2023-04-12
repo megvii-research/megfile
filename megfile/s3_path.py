@@ -3,6 +3,7 @@ import io
 import os
 import re
 import time
+from concurrent.futures import ThreadPoolExecutor
 from functools import lru_cache, wraps
 from logging import getLogger as get_logger
 from typing import IO, Any, AnyStr, BinaryIO, Callable, Dict, Iterator, List, Optional, Tuple, Union
@@ -20,7 +21,7 @@ from megfile.lib.compat import fspath
 from megfile.lib.fnmatch import translate
 from megfile.lib.glob import has_magic, has_magic_ignore_brace, ungloblize
 from megfile.lib.joinpath import uri_join
-from megfile.lib.s3_buffered_writer import DEFAULT_MAX_BUFFER_SIZE, S3BufferedWriter
+from megfile.lib.s3_buffered_writer import DEFAULT_MAX_BUFFER_SIZE, GLOBAL_MAX_WORKERS, S3BufferedWriter
 from megfile.lib.s3_cached_handler import S3CachedHandler
 from megfile.lib.s3_limited_seekable_writer import S3LimitedSeekableWriter
 from megfile.lib.s3_memory_handler import S3MemoryHandler
@@ -60,6 +61,7 @@ __all__ = [
     's3_iglob',
     's3_rename',
     's3_makedirs',
+    's3_concat',
 ]
 _logger = get_logger(__name__)
 content_md5_header = 'megfile-content-md5'
@@ -1091,6 +1093,78 @@ def s3_makedirs(path: PathLike, exist_ok: bool = False):
     return S3Path(path).mkdir(parents=True, exist_ok=exist_ok)
 
 
+def _group_src_paths_by_block(
+        src_paths: List[PathLike], block_size: int = DEFAULT_BLOCK_SIZE
+) -> List[List[Tuple[PathLike, Optional[str]]]]:
+    groups = []
+    current_group, current_group_size = [], 0
+    for src_path in src_paths:
+        current_file_size = S3Path(src_path).stat().size
+        if current_file_size == 0:  # pragma: no cover
+            continue
+
+        if current_file_size >= block_size:
+            if len(groups) == 0:
+                if current_group_size + current_file_size > 2 * block_size:
+                    group_lack_size = block_size - current_group_size
+                    current_group.append(
+                        (src_path, f'bytes=0-{group_lack_size-1}'))
+                    groups.extend(
+                        [
+                            current_group,
+                            [
+                                (
+                                    src_path,
+                                    f'bytes={group_lack_size}-{current_file_size-1}'
+                                )
+                            ]
+                        ])
+                else:
+                    current_group.append((src_path, None))
+                    groups.append(current_group)
+            else:
+                groups[-1].extend(current_group)
+                groups.append([(src_path, None)])
+            current_group, current_group_size = [], 0
+        else:
+            current_group.append((src_path, None))
+            current_group_size += current_file_size
+            if current_group_size >= block_size:
+                groups.append(current_group)
+                current_group, current_group_size = [], 0
+    if current_group:
+        groups.append(current_group)
+    return groups
+
+
+def s3_concat(
+        src_paths: List[PathLike],
+        dst_path: PathLike,
+        block_size: int = DEFAULT_BLOCK_SIZE,
+        max_workers: int = GLOBAL_MAX_WORKERS) -> None:
+    '''Concatenate s3 files to one file.
+
+    :param src_paths: Given source paths
+    :param dst_path: Given destination path
+    '''
+    client = S3Path(dst_path)._client
+    with raise_s3_error(dst_path):
+        if block_size == 0:  # pragma: no cover
+            groups = [[(src_path, None)] for src_path in src_paths]
+        else:
+            groups = _group_src_paths_by_block(src_paths, block_size=block_size)
+
+        with MultiPartWriter(client, dst_path) as writer, ThreadPoolExecutor(
+                max_workers=max_workers) as executor:
+            for index, group in enumerate(groups, start=1):
+                if len(group) == 1:
+                    executor.submit(
+                        writer.upload_part_copy, index, group[0][0],
+                        group[0][1])
+                else:
+                    executor.submit(writer.upload_part_by_paths, index, group)
+
+
 @SmartPath.register
 class S3Path(URIPath):
 
@@ -2024,3 +2098,83 @@ class S3Path(URIPath):
         returns: Current working directory
         '''
         return self.from_path(self.path_with_protocol)
+
+
+class MultiPartWriter:
+
+    def __init__(self, client, path: PathLike) -> None:
+        self._client = client
+        self._multipart_upload_info = []
+
+        bucket, key = parse_s3_url(path)
+        self._bucket = bucket
+        self._key = key
+        self._upload_id = self._client.create_multipart_upload(
+            Bucket=self._bucket, Key=self._key)['UploadId']
+
+    def upload_part(self, part_num: int, file_obj: io.BytesIO) -> None:
+        response = self._client.upload_part(
+            Body=file_obj,
+            UploadId=self._upload_id,
+            PartNumber=part_num,
+            Bucket=self._bucket,
+            Key=self._key,
+        )
+        self._multipart_upload_info.append(
+            {
+                'PartNumber': part_num,
+                'ETag': response['ETag']
+            })
+
+    def upload_part_by_paths(
+            self, part_num: int, paths: List[Tuple[PathLike, str]]) -> None:
+        file_obj = io.BytesIO()
+        for path, bytes_range in paths:
+            bucket, key = parse_s3_url(path)
+            if bytes_range:
+                file_obj.write(
+                    self._client.get_object(
+                        Bucket=bucket, Key=key,
+                        Range=bytes_range)['Body'].read())
+            else:
+                file_obj.write(
+                    self._client.get_object(Bucket=bucket,
+                                            Key=key)['Body'].read())
+        file_obj.seek(0, os.SEEK_SET)
+        self.upload_part(part_num, file_obj)
+
+    def upload_part_copy(
+            self,
+            part_num: int,
+            path: PathLike,
+            copy_source_range: Optional[str] = None) -> None:
+        bucket, key = parse_s3_url(path)
+        params = dict(
+            UploadId=self._upload_id,
+            PartNumber=part_num,
+            CopySource={
+                'Bucket': bucket,
+                'Key': key
+            },
+            Bucket=self._bucket,
+            Key=self._key,
+        )
+        if copy_source_range:
+            params['CopySourceRange'] = copy_source_range
+        response = self._client.upload_part_copy(**params)
+        self._multipart_upload_info.append(
+            {
+                'PartNumber': part_num,
+                'ETag': response['CopyPartResult']['ETag']
+            })
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self._multipart_upload_info.sort(key=lambda t: t['PartNumber'])
+        self._client.complete_multipart_upload(
+            UploadId=self._upload_id,
+            Bucket=self._bucket,
+            Key=self._key,
+            MultipartUpload={'Parts': self._multipart_upload_info})

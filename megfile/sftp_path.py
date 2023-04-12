@@ -34,6 +34,7 @@ __all__ = [
     'sftp_download',
     'sftp_upload',
     'sftp_path_join',
+    'sftp_concat',
 ]
 
 SFTP_USERNAME = "SFTP_USERNAME"
@@ -311,6 +312,26 @@ def sftp_path_join(path: PathLike, *other_paths: PathLike) -> str:
         e.g. os.path.join('/path', 'to', '/file') => '/file', but sftp_path_join('/path', 'to', '/file') => '/path/to/file'
     '''
     return uri_join(fspath(path), *map(fspath, other_paths))
+
+
+def sftp_concat(src_paths: List[PathLike], dst_path: PathLike) -> None:
+    '''Concatenate sftp files to one file.
+
+    :param src_paths: Given source paths
+    :param dst_path: Given destination path
+    '''
+    dst_path_obj = SftpPath(dst_path)
+
+    def get_real_path(path: PathLike) -> str:
+        return SftpPath(path)._real_path
+
+    command = [
+        'cat', *map(get_real_path, src_paths), '>',
+        get_real_path(dst_path)
+    ]
+    exec_result = dst_path_obj._exec_command(command)
+    if exec_result.returncode != 0:
+        raise OSError(f'Failed to concat {src_paths} to {dst_path}')
 
 
 @SmartPath.register

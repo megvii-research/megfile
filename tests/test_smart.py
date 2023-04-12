@@ -1099,3 +1099,16 @@ def test_smart_save_text(funcA):
 def test_smart_load_text(funcA):
     smart.smart_load_text('test path')
     funcA.assert_called_once()
+
+
+def test_smart_concat(s3_empty_client, fs):
+    smart.smart_save_content('a.txt', b'a')
+    smart.smart_save_content('b.txt', b'b')
+    smart.smart_concat(['a.txt', 'b.txt'], 'c.txt')
+    assert smart.smart_load_content('c.txt') == b'ab'
+
+    s3_empty_client.create_bucket(Bucket='bucket')
+    smart.smart_save_content('s3://bucket/a.txt', b'a')
+    smart.smart_save_content('b.txt', b'b')
+    smart.smart_concat(['s3://bucket/a.txt', 'b.txt'], 'c.txt')
+    assert smart.smart_load_content('c.txt') == b'ab'

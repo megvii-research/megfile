@@ -133,6 +133,17 @@ def _fake_exec_command(
 ) -> subprocess.CompletedProcess:
     if command[0] == 'cp':
         shutil.copy(command[1], command[2])
+    elif command[0] == 'cat':
+        with open(command[-1], 'wb') as f:
+            for file_name in command[1:-2]:
+                with open(file_name, 'rb') as f_src:
+                    f.write(f_src.read())
+            return subprocess.CompletedProcess(
+                args=command,
+                returncode=0,
+                stdout=b'',
+                stderr=b'',
+            )
     else:
         raise OSError('Nonsupport command')
     return subprocess.CompletedProcess(
@@ -695,3 +706,38 @@ def test_sftp_upload(sftp_mocker):
 def test_sftp_path_join():
     assert sftp.sftp_path_join(
         'sftp://username@host/A/', 'a', 'b') == 'sftp://username@host/A/a/b'
+
+
+def test_sftp_concat(sftp_mocker, mocker):
+    with sftp.sftp_open('sftp://username@host/1', 'w') as f:
+        f.write('1')
+    with sftp.sftp_open('sftp://username@host/2', 'w') as f:
+        f.write('2')
+    with sftp.sftp_open('sftp://username@host/3', 'w') as f:
+        f.write('3')
+
+    sftp.sftp_concat(
+        [
+            'sftp://username@host/1', 'sftp://username@host/2',
+            'sftp://username@host/3'
+        ], 'sftp://username@host/4')
+    with sftp.sftp_open('sftp://username@host/4', 'r') as f:
+        assert f.read() == '123'
+
+    def _error_exec_command(
+            command: List[str],
+            bufsize: int = -1,
+            timeout: Optional[int] = None,
+            environment: Optional[int] = None,
+    ):
+        return subprocess.CompletedProcess(args=command, returncode=1)
+
+    mocker.patch(
+        'megfile.sftp_path.SftpPath._exec_command',
+        side_effect=_error_exec_command)
+    with pytest.raises(OSError):
+        sftp.sftp_concat(
+            [
+                'sftp://username@host/1', 'sftp://username@host/2',
+                'sftp://username@host/3'
+            ], 'sftp://username@host/4')
