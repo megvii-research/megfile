@@ -60,6 +60,7 @@ __all__ = [
     'smart_symlink',
     'smart_readlink',
     'register_copy_func',
+    'smart_concat',
 ]
 
 
