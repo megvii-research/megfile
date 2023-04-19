@@ -72,7 +72,7 @@ class StdioPath(BaseURIPath):
             return STDReader(mode)
         return STDWriter(self.path_with_protocol, mode)
 
-    def open(self, mode: str, **kwargs) -> IO[AnyStr]:
+    def open(self, mode: str, **kwargs) -> IO[AnyStr]:  # pytype: disable=signature-mismatch
         '''Used to read or write stdio
 
         .. note ::

@@ -2081,7 +2081,7 @@ class S3Path(URIPath):
             mode: str = 'r',
             *,
             s3_open_func: Callable[[str, str], BinaryIO] = s3_open,
-            **kwargs) -> IO[AnyStr]:
+            **kwargs) -> IO[AnyStr]:  # pytype: disable=signature-mismatch
         return s3_open_func(
             self.path_with_protocol, mode,
             **necessary_params(s3_open_func, **kwargs))

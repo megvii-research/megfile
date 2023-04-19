@@ -331,7 +331,7 @@ def sftp_save_as(file_object: BinaryIO, path: PathLike):
     return SftpPath(path).save(file_object)
 
 
-def sftp_open(path: PathLike, mode: str = 'r', buffering=-1) -> IO[AnyStr]:
+def sftp_open(path: PathLike, mode: str = 'r', buffering=-1) -> IO[AnyStr]:  # pytype: disable=signature-mismatch
     return SftpPath(path).open(mode, buffering)
 
 

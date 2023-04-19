@@ -193,7 +193,7 @@ class FileCacher(Closable):
     def cache_path(self) -> str:
         pass  # pragma: no cover
 
-    def __enter__(self) -> str:
+    def __enter__(self) -> str:  # pytype: disable=signature-mismatch
         return self.cache_path
 
     def __del__(self):

@@ -870,7 +870,7 @@ class SftpPath(URIPath):
         with self.open(mode='wb') as output:
             output.write(file_object.read())
 
-    def open(self, mode: str = 'r', buffering=-1, **kwargs) -> IO[AnyStr]:
+    def open(self, mode: str = 'r', buffering=-1, **kwargs) -> IO[AnyStr]:  # pytype: disable=signature-mismatch
         if 'w' in mode or 'x' in mode or 'a' in mode:
             try:
                 if self.is_dir():
@@ -896,11 +896,11 @@ class SftpPath(URIPath):
         '''
         return self._client.chmod(path=self._real_path, mode=mode)
 
-    def absolute(self) -> str:
+    def absolute(self) -> 'SftpPath':
         '''
         Make the path absolute, without normalization or resolving symlinks. Returns a new path object
         '''
-        return self.realpath()
+        return self.resolve()
 
     def rmdir(self):
         '''

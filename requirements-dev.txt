@@ -14,15 +14,15 @@ mock
 junit-xml ~= 1.9
 
 # doc
-Sphinx >= 4.0.0; python_version == '3.6'
-m2r2; python_version == '3.6'
-sphinx-rtd-theme; python_version == '3.6'
-sphinx_click; python_version == '3.6'
+Sphinx >= 4.0.0
+m2r2
+sphinx-rtd-theme
+sphinx_click
 
 # format & static check
-yapf == 0.27.0; python_version == '3.6'
-isort; python_version == '3.6'
-pytype; python_version == '3.6'
+yapf == 0.27.0
+isort
+pytype
 pyre-check
 bandit
 bandit_sarif_formatter

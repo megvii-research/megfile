@@ -9,7 +9,7 @@ __all__ = [
 ]
 
 
-def stdio_open(path: PathLike, mode: str) -> IO[AnyStr]:
+def stdio_open(path: PathLike, mode: str) -> IO[AnyStr]:  # pytype: disable=signature-mismatch
     '''Used to read or write stdio
 
     .. note ::
