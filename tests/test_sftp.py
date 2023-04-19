@@ -654,9 +654,6 @@ def test_sftp_sync(sftp_mocker):
         'sftp://username@host/A/1.json').size == sftp.sftp_stat(
             'sftp://username@host/A/1.json.bak').size
 
-    with pytest.raises(OSError):
-        sftp.sftp_sync('sftp://username@host/A/1.json', '/1.json.bak')
-
 
 def test_sftp_download(sftp_mocker):
     sftp.sftp_makedirs('sftp://username@host/A')

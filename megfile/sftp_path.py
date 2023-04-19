@@ -944,12 +944,16 @@ class SftpPath(URIPath):
             dst_path: PathLike,
             callback: Optional[Callable[[int], None]] = None,
             followlinks: bool = False):
-        '''
-        File copy
-        '''
-        if not is_sftp(dst_path):
-            raise OSError(f'dst_path is not sftp path: {dst_path}')
+        """
+        Copy the file to the given destination path.
 
+        :param dst_path: The destination path to copy the file to.
+        :param callback: An optional callback function that takes an integer parameter and is called
+                        periodically during the copy operation to report the number of bytes copied.
+        :param followlinks: Whether to follow symbolic links when copying directories.
+        :raises IsADirectoryError: If the source is a directory.
+        :raises OSError: If there is an error copying the file.
+        """
         if followlinks and self.is_symlink():
             return self.readlink().copy(dst_path=dst_path, callback=callback)
 
@@ -982,8 +986,6 @@ class SftpPath(URIPath):
 
         :param dst_url: Given destination path
         '''
-        if not is_sftp(dst_path):
-            raise OSError(f'dst_path is not sftp path: {dst_path}')
         for src_file_path, dst_file_path in _sftp_scan_pairs(
                 self.path_with_protocol, dst_path):
             self.from_path(os.path.dirname(dst_file_path)).mkdir(
