@@ -947,9 +947,6 @@ class SftpPath(URIPath):
         '''
         File copy
         '''
-        if not is_sftp(dst_path):
-            raise OSError(f'dst_path is not sftp path: {dst_path}')
-
         if followlinks and self.is_symlink():
             return self.readlink().copy(dst_path=dst_path, callback=callback)
 
@@ -982,8 +979,6 @@ class SftpPath(URIPath):
 
         :param dst_url: Given destination path
         '''
-        if not is_sftp(dst_path):
-            raise OSError(f'dst_path is not sftp path: {dst_path}')
         for src_file_path, dst_file_path in _sftp_scan_pairs(
                 self.path_with_protocol, dst_path):
             self.from_path(os.path.dirname(dst_file_path)).mkdir(
