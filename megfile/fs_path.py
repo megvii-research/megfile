@@ -842,7 +842,7 @@ class FSPath(URIPath):
             errors=None,
             newline=None,
             closefd=True,
-            **kwargs) -> IO[AnyStr]:
+            **kwargs) -> IO[AnyStr]:  # pytype: disable=signature-mismatch
         if not isinstance(self.path_without_protocol, int) and ('w' in mode or
                                                                 'x' in mode or
                                                                 'a' in mode):

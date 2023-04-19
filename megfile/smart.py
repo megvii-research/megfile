@@ -516,7 +516,7 @@ def smart_open(
         s3_open_func: Callable[[str, str], BinaryIO] = s3_open,
         encoding: Optional[str] = None,
         errors: Optional[str] = None,
-        **options) -> IO[AnyStr]:
+        **options) -> IO[AnyStr]:  # pytype: disable=signature-mismatch
     '''
     Open a file on the path
 
