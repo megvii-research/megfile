@@ -944,9 +944,16 @@ class SftpPath(URIPath):
             dst_path: PathLike,
             callback: Optional[Callable[[int], None]] = None,
             followlinks: bool = False):
-        '''
-        File copy
-        '''
+        """
+        Copy the file to the given destination path.
+
+        :param dst_path: The destination path to copy the file to.
+        :param callback: An optional callback function that takes an integer parameter and is called
+                        periodically during the copy operation to report the number of bytes copied.
+        :param followlinks: Whether to follow symbolic links when copying directories.
+        :raises IsADirectoryError: If the source is a directory.
+        :raises OSError: If there is an error copying the file.
+        """
         if followlinks and self.is_symlink():
             return self.readlink().copy(dst_path=dst_path, callback=callback)
 
