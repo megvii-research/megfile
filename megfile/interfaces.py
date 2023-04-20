@@ -186,6 +186,46 @@ class Writable(FileLike, ABC):
             self.write(line)
 
 
+class AtomicWriterExtension:
+    _close_type = None
+    _commit_result = None
+
+    def commit(self) -> object:
+        self._set_commit()
+        self.close()
+        return self._commit_result
+
+    def abort(self) -> None:
+        self._set_abort()
+        self.close()
+
+    def _set_abort(self):
+        if self._close_type is None:
+            self._close_type = 'abort'
+        # abort after commit is a no-op
+
+    def _set_commit(self):
+        if self._close_type == 'abort':
+            raise RuntimeError('commit after abort')
+        self._close_type = 'commit'
+
+
+class AtomicWriterWrapperMixin(AtomicWriterExtension):
+    _underlying_atomic_writer: AtomicWriterExtension
+
+    @property
+    def _close_type(self):
+        return self._underlying_atomic_writer._close_type
+
+    @_close_type.setter
+    def _close_type(self, value):
+        self._underlying_atomic_writer._close_type = value
+
+    @property
+    def _commit_result(self):
+        return self._underlying_atomic_writer._commit_result
+
+
 class FileCacher(Closable):
 
     @property

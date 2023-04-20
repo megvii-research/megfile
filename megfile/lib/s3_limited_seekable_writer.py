@@ -133,17 +133,25 @@ class S3LimitedSeekableWriter(Seekable, S3BufferedWriter):
         self._buffer.seek(0, os.SEEK_END)
         self._submit_upload_content(content[:offset])
 
+    def _abort(self):
+        self._head_buffer.close()
+        super()._abort()
+
     def _close(self):
         _logger.debug('close file: %r' % self.name)
 
+        if self._close_type == 'abort':
+            self._abort()
+            return
+
         if not self._is_multipart:
             with raise_s3_error(self.name):
-                self._client.put_object(
+                response = self._client.put_object(
                     Bucket=self._bucket,
                     Key=self._key,
                     Body=self._head_buffer.getvalue() + self._buffer.getvalue())
+                self._parse_response(response)
             self._shutdown()
-            return
 
         self._submit_upload_buffer(1, self._head_buffer.getvalue())
         self._head_buffer = BytesIO()  # clean memory
@@ -154,11 +162,12 @@ class S3LimitedSeekableWriter(Seekable, S3BufferedWriter):
         self._buffer = BytesIO()  # clean memory
 
         with raise_s3_error(self.name):
-            self._client.complete_multipart_upload(
+            response = self._client.complete_multipart_upload(
                 Bucket=self._bucket,
                 Key=self._key,
                 MultipartUpload=self._multipart_upload,
                 UploadId=self._upload_id,
             )
+            self._parse_response(response)
 
         self._shutdown()

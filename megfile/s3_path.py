@@ -16,7 +16,7 @@ from botocore.awsrequest import AWSResponse
 from megfile.errors import S3BucketNotFoundError, S3ConfigError, S3FileExistsError, S3FileNotFoundError, S3IsADirectoryError, S3NameTooLongError, S3NotADirectoryError, S3NotALinkError, S3PermissionError, S3UnknownError, UnsupportedError, _create_missing_ok_generator
 from megfile.errors import _logger as error_logger
 from megfile.errors import patch_method, raise_s3_error, s3_error_code_should_retry, s3_should_retry, translate_fs_error, translate_s3_error
-from megfile.interfaces import Access, ContextIterator, FileCacher, FileEntry, PathLike, StatResult, URIPath
+from megfile.interfaces import Access, AtomicWriterWrapperMixin, ContextIterator, FileCacher, FileEntry, PathLike, StatResult, URIPath
 from megfile.lib.compat import fspath
 from megfile.lib.fnmatch import translate
 from megfile.lib.glob import has_magic, has_magic_ignore_brace, ungloblize
@@ -69,6 +69,12 @@ endpoint_url = 'https://s3.amazonaws.com'
 max_pool_connections = 32
 max_retries = 10
 max_keys = 1000
+
+
+class AtomicBufferedWriter(AtomicWriterWrapperMixin, io.BufferedWriter):
+    @property
+    def _underlying_atomic_writer(self):
+        return self.raw
 
 
 def _patch_make_request(client: botocore.client.BaseClient):
@@ -814,7 +820,7 @@ def s3_buffered_open(
             max_buffer_size=max_buffer_size,
             block_size=block_size)
     if buffered:
-        writer = io.BufferedWriter(writer)  # pytype: disable=wrong-arg-types
+        writer = AtomicBufferedWriter(writer)  # pytype: disable=wrong-arg-types
     return writer
 
 
@@ -1759,7 +1765,7 @@ class S3Path(URIPath):
 
     def _getdirstat(self) -> StatResult:
         '''
-        Return StatResult of given s3_url directory, including: 
+        Return StatResult of given s3_url directory, including:
 
         1. Directory size: the sum of all file size in it, including file in subdirectories (if exist).
         The result excludes the size of directory itself. In other words, return 0 Byte on an empty directory path

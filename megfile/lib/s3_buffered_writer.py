@@ -6,7 +6,7 @@ from threading import Lock
 from typing import NamedTuple, Optional
 
 from megfile.errors import raise_s3_error
-from megfile.interfaces import Writable
+from megfile.interfaces import Writable, AtomicWriterExtension
 from megfile.utils import get_human_size, process_local
 
 DEFAULT_BLOCK_SIZE = 8 * 2**20  # 8MB
@@ -41,7 +41,7 @@ class PartResult(_PartResult):
         }
 
 
-class S3BufferedWriter(Writable):
+class S3BufferedWriter(AtomicWriterExtension, Writable):
 
     def __init__(
             self,
@@ -199,26 +199,51 @@ class S3BufferedWriter(Writable):
         if not self._is_global_executor:
             self._executor.shutdown()
 
+    def _abort(self):
+        self._buffer.close()
+        for i in self._futures.values():
+            i.cancel()
+        self._shutdown()
+        with self.__upload_id_lock:
+            upload_id = self.__upload_id
+            if upload_id is not None:
+                with raise_s3_error(self.name):
+                    self._client.abort_multipart_upload(
+                        Bucket=self._bucket,
+                        Key=self._key,
+                        UploadId=upload_id,
+                    )
+
+    def _parse_response(self, response):
+        self._commit_result = response['ETag'].strip('"')
+
     def _close(self):
         _logger.debug('close file: %r' % self.name)
 
+        if self._close_type == 'abort':
+            self._abort()
+            return
+
         if not self._is_multipart:
             with raise_s3_error(self.name):
-                self._client.put_object(
-                    Bucket=self._bucket,
-                    Key=self._key,
-                    Body=self._buffer.getvalue())
+                response = self._client.put_object(
+                        Bucket=self._bucket,
+                        Key=self._key,
+                        Body=self._buffer.getvalue()
+                )
+                self._parse_response(response)
             self._shutdown()
             return
 
         self._submit_futures()
 
         with raise_s3_error(self.name):
-            self._client.complete_multipart_upload(
+            response = self._client.complete_multipart_upload(
                 Bucket=self._bucket,
                 Key=self._key,
                 MultipartUpload=self._multipart_upload,
                 UploadId=self._upload_id,
             )
+            self._parse_response(response)
 
         self._shutdown()
