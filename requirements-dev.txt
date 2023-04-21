@@ -14,9 +14,9 @@ mock
 junit-xml ~= 1.9
 
 # doc
-Sphinx >= 4.0.0
+Sphinx >= 5.3.0
 m2r2
-sphinx-rtd-theme
+sphinx-rtd-theme >= 1.2.0
 sphinx_click
 
 # format & static check
