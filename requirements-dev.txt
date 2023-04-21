@@ -17,6 +17,7 @@ junit-xml ~= 1.9
 Sphinx >= 4.0.0
 m2r2
 sphinx-rtd-theme
+sphinxcontrib-jquery
 sphinx_click
 
 # format & static check

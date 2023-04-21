@@ -31,8 +31,9 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.todo',
     'm2r2',
-    "sphinx_rtd_theme",
+    'sphinx_rtd_theme',
     'sphinx_click',
+    'sphinxcontrib.jquery',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
