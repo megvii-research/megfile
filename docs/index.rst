@@ -13,6 +13,7 @@ Welcome to megfile's documentation!
    readme
    megfile
    cli
+   advanced
    changelog
    GitHub <https://github.com/megvii-research/megfile>
 
