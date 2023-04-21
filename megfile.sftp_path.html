@@ -1,92 +1,47 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
-  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
   <title>megfile.sftp_path module &mdash; megfile  documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/sphinx_highlight.js"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
+    <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Command Line Interface" href="cli.html" />
     <link rel="prev" title="megfile.sftp module" href="megfile.sftp.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
 
           
-            <a href="index.html" class="icon icon-home"> megfile
           
-
-          
+          <a href="index.html" class="icon icon-home">
+            megfile
           </a>
-
-          
-            
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="readme.html">Getting Started</a></li>
@@ -118,91 +73,49 @@
 <li class="toctree-l1"><a class="reference external" href="https://github.com/megvii-research/megfile">GitHub</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">megfile</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-        
-          <li><a href="megfile.html">API Reference</a> &raquo;</li>
-        
-      <li>megfile.sftp_path module</li>
-    
-    
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="megfile.html">API Reference</a></li>
+      <li class="breadcrumb-item active">megfile.sftp_path module</li>
       <li class="wy-breadcrumbs-aside">
-        
-          
             <a href="_sources/megfile.sftp_path.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
+             
   <section id="module-megfile.sftp_path">
-<span id="megfile-sftp-path-module"></span><h1>megfile.sftp_path module<a class="headerlink" href="#module-megfile.sftp_path" title="Permalink to this heading">¶</a></h1>
+<span id="megfile-sftp-path-module"></span><h1>megfile.sftp_path module<a class="headerlink" href="#module-megfile.sftp_path" title="Permalink to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="megfile.sftp_path.SftpPath">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">megfile.sftp_path.</span></span><span class="sig-name descname"><span class="pre">SftpPath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">other_paths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">megfile.sftp_path.</span></span><span class="sig-name descname"><span class="pre">SftpPath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">other_paths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">URIPath</span></code></p>
 <p>sftp protocol</p>
 <p>uri format: sftp://[username[:password]&#64;]hostname[:port]/file_path
 e.g. sftp://username:password&#64;127.0.0.1:22/data/test/</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.sftp_path.SftpPath.absolute">
-<span class="sig-name descname"><span class="pre">absolute</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#megfile.sftp_path.SftpPath" title="megfile.sftp_path.SftpPath"><span class="pre">SftpPath</span></a></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.absolute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.absolute" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">absolute</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#megfile.sftp_path.SftpPath" title="megfile.sftp_path.SftpPath"><span class="pre">SftpPath</span></a></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.absolute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.absolute" title="Permalink to this definition"></a></dt>
 <dd><p>Make the path absolute, without normalization or resolving symlinks. Returns a new path object</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.sftp_path.SftpPath.chmod">
-<span class="sig-name descname"><span class="pre">chmod</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">follow_symlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.chmod"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.chmod" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">chmod</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">follow_symlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.chmod"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.chmod" title="Permalink to this definition"></a></dt>
 <dd><p>Change the file mode and permissions, like os.chmod().</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -216,7 +129,7 @@ e.g. sftp://username:password&#64;127.0.0.1:22/data/test/</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.sftp_path.SftpPath.copy">
-<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dst_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callback</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.copy" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dst_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callback</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.copy" title="Permalink to this definition"></a></dt>
 <dd><p>Copy the file to the given destination path.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -238,14 +151,14 @@ periodically during the copy operation to report the number of bytes copied.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.sftp_path.SftpPath.cwd">
-<span class="sig-name descname"><span class="pre">cwd</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#megfile.sftp_path.SftpPath" title="megfile.sftp_path.SftpPath"><span class="pre">SftpPath</span></a></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.cwd"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.cwd" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">cwd</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#megfile.sftp_path.SftpPath" title="megfile.sftp_path.SftpPath"><span class="pre">SftpPath</span></a></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.cwd"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.cwd" title="Permalink to this definition"></a></dt>
 <dd><p>Return current working directory</p>
 <p>returns: Current working directory</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.sftp_path.SftpPath.exists">
-<span class="sig-name descname"><span class="pre">exists</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.exists"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.exists" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">exists</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.exists"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.exists" title="Permalink to this definition"></a></dt>
 <dd><p>Test if the path exists</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -259,7 +172,7 @@ periodically during the copy operation to report the number of bytes copied.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.sftp_path.SftpPath.getmtime">
-<span class="sig-name descname"><span class="pre">getmtime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">follow_symlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.getmtime"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.getmtime" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">getmtime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">follow_symlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.getmtime"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.getmtime" title="Permalink to this definition"></a></dt>
 <dd><p>Get last-modified time of the file on the given path (in Unix timestamp format).
 If the path is an existent directory, return the latest modified time of all file in it.</p>
 <dl class="field-list simple">
@@ -271,7 +184,7 @@ If the path is an existent directory, return the latest modified time of all fil
 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.sftp_path.SftpPath.getsize">
-<span class="sig-name descname"><span class="pre">getsize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">follow_symlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.getsize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.getsize" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">getsize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">follow_symlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.getsize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.getsize" title="Permalink to this definition"></a></dt>
 <dd><p>Get file size on the given file path (in bytes).
 If the path in a directory, return the sum of all file size in it, including file in subdirectories (if exist).
 The result excludes the size of directory itself. In other words, return 0 Byte on an empty directory path.</p>
@@ -284,7 +197,7 @@ The result excludes the size of directory itself. In other words, return 0 Byte 
 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.sftp_path.SftpPath.glob">
-<span class="sig-name descname"><span class="pre">glob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pattern</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#megfile.sftp_path.SftpPath" title="megfile.sftp_path.SftpPath"><span class="pre">SftpPath</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.glob"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.glob" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">glob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pattern</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#megfile.sftp_path.SftpPath" title="megfile.sftp_path.SftpPath"><span class="pre">SftpPath</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.glob"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.glob" title="Permalink to this definition"></a></dt>
 <dd><p>Return path list in ascending alphabetical order, in which path matches glob pattern</p>
 <ol class="arabic simple">
 <li><dl class="simple">
@@ -318,7 +231,7 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.sftp_path.SftpPath.glob_stat">
-<span class="sig-name descname"><span class="pre">glob_stat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pattern</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">FileEntry</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.glob_stat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.glob_stat" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">glob_stat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pattern</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">FileEntry</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.glob_stat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.glob_stat" title="Permalink to this definition"></a></dt>
 <dd><p>Return a list contains tuples of path and file stat, in ascending alphabetical order, in which path matches glob pattern</p>
 <ol class="arabic simple">
 <li><dl class="simple">
@@ -352,7 +265,7 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.sftp_path.SftpPath.iglob">
-<span class="sig-name descname"><span class="pre">iglob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pattern</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#megfile.sftp_path.SftpPath" title="megfile.sftp_path.SftpPath"><span class="pre">SftpPath</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.iglob"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.iglob" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">iglob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pattern</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#megfile.sftp_path.SftpPath" title="megfile.sftp_path.SftpPath"><span class="pre">SftpPath</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.iglob"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.iglob" title="Permalink to this definition"></a></dt>
 <dd><p>Return path iterator in ascending alphabetical order, in which path matches glob pattern</p>
 <ol class="arabic simple">
 <li><dl class="simple">
@@ -386,7 +299,7 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.sftp_path.SftpPath.is_dir">
-<span class="sig-name descname"><span class="pre">is_dir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.is_dir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.is_dir" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">is_dir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.is_dir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.is_dir" title="Permalink to this definition"></a></dt>
 <dd><p>Test if a path is directory</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -404,7 +317,7 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.sftp_path.SftpPath.is_file">
-<span class="sig-name descname"><span class="pre">is_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.is_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.is_file" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">is_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.is_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.is_file" title="Permalink to this definition"></a></dt>
 <dd><p>Test if a path is file</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -422,7 +335,7 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.sftp_path.SftpPath.is_symlink">
-<span class="sig-name descname"><span class="pre">is_symlink</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.is_symlink"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.is_symlink" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">is_symlink</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.is_symlink"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.is_symlink" title="Permalink to this definition"></a></dt>
 <dd><p>Test whether a path is a symbolic link</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -436,7 +349,7 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.sftp_path.SftpPath.iterdir">
-<span class="sig-name descname"><span class="pre">iterdir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#megfile.sftp_path.SftpPath" title="megfile.sftp_path.SftpPath"><span class="pre">SftpPath</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.iterdir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.iterdir" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">iterdir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#megfile.sftp_path.SftpPath" title="megfile.sftp_path.SftpPath"><span class="pre">SftpPath</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.iterdir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.iterdir" title="Permalink to this definition"></a></dt>
 <dd><p>Get all contents of given sftp path. The result is in acsending alphabetical order.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -447,7 +360,7 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.sftp_path.SftpPath.listdir">
-<span class="sig-name descname"><span class="pre">listdir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.listdir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.listdir" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">listdir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.listdir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.listdir" title="Permalink to this definition"></a></dt>
 <dd><p>Get all contents of given sftp path. The result is in acsending alphabetical order.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -458,7 +371,7 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.sftp_path.SftpPath.load">
-<span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">BinaryIO</span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.load" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">BinaryIO</span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.load" title="Permalink to this definition"></a></dt>
 <dd><p>Read all content on specified path and write into memory</p>
 <p>User should close the BinaryIO manually</p>
 <dl class="field-list simple">
@@ -470,7 +383,7 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.sftp_path.SftpPath.lstat">
-<span class="sig-name descname"><span class="pre">lstat</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="megfile.fs.html#megfile.fs.StatResult" title="megfile.pathlike.StatResult"><span class="pre">StatResult</span></a></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.lstat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.lstat" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">lstat</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="megfile.fs.html#megfile.fs.StatResult" title="megfile.pathlike.StatResult"><span class="pre">StatResult</span></a></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.lstat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.lstat" title="Permalink to this definition"></a></dt>
 <dd><p>Get StatResult of file on sftp, including file size and mtime, referring to fs_getsize and fs_getmtime</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -481,7 +394,7 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.sftp_path.SftpPath.md5">
-<span class="sig-name descname"><span class="pre">md5</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">recalculate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.md5"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.md5" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">md5</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">recalculate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.md5"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.md5" title="Permalink to this definition"></a></dt>
 <dd><p>Calculate the md5 value of the file</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -496,7 +409,7 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.sftp_path.SftpPath.mkdir">
-<span class="sig-name descname"><span class="pre">mkdir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">511</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parents</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exist_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.mkdir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.mkdir" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">mkdir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">511</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parents</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exist_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.mkdir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.mkdir" title="Permalink to this definition"></a></dt>
 <dd><p>make a directory on sftp, including parent directory</p>
 <p>If there exists a file on the path, raise FileExistsError</p>
 <dl class="field-list simple">
@@ -514,25 +427,25 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.sftp_path.SftpPath.open">
-<span class="sig-name descname"><span class="pre">open</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'r'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffering</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">IO</span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.open"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.open" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">open</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'r'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffering</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">IO</span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.open"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.open" title="Permalink to this definition"></a></dt>
 <dd><p>Open the file with mode.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="megfile.sftp_path.SftpPath.protocol">
-<span class="sig-name descname"><span class="pre">protocol</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'sftp'</span></em><a class="headerlink" href="#megfile.sftp_path.SftpPath.protocol" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">protocol</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'sftp'</span></em><a class="headerlink" href="#megfile.sftp_path.SftpPath.protocol" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.sftp_path.SftpPath.readlink">
-<span class="sig-name descname"><span class="pre">readlink</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#megfile.sftp_path.SftpPath" title="megfile.sftp_path.SftpPath"><span class="pre">SftpPath</span></a></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.readlink"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.readlink" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">readlink</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#megfile.sftp_path.SftpPath" title="megfile.sftp_path.SftpPath"><span class="pre">SftpPath</span></a></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.readlink"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.readlink" title="Permalink to this definition"></a></dt>
 <dd><p>Return a SftpPath instance representing the path to which the symbolic link points.
 :returns: Return a SftpPath instance representing the path to which the symbolic link points.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.sftp_path.SftpPath.realpath">
-<span class="sig-name descname"><span class="pre">realpath</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.realpath"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.realpath" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">realpath</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.realpath"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.realpath" title="Permalink to this definition"></a></dt>
 <dd><p>Return the real path of given path</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -543,7 +456,7 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.sftp_path.SftpPath.remove">
-<span class="sig-name descname"><span class="pre">remove</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">missing_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.remove"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.remove" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">remove</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">missing_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.remove"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.remove" title="Permalink to this definition"></a></dt>
 <dd><p>Remove the file or directory on sftp</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -554,7 +467,7 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.sftp_path.SftpPath.rename">
-<span class="sig-name descname"><span class="pre">rename</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dst_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#megfile.sftp_path.SftpPath" title="megfile.sftp_path.SftpPath"><span class="pre">SftpPath</span></a></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.rename"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.rename" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">rename</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dst_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#megfile.sftp_path.SftpPath" title="megfile.sftp_path.SftpPath"><span class="pre">SftpPath</span></a></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.rename"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.rename" title="Permalink to this definition"></a></dt>
 <dd><p>rename file on sftp</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -565,7 +478,7 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.sftp_path.SftpPath.replace">
-<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dst_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#megfile.sftp_path.SftpPath" title="megfile.sftp_path.SftpPath"><span class="pre">SftpPath</span></a></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.replace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.replace" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dst_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#megfile.sftp_path.SftpPath" title="megfile.sftp_path.SftpPath"><span class="pre">SftpPath</span></a></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.replace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.replace" title="Permalink to this definition"></a></dt>
 <dd><p>move file on sftp</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -576,7 +489,7 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.sftp_path.SftpPath.resolve">
-<span class="sig-name descname"><span class="pre">resolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">strict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#megfile.sftp_path.SftpPath" title="megfile.sftp_path.SftpPath"><span class="pre">SftpPath</span></a></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.resolve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.resolve" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">resolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">strict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#megfile.sftp_path.SftpPath" title="megfile.sftp_path.SftpPath"><span class="pre">SftpPath</span></a></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.resolve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.resolve" title="Permalink to this definition"></a></dt>
 <dd><p>Equal to sftp_realpath</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -593,13 +506,13 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.sftp_path.SftpPath.rmdir">
-<span class="sig-name descname"><span class="pre">rmdir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.rmdir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.rmdir" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">rmdir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.rmdir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.rmdir" title="Permalink to this definition"></a></dt>
 <dd><p>Remove this directory. The directory must be empty.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.sftp_path.SftpPath.save">
-<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_object</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">BinaryIO</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.save" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_object</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">BinaryIO</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.save" title="Permalink to this definition"></a></dt>
 <dd><p>Write the opened binary stream to path
 If parent directory of path doesn’t exist, it will be created.</p>
 <dl class="field-list simple">
@@ -611,7 +524,7 @@ If parent directory of path doesn’t exist, it will be created.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.sftp_path.SftpPath.scan">
-<span class="sig-name descname"><span class="pre">scan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">missing_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.scan"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.scan" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">scan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">missing_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.scan"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.scan" title="Permalink to this definition"></a></dt>
 <dd><p>Iteratively traverse only files in given directory, in alphabetical order.
 Every iteration on generator yields a path string.</p>
 <p>If path is a file path, yields the file only
@@ -629,7 +542,7 @@ If path is a bucket path, return all file paths in the bucket</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.sftp_path.SftpPath.scan_stat">
-<span class="sig-name descname"><span class="pre">scan_stat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">missing_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">FileEntry</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.scan_stat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.scan_stat" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">scan_stat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">missing_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">FileEntry</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.scan_stat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.scan_stat" title="Permalink to this definition"></a></dt>
 <dd><p>Iteratively traverse only files in given directory, in alphabetical order.
 Every iteration on generator yields a tuple of path string and file stat</p>
 <dl class="field-list simple">
@@ -644,7 +557,7 @@ Every iteration on generator yields a tuple of path string and file stat</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.sftp_path.SftpPath.scandir">
-<span class="sig-name descname"><span class="pre">scandir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">FileEntry</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.scandir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.scandir" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">scandir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">FileEntry</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.scandir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.scandir" title="Permalink to this definition"></a></dt>
 <dd><p>Get all content of given file path.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -655,7 +568,7 @@ Every iteration on generator yields a tuple of path string and file stat</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.sftp_path.SftpPath.stat">
-<span class="sig-name descname"><span class="pre">stat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">follow_symlinks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="megfile.fs.html#megfile.fs.StatResult" title="megfile.pathlike.StatResult"><span class="pre">StatResult</span></a></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.stat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.stat" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">stat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">follow_symlinks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="megfile.fs.html#megfile.fs.StatResult" title="megfile.pathlike.StatResult"><span class="pre">StatResult</span></a></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.stat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.stat" title="Permalink to this definition"></a></dt>
 <dd><p>Get StatResult of file on sftp, including file size and mtime, referring to fs_getsize and fs_getmtime</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -666,7 +579,7 @@ Every iteration on generator yields a tuple of path string and file stat</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.sftp_path.SftpPath.symlink">
-<span class="sig-name descname"><span class="pre">symlink</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dst_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.symlink"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.symlink" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">symlink</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dst_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.symlink"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.symlink" title="Permalink to this definition"></a></dt>
 <dd><p>Create a symbolic link pointing to src_path named dst_path.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -677,7 +590,7 @@ Every iteration on generator yields a tuple of path string and file stat</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.sftp_path.SftpPath.sync">
-<span class="sig-name descname"><span class="pre">sync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dst_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.sync"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.sync" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">sync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dst_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.sync"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.sync" title="Permalink to this definition"></a></dt>
 <dd><p>Copy file/directory on src_url to dst_url</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -688,7 +601,7 @@ Every iteration on generator yields a tuple of path string and file stat</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.sftp_path.SftpPath.unlink">
-<span class="sig-name descname"><span class="pre">unlink</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">missing_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.unlink"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.unlink" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">unlink</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">missing_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.unlink"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.unlink" title="Permalink to this definition"></a></dt>
 <dd><p>Remove the file on sftp</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -699,7 +612,7 @@ Every iteration on generator yields a tuple of path string and file stat</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.sftp_path.SftpPath.walk">
-<span class="sig-name descname"><span class="pre">walk</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.walk"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.walk" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">walk</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.walk"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.walk" title="Permalink to this definition"></a></dt>
 <dd><p>Generate the file names in a directory tree by walking the tree top-down.
 For each directory in the tree rooted at directory path (including path itself),
 it yields a 3-tuple (root, dirs, files).</p>
@@ -727,50 +640,33 @@ files: name list of non-directory files (link is regarded as file) in ‘root’
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="cli.html" class="btn btn-neutral float-right" title="Command Line Interface" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="megfile.sftp.html" class="btn btn-neutral float-left" title="megfile.sftp module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="cli.html" class="btn btn-neutral float-right" title="Command Line Interface" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2019, r-eng.
-
-    </p>
+    <p>&#169; Copyright 2019, r-eng.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>
