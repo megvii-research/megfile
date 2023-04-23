@@ -1,3 +1,4 @@
+import logging
 import os
 import shutil
 import sys
@@ -13,6 +14,8 @@ from megfile.smart import smart_copy, smart_getmd5, smart_getmtime, smart_getsiz
 from megfile.smart_path import SmartPath
 from megfile.utils import get_human_size
 from megfile.version import VERSION
+
+logging.basicConfig(level=logging.INFO)
 
 
 @click.group()
