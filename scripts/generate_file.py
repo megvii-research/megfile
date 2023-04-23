@@ -198,7 +198,7 @@ def get_methods_from_path_file(current_file_type: str):
                 elif annotation_start is True:
                     annotation_lines.append(line[4:].rstrip())
                 elif line.startswith("    def"):
-                    if line.strip().endswith(":"):
+                    if line.rsplit('#', maxsplit=1)[0].strip().endswith(":"):
                         func_start = False
                     else:
                         func_start = True

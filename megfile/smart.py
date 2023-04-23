@@ -405,7 +405,8 @@ def smart_sync(
                     callback_after_copy_file=callback_after_copy_file,
                 )
 
-    list(map_func(_smart_sync_single_file, create_generator()))
+    for _ in map_func(_smart_sync_single_file, create_generator()):
+        pass
 
 
 def smart_sync_with_progress(
