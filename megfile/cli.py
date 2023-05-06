@@ -15,7 +15,8 @@ from megfile.smart_path import SmartPath
 from megfile.utils import get_human_size
 from megfile.version import VERSION
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.ERROR)
+logging.getLogger('megfile').setLevel(level=logging.INFO)
 
 
 @click.group()

@@ -130,6 +130,7 @@ def get_scoped_config(profile_name: Optional[str] = None) -> Dict:
         profile_name=profile_name)._session.get_scoped_config()
 
 
+@lru_cache()
 def get_endpoint_url(profile_name: Optional[str] = None) -> str:
     '''Get the endpoint url of S3
 
