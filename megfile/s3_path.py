@@ -131,6 +131,10 @@ def get_scoped_config(profile_name: Optional[str] = None) -> Dict:
 
 
 @lru_cache()
+def warning_endpoint_url(key: str, endpoint_url: str):
+    _logger.info("using %s: %s" % (key, endpoint_url))
+
+
 def get_endpoint_url(profile_name: Optional[str] = None) -> str:
     '''Get the endpoint url of S3
 
@@ -140,14 +144,13 @@ def get_endpoint_url(profile_name: Optional[str] = None) -> str:
     ) if profile_name else 'OSS_ENDPOINT'
     environ_endpoint_url = os.environ.get(environ_key)
     if environ_endpoint_url:
-        _logger.info("using %s: %s" % (environ_key, environ_endpoint_url))
+        warning_endpoint_url(environ_key, environ_endpoint_url)
         return environ_endpoint_url
     try:
         config_endpoint_url = get_scoped_config(profile_name=profile_name).get(
             's3', {}).get('endpoint_url')
         if config_endpoint_url:
-            _logger.info(
-                "using ~/.aws/config: endpoint_url=%s" % config_endpoint_url)
+            warning_endpoint_url('~/.aws/config', config_endpoint_url)
             return config_endpoint_url
     except botocore.exceptions.ProfileNotFound:  # pragma: no cover
         pass
