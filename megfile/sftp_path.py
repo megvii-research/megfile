@@ -2,6 +2,7 @@ import atexit
 import hashlib
 import io
 import os
+import shlex
 import subprocess
 from functools import lru_cache
 from logging import getLogger as get_logger
@@ -930,7 +931,7 @@ class SftpPath(URIPath):
         chan.settimeout(timeout)
         if environment:
             chan.update_environment(environment)
-        chan.exec_command(" ".join(command))
+        chan.exec_command(' '.join(shlex.quote(arg) for arg in command))
         stdout = chan.makefile("r", bufsize)
         stderr = chan.makefile_stderr("r", bufsize)
         return subprocess.CompletedProcess(
