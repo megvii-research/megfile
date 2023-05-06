@@ -16,7 +16,7 @@ import pytest
 from moto import mock_s3
 
 from megfile import s3, s3_path, smart
-from megfile.errors import S3BucketNotFoundError, S3FileNotFoundError, S3IsADirectoryError, S3NameTooLongError, S3NotALinkError, S3UnknownError, UnknownError, UnsupportedError, translate_s3_error
+from megfile.errors import S3BucketNotFoundError, S3FileNotFoundError, S3IsADirectoryError, S3NameTooLongError, S3NotALinkError, S3PermissionError, S3UnknownError, UnknownError, UnsupportedError, translate_s3_error
 from megfile.interfaces import Access, FileEntry, StatResult
 from megfile.s3_path import DEFAULT_MAX_BUFFER_SIZE, S3CachedHandler, S3MemoryHandler, _group_s3path_by_bucket, _group_s3path_by_prefix, _list_objects_recursive, _parse_s3_url_ignore_brace, _patch_make_request, _s3_split_magic, _s3_split_magic_ignore_brace
 
@@ -3033,6 +3033,21 @@ def test_isfile_symlink(s3_empty_client):
     s3.s3_rename(src_url, 's3://bucket/src_new')
     assert s3.s3_isfile(dst_url, followlinks=True) is False
     assert s3.s3_isfile(dst_dst_url, followlinks=True) is False
+
+
+def test__s3_get_metadata(mocker):
+
+    class FakeClient:
+
+        def head_object(self, *args, **kwargs):
+            raise botocore.exceptions.ClientError(
+                error_response=dict(Error=dict(Code='403')),
+                operation_name='head_object')
+
+    mocker.patch('megfile.s3_path.get_s3_client', return_value=FakeClient())
+
+    with pytest.raises(S3PermissionError):
+        s3_path.S3Path('s3://bucket/key')._s3_get_metadata() == {}
 
 
 def test_symlink_relevant_functions(s3_empty_client, fs):
