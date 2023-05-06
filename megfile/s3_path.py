@@ -1223,7 +1223,10 @@ class S3Path(URIPath):
                 resp = self._client.head_object(Bucket=bucket, Key=key)
             return dict(
                 (key.lower(), value) for key, value in resp['Metadata'].items())
-        except Exception:
+        except Exception as error:
+            if isinstance(error,
+                          (S3UnknownError, S3ConfigError, S3PermissionError)):
+                raise error
             return {}
 
     def access(
@@ -1403,7 +1406,8 @@ class S3Path(URIPath):
                 Bucket=bucket, Prefix=prefix, Delimiter='/', MaxKeys=1)
         except Exception as error:
             error = translate_s3_error(error, self.path_with_protocol)
-            if isinstance(error, (S3UnknownError, S3ConfigError)):
+            if isinstance(error,
+                          (S3UnknownError, S3ConfigError, S3PermissionError)):
                 raise error
             return False
 
@@ -1436,7 +1440,8 @@ class S3Path(URIPath):
             self._client.head_object(Bucket=bucket, Key=key)
         except Exception as error:
             error = translate_s3_error(error, s3_url)
-            if isinstance(error, (S3UnknownError, S3ConfigError)):
+            if isinstance(error,
+                          (S3UnknownError, S3ConfigError, S3PermissionError)):
                 raise error
             return False
         return True
@@ -1500,7 +1505,8 @@ class S3Path(URIPath):
             self._client.head_bucket(Bucket=bucket)
         except Exception as error:
             error = translate_s3_error(error, self.path_with_protocol)
-            if isinstance(error, (S3UnknownError, S3ConfigError)):
+            if isinstance(error,
+                          (S3UnknownError, S3ConfigError, S3PermissionError)):
                 raise error
             if isinstance(error, S3FileNotFoundError):
                 return False
