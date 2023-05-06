@@ -58,11 +58,11 @@ class ShadowHandler(Readable, Seekable, Writable, BaseShadowHandler):
     def readable(self) -> bool:
         return is_readable(self._file_object)
 
-    def read(self, size: Optional[int] = None) -> AnyStr:  # pytype: disable=signature-mismatch
+    def read(self, size: int = -1) -> AnyStr:  # pytype: disable=signature-mismatch
         with self._ensure_offset():
             return self._file_object.read(size)
 
-    def readline(self, size: Optional[int] = None) -> AnyStr:  # pytype: disable=signature-mismatch
+    def readline(self, size: int = -1) -> AnyStr:  # pytype: disable=signature-mismatch
         with self._ensure_offset():
             return self._file_object.readline(size)
 

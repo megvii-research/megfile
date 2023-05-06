@@ -93,13 +93,13 @@ class S3PipeHandler(Readable, Writable):
     def readable(self) -> bool:
         return self._mode == 'rb'
 
-    def read(self, size: Optional[int] = None) -> bytes:
+    def read(self, size: int = -1) -> bytes:
         self._raise_exception()
         data = self._fileobj.read(size)
         self._offset += len(data)
         return data
 
-    def readline(self, size: Optional[int] = None) -> bytes:
+    def readline(self, size: int = -1) -> bytes:
         self._raise_exception()
         data = self._fileobj.readline(size)
         self._offset += len(data)

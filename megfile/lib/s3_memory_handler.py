@@ -37,12 +37,12 @@ class S3MemoryHandler(Readable, Seekable, Writable):
     def readable(self) -> bool:
         return self._mode[0] == 'r' or self._mode[-1] == '+'
 
-    def read(self, size: Optional[int] = None) -> bytes:
+    def read(self, size: int = -1) -> bytes:
         if not self.readable():
             raise UnsupportedOperation('not readable')
         return self._fileobj.read(size)
 
-    def readline(self, size: Optional[int] = None) -> bytes:
+    def readline(self, size: int = -1) -> bytes:
         if not self.readable():
             raise UnsupportedOperation('not readable')
         return self._fileobj.readline(size)

@@ -167,7 +167,7 @@ class S3PrefetchReader(Readable, Seekable):
         self._seek_buffer(block_index, block_offset)
         return self._offset
 
-    def read(self, size: Optional[int] = None) -> bytes:
+    def read(self, size: int = -1) -> bytes:
         '''Read at most size bytes, returned as a bytes object.
 
         If the size argument is negative, read until EOF is reached.
@@ -214,7 +214,7 @@ class S3PrefetchReader(Readable, Seekable):
         self._offset += buffer.tell()
         return buffer.getvalue()
 
-    def readline(self, size: Optional[int] = None) -> bytes:
+    def readline(self, size: int = -1) -> bytes:
         '''Next line from the file, as a bytes object.
 
         Retain newline.  A non-negative size argument limits the maximum

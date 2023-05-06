@@ -40,10 +40,10 @@ class STDReader(STDHandler, Readable):
     def name(self) -> str:
         return "stdin"
 
-    def read(self, size: Optional[int] = None) -> AnyStr:  # pytype: disable=signature-mismatch
+    def read(self, size: int = -1) -> AnyStr:  # pytype: disable=signature-mismatch
         return self._handler.read(size)
 
-    def readline(self, size: Optional[int] = None) -> AnyStr:  # pytype: disable=signature-mismatch
+    def readline(self, size: int = -1) -> AnyStr:  # pytype: disable=signature-mismatch
         return self._handler.readline()
 
 
