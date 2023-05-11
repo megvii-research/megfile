@@ -879,16 +879,13 @@ class SftpPath(URIPath):
 
     def open(self, mode: str = 'r', buffering=-1, **kwargs) -> IO[AnyStr]:  # pytype: disable=signature-mismatch
         if 'w' in mode or 'x' in mode or 'a' in mode:
-            try:
-                if self.is_dir():
-                    raise IsADirectoryError(
-                        'Is a directory: %r' % self.path_with_protocol)
-            except FileNotFoundError:
-                pass
+            if self.is_dir():
+                raise IsADirectoryError(
+                    'Is a directory: %r' % self.path_with_protocol)
             self.parent.mkdir(parents=True, exist_ok=True)
-        elif not self.is_file():
-            raise IsADirectoryError(
-                'Is a directory: %r' % self.path_with_protocol)
+        elif not self.exists():
+            raise FileNotFoundError(
+                'No such file: %r' % self.path_with_protocol)
         fileobj = self._client.open(self._real_path, mode, bufsize=buffering)
         if 'r' in mode and 'b' not in mode:
             return io.TextIOWrapper(fileobj)  # type: ignore
