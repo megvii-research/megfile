@@ -48,6 +48,8 @@ class FakeSFTPClient:
     unlink = remove
 
     def rename(self, oldpath, newpath):
+        if os.path.exists(newpath):
+            raise OSError
         os.rename(oldpath, newpath)
 
     def posix_rename(self, oldpath, newpath):
@@ -394,6 +396,12 @@ def test_sftp_rename(sftp_mocker):
     sftp.sftp_rename('sftp://username@host/A2', 'sftp://username2@host2/A')
     assert sftp.sftp_exists('sftp://username@host/A2/test') is False
     assert sftp.sftp_exists('sftp://username2@host2/A/test') is True
+
+    with sftp.sftp_open('sftp://username@host/A/test2', 'w') as f:
+        f.write('test2')
+    with pytest.raises(FileExistsError):
+        sftp.sftp_rename(
+            'sftp://username@host/A/test2', 'sftp://username@host/A/test')
 
 
 def test_sftp_move(sftp_mocker):
