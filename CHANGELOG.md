@@ -1,3 +1,11 @@
+## 2.0.5 - 2023.05.11
+- feat
+    - support python 3.11
+- perf
+    - cli support s3 log
+- fix
+    - fix `is_dir` and `is_file` of `SftpPath` when file not found
+
 ## 2.0.4 - 2023.04.12
 - feat
     - s3 path support custom profile name, like `s3[+profile_name]://bucket/key`
