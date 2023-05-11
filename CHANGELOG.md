@@ -1,3 +1,7 @@
+## 2.0.5.post1 - 2023.05.11
+- fix
+    - fix `SftpPath.rename` error log
+
 ## 2.0.5 - 2023.05.11
 - feat
     - support python 3.11
