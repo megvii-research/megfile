@@ -14,7 +14,7 @@ mock
 junit-xml ~= 1.9
 
 # doc
-Sphinx >= 4.0.0
+Sphinx ~= 5.0.0
 m2r2
 sphinx-rtd-theme
 sphinxcontrib-jquery
