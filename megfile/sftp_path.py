@@ -498,9 +498,12 @@ class SftpPath(URIPath):
         :returns: True if the path is a directory, else False
 
         '''
-        stat = self.stat(follow_symlinks=followlinks)
-        if S_ISDIR(stat.st_mode):
-            return True
+        try:
+            stat = self.stat(follow_symlinks=followlinks)
+            if S_ISDIR(stat.st_mode):
+                return True
+        except FileNotFoundError:
+            pass
         return False
 
     def is_file(self, followlinks: bool = False) -> bool:
@@ -515,9 +518,12 @@ class SftpPath(URIPath):
         :returns: True if the path is a file, else False
 
         '''
-        stat = self.stat(follow_symlinks=followlinks)
-        if S_ISREG(stat.st_mode):
-            return True
+        try:
+            stat = self.stat(follow_symlinks=followlinks)
+            if S_ISREG(stat.st_mode):
+                return True
+        except FileNotFoundError:
+            pass
         return False
 
     def listdir(self) -> List[str]:
