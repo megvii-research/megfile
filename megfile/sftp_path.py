@@ -608,7 +608,11 @@ class SftpPath(URIPath):
         '''
         dst_path = self.from_path(dst_path)
         if self._is_same_backend(dst_path):
-            self._client.rename(self._real_path, dst_path._real_path)
+            try:
+                self._client.rename(self._real_path, dst_path._real_path)
+            except OSError:
+                if dst_path.exists():
+                    raise FileExistsError('File exists: %s' % dst_path)
         else:
             if self.is_dir():
                 for file_entry in self.scandir():
@@ -969,10 +973,10 @@ class SftpPath(URIPath):
         if self._is_same_backend(dst_path):
             exec_result = self._exec_command(
                 ["cp", self._real_path, dst_path._real_path])
-            _logger.info(f"exec_result.returncode: {exec_result.returncode}")
             if exec_result.returncode != 0:  # pragma: no cover
                 _logger.error(exec_result.stderr)
-                raise OSError('Copy file error')
+                raise OSError(
+                    f'Copy file error, returncode: {exec_result.returncode}')
         else:
             with self.open('rb') as fsrc:
                 with dst_path.open('wb') as fdst:
