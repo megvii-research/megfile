@@ -118,7 +118,10 @@ def ssh_client_cache(func):
     def wrapper(*args, **kwargs):
         ssh_client = cached_func(*args, **kwargs)
         try:
-            session = ssh_client.get_transport().open_session(timeout=1)
+            transport = ssh_client.get_transport()
+            if not transport:
+                raise paramiko.SSHException
+            session = transport.open_session(timeout=1)
             session.close()
             return ssh_client
         except paramiko.SSHException:
