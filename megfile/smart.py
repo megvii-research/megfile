@@ -390,7 +390,8 @@ def smart_sync(
     src_path, dst_path = get_traditional_path(src_path), get_traditional_path(
         dst_path)
     if not src_file_stats:
-        src_file_stats = smart_scan_stat(src_path, followlinks=followlinks)
+        src_file_stats = smart_scan_stat(
+            src_path, missing_ok=False, followlinks=followlinks)
 
     def create_generator():
         for src_file_entry in src_file_stats:
@@ -418,7 +419,8 @@ def smart_sync_with_progress(
 ):  # pragma: no cover
     src_path, dst_path = get_traditional_path(src_path), get_traditional_path(
         dst_path)
-    file_stats = list(smart_scan_stat(src_path, followlinks=followlinks))
+    file_stats = list(
+        smart_scan_stat(src_path, missing_ok=False, followlinks=followlinks))
     tbar = tqdm(total=len(file_stats), ascii=True)
     sbar = tqdm(unit='B', ascii=True, unit_scale=True)
 
