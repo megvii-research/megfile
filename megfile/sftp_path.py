@@ -129,7 +129,8 @@ def get_ssh_session(
             ))
 
 
-def _get_ssh_session(ssh_client: paramiko.SSHClient) -> paramiko.Channel:
+def _get_ssh_session(
+        ssh_client: paramiko.SSHClient) -> paramiko.Channel:  # pragma: no cover
     transport = ssh_client.get_transport()
     if not transport:
         raise paramiko.SSHException
