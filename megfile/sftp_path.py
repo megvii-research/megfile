@@ -4,7 +4,7 @@ import io
 import os
 import shlex
 import subprocess
-from functools import lru_cache, wraps
+from functools import lru_cache
 from logging import getLogger as get_logger
 from stat import S_ISDIR, S_ISLNK, S_ISREG
 from typing import IO, AnyStr, BinaryIO, Callable, Iterator, List, Optional, Tuple
@@ -117,7 +117,6 @@ def get_ssh_session(
     try:
         return _get_ssh_session(ssh_client)
     except paramiko.SSHException:
-        _logger.warning("Reconnecting SSH connection")
         ssh_client.close()
         atexit.unregister(ssh_client.close)
         get_ssh_client.cache_clear()
