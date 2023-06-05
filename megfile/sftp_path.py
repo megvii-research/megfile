@@ -43,6 +43,7 @@ SFTP_PASSWORD = "SFTP_PASSWORD"
 SFTP_PRIVATE_KEY_PATH = "SFTP_PRIVATE_KEY_PATH"
 SFTP_PRIVATE_KEY_TYPE = "SFTP_PRIVATE_KEY_TYPE"
 SFTP_PRIVATE_KEY_PASSWORD = "SFTP_PRIVATE_KEY_PASSWORD"
+DEFAULT_SSH_CONNECT_TIMEOUT = 5
 
 
 def _make_stat(stat: paramiko.SFTPAttributes) -> StatResult:
@@ -99,41 +100,45 @@ def get_sftp_client(
 
     :returns: sftp client
     '''
+    session = get_ssh_session(hostname, port, username, password)
+    if session is None:
+        raise OSError("SSH connection failed")
+    session.invoke_subsystem("sftp")
+    return paramiko.SFTPClient(session)
+
+
+def get_ssh_session(
+        hostname: str,
+        port: Optional[int] = None,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+) -> paramiko.Channel:  # pragma: no cover
     ssh_client = get_ssh_client(hostname, port, username, password)
-    return ssh_client.open_sftp()
+    try:
+        return _get_ssh_session(ssh_client)
+    except paramiko.SSHException:
+        _logger.warning("Reconnecting SSH connection")
+        ssh_client.close()
+        atexit.unregister(ssh_client.close)
+        get_ssh_client.cache_clear()
+        return _get_ssh_session(
+            get_ssh_client(
+                hostname=hostname,
+                port=port,
+                username=username,
+                password=password,
+            ))
 
 
-def ssh_client_cache(func):
-    """
-    Decorator function that caches and returns an SSH client for a given function.
-    The function passed to this decorator is wrapped with the LRU cache function
-    from the functools module. This wrapper function then returns a new function
-    that will either return the cached SSH client if it is still alive, or create
-    a new connection if the cached client has died. The wrapper function will
-    return the SSH client object. 
-    """
-    cached_func = lru_cache()(func)
-
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        ssh_client = cached_func(*args, **kwargs)
-        try:
-            transport = ssh_client.get_transport()
-            if not transport:
-                raise paramiko.SSHException
-            session = transport.open_session(timeout=1)
-            session.close()
-            return ssh_client
-        except paramiko.SSHException:
-            ssh_client.close()
-            atexit.unregister(ssh_client.close)
-            cached_func.cache_clear()
-            return cached_func(*args, **kwargs)
-
-    return wrapper
+def _get_ssh_session(ssh_client: paramiko.SSHClient) -> paramiko.Channel:
+    transport = ssh_client.get_transport()
+    if not transport:
+        raise paramiko.SSHException
+    session = transport.open_session(timeout=DEFAULT_SSH_CONNECT_TIMEOUT)
+    return session
 
 
-@ssh_client_cache
+@lru_cache()
 def get_ssh_client(
         hostname: str,
         port: Optional[int] = None,
@@ -970,27 +975,21 @@ class SftpPath(URIPath):
             timeout: Optional[int] = None,
             environment: Optional[dict] = None,
     ) -> subprocess.CompletedProcess:  # pragma: no cover
-        ssh_client = get_ssh_client(
-            hostname=self._urlsplit_parts.hostname,
-            port=self._urlsplit_parts.port,
-            username=self._urlsplit_parts.username,
-            password=self._urlsplit_parts.password,
-        )
-        transport = ssh_client.get_transport()
-        if not transport:
-            raise OSError(f"SSH client error: {self.path_with_protocol}")
-        with transport.open_session(timeout=timeout) as chan:
+        with get_ssh_session(
+                hostname=self._urlsplit_parts.hostname,
+                port=self._urlsplit_parts.port,
+                username=self._urlsplit_parts.username,
+                password=self._urlsplit_parts.password,
+        ) as chan:
             chan.settimeout(timeout)
             if environment:
                 chan.update_environment(environment)
             chan.exec_command(' '.join(shlex.quote(arg) for arg in command))
             stdout = chan.makefile("r", bufsize)
             stderr = chan.makefile_stderr("r", bufsize)
+            returncode = chan.recv_exit_status()
         return subprocess.CompletedProcess(
-            args=command,
-            returncode=chan.recv_exit_status(),
-            stdout=stdout,
-            stderr=stderr)
+            args=command, returncode=returncode, stdout=stdout, stderr=stderr)
 
     def copy(
             self,
