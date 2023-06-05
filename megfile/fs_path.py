@@ -546,10 +546,12 @@ class FSPath(URIPath):
         :param missing_ok: If False and there's no file in the directory, raise FileNotFoundError
         :returns: A file path generator
         '''
+        file_not_found = True
         for path in self._scan(followlinks=followlinks):
             yield FileEntry(
                 os.path.basename(path), path, _make_stat(os.lstat(path)))
-        else:
+            file_not_found = False
+        if file_not_found:
             if missing_ok:
                 return
             raise FileNotFoundError(
