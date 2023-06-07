@@ -12,7 +12,7 @@ from urllib.parse import urlsplit, urlunsplit
 
 import paramiko
 
-from megfile.errors import _create_missing_ok_generator
+from megfile.errors import _create_missing_ok_generator, patch_method
 from megfile.interfaces import ContextIterator, FileEntry, PathLike, StatResult
 from megfile.lib.glob import FSFunc, iglob
 from megfile.lib.joinpath import uri_join
@@ -43,6 +43,8 @@ SFTP_PASSWORD = "SFTP_PASSWORD"
 SFTP_PRIVATE_KEY_PATH = "SFTP_PRIVATE_KEY_PATH"
 SFTP_PRIVATE_KEY_TYPE = "SFTP_PRIVATE_KEY_TYPE"
 SFTP_PRIVATE_KEY_PASSWORD = "SFTP_PRIVATE_KEY_PASSWORD"
+MAX_RETRIES = 10
+DEFAULT_SSH_CONNECT_TIMEOUT = 5
 
 
 def _make_stat(stat: paramiko.SFTPAttributes) -> StatResult:
@@ -89,6 +91,46 @@ def provide_connect_info(
     return hostname, port, username, password, private_key
 
 
+def sftp_should_retry(error: Exception) -> bool:
+    if isinstance(error, paramiko.ssh_exception.SSHException):
+        return True
+    elif isinstance(error, OSError) and str(error) == 'Socket is closed':
+        return True
+    return False
+
+
+def _patch_sftp_client_request(
+        client: paramiko.SFTPClient,
+        hostname: str,
+        port: Optional[int] = None,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+):
+
+    def retry_callback(error, *args, **kwargs):
+        client.close()
+        ssh_client = get_ssh_client(hostname, port, username, password)
+        ssh_client.close()
+        atexit.unregister(ssh_client.close)
+        get_sftp_client.cache_clear()
+        get_ssh_client.cache_clear()
+
+        new_sftp_client = get_sftp_client(
+            hostname=hostname,
+            port=port,
+            username=username,
+            password=password,
+        )
+        client.sock = new_sftp_client.sock
+
+    client._request = patch_method(
+        client._request,
+        max_retries=MAX_RETRIES,
+        should_retry=sftp_should_retry,
+        retry_callback=retry_callback)
+    return client
+
+
 @lru_cache()
 def get_sftp_client(
         hostname: str,
@@ -101,7 +143,9 @@ def get_sftp_client(
     :returns: sftp client
     '''
     ssh_client = get_ssh_client(hostname, port, username, password)
-    return ssh_client.open_sftp()
+    sftp_client = ssh_client.open_sftp()
+    _patch_sftp_client_request(sftp_client, hostname, port, username, password)
+    return sftp_client
 
 
 @lru_cache()
@@ -128,6 +172,37 @@ def get_ssh_client(
     )
     atexit.register(ssh_client.close)
     return ssh_client
+
+
+def get_ssh_session(
+        hostname: str,
+        port: Optional[int] = None,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+) -> paramiko.Channel:  # pragma: no cover
+    ssh_client = get_ssh_client(hostname, port, username, password)
+    try:
+        return _open_session(ssh_client)
+    except paramiko.SSHException:
+        ssh_client.close()
+        atexit.unregister(ssh_client.close)
+        get_ssh_client.cache_clear()
+        return _open_session(
+            get_ssh_client(
+                hostname=hostname,
+                port=port,
+                username=username,
+                password=password,
+            ))
+
+
+def _open_session(
+        ssh_client: paramiko.SSHClient) -> paramiko.Channel:  # pragma: no cover
+    transport = ssh_client.get_transport()
+    if not transport:
+        raise paramiko.SSHException
+    session = transport.open_session(timeout=DEFAULT_SSH_CONNECT_TIMEOUT)
+    return session
 
 
 def is_sftp(path: PathLike) -> bool:
@@ -925,27 +1000,21 @@ class SftpPath(URIPath):
             timeout: Optional[int] = None,
             environment: Optional[dict] = None,
     ) -> subprocess.CompletedProcess:  # pragma: no cover
-        ssh_client = get_ssh_client(
-            hostname=self._urlsplit_parts.hostname,
-            port=self._urlsplit_parts.port,
-            username=self._urlsplit_parts.username,
-            password=self._urlsplit_parts.password,
-        )
-        transport = ssh_client.get_transport()
-        if not transport:
-            raise OSError(f"SSH client error: {self.path_with_protocol}")
-        chan = transport.open_session(timeout=timeout)
-        chan.settimeout(timeout)
-        if environment:
-            chan.update_environment(environment)
-        chan.exec_command(' '.join(shlex.quote(arg) for arg in command))
-        stdout = chan.makefile("r", bufsize)
-        stderr = chan.makefile_stderr("r", bufsize)
+        with get_ssh_session(
+                hostname=self._urlsplit_parts.hostname,
+                port=self._urlsplit_parts.port,
+                username=self._urlsplit_parts.username,
+                password=self._urlsplit_parts.password,
+        ) as chan:
+            chan.settimeout(timeout)
+            if environment:
+                chan.update_environment(environment)
+            chan.exec_command(' '.join(shlex.quote(arg) for arg in command))
+            stdout = chan.makefile("r", bufsize)
+            stderr = chan.makefile_stderr("r", bufsize)
+            returncode = chan.recv_exit_status()
         return subprocess.CompletedProcess(
-            args=command,
-            returncode=chan.recv_exit_status(),
-            stdout=stdout,
-            stderr=stderr)
+            args=command, returncode=returncode, stdout=stdout, stderr=stderr)
 
     def copy(
             self,
