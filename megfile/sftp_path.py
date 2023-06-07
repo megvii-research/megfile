@@ -124,7 +124,7 @@ def _patch_sftp_client_request(
         client.sock = new_sftp_client.sock
 
     client._request = patch_method(
-        client._request,
+        client._request,  # pytype: disable=attribute-error
         max_retries=MAX_RETRIES,
         should_retry=sftp_should_retry,
         retry_callback=retry_callback)
