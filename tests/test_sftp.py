@@ -9,10 +9,14 @@ from typing import List, Optional
 import paramiko
 import pytest
 
-from megfile import sftp
+from megfile import sftp, sftp_path
 
 
 class FakeSFTPClient:
+
+    def __init__(self):
+        self._retry_times = 0
+        self.sock = None
 
     def __enter__(self):
         return self
@@ -126,6 +130,14 @@ class FakeSFTPClient:
         with io.open(localpath, "wb") as fl:
             self.getfo(remotepath, fl, callback, prefetch)
 
+    def _request(self, *args, **kwargs):
+        self._retry_times += 1
+        if self._retry_times <= 1:
+            raise OSError('Socket is closed')
+        elif self._retry_times <= 2:
+            raise paramiko.SSHException()
+        raise OSError('test error')
+
 
 def _fake_exec_command(
         command: List[str],
@@ -159,12 +171,21 @@ def _fake_exec_command(
 @pytest.fixture
 def sftp_mocker(fs, mocker):
     client = FakeSFTPClient()
+    sftp_path._patch_sftp_client_request(client, "")
     mocker.patch('megfile.sftp_path.get_sftp_client', return_value=client)
     mocker.patch('megfile.sftp_path.get_ssh_client', return_value=client)
     mocker.patch(
         'megfile.sftp_path.SftpPath._exec_command',
         side_effect=_fake_exec_command)
     yield client
+
+
+def test_sftp_retry(sftp_mocker):
+    client = sftp_path.get_ssh_client("")
+
+    with pytest.raises(OSError):
+        client._request()
+    assert client._retry_times > 2
 
 
 def test_is_sftp():
