@@ -646,7 +646,7 @@ def test_sftp_copy_with_different_host(sftp_mocker):
             'sftp://username@host2/A/2.json').size
 
 
-def test_sftp_sync(sftp_mocker):
+def test_sftp_sync(sftp_mocker, mocker):
     sftp.sftp_makedirs('sftp://username@host/A')
     with sftp.sftp_open('sftp://username@host/A/1.json', 'w') as f:
         f.write('1.json')
@@ -655,12 +655,19 @@ def test_sftp_sync(sftp_mocker):
     assert sftp.sftp_stat(
         'sftp://username@host/A/1.json').size == sftp.sftp_stat(
             'sftp://username@host/A2/1.json').size
+    assert sftp.sftp_stat(
+        'sftp://username@host/A/1.json').mtime == sftp.sftp_stat(
+            'sftp://username@host/A2/1.json').mtime
 
     sftp.sftp_sync(
         'sftp://username@host/A/1.json', 'sftp://username@host/A/1.json.bak')
     assert sftp.sftp_stat(
         'sftp://username@host/A/1.json').size == sftp.sftp_stat(
             'sftp://username@host/A/1.json.bak').size
+
+    func = mocker.patch('megfile.sftp_path.SftpPath.copy')
+    sftp.sftp_sync('sftp://username@host/A2', 'sftp://username@host/A')
+    assert func.call_count == 0
 
 
 def test_sftp_download(sftp_mocker):

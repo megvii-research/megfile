@@ -1,13 +1,16 @@
 import os
 from collections import defaultdict
 from functools import partial
+from stat import S_ISDIR as stat_isdir
+from stat import S_ISLNK as stat_islnk
 from typing import IO, Any, AnyStr, BinaryIO, Callable, Iterable, Iterator, List, Optional, Tuple
 
 from tqdm import tqdm
 
-from megfile.fs import fs_copy, fs_scandir
-from megfile.interfaces import Access, FileEntry, NullCacher, PathLike, StatResult
+from megfile.fs import fs_copy
+from megfile.interfaces import Access, ContextIterator, FileEntry, NullCacher, PathLike, StatResult
 from megfile.lib.combine_reader import CombineReader
+from megfile.lib.compare import get_sync_type, is_same_file
 from megfile.lib.compat import fspath
 from megfile.lib.glob import globlize, ungloblize
 from megfile.s3 import S3Cacher, is_s3, s3_concat, s3_copy, s3_download, s3_load_content, s3_open, s3_upload
@@ -136,7 +139,7 @@ def smart_listdir(path: Optional[PathLike] = None) -> List[str]:
     :returns: All contents of given s3_url or file path in acsending alphabetical order.
     :raises: FileNotFoundError, NotADirectoryError
     '''
-    if path is None:  # pragma: no cover
+    if path is None:
         return sorted(os.listdir(path))
     return SmartPath(path).listdir()
 
@@ -149,8 +152,24 @@ def smart_scandir(path: Optional[PathLike] = None) -> Iterator[FileEntry]:
     :returns: An iterator contains all contents have prefix path
     :raises: FileNotFoundError, NotADirectoryError
     '''
-    if path is None:  # pragma: no cover
-        return fs_scandir(path)
+    if path is None:
+
+        def create_generator():
+            with os.scandir(None) as entries:
+                for entry in entries:
+                    stat = entry.stat()
+                    yield FileEntry(
+                        entry.name, entry.path,
+                        StatResult(
+                            size=stat.st_size,
+                            ctime=stat.st_ctime,
+                            mtime=stat.st_mtime,
+                            isdir=stat_isdir(stat.st_mode),
+                            islnk=stat_islnk(stat.st_mode),
+                            extra=stat,
+                        ))
+
+        return ContextIterator(create_generator())
     return SmartPath(path).scandir()
 
 
@@ -262,6 +281,12 @@ def _default_copy_func(
                 if callback is None:
                     continue
                 callback(len(buf))
+    try:
+        src_stat = smart_stat(src_path)
+        dst_path = SmartPath(dst_path)
+        dst_path.utime(src_stat.st_atime, src_stat.st_mtime)
+    except NotImplementedError:
+        pass
 
 
 def smart_copy(
@@ -324,12 +349,25 @@ def _smart_sync_single_file(items: dict):
     else:
         # if content_path is empty, which means smart_isfile(src_path) is True, this function is equal to smart_copy
         dst_abs_file_path = dst_root_path
-    copy_callback = partial(callback, src_file_path) if callback else None
-    smart_copy(
-        src_file_path,
-        dst_abs_file_path,
-        callback=copy_callback,
-        followlinks=followlinks)
+
+    src_protocol, _ = SmartPath._extract_protocol(src_file_path)
+    dst_protocol, _ = SmartPath._extract_protocol(dst_abs_file_path)
+    should_sync = True
+    try:
+        if smart_exists(dst_abs_file_path) and is_same_file(
+                smart_stat(src_file_path), smart_stat(dst_abs_file_path),
+                get_sync_type(src_protocol, dst_protocol)):
+            should_sync = False
+    except NotImplementedError:  # pragma: no cover
+        pass
+
+    if should_sync:
+        copy_callback = partial(callback, src_file_path) if callback else None
+        smart_copy(
+            src_file_path,
+            dst_abs_file_path,
+            callback=copy_callback,
+            followlinks=followlinks)
     if callback_after_copy_file:
         callback_after_copy_file(src_file_path, dst_abs_file_path)
 
@@ -414,8 +452,7 @@ def smart_sync_with_progress(
         dst_path,
         callback: Optional[Callable[[str, int], None]] = None,
         followlinks: bool = False,
-        map_func: Callable[[Callable, Iterable], Iterator] = map
-):  # pragma: no cover
+        map_func: Callable[[Callable, Iterable], Iterator] = map):
     src_path, dst_path = get_traditional_path(src_path), get_traditional_path(
         dst_path)
     file_stats = list(smart_scan_stat(src_path, followlinks=followlinks))
@@ -425,7 +462,7 @@ def smart_sync_with_progress(
     def tqdm_callback(current_src_path, length: int):
         sbar.update(length)
         if callback:
-            callback(current_src_path, length)
+            callback(current_src_path, length)  # pragma: no cover
 
     def callback_after_copy_file(src_file_path, dst_file_path):
         tbar.update(1)
@@ -899,7 +936,7 @@ def smart_concat(src_paths: List[PathLike], dst_path: PathLike) -> None:
     :param src_paths: List of source paths
     :param dst_path: Destination path
     '''
-    if not src_paths:  # pragma: no cover
+    if not src_paths:
         return
 
     dst_protocol, _ = SmartPath._extract_protocol(dst_path)

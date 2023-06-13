@@ -7,13 +7,14 @@ import subprocess
 from functools import lru_cache
 from logging import getLogger as get_logger
 from stat import S_ISDIR, S_ISLNK, S_ISREG
-from typing import IO, AnyStr, BinaryIO, Callable, Iterator, List, Optional, Tuple
+from typing import IO, AnyStr, BinaryIO, Callable, Iterator, List, Optional, Tuple, Union
 from urllib.parse import urlsplit, urlunsplit
 
 import paramiko
 
 from megfile.errors import _create_missing_ok_generator
 from megfile.interfaces import ContextIterator, FileEntry, PathLike, StatResult
+from megfile.lib.compare import is_same_file
 from megfile.lib.glob import FSFunc, iglob
 from megfile.lib.joinpath import uri_join
 from megfile.utils import calculate_md5
@@ -257,21 +258,26 @@ def sftp_download(
     '''
     File download
     '''
-    from megfile.fs import is_fs
+    from megfile.fs_path import FSPath, is_fs
     if not is_fs(dst_url):
         raise OSError(f'dst_url is not fs path: {dst_url}')
     if not is_sftp(src_url):
         raise OSError(f'src_url is not sftp path: {src_url}')
 
     src_url = SftpPath(src_url)
-    if followlinks and SftpPath(src_url).is_symlink():
-        src_url = SftpPath(src_url).readlink()
-    if SftpPath(src_url).is_dir():
+    if followlinks and src_url.is_symlink():
+        src_url = src_url.readlink()
+    if src_url.is_dir():
         raise IsADirectoryError('Is a directory: %r' % src_url)
 
     dir_path = os.path.dirname(dst_url)
     os.makedirs(dir_path, exist_ok=True)
     src_url._client.get(src_url._real_path, dst_url, callback=callback)
+
+    src_stat = src_url.stat()
+    dst_path = FSPath(dst_url)
+    dst_path.utime(src_stat.st_atime, src_stat.st_mtime)
+    dst_path.chmod(src_stat.st_mode)
 
 
 def sftp_upload(
@@ -280,9 +286,9 @@ def sftp_upload(
         callback: Optional[Callable[[int], None]] = None,
         followlinks: bool = False):
     '''
-    File download
+    File upload
     '''
-    from megfile.fs import is_fs
+    from megfile.fs import fs_stat, is_fs
     if not is_fs(src_url):
         raise OSError(f'src_url is not fs path: {src_url}')
     if not is_sftp(dst_url):
@@ -297,6 +303,10 @@ def sftp_upload(
     dir_path = dst_url.parent
     dir_path.makedirs(exist_ok=True)
     dst_url._client.put(src_url, dst_url._real_path, callback=callback)
+
+    src_stat = fs_stat(src_url)
+    dst_url.utime(src_stat.st_atime, src_stat.st_mtime)
+    dst_url.chmod(src_stat.st_mode)
 
 
 def sftp_path_join(path: PathLike, *other_paths: PathLike) -> str:
@@ -607,6 +617,8 @@ class SftpPath(URIPath):
         :param dst_path: Given destination path
         '''
         dst_path = self.from_path(dst_path)
+        src_stat = self.stat()
+
         if self._is_same_backend(dst_path):
             try:
                 self._client.rename(self._real_path, dst_path._real_path)
@@ -628,6 +640,9 @@ class SftpPath(URIPath):
                                 break
                             fdst.write(buf)
                 self.unlink()
+
+        dst_path.utime(src_stat.st_atime, src_stat.st_mtime)
+        dst_path.chmod(src_stat.st_mode)
         return dst_path
 
     def replace(self, dst_path: PathLike) -> 'SftpPath':
@@ -989,6 +1004,10 @@ class SftpPath(URIPath):
                         if callback:
                             callback(len(buf))
 
+        src_stat = self.stat()
+        dst_path.utime(src_stat.st_atime, src_stat.st_mtime)
+        dst_path._client.chmod(dst_path._real_path, src_stat.st_mode)
+
     def sync(self, dst_path: PathLike, followlinks: bool = False):
         '''Copy file/directory on src_url to dst_url
 
@@ -996,7 +1015,24 @@ class SftpPath(URIPath):
         '''
         for src_file_path, dst_file_path in _sftp_scan_pairs(
                 self.path_with_protocol, dst_path):
+            dst_path = self.from_path(dst_file_path)
+            src_path = self.from_path(src_file_path)
+            if dst_path.exists() and is_same_file(src_path.stat(),
+                                                  dst_path.stat(), 'copy'):
+                continue
             self.from_path(os.path.dirname(dst_file_path)).mkdir(
                 parents=True, exist_ok=True)
             self.from_path(src_file_path).copy(
                 dst_file_path, followlinks=followlinks)
+
+    def utime(self, atime: Union[float, int], mtime: Union[float, int]) -> None:
+        """
+        Set the access and modified times of the file specified by path.
+
+        :param atime: The access time to be set.
+        :type atime: Union[float, int]
+        :param mtime: The modification time to be set.
+        :type mtime: Union[float, int]
+        :return: None
+        """
+        return self._client.utime(self._real_path, (atime, mtime))

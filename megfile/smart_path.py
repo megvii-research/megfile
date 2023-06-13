@@ -30,8 +30,8 @@ def _bind_property(name):
 class SmartPath(BasePath):
     _registered_protocols = dict()
 
-    def __init__(self, path: PathLike, *other_paths: PathLike):
-        self.path = str(path)
+    def __init__(self, path: Union[PathLike, int], *other_paths: PathLike):
+        self.path = str(path) if not isinstance(path, int) else path
         pathlike = path
         if not isinstance(pathlike, BaseURIPath):
             pathlike = self._create_pathlike(path)
@@ -171,6 +171,7 @@ class SmartPath(BasePath):
     samefile = _bind_function('samefile')
     write_bytes = _bind_function('write_bytes')
     write_text = _bind_function('write_text')
+    utime = _bind_function('utime')
 
     drive = _bind_property('drive')
     root = _bind_property('root')

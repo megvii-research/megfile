@@ -17,6 +17,7 @@ from megfile.errors import S3BucketNotFoundError, S3ConfigError, S3FileExistsErr
 from megfile.errors import _logger as error_logger
 from megfile.errors import patch_method, raise_s3_error, s3_error_code_should_retry, s3_should_retry, translate_fs_error, translate_s3_error
 from megfile.interfaces import Access, ContextIterator, FileCacher, FileEntry, PathLike, StatResult, URIPath
+from megfile.lib.compare import is_same_file
 from megfile.lib.compat import fspath
 from megfile.lib.fnmatch import translate
 from megfile.lib.glob import has_magic, has_magic_ignore_brace, ungloblize
@@ -555,7 +556,7 @@ def s3_prefetch_open(
     :raises: S3FileNotFoundError
     '''
     if mode != 'rb':
-        raise ValueError('unacceptable mode: %r' % mode)  # pragma: no cover
+        raise ValueError('unacceptable mode: %r' % mode)
     s3_url = S3Path(s3_url)
     if followlinks:
         try:
@@ -603,7 +604,7 @@ def s3_share_cache_open(
     :raises: S3FileNotFoundError
     '''
     if mode != 'rb':
-        raise ValueError('unacceptable mode: %r' % mode)  # pragma: no cover
+        raise ValueError('unacceptable mode: %r' % mode)
 
     s3_url = S3Path(s3_url)
     if followlinks:
@@ -652,7 +653,7 @@ def s3_pipe_open(
     :returns: An opened BufferedReader / BufferedWriter object
     '''
     if mode not in ('rb', 'wb'):
-        raise ValueError('unacceptable mode: %r' % mode)  # pragma: no cover
+        raise ValueError('unacceptable mode: %r' % mode)
 
     if mode[0] == 'r' and not S3Path(s3_url).is_file():
         raise S3FileNotFoundError('No such file: %r' % s3_url)
@@ -696,7 +697,7 @@ def s3_cached_open(
     :returns: An opened BufferedReader / BufferedWriter object
     '''
     if mode not in ('rb', 'wb', 'ab', 'rb+', 'wb+', 'ab+'):
-        raise ValueError('unacceptable mode: %r' % mode)  # pragma: no cover
+        raise ValueError('unacceptable mode: %r' % mode)
     s3_url = S3Path(s3_url)
     if followlinks:
         try:
@@ -903,6 +904,9 @@ def s3_download(
         error = translate_fs_error(error, dst_url)
         error = translate_s3_error(error, src_url.path_with_protocol)
         raise error
+
+    src_stat = src_url.stat()
+    os.utime(dst_url, (src_stat.st_mtime, src_stat.st_mtime))
 
 
 def s3_upload(
@@ -2002,7 +2006,12 @@ class S3Path(URIPath):
         '''
         for src_file_path, dst_file_path in _s3_scan_pairs(
                 self.path_with_protocol, dst_url):
-            S3Path(src_file_path).copy(dst_file_path, followlinks=followlinks)
+            src_file_path = self.from_path(src_file_path)
+            dst_file_path = self.from_path(dst_file_path)
+            if dst_file_path.exists() and is_same_file(
+                    src_file_path.stat(), dst_file_path.stat(), 'copy'):
+                continue
+            src_file_path.copy(dst_file_path, followlinks=followlinks)
 
     def symlink(self, dst_path: PathLike) -> None:
         '''

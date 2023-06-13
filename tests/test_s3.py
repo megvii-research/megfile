@@ -1030,12 +1030,17 @@ def test_s3_move_file(truncating_client):
     assert s3.s3_exists('s3://bucketA/folderAA/folderAAA1/fileAAAA')
 
 
-def test_s3_sync(truncating_client):
+def test_s3_sync(truncating_client, mocker):
     smart.smart_touch('s3://bucketA/folderAA/folderAAA/fileAAAA')
     s3.s3_sync(
         's3://bucketA/folderAA/folderAAA', 's3://bucketA/folderAA/folderAAA1')
     assert s3.s3_exists('s3://bucketA/folderAA/folderAAA')
     assert s3.s3_exists('s3://bucketA/folderAA/folderAAA1/fileAAAA')
+
+    func = mocker.patch('megfile.s3_path.S3Path.copy')
+    s3.s3_sync(
+        's3://bucketA/folderAA/folderAAA', 's3://bucketA/folderAA/folderAAA1')
+    assert func.call_count == 0
 
 
 def test_s3_rename(truncating_client):
@@ -2430,6 +2435,9 @@ def test_s3_prefetch_open(s3_empty_client):
     with pytest.raises(S3BucketNotFoundError):
         s3.s3_prefetch_open('s3://', max_concurrency=1, max_block_size=1)
 
+    with pytest.raises(ValueError):
+        s3.s3_prefetch_open('s3://bucket/key', mode='wb')
+
 
 def test_s3_share_cache_open(s3_empty_client):
     content = b'test data for s3_share_cache_open'
@@ -2460,6 +2468,9 @@ def test_s3_share_cache_open(s3_empty_client):
     with s3.s3_prefetch_open('s3://bucket/symlink', max_concurrency=1,
                              max_block_size=1, followlinks=True) as reader:
         assert reader.read() == content
+
+    with pytest.raises(ValueError):
+        s3.s3_share_cache_open('s3://bucket/key', mode='wb')
 
 
 def test_s3_prefetch_open_raises_exceptions(s3_empty_client):
@@ -2506,6 +2517,9 @@ def test_s3_pipe_open(s3_empty_client):
         assert reader.name == 's3://bucket/key'
         assert reader.mode == 'rb'
         assert reader.read() == content
+
+    with pytest.raises(ValueError):
+        s3.s3_pipe_open('s3://bucket/key', mode='ab')
 
 
 def test_s3_pipe_open_raises_exceptions(s3_empty_client):
@@ -2572,6 +2586,9 @@ def test_s3_cached_open(mocker, s3_empty_client, fs):
     with s3.s3_cached_open('s3://bucket/symlink', 'r+b', cache_path=cache_path,
                            followlinks=True) as reader:
         pass
+
+    with pytest.raises(ValueError):
+        s3.s3_cached_open('s3://bucket/key', mode='abc')
 
 
 def test_s3_cached_open_raises_exceptions(mocker, s3_empty_client, fs):

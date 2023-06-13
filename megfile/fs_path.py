@@ -11,6 +11,8 @@ from urllib.parse import urlsplit
 
 from megfile.errors import _create_missing_ok_generator
 from megfile.interfaces import Access, ContextIterator, FileEntry, PathLike, StatResult
+from megfile.lib.compare import is_same_file
+from megfile.lib.compat import copytree
 from megfile.lib.glob import iglob
 from megfile.utils import cachedproperty, calculate_md5
 
@@ -269,9 +271,6 @@ class FSPath(URIPath):
             return os.access(self.path_without_protocol, os.R_OK)
         if mode == Access.WRITE:
             return os.access(self.path_without_protocol, os.W_OK)
-        else:
-            raise TypeError(  # pragma: no cover
-                'Unsupported mode: {}'.format(mode))
 
     def exists(self, followlinks: bool = False) -> bool:
         '''
@@ -710,15 +709,14 @@ class FSPath(URIPath):
                     if not buf:
                         break
                     fdst.write(buf)
-                    if callback is None:
-                        continue
-                    callback(len(buf))  # pragma: no cover
+                    if callback:
+                        callback(len(buf))
 
             return _copyfileobj
 
         src_stat = self.lstat()
         with patch('shutil.copyfileobj', _patch_copyfileobj(callback)):
-            shutil.copyfile(
+            shutil.copy2(
                 self.path_without_protocol,
                 dst_path,
                 follow_symlinks=followlinks)
@@ -769,7 +767,21 @@ class FSPath(URIPath):
         :param dst_path: Target file path
         '''
         if self.is_dir(followlinks=followlinks):
-            shutil.copytree(self.path_without_protocol, dst_path)
+
+            def ignore_same_file(src: str, names: str) -> List[str]:
+                ignore_files = []
+                for name in names:
+                    dst_obj = self.from_path(dst_path).joinpath(name)
+                    if dst_obj.exists() and is_same_file(
+                            self.joinpath(name).stat(), dst_obj.stat(), 'copy'):
+                        ignore_files.append(name)
+                return ignore_files
+
+            copytree(
+                self.path_without_protocol,
+                dst_path,
+                ignore=ignore_same_file,
+                dirs_exist_ok=True)
         else:
             self.copy(dst_path, followlinks=followlinks)
 
@@ -938,3 +950,15 @@ class FSPath(URIPath):
         Make this path a hard link to the same file as target.
         '''
         return os.link(target, self.path)
+
+    def utime(self, atime: Union[float, int], mtime: Union[float, int]):
+        """
+        Set the access and modified times of the file specified by path.
+
+        :param atime: a float or int representing the access time to be set. If it is set to None, the
+                      access time is set to the current time.
+        :param mtime: a float or int representing the modified time to be set. If it is set to None, the
+                      modified time is set to the current time.
+        :return: None
+        """
+        return os.utime(self.path_without_protocol, times=(atime, mtime))

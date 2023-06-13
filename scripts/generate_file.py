@@ -13,12 +13,12 @@ ALL_IGNORE_FUNC_LIST = dict(
         "iterdir", "chmod", "group", "is_socket", "is_fifo", "is_block_device",
         "is_char_device", "rmdir", "owner", "absolute", "resolve", "cwd",
         "home", "glob", "iglob", "glob_stat", "rename", "parts", "root",
-        "anchor", "drive", "replace", "hardlink_to", "mkdir"
+        "anchor", "drive", "replace", "hardlink_to", "mkdir", "utime"
     ],
     http=[],
     sftp=[
         "path_without_protocol", "expanduser", "iterdir", "readlink", "cwd",
-        "glob", "iglob", "glob_stat", "resolve", "relpath"
+        "glob", "iglob", "glob_stat", "resolve", "relpath", "utime"
     ],
 )
 
