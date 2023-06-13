@@ -93,6 +93,7 @@
 <span class="kn">from</span> <span class="nn">megfile.errors</span> <span class="kn">import</span> <span class="n">_logger</span> <span class="k">as</span> <span class="n">error_logger</span>
 <span class="kn">from</span> <span class="nn">megfile.errors</span> <span class="kn">import</span> <span class="n">patch_method</span><span class="p">,</span> <span class="n">raise_s3_error</span><span class="p">,</span> <span class="n">s3_error_code_should_retry</span><span class="p">,</span> <span class="n">s3_should_retry</span><span class="p">,</span> <span class="n">translate_fs_error</span><span class="p">,</span> <span class="n">translate_s3_error</span>
 <span class="kn">from</span> <span class="nn">megfile.interfaces</span> <span class="kn">import</span> <span class="n">Access</span><span class="p">,</span> <span class="n">ContextIterator</span><span class="p">,</span> <span class="n">FileCacher</span><span class="p">,</span> <span class="n">FileEntry</span><span class="p">,</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">StatResult</span><span class="p">,</span> <span class="n">URIPath</span>
+<span class="kn">from</span> <span class="nn">megfile.lib.compare</span> <span class="kn">import</span> <span class="n">is_same_file</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.compat</span> <span class="kn">import</span> <span class="n">fspath</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.fnmatch</span> <span class="kn">import</span> <span class="n">translate</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.glob</span> <span class="kn">import</span> <span class="n">has_magic</span><span class="p">,</span> <span class="n">has_magic_ignore_brace</span><span class="p">,</span> <span class="n">ungloblize</span>
@@ -631,7 +632,7 @@
 <span class="sd">    :raises: S3FileNotFoundError</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">if</span> <span class="n">mode</span> <span class="o">!=</span> <span class="s1">&#39;rb&#39;</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;unacceptable mode: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span>  <span class="c1"># pragma: no cover</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;unacceptable mode: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span>
     <span class="n">s3_url</span> <span class="o">=</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">s3_url</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">followlinks</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
@@ -679,7 +680,7 @@
 <span class="sd">    :raises: S3FileNotFoundError</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">if</span> <span class="n">mode</span> <span class="o">!=</span> <span class="s1">&#39;rb&#39;</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;unacceptable mode: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span>  <span class="c1"># pragma: no cover</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;unacceptable mode: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span>
 
     <span class="n">s3_url</span> <span class="o">=</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">s3_url</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">followlinks</span><span class="p">:</span>
@@ -728,7 +729,7 @@
 <span class="sd">    :returns: An opened BufferedReader / BufferedWriter object</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">if</span> <span class="n">mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;rb&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;unacceptable mode: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span>  <span class="c1"># pragma: no cover</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;unacceptable mode: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">mode</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;r&#39;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">s3_url</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
         <span class="k">raise</span> <span class="n">S3FileNotFoundError</span><span class="p">(</span><span class="s1">&#39;No such file: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">s3_url</span><span class="p">)</span>
@@ -772,7 +773,7 @@
 <span class="sd">    :returns: An opened BufferedReader / BufferedWriter object</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">if</span> <span class="n">mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;rb&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">,</span> <span class="s1">&#39;ab&#39;</span><span class="p">,</span> <span class="s1">&#39;rb+&#39;</span><span class="p">,</span> <span class="s1">&#39;wb+&#39;</span><span class="p">,</span> <span class="s1">&#39;ab+&#39;</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;unacceptable mode: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span>  <span class="c1"># pragma: no cover</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;unacceptable mode: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span>
     <span class="n">s3_url</span> <span class="o">=</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">s3_url</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">followlinks</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
@@ -978,7 +979,10 @@
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
         <span class="n">error</span> <span class="o">=</span> <span class="n">translate_fs_error</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">dst_url</span><span class="p">)</span>
         <span class="n">error</span> <span class="o">=</span> <span class="n">translate_s3_error</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">src_url</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">)</span>
-        <span class="k">raise</span> <span class="n">error</span></div>
+        <span class="k">raise</span> <span class="n">error</span>
+
+    <span class="n">src_stat</span> <span class="o">=</span> <span class="n">src_url</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">utime</span><span class="p">(</span><span class="n">dst_url</span><span class="p">,</span> <span class="p">(</span><span class="n">src_stat</span><span class="o">.</span><span class="n">st_mtime</span><span class="p">,</span> <span class="n">src_stat</span><span class="o">.</span><span class="n">st_mtime</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="s3_upload"><a class="viewcode-back" href="../../megfile.s3.html#megfile.s3_upload">[docs]</a><span class="k">def</span> <span class="nf">s3_upload</span><span class="p">(</span>
@@ -2078,7 +2082,12 @@
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">for</span> <span class="n">src_file_path</span><span class="p">,</span> <span class="n">dst_file_path</span> <span class="ow">in</span> <span class="n">_s3_scan_pairs</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">,</span> <span class="n">dst_url</span><span class="p">):</span>
-            <span class="n">S3Path</span><span class="p">(</span><span class="n">src_file_path</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">dst_file_path</span><span class="p">,</span> <span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span></div>
+            <span class="n">src_file_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">src_file_path</span><span class="p">)</span>
+            <span class="n">dst_file_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">dst_file_path</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">dst_file_path</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="n">is_same_file</span><span class="p">(</span>
+                    <span class="n">src_file_path</span><span class="o">.</span><span class="n">stat</span><span class="p">(),</span> <span class="n">dst_file_path</span><span class="o">.</span><span class="n">stat</span><span class="p">(),</span> <span class="s1">&#39;copy&#39;</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="n">src_file_path</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">dst_file_path</span><span class="p">,</span> <span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="S3Path.symlink"><a class="viewcode-back" href="../../megfile.s3_path.html#megfile.S3Path.symlink">[docs]</a>    <span class="k">def</span> <span class="nf">symlink</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>

@@ -87,6 +87,8 @@
 
 <span class="kn">from</span> <span class="nn">megfile.errors</span> <span class="kn">import</span> <span class="n">_create_missing_ok_generator</span>
 <span class="kn">from</span> <span class="nn">megfile.interfaces</span> <span class="kn">import</span> <span class="n">Access</span><span class="p">,</span> <span class="n">ContextIterator</span><span class="p">,</span> <span class="n">FileEntry</span><span class="p">,</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">StatResult</span>
+<span class="kn">from</span> <span class="nn">megfile.lib.compare</span> <span class="kn">import</span> <span class="n">is_same_file</span>
+<span class="kn">from</span> <span class="nn">megfile.lib.compat</span> <span class="kn">import</span> <span class="n">copytree</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.glob</span> <span class="kn">import</span> <span class="n">iglob</span>
 <span class="kn">from</span> <span class="nn">megfile.utils</span> <span class="kn">import</span> <span class="n">cachedproperty</span><span class="p">,</span> <span class="n">calculate_md5</span>
 
@@ -344,10 +346,7 @@
         <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="n">Access</span><span class="o">.</span><span class="n">READ</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">access</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">R_OK</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="n">Access</span><span class="o">.</span><span class="n">WRITE</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">access</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">W_OK</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>  <span class="c1"># pragma: no cover</span>
-                <span class="s1">&#39;Unsupported mode: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mode</span><span class="p">))</span></div>
+            <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">access</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">W_OK</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="FSPath.exists"><a class="viewcode-back" href="../../megfile.fs_path.html#megfile.FSPath.exists">[docs]</a>    <span class="k">def</span> <span class="nf">exists</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
@@ -622,10 +621,12 @@
 <span class="sd">        :param missing_ok: If False and there&#39;s no file in the directory, raise FileNotFoundError</span>
 <span class="sd">        :returns: A file path generator</span>
 <span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">file_not_found</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scan</span><span class="p">(</span><span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">):</span>
             <span class="k">yield</span> <span class="n">FileEntry</span><span class="p">(</span>
                 <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">path</span><span class="p">),</span> <span class="n">path</span><span class="p">,</span> <span class="n">_make_stat</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">lstat</span><span class="p">(</span><span class="n">path</span><span class="p">)))</span>
-        <span class="k">else</span><span class="p">:</span>
+            <span class="n">file_not_found</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">file_not_found</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">missing_ok</span><span class="p">:</span>
                 <span class="k">return</span>
             <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span>
@@ -786,15 +787,14 @@
                     <span class="k">if</span> <span class="ow">not</span> <span class="n">buf</span><span class="p">:</span>
                         <span class="k">break</span>
                     <span class="n">fdst</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">callback</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                        <span class="k">continue</span>
-                    <span class="n">callback</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">buf</span><span class="p">))</span>  <span class="c1"># pragma: no cover</span>
+                    <span class="k">if</span> <span class="n">callback</span><span class="p">:</span>
+                        <span class="n">callback</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">buf</span><span class="p">))</span>
 
             <span class="k">return</span> <span class="n">_copyfileobj</span>
 
         <span class="n">src_stat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lstat</span><span class="p">()</span>
         <span class="k">with</span> <span class="n">patch</span><span class="p">(</span><span class="s1">&#39;shutil.copyfileobj&#39;</span><span class="p">,</span> <span class="n">_patch_copyfileobj</span><span class="p">(</span><span class="n">callback</span><span class="p">)):</span>
-            <span class="n">shutil</span><span class="o">.</span><span class="n">copyfile</span><span class="p">(</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span>
                 <span class="n">dst_path</span><span class="p">,</span>
                 <span class="n">follow_symlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span>
@@ -845,7 +845,21 @@
 <span class="sd">        :param dst_path: Target file path</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dir</span><span class="p">(</span><span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">):</span>
-            <span class="n">shutil</span><span class="o">.</span><span class="n">copytree</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">)</span>
+
+            <span class="k">def</span> <span class="nf">ignore_same_file</span><span class="p">(</span><span class="n">src</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+                <span class="n">ignore_files</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+                    <span class="n">dst_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">dst_obj</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="n">is_same_file</span><span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">stat</span><span class="p">(),</span> <span class="n">dst_obj</span><span class="o">.</span><span class="n">stat</span><span class="p">(),</span> <span class="s1">&#39;copy&#39;</span><span class="p">):</span>
+                        <span class="n">ignore_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">ignore_files</span>
+
+            <span class="n">copytree</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span>
+                <span class="n">dst_path</span><span class="p">,</span>
+                <span class="n">ignore</span><span class="o">=</span><span class="n">ignore_same_file</span><span class="p">,</span>
+                <span class="n">dirs_exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">dst_path</span><span class="p">,</span> <span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span></div>
 
@@ -1013,7 +1027,19 @@
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Make this path a hard link to the same file as target.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
-        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">link</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">link</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FSPath.utime"><a class="viewcode-back" href="../../megfile.fs_path.html#megfile.FSPath.utime">[docs]</a>    <span class="k">def</span> <span class="nf">utime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">atime</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">mtime</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the access and modified times of the file specified by path.</span>
+
+<span class="sd">        :param atime: a float or int representing the access time to be set. If it is set to None, the</span>
+<span class="sd">                      access time is set to the current time.</span>
+<span class="sd">        :param mtime: a float or int representing the modified time to be set. If it is set to None, the</span>
+<span class="sd">                      modified time is set to the current time.</span>
+<span class="sd">        :return: None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">utime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="n">times</span><span class="o">=</span><span class="p">(</span><span class="n">atime</span><span class="p">,</span> <span class="n">mtime</span><span class="p">))</span></div></div>
 </pre></div>
 
            </div>
