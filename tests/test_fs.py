@@ -3,6 +3,7 @@ from io import BytesIO
 
 import pyfakefs
 import pytest
+from mock import patch
 
 from megfile import fs, smart
 from megfile.interfaces import Access, StatResult
@@ -1032,10 +1033,10 @@ def test_fs_copy(filesystem, mocker):
 
     supports_follow_symlinks = os.supports_follow_symlinks
     supports_follow_symlinks.add(getattr(os, 'stat'))
-    mocker.patch.object(
-        os, 'supports_follow_symlinks', new=supports_follow_symlinks)
 
-    fs.fs_copy(dst, '/file3', followlinks=False, callback=callback_symlink)
+    with patch('os.supports_follow_symlinks', supports_follow_symlinks) as _:
+
+        fs.fs_copy(dst, '/file3', followlinks=False, callback=callback_symlink)
 
 
 def test_fs_rename(filesystem):

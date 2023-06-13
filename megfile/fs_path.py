@@ -768,7 +768,7 @@ class FSPath(URIPath):
         '''
         if self.is_dir(followlinks=followlinks):
 
-            def ignore_same_file(src: str, names: str) -> List[str]:
+            def ignore_same_file(src: str, names: List[str]) -> List[str]:
                 ignore_files = []
                 for name in names:
                     dst_obj = self.from_path(dst_path).joinpath(name)
