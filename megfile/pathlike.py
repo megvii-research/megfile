@@ -361,7 +361,7 @@ class BasePath:
         """Write the opened binary stream to the path."""
 
     @method_not_implemented
-    def joinpath(self, *other_paths: "PathLike") -> str:  # type: ignore
+    def joinpath(self, *other_paths: "PathLike") -> 'BasePath':  # type: ignore
         """Join or or more path."""
 
     @method_not_implemented
@@ -852,6 +852,18 @@ class URIPath(BaseURIPath):
         '''
         raise NotImplementedError(
             f"'absolute' is unsupported on '{type(self)}'")
+
+    def utime(self, atime: Union[float, int], mtime: Union[float, int]):
+        """
+        Sets the access and modified times of the file specified by path to the specified values. 
+        
+        :param atime: The access time to be set.
+        :type atime: Union[float, int]
+        :param mtime: The modification time to be set.
+        :type mtime: Union[float, int]
+        :raises NotImplementedError: Always raised, since the functionality is unsupported.
+        """
+        raise NotImplementedError(f"'utime' is unsupported on '{type(self)}'")
 
 
 class URIPathParents(Sequence):

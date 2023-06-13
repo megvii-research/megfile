@@ -256,3 +256,8 @@ def test_with_suffix():
     assert path.with_suffix('.txt') == S3Path('baz.txt')
     path = S3Path('baz.txt')
     assert path.with_suffix('') == S3Path('baz')
+
+
+def test_utime():
+    with pytest.raises(NotImplementedError):
+        S3Path('s3://foo/bar.tar.gz').utime(0, 0)

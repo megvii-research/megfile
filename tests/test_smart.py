@@ -41,10 +41,19 @@ def test_smart_listdir(funcA):
     funcA.assert_called_once()
 
 
+def test_smart_listdir2():
+    sorted(smart.smart_listdir(None)) == sorted(os.listdir(None))
+
+
 @patch.object(SmartPath, "scandir")
 def test_smart_scandir(funcA):
     smart.smart_scandir("Test Case")
     funcA.assert_called_once()
+
+
+def test_smart_scandir2():
+    sorted([f.name for f in smart.smart_scandir(None)
+           ]) == sorted(os.listdir(None))
 
 
 @patch.object(SmartPath, 'getsize')
@@ -382,12 +391,24 @@ def test_smart_sync(mocker):
     smart_copy.assert_any_call('a/d', 'dst/d', callback=None, followlinks=True)
 
 
-def test_smart_sync_file(fs):
+def test_smart_sync_file(s3_empty_client, fs):
     smart.smart_makedirs('/A')
     smart.smart_touch('/A/file')
 
-    smart.smart_sync('/A/file', '/file')
-    assert smart.smart_exists('/file') is True
+    smart.smart_sync('/A/file', 's3://bucket/A/file')
+    assert smart.smart_exists('s3://bucket/A/file') is True
+
+    with patch('megfile.smart.smart_copy') as smart_copy:
+        file_stat = os.stat('/A/file')
+        os.utime('/A/file', (file_stat.st_atime, file_stat.st_mtime - 1))
+        smart.smart_sync('/A', 's3://bucket/A')
+        assert smart_copy.call_count == 0
+
+    patch_dict = {}
+
+    with patch('megfile.smart._copy_funcs', patch_dict) as _:
+        smart.smart_sync('/A', 's3://bucket/B')
+        assert smart.smart_exists('s3://bucket/B/file') is True
 
 
 @patch.object(SmartPath, 'remove')
@@ -1112,3 +1133,5 @@ def test_smart_concat(s3_empty_client, fs):
     smart.smart_save_content('b.txt', b'b')
     smart.smart_concat(['s3://bucket/a.txt', 'b.txt'], 'c.txt')
     assert smart.smart_load_content('c.txt') == b'ab'
+
+    smart.smart_concat([], 'c.txt')

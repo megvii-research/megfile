@@ -1,7 +1,9 @@
 import os
 from io import BytesIO
 
+import pyfakefs
 import pytest
+from mock import patch
 
 from megfile import fs, smart
 from megfile.interfaces import Access, StatResult
@@ -443,6 +445,9 @@ def test_fs_access(filesystem):
     os.chmod('./file', 0o000)
     assert fs.fs_access('file', Access.READ) == False
     assert fs.fs_access('file', Access.WRITE) == False
+
+    with pytest.raises(TypeError) as error:
+        fs.fs_access('folder', 'r')
 
 
 def test_fs_exists(filesystem):
@@ -997,7 +1002,7 @@ def test_fs_load_from(filesystem):
     assert content.read() == b'value'
 
 
-def test_fs_copy(filesystem):
+def test_fs_copy(filesystem, mocker):
     with open('file', 'wb') as f:
         f.write(b'0' * (16 * 1024 + 1))
     dst = 'dst_file'
@@ -1025,6 +1030,11 @@ def test_fs_copy(filesystem):
 
     fs.fs_copy('/file', '/file1', callback=callback_file)
     fs.fs_copy(dst, '/file2', followlinks=True)
+
+    supports_follow_symlinks = os.supports_follow_symlinks
+    supports_follow_symlinks.add(getattr(os, 'stat'))
+
+    patch('os.supports_follow_symlinks', supports_follow_symlinks)
     fs.fs_copy(dst, '/file3', followlinks=False, callback=callback_symlink)
 
 
@@ -1115,7 +1125,7 @@ def test_fs_move_symlink(filesystem):
     assert not os.path.exists('/dst/link')
 
 
-def test_fs_sync(filesystem):
+def test_fs_sync(filesystem, mocker):
     src = '/tmp/refiletest/src'
     dst = '/tmp/refiletest/dst'
     os.makedirs(src)
@@ -1130,6 +1140,14 @@ def test_fs_sync(filesystem):
     fs.fs_sync(src, dst)
     assert os.path.exists(dst)
     assert os.path.exists(src)
+    assert os.stat(src).st_size == os.stat(dst).st_size
+    assert os.stat(src).st_mtime == os.stat(dst).st_mtime
+
+    src = '/tmp/refiletest/src'
+    dst = '/tmp/refiletest/dst'
+    func = mocker.patch('shutil.copy2')
+    fs.fs_sync(src, dst)
+    assert func.call_count == 0
 
 
 def test_fs_sync_symlink(filesystem):
