@@ -1,3 +1,10 @@
+## 2.0.6 - 2023.06.13
+- fix
+    - fix sftp connect timeout after long time
+- perf
+    - `smart_sync` and other sync methods will ignore same files
+    - `smart_sync` will raise `FileNotFound` error when src_path is not exist
+
 ## 2.0.5.post1 - 2023.05.11
 - fix
     - fix `SftpPath.rename` error log
