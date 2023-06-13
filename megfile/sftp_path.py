@@ -187,6 +187,7 @@ def get_ssh_session(
         ssh_client.close()
         atexit.unregister(ssh_client.close)
         get_ssh_client.cache_clear()
+        get_sftp_client.cache_clear()
         return _open_session(
             get_ssh_client(
                 hostname=hostname,
@@ -200,7 +201,7 @@ def _open_session(
         ssh_client: paramiko.SSHClient) -> paramiko.Channel:  # pragma: no cover
     transport = ssh_client.get_transport()
     if not transport:
-        raise paramiko.SSHException
+        raise paramiko.SSHException()
     session = transport.open_session(timeout=DEFAULT_SSH_CONNECT_TIMEOUT)
     return session
 
