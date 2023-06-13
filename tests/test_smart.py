@@ -338,7 +338,7 @@ def test_smart_sync(mocker):
       - a
     '''
 
-    def scan_stat(path: str, followlinks: bool):
+    def scan_stat(path: str, followlinks: bool, missing_ok: bool = True):
         if path == 'folder':
             return [
                 FileEntry(name='fileB', path="folder/folderA/fileB", stat=None),
