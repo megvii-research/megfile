@@ -463,9 +463,9 @@ def test_glob(s3_empty_client, fs):
         f.write('file')
 
     assert SmartPath('A').glob('*') == [
+        SmartPath('A/1.json'),
         SmartPath('A/a'),
         SmartPath('A/b'),
-        SmartPath('A/1.json')
     ]
     assert SmartPath('A').rglob('*.json') == [
         SmartPath('A/1.json'),
@@ -478,9 +478,9 @@ def test_glob(s3_empty_client, fs):
         SmartPath('A/b/c/'),
     ]
     assert [file_entry.path for file_entry in SmartPath('A').glob_stat('*')
-           ] == [SmartPath('A/a'),
-                 SmartPath('A/b'),
-                 SmartPath('A/1.json')]
+           ] == [SmartPath('A/1.json'),
+                 SmartPath('A/a'),
+                 SmartPath('A/b')]
 
     for path in SmartPath('A').glob('*'):
         assert isinstance(path, FSPath)

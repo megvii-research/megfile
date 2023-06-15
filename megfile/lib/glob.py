@@ -31,7 +31,7 @@ def _isdir(path: str) -> bool:
 
 
 def _scandir(dirname: str) -> Iterator[Tuple[str, bool]]:
-    for entry in os.scandir(dirname):
+    for entry in sorted(list(os.scandir(dirname)), key=lambda t: t.name):
         yield entry.name, entry.is_dir()
 
 

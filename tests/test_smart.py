@@ -802,10 +802,10 @@ def test_smart_glob(s3_empty_client, fs):
     with open('A/b/file.json', 'w') as f:
         f.write('file')
 
-    assert smart.smart_glob('A/*') == ['A/a', 'A/b', 'A/1.json']
-    assert list(smart.smart_iglob('A/*')) == ['A/a', 'A/b', 'A/1.json']
+    assert smart.smart_glob('A/*') == ['A/1.json', 'A/a', 'A/b']
+    assert list(smart.smart_iglob('A/*')) == ['A/1.json', 'A/a', 'A/b']
     assert [file_entry.path for file_entry in smart.smart_glob_stat('A/*')
-           ] == ['A/a', 'A/b', 'A/1.json']
+           ] == ['A/1.json', 'A/a', 'A/b']
 
     for path in smart.smart_glob('A/*'):
         assert isinstance(path, str)
