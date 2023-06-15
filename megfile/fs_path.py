@@ -51,12 +51,14 @@ def _make_stat(stat: os.stat_result) -> StatResult:
     )
 
 
-def is_fs(path: PathLike) -> bool:
+def is_fs(path: Union["PathLike", int]) -> bool:
     '''Test if a path is fs path
 
     :param path: Path to be tested
     :returns: True of a path is fs path, else False
     '''
+    if isinstance(path, int):
+        return True
     path = fspath(path)
     scheme = get_url_scheme(path)
     return scheme == '' or scheme == 'file'
