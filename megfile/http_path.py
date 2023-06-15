@@ -3,13 +3,13 @@ from functools import partial
 from io import BufferedReader
 from logging import getLogger as get_logger
 from typing import Iterable
-from urllib.parse import urlsplit
 
 import requests
 
 from megfile.errors import http_should_retry, patch_method, translate_http_error
 from megfile.interfaces import PathLike, StatResult, URIPath
 from megfile.lib.compat import fspath
+from megfile.lib.url import get_url_scheme
 from megfile.smart_path import SmartPath
 from megfile.utils import binary_open
 
@@ -60,8 +60,8 @@ def is_http(path: PathLike) -> bool:
                                          path.startswith('https://')):
         return False
 
-    parts = urlsplit(path)
-    return parts.scheme == 'http' or parts.scheme == 'https'
+    scheme = get_url_scheme(path)
+    return scheme == 'http' or scheme == 'https'
 
 
 @SmartPath.register

@@ -7,7 +7,6 @@ from concurrent.futures import ThreadPoolExecutor
 from functools import lru_cache, wraps
 from logging import getLogger as get_logger
 from typing import IO, Any, AnyStr, BinaryIO, Callable, Dict, Iterator, List, Optional, Tuple, Union
-from urllib.parse import urlsplit
 
 import boto3
 import botocore
@@ -29,6 +28,7 @@ from megfile.lib.s3_memory_handler import S3MemoryHandler
 from megfile.lib.s3_pipe_handler import S3PipeHandler
 from megfile.lib.s3_prefetch_reader import DEFAULT_BLOCK_SIZE, S3PrefetchReader
 from megfile.lib.s3_share_cache_reader import S3ShareCacheReader
+from megfile.lib.url import get_url_scheme
 from megfile.smart_path import SmartPath
 from megfile.utils import cachedproperty, calculate_md5, generate_cache_path, get_binary_mode, get_content_offset, is_readable, necessary_params, thread_local
 
@@ -1180,7 +1180,7 @@ class S3Path(URIPath):
 
     def __init__(self, path: "PathLike", *other_paths: "PathLike"):
         super().__init__(path, *other_paths)
-        protocol = urlsplit(self.path).scheme
+        protocol = get_url_scheme(self.path)
         self._protocol_with_profile = self.protocol
         self._profile_name = None
         if protocol.startswith('s3+'):
