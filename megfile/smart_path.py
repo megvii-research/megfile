@@ -1,8 +1,8 @@
 from pathlib import PurePath
 from typing import Tuple, Union
-from urllib.parse import urlsplit
 
 from megfile.lib.compat import fspath
+from megfile.lib.url import get_url_scheme
 
 from .errors import ProtocolExistsError, ProtocolNotFoundError
 from .interfaces import BasePath, BaseURIPath, PathLike
@@ -47,7 +47,7 @@ class SmartPath(BasePath):
             protocol = "file"
             path_without_protocol = path
         elif isinstance(path, str):
-            protocol = urlsplit(path).scheme
+            protocol = get_url_scheme(path)
             if protocol == "":
                 protocol = "file"
                 path_without_protocol = path

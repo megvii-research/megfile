@@ -33,6 +33,7 @@ def test_is_fs():
     assert fs.is_fs('file:///abs/path') is True
     assert fs.is_fs('file://rel/path') is True
     assert fs.is_fs('s3://rel/path') is False
+    assert fs.is_fs(1) is True
 
 
 def test_fs_isabs(filesystem):

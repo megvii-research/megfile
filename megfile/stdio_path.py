@@ -1,10 +1,10 @@
 import io
 from typing import IO, AnyStr, Union
-from urllib.parse import urlsplit
 
 from megfile.interfaces import BaseURIPath, PathLike
 from megfile.lib.compat import fspath
 from megfile.lib.stdio_handler import STDReader, STDWriter
+from megfile.lib.url import get_url_scheme
 from megfile.smart_path import SmartPath
 from megfile.utils import get_binary_mode
 
@@ -29,8 +29,8 @@ def is_stdio(path: PathLike) -> bool:
     if not isinstance(path, str) or not path.startswith('stdio://'):
         return False
 
-    parts = urlsplit(path)
-    return parts.scheme == 'stdio'
+    scheme = get_url_scheme(path)
+    return scheme == 'stdio'
 
 
 @SmartPath.register
