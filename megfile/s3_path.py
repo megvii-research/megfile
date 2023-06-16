@@ -89,10 +89,6 @@ def _patch_make_request(client: botocore.client.BaseClient):
         return result
 
     def retry_callback(error, operation_model, request_dict, request_context):
-        if error is None:  # retry for the first time
-            error_logger.debug(
-                'failed to process: %r, with parameters: %s',
-                operation_model.name, request_dict)
         if is_readable(request_dict['body']):
             request_dict['body'].seek(0)
 

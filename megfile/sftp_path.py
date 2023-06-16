@@ -93,7 +93,10 @@ def provide_connect_info(
 
 
 def sftp_should_retry(error: Exception) -> bool:
-    if isinstance(error, paramiko.ssh_exception.SSHException):
+    if type(error) is EOFError:
+        return False
+    elif isinstance(error,
+                    (paramiko.ssh_exception.SSHException, ConnectionError)):
         return True
     elif isinstance(error, OSError) and str(error) == 'Socket is closed':
         return True

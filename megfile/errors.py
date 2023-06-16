@@ -2,7 +2,7 @@ import time
 from contextlib import contextmanager
 from functools import wraps
 from logging import getLogger
-from typing import Callable, Optional
+from typing import Callable, List, Optional
 
 import botocore.exceptions
 import requests.exceptions
@@ -134,24 +134,18 @@ def patch_method(
         if before_callback is not None:
             before_callback(*args, **kwargs)
 
-        error = None
         for retries in range(1, max_retries + 1):
             try:
                 result = func(*args, **kwargs)
                 if after_callback is not None:
                     result = after_callback(result, *args, **kwargs)
-                if error is not None:
-                    _logger.debug(  # pragma: no cover
-                        'unknown error resolved: %s, with %d tries' %
-                        (full_error_message(error), retries))
                 return result
-            except EOFError as eof_exception:
-                raise eof_exception  # pragma: no cover
-            except Exception as exception:
+            except Exception as error:
+                if not should_retry(error):
+                    raise
                 if retry_callback is not None:
                     retry_callback(error, *args, **kwargs)
-                error = exception
-                if retries == max_retries or not should_retry(error):
+                if retries == max_retries:
                     raise
                 retry_interval = min(0.1 * 2**retries, 30)
                 _logger.debug(
