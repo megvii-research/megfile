@@ -83,7 +83,6 @@
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">lru_cache</span><span class="p">,</span> <span class="n">wraps</span>
 <span class="kn">from</span> <span class="nn">logging</span> <span class="kn">import</span> <span class="n">getLogger</span> <span class="k">as</span> <span class="n">get_logger</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">IO</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">AnyStr</span><span class="p">,</span> <span class="n">BinaryIO</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
-<span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="kn">import</span> <span class="n">urlsplit</span>
 
 <span class="kn">import</span> <span class="nn">boto3</span>
 <span class="kn">import</span> <span class="nn">botocore</span>
@@ -105,6 +104,7 @@
 <span class="kn">from</span> <span class="nn">megfile.lib.s3_pipe_handler</span> <span class="kn">import</span> <span class="n">S3PipeHandler</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.s3_prefetch_reader</span> <span class="kn">import</span> <span class="n">DEFAULT_BLOCK_SIZE</span><span class="p">,</span> <span class="n">S3PrefetchReader</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.s3_share_cache_reader</span> <span class="kn">import</span> <span class="n">S3ShareCacheReader</span>
+<span class="kn">from</span> <span class="nn">megfile.lib.url</span> <span class="kn">import</span> <span class="n">get_url_scheme</span>
 <span class="kn">from</span> <span class="nn">megfile.smart_path</span> <span class="kn">import</span> <span class="n">SmartPath</span>
 <span class="kn">from</span> <span class="nn">megfile.utils</span> <span class="kn">import</span> <span class="n">cachedproperty</span><span class="p">,</span> <span class="n">calculate_md5</span><span class="p">,</span> <span class="n">generate_cache_path</span><span class="p">,</span> <span class="n">get_binary_mode</span><span class="p">,</span> <span class="n">get_content_offset</span><span class="p">,</span> <span class="n">is_readable</span><span class="p">,</span> <span class="n">necessary_params</span><span class="p">,</span> <span class="n">thread_local</span>
 
@@ -165,10 +165,6 @@
         <span class="k">return</span> <span class="n">result</span>
 
     <span class="k">def</span> <span class="nf">retry_callback</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">operation_model</span><span class="p">,</span> <span class="n">request_dict</span><span class="p">,</span> <span class="n">request_context</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">error</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># retry for the first time</span>
-            <span class="n">error_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-                <span class="s1">&#39;failed to process: </span><span class="si">%r</span><span class="s1">, with parameters: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
-                <span class="n">operation_model</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">request_dict</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">is_readable</span><span class="p">(</span><span class="n">request_dict</span><span class="p">[</span><span class="s1">&#39;body&#39;</span><span class="p">]):</span>
             <span class="n">request_dict</span><span class="p">[</span><span class="s1">&#39;body&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 
@@ -1256,7 +1252,7 @@
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="s2">&quot;PathLike&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">other_paths</span><span class="p">:</span> <span class="s2">&quot;PathLike&quot;</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="o">*</span><span class="n">other_paths</span><span class="p">)</span>
-        <span class="n">protocol</span> <span class="o">=</span> <span class="n">urlsplit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">scheme</span>
+        <span class="n">protocol</span> <span class="o">=</span> <span class="n">get_url_scheme</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_protocol_with_profile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_profile_name</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">protocol</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;s3+&#39;</span><span class="p">):</span>

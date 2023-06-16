@@ -76,11 +76,11 @@
   <h1>Source code for megfile.stdio_path</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">io</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">IO</span><span class="p">,</span> <span class="n">AnyStr</span><span class="p">,</span> <span class="n">Union</span>
-<span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="kn">import</span> <span class="n">urlsplit</span>
 
 <span class="kn">from</span> <span class="nn">megfile.interfaces</span> <span class="kn">import</span> <span class="n">BaseURIPath</span><span class="p">,</span> <span class="n">PathLike</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.compat</span> <span class="kn">import</span> <span class="n">fspath</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.stdio_handler</span> <span class="kn">import</span> <span class="n">STDReader</span><span class="p">,</span> <span class="n">STDWriter</span>
+<span class="kn">from</span> <span class="nn">megfile.lib.url</span> <span class="kn">import</span> <span class="n">get_url_scheme</span>
 <span class="kn">from</span> <span class="nn">megfile.smart_path</span> <span class="kn">import</span> <span class="n">SmartPath</span>
 <span class="kn">from</span> <span class="nn">megfile.utils</span> <span class="kn">import</span> <span class="n">get_binary_mode</span>
 
@@ -105,8 +105,8 @@
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;stdio://&#39;</span><span class="p">):</span>
         <span class="k">return</span> <span class="kc">False</span>
 
-    <span class="n">parts</span> <span class="o">=</span> <span class="n">urlsplit</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">parts</span><span class="o">.</span><span class="n">scheme</span> <span class="o">==</span> <span class="s1">&#39;stdio&#39;</span></div>
+    <span class="n">scheme</span> <span class="o">=</span> <span class="n">get_url_scheme</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">scheme</span> <span class="o">==</span> <span class="s1">&#39;stdio&#39;</span></div>
 
 
 <div class="viewcode-block" id="StdioPath"><a class="viewcode-back" href="../../megfile.stdio_path.html#megfile.StdioPath">[docs]</a><span class="nd">@SmartPath</span><span class="o">.</span><span class="n">register</span>

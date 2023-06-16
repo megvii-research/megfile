@@ -83,13 +83,13 @@
 <span class="kn">from</span> <span class="nn">stat</span> <span class="kn">import</span> <span class="n">S_ISLNK</span> <span class="k">as</span> <span class="n">stat_islnk</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">IO</span><span class="p">,</span> <span class="n">AnyStr</span><span class="p">,</span> <span class="n">BinaryIO</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 <span class="kn">from</span> <span class="nn">unittest.mock</span> <span class="kn">import</span> <span class="n">patch</span>
-<span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="kn">import</span> <span class="n">urlsplit</span>
 
 <span class="kn">from</span> <span class="nn">megfile.errors</span> <span class="kn">import</span> <span class="n">_create_missing_ok_generator</span>
 <span class="kn">from</span> <span class="nn">megfile.interfaces</span> <span class="kn">import</span> <span class="n">Access</span><span class="p">,</span> <span class="n">ContextIterator</span><span class="p">,</span> <span class="n">FileEntry</span><span class="p">,</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">StatResult</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.compare</span> <span class="kn">import</span> <span class="n">is_same_file</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.compat</span> <span class="kn">import</span> <span class="n">copytree</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.glob</span> <span class="kn">import</span> <span class="n">iglob</span>
+<span class="kn">from</span> <span class="nn">megfile.lib.url</span> <span class="kn">import</span> <span class="n">get_url_scheme</span>
 <span class="kn">from</span> <span class="nn">megfile.utils</span> <span class="kn">import</span> <span class="n">cachedproperty</span><span class="p">,</span> <span class="n">calculate_md5</span>
 
 <span class="kn">from</span> <span class="nn">.interfaces</span> <span class="kn">import</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">URIPath</span>
@@ -127,15 +127,17 @@
     <span class="p">)</span>
 
 
-<div class="viewcode-block" id="is_fs"><a class="viewcode-back" href="../../megfile.fs.html#megfile.is_fs">[docs]</a><span class="k">def</span> <span class="nf">is_fs</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<div class="viewcode-block" id="is_fs"><a class="viewcode-back" href="../../megfile.fs.html#megfile.is_fs">[docs]</a><span class="k">def</span> <span class="nf">is_fs</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="s2">&quot;PathLike&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;Test if a path is fs path</span>
 
 <span class="sd">    :param path: Path to be tested</span>
 <span class="sd">    :returns: True of a path is fs path, else False</span>
 <span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">True</span>
     <span class="n">path</span> <span class="o">=</span> <span class="n">fspath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-    <span class="n">parts</span> <span class="o">=</span> <span class="n">urlsplit</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">parts</span><span class="o">.</span><span class="n">scheme</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span> <span class="ow">or</span> <span class="n">parts</span><span class="o">.</span><span class="n">scheme</span> <span class="o">==</span> <span class="s1">&#39;file&#39;</span></div>
+    <span class="n">scheme</span> <span class="o">=</span> <span class="n">get_url_scheme</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">scheme</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span> <span class="ow">or</span> <span class="n">scheme</span> <span class="o">==</span> <span class="s1">&#39;file&#39;</span></div>
 
 
 <div class="viewcode-block" id="fs_path_join"><a class="viewcode-back" href="../../megfile.fs.html#megfile.fs_path_join">[docs]</a><span class="k">def</span> <span class="nf">fs_path_join</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="o">*</span><span class="n">other_paths</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
