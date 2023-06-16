@@ -148,7 +148,7 @@ def patch_method(
                 return result
             except Exception as exception:
                 if ignore_exceptions and type(exception) in ignore_exceptions:
-                    raise
+                    raise  # pragma: no cover
                 if retry_callback is not None:
                     retry_callback(error, *args, **kwargs)
                 error = exception
