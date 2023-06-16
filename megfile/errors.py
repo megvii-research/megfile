@@ -146,7 +146,7 @@ def patch_method(
                         (full_error_message(error), retries))
                 return result
             except EOFError as eof_exception:
-                raise eof_exception
+                raise eof_exception  # pragma: no cover
             except Exception as exception:
                 if retry_callback is not None:
                     retry_callback(error, *args, **kwargs)
