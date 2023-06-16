@@ -93,8 +93,10 @@ def provide_connect_info(
 
 
 def sftp_should_retry(error: Exception) -> bool:
-    if isinstance(error,
-                  (paramiko.ssh_exception.SSHException, ConnectionError)):
+    if type(error) is EOFError:
+        return False
+    elif isinstance(error,
+                    (paramiko.ssh_exception.SSHException, ConnectionError)):
         return True
     elif isinstance(error, OSError) and str(error) == 'Socket is closed':
         return True
@@ -129,8 +131,7 @@ def _patch_sftp_client_request(
         client._request,  # pytype: disable=attribute-error
         max_retries=MAX_RETRIES,
         should_retry=sftp_should_retry,
-        retry_callback=retry_callback,
-        ignore_exceptions=[EOFError])
+        retry_callback=retry_callback)
     return client
 
 

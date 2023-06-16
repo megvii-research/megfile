@@ -127,32 +127,25 @@ def patch_method(
         should_retry: Callable[[Exception], bool],
         before_callback: Optional[Callable] = None,
         after_callback: Optional[Callable] = None,
-        retry_callback: Optional[Callable] = None,
-        ignore_exceptions: Optional[List[Exception]] = None):
+        retry_callback: Optional[Callable] = None):
 
     @wraps(func)
     def wrapper(*args, **kwargs):
         if before_callback is not None:
             before_callback(*args, **kwargs)
 
-        error = None
         for retries in range(1, max_retries + 1):
             try:
                 result = func(*args, **kwargs)
                 if after_callback is not None:
                     result = after_callback(result, *args, **kwargs)
-                if error is not None:
-                    _logger.debug(  # pragma: no cover
-                        'unknown error resolved: %s, with %d tries' %
-                        (full_error_message(error), retries))
                 return result
-            except Exception as exception:
-                if ignore_exceptions and type(exception) in ignore_exceptions:
-                    raise  # pragma: no cover
+            except Exception as error:
+                if not should_retry(error):
+                    raise
                 if retry_callback is not None:
                     retry_callback(error, *args, **kwargs)
-                error = exception
-                if retries == max_retries or not should_retry(error):
+                if retries == max_retries:
                     raise
                 retry_interval = min(0.1 * 2**retries, 30)
                 _logger.debug(
