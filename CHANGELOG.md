@@ -1,3 +1,7 @@
+## 2.0.7 - 2023.06.16
+- perf
+    - retry ConnectionError in sftp retry
+
 ## 2.0.6.post1 - 2023.06.16
 - fix
     - fix sftp retry bug when catch EOFError 
