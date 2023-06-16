@@ -145,6 +145,8 @@ def patch_method(
                         'unknown error resolved: %s, with %d tries' %
                         (full_error_message(error), retries))
                 return result
+            except EOFError as eof_exception:
+                raise eof_exception  # pragma: no cover
             except Exception as exception:
                 if retry_callback is not None:
                     retry_callback(error, *args, **kwargs)
