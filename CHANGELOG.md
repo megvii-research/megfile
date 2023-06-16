@@ -1,3 +1,9 @@
+## 2.0.6.post1 - 2023.06.16
+- fix
+    - fix sftp retry bug when catch EOFError 
+    - fix the bug from new `urlsplit` in py3.11.4
+    - fix the path list's order returned by fs glob, now return path list in ascending alphabetical order
+
 ## 2.0.6 - 2023.06.13
 - fix
     - fix sftp connect timeout after long time
