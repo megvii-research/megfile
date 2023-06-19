@@ -1,9 +1,10 @@
 import os
 
+import paramiko
 import pytest
 
 from megfile import sftp
-from megfile.sftp_path import SFTP_PASSWORD, SFTP_PRIVATE_KEY_PATH, SFTP_USERNAME, SftpPath, get_private_key, provide_connect_info
+from megfile.sftp_path import SFTP_PASSWORD, SFTP_PRIVATE_KEY_PATH, SFTP_USERNAME, SftpPath, get_private_key, provide_connect_info, sftp_should_retry
 
 from .test_sftp import sftp_mocker
 
@@ -90,3 +91,11 @@ def test_get_private_key(fs):
     with pytest.raises(FileNotFoundError):
         os.environ['SFTP_PRIVATE_KEY_PATH'] = '/file_not_exist'
         get_private_key()
+
+
+def test_sftp_should_retry():
+    assert sftp_should_retry(EOFError()) is False
+    assert sftp_should_retry(paramiko.ssh_exception.SSHException()) is True
+    assert sftp_should_retry(ConnectionError()) is True
+    assert sftp_should_retry(OSError('Socket is closed')) is True
+    assert sftp_should_retry(OSError('test')) is False

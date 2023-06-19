@@ -80,7 +80,13 @@ def iglob(
 
 def _iglob(pathname: str, recursive: bool, dironly: bool,
            fs: FSFunc) -> Iterator[str]:
-    dirname, basename = os.path.split(pathname)
+    if '://' in pathname:
+        protocol, path_without_protocol = pathname.split('://', 1)
+    else:
+        protocol, path_without_protocol = "", pathname
+    dirname, basename = os.path.split(path_without_protocol)
+    if protocol:
+        dirname = "://".join([protocol, dirname])
     if not has_magic(pathname):
         assert not dironly
         if basename:
