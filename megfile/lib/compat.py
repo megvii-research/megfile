@@ -20,7 +20,7 @@ import sys
 if sys.version_info.major == 3 and sys.version_info.minor >= 8:
     from shutil import copytree  # pragma: no cover
 else:
-    from shutil import Error, copy2, copystat
+    from shutil import Error, copy2, copystat  # pragma: no cover
 
     def copytree(
             src,
