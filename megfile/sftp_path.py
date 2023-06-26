@@ -348,9 +348,10 @@ def sftp_download(
         src_url = src_url.readlink()
     if src_url.is_dir():
         raise IsADirectoryError('Is a directory: %r' % src_url)
+    if dst_url.endswith('/'):
+        raise IsADirectoryError('Is a directory: %r' % dst_url)
 
-    dir_path = os.path.dirname(dst_url)
-    os.makedirs(dir_path, exist_ok=True)
+    os.makedirs(os.path.dirname(dst_url), exist_ok=True)
     src_url._client.get(src_url._real_path, dst_url, callback=callback)
 
     src_stat = src_url.stat()
@@ -377,10 +378,11 @@ def sftp_upload(
         src_url = os.readlink(src_url)
     if os.path.isdir(src_url):
         raise IsADirectoryError('Is a directory: %r' % src_url)
+    if dst_url.endswith('/'):
+        raise IsADirectoryError('Is a directory: %r' % dst_url)
 
     dst_url = SftpPath(dst_url)
-    dir_path = dst_url.parent
-    dir_path.makedirs(exist_ok=True)
+    dst_url.parent.makedirs(exist_ok=True)
     dst_url._client.put(src_url, dst_url._real_path, callback=callback)
 
     src_stat = fs_stat(src_url)
@@ -777,15 +779,18 @@ class SftpPath(URIPath):
         '''
 
         def create_generator() -> Iterator[FileEntry]:
-            path = self
-            if path.is_file():
-                # On s3, file and directory may be of same name and level, so need to test the path is file or directory
+
+            try:
+                stat = self.stat(follow_symlinks=followlinks)
+            except FileNotFoundError:
+                return
+            if S_ISREG(stat.st_mode):
                 yield FileEntry(
-                    path.name, path.path_with_protocol,
-                    path.stat(follow_symlinks=followlinks))
+                    self.name, self.path_with_protocol,
+                    self.stat(follow_symlinks=followlinks))
                 return
 
-            for name in path.listdir():
+            for name in self.listdir():
                 current_path = self.joinpath(name)
                 if current_path.is_dir():
                     yield from current_path.scan_stat()
@@ -1053,10 +1058,16 @@ class SftpPath(URIPath):
         if followlinks and self.is_symlink():
             return self.readlink().copy(dst_path=dst_path, callback=callback)
 
+        if not is_sftp(dst_path):
+            raise OSError('Not a sftp path: %r' % dst_path)
+        if dst_path.endswith('/'):
+            raise IsADirectoryError('Is a directory: %r' % dst_path)
+
         if self.is_dir():
             raise IsADirectoryError(
                 'Is a directory: %r' % self.path_with_protocol)
 
+        self.from_path(os.path.dirname(dst_path)).makedirs(exist_ok=True)
         dst_path = self.from_path(dst_path)
         if self._is_same_backend(dst_path):
             exec_result = self._exec_command(
@@ -1086,6 +1097,9 @@ class SftpPath(URIPath):
 
         :param dst_url: Given destination path
         '''
+        if not is_sftp(dst_path):
+            raise OSError('Not a sftp path: %r' % dst_path)
+
         for src_file_path, dst_file_path in _sftp_scan_pairs(
                 self.path_with_protocol, dst_path):
             dst_path = self.from_path(dst_file_path)
