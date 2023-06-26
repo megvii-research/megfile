@@ -275,6 +275,7 @@ def test_sftp_isdir_sftp_isfile(sftp_mocker):
     assert sftp.sftp_isdir('sftp://username@host/A/B/file') is False
     assert sftp.sftp_isfile('sftp://username@host/A/B/file') is True
     assert sftp.sftp_isfile('sftp://username@host/A/B') is False
+    assert sftp.sftp_isfile('sftp://username@host/A/C') is False
 
 
 def test_sftp_exists(sftp_mocker):
@@ -424,6 +425,13 @@ def test_sftp_rename(sftp_mocker):
         sftp.sftp_rename(
             'sftp://username@host/A/test2', 'sftp://username@host/A/test')
 
+    with pytest.raises(OSError):
+        sftp.sftp_rename('sftp://username@host/A/test2', '/A/test')
+
+    with pytest.raises(IsADirectoryError):
+        sftp.sftp_rename(
+            'sftp://username@host/A/test2', 'sftp://username@host/A2/test2/')
+
 
 def test_sftp_move(sftp_mocker):
     sftp.sftp_makedirs('sftp://username@host/A')
@@ -524,6 +532,9 @@ def test_sftp_scan(sftp_mocker):
         os.stat('/A/1.json').st_size,
         os.stat('/A/b/file.json').st_size,
     ]
+
+    with pytest.raises(FileNotFoundError):
+        list(sftp.sftp_scan_stat('sftp://username@host/B', missing_ok=False))
 
 
 def test_sftp_unlink(sftp_mocker):
@@ -631,6 +642,10 @@ def test_sftp_copy(sftp_mocker):
     with pytest.raises(IsADirectoryError):
         sftp.sftp_copy('sftp://username@host/A', 'sftp://username@host/A2')
 
+    with pytest.raises(IsADirectoryError):
+        sftp.sftp_copy(
+            'sftp://username@host/A/1.json', 'sftp://username@host/A2/')
+
     with pytest.raises(OSError):
         sftp.sftp_copy('sftp://username@host/A', '/A2')
 
@@ -639,13 +654,13 @@ def test_sftp_copy(sftp_mocker):
 
     sftp.sftp_copy(
         'sftp://username@host/A/1.json.lnk',
-        'sftp://username@host/A/1.json.bak',
+        'sftp://username@host/A2/1.json.bak',
         followlinks=True,
         callback=callback)
 
     assert sftp.sftp_stat(
         'sftp://username@host/A/1.json').size == sftp.sftp_stat(
-            'sftp://username@host/A/1.json.bak').size
+            'sftp://username@host/A2/1.json.bak').size
 
 
 def test_sftp_copy_with_different_host(sftp_mocker):
@@ -686,6 +701,10 @@ def test_sftp_sync(sftp_mocker, mocker):
         'sftp://username@host/A/1.json').size == sftp.sftp_stat(
             'sftp://username@host/A/1.json.bak').size
 
+    with pytest.raises(IsADirectoryError):
+        sftp.sftp_sync(
+            'sftp://username@host/A/1.json', 'sftp://username@host/A2/')
+
     func = mocker.patch('megfile.sftp_path.SftpPath.copy')
     sftp.sftp_sync('sftp://username@host/A2', 'sftp://username@host/A')
     assert func.call_count == 0
@@ -699,9 +718,9 @@ def test_sftp_download(sftp_mocker):
         'sftp://username@host/A/1.json', 'sftp://username@host/A/1.json.lnk')
 
     sftp.sftp_download(
-        'sftp://username@host/A/1.json.lnk', '/1.json', followlinks=True)
+        'sftp://username@host/A/1.json.lnk', '/A/1.json', followlinks=True)
     assert sftp.sftp_stat('sftp://username@host/A/1.json').size == os.stat(
-        '/1.json').st_size
+        '/A/1.json').st_size
 
     with pytest.raises(OSError):
         sftp.sftp_download(
@@ -713,13 +732,15 @@ def test_sftp_download(sftp_mocker):
     with pytest.raises(IsADirectoryError):
         sftp.sftp_download('sftp://username@host/A', '/1.json')
 
+    with pytest.raises(IsADirectoryError):
+        sftp.sftp_download('sftp://username@host/A/1.json', '/1/')
+
 
 def test_sftp_upload(sftp_mocker):
     with sftp.sftp_open('/1.json', 'w') as f:
         f.write('1.json')
     os.symlink('/1.json', '/1.json.lnk')
 
-    sftp.sftp_makedirs('sftp://username@host/A')
     sftp.sftp_upload(
         '/1.json.lnk', 'sftp://username@host/A/1.json', followlinks=True)
     assert sftp.sftp_stat('sftp://username@host/A/1.json').size == os.stat(
@@ -734,6 +755,9 @@ def test_sftp_upload(sftp_mocker):
 
     with pytest.raises(IsADirectoryError):
         sftp.sftp_upload('/', 'sftp://username@host/A')
+
+    with pytest.raises(IsADirectoryError):
+        sftp.sftp_upload('/1.json', 'sftp://username@host/A/')
 
 
 def test_sftp_path_join():
