@@ -424,9 +424,10 @@
         <span class="n">src_url</span> <span class="o">=</span> <span class="n">src_url</span><span class="o">.</span><span class="n">readlink</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">src_url</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
         <span class="k">raise</span> <span class="ne">IsADirectoryError</span><span class="p">(</span><span class="s1">&#39;Is a directory: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">src_url</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">dst_url</span><span class="p">)</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">IsADirectoryError</span><span class="p">(</span><span class="s1">&#39;Is a directory: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">dst_url</span><span class="p">)</span>
 
-    <span class="n">dir_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">dst_url</span><span class="p">)</span>
-    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">dir_path</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">dst_url</span><span class="p">),</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">src_url</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">src_url</span><span class="o">.</span><span class="n">_real_path</span><span class="p">,</span> <span class="n">dst_url</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">callback</span><span class="p">)</span>
 
     <span class="n">src_stat</span> <span class="o">=</span> <span class="n">src_url</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span>
@@ -453,10 +454,11 @@
         <span class="n">src_url</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">readlink</span><span class="p">(</span><span class="n">src_url</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">src_url</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">IsADirectoryError</span><span class="p">(</span><span class="s1">&#39;Is a directory: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">src_url</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">dst_url</span><span class="p">)</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">IsADirectoryError</span><span class="p">(</span><span class="s1">&#39;Is a directory: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">dst_url</span><span class="p">)</span>
 
     <span class="n">dst_url</span> <span class="o">=</span> <span class="n">SftpPath</span><span class="p">(</span><span class="n">dst_url</span><span class="p">)</span>
-    <span class="n">dir_path</span> <span class="o">=</span> <span class="n">dst_url</span><span class="o">.</span><span class="n">parent</span>
-    <span class="n">dir_path</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">dst_url</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">dst_url</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">src_url</span><span class="p">,</span> <span class="n">dst_url</span><span class="o">.</span><span class="n">_real_path</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">callback</span><span class="p">)</span>
 
     <span class="n">src_stat</span> <span class="o">=</span> <span class="n">fs_stat</span><span class="p">(</span><span class="n">src_url</span><span class="p">)</span>
@@ -771,6 +773,11 @@
 
 <span class="sd">        :param dst_path: Given destination path</span>
 <span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_sftp</span><span class="p">(</span><span class="n">dst_path</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="s1">&#39;Not a sftp path: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">dst_path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">IsADirectoryError</span><span class="p">(</span><span class="s1">&#39;Is a directory: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">dst_path</span><span class="p">)</span>
+
         <span class="n">dst_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span>
         <span class="n">src_stat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span>
 
@@ -853,15 +860,18 @@
 <span class="sd">        &#39;&#39;&#39;</span>
 
         <span class="k">def</span> <span class="nf">create_generator</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">FileEntry</span><span class="p">]:</span>
-            <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span>
-            <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
-                <span class="c1"># On s3, file and directory may be of same name and level, so need to test the path is file or directory</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">stat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">follow_symlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+                <span class="k">return</span>
+            <span class="k">if</span> <span class="n">S_ISREG</span><span class="p">(</span><span class="n">stat</span><span class="o">.</span><span class="n">st_mode</span><span class="p">):</span>
                 <span class="k">yield</span> <span class="n">FileEntry</span><span class="p">(</span>
-                    <span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">path</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">,</span>
-                    <span class="n">path</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">follow_symlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">))</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">follow_symlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">))</span>
                 <span class="k">return</span>
 
-            <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">path</span><span class="o">.</span><span class="n">listdir</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">listdir</span><span class="p">():</span>
                 <span class="n">current_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">current_path</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
                     <span class="k">yield from</span> <span class="n">current_path</span><span class="o">.</span><span class="n">scan_stat</span><span class="p">()</span>
@@ -1129,10 +1139,16 @@
         <span class="k">if</span> <span class="n">followlinks</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_symlink</span><span class="p">():</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">readlink</span><span class="p">()</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">dst_path</span><span class="o">=</span><span class="n">dst_path</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">callback</span><span class="p">)</span>
 
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_sftp</span><span class="p">(</span><span class="n">dst_path</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="s1">&#39;Not a sftp path: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">dst_path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">IsADirectoryError</span><span class="p">(</span><span class="s1">&#39;Is a directory: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">dst_path</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
             <span class="k">raise</span> <span class="ne">IsADirectoryError</span><span class="p">(</span>
                 <span class="s1">&#39;Is a directory: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">)</span>
 
+        <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">dst_path</span><span class="p">))</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">dst_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_same_backend</span><span class="p">(</span><span class="n">dst_path</span><span class="p">):</span>
             <span class="n">exec_result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exec_command</span><span class="p">(</span>
@@ -1162,6 +1178,9 @@
 
 <span class="sd">        :param dst_url: Given destination path</span>
 <span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_sftp</span><span class="p">(</span><span class="n">dst_path</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="s1">&#39;Not a sftp path: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">dst_path</span><span class="p">)</span>
+
         <span class="k">for</span> <span class="n">src_file_path</span><span class="p">,</span> <span class="n">dst_file_path</span> <span class="ow">in</span> <span class="n">_sftp_scan_pairs</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">):</span>
             <span class="n">dst_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">dst_file_path</span><span class="p">)</span>
