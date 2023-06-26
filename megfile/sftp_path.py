@@ -348,7 +348,7 @@ def sftp_download(
         src_url = src_url.readlink()
     if src_url.is_dir():
         raise IsADirectoryError('Is a directory: %r' % src_url)
-    if dst_url.endswith('/'):
+    if str(dst_url).endswith('/'):
         raise IsADirectoryError('Is a directory: %r' % dst_url)
 
     os.makedirs(os.path.dirname(dst_url), exist_ok=True)
@@ -378,7 +378,7 @@ def sftp_upload(
         src_url = os.readlink(src_url)
     if os.path.isdir(src_url):
         raise IsADirectoryError('Is a directory: %r' % src_url)
-    if dst_url.endswith('/'):
+    if str(dst_url).endswith('/'):
         raise IsADirectoryError('Is a directory: %r' % dst_url)
 
     dst_url = SftpPath(dst_url)
@@ -697,6 +697,11 @@ class SftpPath(URIPath):
 
         :param dst_path: Given destination path
         '''
+        if not is_sftp(dst_path):
+            raise OSError('Not a sftp path: %r' % dst_path)
+        if str(dst_path).endswith('/'):
+            raise IsADirectoryError('Is a directory: %r' % dst_path)
+
         dst_path = self.from_path(dst_path)
         src_stat = self.stat()
 
@@ -1060,7 +1065,7 @@ class SftpPath(URIPath):
 
         if not is_sftp(dst_path):
             raise OSError('Not a sftp path: %r' % dst_path)
-        if dst_path.endswith('/'):
+        if str(dst_path).endswith('/'):
             raise IsADirectoryError('Is a directory: %r' % dst_path)
 
         if self.is_dir():

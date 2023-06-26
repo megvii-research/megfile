@@ -425,6 +425,13 @@ def test_sftp_rename(sftp_mocker):
         sftp.sftp_rename(
             'sftp://username@host/A/test2', 'sftp://username@host/A/test')
 
+    with pytest.raises(OSError):
+        sftp.sftp_rename('sftp://username@host/A/test2', '/A/test')
+
+    with pytest.raises(IsADirectoryError):
+        sftp.sftp_rename(
+            'sftp://username@host/A/test2', 'sftp://username@host/A2/test2/')
+
 
 def test_sftp_move(sftp_mocker):
     sftp.sftp_makedirs('sftp://username@host/A')
