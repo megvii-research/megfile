@@ -1,3 +1,10 @@
+## 2.1.0 - 2023.06.26
+- feat
+    - `smart_sync` will raise `IsADirectoryError` when src_path is a file and dst_path is a directory
+- fix
+    - fix `sftp_upload`, `sftp_download`, `sftp_copy` path check, when path is not sftp or is dir, will raise error
+    - `sftp_copy` makedir if `dst_path`'s dir not exist
+
 ## 2.0.7 - 2023.06.16
 - perf
     - retry ConnectionError in sftp retry
