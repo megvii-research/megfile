@@ -31,34 +31,34 @@ def safe_cli():  # pragma: no cover
         click.echo(f"\n[{type(e).__name__}] {e}", err=True)
 
 
-def get_echo_path(file, show_full_path: bool = False, base_path: str = ""):
-    if base_path == file.path:
-        path = file.name
-    elif show_full_path:
-        path = file.path
+def get_echo_path(file_stat, base_path: str = ""):
+    if base_path == file_stat.path:
+        path = file_stat.name
     else:
-        path = os.path.relpath(file.path, start=base_path)
+        path = os.path.relpath(file_stat.path, start=base_path)
     return path
 
 
-def simple_echo(file, show_full_path: bool = False, base_path: str = ""):
-    click.echo(get_echo_path(file, show_full_path, base_path))
+def simple_echo(file_stat, base_path: str = ""):
+    click.echo(get_echo_path(file_stat, base_path))
 
 
-def long_echo(file, show_full_path: bool = False, base_path: str = ""):
+def long_echo(file_stat, base_path: str = ""):
     click.echo(
         '%12d %s %s' % (
-            file.stat.size,
-            time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(file.stat.mtime)),
-            get_echo_path(file, show_full_path, base_path)))
+            file_stat.stat.size,
+            time.strftime(
+                "%Y-%m-%d %H:%M:%S", time.localtime(file_stat.stat.mtime)),
+            get_echo_path(file_stat, base_path)))
 
 
-def human_echo(file, show_full_path: bool = False, base_path: str = ""):
+def human_echo(file_stat, base_path: str = ""):
     click.echo(
         '%10s %s %s' % (
-            get_human_size(file.stat.size),
-            time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(file.stat.mtime)),
-            get_echo_path(file, show_full_path, base_path)))
+            get_human_size(file_stat.stat.size),
+            time.strftime(
+                "%Y-%m-%d %H:%M:%S", time.localtime(file_stat.stat.mtime)),
+            get_echo_path(file_stat, base_path)))
 
 
 def smart_list_stat(path):
@@ -89,10 +89,10 @@ def smart_list_stat(path):
     is_flag=True,
     help='Displays file sizes in human readable format.')
 def ls(path: str, long: bool, recursive: bool, human_readable: bool):
-    show_full_path = False
+    base_path = path
     if has_magic(path):
         scan_func = smart_glob_stat
-        show_full_path = True
+        base_path = get_non_glob_dir(path)
     elif recursive:
         scan_func = smart_scan_stat
     else:
@@ -105,8 +105,8 @@ def ls(path: str, long: bool, recursive: bool, human_readable: bool):
     else:
         echo_func = simple_echo
 
-    for file in scan_func(path):
-        echo_func(file, show_full_path, path)
+    for file_stat in scan_func(path):
+        echo_func(file_stat, base_path)
 
 
 @cli.command(
