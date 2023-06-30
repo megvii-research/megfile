@@ -974,7 +974,7 @@ class SftpPath(URIPath):
 
         returns: Current working directory
         '''
-        return self._generate_path_object(self._client.getcwd())
+        return self._generate_path_object(self._client.normalize('.'))
 
     def save(self, file_object: BinaryIO):
         '''Write the opened binary stream to path

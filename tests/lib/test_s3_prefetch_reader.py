@@ -1,12 +1,8 @@
 import os
 import time
-from asyncore import read
-from contextlib import redirect_stderr
 from io import BytesIO
 
-import boto3
 import pytest
-from moto import mock_s3
 
 from megfile.errors import S3FileChangedError, S3InvalidRangeError
 from megfile.lib.s3_prefetch_reader import S3PrefetchReader
