@@ -1,3 +1,9 @@
+## 2.1.1 - 2023.07.03
+- fix
+    - fix `ls -r` not display directories
+    - fix `SftpPath.cwd`
+    - fix sftp exec command method's return data
+
 ## 2.1.0 - 2023.06.26
 - feat
     - `smart_sync` will raise `IsADirectoryError` when src_path is a file and dst_path is a directory
