@@ -423,6 +423,7 @@ def sftp_concat(src_paths: List[PathLike], dst_path: PathLike) -> None:
     ]
     exec_result = dst_path_obj._exec_command(command)
     if exec_result.returncode != 0:
+        _logger.error(exec_result.stderr)
         raise OSError(f'Failed to concat {src_paths} to {dst_path}')
 
 
@@ -1038,9 +1039,11 @@ class SftpPath(URIPath):
             chan.settimeout(timeout)
             if environment:
                 chan.update_environment(environment)
-            chan.exec_command(' '.join(shlex.quote(arg) for arg in command))
-            stdout = chan.makefile("r", bufsize)
-            stderr = chan.makefile_stderr("r", bufsize)
+            chan.exec_command(' '.join([shlex.quote(arg) for arg in command]))
+            stdout = chan.makefile(
+                "r", bufsize).read().decode(errors="backslashreplace")
+            stderr = chan.makefile_stderr(
+                "r", bufsize).read().decode(errors="backslashreplace")
             returncode = chan.recv_exit_status()
         return subprocess.CompletedProcess(
             args=command, returncode=returncode, stdout=stdout, stderr=stderr)
