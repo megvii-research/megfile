@@ -1,3 +1,7 @@
+## 2.1.1.post1 - 2023.07.04
+- fix
+    - fix dst_path check in SftpPath's methods
+
 ## 2.1.1 - 2023.07.03
 - fix
     - fix `ls -r` not display directories
