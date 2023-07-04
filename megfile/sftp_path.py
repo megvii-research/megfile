@@ -692,14 +692,17 @@ class SftpPath(URIPath):
     def _is_same_backend(self, other: 'SftpPath') -> bool:
         return self._urlsplit_parts.hostname == other._urlsplit_parts.hostname and self._urlsplit_parts.username == other._urlsplit_parts.username and self._urlsplit_parts.password == other._urlsplit_parts.password and self._urlsplit_parts.port == other._urlsplit_parts.port
 
+    def _is_same_protocol(self, path):
+        return is_sftp(path)
+
     def rename(self, dst_path: PathLike) -> 'SftpPath':
         '''
         rename file on sftp
 
         :param dst_path: Given destination path
         '''
-        if not is_sftp(dst_path):
-            raise OSError('Not a sftp path: %r' % dst_path)
+        if not self._is_same_protocol(dst_path):
+            raise OSError('Not a %s path: %r' % (self.protocol, dst_path))
         if str(dst_path).endswith('/'):
             raise IsADirectoryError('Is a directory: %r' % dst_path)
 
@@ -1066,8 +1069,8 @@ class SftpPath(URIPath):
         if followlinks and self.is_symlink():
             return self.readlink().copy(dst_path=dst_path, callback=callback)
 
-        if not is_sftp(dst_path):
-            raise OSError('Not a sftp path: %r' % dst_path)
+        if not self._is_same_protocol(dst_path):
+            raise OSError('Not a %s path: %r' % (self.protocol, dst_path))
         if str(dst_path).endswith('/'):
             raise IsADirectoryError('Is a directory: %r' % dst_path)
 
@@ -1105,8 +1108,8 @@ class SftpPath(URIPath):
 
         :param dst_url: Given destination path
         '''
-        if not is_sftp(dst_path):
-            raise OSError('Not a sftp path: %r' % dst_path)
+        if not self._is_same_protocol(dst_path):
+            raise OSError('Not a %s path: %r' % (self.protocol, dst_path))
 
         for src_file_path, dst_file_path in _sftp_scan_pairs(
                 self.path_with_protocol, dst_path):
