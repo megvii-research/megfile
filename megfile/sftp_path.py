@@ -115,8 +115,12 @@ def _patch_sftp_client_request(
         ssh_client = get_ssh_client(hostname, port, username, password)
         ssh_client.close()
         atexit.unregister(ssh_client.close)
-        del thread_local[f'ssh_client:{hostname},{port},{username},{password}']
-        del thread_local[f'sftp_client:{hostname},{port},{username},{password}']
+        ssh_key = f'ssh_client:{hostname},{port},{username},{password}'
+        if thread_local.get(ssh_key):
+            del thread_local[ssh_key]
+        sftp_key = f'sftp_client:{hostname},{port},{username},{password}'
+        if thread_local.get(sftp_key):
+            del thread_local[sftp_key]
 
         new_sftp_client = get_sftp_client(
             hostname=hostname,
@@ -155,7 +159,7 @@ def get_sftp_client(
         port: Optional[int] = None,
         username: Optional[str] = None,
         password: Optional[str] = None,
-) -> paramiko.SFTPClient:  # pragma: no cover
+) -> paramiko.SFTPClient:
     '''Get sftp client
 
     :returns: sftp client
@@ -195,7 +199,7 @@ def get_ssh_client(
         port: Optional[int] = None,
         username: Optional[str] = None,
         password: Optional[str] = None,
-) -> paramiko.SSHClient:  # pragma: no cover
+) -> paramiko.SSHClient:
     return thread_local(
         f'ssh_client:{hostname},{port},{username},{password}', _get_ssh_client,
         hostname, port, username, password)
