@@ -4,7 +4,6 @@ import io
 import os
 import shlex
 import subprocess
-from functools import lru_cache
 from logging import getLogger as get_logger
 from stat import S_ISDIR, S_ISLNK, S_ISREG
 from typing import IO, AnyStr, BinaryIO, Callable, Iterator, List, Optional, Tuple, Union
@@ -17,7 +16,7 @@ from megfile.interfaces import ContextIterator, FileEntry, PathLike, StatResult
 from megfile.lib.compare import is_same_file
 from megfile.lib.glob import FSFunc, iglob
 from megfile.lib.joinpath import uri_join
-from megfile.utils import calculate_md5
+from megfile.utils import calculate_md5, thread_local
 
 from .interfaces import PathLike, URIPath
 from .lib.compat import fspath
@@ -116,8 +115,12 @@ def _patch_sftp_client_request(
         ssh_client = get_ssh_client(hostname, port, username, password)
         ssh_client.close()
         atexit.unregister(ssh_client.close)
-        get_sftp_client.cache_clear()
-        get_ssh_client.cache_clear()
+        ssh_key = f'ssh_client:{hostname},{port},{username},{password}'
+        if thread_local.get(ssh_key):
+            del thread_local[ssh_key]
+        sftp_key = f'sftp_client:{hostname},{port},{username},{password}'
+        if thread_local.get(sftp_key):
+            del thread_local[sftp_key]
 
         new_sftp_client = get_sftp_client(
             hostname=hostname,
@@ -135,8 +138,7 @@ def _patch_sftp_client_request(
     return client
 
 
-@lru_cache()
-def get_sftp_client(
+def _get_sftp_client(
         hostname: str,
         port: Optional[int] = None,
         username: Optional[str] = None,
@@ -152,8 +154,22 @@ def get_sftp_client(
     return sftp_client
 
 
-@lru_cache()
-def get_ssh_client(
+def get_sftp_client(
+        hostname: str,
+        port: Optional[int] = None,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+) -> paramiko.SFTPClient:
+    '''Get sftp client
+
+    :returns: sftp client
+    '''
+    return thread_local(
+        f'sftp_client:{hostname},{port},{username},{password}',
+        _get_sftp_client, hostname, port, username, password)
+
+
+def _get_ssh_client(
         hostname: str,
         port: Optional[int] = None,
         username: Optional[str] = None,
@@ -178,6 +194,17 @@ def get_ssh_client(
     return ssh_client
 
 
+def get_ssh_client(
+        hostname: str,
+        port: Optional[int] = None,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+) -> paramiko.SSHClient:
+    return thread_local(
+        f'ssh_client:{hostname},{port},{username},{password}', _get_ssh_client,
+        hostname, port, username, password)
+
+
 def get_ssh_session(
         hostname: str,
         port: Optional[int] = None,
@@ -190,8 +217,12 @@ def get_ssh_session(
     except paramiko.SSHException:
         ssh_client.close()
         atexit.unregister(ssh_client.close)
-        get_ssh_client.cache_clear()
-        get_sftp_client.cache_clear()
+        ssh_key = f'ssh_client:{hostname},{port},{username},{password}'
+        if thread_local.get(ssh_key):
+            del thread_local[ssh_key]
+        sftp_key = f'sftp_client:{hostname},{port},{username},{password}'
+        if thread_local.get(sftp_key):
+            del thread_local[sftp_key]
         return _open_session(
             get_ssh_client(
                 hostname=hostname,

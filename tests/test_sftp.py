@@ -172,8 +172,8 @@ def _fake_exec_command(
 def sftp_mocker(fs, mocker):
     client = FakeSFTPClient()
     sftp_path._patch_sftp_client_request(client, "")
-    mocker.patch('megfile.sftp_path.get_sftp_client', return_value=client)
-    mocker.patch('megfile.sftp_path.get_ssh_client', return_value=client)
+    mocker.patch('megfile.sftp_path._get_sftp_client', return_value=client)
+    mocker.patch('megfile.sftp_path._get_ssh_client', return_value=client)
     mocker.patch(
         'megfile.sftp_path.SftpPath._exec_command',
         side_effect=_fake_exec_command)
