@@ -217,8 +217,12 @@ def get_ssh_session(
     except paramiko.SSHException:
         ssh_client.close()
         atexit.unregister(ssh_client.close)
-        get_ssh_client.cache_clear()
-        get_sftp_client.cache_clear()
+        ssh_key = f'ssh_client:{hostname},{port},{username},{password}'
+        if thread_local.get(ssh_key):
+            del thread_local[ssh_key]
+        sftp_key = f'sftp_client:{hostname},{port},{username},{password}'
+        if thread_local.get(sftp_key):
+            del thread_local[sftp_key]
         return _open_session(
             get_ssh_client(
                 hostname=hostname,
