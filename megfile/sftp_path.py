@@ -383,7 +383,14 @@ def sftp_download(
         raise IsADirectoryError('Is a directory: %r' % dst_url)
 
     os.makedirs(os.path.dirname(dst_url), exist_ok=True)
-    src_url._client.get(src_url._real_path, dst_url, callback=callback)
+
+    sftp_callback = None
+    if callback:
+
+        def sftp_callback(bytes_transferred: int, _total_bytes: int):
+            callback(bytes_transferred)
+
+    src_url._client.get(src_url._real_path, dst_url, callback=sftp_callback)
 
     src_stat = src_url.stat()
     dst_path = FSPath(dst_url)
@@ -414,7 +421,14 @@ def sftp_upload(
 
     dst_url = SftpPath(dst_url)
     dst_url.parent.makedirs(exist_ok=True)
-    dst_url._client.put(src_url, dst_url._real_path, callback=callback)
+
+    sftp_callback = None
+    if callback:
+
+        def sftp_callback(bytes_transferred: int, _total_bytes: int):
+            callback(bytes_transferred)
+
+    dst_url._client.put(src_url, dst_url._real_path, callback=sftp_callback)
 
     src_stat = fs_stat(src_url)
     dst_url.utime(src_stat.st_atime, src_stat.st_mtime)
@@ -711,7 +725,13 @@ class SftpPath(URIPath):
             for parent_path_object in parent_path_objects[::-1]:
                 parent_path_object.mkdir(
                     mode=mode, parents=False, exist_ok=True)
-        self._client.mkdir(path=self._real_path, mode=mode)
+        try:
+            self._client.mkdir(path=self._real_path, mode=mode)
+        except OSError:
+            # 并发建目录会报错
+            if not self.exists():
+                raise FileExistsError(
+                    f"File exists: '{self.path_with_protocol}'")
 
     def realpath(self) -> str:
         '''Return the real path of given path

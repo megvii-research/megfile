@@ -236,7 +236,7 @@ def rm(path: str, recursive: bool):
 @click.argument('dst_path')
 @click.option('-g', '--progress-bar', is_flag=True, help='Show progress bar.')
 def sync(src_path: str, dst_path: str, progress_bar: bool):
-    with ThreadPoolExecutor(max_workers=(os.cpu_count() or 1) * 2) as executor:
+    with ThreadPoolExecutor(max_workers=8) as executor:
         if has_magic(src_path):
             root_dir = get_non_glob_dir(src_path)
             path_stats = []
@@ -274,7 +274,8 @@ def sync(src_path: str, dst_path: str, progress_bar: bool):
                 )
         else:
             if progress_bar:
-                smart_sync_with_progress(src_path, dst_path, followlinks=True)
+                smart_sync_with_progress(
+                    src_path, dst_path, followlinks=True, map_func=executor.map)
             else:
                 smart_sync(
                     src_path, dst_path, followlinks=True, map_func=executor.map)
