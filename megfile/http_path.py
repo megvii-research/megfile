@@ -93,10 +93,11 @@ class HttpPath(URIPath):
         response.raw.auto_close = False
         return BufferedReader(response.raw)
 
-    def stat(self) -> StatResult:
+    def stat(self, follow_symlinks=True) -> StatResult:
         '''
         Get StatResult of http_url response, including size and mtime, referring to http_getsize and http_getmtime
 
+        :param follow_symlinks: Ignore this parameter, just for compatibility
         :returns: StatResult
         :raises: HttpPermissionError, HttpFileNotFoundError
         '''
@@ -121,23 +122,25 @@ class HttpPath(URIPath):
             size=size, mtime=last_modified, isdir=False,
             islnk=False, extra=response.headers)
 
-    def getsize(self) -> int:
+    def getsize(self, follow_symlinks: bool = False) -> int:
         '''
         Get file size on the given http_url path.
 
         If http response header don't support Content-Length, will return None
 
+        :param follow_symlinks: Ignore this parameter, just for compatibility
         :returns: File size (in bytes)
         :raises: HttpPermissionError, HttpFileNotFoundError
         '''
         return self.stat().size
 
-    def getmtime(self) -> float:
+    def getmtime(self, follow_symlinks: bool = False) -> float:
         '''
         Get Last-Modified time of the http request on the given http_url path.
         
         If http response header don't support Last-Modified, will return None
 
+        :param follow_symlinks: Ignore this parameter, just for compatibility
         :returns: Last-Modified time (in Unix timestamp format)
         :raises: HttpPermissionError, HttpFileNotFoundError
         '''

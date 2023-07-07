@@ -1,8 +1,7 @@
 from io import BufferedReader
-from typing import BinaryIO, Callable, Iterator, List, Optional, Tuple
 
 from megfile.http_path import HttpPath, HttpsPath, get_http_session, is_http
-from megfile.interfaces import Access, FileEntry, PathLike, StatResult
+from megfile.interfaces import PathLike, StatResult
 
 __all__ = [
     'get_http_session',
@@ -28,38 +27,41 @@ def http_open(path: PathLike, mode: str = 'rb') -> BufferedReader:
     return HttpPath(path).open(mode)
 
 
-def http_stat(path: PathLike) -> StatResult:
+def http_stat(path: PathLike, follow_symlinks=True) -> StatResult:
     '''
     Get StatResult of http_url response, including size and mtime, referring to http_getsize and http_getmtime
 
     :param path: Given path
+    :param follow_symlinks: Ignore this parameter, just for compatibility
     :returns: StatResult
     :raises: HttpPermissionError, HttpFileNotFoundError
     '''
-    return HttpPath(path).stat()
+    return HttpPath(path).stat(follow_symlinks)
 
 
-def http_getsize(path: PathLike) -> int:
+def http_getsize(path: PathLike, follow_symlinks: bool = False) -> int:
     '''
     Get file size on the given http_url path.
 
     If http response header don't support Content-Length, will return None
 
     :param path: Given path
+    :param follow_symlinks: Ignore this parameter, just for compatibility
     :returns: File size (in bytes)
     :raises: HttpPermissionError, HttpFileNotFoundError
     '''
-    return HttpPath(path).getsize()
+    return HttpPath(path).getsize(follow_symlinks)
 
 
-def http_getmtime(path: PathLike) -> float:
+def http_getmtime(path: PathLike, follow_symlinks: bool = False) -> float:
     '''
     Get Last-Modified time of the http request on the given http_url path.
 
     If http response header don't support Last-Modified, will return None
 
     :param path: Given path
+    :param follow_symlinks: Ignore this parameter, just for compatibility
     :returns: Last-Modified time (in Unix timestamp format)
     :raises: HttpPermissionError, HttpFileNotFoundError
     '''
-    return HttpPath(path).getmtime()
+    return HttpPath(path).getmtime(follow_symlinks)

@@ -12,7 +12,6 @@ __all__ = [
     'is_s3',
     's3_buffered_open',
     's3_cached_open',
-    's3_download',
     's3_memory_open',
     's3_pipe_open',
     's3_prefetch_open',
