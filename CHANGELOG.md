@@ -1,3 +1,11 @@
+## 2.1.2 - 2023.07.07
+- feat
+    - `sync` command with `-g` support sync files concurrently
+    - `sync` command add `-w` / `--worker` for concurrent worker's count, default 8
+- fix
+    - fix sftp error when mkdir concurrently
+    - fix `sftp_download` and `sftp_upload`'s `callback` parameter
+
 ## 2.1.1.post2 - 2023.07.07
 - fix
     - fix sftp client error when multi threads
