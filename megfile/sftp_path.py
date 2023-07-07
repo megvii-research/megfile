@@ -730,8 +730,7 @@ class SftpPath(URIPath):
         except OSError:
             # catch OSError when mkdir concurrently
             if not self.exists():
-                raise FileExistsError(
-                    f"File exists: '{self.path_with_protocol}'")
+                raise
 
     def realpath(self) -> str:
         '''Return the real path of given path
