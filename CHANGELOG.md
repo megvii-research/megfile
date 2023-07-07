@@ -1,3 +1,8 @@
+## 2.1.1.post2 - 2023.07.07
+- fix
+    - fix sftp client error when multi threads
+    - fix `HttpPath` method's parameter
+
 ## 2.1.1.post1 - 2023.07.04
 - fix
     - fix dst_path check in SftpPath's methods
