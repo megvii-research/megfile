@@ -728,7 +728,7 @@ class SftpPath(URIPath):
         try:
             self._client.mkdir(path=self._real_path, mode=mode)
         except OSError:
-            # 并发建目录会报错
+            # catch OSError when mkdir concurrently
             if not self.exists():
                 raise FileExistsError(
                     f"File exists: '{self.path_with_protocol}'")
