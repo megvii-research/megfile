@@ -148,7 +148,7 @@ def get_endpoint_url(profile_name: Optional[str] = None) -> str:
         if config_endpoint_url:
             warning_endpoint_url('~/.aws/config', config_endpoint_url)
             return config_endpoint_url
-    except botocore.exceptions.ProfileNotFound:  # pragma: no cover
+    except botocore.exceptions.ProfileNotFound:
         pass
     return endpoint_url
 
@@ -270,8 +270,7 @@ def _group_s3path_by_bucket(
             for bucket in all_bucket(profile_name):
                 if pattern.fullmatch(bucket) is not None:
                     if path_part is not None:
-                        bucket = "%s/%s" % (
-                            bucket, path_part)  # pragma: no cover
+                        bucket = "%s/%s" % (bucket, path_part)
                     grouped_path.append(generate_s3_path(bucket, key))
         else:
             grouped_path.append(generate_s3_path(bucketname, key))
@@ -895,7 +894,7 @@ def s3_download(
     client = get_s3_client(profile_name=src_url._profile_name)
     try:
         client.download_file(src_bucket, src_key, dst_url, Callback=callback)
-    except Exception as error:  # pragma: no cover
+    except Exception as error:
         error = translate_fs_error(error, dst_url)
         error = translate_s3_error(error, src_url.path_with_protocol)
         raise error
@@ -1103,7 +1102,7 @@ def _group_src_paths_by_block(
     current_group, current_group_size = [], 0
     for src_path in src_paths:
         current_file_size = S3Path(src_path).stat().size
-        if current_file_size == 0:  # pragma: no cover
+        if current_file_size == 0:
             continue
 
         if current_file_size >= block_size:
@@ -1152,7 +1151,7 @@ def s3_concat(
     '''
     client = S3Path(dst_path)._client
     with raise_s3_error(dst_path):
-        if block_size == 0:  # pragma: no cover
+        if block_size == 0:
             groups = [[(src_path, None)] for src_path in src_paths]
         else:
             groups = _group_src_paths_by_block(src_paths, block_size=block_size)

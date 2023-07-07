@@ -384,7 +384,7 @@ class S3PrefetchReader(Readable, Seekable):
 
     def _submit_future(self, index: int):
         if index < 0 or index >= self._block_stop:
-            return  # pragma: no cover
+            return
         self._futures.submit(self._executor, index, self._fetch_buffer, index)
 
     def _insert_futures(self, index: int, future: Future):

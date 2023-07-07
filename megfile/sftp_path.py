@@ -143,7 +143,7 @@ def _get_sftp_client(
         port: Optional[int] = None,
         username: Optional[str] = None,
         password: Optional[str] = None,
-) -> paramiko.SFTPClient:  # pragma: no cover
+) -> paramiko.SFTPClient:
     '''Get sftp client
 
     :returns: sftp client
@@ -174,7 +174,7 @@ def _get_ssh_client(
         port: Optional[int] = None,
         username: Optional[str] = None,
         password: Optional[str] = None,
-) -> paramiko.SSHClient:  # pragma: no cover
+) -> paramiko.SSHClient:
     hostname, port, username, password, private_key = provide_connect_info(
         hostname=hostname,
         port=port,
@@ -210,7 +210,7 @@ def get_ssh_session(
         port: Optional[int] = None,
         username: Optional[str] = None,
         password: Optional[str] = None,
-) -> paramiko.Channel:  # pragma: no cover
+) -> paramiko.Channel:
     ssh_client = get_ssh_client(hostname, port, username, password)
     try:
         return _open_session(ssh_client)
@@ -232,8 +232,7 @@ def get_ssh_session(
             ))
 
 
-def _open_session(
-        ssh_client: paramiko.SSHClient) -> paramiko.Channel:  # pragma: no cover
+def _open_session(ssh_client: paramiko.SSHClient) -> paramiko.Channel:
     transport = ssh_client.get_transport()
     if not transport:
         raise paramiko.SSHException()
@@ -1082,7 +1081,7 @@ class SftpPath(URIPath):
             bufsize: int = -1,
             timeout: Optional[int] = None,
             environment: Optional[dict] = None,
-    ) -> subprocess.CompletedProcess:  # pragma: no cover
+    ) -> subprocess.CompletedProcess:
         with get_ssh_session(
                 hostname=self._urlsplit_parts.hostname,
                 port=self._urlsplit_parts.port,
@@ -1133,7 +1132,7 @@ class SftpPath(URIPath):
         if self._is_same_backend(dst_path):
             exec_result = self._exec_command(
                 ["cp", self._real_path, dst_path._real_path])
-            if exec_result.returncode != 0:  # pragma: no cover
+            if exec_result.returncode != 0:
                 _logger.error(exec_result.stderr)
                 raise OSError(
                     f'Copy file error, returncode: {exec_result.returncode}')

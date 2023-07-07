@@ -18,9 +18,9 @@ def fspath(path) -> str:
 import sys
 
 if sys.version_info.major == 3 and sys.version_info.minor >= 8:
-    from shutil import copytree  # pragma: no cover
+    from shutil import copytree
 else:
-    from shutil import Error, copy2, copystat  # pragma: no cover
+    from shutil import Error, copy2, copystat
 
     def copytree(
             src,
@@ -29,7 +29,7 @@ else:
             ignore=None,
             copy_function=copy2,
             ignore_dangling_symlinks=False,
-            dirs_exist_ok=False):  # pragma: no cover
+            dirs_exist_ok=False):
         names = os.listdir(src)
         if ignore is not None:
             ignored_names = ignore(src, names)

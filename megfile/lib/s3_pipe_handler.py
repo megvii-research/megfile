@@ -72,7 +72,7 @@ class S3PipeHandler(Readable, Writable):
         try:
             with os.fdopen(self._pipe[1], 'wb') as buffer:
                 self._client.download_fileobj(self._bucket, self._key, buffer)
-        except BrokenPipeError:  # pragma: no cover
+        except BrokenPipeError:
             if self._fileobj.closed:
                 return
             raise
