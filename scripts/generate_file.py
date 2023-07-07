@@ -33,7 +33,6 @@ ALL_IMPORT_LINES = dict(
     ],
     http=[
         "from io import BufferedReader",
-        "from megfile.http_path import HttpPath, get_http_session, is_http",
         "from megfile.interfaces import PathLike, StatResult",
     ],
     stdio=[
