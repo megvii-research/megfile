@@ -32,9 +32,8 @@ ALL_IMPORT_LINES = dict(
         "from megfile.interfaces import Access, FileEntry, PathLike, StatResult",
     ],
     http=[
-        "from typing import BinaryIO, Callable, Iterator, List, Optional, Tuple",
-        "from megfile.interfaces import Access, FileEntry, PathLike, StatResult",
         "from io import BufferedReader",
+        "from megfile.interfaces import PathLike, StatResult",
     ],
     stdio=[
         "from typing import IO, AnyStr",
