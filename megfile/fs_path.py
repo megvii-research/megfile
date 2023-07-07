@@ -763,7 +763,7 @@ class FSPath(URIPath):
                 self._copyfile(
                     dst_path, callback=callback, followlinks=followlinks)
             else:
-                raise  # pragma: no cover
+                raise
 
     def sync(self, dst_path: PathLike, followlinks: bool = False):
         '''Force write of everything to disk.

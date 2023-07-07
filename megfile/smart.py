@@ -256,7 +256,7 @@ def register_copy_func(
         dst_dict = _copy_funcs.get(src_protocol, {})
         dst_dict[dst_protocol] = copy_func
         _copy_funcs[src_protocol] = dst_dict
-    except Exception as error:  # pragma: no cover
+    except Exception as error:
         raise error
     else:
         raise ValueError(
@@ -358,7 +358,7 @@ def _smart_sync_single_file(items: dict):
                 smart_stat(src_file_path), smart_stat(dst_abs_file_path),
                 get_sync_type(src_protocol, dst_protocol)):
             should_sync = False
-    except NotImplementedError:  # pragma: no cover
+    except NotImplementedError:
         pass
 
     if should_sync:
@@ -464,7 +464,7 @@ def smart_sync_with_progress(
     def tqdm_callback(current_src_path, length: int):
         sbar.update(length)
         if callback:
-            callback(current_src_path, length)  # pragma: no cover
+            callback(current_src_path, length)
 
     def callback_after_copy_file(src_file_path, dst_file_path):
         tbar.update(1)

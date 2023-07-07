@@ -166,7 +166,7 @@ def _iterdir(dirname: str, dironly: bool, fs: FSFunc) -> Iterator[str]:
             try:
                 if not dironly or isdir:
                     yield name  # type: ignore
-            except OSError:  # pragma: no cover
+            except OSError:
                 pass
     except OSError:
         return

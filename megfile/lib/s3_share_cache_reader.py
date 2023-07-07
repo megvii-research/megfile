@@ -69,7 +69,7 @@ class S3ShareCacheReader(S3PrefetchReader):
 
     def _submit_future(self, index: int):
         if index < 0 or index >= self._block_stop:
-            return  # pragma: no cover
+            return
         self._futures.submit(
             self._executor, (self.name, index), self._fetch_buffer, index)
 

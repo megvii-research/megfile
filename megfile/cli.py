@@ -271,7 +271,7 @@ def sync(src_path: str, dst_path: str, progress_bar: bool, worker):
 
                 tbar.close()
                 sbar.close()
-            else:  # pragma: no cover
+            else:
                 smart_sync(
                     root_dir,
                     dst_path,
