@@ -110,7 +110,7 @@
         <span class="k">return</span> <span class="n">response</span>
 
     <span class="k">def</span> <span class="nf">before_callback</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>  <span class="c1"># pragma: no cover</span>
+        <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
             <span class="s1">&#39;send http request: </span><span class="si">%s</span><span class="s1"> </span><span class="si">%r</span><span class="s1">, with parameters: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span>
             <span class="n">kwargs</span><span class="p">)</span>
 
@@ -169,10 +169,11 @@
         <span class="n">response</span><span class="o">.</span><span class="n">raw</span><span class="o">.</span><span class="n">auto_close</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">return</span> <span class="n">BufferedReader</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">raw</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="HttpPath.stat"><a class="viewcode-back" href="../../megfile.http_path.html#megfile.HttpPath.stat">[docs]</a>    <span class="k">def</span> <span class="nf">stat</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StatResult</span><span class="p">:</span>
+<div class="viewcode-block" id="HttpPath.stat"><a class="viewcode-back" href="../../megfile.http_path.html#megfile.HttpPath.stat">[docs]</a>    <span class="k">def</span> <span class="nf">stat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StatResult</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Get StatResult of http_url response, including size and mtime, referring to http_getsize and http_getmtime</span>
 
+<span class="sd">        :param follow_symlinks: Ignore this parameter, just for compatibility</span>
 <span class="sd">        :returns: StatResult</span>
 <span class="sd">        :raises: HttpPermissionError, HttpFileNotFoundError</span>
 <span class="sd">        &#39;&#39;&#39;</span>
@@ -197,23 +198,25 @@
             <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span> <span class="n">mtime</span><span class="o">=</span><span class="n">last_modified</span><span class="p">,</span> <span class="n">isdir</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
             <span class="n">islnk</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="HttpPath.getsize"><a class="viewcode-back" href="../../megfile.http_path.html#megfile.HttpPath.getsize">[docs]</a>    <span class="k">def</span> <span class="nf">getsize</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<div class="viewcode-block" id="HttpPath.getsize"><a class="viewcode-back" href="../../megfile.http_path.html#megfile.HttpPath.getsize">[docs]</a>    <span class="k">def</span> <span class="nf">getsize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Get file size on the given http_url path.</span>
 
 <span class="sd">        If http response header don&#39;t support Content-Length, will return None</span>
 
+<span class="sd">        :param follow_symlinks: Ignore this parameter, just for compatibility</span>
 <span class="sd">        :returns: File size (in bytes)</span>
 <span class="sd">        :raises: HttpPermissionError, HttpFileNotFoundError</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span><span class="o">.</span><span class="n">size</span></div>
 
-<div class="viewcode-block" id="HttpPath.getmtime"><a class="viewcode-back" href="../../megfile.http_path.html#megfile.HttpPath.getmtime">[docs]</a>    <span class="k">def</span> <span class="nf">getmtime</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<div class="viewcode-block" id="HttpPath.getmtime"><a class="viewcode-back" href="../../megfile.http_path.html#megfile.HttpPath.getmtime">[docs]</a>    <span class="k">def</span> <span class="nf">getmtime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Get Last-Modified time of the http request on the given http_url path.</span>
 <span class="sd">        </span>
 <span class="sd">        If http response header don&#39;t support Last-Modified, will return None</span>
 
+<span class="sd">        :param follow_symlinks: Ignore this parameter, just for compatibility</span>
 <span class="sd">        :returns: Last-Modified time (in Unix timestamp format)</span>
 <span class="sd">        :raises: HttpPermissionError, HttpFileNotFoundError</span>
 <span class="sd">        &#39;&#39;&#39;</span>

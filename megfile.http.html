@@ -104,12 +104,15 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="megfile.http.http_getmtime">
-<span class="sig-prename descclassname"><span class="pre">megfile.http.</span></span><span class="sig-name descname"><span class="pre">http_getmtime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="_modules/megfile/http.html#http_getmtime"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.http.http_getmtime" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">megfile.http.</span></span><span class="sig-name descname"><span class="pre">http_getmtime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">follow_symlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="_modules/megfile/http.html#http_getmtime"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.http.http_getmtime" title="Permalink to this definition"></a></dt>
 <dd><p>Get Last-Modified time of the http request on the given http_url path.</p>
 <p>If http response header don’t support Last-Modified, will return None</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>path</strong> – Given path</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> – Given path</p></li>
+<li><p><strong>follow_symlinks</strong> – Ignore this parameter, just for compatibility</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Last-Modified time (in Unix timestamp format)</p>
@@ -122,12 +125,15 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="megfile.http.http_getsize">
-<span class="sig-prename descclassname"><span class="pre">megfile.http.</span></span><span class="sig-name descname"><span class="pre">http_getsize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/megfile/http.html#http_getsize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.http.http_getsize" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">megfile.http.</span></span><span class="sig-name descname"><span class="pre">http_getsize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">follow_symlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/megfile/http.html#http_getsize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.http.http_getsize" title="Permalink to this definition"></a></dt>
 <dd><p>Get file size on the given http_url path.</p>
 <p>If http response header don’t support Content-Length, will return None</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>path</strong> – Given path</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> – Given path</p></li>
+<li><p><strong>follow_symlinks</strong> – Ignore this parameter, just for compatibility</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>File size (in bytes)</p>
@@ -161,11 +167,14 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="megfile.http.http_stat">
-<span class="sig-prename descclassname"><span class="pre">megfile.http.</span></span><span class="sig-name descname"><span class="pre">http_stat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="megfile.fs.html#megfile.fs.StatResult" title="megfile.pathlike.StatResult"><span class="pre">StatResult</span></a></span></span><a class="reference internal" href="_modules/megfile/http.html#http_stat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.http.http_stat" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">megfile.http.</span></span><span class="sig-name descname"><span class="pre">http_stat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">follow_symlinks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="megfile.fs.html#megfile.fs.StatResult" title="megfile.pathlike.StatResult"><span class="pre">StatResult</span></a></span></span><a class="reference internal" href="_modules/megfile/http.html#http_stat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.http.http_stat" title="Permalink to this definition"></a></dt>
 <dd><p>Get StatResult of http_url response, including size and mtime, referring to http_getsize and http_getmtime</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>path</strong> – Given path</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> – Given path</p></li>
+<li><p><strong>follow_symlinks</strong> – Ignore this parameter, just for compatibility</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>StatResult</p>

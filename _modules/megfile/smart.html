@@ -332,7 +332,7 @@
         <span class="n">dst_dict</span> <span class="o">=</span> <span class="n">_copy_funcs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">src_protocol</span><span class="p">,</span> <span class="p">{})</span>
         <span class="n">dst_dict</span><span class="p">[</span><span class="n">dst_protocol</span><span class="p">]</span> <span class="o">=</span> <span class="n">copy_func</span>
         <span class="n">_copy_funcs</span><span class="p">[</span><span class="n">src_protocol</span><span class="p">]</span> <span class="o">=</span> <span class="n">dst_dict</span>
-    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">error</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -434,7 +434,7 @@
                 <span class="n">smart_stat</span><span class="p">(</span><span class="n">src_file_path</span><span class="p">),</span> <span class="n">smart_stat</span><span class="p">(</span><span class="n">dst_abs_file_path</span><span class="p">),</span>
                 <span class="n">get_sync_type</span><span class="p">(</span><span class="n">src_protocol</span><span class="p">,</span> <span class="n">dst_protocol</span><span class="p">)):</span>
             <span class="n">should_sync</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="k">except</span> <span class="ne">NotImplementedError</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+    <span class="k">except</span> <span class="ne">NotImplementedError</span><span class="p">:</span>
         <span class="k">pass</span>
 
     <span class="k">if</span> <span class="n">should_sync</span><span class="p">:</span>
@@ -540,7 +540,7 @@
     <span class="k">def</span> <span class="nf">tqdm_callback</span><span class="p">(</span><span class="n">current_src_path</span><span class="p">,</span> <span class="n">length</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
         <span class="n">sbar</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">callback</span><span class="p">:</span>
-            <span class="n">callback</span><span class="p">(</span><span class="n">current_src_path</span><span class="p">,</span> <span class="n">length</span><span class="p">)</span>  <span class="c1"># pragma: no cover</span>
+            <span class="n">callback</span><span class="p">(</span><span class="n">current_src_path</span><span class="p">,</span> <span class="n">length</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">callback_after_copy_file</span><span class="p">(</span><span class="n">src_file_path</span><span class="p">,</span> <span class="n">dst_file_path</span><span class="p">):</span>
         <span class="n">tbar</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
