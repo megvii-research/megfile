@@ -1,3 +1,7 @@
+## 2.1.3 - 2023.07.11
+- feat
+    - add `http_exists`
+
 ## 2.1.2 - 2023.07.07
 - feat
     - `sync` command with `-g` support sync files concurrently
