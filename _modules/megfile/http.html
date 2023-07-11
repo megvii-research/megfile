@@ -86,6 +86,7 @@
     <span class="s1">&#39;http_stat&#39;</span><span class="p">,</span>
     <span class="s1">&#39;http_getsize&#39;</span><span class="p">,</span>
     <span class="s1">&#39;http_getmtime&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;http_exists&#39;</span><span class="p">,</span>
 <span class="p">]</span>
 
 
@@ -141,6 +142,18 @@
 <span class="sd">    :raises: HttpPermissionError, HttpFileNotFoundError</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">return</span> <span class="n">HttpPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">getmtime</span><span class="p">(</span><span class="n">follow_symlinks</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="http_exists"><a class="viewcode-back" href="../../megfile.http.html#megfile.http.http_exists">[docs]</a><span class="k">def</span> <span class="nf">http_exists</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test if http path exists</span>
+
+<span class="sd">    :param path: Given path</span>
+<span class="sd">    :param followlinks: ignore this parameter, just for compatibility</span>
+<span class="sd">    :type followlinks: bool, optional</span>
+<span class="sd">    :return: return True if exists</span>
+<span class="sd">    :rtype: bool</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">HttpPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">followlinks</span><span class="p">)</span></div>
 </pre></div>
 
            </div>
