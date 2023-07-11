@@ -146,6 +146,23 @@ class HttpPath(URIPath):
         '''
         return self.stat().mtime
 
+    def exists(self, followlinks: bool = False) -> bool:
+        """Test if http path exists
+
+        :param followlinks: ignore this parameter, just for compatibility
+        :type followlinks: bool, optional
+        :return: return True if exists
+        :rtype: bool
+        """
+        try:
+            response = requests.get(
+                self.path_with_protocol, stream=True, timeout=10.0)
+            if response.status_code == 404:
+                return False
+            return True
+        except requests.exceptions.ConnectionError:
+            return False
+
 
 @SmartPath.register
 class HttpsPath(HttpPath):

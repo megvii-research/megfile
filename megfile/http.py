@@ -10,6 +10,7 @@ __all__ = [
     'http_stat',
     'http_getsize',
     'http_getmtime',
+    'http_exists',
 ]
 
 
@@ -65,3 +66,15 @@ def http_getmtime(path: PathLike, follow_symlinks: bool = False) -> float:
     :raises: HttpPermissionError, HttpFileNotFoundError
     '''
     return HttpPath(path).getmtime(follow_symlinks)
+
+
+def http_exists(path: PathLike, followlinks: bool = False) -> bool:
+    """Test if http path exists
+
+    :param path: Given path
+    :param followlinks: ignore this parameter, just for compatibility
+    :type followlinks: bool, optional
+    :return: return True if exists
+    :rtype: bool
+    """
+    return HttpPath(path).exists(followlinks)
