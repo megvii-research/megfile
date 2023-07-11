@@ -5,7 +5,7 @@ import pytest
 import requests
 
 from megfile.errors import HttpFileNotFoundError, HttpPermissionError, UnknownError
-from megfile.http import get_http_session, http_getmtime, http_getsize, http_open, http_stat, is_http
+from megfile.http import get_http_session, http_exists, http_getmtime, http_getsize, http_open, http_stat, is_http
 
 
 def test_is_http():
@@ -149,3 +149,26 @@ def test_get_http_session(mocker):
     session = get_http_session()
     response = session.request('get', 'http://test')
     assert response.status_code == 200
+
+
+def test_http_exists(mocker):
+
+    class FakeResponse200(FakeResponse):
+        status_code = 200
+
+    mocker.patch(
+        'megfile.http_path.requests.get', return_value=FakeResponse200())
+    assert http_exists('http://test')
+
+    class FakeResponse404(FakeResponse):
+        status_code = 404
+
+    mocker.patch(
+        'megfile.http_path.requests.get', return_value=FakeResponse404())
+    assert http_exists('http://test') is False
+
+    def fake_get(*args, **kwargs):
+        raise requests.exceptions.ConnectionError
+
+    mocker.patch('megfile.http_path.requests.get', side_effect=fake_get)
+    assert http_exists('http://test') is False
