@@ -1,3 +1,7 @@
+## 2.1.3.post1 - 2023.07.13
+- fix
+    - fix the cleanup behavior of ThreadLocal after forking
+
 ## 2.1.3 - 2023.07.11
 - feat
     - add `http_exists`
