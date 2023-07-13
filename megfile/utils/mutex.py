@@ -29,8 +29,10 @@ def fork_aware(func):
 
     @wraps(func)
     def wrapper(self, *args, **kwargs):
-        if self._process_id != os.getpid():
+        current_pid = os.getpid()
+        if self._process_id != current_pid:
             self._reset()
+            self._process_id = current_pid
         return func(self, *args, **kwargs)
 
     return wrapper
