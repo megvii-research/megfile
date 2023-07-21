@@ -7,16 +7,16 @@ from typing import IO, Any, AnyStr, BinaryIO, Callable, Iterable, Iterator, List
 
 from tqdm import tqdm
 
-from megfile.fs import fs_copy
-from megfile.interfaces import Access, ContextIterator, FileEntry, NullCacher, PathLike, StatResult
+from megfile.fs import fs_copy, is_fs
+from megfile.interfaces import Access, ContextIterator, FileCacher, FileEntry, NullCacher, PathLike, StatResult
 from megfile.lib.combine_reader import CombineReader
 from megfile.lib.compare import get_sync_type, is_same_file
 from megfile.lib.compat import fspath
 from megfile.lib.glob import globlize, ungloblize
-from megfile.s3 import S3Cacher, is_s3, s3_concat, s3_copy, s3_download, s3_load_content, s3_open, s3_upload
+from megfile.s3 import is_s3, s3_concat, s3_copy, s3_download, s3_load_content, s3_open, s3_upload
 from megfile.sftp import sftp_concat, sftp_copy, sftp_download, sftp_upload
 from megfile.smart_path import SmartPath, get_traditional_path
-from megfile.utils import combine
+from megfile.utils import combine, generate_cache_path
 
 __all__ = [
     'smart_access',
@@ -883,15 +883,38 @@ def smart_save_text(path: PathLike, text: str) -> None:
         fd.write(text)
 
 
-def smart_cache(path, s3_cacher=S3Cacher, **options):
+class SmartCacher(FileCacher):
+    cache_path = None
+
+    def __init__(
+            self, path: str, cache_path: Optional[str] = None, mode: str = 'r'):
+        if mode not in ('r', 'w', 'a'):
+            raise ValueError('unacceptable mode: %r' % mode)
+        if mode in ('r', 'a'):
+            if cache_path is None:
+                cache_path = generate_cache_path(path)
+            smart_copy(path, cache_path)
+        self.name = path
+        self.mode = mode
+        self.cache_path = cache_path
+
+    def _close(self):
+        if self.cache_path is not None and \
+            os.path.exists(self.cache_path):
+            if self.mode in ('w', 'a'):
+                smart_copy(self.cache_path, self.name)
+            os.unlink(self.cache_path)
+
+
+def smart_cache(path, cacher=SmartCacher, **options):
     '''Return a path to Posixpath Interface
 
     param path: Path to cache
     param s3_cacher: Cacher for s3 path
     param options: Optional arguments for s3_cacher
     '''
-    if is_s3(path):
-        return s3_cacher(path, **options)
+    if not is_fs(path):
+        return cacher(path, **options)
     return NullCacher(path)
 
 
