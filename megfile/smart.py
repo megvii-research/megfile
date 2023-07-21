@@ -64,6 +64,7 @@ __all__ = [
     'smart_readlink',
     'register_copy_func',
     'smart_concat',
+    'SmartCacher',
 ]
 
 
