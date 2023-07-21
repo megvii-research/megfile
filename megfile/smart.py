@@ -7,7 +7,7 @@ from typing import IO, Any, AnyStr, BinaryIO, Callable, Iterable, Iterator, List
 
 from tqdm import tqdm
 
-from megfile.fs import fs_copy
+from megfile.fs import fs_copy, is_fs
 from megfile.interfaces import Access, ContextIterator, FileCacher, FileEntry, NullCacher, PathLike, StatResult
 from megfile.lib.combine_reader import CombineReader
 from megfile.lib.compare import get_sync_type, is_same_file
@@ -913,7 +913,7 @@ def smart_cache(path, cacher=SmartCacher, **options):
     param s3_cacher: Cacher for s3 path
     param options: Optional arguments for s3_cacher
     '''
-    if is_s3(path):
+    if not is_fs(path):
         return cacher(path, **options)
     return NullCacher(path)
 
