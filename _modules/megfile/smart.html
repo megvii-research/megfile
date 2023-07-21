@@ -83,16 +83,16 @@
 
 <span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
 
-<span class="kn">from</span> <span class="nn">megfile.fs</span> <span class="kn">import</span> <span class="n">fs_copy</span>
-<span class="kn">from</span> <span class="nn">megfile.interfaces</span> <span class="kn">import</span> <span class="n">Access</span><span class="p">,</span> <span class="n">ContextIterator</span><span class="p">,</span> <span class="n">FileEntry</span><span class="p">,</span> <span class="n">NullCacher</span><span class="p">,</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">StatResult</span>
+<span class="kn">from</span> <span class="nn">megfile.fs</span> <span class="kn">import</span> <span class="n">fs_copy</span><span class="p">,</span> <span class="n">is_fs</span>
+<span class="kn">from</span> <span class="nn">megfile.interfaces</span> <span class="kn">import</span> <span class="n">Access</span><span class="p">,</span> <span class="n">ContextIterator</span><span class="p">,</span> <span class="n">FileCacher</span><span class="p">,</span> <span class="n">FileEntry</span><span class="p">,</span> <span class="n">NullCacher</span><span class="p">,</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">StatResult</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.combine_reader</span> <span class="kn">import</span> <span class="n">CombineReader</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.compare</span> <span class="kn">import</span> <span class="n">get_sync_type</span><span class="p">,</span> <span class="n">is_same_file</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.compat</span> <span class="kn">import</span> <span class="n">fspath</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.glob</span> <span class="kn">import</span> <span class="n">globlize</span><span class="p">,</span> <span class="n">ungloblize</span>
-<span class="kn">from</span> <span class="nn">megfile.s3</span> <span class="kn">import</span> <span class="n">S3Cacher</span><span class="p">,</span> <span class="n">is_s3</span><span class="p">,</span> <span class="n">s3_concat</span><span class="p">,</span> <span class="n">s3_copy</span><span class="p">,</span> <span class="n">s3_download</span><span class="p">,</span> <span class="n">s3_load_content</span><span class="p">,</span> <span class="n">s3_open</span><span class="p">,</span> <span class="n">s3_upload</span>
+<span class="kn">from</span> <span class="nn">megfile.s3</span> <span class="kn">import</span> <span class="n">is_s3</span><span class="p">,</span> <span class="n">s3_concat</span><span class="p">,</span> <span class="n">s3_copy</span><span class="p">,</span> <span class="n">s3_download</span><span class="p">,</span> <span class="n">s3_load_content</span><span class="p">,</span> <span class="n">s3_open</span><span class="p">,</span> <span class="n">s3_upload</span>
 <span class="kn">from</span> <span class="nn">megfile.sftp</span> <span class="kn">import</span> <span class="n">sftp_concat</span><span class="p">,</span> <span class="n">sftp_copy</span><span class="p">,</span> <span class="n">sftp_download</span><span class="p">,</span> <span class="n">sftp_upload</span>
 <span class="kn">from</span> <span class="nn">megfile.smart_path</span> <span class="kn">import</span> <span class="n">SmartPath</span><span class="p">,</span> <span class="n">get_traditional_path</span>
-<span class="kn">from</span> <span class="nn">megfile.utils</span> <span class="kn">import</span> <span class="n">combine</span>
+<span class="kn">from</span> <span class="nn">megfile.utils</span> <span class="kn">import</span> <span class="n">combine</span><span class="p">,</span> <span class="n">generate_cache_path</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s1">&#39;smart_access&#39;</span><span class="p">,</span>
@@ -959,15 +959,38 @@
         <span class="n">fd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">text</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="smart_cache"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_cache">[docs]</a><span class="k">def</span> <span class="nf">smart_cache</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">s3_cacher</span><span class="o">=</span><span class="n">S3Cacher</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">SmartCacher</span><span class="p">(</span><span class="n">FileCacher</span><span class="p">):</span>
+    <span class="n">cache_path</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cache_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;r&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;unacceptable mode: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">cache_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">cache_path</span> <span class="o">=</span> <span class="n">generate_cache_path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+            <span class="n">smart_copy</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">cache_path</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="n">mode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cache_path</span> <span class="o">=</span> <span class="n">cache_path</span>
+
+    <span class="k">def</span> <span class="nf">_close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> \
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_path</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">):</span>
+                <span class="n">smart_copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_path</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="smart_cache"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_cache">[docs]</a><span class="k">def</span> <span class="nf">smart_cache</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">cacher</span><span class="o">=</span><span class="n">SmartCacher</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;Return a path to Posixpath Interface</span>
 
 <span class="sd">    param path: Path to cache</span>
 <span class="sd">    param s3_cacher: Cacher for s3 path</span>
 <span class="sd">    param options: Optional arguments for s3_cacher</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="k">if</span> <span class="n">is_s3</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">s3_cacher</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_fs</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">cacher</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">NullCacher</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
 
 
