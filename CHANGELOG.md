@@ -1,3 +1,7 @@
+## 2.1.4 - 2023.07.21
+- feat
+    - add `SmartCache`, and `smart_cache` support more protocol
+
 ## 2.1.3.post1 - 2023.07.13
 - fix
     - fix the cleanup behavior of ThreadLocal after forking
