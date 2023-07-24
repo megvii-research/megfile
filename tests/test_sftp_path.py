@@ -6,7 +6,7 @@ import pytest
 from megfile import sftp
 from megfile.sftp_path import SFTP_PASSWORD, SFTP_PRIVATE_KEY_PATH, SFTP_USERNAME, SftpPath, get_private_key, provide_connect_info, sftp_should_retry
 
-from .test_sftp import sftp_mocker
+from .test_sftp import FakeSFTPClient, sftp_mocker
 
 
 def test_provide_connect_info(fs, mocker):
@@ -99,3 +99,18 @@ def test_sftp_should_retry():
     assert sftp_should_retry(ConnectionError()) is True
     assert sftp_should_retry(OSError('Socket is closed')) is True
     assert sftp_should_retry(OSError('test')) is False
+
+
+def test_sftp_realpath_relative(fs, mocker):
+
+    class FakeSFTPClient2(FakeSFTPClient):
+
+        def normalize(self, path):
+            if path == '.':
+                return '/home/username'
+            return os.path.join('/home/username', path)
+
+    client = FakeSFTPClient2()
+    mocker.patch('megfile.sftp_path.get_sftp_client', return_value=client)
+    assert SftpPath(
+        'sftp://username@host/A/B/C')._real_path == '/home/username/A/B/C'

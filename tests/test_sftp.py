@@ -399,6 +399,24 @@ def test_sftp_realpath(sftp_mocker, mocker):
         'sftp://username@host/A/B/C') == 'sftp://username@host//A/B/C'
 
 
+def test_sftp_realpath_relative(fs, mocker):
+
+    class FakeSFTPClient2(FakeSFTPClient):
+
+        def normalize(self, path):
+            if path == '.':
+                return '/home/username'
+            return os.path.join('/home/username', path)
+
+    client = FakeSFTPClient2()
+    mocker.patch('megfile.sftp_path.get_sftp_client', return_value=client)
+    assert sftp.sftp_realpath(
+        'sftp://username@host/A/B/C'
+    ) == 'sftp://username@host//home/username/A/B/C'
+    assert sftp.sftp_realpath(
+        'sftp://username@host//A/B/C') == 'sftp://username@host//A/B/C'
+
+
 def test_sftp_rename(sftp_mocker):
     sftp.sftp_makedirs('sftp://username@host//A')
     with sftp.sftp_open('sftp://username@host//A/test', 'w') as f:

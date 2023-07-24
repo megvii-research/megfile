@@ -493,7 +493,7 @@ class SftpPath(URIPath):
             self._root_dir = '/'
         else:
             self._root_dir = self._client.normalize('.')
-        self._real_path = os.path.join(self._root_dir, parts.path)
+        self._real_path = os.path.join(self._root_dir, parts.path.lstrip('/'))
 
     @property
     def _client(self):
