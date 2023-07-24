@@ -193,7 +193,7 @@ s3 =
 megfile.smart_copy('s3+profile1://bucket/key', 's3+profile2://bucket/key')
 ```
 
-sftp path format is `sftp://[username[:password]@]hostname[:port]//file_path`, and sftp support some environments:
+sftp support some environments:
 ```
 # If you are not set username or password in path, you can set them in environments
 $ export SFTP_USERNAME=user
