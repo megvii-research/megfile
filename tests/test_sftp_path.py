@@ -6,7 +6,7 @@ import pytest
 from megfile import sftp
 from megfile.sftp_path import SFTP_PASSWORD, SFTP_PRIVATE_KEY_PATH, SFTP_USERNAME, SftpPath, get_private_key, provide_connect_info, sftp_should_retry
 
-from .test_sftp import sftp_mocker
+from .test_sftp import FakeSFTPClient, sftp_mocker
 
 
 def test_provide_connect_info(fs, mocker):
@@ -26,65 +26,65 @@ def test_provide_connect_info(fs, mocker):
 
 
 def test_sftp_glob(sftp_mocker):
-    sftp.sftp_makedirs('sftp://username@host/A')
-    sftp.sftp_makedirs('sftp://username@host/A/a')
-    sftp.sftp_makedirs('sftp://username@host/A/b')
-    sftp.sftp_makedirs('sftp://username@host/A/b/c')
-    with sftp.sftp_open('sftp://username@host/A/1.json', 'w') as f:
+    sftp.sftp_makedirs('sftp://username@host//A')
+    sftp.sftp_makedirs('sftp://username@host//A/a')
+    sftp.sftp_makedirs('sftp://username@host//A/b')
+    sftp.sftp_makedirs('sftp://username@host//A/b/c')
+    with sftp.sftp_open('sftp://username@host//A/1.json', 'w') as f:
         f.write('1.json')
 
-    with sftp.sftp_open('sftp://username@host/A/b/file.json', 'w') as f:
+    with sftp.sftp_open('sftp://username@host//A/b/file.json', 'w') as f:
         f.write('file')
 
-    assert SftpPath('sftp://username@host/A/').glob('*') == [
-        'sftp://username@host/A/1.json',
-        'sftp://username@host/A/a',
-        'sftp://username@host/A/b',
+    assert SftpPath('sftp://username@host//A/').glob('*') == [
+        'sftp://username@host//A/1.json',
+        'sftp://username@host//A/a',
+        'sftp://username@host//A/b',
     ]
-    assert list(SftpPath('sftp://username@host/A').iglob('*')) == [
-        'sftp://username@host/A/1.json',
-        'sftp://username@host/A/a',
-        'sftp://username@host/A/b',
+    assert list(SftpPath('sftp://username@host//A').iglob('*')) == [
+        'sftp://username@host//A/1.json',
+        'sftp://username@host//A/a',
+        'sftp://username@host//A/b',
     ]
-    assert SftpPath('sftp://username@host/A').rglob('*.json') == [
-        'sftp://username@host/A/1.json',
-        'sftp://username@host/A/b/file.json',
+    assert SftpPath('sftp://username@host//A').rglob('*.json') == [
+        'sftp://username@host//A/1.json',
+        'sftp://username@host//A/b/file.json',
     ]
     assert [
         file_entry.path
-        for file_entry in SftpPath('sftp://username@host/A').glob_stat('*')
+        for file_entry in SftpPath('sftp://username@host//A').glob_stat('*')
     ] == [
-        'sftp://username@host/A/1.json',
-        'sftp://username@host/A/a',
-        'sftp://username@host/A/b',
+        'sftp://username@host//A/1.json',
+        'sftp://username@host//A/a',
+        'sftp://username@host//A/b',
     ]
 
 
 def test_iterdir(sftp_mocker):
-    sftp.sftp_makedirs('sftp://username@host/A')
-    sftp.sftp_makedirs('sftp://username@host/A/a')
-    sftp.sftp_makedirs('sftp://username@host/A/b')
-    sftp.sftp_makedirs('sftp://username@host/A/b/c')
-    with sftp.sftp_open('sftp://username@host/A/1.json', 'w') as f:
+    sftp.sftp_makedirs('sftp://username@host//A')
+    sftp.sftp_makedirs('sftp://username@host//A/a')
+    sftp.sftp_makedirs('sftp://username@host//A/b')
+    sftp.sftp_makedirs('sftp://username@host//A/b/c')
+    with sftp.sftp_open('sftp://username@host//A/1.json', 'w') as f:
         f.write('1.json')
 
-    assert list(SftpPath('sftp://username@host/A').iterdir()) == [
-        SftpPath('sftp://username@host/A/1.json'),
-        SftpPath('sftp://username@host/A/a'),
-        SftpPath('sftp://username@host/A/b'),
+    assert list(SftpPath('sftp://username@host//A').iterdir()) == [
+        SftpPath('sftp://username@host//A/1.json'),
+        SftpPath('sftp://username@host//A/a'),
+        SftpPath('sftp://username@host//A/b'),
     ]
 
     with pytest.raises(NotADirectoryError):
-        list(SftpPath('sftp://username@host/A/1.json').iterdir())
+        list(SftpPath('sftp://username@host//A/1.json').iterdir())
 
 
 def test_cwd(sftp_mocker):
-    assert SftpPath('sftp://username@host/A').cwd() == 'sftp://username@host'
+    assert SftpPath('sftp://username@host//A').cwd() == 'sftp://username@host//'
 
 
 def test_sync(sftp_mocker):
     with pytest.raises(OSError):
-        SftpPath('sftp://username@host/A').sync('/data/test')
+        SftpPath('sftp://username@host//A').sync('/data/test')
 
 
 def test_get_private_key(fs):
@@ -99,3 +99,18 @@ def test_sftp_should_retry():
     assert sftp_should_retry(ConnectionError()) is True
     assert sftp_should_retry(OSError('Socket is closed')) is True
     assert sftp_should_retry(OSError('test')) is False
+
+
+def test_sftp_realpath_relative(fs, mocker):
+
+    class FakeSFTPClient2(FakeSFTPClient):
+
+        def normalize(self, path):
+            if path == '.':
+                return '/home/username'
+            return os.path.join('/home/username', path)
+
+    client = FakeSFTPClient2()
+    mocker.patch('megfile.sftp_path.get_sftp_client', return_value=client)
+    assert SftpPath(
+        'sftp://username@host/A/B/C')._real_path == '/home/username/A/B/C'

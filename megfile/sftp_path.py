@@ -475,8 +475,11 @@ def sftp_concat(src_paths: List[PathLike], dst_path: PathLike) -> None:
 class SftpPath(URIPath):
     """sftp protocol
 
-    uri format: sftp://[username[:password]@]hostname[:port]/file_path
-    e.g. sftp://username:password@127.0.0.1:22/data/test/
+    uri format: 
+    - absolute path
+        - sftp://[username[:password]@]hostname[:port]//file_path
+    - relative path
+        - - sftp://[username[:password]@]hostname[:port]/file_path
     """
 
     protocol = "sftp"
@@ -484,10 +487,13 @@ class SftpPath(URIPath):
     def __init__(self, path: "PathLike", *other_paths: "PathLike"):
         super().__init__(path, *other_paths)
         parts = urlsplit(self.path)
-        self._real_path = parts.path
-        if not self._real_path.startswith('/'):
-            self._real_path = f"/{self._real_path}"
         self._urlsplit_parts = parts
+        self._real_path = parts.path
+        if parts.path.startswith('//'):
+            self._root_dir = '/'
+        else:
+            self._root_dir = self._client.normalize('.')
+        self._real_path = os.path.join(self._root_dir, parts.path.lstrip('/'))
 
     @property
     def _client(self):
@@ -497,9 +503,14 @@ class SftpPath(URIPath):
             username=self._urlsplit_parts.username,
             password=self._urlsplit_parts.password)
 
-    def _generate_path_object(self, sftp_local_path: str):
-        new_parts = self._urlsplit_parts._replace(
-            path=sftp_local_path.lstrip('/'))
+    def _generate_path_object(
+            self, sftp_local_path: str, resolve: bool = False):
+        if resolve or self._root_dir == '/':
+            sftp_local_path = f"//{sftp_local_path.lstrip('/')}"
+        else:
+            sftp_local_path = os.path.relpath(
+                sftp_local_path, start=self._root_dir)
+        new_parts = self._urlsplit_parts._replace(path=sftp_local_path)
         return self.from_path(urlunsplit(new_parts))
 
     def exists(self, followlinks: bool = False) -> bool:
@@ -971,7 +982,7 @@ class SftpPath(URIPath):
         :rtype: SftpPath
         '''
         path = self._client.normalize(self._real_path)
-        return self._generate_path_object(path)
+        return self._generate_path_object(path, resolve=True)
 
     def md5(self, recalculate: bool = False, followlinks: bool = True):
         '''

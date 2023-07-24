@@ -189,13 +189,13 @@ def test_sftp_retry(sftp_mocker):
 
 
 def test_is_sftp():
-    assert sftp.is_sftp('sftp://username@host/data') is True
+    assert sftp.is_sftp('sftp://username@host//data') is True
     assert sftp.is_sftp('ftp://username@host/data') is False
 
 
 def test_sftp_readlink(sftp_mocker):
-    path = 'sftp://username@host/file'
-    link_path = 'sftp://username@host/file.lnk'
+    path = 'sftp://username@host//file'
+    link_path = 'sftp://username@host//file.lnk'
 
     with sftp.sftp_open(path, 'w') as f:
         f.write('test')
@@ -204,131 +204,131 @@ def test_sftp_readlink(sftp_mocker):
     assert sftp.sftp_readlink(link_path) == path
 
     with pytest.raises(FileNotFoundError):
-        sftp.sftp_readlink('sftp://username@host/notFound')
+        sftp.sftp_readlink('sftp://username@host//notFound')
 
     with pytest.raises(OSError):
-        sftp.sftp_readlink('sftp://username@host/file')
+        sftp.sftp_readlink('sftp://username@host//file')
 
 
 def test_sftp_absolute(sftp_mocker):
     assert sftp.sftp_absolute(
-        'sftp://username@host/dir/../file') == 'sftp://username@host/file'
+        'sftp://username@host//dir/../file') == 'sftp://username@host//file'
 
 
 def test_sftp_resolve(sftp_mocker):
     assert sftp.sftp_resolve(
-        'sftp://username@host/dir/../file') == 'sftp://username@host/file'
+        'sftp://username@host//dir/../file') == 'sftp://username@host//file'
 
 
 def test_sftp_glob(sftp_mocker):
-    sftp.sftp_makedirs('sftp://username@host/A')
-    sftp.sftp_makedirs('sftp://username@host/A/a')
-    sftp.sftp_makedirs('sftp://username@host/A/b')
-    sftp.sftp_makedirs('sftp://username@host/A/b/c')
-    with sftp.sftp_open('sftp://username@host/A/1.json', 'w') as f:
+    sftp.sftp_makedirs('sftp://username@host//A')
+    sftp.sftp_makedirs('sftp://username@host//A/a')
+    sftp.sftp_makedirs('sftp://username@host//A/b')
+    sftp.sftp_makedirs('sftp://username@host//A/b/c')
+    with sftp.sftp_open('sftp://username@host//A/1.json', 'w') as f:
         f.write('1.json')
 
-    with sftp.sftp_open('sftp://username@host/A/b/file.json', 'w') as f:
+    with sftp.sftp_open('sftp://username@host//A/b/file.json', 'w') as f:
         f.write('file')
 
-    assert sftp.sftp_glob('sftp://username@host/A/*') == [
-        'sftp://username@host/A/1.json',
-        'sftp://username@host/A/a',
-        'sftp://username@host/A/b',
+    assert sftp.sftp_glob('sftp://username@host//A/*') == [
+        'sftp://username@host//A/1.json',
+        'sftp://username@host//A/a',
+        'sftp://username@host//A/b',
     ]
-    assert list(sftp.sftp_iglob('sftp://username@host/A/*')) == [
-        'sftp://username@host/A/1.json',
-        'sftp://username@host/A/a',
-        'sftp://username@host/A/b',
+    assert list(sftp.sftp_iglob('sftp://username@host//A/*')) == [
+        'sftp://username@host//A/1.json',
+        'sftp://username@host//A/a',
+        'sftp://username@host//A/b',
     ]
-    assert sftp.sftp_glob('sftp://username@host/A/**/*.json') == [
-        'sftp://username@host/A/1.json',
-        'sftp://username@host/A/b/file.json',
+    assert sftp.sftp_glob('sftp://username@host//A/**/*.json') == [
+        'sftp://username@host//A/1.json',
+        'sftp://username@host//A/b/file.json',
     ]
     assert [
         file_entry.path
-        for file_entry in sftp.sftp_glob_stat('sftp://username@host/A/*')
+        for file_entry in sftp.sftp_glob_stat('sftp://username@host//A/*')
     ] == [
-        'sftp://username@host/A/1.json',
-        'sftp://username@host/A/a',
-        'sftp://username@host/A/b',
+        'sftp://username@host//A/1.json',
+        'sftp://username@host//A/a',
+        'sftp://username@host//A/b',
     ]
-    assert sftp.sftp_glob('sftp://username@host/A/**/*') == [
-        'sftp://username@host/A/1.json',
-        'sftp://username@host/A/a',
-        'sftp://username@host/A/b',
-        'sftp://username@host/A/b/c',
-        'sftp://username@host/A/b/file.json',
+    assert sftp.sftp_glob('sftp://username@host//A/**/*') == [
+        'sftp://username@host//A/1.json',
+        'sftp://username@host//A/a',
+        'sftp://username@host//A/b',
+        'sftp://username@host//A/b/c',
+        'sftp://username@host//A/b/file.json',
     ]
-    assert sftp.sftp_glob('sftp://username@host/A/') == [
-        'sftp://username@host/A/',
+    assert sftp.sftp_glob('sftp://username@host//A/') == [
+        'sftp://username@host//A/',
     ]
 
 
 def test_sftp_isdir_sftp_isfile(sftp_mocker):
-    sftp.sftp_makedirs('sftp://username@host/A/B', parents=True)
+    sftp.sftp_makedirs('sftp://username@host//A/B', parents=True)
 
-    with sftp.sftp_open('sftp://username@host/A/B/file', 'w') as f:
+    with sftp.sftp_open('sftp://username@host//A/B/file', 'w') as f:
         f.write('test')
 
-    assert sftp.sftp_isdir('sftp://username@host/A/B') is True
-    assert sftp.sftp_isdir('sftp://username@host/A/B/file') is False
-    assert sftp.sftp_isfile('sftp://username@host/A/B/file') is True
-    assert sftp.sftp_isfile('sftp://username@host/A/B') is False
-    assert sftp.sftp_isfile('sftp://username@host/A/C') is False
+    assert sftp.sftp_isdir('sftp://username@host//A/B') is True
+    assert sftp.sftp_isdir('sftp://username@host//A/B/file') is False
+    assert sftp.sftp_isfile('sftp://username@host//A/B/file') is True
+    assert sftp.sftp_isfile('sftp://username@host//A/B') is False
+    assert sftp.sftp_isfile('sftp://username@host//A/C') is False
 
 
 def test_sftp_exists(sftp_mocker):
-    sftp.sftp_makedirs('sftp://username@host/A/B', parents=True)
+    sftp.sftp_makedirs('sftp://username@host//A/B', parents=True)
 
-    with sftp.sftp_open('sftp://username@host/A/B/file', 'w') as f:
+    with sftp.sftp_open('sftp://username@host//A/B/file', 'w') as f:
         f.write('test')
 
-    assert sftp.sftp_exists('sftp://username@host/A/B/file') is True
+    assert sftp.sftp_exists('sftp://username@host//A/B/file') is True
 
     sftp.sftp_symlink(
-        'sftp://username@host/A/B/file', 'sftp://username@host/A/B/file.lnk')
-    sftp.sftp_unlink('sftp://username@host/A/B/file')
-    assert sftp.sftp_exists('sftp://username@host/A/B/file.lnk') is True
+        'sftp://username@host//A/B/file', 'sftp://username@host//A/B/file.lnk')
+    sftp.sftp_unlink('sftp://username@host//A/B/file')
+    assert sftp.sftp_exists('sftp://username@host//A/B/file.lnk') is True
     assert sftp.sftp_exists(
-        'sftp://username@host/A/B/file.lnk', followlinks=True) is False
+        'sftp://username@host//A/B/file.lnk', followlinks=True) is False
 
 
 def test_sftp_scandir(sftp_mocker):
-    sftp.sftp_makedirs('sftp://username@host/A')
-    sftp.sftp_makedirs('sftp://username@host/A/a')
-    sftp.sftp_makedirs('sftp://username@host/A/b')
-    sftp.sftp_makedirs('sftp://username@host/A/b/c')
-    with sftp.sftp_open('sftp://username@host/A/1.json', 'w') as f:
+    sftp.sftp_makedirs('sftp://username@host//A')
+    sftp.sftp_makedirs('sftp://username@host//A/a')
+    sftp.sftp_makedirs('sftp://username@host//A/b')
+    sftp.sftp_makedirs('sftp://username@host//A/b/c')
+    with sftp.sftp_open('sftp://username@host//A/1.json', 'w') as f:
         f.write('1.json')
 
-    with sftp.sftp_open('sftp://username@host/A/b/file.json', 'w') as f:
+    with sftp.sftp_open('sftp://username@host//A/b/file.json', 'w') as f:
         f.write('file')
 
     assert [
         file_entry.path
-        for file_entry in sftp.sftp_scandir('sftp://username@host/A')
+        for file_entry in sftp.sftp_scandir('sftp://username@host//A')
     ] == [
-        'sftp://username@host/A/1.json',
-        'sftp://username@host/A/a',
-        'sftp://username@host/A/b',
+        'sftp://username@host//A/1.json',
+        'sftp://username@host//A/a',
+        'sftp://username@host//A/b',
     ]
 
     with pytest.raises(FileNotFoundError):
-        list(sftp.sftp_scandir('sftp://username@host/A/not_found'))
+        list(sftp.sftp_scandir('sftp://username@host//A/not_found'))
 
     with pytest.raises(NotADirectoryError):
-        list(sftp.sftp_scandir('sftp://username@host/A/1.json'))
+        list(sftp.sftp_scandir('sftp://username@host//A/1.json'))
 
 
 def test_sftp_stat(sftp_mocker):
-    sftp.sftp_makedirs('sftp://username@host/A')
-    with sftp.sftp_open('sftp://username@host/A/test', 'w') as f:
+    sftp.sftp_makedirs('sftp://username@host//A')
+    with sftp.sftp_open('sftp://username@host//A/test', 'w') as f:
         f.write('test')
     sftp.sftp_symlink(
-        'sftp://username@host/A/test', 'sftp://username@host/A/test.lnk')
+        'sftp://username@host//A/test', 'sftp://username@host//A/test.lnk')
 
-    stat = sftp.sftp_stat('sftp://username@host/A/test', follow_symlinks=True)
+    stat = sftp.sftp_stat('sftp://username@host//A/test', follow_symlinks=True)
     os_stat = os.stat('/A/test')
     assert stat.size == os_stat.st_size
     assert stat.isdir is False
@@ -337,7 +337,7 @@ def test_sftp_stat(sftp_mocker):
     assert stat.ctime == 0
 
     stat = sftp.sftp_stat(
-        'sftp://username@host/A/test.lnk', follow_symlinks=True)
+        'sftp://username@host//A/test.lnk', follow_symlinks=True)
     os_stat = os.stat('/A/test')
     assert stat.size == os_stat.st_size
     assert stat.isdir is False
@@ -345,7 +345,7 @@ def test_sftp_stat(sftp_mocker):
     assert stat.mtime == os_stat.st_mtime
     assert stat.ctime == 0
 
-    stat = sftp.sftp_lstat('sftp://username@host/A/test.lnk')
+    stat = sftp.sftp_lstat('sftp://username@host//A/test.lnk')
     os_stat = os.lstat('/A/test.lnk')
     assert stat.size == os_stat.st_size
     assert stat.isdir is False
@@ -354,19 +354,20 @@ def test_sftp_stat(sftp_mocker):
     assert stat.ctime == 0
 
     os_stat = os.stat('/A/test')
-    assert sftp.sftp_getmtime('sftp://username@host/A/test') == os_stat.st_mtime
-    assert sftp.sftp_getsize('sftp://username@host/A/test') == os_stat.st_size
+    assert sftp.sftp_getmtime(
+        'sftp://username@host//A/test') == os_stat.st_mtime
+    assert sftp.sftp_getsize('sftp://username@host//A/test') == os_stat.st_size
 
 
 def test_sftp_listdir(sftp_mocker):
-    sftp.sftp_makedirs('sftp://username@host/A')
-    sftp.sftp_makedirs('sftp://username@host/A/a')
-    sftp.sftp_makedirs('sftp://username@host/A/b')
-    sftp.sftp_makedirs('sftp://username@host/A/b/c')
-    with sftp.sftp_open('sftp://username@host/A/1.json', 'w') as f:
+    sftp.sftp_makedirs('sftp://username@host//A')
+    sftp.sftp_makedirs('sftp://username@host//A/a')
+    sftp.sftp_makedirs('sftp://username@host//A/b')
+    sftp.sftp_makedirs('sftp://username@host//A/b/c')
+    with sftp.sftp_open('sftp://username@host//A/1.json', 'w') as f:
         f.write('1.json')
 
-    assert sftp.sftp_listdir('sftp://username@host/A') == [
+    assert sftp.sftp_listdir('sftp://username@host//A') == [
         '1.json',
         'a',
         'b',
@@ -374,159 +375,180 @@ def test_sftp_listdir(sftp_mocker):
 
 
 def test_sftp_load_from(sftp_mocker):
-    sftp.sftp_makedirs('sftp://username@host/A')
-    with sftp.sftp_open('sftp://username@host/A/test', 'w') as f:
+    sftp.sftp_makedirs('sftp://username@host//A')
+    with sftp.sftp_open('sftp://username@host//A/test', 'w') as f:
         f.write('test')
-    assert sftp.sftp_load_from('sftp://username@host/A/test').read() == b'test'
+    assert sftp.sftp_load_from('sftp://username@host//A/test').read() == b'test'
 
 
 def test_sftp_makedirs(sftp_mocker):
-    sftp.sftp_makedirs('sftp://username@host/A/B/C', parents=True)
-    assert sftp.sftp_exists('sftp://username@host/A/B/C') is True
+    sftp.sftp_makedirs('sftp://username@host//A/B/C', parents=True)
+    assert sftp.sftp_exists('sftp://username@host//A/B/C') is True
 
     with pytest.raises(FileExistsError):
-        sftp.sftp_makedirs('sftp://username@host/A/B/C')
+        sftp.sftp_makedirs('sftp://username@host//A/B/C')
 
     with pytest.raises(FileNotFoundError):
-        sftp.sftp_makedirs('sftp://username@host/D/B/C')
+        sftp.sftp_makedirs('sftp://username@host//D/B/C')
 
 
-def test_sftp_realpath(sftp_mocker):
+def test_sftp_realpath(sftp_mocker, mocker):
     assert sftp.sftp_realpath(
-        'sftp://username@host/A/../B/C') == 'sftp://username@host/B/C'
+        'sftp://username@host//A/../B/C') == 'sftp://username@host//B/C'
+    assert sftp.sftp_realpath(
+        'sftp://username@host/A/B/C') == 'sftp://username@host//A/B/C'
+
+
+def test_sftp_realpath_relative(fs, mocker):
+
+    class FakeSFTPClient2(FakeSFTPClient):
+
+        def normalize(self, path):
+            if path == '.':
+                return '/home/username'
+            return os.path.join('/home/username', path)
+
+    client = FakeSFTPClient2()
+    mocker.patch('megfile.sftp_path.get_sftp_client', return_value=client)
+    assert sftp.sftp_realpath(
+        'sftp://username@host/A/B/C'
+    ) == 'sftp://username@host//home/username/A/B/C'
+    assert sftp.sftp_realpath(
+        'sftp://username@host//A/B/C') == 'sftp://username@host//A/B/C'
 
 
 def test_sftp_rename(sftp_mocker):
-    sftp.sftp_makedirs('sftp://username@host/A')
-    with sftp.sftp_open('sftp://username@host/A/test', 'w') as f:
+    sftp.sftp_makedirs('sftp://username@host//A')
+    with sftp.sftp_open('sftp://username@host//A/test', 'w') as f:
         f.write('test')
 
     sftp.sftp_rename(
-        'sftp://username@host/A/test', 'sftp://username@host/A/test2')
-    assert sftp.sftp_exists('sftp://username@host/A/test') is False
-    assert sftp.sftp_exists('sftp://username@host/A/test2') is True
+        'sftp://username@host//A/test', 'sftp://username@host//A/test2')
+    assert sftp.sftp_exists('sftp://username@host//A/test') is False
+    assert sftp.sftp_exists('sftp://username@host//A/test2') is True
 
-    sftp.sftp_rename('sftp://username@host/A', 'sftp://username@host/A2')
-    assert sftp.sftp_exists('sftp://username@host/A/test2') is False
-    assert sftp.sftp_exists('sftp://username@host/A2/test2') is True
+    sftp.sftp_rename('sftp://username@host//A', 'sftp://username@host//A2')
+    assert sftp.sftp_exists('sftp://username@host//A/test2') is False
+    assert sftp.sftp_exists('sftp://username@host//A2/test2') is True
 
     sftp.sftp_rename(
-        'sftp://username@host/A2/test2', 'sftp://username2@host2/A2/test')
-    assert sftp.sftp_exists('sftp://username@host/A2/test2') is False
+        'sftp://username@host//A2/test2', 'sftp://username2@host2/A2/test')
+    assert sftp.sftp_exists('sftp://username@host//A2/test2') is False
     assert sftp.sftp_exists('sftp://username2@host2/A2/test') is True
 
-    sftp.sftp_rename('sftp://username@host/A2', 'sftp://username2@host2/A')
-    assert sftp.sftp_exists('sftp://username@host/A2/test') is False
+    sftp.sftp_rename('sftp://username@host//A2', 'sftp://username2@host2/A')
+    assert sftp.sftp_exists('sftp://username@host//A2/test') is False
     assert sftp.sftp_exists('sftp://username2@host2/A/test') is True
 
-    with sftp.sftp_open('sftp://username@host/A/test2', 'w') as f:
+    with sftp.sftp_open('sftp://username@host//A/test2', 'w') as f:
         f.write('test2')
     with pytest.raises(FileExistsError):
         sftp.sftp_rename(
-            'sftp://username@host/A/test2', 'sftp://username@host/A/test')
+            'sftp://username@host//A/test2', 'sftp://username@host//A/test')
 
     with pytest.raises(OSError):
-        sftp.sftp_rename('sftp://username@host/A/test2', '/A/test')
+        sftp.sftp_rename('sftp://username@host//A/test2', '/A/test')
 
     with pytest.raises(IsADirectoryError):
         sftp.sftp_rename(
-            'sftp://username@host/A/test2', 'sftp://username@host/A2/test2/')
+            'sftp://username@host//A/test2', 'sftp://username@host//A2/test2/')
 
 
 def test_sftp_move(sftp_mocker):
-    sftp.sftp_makedirs('sftp://username@host/A')
-    with sftp.sftp_open('sftp://username@host/A/test', 'w') as f:
+    sftp.sftp_makedirs('sftp://username@host//A')
+    with sftp.sftp_open('sftp://username@host//A/test', 'w') as f:
         f.write('test')
 
     sftp.sftp_move(
-        'sftp://username@host/A/test', 'sftp://username@host/A/test2')
-    assert sftp.sftp_exists('sftp://username@host/A/test') is False
-    assert sftp.sftp_exists('sftp://username@host/A/test2') is True
+        'sftp://username@host//A/test', 'sftp://username@host//A/test2')
+    assert sftp.sftp_exists('sftp://username@host//A/test') is False
+    assert sftp.sftp_exists('sftp://username@host//A/test2') is True
 
-    sftp.sftp_move('sftp://username@host/A', 'sftp://username@host/A2')
-    assert sftp.sftp_exists('sftp://username@host/A/test2') is False
-    assert sftp.sftp_exists('sftp://username@host/A2/test2') is True
+    sftp.sftp_move('sftp://username@host//A', 'sftp://username@host//A2')
+    assert sftp.sftp_exists('sftp://username@host//A/test2') is False
+    assert sftp.sftp_exists('sftp://username@host//A2/test2') is True
 
 
 def test_sftp_open(sftp_mocker):
-    sftp.sftp_makedirs('sftp://username@host/A')
+    sftp.sftp_makedirs('sftp://username@host//A')
 
-    with sftp.sftp_open('sftp://username@host/A/test', 'w') as f:
+    with sftp.sftp_open('sftp://username@host//A/test', 'w') as f:
         f.write('test')
 
-    with sftp.sftp_open('sftp://username@host/A/test', 'r') as f:
+    with sftp.sftp_open('sftp://username@host//A/test', 'r') as f:
         assert f.read() == 'test'
 
-    with sftp.sftp_open('sftp://username@host/A/test', 'rb') as f:
+    with sftp.sftp_open('sftp://username@host//A/test', 'rb') as f:
         assert f.read() == b'test'
 
     with pytest.raises(FileNotFoundError):
-        with sftp.sftp_open('sftp://username@host/A/notFound', 'r') as f:
+        with sftp.sftp_open('sftp://username@host//A/notFound', 'r') as f:
             f.read()
 
     with pytest.raises(IsADirectoryError):
-        with sftp.sftp_open('sftp://username@host/A', 'r') as f:
+        with sftp.sftp_open('sftp://username@host//A', 'r') as f:
             f.read()
 
     with pytest.raises(IsADirectoryError):
-        with sftp.sftp_open('sftp://username@host/A', 'w') as f:
+        with sftp.sftp_open('sftp://username@host//A', 'w') as f:
             f.read()
 
 
 def test_sftp_remove(sftp_mocker):
-    sftp.sftp_makedirs('sftp://username@host/A')
-    with sftp.sftp_open('sftp://username@host/A/test', 'w') as f:
+    sftp.sftp_makedirs('sftp://username@host//A')
+    with sftp.sftp_open('sftp://username@host//A/test', 'w') as f:
         f.write('test')
 
-    sftp.sftp_remove('sftp://username@host/A/test')
-    sftp.sftp_remove('sftp://username@host/A/test', missing_ok=True)
+    sftp.sftp_remove('sftp://username@host//A/test')
+    sftp.sftp_remove('sftp://username@host//A/test', missing_ok=True)
 
-    assert sftp.sftp_exists('sftp://username@host/A/test') is False
-    assert sftp.sftp_exists('sftp://username@host/A') is True
+    assert sftp.sftp_exists('sftp://username@host//A/test') is False
+    assert sftp.sftp_exists('sftp://username@host//A') is True
 
-    with sftp.sftp_open('sftp://username@host/A/test', 'w') as f:
+    with sftp.sftp_open('sftp://username@host//A/test', 'w') as f:
         f.write('test')
-    sftp.sftp_remove('sftp://username@host/A')
-    assert sftp.sftp_exists('sftp://username@host/A') is False
+    sftp.sftp_remove('sftp://username@host//A')
+    assert sftp.sftp_exists('sftp://username@host//A') is False
 
 
 def test_sftp_scan(sftp_mocker):
-    sftp.sftp_makedirs('sftp://username@host/A')
-    sftp.sftp_makedirs('sftp://username@host/A/a')
-    sftp.sftp_makedirs('sftp://username@host/A/b')
-    sftp.sftp_makedirs('sftp://username@host/A/b/c')
-    with sftp.sftp_open('sftp://username@host/A/1.json', 'w') as f:
+    sftp.sftp_makedirs('sftp://username@host//A')
+    sftp.sftp_makedirs('sftp://username@host//A/a')
+    sftp.sftp_makedirs('sftp://username@host//A/b')
+    sftp.sftp_makedirs('sftp://username@host//A/b/c')
+    with sftp.sftp_open('sftp://username@host//A/1.json', 'w') as f:
         f.write('1.json')
     sftp.sftp_symlink(
-        'sftp://username@host/A/1.json', 'sftp://username@host/A/1.json.lnk')
+        'sftp://username@host//A/1.json', 'sftp://username@host//A/1.json.lnk')
 
-    with sftp.sftp_open('sftp://username@host/A/b/file.json', 'w') as f:
+    with sftp.sftp_open('sftp://username@host//A/b/file.json', 'w') as f:
         f.write('file')
 
-    assert list(sftp.sftp_scan('sftp://username@host/A')) == [
-        'sftp://username@host/A/1.json',
-        'sftp://username@host/A/1.json.lnk',
-        'sftp://username@host/A/b/file.json',
+    assert list(sftp.sftp_scan('sftp://username@host//A')) == [
+        'sftp://username@host//A/1.json',
+        'sftp://username@host//A/1.json.lnk',
+        'sftp://username@host//A/b/file.json',
     ]
 
-    assert list(sftp.sftp_scan('sftp://username@host/A', followlinks=True)) == [
-        'sftp://username@host/A/1.json',
-        'sftp://username@host/A/1.json.lnk',
-        'sftp://username@host/A/b/file.json',
-    ]
+    assert list(sftp.sftp_scan('sftp://username@host//A',
+                               followlinks=True)) == [
+                                   'sftp://username@host//A/1.json',
+                                   'sftp://username@host//A/1.json.lnk',
+                                   'sftp://username@host//A/b/file.json',
+                               ]
 
     assert [
         file_entry.path
-        for file_entry in sftp.sftp_scan_stat('sftp://username@host/A')
+        for file_entry in sftp.sftp_scan_stat('sftp://username@host//A')
     ] == [
-        'sftp://username@host/A/1.json',
-        'sftp://username@host/A/1.json.lnk',
-        'sftp://username@host/A/b/file.json',
+        'sftp://username@host//A/1.json',
+        'sftp://username@host//A/1.json.lnk',
+        'sftp://username@host//A/b/file.json',
     ]
 
     assert [
         file_entry.stat.size for file_entry in sftp.sftp_scan_stat(
-            'sftp://username@host/A', followlinks=True)
+            'sftp://username@host//A', followlinks=True)
     ] == [
         os.stat('/A/1.json').st_size,
         os.stat('/A/1.json').st_size,
@@ -534,82 +556,82 @@ def test_sftp_scan(sftp_mocker):
     ]
 
     with pytest.raises(FileNotFoundError):
-        list(sftp.sftp_scan_stat('sftp://username@host/B', missing_ok=False))
+        list(sftp.sftp_scan_stat('sftp://username@host//B', missing_ok=False))
 
 
 def test_sftp_unlink(sftp_mocker):
-    sftp.sftp_makedirs('sftp://username@host/A')
-    with sftp.sftp_open('sftp://username@host/A/test', 'w') as f:
+    sftp.sftp_makedirs('sftp://username@host//A')
+    with sftp.sftp_open('sftp://username@host//A/test', 'w') as f:
         f.write('test')
 
-    sftp.sftp_unlink('sftp://username@host/A/test')
-    sftp.sftp_unlink('sftp://username@host/A/test', missing_ok=True)
+    sftp.sftp_unlink('sftp://username@host//A/test')
+    sftp.sftp_unlink('sftp://username@host//A/test', missing_ok=True)
 
-    assert sftp.sftp_exists('sftp://username@host/A/test') is False
-    assert sftp.sftp_exists('sftp://username@host/A') is True
+    assert sftp.sftp_exists('sftp://username@host//A/test') is False
+    assert sftp.sftp_exists('sftp://username@host//A') is True
 
     with pytest.raises(IsADirectoryError):
-        sftp.sftp_unlink('sftp://username@host/A')
+        sftp.sftp_unlink('sftp://username@host//A')
 
 
 def test_sftp_walk(sftp_mocker):
-    sftp.sftp_makedirs('sftp://username@host/A')
-    sftp.sftp_makedirs('sftp://username@host/A/a')
-    sftp.sftp_makedirs('sftp://username@host/A/a/b')
-    sftp.sftp_makedirs('sftp://username@host/A/b')
-    sftp.sftp_makedirs('sftp://username@host/A/b/c')
-    with sftp.sftp_open('sftp://username@host/A/1.json', 'w') as f:
+    sftp.sftp_makedirs('sftp://username@host//A')
+    sftp.sftp_makedirs('sftp://username@host//A/a')
+    sftp.sftp_makedirs('sftp://username@host//A/a/b')
+    sftp.sftp_makedirs('sftp://username@host//A/b')
+    sftp.sftp_makedirs('sftp://username@host//A/b/c')
+    with sftp.sftp_open('sftp://username@host//A/1.json', 'w') as f:
         f.write('1.json')
-    with sftp.sftp_open('sftp://username@host/A/a/2.json', 'w') as f:
+    with sftp.sftp_open('sftp://username@host//A/a/2.json', 'w') as f:
         f.write('2.json')
-    with sftp.sftp_open('sftp://username@host/A/b/3.json', 'w') as f:
+    with sftp.sftp_open('sftp://username@host//A/b/3.json', 'w') as f:
         f.write('3.json')
 
-    assert list(sftp.sftp_walk('sftp://username@host/A')) == [
-        ('sftp://username@host/A', ['a', 'b'], ['1.json']),
-        ('sftp://username@host/A/a', ['b'], ['2.json']),
-        ('sftp://username@host/A/a/b', [], []),
-        ('sftp://username@host/A/b', ['c'], ['3.json']),
-        ('sftp://username@host/A/b/c', [], []),
+    assert list(sftp.sftp_walk('sftp://username@host//A')) == [
+        ('sftp://username@host//A', ['a', 'b'], ['1.json']),
+        ('sftp://username@host//A/a', ['b'], ['2.json']),
+        ('sftp://username@host//A/a/b', [], []),
+        ('sftp://username@host//A/b', ['c'], ['3.json']),
+        ('sftp://username@host//A/b/c', [], []),
     ]
 
-    assert list(sftp.sftp_walk('sftp://username@host/A/not_found')) == []
-    assert list(sftp.sftp_walk('sftp://username@host/A/1.json')) == []
+    assert list(sftp.sftp_walk('sftp://username@host//A/not_found')) == []
+    assert list(sftp.sftp_walk('sftp://username@host//A/1.json')) == []
 
 
 def test_sftp_getmd5(sftp_mocker):
     from megfile.fs import fs_getmd5
 
-    sftp.sftp_makedirs('sftp://username@host/A')
-    with sftp.sftp_open('sftp://username@host/A/1.json', 'w') as f:
+    sftp.sftp_makedirs('sftp://username@host//A')
+    with sftp.sftp_open('sftp://username@host//A/1.json', 'w') as f:
         f.write('1.json')
-    assert sftp.sftp_getmd5('sftp://username@host/A/1.json') == fs_getmd5(
+    assert sftp.sftp_getmd5('sftp://username@host//A/1.json') == fs_getmd5(
         '/A/1.json')
-    assert sftp.sftp_getmd5('sftp://username@host/A') == fs_getmd5('/A')
+    assert sftp.sftp_getmd5('sftp://username@host//A') == fs_getmd5('/A')
 
 
 def test_sftp_symlink(sftp_mocker):
-    sftp.sftp_makedirs('sftp://username@host/A')
-    with sftp.sftp_open('sftp://username@host/A/1.json', 'w') as f:
+    sftp.sftp_makedirs('sftp://username@host//A')
+    with sftp.sftp_open('sftp://username@host//A/1.json', 'w') as f:
         f.write('1.json')
     sftp.sftp_symlink(
-        'sftp://username@host/A/1.json', 'sftp://username@host/A/1.json.lnk')
-    assert sftp.sftp_islink('sftp://username@host/A/1.json.lnk') is True
-    assert sftp.sftp_islink('sftp://username@host/A/1.json') is False
+        'sftp://username@host//A/1.json', 'sftp://username@host//A/1.json.lnk')
+    assert sftp.sftp_islink('sftp://username@host//A/1.json.lnk') is True
+    assert sftp.sftp_islink('sftp://username@host//A/1.json') is False
 
     with pytest.raises(FileExistsError):
         sftp.sftp_symlink(
-            'sftp://username@host/A/1.json',
-            'sftp://username@host/A/1.json.lnk')
+            'sftp://username@host//A/1.json',
+            'sftp://username@host//A/1.json.lnk')
 
 
 def test_sftp_save_as(sftp_mocker):
-    sftp.sftp_save_as(io.BytesIO(b'test'), 'sftp://username@host/test')
-    assert sftp.sftp_load_from('sftp://username@host/test').read() == b'test'
+    sftp.sftp_save_as(io.BytesIO(b'test'), 'sftp://username@host//test')
+    assert sftp.sftp_load_from('sftp://username@host//test').read() == b'test'
 
 
 def test_sftp_chmod(sftp_mocker):
-    path = 'sftp://username@host/test'
+    path = 'sftp://username@host//test'
     sftp.sftp_save_as(io.BytesIO(b'test'), path)
 
     sftp.sftp_chmod(path, mode=0o777)
@@ -617,123 +639,123 @@ def test_sftp_chmod(sftp_mocker):
 
 
 def test_sftp_rmdir(sftp_mocker):
-    sftp.sftp_makedirs('sftp://username@host/A')
-    with sftp.sftp_open('sftp://username@host/A/1.json', 'w') as f:
+    sftp.sftp_makedirs('sftp://username@host//A')
+    with sftp.sftp_open('sftp://username@host//A/1.json', 'w') as f:
         f.write('1.json')
 
     with pytest.raises(OSError):
-        sftp.sftp_rmdir('sftp://username@host/A')
+        sftp.sftp_rmdir('sftp://username@host//A')
 
     with pytest.raises(NotADirectoryError):
-        sftp.sftp_rmdir('sftp://username@host/A/1.json')
+        sftp.sftp_rmdir('sftp://username@host//A/1.json')
 
-    sftp.sftp_unlink('sftp://username@host/A/1.json')
-    sftp.sftp_rmdir('sftp://username@host/A')
-    assert sftp.sftp_exists('sftp://username@host/A') is False
+    sftp.sftp_unlink('sftp://username@host//A/1.json')
+    sftp.sftp_rmdir('sftp://username@host//A')
+    assert sftp.sftp_exists('sftp://username@host//A') is False
 
 
 def test_sftp_copy(sftp_mocker):
-    sftp.sftp_makedirs('sftp://username@host/A')
-    with sftp.sftp_open('sftp://username@host/A/1.json', 'w') as f:
+    sftp.sftp_makedirs('sftp://username@host//A')
+    with sftp.sftp_open('sftp://username@host//A/1.json', 'w') as f:
         f.write('1.json')
     sftp.sftp_symlink(
-        'sftp://username@host/A/1.json', 'sftp://username@host/A/1.json.lnk')
+        'sftp://username@host//A/1.json', 'sftp://username@host//A/1.json.lnk')
 
     with pytest.raises(IsADirectoryError):
-        sftp.sftp_copy('sftp://username@host/A', 'sftp://username@host/A2')
+        sftp.sftp_copy('sftp://username@host//A', 'sftp://username@host//A2')
 
     with pytest.raises(IsADirectoryError):
         sftp.sftp_copy(
-            'sftp://username@host/A/1.json', 'sftp://username@host/A2/')
+            'sftp://username@host//A/1.json', 'sftp://username@host//A2/')
 
     with pytest.raises(OSError):
-        sftp.sftp_copy('sftp://username@host/A', '/A2')
+        sftp.sftp_copy('sftp://username@host//A', '/A2')
 
     def callback(length):
         assert length == len('1.json')
 
     sftp.sftp_copy(
-        'sftp://username@host/A/1.json.lnk',
-        'sftp://username@host/A2/1.json.bak',
+        'sftp://username@host//A/1.json.lnk',
+        'sftp://username@host//A2/1.json.bak',
         followlinks=True,
         callback=callback)
 
     assert sftp.sftp_stat(
-        'sftp://username@host/A/1.json').size == sftp.sftp_stat(
-            'sftp://username@host/A2/1.json.bak').size
+        'sftp://username@host//A/1.json').size == sftp.sftp_stat(
+            'sftp://username@host//A2/1.json.bak').size
 
 
 def test_sftp_copy_with_different_host(sftp_mocker):
-    sftp.sftp_makedirs('sftp://username@host/A')
-    with sftp.sftp_open('sftp://username@host/A/1.json', 'w') as f:
+    sftp.sftp_makedirs('sftp://username@host//A')
+    with sftp.sftp_open('sftp://username@host//A/1.json', 'w') as f:
         f.write('1.json')
 
     def callback(length):
         assert length == len('1.json')
 
     sftp.sftp_copy(
-        'sftp://username@host/A/1.json',
+        'sftp://username@host//A/1.json',
         'sftp://username@host2/A/2.json',
         callback=callback,
     )
 
     assert sftp.sftp_stat(
-        'sftp://username@host/A/1.json').size == sftp.sftp_stat(
+        'sftp://username@host//A/1.json').size == sftp.sftp_stat(
             'sftp://username@host2/A/2.json').size
 
 
 def test_sftp_sync(sftp_mocker, mocker):
-    sftp.sftp_makedirs('sftp://username@host/A')
-    with sftp.sftp_open('sftp://username@host/A/1.json', 'w') as f:
+    sftp.sftp_makedirs('sftp://username@host//A')
+    with sftp.sftp_open('sftp://username@host//A/1.json', 'w') as f:
         f.write('1.json')
 
-    sftp.sftp_sync('sftp://username@host/A', 'sftp://username@host/A2')
+    sftp.sftp_sync('sftp://username@host//A', 'sftp://username@host//A2')
     assert sftp.sftp_stat(
-        'sftp://username@host/A/1.json').size == sftp.sftp_stat(
-            'sftp://username@host/A2/1.json').size
+        'sftp://username@host//A/1.json').size == sftp.sftp_stat(
+            'sftp://username@host//A2/1.json').size
     assert sftp.sftp_stat(
-        'sftp://username@host/A/1.json').mtime == sftp.sftp_stat(
-            'sftp://username@host/A2/1.json').mtime
+        'sftp://username@host//A/1.json').mtime == sftp.sftp_stat(
+            'sftp://username@host//A2/1.json').mtime
 
     sftp.sftp_sync(
-        'sftp://username@host/A/1.json', 'sftp://username@host/A/1.json.bak')
+        'sftp://username@host//A/1.json', 'sftp://username@host//A/1.json.bak')
     assert sftp.sftp_stat(
-        'sftp://username@host/A/1.json').size == sftp.sftp_stat(
-            'sftp://username@host/A/1.json.bak').size
+        'sftp://username@host//A/1.json').size == sftp.sftp_stat(
+            'sftp://username@host//A/1.json.bak').size
 
     with pytest.raises(IsADirectoryError):
         sftp.sftp_sync(
-            'sftp://username@host/A/1.json', 'sftp://username@host/A2/')
+            'sftp://username@host//A/1.json', 'sftp://username@host//A2/')
 
     func = mocker.patch('megfile.sftp_path.SftpPath.copy')
-    sftp.sftp_sync('sftp://username@host/A2', 'sftp://username@host/A')
+    sftp.sftp_sync('sftp://username@host//A2', 'sftp://username@host//A')
     assert func.call_count == 0
 
 
 def test_sftp_download(sftp_mocker):
-    sftp.sftp_makedirs('sftp://username@host/A')
-    with sftp.sftp_open('sftp://username@host/A/1.json', 'w') as f:
+    sftp.sftp_makedirs('sftp://username@host//A')
+    with sftp.sftp_open('sftp://username@host//A/1.json', 'w') as f:
         f.write('1.json')
     sftp.sftp_symlink(
-        'sftp://username@host/A/1.json', 'sftp://username@host/A/1.json.lnk')
+        'sftp://username@host//A/1.json', 'sftp://username@host//A/1.json.lnk')
 
     sftp.sftp_download(
-        'sftp://username@host/A/1.json.lnk', '/A/1.json', followlinks=True)
-    assert sftp.sftp_stat('sftp://username@host/A/1.json').size == os.stat(
+        'sftp://username@host//A/1.json.lnk', '/A/1.json', followlinks=True)
+    assert sftp.sftp_stat('sftp://username@host//A/1.json').size == os.stat(
         '/A/1.json').st_size
 
     with pytest.raises(OSError):
         sftp.sftp_download(
-            'sftp://username@host/A/1.json', 'sftp://username@host/1.json')
+            'sftp://username@host//A/1.json', 'sftp://username@host//1.json')
 
     with pytest.raises(OSError):
         sftp.sftp_download('/1.json', '/1.json')
 
     with pytest.raises(IsADirectoryError):
-        sftp.sftp_download('sftp://username@host/A', '/1.json')
+        sftp.sftp_download('sftp://username@host//A', '/1.json')
 
     with pytest.raises(IsADirectoryError):
-        sftp.sftp_download('sftp://username@host/A/1.json', '/1/')
+        sftp.sftp_download('sftp://username@host//A/1.json', '/1/')
 
 
 def test_sftp_upload(sftp_mocker):
@@ -742,43 +764,45 @@ def test_sftp_upload(sftp_mocker):
     os.symlink('/1.json', '/1.json.lnk')
 
     sftp.sftp_upload(
-        '/1.json.lnk', 'sftp://username@host/A/1.json', followlinks=True)
-    assert sftp.sftp_stat('sftp://username@host/A/1.json').size == os.stat(
+        '/1.json.lnk', 'sftp://username@host//A/1.json', followlinks=True)
+    assert sftp.sftp_stat('sftp://username@host//A/1.json').size == os.stat(
         '/1.json').st_size
 
     with pytest.raises(OSError):
         sftp.sftp_upload(
-            'sftp://username@host/A/1.json', 'sftp://username@host/1.json')
+            'sftp://username@host//A/1.json', 'sftp://username@host//1.json')
 
     with pytest.raises(OSError):
         sftp.sftp_upload('/1.json', '/1.json')
 
     with pytest.raises(IsADirectoryError):
-        sftp.sftp_upload('/', 'sftp://username@host/A')
+        sftp.sftp_upload('/', 'sftp://username@host//A')
 
     with pytest.raises(IsADirectoryError):
-        sftp.sftp_upload('/1.json', 'sftp://username@host/A/')
+        sftp.sftp_upload('/1.json', 'sftp://username@host//A/')
 
 
 def test_sftp_path_join():
+    assert sftp.sftp_path_join(
+        'sftp://username@host//A/', 'a', 'b') == 'sftp://username@host//A/a/b'
     assert sftp.sftp_path_join(
         'sftp://username@host/A/', 'a', 'b') == 'sftp://username@host/A/a/b'
 
 
 def test_sftp_concat(sftp_mocker, mocker):
-    with sftp.sftp_open('sftp://username@host/1', 'w') as f:
+    with sftp.sftp_open('sftp://username@host//1', 'w') as f:
         f.write('1')
-    with sftp.sftp_open('sftp://username@host/2', 'w') as f:
+    with sftp.sftp_open('sftp://username@host//2', 'w') as f:
         f.write('2')
-    with sftp.sftp_open('sftp://username@host/3', 'w') as f:
+    with sftp.sftp_open('sftp://username@host//3', 'w') as f:
         f.write('3')
 
     sftp.sftp_concat(
         [
-            'sftp://username@host/1', 'sftp://username@host/2',
-            'sftp://username@host/3'
-        ], 'sftp://username@host/4')
-    with sftp.sftp_open('sftp://username@host/4', 'r') as f:
+            'sftp://username@host//1', 'sftp://username@host//2',
+            'sftp://username@host//3'
+        ], 'sftp://username@host//4')
+    with sftp.sftp_open('sftp://username@host//4', 'r') as f:
         assert f.read() == '123'
 
     def _error_exec_command(
@@ -795,6 +819,6 @@ def test_sftp_concat(sftp_mocker, mocker):
     with pytest.raises(OSError):
         sftp.sftp_concat(
             [
-                'sftp://username@host/1', 'sftp://username@host/2',
-                'sftp://username@host/3'
-            ], 'sftp://username@host/4')
+                'sftp://username@host//1', 'sftp://username@host//2',
+                'sftp://username@host//3'
+            ], 'sftp://username@host//4')

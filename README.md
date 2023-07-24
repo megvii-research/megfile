@@ -31,6 +31,29 @@ megfile - Megvii FILE library
 
 Here's an example of writing a file to s3 / sftp / fs, syncing to local, reading and finally deleting it.
 
+### Path Format
+- local file
+    - unix filesystem path
+    - examples:
+        - `/data/test.txt`
+        - `test.txt`
+        - 1
+- oss
+    - `s3[+profile_name]://bucket/key`
+- sftp
+    - `sftp://[username[:password]@]hostname[:port]//absolute_file_path`
+    - `sftp://[username[:password]@]hostname[:port]/relative_file_path`
+- http
+    - http / https url
+    - examples:
+        - `http://hostname/test`
+        - `https://hostname/test`
+- stdio
+    - `stdio://-`
+    - `stdio://0`
+    - `stdio://1`
+    - `stdio://2`
+
 ### Functional Interface
 ```python
 from megfile import smart_open, smart_exists, smart_sync, smart_remove, smart_glob
@@ -170,7 +193,7 @@ s3 =
 megfile.smart_copy('s3+profile1://bucket/key', 's3+profile2://bucket/key')
 ```
 
-sftp path format is `sftp://[username[:password]@]hostname[:port]/file_path`, and sftp support some environments:
+sftp support some environments:
 ```
 # If you are not set username or password in path, you can set them in environments
 $ export SFTP_USERNAME=user
