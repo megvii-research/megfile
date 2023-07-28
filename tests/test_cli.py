@@ -269,10 +269,18 @@ def test_head(runner, tmpdir, mocker):
             f.write(str(i))
             f.write('\n')
 
+    with open(str(tmpdir / 'text2'), 'w') as f:
+        f.write('0')
+
     result = runner.invoke(head, ['-n', '2', str(tmpdir / 'text')])
 
     assert result.exit_code == 0
     assert result.output == '0\n1\n'
+
+    result = runner.invoke(head, [str(tmpdir / 'text2')])
+
+    assert result.exit_code == 0
+    assert result.output == '0\n'
 
     result = runner.invoke(tail, ['-n', '2', str(tmpdir / 'text')])
 
