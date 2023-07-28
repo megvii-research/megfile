@@ -1,9 +1,10 @@
 import os
+import sys
 
 import pytest
 from click.testing import CliRunner
 
-from megfile.cli import cat, cp, head, ls, md5sum, mkdir, mtime, mv, rm, size, stat, sync, tail, touch, version
+from megfile.cli import cat, cp, head, ls, md5sum, mkdir, mtime, mv, rm, size, stat, sync, tail, to, touch, version
 
 from .test_smart import s3_empty_client
 
@@ -263,7 +264,7 @@ def test_sync(runner, testdir):
     assert 'text\n' in runner.invoke(ls, [str(testdir / 'newdir2')]).output
 
 
-def test_head(runner, tmpdir, mocker):
+def test_head_and_tail(runner, tmpdir, mocker):
     with open(str(tmpdir / 'text'), 'w') as f:
         for i in range(10):
             f.write(str(i))
@@ -292,3 +293,17 @@ def test_head(runner, tmpdir, mocker):
 
     assert result.exit_code == 0
     assert result.output == '6\n7\n8\n9\n\n'
+
+
+def test_to(runner, tmpdir):
+    result = runner.invoke(to, ['-o', str(tmpdir / 'text')], b'test')
+    assert result.output == 'test'
+
+    with open(str(tmpdir / 'text'), 'rb') as f:
+        assert f.read() == b'test'
+
+    result = runner.invoke(to, ['-a', '-o', str(tmpdir / 'text')], b'test2')
+    assert result.output == 'test2'
+
+    with open(str(tmpdir / 'text'), 'rb') as f:
+        assert f.read() == b'testtest2'
