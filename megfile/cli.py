@@ -362,6 +362,27 @@ def tail(path: str, lines: int):
         click.echo(line)
 
 
+@cli.command(short_help='Write bytes from stdin to file.')
+@click.argument('path')
+@click.option('-a', '--append', is_flag=True, help='Append to the given file')
+@click.option(
+    '-o', '--stdout', is_flag=True, help='File content to standard output')
+def to(path: str, append: bool, stdout: bool):
+    mode = 'wb'
+    if append:
+        mode = 'ab'
+    with smart_open('stdio://0', 'rb') as stdin, smart_open(
+            path, mode) as f, smart_open('stdio://1', 'wb') as stdout_fd:
+        length = 16 * 1024
+        while True:
+            buf = stdin.read(length)
+            if not buf:
+                break
+            f.write(buf)
+            if stdout:
+                stdout_fd.write(buf)
+
+
 @cli.command(
     short_help='Produce an md5sum file for all the objects in the path.')
 @click.argument('path')
