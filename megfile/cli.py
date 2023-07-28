@@ -316,11 +316,16 @@ def cat(path: str):
     '--lines',
     type=click.INT,
     default=10,
-    help='print the first NUM lines instead of the first 10')
+    help='print the first NUM lines')
 def head(path: str, lines: int):
-    with smart_open(path, 'rb') as file:
-        for line in file.readlines(lines):
-            click.echo(line)
+    with smart_open(path, 'rb') as f:
+        f.seek(0, os.SEEK_END)
+        file_size = f.tell()
+        f.seek(0, os.SEEK_SET)
+        for _ in range(lines):
+            click.echo(f.readline().strip(b'\n'))
+            if f.tell() >= file_size:
+                break
 
 
 @cli.command(
@@ -331,11 +336,14 @@ def head(path: str, lines: int):
     '--lines',
     type=click.INT,
     default=10,
-    help='print the first NUM lines instead of the first 10')
+    help='print the last NUM lines')
 def tail(path: str, lines: int):
-    file_size = smart_getsize(path)
     line_list = []
     with smart_open(path, 'rb') as f:
+        f.seek(0, os.SEEK_END)
+        file_size = f.tell()
+        f.seek(0, os.SEEK_SET)
+
         for current_offset in range(file_size - DEFAULT_BLOCK_SIZE,
                                     0 - DEFAULT_BLOCK_SIZE,
                                     -DEFAULT_BLOCK_SIZE):

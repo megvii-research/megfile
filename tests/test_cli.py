@@ -3,7 +3,7 @@ import os
 import pytest
 from click.testing import CliRunner
 
-from megfile.cli import cat, cp, ls, md5sum, mkdir, mtime, mv, rm, size, stat, sync, touch, version
+from megfile.cli import cat, cp, head, ls, md5sum, mkdir, mtime, mv, rm, size, stat, sync, tail, touch, version
 
 from .test_smart import s3_empty_client
 
@@ -261,3 +261,26 @@ def test_sync(runner, testdir):
     assert '%' in glob_result.output
     assert 'newfile\n' in runner.invoke(ls, [str(testdir / 'newdir2')]).output
     assert 'text\n' in runner.invoke(ls, [str(testdir / 'newdir2')]).output
+
+
+def test_head(runner, tmpdir, mocker):
+    with open(str(tmpdir / 'text'), 'w') as f:
+        for i in range(10):
+            f.write(str(i))
+            f.write('\n')
+
+    result = runner.invoke(head, ['-n', '2', str(tmpdir / 'text')])
+
+    assert result.exit_code == 0
+    assert result.output == '0\n1\n'
+
+    result = runner.invoke(tail, ['-n', '2', str(tmpdir / 'text')])
+
+    assert result.exit_code == 0
+    assert result.output == '9\n\n'
+
+    mocker.patch('megfile.cli.DEFAULT_BLOCK_SIZE', 1)
+    result = runner.invoke(tail, ['-n', '5', str(tmpdir / 'text')])
+
+    assert result.exit_code == 0
+    assert result.output == '6\n7\n8\n9\n\n'
