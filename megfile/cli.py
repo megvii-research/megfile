@@ -17,11 +17,12 @@ from megfile.version import VERSION
 
 logging.basicConfig(level=logging.ERROR)
 logging.getLogger('megfile').setLevel(level=logging.INFO)
+DEFAULT_BLOCK_SIZE = 8 * 2**20  # 8MB
 
 
 @click.group()
 def cli():
-    """Megfile Client"""
+    """Client"""
 
 
 def safe_cli():  # pragma: no cover
@@ -307,10 +308,65 @@ def cat(path: str):
 
 
 @cli.command(
+    short_help='Concatenate any files and send first n lines of them to stdout.'
+)
+@click.argument('path')
+@click.option(
+    '-n',
+    '--lines',
+    type=click.INT,
+    default=10,
+    help='print the first NUM lines')
+def head(path: str, lines: int):
+    with smart_open(path, 'rb') as f:
+        f.seek(0, os.SEEK_END)
+        file_size = f.tell()
+        f.seek(0, os.SEEK_SET)
+        for _ in range(lines):
+            click.echo(f.readline().strip(b'\n'))
+            if f.tell() >= file_size:
+                break
+
+
+@cli.command(
+    short_help='Concatenate any files and send last n lines of them to stdout.')
+@click.argument('path')
+@click.option(
+    '-n',
+    '--lines',
+    type=click.INT,
+    default=10,
+    help='print the last NUM lines')
+def tail(path: str, lines: int):
+    line_list = []
+    with smart_open(path, 'rb') as f:
+        f.seek(0, os.SEEK_END)
+        file_size = f.tell()
+        f.seek(0, os.SEEK_SET)
+
+        for current_offset in range(file_size - DEFAULT_BLOCK_SIZE,
+                                    0 - DEFAULT_BLOCK_SIZE,
+                                    -DEFAULT_BLOCK_SIZE):
+            current_offset = max(0, current_offset)
+            f.seek(current_offset)
+            block_lines = f.read(DEFAULT_BLOCK_SIZE).split(b'\n')
+            if len(line_list) > 0:
+                block_lines[-1] += line_list[0]
+                block_lines.extend(line_list[1:])
+            if len(block_lines) > lines:
+                line_list = block_lines[-lines:]
+                break
+            else:
+                line_list = block_lines
+    for line in line_list:
+        click.echo(line)
+
+
+@cli.command(
     short_help='Produce an md5sum file for all the objects in the path.')
 @click.argument('path')
 def md5sum(path: str):
-    click.echo(smart_getmd5(path))
+    click.echo(smart_getmd5(path, recalculate=True))
 
 
 @cli.command(
