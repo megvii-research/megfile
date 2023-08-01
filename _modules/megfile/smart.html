@@ -140,6 +140,7 @@
     <span class="s1">&#39;smart_readlink&#39;</span><span class="p">,</span>
     <span class="s1">&#39;register_copy_func&#39;</span><span class="p">,</span>
     <span class="s1">&#39;smart_concat&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;SmartCacher&#39;</span><span class="p">,</span>
 <span class="p">]</span>
 
 
@@ -959,7 +960,7 @@
         <span class="n">fd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">text</span><span class="p">)</span></div>
 
 
-<span class="k">class</span> <span class="nc">SmartCacher</span><span class="p">(</span><span class="n">FileCacher</span><span class="p">):</span>
+<div class="viewcode-block" id="SmartCacher"><a class="viewcode-back" href="../../megfile.smart.html#megfile.SmartCacher">[docs]</a><span class="k">class</span> <span class="nc">SmartCacher</span><span class="p">(</span><span class="n">FileCacher</span><span class="p">):</span>
     <span class="n">cache_path</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -979,7 +980,7 @@
             <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_path</span><span class="p">):</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">):</span>
                 <span class="n">smart_copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_path</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_path</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="smart_cache"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_cache">[docs]</a><span class="k">def</span> <span class="nf">smart_cache</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">cacher</span><span class="o">=</span><span class="n">SmartCacher</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">):</span>

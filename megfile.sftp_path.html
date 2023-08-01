@@ -102,8 +102,25 @@
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">megfile.sftp_path.</span></span><span class="sig-name descname"><span class="pre">SftpPath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">other_paths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">URIPath</span></code></p>
 <p>sftp protocol</p>
-<p>uri format: sftp://[username[:password]&#64;]hostname[:port]/file_path
-e.g. sftp://username:password&#64;127.0.0.1:22/data/test/</p>
+<p>uri format: 
+- absolute path</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>sftp://[username[:password]&#64;]hostname[:port]//file_path</p></li>
+</ul>
+</div></blockquote>
+<ul class="simple">
+<li><dl class="simple">
+<dt>relative path</dt><dd><ul>
+<li><ul>
+<li><p>sftp://[username[:password]&#64;]hostname[:port]/file_path</p></li>
+</ul>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.sftp_path.SftpPath.absolute">
 <span class="sig-name descname"><span class="pre">absolute</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#megfile.sftp_path.SftpPath" title="megfile.sftp_path.SftpPath"><span class="pre">SftpPath</span></a></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#SftpPath.absolute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp_path.SftpPath.absolute" title="Permalink to this definition"></a></dt>

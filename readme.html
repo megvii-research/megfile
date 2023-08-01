@@ -47,6 +47,7 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Getting Started</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#megfile-megvii-file-library">megfile - Megvii FILE library</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#quick-start">Quick Start</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#path-format">Path Format</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#functional-interface">Functional Interface</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#smartpath-interface">SmartPath Interface</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#command-line-interface">Command Line Interface</a></li>
@@ -126,6 +127,53 @@
 <section id="quick-start">
 <h2>Quick Start<a class="headerlink" href="#quick-start" title="Permalink to this heading"></a></h2>
 <p>Here’s an example of writing a file to s3 / sftp / fs, syncing to local, reading and finally deleting it.</p>
+<section id="path-format">
+<h3>Path Format<a class="headerlink" href="#path-format" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p>local file</p>
+<ul>
+<li><p>unix filesystem path</p></li>
+<li><p>examples:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">/data/test.txt</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">test.txt</span></code></p></li>
+<li><p>1</p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>oss</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">s3[+profile_name]://bucket/key</span></code></p></li>
+</ul>
+</li>
+<li><p>sftp</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">sftp://[username[:password]&#64;]hostname[:port]//absolute_file_path</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sftp://[username[:password]&#64;]hostname[:port]/relative_file_path</span></code></p></li>
+</ul>
+</li>
+<li><p>http</p>
+<ul>
+<li><p>http / https url</p></li>
+<li><p>examples:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">http://hostname/test</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">https://hostname/test</span></code></p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>stdio</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">stdio://-</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stdio://0</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stdio://1</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stdio://2</span></code></p></li>
+</ul>
+</li>
+</ul>
+</section>
 <section id="functional-interface">
 <h3>Functional Interface<a class="headerlink" href="#functional-interface" title="Permalink to this heading"></a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">megfile</span> <span class="kn">import</span> <span class="n">smart_open</span><span class="p">,</span> <span class="n">smart_exists</span><span class="p">,</span> <span class="n">smart_sync</span><span class="p">,</span> <span class="n">smart_remove</span><span class="p">,</span> <span class="n">smart_glob</span>
@@ -266,7 +314,7 @@ s3 =
 megfile.smart_copy(&#39;s3+profile1://bucket/key&#39;, &#39;s3+profile2://bucket/key&#39;)
 </pre></div>
 </div>
-<p>sftp path format is <code class="docutils literal notranslate"><span class="pre">sftp://[username[:password]&#64;]hostname[:port]/file_path</span></code>, and sftp support some environments:</p>
+<p>sftp support some environments:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span># If you are not set username or password in path, you can set them in environments
 $ export SFTP_USERNAME=user
 $ export SFTP_PASSWORD=user_password

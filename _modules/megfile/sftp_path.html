@@ -551,8 +551,11 @@
 <span class="k">class</span> <span class="nc">SftpPath</span><span class="p">(</span><span class="n">URIPath</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;sftp protocol</span>
 
-<span class="sd">    uri format: sftp://[username[:password]@]hostname[:port]/file_path</span>
-<span class="sd">    e.g. sftp://username:password@127.0.0.1:22/data/test/</span>
+<span class="sd">    uri format: </span>
+<span class="sd">    - absolute path</span>
+<span class="sd">        - sftp://[username[:password]@]hostname[:port]//file_path</span>
+<span class="sd">    - relative path</span>
+<span class="sd">        - - sftp://[username[:password]@]hostname[:port]/file_path</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">protocol</span> <span class="o">=</span> <span class="s2">&quot;sftp&quot;</span>
@@ -560,10 +563,13 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="s2">&quot;PathLike&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">other_paths</span><span class="p">:</span> <span class="s2">&quot;PathLike&quot;</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="o">*</span><span class="n">other_paths</span><span class="p">)</span>
         <span class="n">parts</span> <span class="o">=</span> <span class="n">urlsplit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_real_path</span> <span class="o">=</span> <span class="n">parts</span><span class="o">.</span><span class="n">path</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_real_path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_real_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_real_path</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_urlsplit_parts</span> <span class="o">=</span> <span class="n">parts</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_real_path</span> <span class="o">=</span> <span class="n">parts</span><span class="o">.</span><span class="n">path</span>
+        <span class="k">if</span> <span class="n">parts</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;//&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_root_dir</span> <span class="o">=</span> <span class="s1">&#39;/&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_root_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_real_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_root_dir</span><span class="p">,</span> <span class="n">parts</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">))</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_client</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -573,9 +579,14 @@
             <span class="n">username</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_urlsplit_parts</span><span class="o">.</span><span class="n">username</span><span class="p">,</span>
             <span class="n">password</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_urlsplit_parts</span><span class="o">.</span><span class="n">password</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_generate_path_object</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sftp_local_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-        <span class="n">new_parts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_urlsplit_parts</span><span class="o">.</span><span class="n">_replace</span><span class="p">(</span>
-            <span class="n">path</span><span class="o">=</span><span class="n">sftp_local_path</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">))</span>
+    <span class="k">def</span> <span class="nf">_generate_path_object</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">sftp_local_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">resolve</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">resolve</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_root_dir</span> <span class="o">==</span> <span class="s1">&#39;/&#39;</span><span class="p">:</span>
+            <span class="n">sftp_local_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;//</span><span class="si">{</span><span class="n">sftp_local_path</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sftp_local_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">relpath</span><span class="p">(</span>
+                <span class="n">sftp_local_path</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_root_dir</span><span class="p">)</span>
+        <span class="n">new_parts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_urlsplit_parts</span><span class="o">.</span><span class="n">_replace</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">sftp_local_path</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">urlunsplit</span><span class="p">(</span><span class="n">new_parts</span><span class="p">))</span>
 
 <div class="viewcode-block" id="SftpPath.exists"><a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.SftpPath.exists">[docs]</a>    <span class="k">def</span> <span class="nf">exists</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
@@ -1047,7 +1058,7 @@
 <span class="sd">        :rtype: SftpPath</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_real_path</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_path_object</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_path_object</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">resolve</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="SftpPath.md5"><a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.SftpPath.md5">[docs]</a>    <span class="k">def</span> <span class="nf">md5</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">recalculate</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
