@@ -1,3 +1,15 @@
+## 2.2.0 - 2023.08.01
+- breaking change
+    - sftp path protocol change for supporting relative path
+        - new protocol:
+            ‒ sftp://[username[:password]@]hostname[:port]//absolute_file_path
+            ‒ sftp://[username[:password]@]hostname[:port]/relative_file_path
+- feat
+    - cli
+        - Add `megfile to` command, can write content from stdin to a file
+        - Add `megfile head` and `megfile tail` command
+    - Add http and stdio methods in `__init__.py`, now you can from megfile import them
+
 ## 2.1.4 - 2023.07.21
 - feat
     - add `SmartCache`, and `smart_cache` support more protocol
