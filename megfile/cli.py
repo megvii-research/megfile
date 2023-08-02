@@ -319,13 +319,14 @@ def cat(path: str):
     help='print the first NUM lines')
 def head(path: str, lines: int):
     with smart_open(path, 'rb') as f:
-        f.seek(0, os.SEEK_END)
-        file_size = f.tell()
-        f.seek(0, os.SEEK_SET)
         for _ in range(lines):
-            click.echo(f.readline().strip(b'\n'))
-            if f.tell() >= file_size:
+            try:
+                content = f.readline()
+                if not content:
+                    break
+            except EOFError:
                 break
+            click.echo(content.strip(b'\n'))
 
 
 @cli.command(
