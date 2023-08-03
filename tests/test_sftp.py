@@ -744,6 +744,13 @@ def test_sftp_download(sftp_mocker):
     assert sftp.sftp_stat('sftp://username@host//A/1.json').size == os.stat(
         '/A/1.json').st_size
 
+    sftp.sftp_download(
+        'sftp://username@host//A/1.json.lnk',
+        'file:///A/2.json',
+        followlinks=True)
+    assert sftp.sftp_stat('sftp://username@host//A/1.json').size == os.stat(
+        '/A/2.json').st_size
+
     with pytest.raises(OSError):
         sftp.sftp_download(
             'sftp://username@host//A/1.json', 'sftp://username@host//1.json')
@@ -766,6 +773,10 @@ def test_sftp_upload(sftp_mocker):
     sftp.sftp_upload(
         '/1.json.lnk', 'sftp://username@host//A/1.json', followlinks=True)
     assert sftp.sftp_stat('sftp://username@host//A/1.json').size == os.stat(
+        '/1.json').st_size
+
+    sftp.sftp_upload('file:///1.json', 'sftp://username@host//A/2.json')
+    assert sftp.sftp_stat('sftp://username@host//A/2.json').size == os.stat(
         '/1.json').st_size
 
     with pytest.raises(OSError):
