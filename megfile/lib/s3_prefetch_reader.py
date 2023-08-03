@@ -380,7 +380,13 @@ class S3PrefetchReader(Readable, Seekable):
                 'File changed: %r, etag before: %s, after: %s' %
                 (self.name, self._content_info, response))
 
-        return BytesIO(response['Body'].read())
+        with raise_s3_error(self.name):
+            return BytesIO(
+                patch_method(
+                    response['Body'].read,
+                    max_retries=self._max_retries,
+                    should_retry=s3_should_retry,
+                )())
 
     def _submit_future(self, index: int):
         if index < 0 or index >= self._block_stop:
