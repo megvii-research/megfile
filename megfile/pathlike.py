@@ -317,8 +317,7 @@ class BasePath:
         """Remove (delete) the directory."""
 
     @method_not_implemented
-    def open(self, mode: str, s3_open_func: Callable[[str, str], BinaryIO]
-            ) -> IO[AnyStr]:  # type: ignore
+    def open(self, mode: str, **kwargs) -> IO[AnyStr]:  # type: ignore
         """Open the file with mode."""
 
     @method_not_implemented

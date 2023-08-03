@@ -500,7 +500,12 @@ def is_s3(path: PathLike) -> bool:
 def _s3_binary_mode(s3_open_func):
 
     @wraps(s3_open_func)
-    def wrapper(s3_url, mode: str = 'rb', **kwargs):
+    def wrapper(
+            s3_url,
+            mode: str = 'rb',
+            encoding: Optional[str] = None,
+            errors: Optional[str] = None,
+            **kwargs):
         bucket, key = parse_s3_url(s3_url)
         if not bucket:
             raise S3BucketNotFoundError('Empty bucket name: %r' % s3_url)
@@ -519,7 +524,8 @@ def _s3_binary_mode(s3_open_func):
 
         fileobj = s3_open_func(s3_url, get_binary_mode(mode), **kwargs)
         if 'b' not in mode:
-            fileobj = io.TextIOWrapper(fileobj)  # pytype: disable=wrong-arg-types
+            fileobj = io.TextIOWrapper(
+                fileobj, encoding=encoding, errors=errors)  # pytype: disable=wrong-arg-types
             fileobj.mode = mode
         return fileobj
 
@@ -2111,10 +2117,15 @@ class S3Path(URIPath):
             self,
             mode: str = 'r',
             *,
+            encoding: Optional[str] = None,
+            errors: Optional[str] = None,
             s3_open_func: Callable[[str, str], BinaryIO] = s3_open,
             **kwargs) -> IO[AnyStr]:  # pytype: disable=signature-mismatch
         return s3_open_func(
-            self.path_with_protocol, mode,
+            self.path_with_protocol,
+            mode,
+            encoding=encoding,
+            errors=errors,
             **necessary_params(s3_open_func, **kwargs))
 
     def absolute(self) -> 'S3Path':

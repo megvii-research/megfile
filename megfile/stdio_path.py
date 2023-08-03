@@ -1,5 +1,5 @@
 import io
-from typing import IO, AnyStr, Union
+from typing import IO, AnyStr, Optional, Union
 
 from megfile.interfaces import BaseURIPath, PathLike
 from megfile.lib.compat import fspath
@@ -72,7 +72,12 @@ class StdioPath(BaseURIPath):
             return STDReader(mode)
         return STDWriter(self.path_with_protocol, mode)
 
-    def open(self, mode: str, **kwargs) -> IO[AnyStr]:  # pytype: disable=signature-mismatch
+    def open(
+            self,
+            mode: str,
+            encoding: Optional[str] = None,
+            errors: Optional[str] = None,
+            **kwargs) -> IO[AnyStr]:  # pytype: disable=signature-mismatch
         '''Used to read or write stdio
 
         .. note ::
@@ -85,7 +90,8 @@ class StdioPath(BaseURIPath):
         fileobj = self._open(mode)
 
         if 'b' not in mode:
-            fileobj = io.TextIOWrapper(fileobj)  # type: ignore
+            fileobj = io.TextIOWrapper(
+                fileobj, encoding=encoding, errors=errors)  # type: ignore
             fileobj.mode = mode
 
         return fileobj  # type: ignore
