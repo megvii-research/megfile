@@ -1,3 +1,10 @@
+## 2.2.0.post1 - 2023.08.03
+- fix
+    - change retry log leval to info
+    - fix `megfile head` command error from http path
+    - fix retry not work in prefetch_reader
+    - fix upload and download when local file path with protocol, like `file:///data/test.txt`
+
 ## 2.2.0 - 2023.08.01
 - breaking change
     - sftp path protocol change for supporting relative path
