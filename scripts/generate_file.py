@@ -36,7 +36,7 @@ ALL_IMPORT_LINES = dict(
         "from megfile.interfaces import PathLike, StatResult",
     ],
     stdio=[
-        "from typing import IO, AnyStr",
+        "from typing import IO, AnyStr, Optional",
         "from megfile.interfaces import PathLike",
     ],
     sftp=[
@@ -84,7 +84,7 @@ ALL_FUNC_NAME_MAPPING = dict(
         replace="move",
     ),
 )
-PARAMETER_PATTERN = re.compile(r'\[.*\]')
+PARAMETER_PATTERN = re.compile(r'\[[^:]*\]')
 
 
 def get_class_name(current_file_type: str):
@@ -187,7 +187,7 @@ def get_methods_from_path_file(current_file_type: str):
                 if line.strip() and not line.startswith(" " * 4):
                     break
                 elif func_start is True:
-                    if line.strip().endswith(":"):
+                    if line.rsplit('#', maxsplit=1)[0].strip().endswith(":"):
                         func_start = False
                     func_params.append(line.strip())
                 elif "'''" in line or '"""' in line:

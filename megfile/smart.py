@@ -585,6 +585,8 @@ def smart_open(
     :param path: Given path
     :param mode: Mode to open file, supports r'[rwa][tb]?\+?'
     :param s3_open_func: Function used to open s3_url. Require the function includes 2 necessary parameters, file path and mode
+    :param encoding: encoding is the name of the encoding used to decode or encode the file. This should only be used in text mode.
+    :param errors: errors is an optional string that specifies how encoding and decoding errors are to be handled—this cannot be used in binary mode.
     :returns: File-Like object
     :raises: FileNotFoundError, IsADirectoryError, ValueError
     '''
