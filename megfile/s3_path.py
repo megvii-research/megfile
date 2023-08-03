@@ -2121,7 +2121,7 @@ class S3Path(URIPath):
             errors: Optional[str] = None,
             s3_open_func: Callable[[str, str], BinaryIO] = s3_open,
             **kwargs) -> IO[AnyStr]:  # pytype: disable=signature-mismatch
-        return s3_open_func(
+        return s3_open_func(  # pytype: disable=wrong-keyword-args
             self.path_with_protocol,
             mode,
             encoding=encoding,
