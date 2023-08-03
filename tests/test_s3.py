@@ -793,10 +793,24 @@ def test_s3_lstat(truncating_client, mocker):
         s3.s3_lstat('s3:///bucketA/')
 
 
-def test_s3_upload(s3_empty_client, fs):
+def test_s3_upload1(s3_empty_client, fs):
     src_url = '/path/to/file'
 
     fs.create_file(src_url, contents='value')
+    s3_empty_client.create_bucket(Bucket='bucket')
+
+    s3.s3_upload(src_url, 's3://bucket/result')
+
+    body = s3_empty_client.get_object(
+        Bucket='bucket', Key='result')['Body'].read().decode('utf-8')
+
+    assert body == 'value'
+
+
+def test_s3_upload2(s3_empty_client, fs):
+    src_url = 'file:///path/to/file'
+
+    fs.create_file('/path/to/file', contents='value')
     s3_empty_client.create_bucket(Bucket='bucket')
 
     s3.s3_upload(src_url, 's3://bucket/result')
@@ -865,11 +879,11 @@ def test_s3_download(s3_setup, fs):
         body = result.read().decode("utf-8")
         assert body == 'fileAA'
 
-    dst_url = '/path/to/samename/file'
+    dst_url = 'file:///path/to/samename/file'
 
     s3.s3_download('s3://bucketC/folder', dst_url)
 
-    with open(dst_url, 'rb') as result:
+    with open('/path/to/samename/file', 'rb') as result:
         body = result.read().decode('utf-8')
         assert body == 'file'
 

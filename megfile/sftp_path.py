@@ -367,21 +367,24 @@ def sftp_download(
     '''
     File download
     '''
-    from megfile.fs_path import FSPath, is_fs
+    from megfile.fs import is_fs
+    from megfile.fs_path import FSPath
+
     if not is_fs(dst_url):
         raise OSError(f'dst_url is not fs path: {dst_url}')
     if not is_sftp(src_url):
         raise OSError(f'src_url is not sftp path: {src_url}')
 
-    src_url = SftpPath(src_url)
-    if followlinks and src_url.is_symlink():
-        src_url = src_url.readlink()
-    if src_url.is_dir():
+    src_path = SftpPath(src_url)
+    if followlinks and src_path.is_symlink():
+        src_path = src_path.readlink()
+    if src_path.is_dir():
         raise IsADirectoryError('Is a directory: %r' % src_url)
     if str(dst_url).endswith('/'):
         raise IsADirectoryError('Is a directory: %r' % dst_url)
 
-    os.makedirs(os.path.dirname(dst_url), exist_ok=True)
+    dst_path = FSPath(dst_url)
+    dst_path.parent.makedirs(exist_ok=True)
 
     sftp_callback = None
     if callback:
@@ -389,10 +392,12 @@ def sftp_download(
         def sftp_callback(bytes_transferred: int, _total_bytes: int):
             callback(bytes_transferred)
 
-    src_url._client.get(src_url._real_path, dst_url, callback=sftp_callback)
+    src_path._client.get(
+        src_path._real_path,
+        dst_path.path_without_protocol,
+        callback=sftp_callback)
 
-    src_stat = src_url.stat()
-    dst_path = FSPath(dst_url)
+    src_stat = src_path.stat()
     dst_path.utime(src_stat.st_atime, src_stat.st_mtime)
     dst_path.chmod(src_stat.st_mode)
 
@@ -405,7 +410,9 @@ def sftp_upload(
     '''
     File upload
     '''
-    from megfile.fs import fs_stat, is_fs
+    from megfile.fs import is_fs
+    from megfile.fs_path import FSPath
+
     if not is_fs(src_url):
         raise OSError(f'src_url is not fs path: {src_url}')
     if not is_sftp(dst_url):
@@ -418,8 +425,9 @@ def sftp_upload(
     if str(dst_url).endswith('/'):
         raise IsADirectoryError('Is a directory: %r' % dst_url)
 
-    dst_url = SftpPath(dst_url)
-    dst_url.parent.makedirs(exist_ok=True)
+    src_path = FSPath(src_url)
+    dst_path = SftpPath(dst_url)
+    dst_path.parent.makedirs(exist_ok=True)
 
     sftp_callback = None
     if callback:
@@ -427,11 +435,14 @@ def sftp_upload(
         def sftp_callback(bytes_transferred: int, _total_bytes: int):
             callback(bytes_transferred)
 
-    dst_url._client.put(src_url, dst_url._real_path, callback=sftp_callback)
+    dst_path._client.put(
+        src_path.path_without_protocol,
+        dst_path._real_path,
+        callback=sftp_callback)
 
-    src_stat = fs_stat(src_url)
-    dst_url.utime(src_stat.st_atime, src_stat.st_mtime)
-    dst_url.chmod(src_stat.st_mode)
+    src_stat = src_path.stat()
+    dst_path.utime(src_stat.st_atime, src_stat.st_mtime)
+    dst_path.chmod(src_stat.st_mode)
 
 
 def sftp_path_join(path: PathLike, *other_paths: PathLike) -> str:

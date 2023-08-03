@@ -864,6 +864,9 @@ def s3_download(
     :param dst_url: target fs path
     :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
     '''
+    from megfile.fs import is_fs
+    from megfile.fs_path import FSPath
+
     src_url = S3Path(src_url)
     if followlinks:
         try:
@@ -884,23 +887,31 @@ def s3_download(
             'Is a directory: %r' % src_url.path_with_protocol)
 
     dst_url = fspath(dst_url)
+    if not is_fs(dst_url):
+        raise OSError(f'dst_url is not fs path: {dst_url}')
     if not dst_url or dst_url.endswith('/'):
         raise S3IsADirectoryError('Is a directory: %r' % dst_url)
 
-    dst_directory = os.path.dirname(dst_url)
+    dst_path = FSPath(dst_url)
+    dst_directory = os.path.dirname(dst_path.path_without_protocol)
     if dst_directory != '':
         os.makedirs(dst_directory, exist_ok=True)
 
     client = get_s3_client(profile_name=src_url._profile_name)
     try:
-        client.download_file(src_bucket, src_key, dst_url, Callback=callback)
+        client.download_file(
+            src_bucket,
+            src_key,
+            dst_path.path_without_protocol,
+            Callback=callback)
     except Exception as error:
         error = translate_fs_error(error, dst_url)
         error = translate_s3_error(error, src_url.path_with_protocol)
         raise error
 
     src_stat = src_url.stat()
-    os.utime(dst_url, (src_stat.st_mtime, src_stat.st_mtime))
+    os.utime(
+        dst_path.path_without_protocol, (src_stat.st_mtime, src_stat.st_mtime))
 
 
 def s3_upload(
@@ -914,6 +925,13 @@ def s3_upload(
     :param dst_url: target s3 path
     :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
     '''
+    from megfile.fs import is_fs
+    from megfile.fs_path import FSPath
+
+    if not is_fs(src_url):
+        raise OSError(f'src_url is not fs path: {src_url}')
+    src_path = FSPath(src_url)
+
     dst_bucket, dst_key = parse_s3_url(dst_url)
     if not dst_bucket:
         raise S3BucketNotFoundError('Empty bucket name: %r' % dst_url)
@@ -921,7 +939,7 @@ def s3_upload(
         raise S3IsADirectoryError('Is a directory: %r' % dst_url)
 
     client = get_s3_client(profile_name=S3Path(dst_url)._profile_name)
-    with open(src_url, 'rb') as src:
+    with open(src_path.path_without_protocol, 'rb') as src:
         with raise_s3_error(dst_url):
             client.upload_fileobj(
                 src, Bucket=dst_bucket, Key=dst_key, Callback=callback)
