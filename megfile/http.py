@@ -1,9 +1,10 @@
 from io import BufferedReader
-from typing import Optional
+from typing import Optional, Union
 
 from megfile.http_path import HttpPath, HttpsPath, get_http_session, is_http
 from megfile.interfaces import PathLike, StatResult
 from megfile.lib.base_prefetch_reader import DEFAULT_BLOCK_SIZE
+from megfile.lib.http_prefetch_reader import HttpPrefetchReader
 from megfile.lib.s3_buffered_writer import DEFAULT_MAX_BUFFER_SIZE
 
 __all__ = [
@@ -25,7 +26,7 @@ def http_open(
         max_buffer_size: int = DEFAULT_MAX_BUFFER_SIZE,
         forward_ratio: Optional[float] = None,
         block_size: int = DEFAULT_BLOCK_SIZE,
-        **kwargs) -> BufferedReader:
+        **kwargs) -> Union[BufferedReader, HttpPrefetchReader]:
     '''Open a BytesIO to read binary data of given http(s) url
 
     .. note ::

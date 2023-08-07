@@ -33,7 +33,7 @@ class FakeResponse:
             "Content-Length": len(self._content),
             'Content-Type': 'text/html',
             "Last-Modified": "Wed, 24 Nov 2021 07:18:41 GMT",
-            'Accept-ranges': 'bytes',
+            'Accept-Ranges': 'bytes',
         }
 
     @property
@@ -117,8 +117,7 @@ def test_http_prefetch_reader_readline(mocker):
     content = b'1\n2\n3\n\n4444\n5'
     mocker.patch(
         'megfile.http_path.requests.get', return_value=FakeResponse200(content))
-    with HttpPrefetchReader(URL, content_size=len(content), max_workers=2,
-                            block_size=3) as reader:
+    with HttpPrefetchReader(URL, max_workers=2, block_size=3) as reader:
         # within block
         assert reader.readline() == b'1\n'
         # cross block

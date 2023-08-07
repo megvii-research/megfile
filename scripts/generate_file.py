@@ -34,8 +34,9 @@ ALL_IMPORT_LINES = dict(
     http=[
         "from io import BufferedReader",
         "from megfile.interfaces import PathLike, StatResult",
-        "from typing import Optional",
+        "from typing import Optional, Union",
         "from megfile.lib.base_prefetch_reader import DEFAULT_BLOCK_SIZE",
+        "from megfile.lib.http_prefetch_reader import HttpPrefetchReader",
         "from megfile.lib.s3_buffered_writer import DEFAULT_MAX_BUFFER_SIZE",
     ],
     stdio=[

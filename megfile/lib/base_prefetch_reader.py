@@ -51,7 +51,9 @@ class BasePrefetchReader(Readable, Seekable, ABC):
             max_workers: Optional[int] = None,
             **kwargs):
 
-        block_forward = self._get_block_forward(block_capacity, block_forward)
+        self._is_auto_scaling = block_forward is None
+        if block_forward is None:
+            block_forward = block_capacity - 1
 
         assert block_capacity > block_forward, 'block_capacity should greater than block_forward, got: block_capacity=%s, block_forward=%s' % (
             block_capacity, block_forward)
@@ -67,6 +69,7 @@ class BasePrefetchReader(Readable, Seekable, ABC):
 
         self.__offset = 0
         self._backoff_size = BACKOFF_INITIAL
+        self._cached_buffer = None
         self._block_index = None  # Current block index
         self._seek_history = []
 
@@ -86,13 +89,6 @@ class BasePrefetchReader(Readable, Seekable, ABC):
     @abstractmethod
     def _get_content_size(self):
         pass
-
-    def _get_block_forward(
-            self, block_capacity: int, block_forward: Optional[int]):
-        self._is_auto_scaling = block_forward is None
-        if block_forward is None:
-            block_forward = block_capacity - 1
-        return block_forward
 
     def _get_futures(self):
         return LRUCacheFutureManager()

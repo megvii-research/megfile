@@ -37,14 +37,15 @@ class HttpPrefetchReader(BasePrefetchReader):
             max_retries=max_retries,
             max_workers=max_workers)
 
-    def _get_content_size(self) -> None:
+    def _get_content_size(self) -> int:
         if self._content_size is not None:
             return self._content_size
 
         first_index_response = self._fetch_response()
         if first_index_response['Headers'].get('Accept-Ranges') != 'bytes':
             raise UnsupportedError(
-                f'Unsupported server, server must support Accept-Ranges: {self._url}'
+                f'Unsupported server, server must support Accept-Ranges: {self._url}',
+                path=self._url,
             )
         return first_index_response['Headers']['Content-Length']
 

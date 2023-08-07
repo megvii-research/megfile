@@ -2,7 +2,7 @@ import time
 from functools import partial
 from io import BufferedReader
 from logging import getLogger as get_logger
-from typing import Iterable, Optional
+from typing import Iterable, Optional, Union
 
 import requests
 
@@ -88,7 +88,7 @@ class HttpPath(URIPath):
             max_buffer_size: int = DEFAULT_MAX_BUFFER_SIZE,
             forward_ratio: Optional[float] = None,
             block_size: int = DEFAULT_BLOCK_SIZE,
-            **kwargs) -> BufferedReader:
+            **kwargs) -> Union[BufferedReader, HttpPrefetchReader]:
         '''Open a BytesIO to read binary data of given http(s) url
 
         .. note ::
