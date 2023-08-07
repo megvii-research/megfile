@@ -1,3 +1,10 @@
+## 2.2.1 - 2023.08.07
+- fix
+    - fix tqdm unit divisor to `1024`
+- feat
+    - all open func support `encoding` and `errors` parameters
+    - add `HttpPrefetchReader` for perf http open
+
 ## 2.2.0.post1 - 2023.08.03
 - fix
     - change retry log leval to info
