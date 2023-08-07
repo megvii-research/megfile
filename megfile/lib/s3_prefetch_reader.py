@@ -70,15 +70,6 @@ class S3PrefetchReader(BasePrefetchReader):
     def name(self) -> str:
         return 's3://%s/%s' % (self._bucket, self._key)
 
-    def _read(self, size: int):
-        if size == 0 or self._offset >= self._content_size:
-            return b''
-
-        data = self._fetch_response(
-            start=self._offset, end=self._offset + size - 1)['Body'].read()
-        self.seek(size, os.SEEK_CUR)
-        return data
-
     def _fetch_response(
             self, start: Optional[int] = None,
             end: Optional[int] = None) -> dict:

@@ -237,9 +237,14 @@ class BasePrefetchReader(Readable, Seekable, ABC):
         self._offset += buffer.tell()
         return buffer.getvalue()
 
-    @abstractmethod
-    def _read(self, size: int):
-        pass
+    def _read(self, size: int) -> bytes:
+        if size == 0 or self._offset >= self._content_size:
+            return b''
+
+        data = self._fetch_response(
+            start=self._offset, end=self._offset + size - 1)['Body'].read()
+        self.seek(size, os.SEEK_CUR)
+        return data
 
     def readinto(self, buffer: bytearray) -> int:
         '''Read bytes into buffer.
@@ -331,8 +336,16 @@ class BasePrefetchReader(Readable, Seekable, ABC):
         self._block_index = index
 
     @abstractmethod
-    def _fetch_buffer(self, index: int) -> BytesIO:
+    def _fetch_response(
+            self, start: Optional[int] = None,
+            end: Optional[int] = None) -> dict:
         pass
+
+    def _fetch_buffer(self, index: int) -> BytesIO:
+        start, end = index * self._block_size, (
+            index + 1) * self._block_size - 1
+        response = self._fetch_response(start=start, end=end)
+        return response['Body']
 
     def _submit_future(self, index: int):
         if index < 0 or index >= self._block_stop:
