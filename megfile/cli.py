@@ -148,7 +148,12 @@ def cp(
     else:
         if progress_bar:
             file_size = smart_stat(src_path).size
-            sbar = tqdm(total=file_size, unit='B', ascii=True, unit_scale=True)
+            sbar = tqdm(
+                total=file_size,
+                unit='B',
+                ascii=True,
+                unit_scale=True,
+                unit_divisor=1024)
 
             def callback(length: int):
                 sbar.update(length)
@@ -204,7 +209,11 @@ def mv(
             else:
                 file_size = smart_stat(src_path).size
                 sbar = tqdm(
-                    total=file_size, unit='B', ascii=True, unit_scale=True)
+                    total=file_size,
+                    unit='B',
+                    ascii=True,
+                    unit_scale=True,
+                    unit_divisor=1024)
 
                 def callback(length: int):
                     sbar.update(length)
@@ -253,7 +262,8 @@ def sync(src_path: str, dst_path: str, progress_bar: bool, worker):
 
             if progress_bar:
                 tbar = tqdm(total=len(path_stats), ascii=True)
-                sbar = tqdm(unit='B', ascii=True, unit_scale=True)
+                sbar = tqdm(
+                    unit='B', ascii=True, unit_scale=True, unit_divisor=1024)
 
                 def callback(_filename: str, length: int):
                     sbar.update(length)

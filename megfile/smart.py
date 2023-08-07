@@ -460,7 +460,7 @@ def smart_sync_with_progress(
     file_stats = list(
         smart_scan_stat(src_path, missing_ok=False, followlinks=followlinks))
     tbar = tqdm(total=len(file_stats), ascii=True)
-    sbar = tqdm(unit='B', ascii=True, unit_scale=True)
+    sbar = tqdm(unit='B', ascii=True, unit_scale=True, unit_divisor=1024)
 
     def tqdm_callback(current_src_path, length: int):
         sbar.update(length)
