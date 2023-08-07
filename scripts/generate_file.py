@@ -34,6 +34,9 @@ ALL_IMPORT_LINES = dict(
     http=[
         "from io import BufferedReader",
         "from megfile.interfaces import PathLike, StatResult",
+        "from typing import Optional",
+        "from megfile.lib.base_prefetch_reader import DEFAULT_BLOCK_SIZE",
+        "from megfile.lib.s3_buffered_writer import DEFAULT_MAX_BUFFER_SIZE",
     ],
     stdio=[
         "from typing import IO, AnyStr, Optional",
@@ -106,6 +109,7 @@ def insert_class_method_lines(
             "",
             func_first_line.split("(", maxsplit=1)[1].split(")", maxsplit=1)[0])
         current_params = []
+        kwargs_mode = False
         for params_words in current_params_line.split(","):
             if ":" in params_words:
                 param = params_words.split(":", maxsplit=1)[0].strip()
@@ -113,9 +117,15 @@ def insert_class_method_lines(
                 param = params_words.split("=", maxsplit=1)[0].strip()
             else:
                 param = params_words.strip()
+            if param == '*':
+                kwargs_mode = True
+                continue
+
             if param and param != '**kwargs':
                 if 'dst' in param:
                     path_param_name = param.replace("dst", "src")
+                if kwargs_mode:
+                    param = f"{param}={param}"
                 current_params.append(param)
         func_name = func_first_line.strip().split(
             "def ", maxsplit=1)[1].split(

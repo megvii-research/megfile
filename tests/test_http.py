@@ -42,7 +42,7 @@ def test_http_open(mocker):
     with pytest.raises(ValueError) as error:
         http_open('http://test', 'w')
 
-    requests_get_func = mocker.patch('megfile.http_path.requests.get')
+    requests_get_func = mocker.patch('requests.Session.get')
 
     class FakeResponse200(FakeResponse):
         status_code = 200
@@ -85,7 +85,7 @@ def test_http_open(mocker):
 
 def test_http_getsize(mocker):
 
-    requests_get_func = mocker.patch('megfile.http_path.requests.get')
+    requests_get_func = mocker.patch('requests.Session.get')
 
     class FakeResponse200(FakeResponse):
         status_code = 200
@@ -96,7 +96,7 @@ def test_http_getsize(mocker):
 
 def test_http_getmtime(mocker):
 
-    requests_get_func = mocker.patch('megfile.http_path.requests.get')
+    requests_get_func = mocker.patch('requests.Session.get')
 
     class FakeResponse200(FakeResponse):
         status_code = 200
@@ -109,7 +109,7 @@ def test_http_getmtime(mocker):
 
 def test_http_getstat(mocker):
 
-    requests_get_func = mocker.patch('megfile.http_path.requests.get')
+    requests_get_func = mocker.patch('requests.Session.get')
 
     class FakeResponse200(FakeResponse):
         status_code = 200
@@ -156,19 +156,17 @@ def test_http_exists(mocker):
     class FakeResponse200(FakeResponse):
         status_code = 200
 
-    mocker.patch(
-        'megfile.http_path.requests.get', return_value=FakeResponse200())
+    mocker.patch('requests.Session.get', return_value=FakeResponse200())
     assert http_exists('http://test')
 
     class FakeResponse404(FakeResponse):
         status_code = 404
 
-    mocker.patch(
-        'megfile.http_path.requests.get', return_value=FakeResponse404())
+    mocker.patch('requests.Session.get', return_value=FakeResponse404())
     assert http_exists('http://test') is False
 
     def fake_get(*args, **kwargs):
         raise requests.exceptions.ConnectionError
 
-    mocker.patch('megfile.http_path.requests.get', side_effect=fake_get)
+    mocker.patch('requests.Session.get', side_effect=fake_get)
     assert http_exists('http://test') is False

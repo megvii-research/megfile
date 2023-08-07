@@ -1,7 +1,10 @@
 from io import BufferedReader
+from typing import Optional
 
 from megfile.http_path import HttpPath, HttpsPath, get_http_session, is_http
 from megfile.interfaces import PathLike, StatResult
+from megfile.lib.base_prefetch_reader import DEFAULT_BLOCK_SIZE
+from megfile.lib.s3_buffered_writer import DEFAULT_MAX_BUFFER_SIZE
 
 __all__ = [
     'get_http_session',
@@ -14,7 +17,15 @@ __all__ = [
 ]
 
 
-def http_open(path: PathLike, mode: str = 'rb') -> BufferedReader:
+def http_open(
+        path: PathLike,
+        mode: str = 'rb',
+        *,
+        max_concurrency: Optional[int] = None,
+        max_buffer_size: int = DEFAULT_MAX_BUFFER_SIZE,
+        forward_ratio: Optional[float] = None,
+        block_size: int = DEFAULT_BLOCK_SIZE,
+        **kwargs) -> BufferedReader:
     '''Open a BytesIO to read binary data of given http(s) url
 
     .. note ::
@@ -23,9 +34,17 @@ def http_open(path: PathLike, mode: str = 'rb') -> BufferedReader:
 
     :param path: Given path
     :param mode: Only supports 'rb' mode now
+    :param max_concurrency: Max download thread number, None by default
+    :param max_buffer_size: Max cached buffer size in memory, 128MB by default
+    :param block_size: Size of single block, 8MB by default. Each block will be uploaded or downloaded by single thread.
     :return: BytesIO initialized with http(s) data
     '''
-    return HttpPath(path).open(mode)
+    return HttpPath(path).open(
+        mode,
+        max_concurrency=max_concurrency,
+        max_buffer_size=max_buffer_size,
+        forward_ratio=forward_ratio,
+        block_size=block_size)
 
 
 def http_stat(path: PathLike, follow_symlinks=True) -> StatResult:
