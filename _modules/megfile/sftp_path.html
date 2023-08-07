@@ -443,21 +443,24 @@
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    File download</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="kn">from</span> <span class="nn">megfile.fs_path</span> <span class="kn">import</span> <span class="n">FSPath</span><span class="p">,</span> <span class="n">is_fs</span>
+    <span class="kn">from</span> <span class="nn">megfile.fs</span> <span class="kn">import</span> <span class="n">is_fs</span>
+    <span class="kn">from</span> <span class="nn">megfile.fs_path</span> <span class="kn">import</span> <span class="n">FSPath</span>
+
     <span class="k">if</span> <span class="ow">not</span> <span class="n">is_fs</span><span class="p">(</span><span class="n">dst_url</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;dst_url is not fs path: </span><span class="si">{</span><span class="n">dst_url</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">is_sftp</span><span class="p">(</span><span class="n">src_url</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;src_url is not sftp path: </span><span class="si">{</span><span class="n">src_url</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
 
-    <span class="n">src_url</span> <span class="o">=</span> <span class="n">SftpPath</span><span class="p">(</span><span class="n">src_url</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">followlinks</span> <span class="ow">and</span> <span class="n">src_url</span><span class="o">.</span><span class="n">is_symlink</span><span class="p">():</span>
-        <span class="n">src_url</span> <span class="o">=</span> <span class="n">src_url</span><span class="o">.</span><span class="n">readlink</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">src_url</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+    <span class="n">src_path</span> <span class="o">=</span> <span class="n">SftpPath</span><span class="p">(</span><span class="n">src_url</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">followlinks</span> <span class="ow">and</span> <span class="n">src_path</span><span class="o">.</span><span class="n">is_symlink</span><span class="p">():</span>
+        <span class="n">src_path</span> <span class="o">=</span> <span class="n">src_path</span><span class="o">.</span><span class="n">readlink</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">src_path</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
         <span class="k">raise</span> <span class="ne">IsADirectoryError</span><span class="p">(</span><span class="s1">&#39;Is a directory: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">src_url</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">dst_url</span><span class="p">)</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">IsADirectoryError</span><span class="p">(</span><span class="s1">&#39;Is a directory: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">dst_url</span><span class="p">)</span>
 
-    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">dst_url</span><span class="p">),</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">dst_path</span> <span class="o">=</span> <span class="n">FSPath</span><span class="p">(</span><span class="n">dst_url</span><span class="p">)</span>
+    <span class="n">dst_path</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="n">sftp_callback</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="n">callback</span><span class="p">:</span>
@@ -465,10 +468,12 @@
         <span class="k">def</span> <span class="nf">sftp_callback</span><span class="p">(</span><span class="n">bytes_transferred</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">_total_bytes</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
             <span class="n">callback</span><span class="p">(</span><span class="n">bytes_transferred</span><span class="p">)</span>
 
-    <span class="n">src_url</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">src_url</span><span class="o">.</span><span class="n">_real_path</span><span class="p">,</span> <span class="n">dst_url</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">sftp_callback</span><span class="p">)</span>
+    <span class="n">src_path</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">src_path</span><span class="o">.</span><span class="n">_real_path</span><span class="p">,</span>
+        <span class="n">dst_path</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span>
+        <span class="n">callback</span><span class="o">=</span><span class="n">sftp_callback</span><span class="p">)</span>
 
-    <span class="n">src_stat</span> <span class="o">=</span> <span class="n">src_url</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span>
-    <span class="n">dst_path</span> <span class="o">=</span> <span class="n">FSPath</span><span class="p">(</span><span class="n">dst_url</span><span class="p">)</span>
+    <span class="n">src_stat</span> <span class="o">=</span> <span class="n">src_path</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span>
     <span class="n">dst_path</span><span class="o">.</span><span class="n">utime</span><span class="p">(</span><span class="n">src_stat</span><span class="o">.</span><span class="n">st_atime</span><span class="p">,</span> <span class="n">src_stat</span><span class="o">.</span><span class="n">st_mtime</span><span class="p">)</span>
     <span class="n">dst_path</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">src_stat</span><span class="o">.</span><span class="n">st_mode</span><span class="p">)</span></div>
 
@@ -481,7 +486,9 @@
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    File upload</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="kn">from</span> <span class="nn">megfile.fs</span> <span class="kn">import</span> <span class="n">fs_stat</span><span class="p">,</span> <span class="n">is_fs</span>
+    <span class="kn">from</span> <span class="nn">megfile.fs</span> <span class="kn">import</span> <span class="n">is_fs</span>
+    <span class="kn">from</span> <span class="nn">megfile.fs_path</span> <span class="kn">import</span> <span class="n">FSPath</span>
+
     <span class="k">if</span> <span class="ow">not</span> <span class="n">is_fs</span><span class="p">(</span><span class="n">src_url</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;src_url is not fs path: </span><span class="si">{</span><span class="n">src_url</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">is_sftp</span><span class="p">(</span><span class="n">dst_url</span><span class="p">):</span>
@@ -494,8 +501,9 @@
     <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">dst_url</span><span class="p">)</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">IsADirectoryError</span><span class="p">(</span><span class="s1">&#39;Is a directory: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">dst_url</span><span class="p">)</span>
 
-    <span class="n">dst_url</span> <span class="o">=</span> <span class="n">SftpPath</span><span class="p">(</span><span class="n">dst_url</span><span class="p">)</span>
-    <span class="n">dst_url</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">src_path</span> <span class="o">=</span> <span class="n">FSPath</span><span class="p">(</span><span class="n">src_url</span><span class="p">)</span>
+    <span class="n">dst_path</span> <span class="o">=</span> <span class="n">SftpPath</span><span class="p">(</span><span class="n">dst_url</span><span class="p">)</span>
+    <span class="n">dst_path</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="n">sftp_callback</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="n">callback</span><span class="p">:</span>
@@ -503,11 +511,14 @@
         <span class="k">def</span> <span class="nf">sftp_callback</span><span class="p">(</span><span class="n">bytes_transferred</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">_total_bytes</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
             <span class="n">callback</span><span class="p">(</span><span class="n">bytes_transferred</span><span class="p">)</span>
 
-    <span class="n">dst_url</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">src_url</span><span class="p">,</span> <span class="n">dst_url</span><span class="o">.</span><span class="n">_real_path</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">sftp_callback</span><span class="p">)</span>
+    <span class="n">dst_path</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">put</span><span class="p">(</span>
+        <span class="n">src_path</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span>
+        <span class="n">dst_path</span><span class="o">.</span><span class="n">_real_path</span><span class="p">,</span>
+        <span class="n">callback</span><span class="o">=</span><span class="n">sftp_callback</span><span class="p">)</span>
 
-    <span class="n">src_stat</span> <span class="o">=</span> <span class="n">fs_stat</span><span class="p">(</span><span class="n">src_url</span><span class="p">)</span>
-    <span class="n">dst_url</span><span class="o">.</span><span class="n">utime</span><span class="p">(</span><span class="n">src_stat</span><span class="o">.</span><span class="n">st_atime</span><span class="p">,</span> <span class="n">src_stat</span><span class="o">.</span><span class="n">st_mtime</span><span class="p">)</span>
-    <span class="n">dst_url</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">src_stat</span><span class="o">.</span><span class="n">st_mode</span><span class="p">)</span></div>
+    <span class="n">src_stat</span> <span class="o">=</span> <span class="n">src_path</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span>
+    <span class="n">dst_path</span><span class="o">.</span><span class="n">utime</span><span class="p">(</span><span class="n">src_stat</span><span class="o">.</span><span class="n">st_atime</span><span class="p">,</span> <span class="n">src_stat</span><span class="o">.</span><span class="n">st_mtime</span><span class="p">)</span>
+    <span class="n">dst_path</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">src_stat</span><span class="o">.</span><span class="n">st_mode</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="sftp_path_join"><a class="viewcode-back" href="../../megfile.sftp.html#megfile.sftp_path_join">[docs]</a><span class="k">def</span> <span class="nf">sftp_path_join</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="o">*</span><span class="n">other_paths</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -1125,7 +1136,21 @@
         <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">output</span><span class="p">:</span>
             <span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">file_object</span><span class="o">.</span><span class="n">read</span><span class="p">())</span></div>
 
-<div class="viewcode-block" id="SftpPath.open"><a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.SftpPath.open">[docs]</a>    <span class="k">def</span> <span class="nf">open</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">buffering</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IO</span><span class="p">[</span><span class="n">AnyStr</span><span class="p">]:</span>  <span class="c1"># pytype: disable=signature-mismatch</span>
+<div class="viewcode-block" id="SftpPath.open"><a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.SftpPath.open">[docs]</a>    <span class="k">def</span> <span class="nf">open</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span>
+            <span class="n">buffering</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">encoding</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">errors</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IO</span><span class="p">[</span><span class="n">AnyStr</span><span class="p">]:</span>  <span class="c1"># pytype: disable=signature-mismatch</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;Open a file on the path.</span>
+
+<span class="sd">        :param mode: Mode to open file</span>
+<span class="sd">        :param buffering: buffering is an optional integer used to set the buffering policy.</span>
+<span class="sd">        :param encoding: encoding is the name of the encoding used to decode or encode the file. This should only be used in text mode.</span>
+<span class="sd">        :param errors: errors is an optional string that specifies how encoding and decoding errors are to be handled—this cannot be used in binary mode.</span>
+<span class="sd">        :returns: File-Like object</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="s1">&#39;w&#39;</span> <span class="ow">in</span> <span class="n">mode</span> <span class="ow">or</span> <span class="s1">&#39;x&#39;</span> <span class="ow">in</span> <span class="n">mode</span> <span class="ow">or</span> <span class="s1">&#39;a&#39;</span> <span class="ow">in</span> <span class="n">mode</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
                 <span class="k">raise</span> <span class="ne">IsADirectoryError</span><span class="p">(</span>
@@ -1136,7 +1161,8 @@
                 <span class="s1">&#39;No such file: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">)</span>
         <span class="n">fileobj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_real_path</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">bufsize</span><span class="o">=</span><span class="n">buffering</span><span class="p">)</span>
         <span class="k">if</span> <span class="s1">&#39;r&#39;</span> <span class="ow">in</span> <span class="n">mode</span> <span class="ow">and</span> <span class="s1">&#39;b&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">mode</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">io</span><span class="o">.</span><span class="n">TextIOWrapper</span><span class="p">(</span><span class="n">fileobj</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+            <span class="k">return</span> <span class="n">io</span><span class="o">.</span><span class="n">TextIOWrapper</span><span class="p">(</span>
+                <span class="n">fileobj</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="n">errors</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
         <span class="k">return</span> <span class="n">fileobj</span>  <span class="c1"># type: ignore</span></div>
 
 <div class="viewcode-block" id="SftpPath.chmod"><a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.SftpPath.chmod">[docs]</a>    <span class="k">def</span> <span class="nf">chmod</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>

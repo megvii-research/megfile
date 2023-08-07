@@ -407,8 +407,23 @@
     <span class="k">return</span> <span class="n">SftpPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">file_object</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="sftp_open"><a class="viewcode-back" href="../../megfile.sftp.html#megfile.sftp_open">[docs]</a><span class="k">def</span> <span class="nf">sftp_open</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">buffering</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IO</span><span class="p">[</span><span class="n">AnyStr</span><span class="p">]:</span>  <span class="c1"># pytype: disable=signature-mismatch</span>
-    <span class="k">return</span> <span class="n">SftpPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="n">buffering</span><span class="p">)</span></div>
+<div class="viewcode-block" id="sftp_open"><a class="viewcode-back" href="../../megfile.sftp.html#megfile.sftp_open">[docs]</a><span class="k">def</span> <span class="nf">sftp_open</span><span class="p">(</span>
+        <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
+        <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span>
+        <span class="n">buffering</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">encoding</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">errors</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IO</span><span class="p">[</span><span class="n">AnyStr</span><span class="p">]:</span>  <span class="c1"># pytype: disable=signature-mismatch</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;Open a file on the path.</span>
+
+<span class="sd">    :param path: Given path</span>
+<span class="sd">    :param mode: Mode to open file</span>
+<span class="sd">    :param buffering: buffering is an optional integer used to set the buffering policy.</span>
+<span class="sd">    :param encoding: encoding is the name of the encoding used to decode or encode the file. This should only be used in text mode.</span>
+<span class="sd">    :param errors: errors is an optional string that specifies how encoding and decoding errors are to be handled—this cannot be used in binary mode.</span>
+<span class="sd">    :returns: File-Like object</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">SftpPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="n">buffering</span><span class="p">,</span> <span class="n">encoding</span><span class="p">,</span> <span class="n">errors</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="sftp_chmod"><a class="viewcode-back" href="../../megfile.sftp.html#megfile.sftp_chmod">[docs]</a><span class="k">def</span> <span class="nf">sftp_chmod</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>

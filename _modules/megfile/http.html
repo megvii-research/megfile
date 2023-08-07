@@ -74,9 +74,7 @@
            <div itemprop="articleBody">
              
   <h1>Source code for megfile.http</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">BufferedReader</span>
-
-<span class="kn">from</span> <span class="nn">megfile.http_path</span> <span class="kn">import</span> <span class="n">HttpPath</span><span class="p">,</span> <span class="n">HttpsPath</span><span class="p">,</span> <span class="n">get_http_session</span><span class="p">,</span> <span class="n">is_http</span>
+<span></span><span class="kn">from</span> <span class="nn">megfile.http_path</span> <span class="kn">import</span> <span class="n">HttpPath</span><span class="p">,</span> <span class="n">HttpsPath</span><span class="p">,</span> <span class="n">get_http_session</span><span class="p">,</span> <span class="n">http_open</span><span class="p">,</span> <span class="n">is_http</span>
 <span class="kn">from</span> <span class="nn">megfile.interfaces</span> <span class="kn">import</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">StatResult</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
@@ -88,20 +86,6 @@
     <span class="s1">&#39;http_getmtime&#39;</span><span class="p">,</span>
     <span class="s1">&#39;http_exists&#39;</span><span class="p">,</span>
 <span class="p">]</span>
-
-
-<div class="viewcode-block" id="http_open"><a class="viewcode-back" href="../../megfile.http.html#megfile.http_open">[docs]</a><span class="k">def</span> <span class="nf">http_open</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BufferedReader</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;Open a BytesIO to read binary data of given http(s) url</span>
-
-<span class="sd">    .. note ::</span>
-
-<span class="sd">        Essentially, it reads data of http(s) url to memory by requests, and then return BytesIO to user.</span>
-
-<span class="sd">    :param path: Given path</span>
-<span class="sd">    :param mode: Only supports &#39;rb&#39; mode now</span>
-<span class="sd">    :return: BytesIO initialized with http(s) data</span>
-<span class="sd">    &#39;&#39;&#39;</span>
-    <span class="k">return</span> <span class="n">HttpPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="http_stat"><a class="viewcode-back" href="../../megfile.http.html#megfile.http_stat">[docs]</a><span class="k">def</span> <span class="nf">http_stat</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StatResult</span><span class="p">:</span>

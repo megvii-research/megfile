@@ -508,6 +508,8 @@ If on s3, it actually check if target exists, and check if bucket has WRITE acce
 <li><p><strong>path</strong> – Given path</p></li>
 <li><p><strong>mode</strong> – Mode to open file, supports r’[rwa][tb]?+?’</p></li>
 <li><p><strong>s3_open_func</strong> – Function used to open s3_url. Require the function includes 2 necessary parameters, file path and mode</p></li>
+<li><p><strong>encoding</strong> – encoding is the name of the encoding used to decode or encode the file. This should only be used in text mode.</p></li>
+<li><p><strong>errors</strong> – errors is an optional string that specifies how encoding and decoding errors are to be handled—this cannot be used in binary mode.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>

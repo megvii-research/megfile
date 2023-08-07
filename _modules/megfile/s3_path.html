@@ -576,7 +576,12 @@
 <span class="k">def</span> <span class="nf">_s3_binary_mode</span><span class="p">(</span><span class="n">s3_open_func</span><span class="p">):</span>
 
     <span class="nd">@wraps</span><span class="p">(</span><span class="n">s3_open_func</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="n">s3_url</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;rb&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span>
+            <span class="n">s3_url</span><span class="p">,</span>
+            <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;rb&#39;</span><span class="p">,</span>
+            <span class="n">encoding</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">errors</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">bucket</span><span class="p">,</span> <span class="n">key</span> <span class="o">=</span> <span class="n">parse_s3_url</span><span class="p">(</span><span class="n">s3_url</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">bucket</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">S3BucketNotFoundError</span><span class="p">(</span><span class="s1">&#39;Empty bucket name: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">s3_url</span><span class="p">)</span>
@@ -595,7 +600,8 @@
 
         <span class="n">fileobj</span> <span class="o">=</span> <span class="n">s3_open_func</span><span class="p">(</span><span class="n">s3_url</span><span class="p">,</span> <span class="n">get_binary_mode</span><span class="p">(</span><span class="n">mode</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">if</span> <span class="s1">&#39;b&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">mode</span><span class="p">:</span>
-            <span class="n">fileobj</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">TextIOWrapper</span><span class="p">(</span><span class="n">fileobj</span><span class="p">)</span>  <span class="c1"># pytype: disable=wrong-arg-types</span>
+            <span class="n">fileobj</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">TextIOWrapper</span><span class="p">(</span>
+                <span class="n">fileobj</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="n">errors</span><span class="p">)</span>  <span class="c1"># pytype: disable=wrong-arg-types</span>
             <span class="n">fileobj</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="n">mode</span>
         <span class="k">return</span> <span class="n">fileobj</span>
 
@@ -940,6 +946,9 @@
 <span class="sd">    :param dst_url: target fs path</span>
 <span class="sd">    :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call</span>
 <span class="sd">    &#39;&#39;&#39;</span>
+    <span class="kn">from</span> <span class="nn">megfile.fs</span> <span class="kn">import</span> <span class="n">is_fs</span>
+    <span class="kn">from</span> <span class="nn">megfile.fs_path</span> <span class="kn">import</span> <span class="n">FSPath</span>
+
     <span class="n">src_url</span> <span class="o">=</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">src_url</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">followlinks</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
@@ -960,23 +969,31 @@
             <span class="s1">&#39;Is a directory: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">src_url</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">)</span>
 
     <span class="n">dst_url</span> <span class="o">=</span> <span class="n">fspath</span><span class="p">(</span><span class="n">dst_url</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_fs</span><span class="p">(</span><span class="n">dst_url</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;dst_url is not fs path: </span><span class="si">{</span><span class="n">dst_url</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">dst_url</span> <span class="ow">or</span> <span class="n">dst_url</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">):</span>
         <span class="k">raise</span> <span class="n">S3IsADirectoryError</span><span class="p">(</span><span class="s1">&#39;Is a directory: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">dst_url</span><span class="p">)</span>
 
-    <span class="n">dst_directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">dst_url</span><span class="p">)</span>
+    <span class="n">dst_path</span> <span class="o">=</span> <span class="n">FSPath</span><span class="p">(</span><span class="n">dst_url</span><span class="p">)</span>
+    <span class="n">dst_directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">dst_path</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">dst_directory</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
         <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">dst_directory</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="n">client</span> <span class="o">=</span> <span class="n">get_s3_client</span><span class="p">(</span><span class="n">profile_name</span><span class="o">=</span><span class="n">src_url</span><span class="o">.</span><span class="n">_profile_name</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">client</span><span class="o">.</span><span class="n">download_file</span><span class="p">(</span><span class="n">src_bucket</span><span class="p">,</span> <span class="n">src_key</span><span class="p">,</span> <span class="n">dst_url</span><span class="p">,</span> <span class="n">Callback</span><span class="o">=</span><span class="n">callback</span><span class="p">)</span>
+        <span class="n">client</span><span class="o">.</span><span class="n">download_file</span><span class="p">(</span>
+            <span class="n">src_bucket</span><span class="p">,</span>
+            <span class="n">src_key</span><span class="p">,</span>
+            <span class="n">dst_path</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span>
+            <span class="n">Callback</span><span class="o">=</span><span class="n">callback</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
         <span class="n">error</span> <span class="o">=</span> <span class="n">translate_fs_error</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">dst_url</span><span class="p">)</span>
         <span class="n">error</span> <span class="o">=</span> <span class="n">translate_s3_error</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">src_url</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">)</span>
         <span class="k">raise</span> <span class="n">error</span>
 
     <span class="n">src_stat</span> <span class="o">=</span> <span class="n">src_url</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span>
-    <span class="n">os</span><span class="o">.</span><span class="n">utime</span><span class="p">(</span><span class="n">dst_url</span><span class="p">,</span> <span class="p">(</span><span class="n">src_stat</span><span class="o">.</span><span class="n">st_mtime</span><span class="p">,</span> <span class="n">src_stat</span><span class="o">.</span><span class="n">st_mtime</span><span class="p">))</span></div>
+    <span class="n">os</span><span class="o">.</span><span class="n">utime</span><span class="p">(</span>
+        <span class="n">dst_path</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="p">(</span><span class="n">src_stat</span><span class="o">.</span><span class="n">st_mtime</span><span class="p">,</span> <span class="n">src_stat</span><span class="o">.</span><span class="n">st_mtime</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="s3_upload"><a class="viewcode-back" href="../../megfile.s3.html#megfile.s3_upload">[docs]</a><span class="k">def</span> <span class="nf">s3_upload</span><span class="p">(</span>
@@ -990,6 +1007,13 @@
 <span class="sd">    :param dst_url: target s3 path</span>
 <span class="sd">    :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call</span>
 <span class="sd">    &#39;&#39;&#39;</span>
+    <span class="kn">from</span> <span class="nn">megfile.fs</span> <span class="kn">import</span> <span class="n">is_fs</span>
+    <span class="kn">from</span> <span class="nn">megfile.fs_path</span> <span class="kn">import</span> <span class="n">FSPath</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_fs</span><span class="p">(</span><span class="n">src_url</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;src_url is not fs path: </span><span class="si">{</span><span class="n">src_url</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">src_path</span> <span class="o">=</span> <span class="n">FSPath</span><span class="p">(</span><span class="n">src_url</span><span class="p">)</span>
+
     <span class="n">dst_bucket</span><span class="p">,</span> <span class="n">dst_key</span> <span class="o">=</span> <span class="n">parse_s3_url</span><span class="p">(</span><span class="n">dst_url</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">dst_bucket</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">S3BucketNotFoundError</span><span class="p">(</span><span class="s1">&#39;Empty bucket name: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">dst_url</span><span class="p">)</span>
@@ -997,7 +1021,7 @@
         <span class="k">raise</span> <span class="n">S3IsADirectoryError</span><span class="p">(</span><span class="s1">&#39;Is a directory: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">dst_url</span><span class="p">)</span>
 
     <span class="n">client</span> <span class="o">=</span> <span class="n">get_s3_client</span><span class="p">(</span><span class="n">profile_name</span><span class="o">=</span><span class="n">S3Path</span><span class="p">(</span><span class="n">dst_url</span><span class="p">)</span><span class="o">.</span><span class="n">_profile_name</span><span class="p">)</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">src_url</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">src</span><span class="p">:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">src_path</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">src</span><span class="p">:</span>
         <span class="k">with</span> <span class="n">raise_s3_error</span><span class="p">(</span><span class="n">dst_url</span><span class="p">):</span>
             <span class="n">client</span><span class="o">.</span><span class="n">upload_fileobj</span><span class="p">(</span>
                 <span class="n">src</span><span class="p">,</span> <span class="n">Bucket</span><span class="o">=</span><span class="n">dst_bucket</span><span class="p">,</span> <span class="n">Key</span><span class="o">=</span><span class="n">dst_key</span><span class="p">,</span> <span class="n">Callback</span><span class="o">=</span><span class="n">callback</span><span class="p">)</span></div>
@@ -2169,10 +2193,15 @@
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span>
             <span class="o">*</span><span class="p">,</span>
+            <span class="n">encoding</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">errors</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">s3_open_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">BinaryIO</span><span class="p">]</span> <span class="o">=</span> <span class="n">s3_open</span><span class="p">,</span>
             <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IO</span><span class="p">[</span><span class="n">AnyStr</span><span class="p">]:</span>  <span class="c1"># pytype: disable=signature-mismatch</span>
-        <span class="k">return</span> <span class="n">s3_open_func</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span>
+        <span class="k">return</span> <span class="n">s3_open_func</span><span class="p">(</span>  <span class="c1"># pytype: disable=wrong-keyword-args</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">,</span>
+            <span class="n">mode</span><span class="p">,</span>
+            <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">,</span>
+            <span class="n">errors</span><span class="o">=</span><span class="n">errors</span><span class="p">,</span>
             <span class="o">**</span><span class="n">necessary_params</span><span class="p">(</span><span class="n">s3_open_func</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="S3Path.absolute"><a class="viewcode-back" href="../../megfile.s3_path.html#megfile.S3Path.absolute">[docs]</a>    <span class="k">def</span> <span class="nf">absolute</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;S3Path&#39;</span><span class="p">:</span>
