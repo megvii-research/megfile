@@ -15,7 +15,7 @@ ALL_IGNORE_FUNC_LIST = dict(
         "home", "glob", "iglob", "glob_stat", "rename", "parts", "root",
         "anchor", "drive", "replace", "hardlink_to", "mkdir", "utime"
     ],
-    http=[],
+    http=["open"],
     sftp=[
         "path_without_protocol", "expanduser", "iterdir", "readlink", "cwd",
         "glob", "iglob", "glob_stat", "resolve", "relpath", "utime"
@@ -32,12 +32,7 @@ ALL_IMPORT_LINES = dict(
         "from megfile.interfaces import Access, FileEntry, PathLike, StatResult",
     ],
     http=[
-        "from io import BufferedReader",
         "from megfile.interfaces import PathLike, StatResult",
-        "from typing import Optional, Union",
-        "from megfile.lib.base_prefetch_reader import DEFAULT_BLOCK_SIZE",
-        "from megfile.lib.http_prefetch_reader import HttpPrefetchReader",
-        "from megfile.lib.s3_buffered_writer import DEFAULT_MAX_BUFFER_SIZE",
     ],
     stdio=[
         "from typing import IO, AnyStr, Optional",
