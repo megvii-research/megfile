@@ -331,8 +331,23 @@ def sftp_save_as(file_object: BinaryIO, path: PathLike):
     return SftpPath(path).save(file_object)
 
 
-def sftp_open(path: PathLike, mode: str = 'r', buffering=-1) -> IO[AnyStr]:  # pytype: disable=signature-mismatch
-    return SftpPath(path).open(mode, buffering)
+def sftp_open(
+        path: PathLike,
+        mode: str = 'r',
+        buffering=-1,
+        encoding: Optional[str] = None,
+        errors: Optional[str] = None,
+        **kwargs) -> IO[AnyStr]:  # pytype: disable=signature-mismatch
+    '''Open a file on the path.
+
+    :param path: Given path
+    :param mode: Mode to open file
+    :param buffering: buffering is an optional integer used to set the buffering policy.
+    :param encoding: encoding is the name of the encoding used to decode or encode the file. This should only be used in text mode.
+    :param errors: errors is an optional string that specifies how encoding and decoding errors are to be handled—this cannot be used in binary mode.
+    :returns: File-Like object
+    '''
+    return SftpPath(path).open(mode, buffering, encoding, errors)
 
 
 def sftp_chmod(path: PathLike, mode: int, follow_symlinks: bool = True):

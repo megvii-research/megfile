@@ -1060,7 +1060,21 @@ class SftpPath(URIPath):
         with self.open(mode='wb') as output:
             output.write(file_object.read())
 
-    def open(self, mode: str = 'r', buffering=-1, **kwargs) -> IO[AnyStr]:  # pytype: disable=signature-mismatch
+    def open(
+            self,
+            mode: str = 'r',
+            buffering=-1,
+            encoding: Optional[str] = None,
+            errors: Optional[str] = None,
+            **kwargs) -> IO[AnyStr]:  # pytype: disable=signature-mismatch
+        '''Open a file on the path.
+
+        :param mode: Mode to open file
+        :param buffering: buffering is an optional integer used to set the buffering policy.
+        :param encoding: encoding is the name of the encoding used to decode or encode the file. This should only be used in text mode.
+        :param errors: errors is an optional string that specifies how encoding and decoding errors are to be handled—this cannot be used in binary mode.
+        :returns: File-Like object
+        '''
         if 'w' in mode or 'x' in mode or 'a' in mode:
             if self.is_dir():
                 raise IsADirectoryError(
@@ -1071,7 +1085,8 @@ class SftpPath(URIPath):
                 'No such file: %r' % self.path_with_protocol)
         fileobj = self._client.open(self._real_path, mode, bufsize=buffering)
         if 'r' in mode and 'b' not in mode:
-            return io.TextIOWrapper(fileobj)  # type: ignore
+            return io.TextIOWrapper(
+                fileobj, encoding=encoding, errors=errors)  # type: ignore
         return fileobj  # type: ignore
 
     def chmod(self, mode: int, follow_symlinks: bool = True):

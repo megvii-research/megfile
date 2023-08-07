@@ -161,10 +161,15 @@ def binary_open(open_func):
     '''
 
     @wraps(open_func)
-    def wrapper(path, mode: str = 'rb', **kwargs):
+    def wrapper(
+            path,
+            mode: str = 'rb',
+            encoding: Optional[str] = None,
+            errors: Optional[str] = None,
+            **kwargs):
         fileobj = open_func(path, get_binary_mode(mode), **kwargs)
         if 'b' not in mode:
-            fileobj = TextIOWrapper(fileobj)
+            fileobj = TextIOWrapper(fileobj, encoding=encoding, errors=errors)
             fileobj.mode = mode
         return fileobj
 
