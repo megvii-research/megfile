@@ -2,14 +2,18 @@ import time
 from functools import partial
 from io import BufferedReader
 from logging import getLogger as get_logger
-from typing import Iterable
+from typing import Iterable, Optional, Union
 
 import requests
 
 from megfile.errors import http_should_retry, patch_method, translate_http_error
 from megfile.interfaces import PathLike, StatResult, URIPath
+from megfile.lib.base_prefetch_reader import DEFAULT_BLOCK_SIZE
 from megfile.lib.compat import fspath
+from megfile.lib.http_prefetch_reader import HttpPrefetchReader
+from megfile.lib.s3_buffered_writer import DEFAULT_MAX_BUFFER_SIZE
 from megfile.lib.url import get_url_scheme
+from megfile.pathlike import PathLike
 from megfile.smart_path import SmartPath
 from megfile.utils import binary_open
 
@@ -18,6 +22,7 @@ __all__ = [
     'HttpsPath',
     'get_http_session',
     'is_http',
+    'http_open',
 ]
 
 _logger = get_logger(__name__)
@@ -25,7 +30,8 @@ max_retries = 10
 
 
 def get_http_session(
-        timeout: int = 10, status_forcelist: Iterable[int] = (502, 503, 504)):
+        timeout: int = 10,
+        status_forcelist: Iterable[int] = (502, 503, 504)) -> requests.Session:
     session = requests.Session()
 
     def after_callback(response, *args, **kwargs):
@@ -64,13 +70,62 @@ def is_http(path: PathLike) -> bool:
     return scheme == 'http' or scheme == 'https'
 
 
+def http_open(
+        path: PathLike,
+        mode: str = 'rb',
+        *,
+        encoding: Optional[str] = None,
+        errors: Optional[str] = None,
+        max_concurrency: Optional[int] = None,
+        max_buffer_size: int = DEFAULT_MAX_BUFFER_SIZE,
+        forward_ratio: Optional[float] = None,
+        block_size: int = DEFAULT_BLOCK_SIZE,
+        **kwargs) -> Union[BufferedReader, HttpPrefetchReader]:
+    '''Open a BytesIO to read binary data of given http(s) url
+
+    .. note ::
+
+        Essentially, it reads data of http(s) url to memory by requests, and then return BytesIO to user.
+
+    :param path: Given path
+    :param mode: Only supports 'rb' mode now
+    :param encoding: encoding is the name of the encoding used to decode or encode the file. This should only be used in text mode.
+    :param errors: errors is an optional string that specifies how encoding and decoding errors are to be handled—this cannot be used in binary mode.
+    :param max_concurrency: Max download thread number, None by default
+    :param max_buffer_size: Max cached buffer size in memory, 128MB by default
+    :param block_size: Size of single block, 8MB by default. Each block will be uploaded or downloaded by single thread.
+    :return: BytesIO initialized with http(s) data
+    '''
+    return HttpPath(path).open(
+        mode,
+        encoding=encoding,
+        errors=errors,
+        max_concurrency=max_concurrency,
+        max_buffer_size=max_buffer_size,
+        forward_ratio=forward_ratio,
+        block_size=block_size)
+
+
 @SmartPath.register
 class HttpPath(URIPath):
 
     protocol = "http"
 
+    def __init__(self, path: PathLike, *other_paths: PathLike):
+        if str(path).startswith('https://'):
+            self.protocol = 'https'
+        super().__init__(path, *other_paths)
+
     @binary_open
-    def open(self, mode: str = 'rb', **kwargs) -> BufferedReader:
+    def open(
+            self,
+            mode: str = 'rb',
+            *,
+            max_concurrency: Optional[int] = None,
+            max_buffer_size: int = DEFAULT_MAX_BUFFER_SIZE,
+            forward_ratio: Optional[float] = None,
+            block_size: int = DEFAULT_BLOCK_SIZE,
+            **kwargs) -> Union[BufferedReader, HttpPrefetchReader]:
         '''Open a BytesIO to read binary data of given http(s) url
 
         .. note ::
@@ -78,18 +133,39 @@ class HttpPath(URIPath):
             Essentially, it reads data of http(s) url to memory by requests, and then return BytesIO to user.
 
         :param mode: Only supports 'rb' mode now
+        :param encoding: encoding is the name of the encoding used to decode or encode the file. This should only be used in text mode.
+        :param errors: errors is an optional string that specifies how encoding and decoding errors are to be handled—this cannot be used in binary mode.
+        :param max_concurrency: Max download thread number, None by default
+        :param max_buffer_size: Max cached buffer size in memory, 128MB by default
+        :param block_size: Size of single block, 8MB by default. Each block will be uploaded or downloaded by single thread.
         :return: BytesIO initialized with http(s) data
         '''
         if mode not in ('rb',):
             raise ValueError('unacceptable mode: %r' % mode)
 
         try:
-            response = requests.get(
-                self.path_with_protocol, stream=True, timeout=10.0)
+            response = get_http_session(status_forcelist=()).get(
+                self.path_with_protocol, stream=True)
             response.raise_for_status()
         except Exception as error:
             raise translate_http_error(error, self.path_with_protocol)
 
+        if response.headers.get('Accept-Ranges') == 'bytes':
+            block_capacity = max_buffer_size // block_size
+            if forward_ratio is None:
+                block_forward = None
+            else:
+                block_forward = max(int(block_capacity * forward_ratio), 1)
+
+            return HttpPrefetchReader(
+                self.path_with_protocol,
+                content_size=int(response.headers['Content-Length']),
+                max_retries=max_retries,
+                max_workers=max_concurrency,
+                block_capacity=block_capacity,
+                block_forward=block_forward,
+                block_size=block_size,
+            )
         response.raw.auto_close = False
         return BufferedReader(response.raw)
 
@@ -103,8 +179,8 @@ class HttpPath(URIPath):
         '''
 
         try:
-            response = requests.get(
-                self.path_with_protocol, stream=True, timeout=10.0)
+            response = get_http_session(status_forcelist=()).get(
+                self.path_with_protocol, stream=True)
             response.raise_for_status()
         except Exception as error:
             raise translate_http_error(error, self.path_with_protocol)
@@ -155,8 +231,8 @@ class HttpPath(URIPath):
         :rtype: bool
         """
         try:
-            response = requests.get(
-                self.path_with_protocol, stream=True, timeout=10.0)
+            response = get_http_session(status_forcelist=()).get(
+                self.path_with_protocol, stream=True)
             if response.status_code == 404:
                 return False
             return True

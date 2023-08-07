@@ -1,6 +1,4 @@
-from io import BufferedReader
-
-from megfile.http_path import HttpPath, HttpsPath, get_http_session, is_http
+from megfile.http_path import HttpPath, HttpsPath, get_http_session, http_open, is_http
 from megfile.interfaces import PathLike, StatResult
 
 __all__ = [
@@ -12,20 +10,6 @@ __all__ = [
     'http_getmtime',
     'http_exists',
 ]
-
-
-def http_open(path: PathLike, mode: str = 'rb') -> BufferedReader:
-    '''Open a BytesIO to read binary data of given http(s) url
-
-    .. note ::
-
-        Essentially, it reads data of http(s) url to memory by requests, and then return BytesIO to user.
-
-    :param path: Given path
-    :param mode: Only supports 'rb' mode now
-    :return: BytesIO initialized with http(s) data
-    '''
-    return HttpPath(path).open(mode)
 
 
 def http_stat(path: PathLike, follow_symlinks=True) -> StatResult:
