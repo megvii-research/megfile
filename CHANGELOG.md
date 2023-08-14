@@ -1,3 +1,9 @@
+## 2.2.1.post1 - 2023.08.14
+- fix
+    - remove unuseful print
+    - fix smart copy from http to local
+    - support all s3 other config for s3 profile mode
+
 ## 2.2.1 - 2023.08.07
 - fix
     - fix tqdm unit divisor to `1024`
