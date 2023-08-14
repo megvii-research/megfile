@@ -210,7 +210,6 @@ class BasePrefetchReader(Readable, Seekable, ABC):
 
         if len(self._seek_history) > 0:
             self._seek_history[-1].read_count += 1
-        print(f"offset: {self._offset}")
         if self._offset >= self._content_size:
             return b''
 
