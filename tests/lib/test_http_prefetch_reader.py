@@ -58,7 +58,6 @@ class FakeResponse400(FakeResponse):
 
 def _fake_get(*args, headers=None, **kwargs):
     if headers and headers.get('Range'):
-        print(headers['Range'])
         start, end = list(map(int, headers['Range'][6:].split('-')))
         return FakeResponse200(CONTENT[start:end + 1])
     return FakeResponse200()
