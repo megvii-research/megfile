@@ -153,7 +153,7 @@ def get_endpoint_url(profile_name: Optional[str] = None) -> str:
     return endpoint_url
 
 
-def get_s3_session(profile_name=None):
+def get_s3_session(profile_name=None) -> boto3.Session:
     '''Get S3 session
 
     :returns: S3 session
@@ -194,7 +194,7 @@ def get_s3_client(
             cache_key, get_s3_client, config=config, profile_name=profile_name)
 
     access_key, secret_key = get_access_token(profile_name)
-    client = get_s3_session().client(
+    client = get_s3_session(profile_name=profile_name).client(
         's3',
         endpoint_url=get_endpoint_url(profile_name=profile_name),
         config=config,
