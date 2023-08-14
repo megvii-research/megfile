@@ -286,7 +286,7 @@ def _default_copy_func(
         src_stat = smart_stat(src_path)
         dst_path = SmartPath(dst_path)
         dst_path.utime(src_stat.st_atime, src_stat.st_mtime)
-    except NotImplementedError:
+    except (NotImplementedError, TypeError):
         pass
 
 
