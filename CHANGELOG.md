@@ -1,3 +1,11 @@
+## 2.2.2 - 2023.08.18
+- fix
+    - fix `s3_access` write permission's check
+- feat
+    - support `AWS_S3_ADDRESSING_STYLE` env for setting s3 addressing style
+- perf
+    - perf some s3 api
+
 ## 2.2.1.post1 - 2023.08.14
 - fix
     - remove unuseful print
