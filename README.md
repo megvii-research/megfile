@@ -38,7 +38,7 @@ Here's an example of writing a file to s3 / sftp / fs, syncing to local, reading
         - `/data/test.txt`
         - `test.txt`
         - 1
-- oss
+- s3
     - `s3[+profile_name]://bucket/key`
 - sftp
     - `sftp://[username[:password]@]hostname[:port]//absolute_file_path`
@@ -139,7 +139,7 @@ pip3 install -r requirements.txt -r requirements-dev.txt
 
 ## Configuration
 
-Before using `megfile` to access files on s3, you need to set up authentication credentials for your s3 account using the [AWS CLI](https://docs.aws.amazon.com/cli/latest/reference/configure/index.html) or editing the file `~/.aws/config` directly, see also: [boto3 configuration](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html) & [boto3 credentials](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html). You can set your endpoint url with environments `OSS_ENDPOINT`.
+Before using `megfile` to access files on s3, you need to set up authentication credentials for your s3 account using the [AWS CLI](https://docs.aws.amazon.com/cli/latest/reference/configure/index.html) or editing the file `~/.aws/config` directly, see also: [boto3 configuration](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html) & [boto3 credentials](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html). Megfile also support environments for s3, like `OSS_ENDPOINT`, `AWS_ACCESS_KEY_ID` , `AWS_SECRET_ACCESS_KEY` and `AWS_S3_ADDRESSING_STYLE`.
 
 ```
 $ aws configure
@@ -162,7 +162,7 @@ s3 =
     endpoint_url = http://oss-cn-hangzhou.aliyuncs.com
 ```
 
-You also can operate s3 files with different endpoint urls, access keys and secret keys. You can set config for different profiles by environment(`PROFILE_NAME__AWS_ACCESS_KEY_ID`, `PROFILE_NAME__AWS_SECRET_ACCESS_KEY`, `PROFILE_NAME__OSS_ENDPOINT`) or `~/.aws/config`. Then you can operate files with path `s3+profile_name://bucket/key`.
+You also can operate s3 files with different endpoint urls, access keys and secret keys. You can set config for different profiles by environment(`PROFILE_NAME__AWS_ACCESS_KEY_ID`, `PROFILE_NAME__AWS_SECRET_ACCESS_KEY`, `PROFILE_NAME__OSS_ENDPOINT`, `PROFILE_NAME__AWS_S3_ADDRESSING_STYLE`) or `~/.aws/config`. Then you can operate files with path `s3+profile_name://bucket/key`.
 For example:
 ```
 # set config with environment
@@ -186,6 +186,7 @@ s3 =
 aws_secret_access_key = profile2-accesskey
 aws_access_key_id = profile2-secretkey
 s3 =
+    addressing_style = virtual
     endpoint_url = https://profile2.s3.custom.com
 
 
