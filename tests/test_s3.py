@@ -288,7 +288,12 @@ def test_get_s3_client(mocker):
     assert client is s3.get_s3_client(cache_key='test')
 
 
-@patch.dict(os.environ, {"AWS_S3_ADDRESSING_STYLE": "virtual"})
+@patch.dict(
+    os.environ, {
+        "AWS_S3_ADDRESSING_STYLE": "virtual",
+        "AWS_ACCESS_KEY_ID": "test",
+        "AWS_SECRET_ACCESS_KEY": "test"
+    })
 def test_get_s3_client_v2(mocker):
     client = s3.get_s3_client()
     assert client._client_config._user_provided_options['s3'][
