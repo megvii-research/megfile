@@ -305,7 +305,9 @@ def translate_s3_error(s3_error: Exception, s3_url: PathLike) -> Exception:
     elif isinstance(s3_error, ClientError):
         code = client_error_code(s3_error)
         if code in ('NoSuchBucket'):
-            return S3BucketNotFoundError('No such bucket: %r' % s3_url)
+            return S3BucketNotFoundError(
+                'No such bucket: %r' %
+                s3_error.response.get('Error', {}).get('BucketName') or s3_url)
         if code in ('404', 'NoSuchKey'):
             return S3FileNotFoundError('No such file: %r' % s3_url)
         if code in ('401', '403', 'AccessDenied'):

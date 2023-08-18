@@ -64,7 +64,6 @@ def s3_access(
         followlinks: bool = False) -> bool:
     '''
     Test if path has access permission described by mode
-    Using head_bucket(), now READ/WRITE are same.
 
     :param path: Given path
     :param mode: access mode

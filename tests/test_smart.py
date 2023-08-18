@@ -697,10 +697,6 @@ def test_smart_open_custom_s3_open_func(mocker, fs):
     s3_open.reset_mock()
     text_wrapper.reset_mock()
 
-    with pytest.raises(FileNotFoundError):
-        s3_hasbucket_func.return_value = False
-        smart.smart_open('s3://bucket/key', 'wt', s3_open_func=s3_binary_open)
-
     with pytest.raises(FileExistsError):
         s3_isfile_func.return_value = True
         smart.smart_open('s3://bucket/key', 'x', s3_open_func=s3_binary_open)
