@@ -229,7 +229,7 @@
     <span class="k">return</span> <span class="n">endpoint_url</span></div>
 
 
-<div class="viewcode-block" id="get_s3_session"><a class="viewcode-back" href="../../megfile.s3.html#megfile.get_s3_session">[docs]</a><span class="k">def</span> <span class="nf">get_s3_session</span><span class="p">(</span><span class="n">profile_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="get_s3_session"><a class="viewcode-back" href="../../megfile.s3.html#megfile.get_s3_session">[docs]</a><span class="k">def</span> <span class="nf">get_s3_session</span><span class="p">(</span><span class="n">profile_name</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">boto3</span><span class="o">.</span><span class="n">Session</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;Get S3 session</span>
 
 <span class="sd">    :returns: S3 session</span>
@@ -265,12 +265,26 @@
 
 <span class="sd">    :returns: S3 client</span>
 <span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">addressing_style_env_key</span> <span class="o">=</span> <span class="s1">&#39;AWS_S3_ADDRESSING_STYLE&#39;</span>
+    <span class="k">if</span> <span class="n">profile_name</span><span class="p">:</span>
+        <span class="n">addressing_style_env_key</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">profile_name</span><span class="si">}</span><span class="s1">__AWS_S3_ADDRESSING_STYLE&#39;</span><span class="o">.</span><span class="n">upper</span><span class="p">(</span>
+        <span class="p">)</span>
+    <span class="n">addressing_style</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">addressing_style_env_key</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">addressing_style</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">config</span><span class="p">:</span>
+            <span class="n">config</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+                <span class="n">botocore</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">Config</span><span class="p">(</span>
+                    <span class="n">s3</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;addressing_style&#39;</span><span class="p">:</span> <span class="n">addressing_style</span><span class="p">}))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">config</span> <span class="o">=</span> <span class="n">botocore</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">Config</span><span class="p">(</span>
+                <span class="n">s3</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;addressing_style&#39;</span><span class="p">:</span> <span class="n">addressing_style</span><span class="p">})</span>
+
     <span class="k">if</span> <span class="n">cache_key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">thread_local</span><span class="p">(</span>
             <span class="n">cache_key</span><span class="p">,</span> <span class="n">get_s3_client</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="n">profile_name</span><span class="o">=</span><span class="n">profile_name</span><span class="p">)</span>
 
     <span class="n">access_key</span><span class="p">,</span> <span class="n">secret_key</span> <span class="o">=</span> <span class="n">get_access_token</span><span class="p">(</span><span class="n">profile_name</span><span class="p">)</span>
-    <span class="n">client</span> <span class="o">=</span> <span class="n">get_s3_session</span><span class="p">()</span><span class="o">.</span><span class="n">client</span><span class="p">(</span>
+    <span class="n">client</span> <span class="o">=</span> <span class="n">get_s3_session</span><span class="p">(</span><span class="n">profile_name</span><span class="o">=</span><span class="n">profile_name</span><span class="p">)</span><span class="o">.</span><span class="n">client</span><span class="p">(</span>
         <span class="s1">&#39;s3&#39;</span><span class="p">,</span>
         <span class="n">endpoint_url</span><span class="o">=</span><span class="n">get_endpoint_url</span><span class="p">(</span><span class="n">profile_name</span><span class="o">=</span><span class="n">profile_name</span><span class="p">),</span>
         <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span>
@@ -593,10 +607,6 @@
             <span class="k">if</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">s3_url</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
                 <span class="k">raise</span> <span class="n">S3FileExistsError</span><span class="p">(</span><span class="s1">&#39;File exists: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">s3_url</span><span class="p">)</span>
             <span class="n">mode</span> <span class="o">=</span> <span class="n">mode</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="s1">&#39;w&#39;</span> <span class="ow">in</span> <span class="n">mode</span> <span class="ow">or</span> <span class="s1">&#39;a&#39;</span> <span class="ow">in</span> <span class="n">mode</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">s3_url</span><span class="p">)</span><span class="o">.</span><span class="n">hasbucket</span><span class="p">():</span>
-                <span class="k">raise</span> <span class="n">S3BucketNotFoundError</span><span class="p">(</span><span class="s1">&#39;No such bucket: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">s3_url</span><span class="p">)</span>
 
         <span class="n">fileobj</span> <span class="o">=</span> <span class="n">s3_open_func</span><span class="p">(</span><span class="n">s3_url</span><span class="p">,</span> <span class="n">get_binary_mode</span><span class="p">(</span><span class="n">mode</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">if</span> <span class="s1">&#39;b&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">mode</span><span class="p">:</span>
@@ -1336,7 +1346,6 @@
             <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Test if path has access permission described by mode</span>
-<span class="sd">        Using head_bucket(), now READ/WRITE are same.</span>
 
 <span class="sd">        :param mode: access mode</span>
 <span class="sd">        :returns: bool, if the bucket of s3_url has read/write access.</span>
@@ -1347,7 +1356,7 @@
                 <span class="n">s3_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">readlink</span><span class="p">()</span><span class="o">.</span><span class="n">path_with_protocol</span>
             <span class="k">except</span> <span class="n">S3NotALinkError</span><span class="p">:</span>
                 <span class="k">pass</span>
-        <span class="n">bucket</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">parse_s3_url</span><span class="p">(</span><span class="n">s3_url</span><span class="p">)</span>  <span class="c1"># only check bucket accessibility</span>
+        <span class="n">bucket</span><span class="p">,</span> <span class="n">key</span> <span class="o">=</span> <span class="n">parse_s3_url</span><span class="p">(</span><span class="n">s3_url</span><span class="p">)</span>  <span class="c1"># only check bucket accessibility</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">bucket</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;No available bucket&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="n">Access</span><span class="p">):</span>
@@ -1356,15 +1365,38 @@
                 <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">Access</span><span class="p">])))</span>
         <span class="k">if</span> <span class="n">mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">Access</span><span class="o">.</span><span class="n">READ</span><span class="p">,</span> <span class="n">Access</span><span class="o">.</span><span class="n">WRITE</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Unsupported mode: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mode</span><span class="p">))</span>
+
         <span class="k">try</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">head_bucket</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                <span class="k">return</span> <span class="kc">False</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
             <span class="n">error</span> <span class="o">=</span> <span class="n">translate_s3_error</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">s3_url</span><span class="p">)</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="p">(</span><span class="n">S3PermissionError</span><span class="p">,</span> <span class="n">S3FileNotFoundError</span><span class="p">,</span>
-                                  <span class="n">S3BucketNotFoundError</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">S3PermissionError</span><span class="p">):</span>
                 <span class="k">return</span> <span class="kc">False</span>
             <span class="k">raise</span> <span class="n">error</span>
-        <span class="k">return</span> <span class="kc">True</span></div>
+
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="n">Access</span><span class="o">.</span><span class="n">READ</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">key</span><span class="p">:</span>
+                <span class="n">key</span> <span class="o">=</span> <span class="s1">&#39;test&#39;</span>
+            <span class="k">elif</span> <span class="n">key</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">):</span>
+                <span class="n">key</span> <span class="o">=</span> <span class="n">key</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">upload_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">create_multipart_upload</span><span class="p">(</span>
+                <span class="n">Bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span>
+                <span class="n">Key</span><span class="o">=</span><span class="n">key</span><span class="p">,</span>
+            <span class="p">)[</span><span class="s1">&#39;UploadId&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">abort_multipart_upload</span><span class="p">(</span>
+                <span class="n">Bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span>
+                <span class="n">Key</span><span class="o">=</span><span class="n">key</span><span class="p">,</span>
+                <span class="n">UploadId</span><span class="o">=</span><span class="n">upload_id</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+            <span class="n">error</span> <span class="o">=</span> <span class="n">translate_s3_error</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">s3_url</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">S3PermissionError</span><span class="p">):</span>
+                <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">raise</span> <span class="n">error</span></div>
 
 <div class="viewcode-block" id="S3Path.exists"><a class="viewcode-back" href="../../megfile.s3_path.html#megfile.S3Path.exists">[docs]</a>    <span class="k">def</span> <span class="nf">exists</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
@@ -1378,7 +1410,7 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">bucket</span><span class="p">:</span>  <span class="c1"># s3:// =&gt; True, s3:///key =&gt; False</span>
             <span class="k">return</span> <span class="ow">not</span> <span class="n">key</span>
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_file</span><span class="p">(</span><span class="n">followlinks</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_file</span><span class="p">(</span><span class="n">followlinks</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="S3Path.getmtime"><a class="viewcode-back" href="../../megfile.s3_path.html#megfile.S3Path.getmtime">[docs]</a>    <span class="k">def</span> <span class="nf">getmtime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
@@ -1607,10 +1639,21 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">head_bucket</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
             <span class="n">error</span> <span class="o">=</span> <span class="n">translate_s3_error</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">)</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error</span><span class="p">,</span>
-                          <span class="p">(</span><span class="n">S3UnknownError</span><span class="p">,</span> <span class="n">S3ConfigError</span><span class="p">,</span> <span class="n">S3PermissionError</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">S3PermissionError</span><span class="p">):</span>
+                <span class="c1"># Aliyun OSS doesn&#39;t give bucket api permission when you only have read and write permission</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">list_objects_v2</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span> <span class="n">MaxKeys</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="kc">True</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error2</span><span class="p">:</span>
+                    <span class="n">error2</span> <span class="o">=</span> <span class="n">translate_s3_error</span><span class="p">(</span><span class="n">error2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span>
+                            <span class="n">error2</span><span class="p">,</span>
+                        <span class="p">(</span><span class="n">S3UnknownError</span><span class="p">,</span> <span class="n">S3ConfigError</span><span class="p">,</span> <span class="n">S3PermissionError</span><span class="p">)):</span>
+                        <span class="k">raise</span> <span class="n">error2</span>
+                    <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="p">(</span><span class="n">S3UnknownError</span><span class="p">,</span> <span class="n">S3ConfigError</span><span class="p">)):</span>
                 <span class="k">raise</span> <span class="n">error</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">S3FileNotFoundError</span><span class="p">):</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">S3FileNotFoundError</span><span class="p">):</span>
                 <span class="k">return</span> <span class="kc">False</span>
 
         <span class="k">return</span> <span class="kc">True</span></div>
@@ -2072,7 +2115,7 @@
             <span class="k">except</span> <span class="n">S3NotALinkError</span><span class="p">:</span>
                 <span class="k">pass</span>
 
-        <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">raise_s3_error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">src_url</span><span class="si">}</span><span class="s2">&#39; or &#39;</span><span class="si">{</span><span class="n">dst_url</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span>
                 <span class="p">{</span>
                     <span class="s1">&#39;Bucket&#39;</span><span class="p">:</span> <span class="n">src_bucket</span><span class="p">,</span>
@@ -2080,17 +2123,7 @@
                 <span class="p">},</span>
                 <span class="n">Bucket</span><span class="o">=</span><span class="n">dst_bucket</span><span class="p">,</span>
                 <span class="n">Key</span><span class="o">=</span><span class="n">dst_key</span><span class="p">,</span>
-                <span class="n">Callback</span><span class="o">=</span><span class="n">callback</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
-            <span class="n">error</span> <span class="o">=</span> <span class="n">translate_s3_error</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">dst_url</span><span class="p">)</span>
-            <span class="c1"># Error can&#39;t help tell which is problematic</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">S3BucketNotFoundError</span><span class="p">):</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">hasbucket</span><span class="p">():</span>
-                    <span class="k">raise</span> <span class="n">S3BucketNotFoundError</span><span class="p">(</span><span class="s1">&#39;No such bucket: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">src_url</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">S3FileNotFoundError</span><span class="p">):</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
-                    <span class="k">raise</span> <span class="n">S3FileNotFoundError</span><span class="p">(</span><span class="s1">&#39;No such file: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">src_url</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="n">error</span></div>
+                <span class="n">Callback</span><span class="o">=</span><span class="n">callback</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="S3Path.sync"><a class="viewcode-back" href="../../megfile.s3_path.html#megfile.S3Path.sync">[docs]</a>    <span class="k">def</span> <span class="nf">sync</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dst_url</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>

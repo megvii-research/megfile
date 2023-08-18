@@ -362,7 +362,7 @@
         <span class="n">src_stat</span> <span class="o">=</span> <span class="n">smart_stat</span><span class="p">(</span><span class="n">src_path</span><span class="p">)</span>
         <span class="n">dst_path</span> <span class="o">=</span> <span class="n">SmartPath</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span>
         <span class="n">dst_path</span><span class="o">.</span><span class="n">utime</span><span class="p">(</span><span class="n">src_stat</span><span class="o">.</span><span class="n">st_atime</span><span class="p">,</span> <span class="n">src_stat</span><span class="o">.</span><span class="n">st_mtime</span><span class="p">)</span>
-    <span class="k">except</span> <span class="ne">NotImplementedError</span><span class="p">:</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">NotImplementedError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
         <span class="k">pass</span>
 
 
