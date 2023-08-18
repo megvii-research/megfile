@@ -189,6 +189,20 @@ def get_s3_client(
 
     :returns: S3 client
     '''
+    addressing_style_env_key = 'AWS_S3_ADDRESSING_STYLE'
+    if profile_name:
+        addressing_style_env_key = f'{profile_name}__AWS_S3_ADDRESSING_STYLE'.upper(
+        )
+    addressing_style = os.environ.get(addressing_style_env_key)
+    if addressing_style:
+        if config:
+            config = config.merge(
+                botocore.config.Config(
+                    s3={'addressing_style': addressing_style}))
+        else:
+            config = botocore.config.Config(
+                s3={'addressing_style': addressing_style})
+
     if cache_key is not None:
         return thread_local(
             cache_key, get_s3_client, config=config, profile_name=profile_name)
@@ -517,10 +531,6 @@ def _s3_binary_mode(s3_open_func):
             if S3Path(s3_url).is_file():
                 raise S3FileExistsError('File exists: %r' % s3_url)
             mode = mode.replace('x', 'w')
-
-        if 'w' in mode or 'a' in mode:
-            if not S3Path(s3_url).hasbucket():
-                raise S3BucketNotFoundError('No such bucket: %r' % s3_url)
 
         fileobj = s3_open_func(s3_url, get_binary_mode(mode), **kwargs)
         if 'b' not in mode:
@@ -1260,7 +1270,6 @@ class S3Path(URIPath):
             followlinks: bool = False) -> bool:
         '''
         Test if path has access permission described by mode
-        Using head_bucket(), now READ/WRITE are same.
 
         :param mode: access mode
         :returns: bool, if the bucket of s3_url has read/write access.
@@ -1271,7 +1280,7 @@ class S3Path(URIPath):
                 s3_url = self.readlink().path_with_protocol
             except S3NotALinkError:
                 pass
-        bucket, _ = parse_s3_url(s3_url)  # only check bucket accessibility
+        bucket, key = parse_s3_url(s3_url)  # only check bucket accessibility
         if not bucket:
             raise Exception("No available bucket")
         if not isinstance(mode, Access):
@@ -1280,15 +1289,38 @@ class S3Path(URIPath):
                 .format(mode, ', '.join([str(a) for a in Access])))
         if mode not in (Access.READ, Access.WRITE):
             raise TypeError('Unsupported mode: {}'.format(mode))
+
         try:
-            self._client.head_bucket(Bucket=bucket)
+            if not self.exists():
+                return False
         except Exception as error:
             error = translate_s3_error(error, s3_url)
-            if isinstance(error, (S3PermissionError, S3FileNotFoundError,
-                                  S3BucketNotFoundError)):
+            if isinstance(error, S3PermissionError):
                 return False
             raise error
-        return True
+
+        if mode == Access.READ:
+            return True
+        try:
+            if not key:
+                key = 'test'
+            elif key.endswith('/'):
+                key = key[:-1]
+            upload_id = self._client.create_multipart_upload(
+                Bucket=bucket,
+                Key=key,
+            )['UploadId']
+            self._client.abort_multipart_upload(
+                Bucket=bucket,
+                Key=key,
+                UploadId=upload_id,
+            )
+            return True
+        except Exception as error:
+            error = translate_s3_error(error, s3_url)
+            if isinstance(error, S3PermissionError):
+                return False
+            raise error
 
     def exists(self, followlinks: bool = False) -> bool:
         '''
@@ -1302,7 +1334,7 @@ class S3Path(URIPath):
         if not bucket:  # s3:// => True, s3:///key => False
             return not key
 
-        return self.is_dir() or self.is_file(followlinks)
+        return self.is_file(followlinks) or self.is_dir()
 
     def getmtime(self, follow_symlinks: bool = False) -> float:
         '''
@@ -1531,10 +1563,21 @@ class S3Path(URIPath):
             self._client.head_bucket(Bucket=bucket)
         except Exception as error:
             error = translate_s3_error(error, self.path_with_protocol)
-            if isinstance(error,
-                          (S3UnknownError, S3ConfigError, S3PermissionError)):
+            if isinstance(error, S3PermissionError):
+                # Aliyun OSS doesn't give bucket api permission when you only have read and write permission
+                try:
+                    self._client.list_objects_v2(Bucket=bucket, MaxKeys=1)
+                    return True
+                except Exception as error2:
+                    error2 = translate_s3_error(error2, self.path_with_protocol)
+                    if isinstance(
+                            error2,
+                        (S3UnknownError, S3ConfigError, S3PermissionError)):
+                        raise error2
+                    return False
+            elif isinstance(error, (S3UnknownError, S3ConfigError)):
                 raise error
-            if isinstance(error, S3FileNotFoundError):
+            elif isinstance(error, S3FileNotFoundError):
                 return False
 
         return True
@@ -1996,7 +2039,7 @@ class S3Path(URIPath):
             except S3NotALinkError:
                 pass
 
-        try:
+        with raise_s3_error(f"'{src_url}' or '{dst_url}'"):
             self._client.copy(
                 {
                     'Bucket': src_bucket,
@@ -2005,16 +2048,6 @@ class S3Path(URIPath):
                 Bucket=dst_bucket,
                 Key=dst_key,
                 Callback=callback)
-        except Exception as error:
-            error = translate_s3_error(error, dst_url)
-            # Error can't help tell which is problematic
-            if isinstance(error, S3BucketNotFoundError):
-                if not self.hasbucket():
-                    raise S3BucketNotFoundError('No such bucket: %r' % src_url)
-            elif isinstance(error, S3FileNotFoundError):
-                if not self.is_file():
-                    raise S3FileNotFoundError('No such file: %r' % src_url)
-            raise error
 
     def sync(self, dst_url: PathLike, followlinks: bool = False) -> None:
         '''

@@ -13,6 +13,7 @@ from typing import Iterable, List, Tuple
 import boto3
 import botocore
 import pytest
+from mock import patch
 from moto import mock_s3
 
 from megfile import s3, s3_path, smart
@@ -285,6 +286,25 @@ def test_get_s3_client(mocker):
 
     client = s3.get_s3_client(cache_key='test')
     assert client is s3.get_s3_client(cache_key='test')
+
+
+@patch.dict(
+    os.environ, {
+        "AWS_S3_ADDRESSING_STYLE": "virtual",
+        "AWS_ACCESS_KEY_ID": "test",
+        "AWS_SECRET_ACCESS_KEY": "test"
+    })
+def test_get_s3_client_v2(mocker):
+    client = s3.get_s3_client()
+    assert client._client_config._user_provided_options['s3'][
+        'addressing_style'] == 'virtual'
+
+    client = s3.get_s3_client(
+        config=botocore.config.Config(max_pool_connections=1))
+    assert client._client_config._user_provided_options[
+        'max_pool_connections'] == 1
+    assert client._client_config._user_provided_options['s3'][
+        'addressing_style'] == 'virtual'
 
 
 def test_get_s3_client_from_env(mocker):
@@ -618,13 +638,32 @@ def test_s3_isdir(s3_setup):
     assert s3.s3_isdir('s3://+InvalidBucketName') is False
 
 
-def test_s3_access(s3_setup):
+def test_s3_access(s3_setup, mocker):
     assert s3.s3_access('s3://bucketA/fileAA', Access.READ) is True
     assert s3.s3_access('s3://bucketA/fileAA', Access.WRITE) is True
     with pytest.raises(TypeError) as error:
         s3.s3_access('s3://bucketA/fileAA', 'w')
     assert s3.s3_access('s3://thisdoesnotexists', Access.READ) is False
     assert s3.s3_access('s3://thisdoesnotexists', Access.WRITE) is False
+
+    def create_multipart_upload(*args, **kwargs):
+        raise botocore.exceptions.ClientError(
+            {'Error': {
+                'Code': '403'
+            }},
+            'create_multipart_upload',
+        )
+
+    s3_setup.create_multipart_upload = create_multipart_upload
+    assert s3.s3_access('s3://bucketA/', Access.READ) is True
+    assert s3.s3_access('s3://bucketA/', Access.WRITE) is False
+
+    def exists(*args, **kwargs):
+        raise S3PermissionError
+
+    mocker.patch('megfile.s3_path.S3Path.exists', side_effect=exists)
+    assert s3.s3_access('s3://bucketA/fileAA', Access.READ) is False
+    assert s3.s3_access('s3://bucketA/fileAA', Access.WRITE) is False
 
 
 def test_s3_exists(s3_setup):
@@ -675,7 +714,7 @@ def test_s3_copy_invalid(s3_empty_client):
 
     with pytest.raises(PermissionError) as error:
         s3.s3_copy('s3://bucket/key', 's3://notExistBucket/key')
-    assert 's3://notExistBucket/key' in str(error.value)
+    assert 'notExistBucket' in str(error.value)
 
     with pytest.raises(S3FileNotFoundError) as error:
         s3.s3_copy('s3://bucket/prefix/', 's3://bucket/key')
@@ -687,7 +726,7 @@ def test_s3_copy_invalid(s3_empty_client):
 
     with pytest.raises(PermissionError) as error:
         s3.s3_copy('s3://notExistBucket/key', 's3://bucket/key')
-    assert 's3://notExistBucket' in str(error.value)
+    assert 'notExistBucket' in str(error.value)
 
     with pytest.raises(S3FileNotFoundError) as error:
         s3.s3_copy('s3://bucket/notExistFile', 's3://bucket/key')
@@ -841,7 +880,7 @@ def test_s3_upload_invalid(s3_empty_client, fs):
 
     with pytest.raises(PermissionError) as error:
         s3.s3_upload(src_url, 's3://notExistBucket/key')
-    assert 's3://notExistBucket/key' in str(error.value)
+    assert 'notExistBucket' in str(error.value)
 
 
 def test_s3_upload_is_directory(s3_empty_client, fs):
@@ -1128,11 +1167,12 @@ def test_smart_open_read_s3_file_not_found(mocker, s3_empty_client):
 
     with pytest.raises(FileNotFoundError) as error:
         smart.smart_open('s3://non-exist-bucket/key', 'r')
-    assert 's3://non-exist-bucket/key' in str(error.value)
+    assert 'non-exist-bucket' in str(error.value)
 
     with pytest.raises(FileNotFoundError) as error:
-        smart.smart_open('s3://non-exist-bucket/key', 'w')
-    assert 's3://non-exist-bucket/key' in str(error.value)
+        with smart.smart_open('s3://non-exist-bucket/key', 'w') as f:
+            f.write('test')
+    assert 'non-exist-bucket' in str(error.value)
 
     s3_empty_client.create_bucket(Bucket='bucket')
     with pytest.raises(FileNotFoundError) as error:
@@ -2387,7 +2427,7 @@ def test_s3_save_as_invalid(s3_empty_client):
 
     with pytest.raises(PermissionError) as error:
         s3.s3_save_as(BytesIO(content), 's3://notExistBucket/fileAA')
-    assert 's3://notExistBucket' in str(error.value)
+    assert 'notExistBucket' in str(error.value)
 
 
 def test_s3_load_from(s3_empty_client):
@@ -2410,7 +2450,7 @@ def test_s3_load_from_invalid(s3_empty_client):
 
     with pytest.raises(PermissionError) as error:
         s3.s3_load_from('s3://notExistBucket/fileAA')
-    assert 's3://notExistBucket' in str(error.value)
+    assert 'notExistBucket' in str(error.value)
 
     with pytest.raises(FileNotFoundError) as error:
         s3.s3_load_from('s3://bucket/notExistFile')
@@ -2546,8 +2586,9 @@ def test_s3_pipe_open_raises_exceptions(s3_empty_client):
     assert 's3://bucket/' in str(error.value)
 
     with pytest.raises(FileNotFoundError) as error:
-        s3.s3_pipe_open('s3://bucket/key', 'wb')
-    assert 's3://bucket/key' in str(error.value)
+        with s3.s3_pipe_open('s3://bucket/key', 'wb') as f:
+            f.write(b'test')
+    assert 'bucket' in str(error.value)
 
     s3_empty_client.create_bucket(Bucket='bucket')
     s3_empty_client.put_object(Bucket='bucket', Key='key')
@@ -2617,8 +2658,10 @@ def test_s3_cached_open_raises_exceptions(mocker, s3_empty_client, fs):
     assert 's3://bucket/' in str(error.value)
 
     with pytest.raises(FileNotFoundError) as error:
-        s3.s3_cached_open('s3://bucket/key', 'wb', cache_path=cache_path)
-    assert 's3://bucket/key' in str(error.value)
+        with s3.s3_cached_open('s3://bucket/key', 'wb',
+                               cache_path=cache_path) as f:
+            f.write(b'test')
+    assert 'bucket' in str(error.value)
 
     s3_empty_client.create_bucket(Bucket='bucket')
     s3_empty_client.put_object(Bucket='bucket', Key='key')
@@ -2693,8 +2736,9 @@ def test_s3_buffered_open_raises_exceptions(mocker, s3_empty_client, fs):
     assert 's3://bucket/' in str(error.value)
 
     with pytest.raises(FileNotFoundError) as error:
-        s3.s3_buffered_open('s3://bucket/key', 'wb')
-    assert 's3://bucket/key' in str(error.value)
+        with s3.s3_buffered_open('s3://bucket/key', 'wb') as f:
+            f.write(b'test')
+    assert 'bucket' in str(error.value)
 
     s3_empty_client.create_bucket(Bucket='bucket')
     s3_empty_client.put_object(Bucket='bucket', Key='key')
@@ -2944,11 +2988,34 @@ def test_group_s3path_by_prefix():
     ]
 
 
-def test_s3_hasbucket(s3_empty_client_with_patch):
-    with pytest.raises(S3UnknownError):
-        s3.s3_hasbucket('s3://bucketA')
+@pytest.fixture
+def s3_empty_client_with_patch_for_has_bucket(mocker):
 
+    def head_bucket_without_permission(*args, **kwargs):
+        raise botocore.exceptions.ClientError(
+            {'Error': {
+                'Code': '403'
+            }},
+            'head_bucket',
+        )
+
+    with mock_s3():
+        client = boto3.client('s3')
+        client.head_bucket = head_bucket_without_permission
+        mocker.patch('megfile.s3_path.get_s3_client', return_value=client)
+        yield client
+
+
+def test_s3_hasbucket(s3_empty_client_with_patch_for_has_bucket):
     assert s3.s3_hasbucket('s3://') is False
+    assert s3.s3_hasbucket('s3://bucketA') is False
+
+    s3_empty_client_with_patch_for_has_bucket.create_bucket(Bucket='bucketA')
+    s3_empty_client_with_patch_for_has_bucket.put_object(
+        Bucket='bucketA', Key='test', Body=b'test')
+    assert s3.s3_hasbucket('s3://bucketA') is True
+    assert s3_empty_client_with_patch_for_has_bucket.get_object(
+        Bucket='bucketA', Key='test')['Body'].read() == b'test'
 
 
 def test_error(s3_empty_client_with_patch, mocker):
