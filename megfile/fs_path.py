@@ -852,7 +852,7 @@ class FSPath(URIPath):
 
     def open(
             self,
-            mode: str,
+            mode: str = 'r',
             buffering=-1,
             encoding=None,
             errors=None,

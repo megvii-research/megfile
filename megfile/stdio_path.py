@@ -74,7 +74,7 @@ class StdioPath(BaseURIPath):
 
     def open(
             self,
-            mode: str,
+            mode: str = 'rb',
             encoding: Optional[str] = None,
             errors: Optional[str] = None,
             **kwargs) -> IO[AnyStr]:  # pytype: disable=signature-mismatch

@@ -11,7 +11,7 @@ __all__ = [
 
 def stdio_open(
         path: PathLike,
-        mode: str,
+        mode: str = 'rb',
         encoding: Optional[str] = None,
         errors: Optional[str] = None,
         **kwargs) -> IO[AnyStr]:  # pytype: disable=signature-mismatch
