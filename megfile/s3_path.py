@@ -12,7 +12,7 @@ import boto3
 import botocore
 from botocore.awsrequest import AWSResponse
 
-from megfile.errors import S3BucketNotFoundError, S3ConfigError, S3FileExistsError, S3FileNotFoundError, S3IsADirectoryError, S3NameTooLongError, S3NotADirectoryError, S3NotALinkError, S3PermissionError, S3UnknownError, UnsupportedError, _create_missing_ok_generator
+from megfile.errors import S3BucketNotFoundError, S3ConfigError, S3FileExistsError, S3FileNotFoundError, S3IsADirectoryError, S3NameTooLongError, S3NotADirectoryError, S3NotALinkError, S3PermissionError, S3UnknownError, SameFileError, UnsupportedError, _create_missing_ok_generator
 from megfile.errors import _logger as error_logger
 from megfile.errors import patch_method, raise_s3_error, s3_error_code_should_retry, s3_should_retry, translate_fs_error, translate_s3_error
 from megfile.interfaces import Access, ContextIterator, FileCacher, FileEntry, PathLike, StatResult, URIPath
@@ -2021,6 +2021,10 @@ class S3Path(URIPath):
         src_url = self.path_with_protocol
         src_bucket, src_key = parse_s3_url(src_url)
         dst_bucket, dst_key = parse_s3_url(dst_url)
+        if dst_bucket == src_bucket and src_key.rstrip('/') == dst_key.rstrip(
+                '/'):
+            raise SameFileError(
+                f"'{src_url}' and '{dst_url}' are the same file")
 
         if not src_bucket:
             raise S3BucketNotFoundError('Empty bucket name: %r' % src_url)

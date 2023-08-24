@@ -2,7 +2,8 @@ import time
 from contextlib import contextmanager
 from functools import wraps
 from logging import getLogger
-from typing import Callable, List, Optional
+from shutil import SameFileError
+from typing import Callable, Optional
 
 import botocore.exceptions
 import requests.exceptions
@@ -27,6 +28,7 @@ __all__ = [
     'ProtocolExistsError',
     'ProtocolNotFoundError',
     'S3UnknownError',
+    'SameFileError',
     'translate_http_error',
     'translate_s3_error',
     'patch_method',

@@ -7,6 +7,7 @@ from typing import IO, Any, AnyStr, BinaryIO, Callable, Iterable, Iterator, List
 
 from tqdm import tqdm
 
+from megfile.errors import SameFileError
 from megfile.fs import fs_copy, is_fs
 from megfile.interfaces import Access, ContextIterator, FileCacher, FileEntry, NullCacher, PathLike, StatResult
 from megfile.lib.combine_reader import CombineReader
@@ -320,6 +321,8 @@ def smart_copy(
     :param followlinks: False if regard symlink as file, else True
     '''
     # this function contains plenty of manual polymorphism
+    if src_path == dst_path:
+        raise SameFileError(f"'{src_path}' and '{dst_path}' are the same file")
     if smart_islink(src_path) and is_s3(dst_path) and not followlinks:
         return
 
