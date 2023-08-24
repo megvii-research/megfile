@@ -321,8 +321,6 @@ def smart_copy(
     :param followlinks: False if regard symlink as file, else True
     '''
     # this function contains plenty of manual polymorphism
-    if src_path == dst_path:
-        raise SameFileError(f"'{src_path}' and '{dst_path}' are the same file")
     if smart_islink(src_path) and is_s3(dst_path) and not followlinks:
         return
 
