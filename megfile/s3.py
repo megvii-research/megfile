@@ -324,15 +324,19 @@ def s3_copy(
 
 
 def s3_sync(
-        src_url: PathLike, dst_url: PathLike,
-        followlinks: bool = False) -> None:
+        src_url: PathLike,
+        dst_url: PathLike,
+        followlinks: bool = False,
+        force: bool = False) -> None:
     '''
     Copy file/directory on src_url to dst_url
 
     :param src_url: Given path
     :param dst_url: Given destination path
+    :param followlinks: False if regard symlink as file, else True
+    :param force: Sync file forcely, do not ignore same files
     '''
-    return S3Path(src_url).sync(dst_url, followlinks)
+    return S3Path(src_url).sync(dst_url, followlinks, force)
 
 
 def s3_symlink(src_path: PathLike, dst_path: PathLike) -> None:

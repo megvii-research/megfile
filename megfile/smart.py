@@ -343,6 +343,7 @@ def _smart_sync_single_file(items: dict):
     callback = items['callback']
     followlinks = items['followlinks']
     callback_after_copy_file = items['callback_after_copy_file']
+    force = items['force']
 
     content_path = os.path.relpath(src_file_path, start=src_root_path)
     if len(content_path) and content_path != '.':
@@ -356,7 +357,7 @@ def _smart_sync_single_file(items: dict):
     dst_protocol, _ = SmartPath._extract_protocol(dst_abs_file_path)
     should_sync = True
     try:
-        if smart_exists(dst_abs_file_path) and is_same_file(
+        if not force and smart_exists(dst_abs_file_path) and is_same_file(
                 smart_stat(src_file_path), smart_stat(dst_abs_file_path),
                 get_sync_type(src_protocol, dst_protocol)):
             should_sync = False
@@ -381,7 +382,8 @@ def smart_sync(
         followlinks: bool = False,
         callback_after_copy_file: Optional[Callable[[str, str], None]] = None,
         src_file_stats: Optional[Iterable[FileEntry]] = None,
-        map_func: Callable[[Callable, Iterable], Any] = map) -> None:
+        map_func: Callable[[Callable, Iterable], Any] = map,
+        force: bool = False) -> None:
     '''
     Sync file or directory on s3 and fs
 
@@ -444,6 +446,7 @@ def smart_sync(
                     callback=callback,
                     followlinks=followlinks,
                     callback_after_copy_file=callback_after_copy_file,
+                    force=force,
                 )
 
     for _ in map_func(_smart_sync_single_file, create_generator()):
@@ -455,7 +458,8 @@ def smart_sync_with_progress(
         dst_path,
         callback: Optional[Callable[[str, int], None]] = None,
         followlinks: bool = False,
-        map_func: Callable[[Callable, Iterable], Iterator] = map):
+        map_func: Callable[[Callable, Iterable], Iterator] = map,
+        force: bool = False):
     src_path, dst_path = get_traditional_path(src_path), get_traditional_path(
         dst_path)
     file_stats = list(
@@ -479,6 +483,7 @@ def smart_sync_with_progress(
         callback_after_copy_file=callback_after_copy_file,
         src_file_stats=file_stats,
         map_func=map_func,
+        force=force,
     )
     tbar.close()
     sbar.close()

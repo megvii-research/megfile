@@ -345,13 +345,19 @@ def fs_copy(
     return FSPath(src_path).copy(dst_path, callback, followlinks)
 
 
-def fs_sync(src_path: PathLike, dst_path: PathLike, followlinks: bool = False):
+def fs_sync(
+        src_path: PathLike,
+        dst_path: PathLike,
+        followlinks: bool = False,
+        force: bool = False) -> None:
     '''Force write of everything to disk.
 
     :param src_path: Given path
     :param dst_path: Target file path
+    :param followlinks: False if regard symlink as file, else True
+    :param force: Sync file forcely, do not ignore same files
     '''
-    return FSPath(src_path).sync(dst_path, followlinks)
+    return FSPath(src_path).sync(dst_path, followlinks, force)
 
 
 def fs_symlink(src_path: PathLike, dst_path: PathLike) -> None:
