@@ -404,6 +404,12 @@ def test_smart_sync_file(s3_empty_client, fs):
         smart.smart_sync('/A', 's3://bucket/A')
         assert smart_copy.call_count == 0
 
+    with patch('megfile.smart.smart_copy') as smart_copy:
+        file_stat = os.stat('/A/file')
+        os.utime('/A/file', (file_stat.st_atime, file_stat.st_mtime - 1))
+        smart.smart_sync('/A', 's3://bucket/A', force=True)
+        assert smart_copy.call_count == 1
+
     patch_dict = {}
 
     with patch('megfile.smart._copy_funcs', patch_dict) as _:

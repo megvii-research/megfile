@@ -395,10 +395,15 @@ def sftp_copy(
 
 
 def sftp_sync(
-        src_path: PathLike, dst_path: PathLike, followlinks: bool = False):
+        src_path: PathLike,
+        dst_path: PathLike,
+        followlinks: bool = False,
+        force: bool = False):
     '''Copy file/directory on src_url to dst_url
 
     :param src_path: Given path
     :param dst_url: Given destination path
+    :param followlinks: False if regard symlink as file, else True
+    :param force: Sync file forcely, do not ignore same files
     '''
-    return SftpPath(src_path).sync(dst_path, followlinks)
+    return SftpPath(src_path).sync(dst_path, followlinks, force)

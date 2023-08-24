@@ -765,10 +765,16 @@ class FSPath(URIPath):
             else:
                 raise
 
-    def sync(self, dst_path: PathLike, followlinks: bool = False):
+    def sync(
+            self,
+            dst_path: PathLike,
+            followlinks: bool = False,
+            force: bool = False) -> None:
         '''Force write of everything to disk.
 
         :param dst_path: Target file path
+        :param followlinks: False if regard symlink as file, else True
+        :param force: Sync file forcely, do not ignore same files
         '''
         if self.is_dir(followlinks=followlinks):
 
@@ -776,7 +782,7 @@ class FSPath(URIPath):
                 ignore_files = []
                 for name in names:
                     dst_obj = self.from_path(dst_path).joinpath(name)
-                    if dst_obj.exists() and is_same_file(
+                    if not force and dst_obj.exists() and is_same_file(
                             self.joinpath(name).stat(), dst_obj.stat(), 'copy'):
                         ignore_files.append(name)
                 return ignore_files
