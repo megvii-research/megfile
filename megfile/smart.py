@@ -7,6 +7,7 @@ from typing import IO, Any, AnyStr, BinaryIO, Callable, Iterable, Iterator, List
 
 from tqdm import tqdm
 
+from megfile.errors import SameFileError
 from megfile.fs import fs_copy, is_fs
 from megfile.interfaces import Access, ContextIterator, FileCacher, FileEntry, NullCacher, PathLike, StatResult
 from megfile.lib.combine_reader import CombineReader

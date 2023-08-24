@@ -11,7 +11,7 @@ from urllib.parse import urlsplit, urlunsplit
 
 import paramiko
 
-from megfile.errors import _create_missing_ok_generator, patch_method
+from megfile.errors import SameFileError, _create_missing_ok_generator, patch_method
 from megfile.interfaces import ContextIterator, FileEntry, PathLike, StatResult
 from megfile.lib.compare import is_same_file
 from megfile.lib.glob import FSFunc, iglob
@@ -1167,6 +1167,9 @@ class SftpPath(URIPath):
         self.from_path(os.path.dirname(dst_path)).makedirs(exist_ok=True)
         dst_path = self.from_path(dst_path)
         if self._is_same_backend(dst_path):
+            if self._real_path == dst_path._real_path:
+                raise SameFileError(
+                    f"'{self.path}' and '{dst_path.path}' are the same file")
             exec_result = self._exec_command(
                 ["cp", self._real_path, dst_path._real_path])
             if exec_result.returncode != 0:
