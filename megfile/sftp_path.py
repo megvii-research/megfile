@@ -3,6 +3,7 @@ import hashlib
 import io
 import os
 import shlex
+import socket
 import subprocess
 from logging import getLogger as get_logger
 from stat import S_ISDIR, S_ISLNK, S_ISREG
@@ -44,7 +45,7 @@ SFTP_PRIVATE_KEY_PATH = "SFTP_PRIVATE_KEY_PATH"
 SFTP_PRIVATE_KEY_TYPE = "SFTP_PRIVATE_KEY_TYPE"
 SFTP_PRIVATE_KEY_PASSWORD = "SFTP_PRIVATE_KEY_PASSWORD"
 MAX_RETRIES = 10
-DEFAULT_SSH_CONNECT_TIMEOUT = 5
+DEFAULT_SSH_CONNECT_TIMEOUT = 3
 
 
 def _make_stat(stat: paramiko.SFTPAttributes) -> StatResult:
@@ -94,8 +95,11 @@ def provide_connect_info(
 def sftp_should_retry(error: Exception) -> bool:
     if type(error) is EOFError:
         return False
-    elif isinstance(error,
-                    (paramiko.ssh_exception.SSHException, ConnectionError)):
+    elif isinstance(error, (
+            paramiko.ssh_exception.SSHException,
+            ConnectionError,
+            socket.timeout,
+    )):
         return True
     elif isinstance(error, OSError) and str(error) == 'Socket is closed':
         return True
@@ -149,7 +153,11 @@ def _get_sftp_client(
     :returns: sftp client
     '''
     ssh_client = get_ssh_client(hostname, port, username, password)
-    sftp_client = ssh_client.open_sftp()
+    transport = ssh_client.get_transport()
+    session = transport.open_session(timeout=DEFAULT_SSH_CONNECT_TIMEOUT)
+    session.settimeout(DEFAULT_SSH_CONNECT_TIMEOUT)
+    session.invoke_subsystem("sftp")
+    sftp_client = paramiko.SFTPClient(session)
     _patch_sftp_client_request(sftp_client, hostname, port, username, password)
     return sftp_client
 
@@ -189,6 +197,9 @@ def _get_ssh_client(
         username=username,
         password=password,
         pkey=private_key,
+        timeout=DEFAULT_SSH_CONNECT_TIMEOUT,
+        auth_timeout=DEFAULT_SSH_CONNECT_TIMEOUT,
+        banner_timeout=DEFAULT_SSH_CONNECT_TIMEOUT,
     )
     atexit.register(ssh_client.close)
     return ssh_client
@@ -237,6 +248,7 @@ def _open_session(ssh_client: paramiko.SSHClient) -> paramiko.Channel:
     if not transport:
         raise paramiko.SSHException()
     session = transport.open_session(timeout=DEFAULT_SSH_CONNECT_TIMEOUT)
+    session.settimeout(DEFAULT_SSH_CONNECT_TIMEOUT)
     return session
 
 
