@@ -3,6 +3,7 @@ import hashlib
 import io
 import os
 import shlex
+import socket
 import subprocess
 from logging import getLogger as get_logger
 from stat import S_ISDIR, S_ISLNK, S_ISREG
@@ -45,6 +46,7 @@ SFTP_PRIVATE_KEY_TYPE = "SFTP_PRIVATE_KEY_TYPE"
 SFTP_PRIVATE_KEY_PASSWORD = "SFTP_PRIVATE_KEY_PASSWORD"
 MAX_RETRIES = 10
 DEFAULT_SSH_CONNECT_TIMEOUT = 5
+DEFAULT_SSH_KEEPALIVE_INTERVAL = 15
 
 
 def _make_stat(stat: paramiko.SFTPAttributes) -> StatResult:
@@ -94,8 +96,11 @@ def provide_connect_info(
 def sftp_should_retry(error: Exception) -> bool:
     if type(error) is EOFError:
         return False
-    elif isinstance(error,
-                    (paramiko.ssh_exception.SSHException, ConnectionError)):
+    elif isinstance(error, (
+            paramiko.ssh_exception.SSHException,
+            ConnectionError,
+            socket.timeout,
+    )):
         return True
     elif isinstance(error, OSError) and str(error) == 'Socket is closed':
         return True
@@ -148,8 +153,14 @@ def _get_sftp_client(
 
     :returns: sftp client
     '''
-    ssh_client = get_ssh_client(hostname, port, username, password)
-    sftp_client = ssh_client.open_sftp()
+    session = get_ssh_session(
+        hostname=hostname,
+        port=port,
+        username=username,
+        password=password,
+    )
+    session.invoke_subsystem("sftp")
+    sftp_client = paramiko.SFTPClient(session)
     _patch_sftp_client_request(sftp_client, hostname, port, username, password)
     return sftp_client
 
@@ -189,6 +200,9 @@ def _get_ssh_client(
         username=username,
         password=password,
         pkey=private_key,
+        timeout=DEFAULT_SSH_CONNECT_TIMEOUT,
+        auth_timeout=DEFAULT_SSH_CONNECT_TIMEOUT,
+        banner_timeout=DEFAULT_SSH_CONNECT_TIMEOUT,
     )
     atexit.register(ssh_client.close)
     return ssh_client
@@ -211,10 +225,9 @@ def get_ssh_session(
         username: Optional[str] = None,
         password: Optional[str] = None,
 ) -> paramiko.Channel:
-    ssh_client = get_ssh_client(hostname, port, username, password)
-    try:
-        return _open_session(ssh_client)
-    except paramiko.SSHException:
+
+    def retry_callback(error, *args, **kwargs):
+        ssh_client = get_ssh_client(hostname, port, username, password)
         ssh_client.close()
         atexit.unregister(ssh_client.close)
         ssh_key = f'ssh_client:{hostname},{port},{username},{password}'
@@ -223,20 +236,34 @@ def get_ssh_session(
         sftp_key = f'sftp_client:{hostname},{port},{username},{password}'
         if thread_local.get(sftp_key):
             del thread_local[sftp_key]
-        return _open_session(
-            get_ssh_client(
-                hostname=hostname,
-                port=port,
-                username=username,
-                password=password,
-            ))
+
+    return patch_method(
+        _open_session,  # pytype: disable=attribute-error
+        max_retries=MAX_RETRIES,
+        should_retry=sftp_should_retry,
+        retry_callback=retry_callback)(
+            hostname,
+            port,
+            username,
+            password,
+        )
 
 
-def _open_session(ssh_client: paramiko.SSHClient) -> paramiko.Channel:
+def _open_session(
+        hostname: str,
+        port: Optional[int] = None,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+) -> paramiko.Channel:
+    ssh_client = get_ssh_client(hostname, port, username, password)
     transport = ssh_client.get_transport()
     if not transport:
-        raise paramiko.SSHException()
+        raise paramiko.SSHException('Get transport error')
+    transport.set_keepalive(DEFAULT_SSH_KEEPALIVE_INTERVAL)
     session = transport.open_session(timeout=DEFAULT_SSH_CONNECT_TIMEOUT)
+    if not session:
+        raise paramiko.SSHException('Create session error')
+    session.settimeout(DEFAULT_SSH_CONNECT_TIMEOUT)
     return session
 
 
