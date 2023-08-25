@@ -79,6 +79,7 @@
 <span class="kn">import</span> <span class="nn">io</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">shlex</span>
+<span class="kn">import</span> <span class="nn">socket</span>
 <span class="kn">import</span> <span class="nn">subprocess</span>
 <span class="kn">from</span> <span class="nn">logging</span> <span class="kn">import</span> <span class="n">getLogger</span> <span class="k">as</span> <span class="n">get_logger</span>
 <span class="kn">from</span> <span class="nn">stat</span> <span class="kn">import</span> <span class="n">S_ISDIR</span><span class="p">,</span> <span class="n">S_ISLNK</span><span class="p">,</span> <span class="n">S_ISREG</span>
@@ -87,7 +88,7 @@
 
 <span class="kn">import</span> <span class="nn">paramiko</span>
 
-<span class="kn">from</span> <span class="nn">megfile.errors</span> <span class="kn">import</span> <span class="n">_create_missing_ok_generator</span><span class="p">,</span> <span class="n">patch_method</span>
+<span class="kn">from</span> <span class="nn">megfile.errors</span> <span class="kn">import</span> <span class="n">SameFileError</span><span class="p">,</span> <span class="n">_create_missing_ok_generator</span><span class="p">,</span> <span class="n">patch_method</span>
 <span class="kn">from</span> <span class="nn">megfile.interfaces</span> <span class="kn">import</span> <span class="n">ContextIterator</span><span class="p">,</span> <span class="n">FileEntry</span><span class="p">,</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">StatResult</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.compare</span> <span class="kn">import</span> <span class="n">is_same_file</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.glob</span> <span class="kn">import</span> <span class="n">FSFunc</span><span class="p">,</span> <span class="n">iglob</span>
@@ -121,6 +122,7 @@
 <span class="n">SFTP_PRIVATE_KEY_PASSWORD</span> <span class="o">=</span> <span class="s2">&quot;SFTP_PRIVATE_KEY_PASSWORD&quot;</span>
 <span class="n">MAX_RETRIES</span> <span class="o">=</span> <span class="mi">10</span>
 <span class="n">DEFAULT_SSH_CONNECT_TIMEOUT</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">DEFAULT_SSH_KEEPALIVE_INTERVAL</span> <span class="o">=</span> <span class="mi">15</span>
 
 
 <span class="k">def</span> <span class="nf">_make_stat</span><span class="p">(</span><span class="n">stat</span><span class="p">:</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">SFTPAttributes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StatResult</span><span class="p">:</span>
@@ -170,8 +172,11 @@
 <span class="k">def</span> <span class="nf">sftp_should_retry</span><span class="p">(</span><span class="n">error</span><span class="p">:</span> <span class="ne">Exception</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
     <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">error</span><span class="p">)</span> <span class="ow">is</span> <span class="ne">EOFError</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">False</span>
-    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error</span><span class="p">,</span>
-                    <span class="p">(</span><span class="n">paramiko</span><span class="o">.</span><span class="n">ssh_exception</span><span class="o">.</span><span class="n">SSHException</span><span class="p">,</span> <span class="ne">ConnectionError</span><span class="p">)):</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="p">(</span>
+            <span class="n">paramiko</span><span class="o">.</span><span class="n">ssh_exception</span><span class="o">.</span><span class="n">SSHException</span><span class="p">,</span>
+            <span class="ne">ConnectionError</span><span class="p">,</span>
+            <span class="n">socket</span><span class="o">.</span><span class="n">timeout</span><span class="p">,</span>
+    <span class="p">)):</span>
         <span class="k">return</span> <span class="kc">True</span>
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span><span class="n">error</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;Socket is closed&#39;</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">True</span>
@@ -224,8 +229,14 @@
 
 <span class="sd">    :returns: sftp client</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="n">ssh_client</span> <span class="o">=</span> <span class="n">get_ssh_client</span><span class="p">(</span><span class="n">hostname</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">)</span>
-    <span class="n">sftp_client</span> <span class="o">=</span> <span class="n">ssh_client</span><span class="o">.</span><span class="n">open_sftp</span><span class="p">()</span>
+    <span class="n">session</span> <span class="o">=</span> <span class="n">get_ssh_session</span><span class="p">(</span>
+        <span class="n">hostname</span><span class="o">=</span><span class="n">hostname</span><span class="p">,</span>
+        <span class="n">port</span><span class="o">=</span><span class="n">port</span><span class="p">,</span>
+        <span class="n">username</span><span class="o">=</span><span class="n">username</span><span class="p">,</span>
+        <span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">session</span><span class="o">.</span><span class="n">invoke_subsystem</span><span class="p">(</span><span class="s2">&quot;sftp&quot;</span><span class="p">)</span>
+    <span class="n">sftp_client</span> <span class="o">=</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">SFTPClient</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
     <span class="n">_patch_sftp_client_request</span><span class="p">(</span><span class="n">sftp_client</span><span class="p">,</span> <span class="n">hostname</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">sftp_client</span>
 
@@ -265,6 +276,9 @@
         <span class="n">username</span><span class="o">=</span><span class="n">username</span><span class="p">,</span>
         <span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">,</span>
         <span class="n">pkey</span><span class="o">=</span><span class="n">private_key</span><span class="p">,</span>
+        <span class="n">timeout</span><span class="o">=</span><span class="n">DEFAULT_SSH_CONNECT_TIMEOUT</span><span class="p">,</span>
+        <span class="n">auth_timeout</span><span class="o">=</span><span class="n">DEFAULT_SSH_CONNECT_TIMEOUT</span><span class="p">,</span>
+        <span class="n">banner_timeout</span><span class="o">=</span><span class="n">DEFAULT_SSH_CONNECT_TIMEOUT</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">atexit</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">ssh_client</span><span class="o">.</span><span class="n">close</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">ssh_client</span>
@@ -287,10 +301,9 @@
         <span class="n">username</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">password</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">Channel</span><span class="p">:</span>
-    <span class="n">ssh_client</span> <span class="o">=</span> <span class="n">get_ssh_client</span><span class="p">(</span><span class="n">hostname</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">)</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">_open_session</span><span class="p">(</span><span class="n">ssh_client</span><span class="p">)</span>
-    <span class="k">except</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">SSHException</span><span class="p">:</span>
+
+    <span class="k">def</span> <span class="nf">retry_callback</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">ssh_client</span> <span class="o">=</span> <span class="n">get_ssh_client</span><span class="p">(</span><span class="n">hostname</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">)</span>
         <span class="n">ssh_client</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
         <span class="n">atexit</span><span class="o">.</span><span class="n">unregister</span><span class="p">(</span><span class="n">ssh_client</span><span class="o">.</span><span class="n">close</span><span class="p">)</span>
         <span class="n">ssh_key</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;ssh_client:</span><span class="si">{</span><span class="n">hostname</span><span class="si">}</span><span class="s1">,</span><span class="si">{</span><span class="n">port</span><span class="si">}</span><span class="s1">,</span><span class="si">{</span><span class="n">username</span><span class="si">}</span><span class="s1">,</span><span class="si">{</span><span class="n">password</span><span class="si">}</span><span class="s1">&#39;</span>
@@ -299,20 +312,34 @@
         <span class="n">sftp_key</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;sftp_client:</span><span class="si">{</span><span class="n">hostname</span><span class="si">}</span><span class="s1">,</span><span class="si">{</span><span class="n">port</span><span class="si">}</span><span class="s1">,</span><span class="si">{</span><span class="n">username</span><span class="si">}</span><span class="s1">,</span><span class="si">{</span><span class="n">password</span><span class="si">}</span><span class="s1">&#39;</span>
         <span class="k">if</span> <span class="n">thread_local</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">sftp_key</span><span class="p">):</span>
             <span class="k">del</span> <span class="n">thread_local</span><span class="p">[</span><span class="n">sftp_key</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">_open_session</span><span class="p">(</span>
-            <span class="n">get_ssh_client</span><span class="p">(</span>
-                <span class="n">hostname</span><span class="o">=</span><span class="n">hostname</span><span class="p">,</span>
-                <span class="n">port</span><span class="o">=</span><span class="n">port</span><span class="p">,</span>
-                <span class="n">username</span><span class="o">=</span><span class="n">username</span><span class="p">,</span>
-                <span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">,</span>
-            <span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">patch_method</span><span class="p">(</span>
+        <span class="n">_open_session</span><span class="p">,</span>  <span class="c1"># pytype: disable=attribute-error</span>
+        <span class="n">max_retries</span><span class="o">=</span><span class="n">MAX_RETRIES</span><span class="p">,</span>
+        <span class="n">should_retry</span><span class="o">=</span><span class="n">sftp_should_retry</span><span class="p">,</span>
+        <span class="n">retry_callback</span><span class="o">=</span><span class="n">retry_callback</span><span class="p">)(</span>
+            <span class="n">hostname</span><span class="p">,</span>
+            <span class="n">port</span><span class="p">,</span>
+            <span class="n">username</span><span class="p">,</span>
+            <span class="n">password</span><span class="p">,</span>
+        <span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_open_session</span><span class="p">(</span><span class="n">ssh_client</span><span class="p">:</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">SSHClient</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">Channel</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">_open_session</span><span class="p">(</span>
+        <span class="n">hostname</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">port</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">username</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">password</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">Channel</span><span class="p">:</span>
+    <span class="n">ssh_client</span> <span class="o">=</span> <span class="n">get_ssh_client</span><span class="p">(</span><span class="n">hostname</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">)</span>
     <span class="n">transport</span> <span class="o">=</span> <span class="n">ssh_client</span><span class="o">.</span><span class="n">get_transport</span><span class="p">()</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">transport</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">SSHException</span><span class="p">()</span>
+        <span class="k">raise</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">SSHException</span><span class="p">(</span><span class="s1">&#39;Get transport error&#39;</span><span class="p">)</span>
+    <span class="n">transport</span><span class="o">.</span><span class="n">set_keepalive</span><span class="p">(</span><span class="n">DEFAULT_SSH_KEEPALIVE_INTERVAL</span><span class="p">)</span>
     <span class="n">session</span> <span class="o">=</span> <span class="n">transport</span><span class="o">.</span><span class="n">open_session</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="n">DEFAULT_SSH_CONNECT_TIMEOUT</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">session</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">SSHException</span><span class="p">(</span><span class="s1">&#39;Create session error&#39;</span><span class="p">)</span>
+    <span class="n">session</span><span class="o">.</span><span class="n">settimeout</span><span class="p">(</span><span class="n">DEFAULT_SSH_CONNECT_TIMEOUT</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">session</span>
 
 
@@ -1243,6 +1270,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">dst_path</span><span class="p">))</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">dst_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_same_backend</span><span class="p">(</span><span class="n">dst_path</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_real_path</span> <span class="o">==</span> <span class="n">dst_path</span><span class="o">.</span><span class="n">_real_path</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">SameFileError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">&#39; and &#39;</span><span class="si">{</span><span class="n">dst_path</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">&#39; are the same file&quot;</span><span class="p">)</span>
             <span class="n">exec_result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exec_command</span><span class="p">(</span>
                 <span class="p">[</span><span class="s2">&quot;cp&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_real_path</span><span class="p">,</span> <span class="n">dst_path</span><span class="o">.</span><span class="n">_real_path</span><span class="p">])</span>
             <span class="k">if</span> <span class="n">exec_result</span><span class="o">.</span><span class="n">returncode</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
@@ -1265,10 +1295,16 @@
         <span class="n">dst_path</span><span class="o">.</span><span class="n">utime</span><span class="p">(</span><span class="n">src_stat</span><span class="o">.</span><span class="n">st_atime</span><span class="p">,</span> <span class="n">src_stat</span><span class="o">.</span><span class="n">st_mtime</span><span class="p">)</span>
         <span class="n">dst_path</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">dst_path</span><span class="o">.</span><span class="n">_real_path</span><span class="p">,</span> <span class="n">src_stat</span><span class="o">.</span><span class="n">st_mode</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="SftpPath.sync"><a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.SftpPath.sync">[docs]</a>    <span class="k">def</span> <span class="nf">sync</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="SftpPath.sync"><a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.SftpPath.sync">[docs]</a>    <span class="k">def</span> <span class="nf">sync</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
+            <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="n">force</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;Copy file/directory on src_url to dst_url</span>
 
 <span class="sd">        :param dst_url: Given destination path</span>
+<span class="sd">        :param followlinks: False if regard symlink as file, else True</span>
+<span class="sd">        :param force: Sync file forcely, do not ignore same files</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_same_protocol</span><span class="p">(</span><span class="n">dst_path</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="s1">&#39;Not a </span><span class="si">%s</span><span class="s1"> path: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">))</span>
@@ -1277,8 +1313,8 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">):</span>
             <span class="n">dst_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">dst_file_path</span><span class="p">)</span>
             <span class="n">src_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">src_file_path</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">dst_path</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="n">is_same_file</span><span class="p">(</span><span class="n">src_path</span><span class="o">.</span><span class="n">stat</span><span class="p">(),</span>
-                                                  <span class="n">dst_path</span><span class="o">.</span><span class="n">stat</span><span class="p">(),</span> <span class="s1">&#39;copy&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">force</span> <span class="ow">and</span> <span class="n">dst_path</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="n">is_same_file</span><span class="p">(</span>
+                    <span class="n">src_path</span><span class="o">.</span><span class="n">stat</span><span class="p">(),</span> <span class="n">dst_path</span><span class="o">.</span><span class="n">stat</span><span class="p">(),</span> <span class="s1">&#39;copy&#39;</span><span class="p">):</span>
                 <span class="k">continue</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">dst_file_path</span><span class="p">))</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span>
                 <span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
