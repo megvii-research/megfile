@@ -159,7 +159,6 @@ def _get_sftp_client(
         username=username,
         password=password,
     )
-    session.settimeout(DEFAULT_SSH_CONNECT_TIMEOUT)
     session.invoke_subsystem("sftp")
     sftp_client = paramiko.SFTPClient(session)
     _patch_sftp_client_request(sftp_client, hostname, port, username, password)
