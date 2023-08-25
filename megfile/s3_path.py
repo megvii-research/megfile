@@ -2053,17 +2053,21 @@ class S3Path(URIPath):
                 Key=dst_key,
                 Callback=callback)
 
-    def sync(self, dst_url: PathLike, followlinks: bool = False) -> None:
+    def sync(
+            self, dst_url: PathLike, followlinks: bool = False,
+            force: bool = False) -> None:
         '''
         Copy file/directory on src_url to dst_url
 
         :param dst_url: Given destination path
+        :param followlinks: False if regard symlink as file, else True
+        :param force: Sync file forcely, do not ignore same files
         '''
         for src_file_path, dst_file_path in _s3_scan_pairs(
                 self.path_with_protocol, dst_url):
             src_file_path = self.from_path(src_file_path)
             dst_file_path = self.from_path(dst_file_path)
-            if dst_file_path.exists() and is_same_file(
+            if not force and dst_file_path.exists() and is_same_file(
                     src_file_path.stat(), dst_file_path.stat(), 'copy'):
                 continue
             src_file_path.copy(dst_file_path, followlinks=followlinks)

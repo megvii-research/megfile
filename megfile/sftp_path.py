@@ -1204,10 +1204,16 @@ class SftpPath(URIPath):
         dst_path.utime(src_stat.st_atime, src_stat.st_mtime)
         dst_path._client.chmod(dst_path._real_path, src_stat.st_mode)
 
-    def sync(self, dst_path: PathLike, followlinks: bool = False):
+    def sync(
+            self,
+            dst_path: PathLike,
+            followlinks: bool = False,
+            force: bool = False):
         '''Copy file/directory on src_url to dst_url
 
         :param dst_url: Given destination path
+        :param followlinks: False if regard symlink as file, else True
+        :param force: Sync file forcely, do not ignore same files
         '''
         if not self._is_same_protocol(dst_path):
             raise OSError('Not a %s path: %r' % (self.protocol, dst_path))
@@ -1216,8 +1222,8 @@ class SftpPath(URIPath):
                 self.path_with_protocol, dst_path):
             dst_path = self.from_path(dst_file_path)
             src_path = self.from_path(src_file_path)
-            if dst_path.exists() and is_same_file(src_path.stat(),
-                                                  dst_path.stat(), 'copy'):
+            if not force and dst_path.exists() and is_same_file(
+                    src_path.stat(), dst_path.stat(), 'copy'):
                 continue
             self.from_path(os.path.dirname(dst_file_path)).mkdir(
                 parents=True, exist_ok=True)

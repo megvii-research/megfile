@@ -141,10 +141,18 @@ def cp(
                                 2) as executor:
             if progress_bar:
                 smart_sync_with_progress(
-                    src_path, dst_path, followlinks=True, map_func=executor.map)
+                    src_path,
+                    dst_path,
+                    followlinks=True,
+                    map_func=executor.map,
+                    force=True)
             else:
                 smart_sync(
-                    src_path, dst_path, followlinks=True, map_func=executor.map)
+                    src_path,
+                    dst_path,
+                    followlinks=True,
+                    map_func=executor.map,
+                    force=True)
     else:
         if progress_bar:
             file_size = smart_stat(src_path).size
@@ -251,7 +259,14 @@ def rm(path: str, recursive: bool):
     type=click.INT,
     default=8,
     help='Number of concurrent workers.')
-def sync(src_path: str, dst_path: str, progress_bar: bool, worker):
+@click.option(
+    '-f',
+    '--force',
+    is_flag=True,
+    help='Copy files forcely, ignore same files.')
+def sync(
+        src_path: str, dst_path: str, progress_bar: bool, worker: int,
+        force: bool):
     with ThreadPoolExecutor(max_workers=worker) as executor:
         if has_magic(src_path):
             root_dir = get_non_glob_dir(src_path)
@@ -278,6 +293,7 @@ def sync(src_path: str, dst_path: str, progress_bar: bool, worker):
                     callback_after_copy_file=callback_after_copy_file,
                     src_file_stats=path_stats,
                     map_func=executor.map,
+                    force=force,
                 )
 
                 tbar.close()
@@ -288,14 +304,23 @@ def sync(src_path: str, dst_path: str, progress_bar: bool, worker):
                     dst_path,
                     src_file_stats=path_stats,
                     map_func=executor.map,
+                    force=force,
                 )
         else:
             if progress_bar:
                 smart_sync_with_progress(
-                    src_path, dst_path, followlinks=True, map_func=executor.map)
+                    src_path,
+                    dst_path,
+                    followlinks=True,
+                    map_func=executor.map,
+                    force=force)
             else:
                 smart_sync(
-                    src_path, dst_path, followlinks=True, map_func=executor.map)
+                    src_path,
+                    dst_path,
+                    followlinks=True,
+                    map_func=executor.map,
+                    force=force)
 
 
 @cli.command(short_help="Make the path if it doesn't already exist.")
