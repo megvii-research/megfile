@@ -155,6 +155,8 @@ def _get_sftp_client(
     ssh_client = get_ssh_client(hostname, port, username, password)
     transport = ssh_client.get_transport()
     session = transport.open_session(timeout=DEFAULT_SSH_CONNECT_TIMEOUT)
+    if not session:
+        raise paramiko.SSHException("Create sftp client error")
     session.settimeout(DEFAULT_SSH_CONNECT_TIMEOUT)
     session.invoke_subsystem("sftp")
     sftp_client = paramiko.SFTPClient(session)
