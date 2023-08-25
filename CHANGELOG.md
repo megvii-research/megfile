@@ -1,3 +1,11 @@
+## 2.2.3 - 2023.08.25
+- feat
+    - add `force` param in sync methods for copy file forcely
+    - add `-f` / `--force` in `refile sync`
+    - check same file in copy, and raise `SameFileError`
+- perf
+    - Set the timeout for SSH connections.
+
 ## 2.2.2 - 2023.08.18
 - fix
     - fix `s3_access` write permission's check
