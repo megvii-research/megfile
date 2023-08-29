@@ -47,6 +47,15 @@ class FakeResponse:
         error.response = self
         raise error
 
+    def close(self):
+        pass
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback) -> None:
+        self.close()
+
 
 class FakeResponse200(FakeResponse):
     status_code = 200

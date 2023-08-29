@@ -189,19 +189,19 @@ def get_s3_client(
 
     :returns: S3 client
     '''
+    if config:
+        config = config.merge(botocore.config.Config(connect_timeout=1))
+    else:
+        config = botocore.config.Config(connect_timeout=1)
+
     addressing_style_env_key = 'AWS_S3_ADDRESSING_STYLE'
     if profile_name:
         addressing_style_env_key = f'{profile_name}__AWS_S3_ADDRESSING_STYLE'.upper(
         )
     addressing_style = os.environ.get(addressing_style_env_key)
     if addressing_style:
-        if config:
-            config = config.merge(
-                botocore.config.Config(
-                    s3={'addressing_style': addressing_style}))
-        else:
-            config = botocore.config.Config(
-                s3={'addressing_style': addressing_style})
+        config = config.merge(
+            botocore.config.Config(s3={'addressing_style': addressing_style}))
 
     if cache_key is not None:
         return thread_local(

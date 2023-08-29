@@ -143,14 +143,20 @@ class HttpPath(URIPath):
         if mode not in ('rb',):
             raise ValueError('unacceptable mode: %r' % mode)
 
+        response = None
         try:
             response = get_http_session(status_forcelist=()).get(
                 self.path_with_protocol, stream=True)
             response.raise_for_status()
         except Exception as error:
+            if response:
+                response.close()
             raise translate_http_error(error, self.path_with_protocol)
 
         if response.headers.get('Accept-Ranges') == 'bytes':
+            content_size = int(response.headers['Content-Length'])
+            response.close()
+
             block_capacity = max_buffer_size // block_size
             if forward_ratio is None:
                 block_forward = None
@@ -159,7 +165,7 @@ class HttpPath(URIPath):
 
             return HttpPrefetchReader(
                 self.path_with_protocol,
-                content_size=int(response.headers['Content-Length']),
+                content_size=content_size,
                 max_retries=max_retries,
                 max_workers=max_concurrency,
                 block_capacity=block_capacity,
@@ -179,24 +185,25 @@ class HttpPath(URIPath):
         '''
 
         try:
-            response = get_http_session(status_forcelist=()).get(
-                self.path_with_protocol, stream=True)
-            response.raise_for_status()
+            with get_http_session(status_forcelist=()).get(
+                    self.path_with_protocol, stream=True) as response:
+                response.raise_for_status()
+                headers = response.headers
         except Exception as error:
             raise translate_http_error(error, self.path_with_protocol)
 
-        size = response.headers.get('Content-Length')
+        size = headers.get('Content-Length')
         if size:
             size = int(size)
 
-        last_modified = response.headers.get('Last-Modified')
+        last_modified = headers.get('Last-Modified')
         if last_modified:
             last_modified = time.mktime(
                 time.strptime(last_modified, "%a, %d %b %Y %H:%M:%S %Z"))
 
         return StatResult(  # pyre-ignore[20]
             size=size, mtime=last_modified, isdir=False,
-            islnk=False, extra=response.headers)
+            islnk=False, extra=headers)
 
     def getsize(self, follow_symlinks: bool = False) -> int:
         '''
@@ -231,11 +238,11 @@ class HttpPath(URIPath):
         :rtype: bool
         """
         try:
-            response = get_http_session(status_forcelist=()).get(
-                self.path_with_protocol, stream=True)
-            if response.status_code == 404:
-                return False
-            return True
+            with get_http_session(status_forcelist=()).get(
+                    self.path_with_protocol, stream=True) as response:
+                if response.status_code == 404:
+                    return False
+                return True
         except requests.exceptions.ConnectionError:
             return False
 
