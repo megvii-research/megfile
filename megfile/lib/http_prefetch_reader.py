@@ -59,23 +59,23 @@ class HttpPrefetchReader(BasePrefetchReader):
 
         def fetch_response() -> dict:
             if start is None or end is None:
-                response = requests.get(self._url, timeout=10, stream=True)
-                return {
-                    'Body': BytesIO(response.content),
-                    'Headers': response.headers,
-                    'Cookies': response.cookies,
-                    'StatusCode': response.status_code,
-                }
+                with requests.get(self._url, timeout=10,
+                                  stream=True) as response:
+                    return {
+                        'Headers': response.headers,
+                        'Cookies': response.cookies,
+                        'StatusCode': response.status_code,
+                    }
             else:
                 headers = {"Range": f"bytes={start}-{end}"}
-                response = requests.get(
-                    self._url, timeout=10, headers=headers, stream=True)
-                return {
-                    'Body': BytesIO(response.content),
-                    'Headers': response.headers,
-                    'Cookies': response.cookies,
-                    'StatusCode': response.status_code,
-                }
+                with requests.get(self._url, timeout=10, headers=headers,
+                                  stream=True) as response:
+                    return {
+                        'Body': BytesIO(response.content),
+                        'Headers': response.headers,
+                        'Cookies': response.cookies,
+                        'StatusCode': response.status_code,
+                    }
 
         fetch_response = patch_method(
             fetch_response,

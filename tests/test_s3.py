@@ -330,8 +330,14 @@ def test_get_s3_client_with_config(mocker):
     mocker.patch('megfile.s3_path.get_scoped_config', return_value={})
     mocker.patch('megfile.s3_path.get_s3_session', return_value=mock_session)
 
-    config = botocore.config.Config(max_pool_connections=20)
+    class EQConfig(botocore.config.Config):
 
+        def merge(self, other_config):
+            c = super().merge(other_config)
+            self._user_provided_options = c._user_provided_options
+            return self
+
+    config = EQConfig(max_pool_connections=20, connect_timeout=1)
     s3.get_s3_client(config)
     access_key, secret_key = s3_path.get_access_token()
 
