@@ -67,7 +67,10 @@ class HttpPrefetchReader(BasePrefetchReader):
                         'StatusCode': response.status_code,
                     }
             else:
-                headers = {"Range": f"bytes={start}-{end}"}
+                range_end = end
+                if self._content_size is not None:
+                    range_end = min(range_end, self._content_size - 1)
+                headers = {"Range": f"bytes={start}-{range_end}"}
                 with requests.get(self._url, timeout=10, headers=headers,
                                   stream=True) as response:
                     return {
