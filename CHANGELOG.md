@@ -1,3 +1,7 @@
+## 2.2.4.post1 - 2023.09.04
+- fix
+    - fix sftp readlink
+
 ## 2.2.4 - 2023.09.04
 - perf
     - perf prefetch reader
