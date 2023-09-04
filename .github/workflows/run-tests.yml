@@ -49,7 +49,7 @@ jobs:
           files: coverage.xml
           env_vars: OS,PYTHON
         env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          CODECOV_TOKEN: ${{ secrets.token }}
 
   style:
     runs-on: ${{ matrix.os }}
