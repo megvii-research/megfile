@@ -1,3 +1,10 @@
+## 2.2.4 - 2023.09.04
+- perf
+    - perf prefetch reader
+    - setup s3 connect timeout
+- fix
+    - prevent http Range header out-of-range in http prefetch reader
+
 ## 2.2.3 - 2023.08.25
 - feat
     - add `force` param in sync methods for copy file forcely
