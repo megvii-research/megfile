@@ -1060,8 +1060,10 @@ class SftpPath(URIPath):
         '''
         if not self.is_symlink():
             raise OSError('Not a symlink: %s' % self.path_with_protocol)
-        return self._generate_path_object(
-            self._client.readlink(self._real_path))
+        path = self._client.readlink(self._real_path)
+        if not path.startswith('/'):
+            return self.parent.joinpath(path)
+        return self._generate_path_object(path)
 
     def is_symlink(self) -> bool:
         '''Test whether a path is a symbolic link

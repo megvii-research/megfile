@@ -358,7 +358,8 @@ def _smart_sync_single_file(items: dict):
     should_sync = True
     try:
         if not force and smart_exists(dst_abs_file_path) and is_same_file(
-                smart_stat(src_file_path), smart_stat(dst_abs_file_path),
+                smart_stat(src_file_path, follow_symlinks=followlinks),
+                smart_stat(dst_abs_file_path, follow_symlinks=followlinks),
                 get_sync_type(src_protocol, dst_protocol)):
             should_sync = False
     except NotImplementedError:

@@ -294,6 +294,7 @@ def sync(
                     src_file_stats=path_stats,
                     map_func=executor.map,
                     force=force,
+                    followlinks=True,
                 )
 
                 tbar.close()
@@ -305,6 +306,7 @@ def sync(
                     src_file_stats=path_stats,
                     map_func=executor.map,
                     force=force,
+                    followlinks=True,
                 )
         else:
             if progress_bar:
