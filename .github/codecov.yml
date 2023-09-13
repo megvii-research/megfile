@@ -1,0 +1,12 @@
+coverage:
+  status:
+    project:
+      default:
+        if_ci_failed: ignore
+        informational: true
+        only_pulls: true
+    patch:
+      default:
+        if_ci_failed: ignore
+        informational: true
+        only_pulls: true
