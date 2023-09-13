@@ -190,9 +190,9 @@ def get_s3_client(
     :returns: S3 client
     '''
     if config:
-        config = config.merge(botocore.config.Config(connect_timeout=1))
+        config = config.merge(botocore.config.Config(connect_timeout=5))
     else:
-        config = botocore.config.Config(connect_timeout=1)
+        config = botocore.config.Config(connect_timeout=5)
 
     addressing_style_env_key = 'AWS_S3_ADDRESSING_STYLE'
     if profile_name:
