@@ -153,22 +153,13 @@ def get_endpoint_url(profile_name: Optional[str] = None) -> str:
     return endpoint_url
 
 
-def _get_s3_session(profile_name=None) -> boto3.Session:
-    try:
-        return boto3.Session(profile_name=profile_name)
-    except botocore.exceptions.ProfileNotFound:
-        return boto3.Session()
-
-
 def get_s3_session(profile_name=None) -> boto3.Session:
     '''Get S3 session
 
     :returns: S3 session
     '''
     return thread_local(
-        f's3_session:{profile_name}',
-        _get_s3_session,
-        profile_name=profile_name)
+        f's3_session:{profile_name}', boto3.Session, profile_name=profile_name)
 
 
 def get_access_token(profile_name=None):
