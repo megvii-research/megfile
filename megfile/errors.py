@@ -83,13 +83,15 @@ def param_validation_error_report(error: ParamValidationError) -> str:
 s3_retry_exceptions = [
     botocore.exceptions.IncompleteReadError,
     botocore.exceptions.EndpointConnectionError,
+    botocore.exceptions.ReadTimeoutError,
+    botocore.exceptions.ProxyConnectionError,
+    botocore.exceptions.ConnectionClosedError,
     requests.exceptions.ReadTimeout,
     urllib3.exceptions.IncompleteRead,
     urllib3.exceptions.ProtocolError,
     urllib3.exceptions.ReadTimeoutError,
+    urllib3.exceptions.HeaderParsingError,
 ]
-if hasattr(botocore.exceptions, 'ReadTimeoutError'):  # backport botocore==1.8.4
-    s3_retry_exceptions.append(botocore.exceptions.ReadTimeoutError)
 if hasattr(botocore.exceptions,
            'ResponseStreamingError'):  # backport botocore==1.23.24
     s3_retry_exceptions.append(botocore.exceptions.ResponseStreamingError)
