@@ -210,6 +210,33 @@ def test_sftp_readlink(sftp_mocker):
         sftp.sftp_readlink('sftp://username@host//file')
 
 
+def test_sftp_readlink_relative_path(fs, mocker):
+
+    class FakeSFTPClient2(FakeSFTPClient):
+
+        def normalize(self, path):
+            if path == '.':
+                return '/root'
+            return os.path.relpath(path, start='/root')
+
+    client = FakeSFTPClient2()
+    mocker.patch('megfile.sftp_path.get_sftp_client', return_value=client)
+
+    path = 'sftp://username@host/file'
+    link_path = 'sftp://username@host/file.lnk'
+
+    os.makedirs('/root')
+    with open('/root/file', 'w') as f:
+        f.write('test')
+    os.chdir('/root')
+    os.symlink('file', '/root/file.lnk')
+
+    assert sftp.sftp_readlink(link_path) == path
+    assert sftp.sftp_readlink(
+        'sftp://username@host//root/file.lnk'
+    ) == 'sftp://username@host//root/file'
+
+
 def test_sftp_absolute(sftp_mocker):
     assert sftp.sftp_absolute(
         'sftp://username@host//dir/../file') == 'sftp://username@host//file'

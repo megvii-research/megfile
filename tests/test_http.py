@@ -24,7 +24,7 @@ class FakeResponse:
     @property
     def headers(self):
         return {
-            "Content-Length": '999',
+            "Content-Length": '4',
             'Content-Type': 'test/test',
             "Last-Modified": "Wed, 24 Nov 2021 07:18:41 GMT"
         }
@@ -92,6 +92,50 @@ def test_http_open(mocker):
     ) == 'Unknown error encountered: \'http://test\', error: requests.exceptions.ReadTimeout(\'test\')'
 
 
+def test_http_open_range(mocker):
+    requests_get_func = mocker.patch('requests.Session.get')
+    requests_get_mocker = mocker.patch('requests.get')
+
+    class FakeResponse200Range(FakeResponse):
+        status_code = 200
+
+        def __init__(self, headers=None):
+            self._content = b'test'
+            if headers and headers.get('Range'):
+                start, end = list(
+                    map(int, headers['Range'].replace('bytes=', '').split('-')))
+                self._content = self._content[start:end + 1]
+
+        @property
+        def raw(self):
+            return BytesIO(self._content)
+
+        @property
+        def headers(self):
+            return {
+                "Content-Length": '4',
+                'Content-Type': 'test/test',
+                "Last-Modified": "Wed, 24 Nov 2021 07:18:41 GMT",
+                'Accept-Ranges': 'bytes',
+            }
+
+        @property
+        def content(self):
+            return self._content
+
+        @property
+        def cookies(self):
+            return {}
+
+    def fake_get(*args, headers=None, **kwargs):
+        return FakeResponse200Range(headers)
+
+    requests_get_func.return_value = FakeResponse200Range()
+    requests_get_mocker.side_effect = fake_get
+    with http_open('http://test', 'rb', block_size=1) as f:
+        f.read() == b'test'
+
+
 def test_http_getsize(mocker):
 
     requests_get_func = mocker.patch('requests.Session.get')
@@ -100,7 +144,7 @@ def test_http_getsize(mocker):
         status_code = 200
 
     requests_get_func.return_value = FakeResponse200()
-    assert http_getsize('http://test') == 999
+    assert http_getsize('http://test') == 4
 
 
 def test_http_getmtime(mocker):
@@ -128,7 +172,7 @@ def test_http_getstat(mocker):
     assert stat.mtime == time.mktime(
         time.strptime(
             "Wed, 24 Nov 2021 07:18:41 GMT", "%a, %d %b %Y %H:%M:%S %Z"))
-    assert stat.size == 999
+    assert stat.size == 4
     assert stat.st_ino == 0
 
     class FakeResponse404(FakeResponse):

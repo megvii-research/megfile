@@ -15,13 +15,12 @@ import paramiko
 from megfile.errors import SameFileError, _create_missing_ok_generator, patch_method
 from megfile.interfaces import ContextIterator, FileEntry, PathLike, StatResult
 from megfile.lib.compare import is_same_file
+from megfile.lib.compat import fspath
 from megfile.lib.glob import FSFunc, iglob
 from megfile.lib.joinpath import uri_join
-from megfile.utils import calculate_md5, thread_local
-
-from .interfaces import PathLike, URIPath
-from .lib.compat import fspath
-from .smart_path import SmartPath
+from megfile.pathlike import PathLike, URIPath
+from megfile.smart_path import SmartPath
+from megfile.utils import cachedproperty, calculate_md5, thread_local
 
 _logger = get_logger(__name__)
 
@@ -533,6 +532,19 @@ class SftpPath(URIPath):
             self._root_dir = self._client.normalize('.')
         self._real_path = os.path.join(self._root_dir, parts.path.lstrip('/'))
 
+    @cachedproperty
+    def parts(self) -> Tuple[str]:
+        '''A tuple giving access to the path’s various components'''
+        if self._urlsplit_parts.path.startswith('//'):
+            new_parts = self._urlsplit_parts._replace(path='//')
+        else:
+            new_parts = self._urlsplit_parts._replace(path='/')
+        parts = [urlunsplit(new_parts)]
+        path = self._urlsplit_parts.path.lstrip('/')
+        if path != '':
+            parts.extend(path.split('/'))
+        return tuple(parts)
+
     @property
     def _client(self):
         return get_sftp_client(
@@ -548,6 +560,8 @@ class SftpPath(URIPath):
         else:
             sftp_local_path = os.path.relpath(
                 sftp_local_path, start=self._root_dir)
+            if sftp_local_path == ".":
+                sftp_local_path = "/"
         new_parts = self._urlsplit_parts._replace(path=sftp_local_path)
         return self.from_path(urlunsplit(new_parts))
 

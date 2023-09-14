@@ -114,3 +114,49 @@ def test_sftp_realpath_relative(fs, mocker):
     mocker.patch('megfile.sftp_path.get_sftp_client', return_value=client)
     assert SftpPath(
         'sftp://username@host/A/B/C')._real_path == '/home/username/A/B/C'
+
+
+def test_generate_path_object(fs, mocker):
+
+    class FakeSFTPClient2(FakeSFTPClient):
+
+        def normalize(self, path):
+            if path == '.':
+                return '/root'
+            return os.path.relpath(path, start='/root')
+
+    client = FakeSFTPClient2()
+    mocker.patch('megfile.sftp_path.get_sftp_client', return_value=client)
+
+    assert SftpPath('sftp://username@host/A/B/C')._generate_path_object(
+        '/root/A/B/C/D').path_with_protocol == 'sftp://username@host/A/B/C/D'
+    assert SftpPath('sftp://username@host//root/A/B/C')._generate_path_object(
+        '/root/A/B/C/D'
+    ).path_with_protocol == 'sftp://username@host//root/A/B/C/D'
+    assert SftpPath('sftp://username@host/A/B/C')._generate_path_object(
+        '/D', resolve=True).path_with_protocol == 'sftp://username@host//D'
+    assert SftpPath('sftp://username@host//A/B/C')._generate_path_object(
+        '/D').path_with_protocol == 'sftp://username@host//D'
+    assert SftpPath('sftp://username@host//A/B/C')._generate_path_object(
+        '/root').path_with_protocol == 'sftp://username@host//root'
+    assert SftpPath('sftp://username@host/A/B/C')._generate_path_object(
+        '/root').path_with_protocol == 'sftp://username@host/'
+    assert SftpPath('sftp://username@host//A/B/C')._generate_path_object(
+        '/').path_with_protocol == 'sftp://username@host//'
+
+
+def test_parts(sftp_mocker):
+    assert SftpPath('sftp://username@host//A/B/C').parts == (
+        'sftp://username@host//',
+        'A',
+        'B',
+        'C',
+    )
+    assert SftpPath('sftp://username@host/A/B/C').parts == (
+        'sftp://username@host/',
+        'A',
+        'B',
+        'C',
+    )
+    assert SftpPath('sftp://username@host//').parts == (
+        'sftp://username@host//',)

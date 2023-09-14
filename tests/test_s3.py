@@ -17,7 +17,7 @@ from mock import patch
 from moto import mock_s3
 
 from megfile import s3, s3_path, smart
-from megfile.errors import S3BucketNotFoundError, S3FileNotFoundError, S3IsADirectoryError, S3NameTooLongError, S3NotALinkError, S3PermissionError, S3UnknownError, UnknownError, UnsupportedError, translate_s3_error
+from megfile.errors import S3BucketNotFoundError, S3FileNotFoundError, S3IsADirectoryError, S3NameTooLongError, S3NotALinkError, S3PermissionError, S3UnknownError, SameFileError, UnknownError, UnsupportedError, translate_s3_error
 from megfile.interfaces import Access, FileEntry, StatResult
 from megfile.s3_path import DEFAULT_MAX_BUFFER_SIZE, S3CachedHandler, S3MemoryHandler, _group_s3path_by_bucket, _group_s3path_by_prefix, _list_objects_recursive, _parse_s3_url_ignore_brace, _patch_make_request, _s3_split_magic, _s3_split_magic_ignore_brace
 
@@ -291,13 +291,16 @@ def test_get_s3_client(mocker):
 @patch.dict(
     os.environ, {
         "AWS_S3_ADDRESSING_STYLE": "virtual",
+        "TEST__AWS_S3_ADDRESSING_STYLE": "auto",
         "AWS_ACCESS_KEY_ID": "test",
         "AWS_SECRET_ACCESS_KEY": "test"
     })
 def test_get_s3_client_v2(mocker):
-    client = s3.get_s3_client()
-    assert client._client_config._user_provided_options['s3'][
+    assert s3.get_s3_client()._client_config._user_provided_options['s3'][
         'addressing_style'] == 'virtual'
+    assert s3.get_s3_client(
+        profile_name='test'
+    )._client_config._user_provided_options['s3']['addressing_style'] == 'auto'
 
     client = s3.get_s3_client(
         config=botocore.config.Config(max_pool_connections=1))
@@ -636,7 +639,7 @@ def test_s3_isfile(s3_setup):
 def test_s3_isdir(s3_setup):
     assert s3.s3_isdir('s3://') is True  # root
     assert s3.s3_isdir('s3://bucketB') is True  # empty bucket
-    assert s3.s3_isdir('s3://bucketA/folderAA') is True  # commonperfixes
+    assert s3.s3_isdir('s3://bucketA/folderAA/') is True  # commonperfixes
     assert s3.s3_isdir('s3://bucketA/folderAA/folderAAA') is True  # context
     assert s3.s3_isdir('s3://bucketA/fileAA') is False  # file
     assert s3.s3_isdir('s3://bucketA/notExistFolder') is False
@@ -699,6 +702,9 @@ def test_s3_copy(s3_empty_client):
         Bucket='bucket', Key='result')['Body'].read().decode("utf-8")
 
     assert body == 'value'
+
+    with pytest.raises(SameFileError):
+        s3.s3_copy('s3://bucket/key', 's3://bucket/key', followlinks=True)
 
 
 @pytest.mark.skipif(sys.version_info < (3, 6), reason="Python3.6+")
