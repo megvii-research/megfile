@@ -172,7 +172,11 @@ def get_access_token(profile_name=None):
     if access_key and secret_key:
         return access_key, secret_key
 
-    credentials = get_s3_session(profile_name=profile_name).get_credentials()
+    try:
+        credentials = get_s3_session(
+            profile_name=profile_name).get_credentials()
+    except botocore.exceptions.ProfileNotFound:
+        credentials = None
     if credentials:
         if not access_key:
             access_key = credentials.access_key
@@ -208,7 +212,7 @@ def get_s3_client(
             cache_key, get_s3_client, config=config, profile_name=profile_name)
 
     access_key, secret_key = get_access_token(profile_name)
-    client = get_s3_session(profile_name=profile_name).client(
+    client = get_s3_session().client(
         's3',
         endpoint_url=get_endpoint_url(profile_name=profile_name),
         config=config,

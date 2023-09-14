@@ -153,8 +153,9 @@ class HttpPath(URIPath):
                 response.close()
             raise translate_http_error(error, self.path_with_protocol)
 
-        if response.headers.get('Accept-Ranges') == 'bytes':
-            content_size = int(response.headers['Content-Length'])
+        content_size = int(response.headers['Content-Length'])
+        if response.headers.get(
+                'Accept-Ranges') == 'bytes' and content_size >= block_size * 2:
             response.close()
 
             block_capacity = max_buffer_size // block_size
