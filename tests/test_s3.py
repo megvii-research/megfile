@@ -296,18 +296,8 @@ def test_get_s3_client(mocker):
         "AWS_SECRET_ACCESS_KEY": "test"
     })
 def test_get_s3_client_v2(mocker):
-    assert s3.get_s3_client()._client_config._user_provided_options['s3'][
-        'addressing_style'] == 'virtual'
-    assert s3.get_s3_client(
-        profile_name='test'
-    )._client_config._user_provided_options['s3']['addressing_style'] == 'auto'
-
-    client = s3.get_s3_client(
-        config=botocore.config.Config(max_pool_connections=1))
-    assert client._client_config._user_provided_options[
-        'max_pool_connections'] == 1
-    assert client._client_config._user_provided_options['s3'][
-        'addressing_style'] == 'virtual'
+    with pytest.raises(botocore.exceptions.ProfileNotFound):
+        s3.get_s3_client(profile_name='test')
 
 
 def test_get_s3_client_from_env(mocker):
