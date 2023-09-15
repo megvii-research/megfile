@@ -1,3 +1,12 @@
+## 2.2.5 - 2023.09.15
+- perf
+    - Increase `connect_timeout` config in s3
+    - perf http open when web api support `Accept-Range` but not bigger than block size.
+    - add retry for more errors
+- fix
+    - fix `SftpPath.parts`
+    - fix s3 `ProfileNotFound` error when profile_name not in the config file
+
 ## 2.2.4.post1 - 2023.09.04
 - fix
     - fix sftp readlink
