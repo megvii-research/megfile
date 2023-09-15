@@ -91,13 +91,12 @@
 <span class="kn">from</span> <span class="nn">megfile.errors</span> <span class="kn">import</span> <span class="n">SameFileError</span><span class="p">,</span> <span class="n">_create_missing_ok_generator</span><span class="p">,</span> <span class="n">patch_method</span>
 <span class="kn">from</span> <span class="nn">megfile.interfaces</span> <span class="kn">import</span> <span class="n">ContextIterator</span><span class="p">,</span> <span class="n">FileEntry</span><span class="p">,</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">StatResult</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.compare</span> <span class="kn">import</span> <span class="n">is_same_file</span>
+<span class="kn">from</span> <span class="nn">megfile.lib.compat</span> <span class="kn">import</span> <span class="n">fspath</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.glob</span> <span class="kn">import</span> <span class="n">FSFunc</span><span class="p">,</span> <span class="n">iglob</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.joinpath</span> <span class="kn">import</span> <span class="n">uri_join</span>
-<span class="kn">from</span> <span class="nn">megfile.utils</span> <span class="kn">import</span> <span class="n">calculate_md5</span><span class="p">,</span> <span class="n">thread_local</span>
-
-<span class="kn">from</span> <span class="nn">.interfaces</span> <span class="kn">import</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">URIPath</span>
-<span class="kn">from</span> <span class="nn">.lib.compat</span> <span class="kn">import</span> <span class="n">fspath</span>
-<span class="kn">from</span> <span class="nn">.smart_path</span> <span class="kn">import</span> <span class="n">SmartPath</span>
+<span class="kn">from</span> <span class="nn">megfile.pathlike</span> <span class="kn">import</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">URIPath</span>
+<span class="kn">from</span> <span class="nn">megfile.smart_path</span> <span class="kn">import</span> <span class="n">SmartPath</span>
+<span class="kn">from</span> <span class="nn">megfile.utils</span> <span class="kn">import</span> <span class="n">cachedproperty</span><span class="p">,</span> <span class="n">calculate_md5</span><span class="p">,</span> <span class="n">thread_local</span>
 
 <span class="n">_logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -609,6 +608,19 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_root_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_real_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_root_dir</span><span class="p">,</span> <span class="n">parts</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">))</span>
 
+<div class="viewcode-block" id="SftpPath.parts"><a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.SftpPath.parts">[docs]</a>    <span class="nd">@cachedproperty</span>
+    <span class="k">def</span> <span class="nf">parts</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;A tuple giving access to the path’s various components&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_urlsplit_parts</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;//&#39;</span><span class="p">):</span>
+            <span class="n">new_parts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_urlsplit_parts</span><span class="o">.</span><span class="n">_replace</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s1">&#39;//&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">new_parts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_urlsplit_parts</span><span class="o">.</span><span class="n">_replace</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+        <span class="n">parts</span> <span class="o">=</span> <span class="p">[</span><span class="n">urlunsplit</span><span class="p">(</span><span class="n">new_parts</span><span class="p">)]</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_urlsplit_parts</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">path</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+            <span class="n">parts</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span></div>
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_client</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">get_sftp_client</span><span class="p">(</span>
@@ -624,6 +636,8 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">sftp_local_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">relpath</span><span class="p">(</span>
                 <span class="n">sftp_local_path</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_root_dir</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">sftp_local_path</span> <span class="o">==</span> <span class="s2">&quot;.&quot;</span><span class="p">:</span>
+                <span class="n">sftp_local_path</span> <span class="o">=</span> <span class="s2">&quot;/&quot;</span>
         <span class="n">new_parts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_urlsplit_parts</span><span class="o">.</span><span class="n">_replace</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">sftp_local_path</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">urlunsplit</span><span class="p">(</span><span class="n">new_parts</span><span class="p">))</span>
 
@@ -1136,8 +1150,10 @@
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_symlink</span><span class="p">():</span>
             <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="s1">&#39;Not a symlink: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_path_object</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">readlink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_real_path</span><span class="p">))</span></div>
+        <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">readlink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_real_path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_path_object</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="SftpPath.is_symlink"><a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.SftpPath.is_symlink">[docs]</a>    <span class="k">def</span> <span class="nf">is_symlink</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;Test whether a path is a symbolic link</span>

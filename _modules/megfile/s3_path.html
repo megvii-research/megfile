@@ -248,7 +248,11 @@
     <span class="k">if</span> <span class="n">access_key</span> <span class="ow">and</span> <span class="n">secret_key</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">access_key</span><span class="p">,</span> <span class="n">secret_key</span>
 
-    <span class="n">credentials</span> <span class="o">=</span> <span class="n">get_s3_session</span><span class="p">(</span><span class="n">profile_name</span><span class="o">=</span><span class="n">profile_name</span><span class="p">)</span><span class="o">.</span><span class="n">get_credentials</span><span class="p">()</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">credentials</span> <span class="o">=</span> <span class="n">get_s3_session</span><span class="p">(</span>
+            <span class="n">profile_name</span><span class="o">=</span><span class="n">profile_name</span><span class="p">)</span><span class="o">.</span><span class="n">get_credentials</span><span class="p">()</span>
+    <span class="k">except</span> <span class="n">botocore</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">ProfileNotFound</span><span class="p">:</span>
+        <span class="n">credentials</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="n">credentials</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">access_key</span><span class="p">:</span>
             <span class="n">access_key</span> <span class="o">=</span> <span class="n">credentials</span><span class="o">.</span><span class="n">access_key</span>
@@ -266,9 +270,9 @@
 <span class="sd">    :returns: S3 client</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">if</span> <span class="n">config</span><span class="p">:</span>
-        <span class="n">config</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">botocore</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">Config</span><span class="p">(</span><span class="n">connect_timeout</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">botocore</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">Config</span><span class="p">(</span><span class="n">connect_timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">config</span> <span class="o">=</span> <span class="n">botocore</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">Config</span><span class="p">(</span><span class="n">connect_timeout</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="n">botocore</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">Config</span><span class="p">(</span><span class="n">connect_timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
 
     <span class="n">addressing_style_env_key</span> <span class="o">=</span> <span class="s1">&#39;AWS_S3_ADDRESSING_STYLE&#39;</span>
     <span class="k">if</span> <span class="n">profile_name</span><span class="p">:</span>
@@ -284,7 +288,11 @@
             <span class="n">cache_key</span><span class="p">,</span> <span class="n">get_s3_client</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="n">profile_name</span><span class="o">=</span><span class="n">profile_name</span><span class="p">)</span>
 
     <span class="n">access_key</span><span class="p">,</span> <span class="n">secret_key</span> <span class="o">=</span> <span class="n">get_access_token</span><span class="p">(</span><span class="n">profile_name</span><span class="p">)</span>
-    <span class="n">client</span> <span class="o">=</span> <span class="n">get_s3_session</span><span class="p">(</span><span class="n">profile_name</span><span class="o">=</span><span class="n">profile_name</span><span class="p">)</span><span class="o">.</span><span class="n">client</span><span class="p">(</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">session</span> <span class="o">=</span> <span class="n">get_s3_session</span><span class="p">(</span><span class="n">profile_name</span><span class="o">=</span><span class="n">profile_name</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">botocore</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">ProfileNotFound</span><span class="p">:</span>
+        <span class="n">session</span> <span class="o">=</span> <span class="n">get_s3_session</span><span class="p">()</span>
+    <span class="n">client</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">client</span><span class="p">(</span>
         <span class="s1">&#39;s3&#39;</span><span class="p">,</span>
         <span class="n">endpoint_url</span><span class="o">=</span><span class="n">get_endpoint_url</span><span class="p">(</span><span class="n">profile_name</span><span class="o">=</span><span class="n">profile_name</span><span class="p">),</span>
         <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span>
