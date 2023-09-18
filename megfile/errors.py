@@ -41,11 +41,17 @@ __all__ = [
 _logger = getLogger(__name__)
 
 
-def s3_endpoint_url():
+def s3_endpoint_url(path: Optional[str] = None):
     from megfile.s3 import get_endpoint_url, get_s3_client
-    endpoint_url = get_endpoint_url()
+    from megfile.s3_path import S3Path
+
+    profile_name = None
+    if path:
+        profile_name = S3Path(path)._profile_name
+    endpoint_url = get_endpoint_url(profile_name=profile_name)
     if endpoint_url is None:
-        endpoint_url = get_s3_client().meta.endpoint_url
+        endpoint_url = get_s3_client(
+            profile_name=profile_name).meta.endpoint_url
     return endpoint_url
 
 
@@ -262,7 +268,7 @@ class S3InvalidRangeError(S3Exception):
 class S3UnknownError(S3Exception, UnknownError):
 
     def __init__(self, error: Exception, path: PathLike):
-        super().__init__(error, path, 'endpoint: %r' % s3_endpoint_url())
+        super().__init__(error, path, 'endpoint: %r' % s3_endpoint_url(path))
 
 
 class HttpException(Exception):
@@ -318,18 +324,18 @@ def translate_s3_error(s3_error: Exception, s3_url: PathLike) -> Exception:
             message = client_error_message(s3_error)
             return S3PermissionError(
                 'Permission denied: %r, code: %r, message: %r, endpoint: %r' %
-                (s3_url, code, message, s3_endpoint_url()))
+                (s3_url, code, message, s3_endpoint_url(s3_url)))
         if code in ('InvalidAccessKeyId', 'SignatureDoesNotMatch'):
             message = client_error_message(s3_error)
             return S3ConfigError(
                 'Invalid configuration: %r, code: %r, message: %r, endpoint: %r'
-                % (s3_url, code, message, s3_endpoint_url()))
+                % (s3_url, code, message, s3_endpoint_url(s3_url)))
         if code in ('InvalidRange'):
             return S3InvalidRangeError(
                 'Index out of range: %r, code: %r, message: %r, endpoint: %r' %
                 (
                     s3_url, code, client_error_message(s3_error),
-                    s3_endpoint_url()))
+                    s3_endpoint_url(s3_url)))
         return S3UnknownError(s3_error, s3_url)
     elif isinstance(s3_error, ParamValidationError):
         report = param_validation_error_report(s3_error)

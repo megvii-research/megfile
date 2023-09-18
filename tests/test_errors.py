@@ -175,6 +175,14 @@ def test_s3_endpoint_url(mocker):
             self.meta = FakeMeta()
             pass
 
-    mocker.patch('megfile.s3.get_endpoint_url', return_value=None)
+    def fake_get_endpoint_url(profile_name=None) -> str:
+        if profile_name:
+            return profile_name
+        return None
+
+    mocker.patch(
+        'megfile.s3.get_endpoint_url', side_effect=fake_get_endpoint_url)
     mocker.patch('megfile.s3.get_s3_client', return_value=Fake())
     assert s3_endpoint_url() == 'test'
+    assert s3_endpoint_url('s3+test1://') == 'test1'
+    assert s3_endpoint_url('s3+test2://') == 'test2'
