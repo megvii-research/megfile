@@ -6,6 +6,7 @@ import requests
 
 from megfile.errors import HttpFileNotFoundError, HttpPermissionError, UnknownError
 from megfile.http import get_http_session, http_exists, http_getmtime, http_getsize, http_open, http_stat, is_http
+from megfile.utils import cachedproperty
 
 
 def test_is_http():
@@ -17,7 +18,7 @@ def test_is_http():
 class FakeResponse:
     status_code = 0
 
-    @property
+    @cachedproperty
     def raw(self):
         return BytesIO(b'test')
 
@@ -57,7 +58,9 @@ def test_http_open(mocker):
         status_code = 200
 
     requests_get_func.return_value = FakeResponse200()
-    assert http_open('http://test', 'rb').read() == b'test'
+    with http_open('http://test', 'rb') as http_reader:
+        assert http_reader.read() == b'test'
+        assert http_reader.name == 'http://test'
 
     class FakeResponse404(FakeResponse):
         status_code = 404

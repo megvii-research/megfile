@@ -174,6 +174,7 @@ class HttpPath(URIPath):
                 block_size=block_size,
             )
         response.raw.auto_close = False
+        response.raw.name = self.path_with_protocol
         return BufferedReader(response.raw)
 
     def stat(self, follow_symlinks=True) -> StatResult:
