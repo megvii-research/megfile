@@ -1,3 +1,9 @@
+## 2.2.5.post1 - 2023.09.19
+- fix
+    - fix s3 error info of endpoint url
+    - fix `s3_open` when s3 path with custom profile name
+    - fix `SmartPath` extract protocol when path is inherited from `PurePath`
+
 ## 2.2.5 - 2023.09.15
 - perf
     - Increase `connect_timeout` config in s3
