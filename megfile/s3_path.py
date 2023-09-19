@@ -575,7 +575,8 @@ def s3_prefetch_open(
     '''
     if mode != 'rb':
         raise ValueError('unacceptable mode: %r' % mode)
-    s3_url = S3Path(s3_url)
+    if not isinstance(s3_url, S3Path):
+        s3_url = S3Path(s3_url)
     if followlinks:
         try:
             s3_url = s3_url.readlink()
@@ -624,7 +625,8 @@ def s3_share_cache_open(
     if mode != 'rb':
         raise ValueError('unacceptable mode: %r' % mode)
 
-    s3_url = S3Path(s3_url)
+    if not isinstance(s3_url, S3Path):
+        s3_url = S3Path(s3_url)
     if followlinks:
         try:
             s3_url = s3_url.readlink()
@@ -676,7 +678,8 @@ def s3_pipe_open(
     if mode[0] == 'r' and not S3Path(s3_url).is_file():
         raise S3FileNotFoundError('No such file: %r' % s3_url)
 
-    s3_url = S3Path(s3_url)
+    if not isinstance(s3_url, S3Path):
+        s3_url = S3Path(s3_url)
     if followlinks:
         try:
             s3_url = s3_url.readlink()
@@ -716,7 +719,8 @@ def s3_cached_open(
     '''
     if mode not in ('rb', 'wb', 'ab', 'rb+', 'wb+', 'ab+'):
         raise ValueError('unacceptable mode: %r' % mode)
-    s3_url = S3Path(s3_url)
+    if not isinstance(s3_url, S3Path):
+        s3_url = S3Path(s3_url)
     if followlinks:
         try:
             s3_url = s3_url.readlink()
@@ -768,7 +772,8 @@ def s3_buffered_open(
     '''
     if mode not in ('rb', 'wb', 'ab', 'rb+', 'wb+', 'ab+'):
         raise ValueError('unacceptable mode: %r' % mode)
-    s3_url = S3Path(s3_url)
+    if not isinstance(s3_url, S3Path):
+        s3_url = S3Path(s3_url)
     if followlinks:
         try:
             s3_url = s3_url.readlink()
@@ -858,7 +863,8 @@ def s3_memory_open(
     '''
     if mode not in ('rb', 'wb', 'ab', 'rb+', 'wb+', 'ab+'):
         raise ValueError('unacceptable mode: %r' % mode)
-    s3_url = S3Path(s3_url)
+    if not isinstance(s3_url, S3Path):
+        s3_url = S3Path(s3_url)
     if followlinks:
         try:
             s3_url = s3_url.readlink()
@@ -891,7 +897,8 @@ def s3_download(
     from megfile.fs import is_fs
     from megfile.fs_path import FSPath
 
-    src_url = S3Path(src_url)
+    if not isinstance(src_url, S3Path):
+        src_url = S3Path(src_url)
     if followlinks:
         try:
             src_url = src_url.readlink()
@@ -2171,7 +2178,7 @@ class S3Path(URIPath):
             s3_open_func: Callable[[str, str], BinaryIO] = s3_open,
             **kwargs) -> IO[AnyStr]:  # pytype: disable=signature-mismatch
         return s3_open_func(  # pytype: disable=wrong-keyword-args
-            self.path_with_protocol,
+            self,
             mode,
             encoding=encoding,
             errors=errors,
