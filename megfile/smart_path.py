@@ -56,9 +56,9 @@ class SmartPath(BasePath):
         elif isinstance(path, (BaseURIPath, SmartPath)):
             protocol = path.protocol
             path_without_protocol = str(path)
-        elif isinstance(path, PurePath):
-            protocol = "file"
-            path_without_protocol = str(path)
+        elif isinstance(path, (PurePath, BasePath)):
+            protocol, path_without_protocol = SmartPath._extract_protocol(
+                fspath(path))
         else:
             raise ProtocolNotFoundError('protocol not found: %r' % path)
         return protocol, path_without_protocol
