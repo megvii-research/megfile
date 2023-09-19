@@ -1,7 +1,9 @@
 import atexit
+import fcntl
 import hashlib
 import io
 import os
+import random
 import shlex
 import socket
 import subprocess
@@ -43,6 +45,7 @@ SFTP_PASSWORD = "SFTP_PASSWORD"
 SFTP_PRIVATE_KEY_PATH = "SFTP_PRIVATE_KEY_PATH"
 SFTP_PRIVATE_KEY_TYPE = "SFTP_PRIVATE_KEY_TYPE"
 SFTP_PRIVATE_KEY_PASSWORD = "SFTP_PRIVATE_KEY_PASSWORD"
+SFTP_MAX_UNAUTH_CONN = "SFTP_MAX_UNAUTH_CONN"
 MAX_RETRIES = 10
 DEFAULT_SSH_CONNECT_TIMEOUT = 5
 DEFAULT_SSH_KEEPALIVE_INTERVAL = 15
@@ -194,6 +197,20 @@ def _get_ssh_client(
 
     ssh_client = paramiko.SSHClient()
     ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    max_unauth_connections = int(os.getenv(SFTP_MAX_UNAUTH_CONN, 10))
+    try:
+        fd = os.open(
+            os.path.join(
+                '/tmp',
+                f'megfile-sftp-{hostname}-{random.randint(1, max_unauth_connections)}'
+            ), os.O_WRONLY | os.O_CREAT | os.O_TRUNC)
+    except Exception:
+        _logger.warning(
+            "Can't create file lock in '/tmp', please control the SFTP concurrency count by yourself."
+        )
+        fd = None
+    if fd:
+        fcntl.flock(fd, fcntl.LOCK_EX)
     ssh_client.connect(
         hostname=hostname,
         username=username,
@@ -203,6 +220,9 @@ def _get_ssh_client(
         auth_timeout=DEFAULT_SSH_CONNECT_TIMEOUT,
         banner_timeout=DEFAULT_SSH_CONNECT_TIMEOUT,
     )
+    if fd:
+        fcntl.flock(fd, fcntl.LOCK_UN)
+        os.close(fd)
     atexit.register(ssh_client.close)
     return ssh_client
 
