@@ -43,6 +43,9 @@ class SmartPath(BasePath):
     @staticmethod
     def _extract_protocol(path: Union[PathLike, int]
                          ) -> Tuple[str, Union[str, int]]:
+        if isinstance(path, (PurePath, BasePath)):
+            path = str(path)
+
         if isinstance(path, int):
             protocol = "file"
             path_without_protocol = path
@@ -55,9 +58,6 @@ class SmartPath(BasePath):
                 path_without_protocol = path[len(protocol) + 3:]
         elif isinstance(path, (BaseURIPath, SmartPath)):
             protocol = path.protocol
-            path_without_protocol = str(path)
-        elif isinstance(path, PurePath):
-            protocol = "file"
             path_without_protocol = str(path)
         else:
             raise ProtocolNotFoundError('protocol not found: %r' % path)
