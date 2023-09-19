@@ -193,6 +193,13 @@ def get_s3_client(
 
     :returns: S3 client
     '''
+    if cache_key is not None:
+        return thread_local(
+            f"{cache_key}:{profile_name}",
+            get_s3_client,
+            config=config,
+            profile_name=profile_name)
+
     if config:
         config = config.merge(botocore.config.Config(connect_timeout=5))
     else:
@@ -206,10 +213,6 @@ def get_s3_client(
     if addressing_style:
         config = config.merge(
             botocore.config.Config(s3={'addressing_style': addressing_style}))
-
-    if cache_key is not None:
-        return thread_local(
-            cache_key, get_s3_client, config=config, profile_name=profile_name)
 
     access_key, secret_key = get_access_token(profile_name)
     try:
