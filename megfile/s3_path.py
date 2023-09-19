@@ -897,8 +897,8 @@ def s3_download(
     from megfile.fs import is_fs
     from megfile.fs_path import FSPath
 
-    if not isinstance(s3_url, S3Path):
-        s3_url = S3Path(s3_url)
+    if not isinstance(src_url, S3Path):
+        src_url = S3Path(src_url)
     if followlinks:
         try:
             src_url = src_url.readlink()

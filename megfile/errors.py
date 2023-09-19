@@ -41,7 +41,7 @@ __all__ = [
 _logger = getLogger(__name__)
 
 
-def s3_endpoint_url(path: Optional[str] = None):
+def s3_endpoint_url(path: Optional[PathLike] = None):
     from megfile.s3 import get_endpoint_url, get_s3_client
     from megfile.s3_path import S3Path
 
