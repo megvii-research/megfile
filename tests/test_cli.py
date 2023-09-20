@@ -60,7 +60,8 @@ def test_ls(runner, testdir):
     assert result_file.exit_code == 0
     assert result_file.output == "%s\n" % file_name
 
-    glob_result_file = runner.invoke(ls, [str(testdir / "*")])
+    os.chdir(testdir)
+    glob_result_file = runner.invoke(ls, ["*"])
     assert glob_result_file.exit_code == 0
     assert glob_result_file.output == "%s\n" % (file_name)
 
