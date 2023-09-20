@@ -8,7 +8,14 @@ from megfile.interfaces import Readable, Seekable, Writable
 
 class S3MemoryHandler(Readable, Seekable, Writable):
 
-    def __init__(self, bucket: str, key: str, mode: str, *, s3_client):
+    def __init__(
+            self,
+            bucket: str,
+            key: str,
+            mode: str,
+            *,
+            s3_client,
+            profile_name: Optional[str] = None):
 
         assert mode in ('rb', 'wb', 'ab', 'rb+', 'wb+', 'ab+')
 
@@ -16,13 +23,16 @@ class S3MemoryHandler(Readable, Seekable, Writable):
         self._key = key
         self._mode = mode
         self._client = s3_client
+        self._profile_name = profile_name
 
         self._fileobj = BytesIO()
         self._download_fileobj()
 
     @property
     def name(self) -> str:
-        return 's3://%s/%s' % (self._bucket, self._key)
+        return 's3%s://%s/%s' % (
+            f"+{self._profile_name}" if self._profile_name else "",
+            self._bucket, self._key)
 
     @property
     def mode(self) -> str:

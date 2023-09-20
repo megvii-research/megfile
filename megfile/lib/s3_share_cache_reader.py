@@ -34,7 +34,8 @@ class S3ShareCacheReader(S3PrefetchReader):
             block_forward: Optional[int] = None,
             max_retries: int = 10,
             cache_key: str = 'lru',
-            max_workers: Optional[int] = None):
+            max_workers: Optional[int] = None,
+            profile_name: Optional[str] = None):
 
         self._cache_key = cache_key
 
@@ -47,6 +48,7 @@ class S3ShareCacheReader(S3PrefetchReader):
             block_forward=block_forward,
             max_retries=max_retries,
             max_workers=max_workers,
+            profile_name=profile_name,
         )
 
     def _get_block_forward(

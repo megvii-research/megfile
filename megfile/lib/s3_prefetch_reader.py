@@ -34,11 +34,13 @@ class S3PrefetchReader(BasePrefetchReader):
             block_capacity: int = DEFAULT_BLOCK_CAPACITY,
             block_forward: Optional[int] = None,
             max_retries: int = 10,
-            max_workers: Optional[int] = None):
+            max_workers: Optional[int] = None,
+            profile_name: Optional[str] = None):
 
         self._bucket = bucket
         self._key = key
         self._client = s3_client
+        self._profile_name = profile_name
 
         super().__init__(
             block_size=block_size,
@@ -68,7 +70,9 @@ class S3PrefetchReader(BasePrefetchReader):
 
     @property
     def name(self) -> str:
-        return 's3://%s/%s' % (self._bucket, self._key)
+        return 's3%s://%s/%s' % (
+            f"+{self._profile_name}" if self._profile_name else "",
+            self._bucket, self._key)
 
     def _fetch_response(
             self, start: Optional[int] = None,
