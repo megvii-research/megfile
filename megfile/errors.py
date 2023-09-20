@@ -110,7 +110,7 @@ def s3_should_retry(error: Exception) -> bool:
     if isinstance(error, botocore.exceptions.ClientError):
         return client_error_code(error) in (
             '500', '501', '502', '503', 'InternalError', 'ServiceUnavailable',
-            'SlowDown')
+            'SlowDown', 'ContextCanceled')
     return False
 
 
