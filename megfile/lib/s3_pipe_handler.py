@@ -33,7 +33,8 @@ class S3PipeHandler(Readable, Writable):
             mode: str,
             *,
             s3_client,
-            join_thread: bool = True):
+            join_thread: bool = True,
+            profile_name: Optional[str] = None):
 
         assert mode in ('rb', 'wb')
 
@@ -43,6 +44,7 @@ class S3PipeHandler(Readable, Writable):
         self._client = s3_client
         self._join_thread = join_thread
         self._offset = 0
+        self._profile_name = profile_name
 
         self._exc = None
         self._pipe = os.pipe()
@@ -59,7 +61,9 @@ class S3PipeHandler(Readable, Writable):
 
     @property
     def name(self) -> str:
-        return 's3://%s/%s' % (self._bucket, self._key)
+        return 's3%s://%s/%s' % (
+            f"+{self._profile_name}" if self._profile_name else "",
+            self._bucket, self._key)
 
     @property
     def mode(self) -> str:

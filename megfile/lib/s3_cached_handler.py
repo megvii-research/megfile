@@ -17,7 +17,8 @@ class S3CachedHandler(S3MemoryHandler):
             *,
             s3_client,
             cache_path: Optional[str] = None,
-            remove_cache_when_open: bool = True):
+            remove_cache_when_open: bool = True,
+            profile_name: Optional[str] = None):
 
         assert mode in ('rb', 'wb', 'ab', 'rb+', 'wb+', 'ab+')
 
@@ -25,6 +26,7 @@ class S3CachedHandler(S3MemoryHandler):
         self._key = key
         self._mode = mode
         self._client = s3_client
+        self._profile_name = profile_name
 
         if cache_path is None:
             cache_path = generate_cache_path(self.name)

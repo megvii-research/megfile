@@ -598,7 +598,8 @@ def s3_prefetch_open(
         s3_client=client,
         max_retries=max_retries,
         max_workers=max_concurrency,
-        block_size=max_block_size)
+        block_size=max_block_size,
+        profile_name=s3_url._profile_name)
 
 
 @_s3_binary_mode
@@ -649,7 +650,8 @@ def s3_share_cache_open(
         s3_client=client,
         max_retries=max_retries,
         max_workers=max_concurrency,
-        block_size=max_block_size)
+        block_size=max_block_size,
+        profile_name=s3_url._profile_name)
 
 
 @_s3_binary_mode
@@ -696,7 +698,12 @@ def s3_pipe_open(
         cache_key='s3_filelike_client',
         profile_name=s3_url._profile_name)
     return S3PipeHandler(
-        bucket, key, mode, s3_client=client, join_thread=join_thread)
+        bucket,
+        key,
+        mode,
+        s3_client=client,
+        join_thread=join_thread,
+        profile_name=s3_url._profile_name)
 
 
 @_s3_binary_mode
@@ -737,7 +744,12 @@ def s3_cached_open(
         cache_key='s3_filelike_client',
         profile_name=s3_url._profile_name)
     return S3CachedHandler(
-        bucket, key, mode, s3_client=client, cache_path=cache_path)
+        bucket,
+        key,
+        mode,
+        s3_client=client,
+        cache_path=cache_path,
+        profile_name=s3_url._profile_name)
 
 
 @_s3_binary_mode
@@ -792,9 +804,19 @@ def s3_buffered_open(
 
     if 'a' in mode or '+' in mode:
         if cache_path is None:
-            return S3MemoryHandler(bucket, key, mode, s3_client=client)
+            return S3MemoryHandler(
+                bucket,
+                key,
+                mode,
+                s3_client=client,
+                profile_name=s3_url._profile_name)
         return S3CachedHandler(
-            bucket, key, mode, s3_client=client, cache_path=cache_path)
+            bucket,
+            key,
+            mode,
+            s3_client=client,
+            cache_path=cache_path,
+            profile_name=s3_url._profile_name)
 
     if mode == 'rb':
         # A rough conversion algorithm to align 2 types of Reader / Writer parameters
@@ -813,7 +835,8 @@ def s3_buffered_open(
                 max_retries=max_retries,
                 max_workers=max_concurrency,
                 block_size=block_size,
-                block_forward=block_forward)
+                block_forward=block_forward,
+                profile_name=s3_url._profile_name)
         else:
             reader = S3PrefetchReader(
                 bucket,
@@ -823,7 +846,8 @@ def s3_buffered_open(
                 max_workers=max_concurrency,
                 block_capacity=block_capacity,
                 block_forward=block_forward,
-                block_size=block_size)
+                block_size=block_size,
+                profile_name=s3_url._profile_name)
         if buffered:
             reader = io.BufferedReader(reader)  # pytype: disable=wrong-arg-types
         return reader
@@ -835,7 +859,8 @@ def s3_buffered_open(
             s3_client=client,
             max_workers=max_concurrency,
             max_buffer_size=max_buffer_size,
-            block_size=block_size)
+            block_size=block_size,
+            profile_name=s3_url._profile_name)
     else:
         writer = S3BufferedWriter(
             bucket,
@@ -843,7 +868,8 @@ def s3_buffered_open(
             s3_client=client,
             max_workers=max_concurrency,
             max_buffer_size=max_buffer_size,
-            block_size=block_size)
+            block_size=block_size,
+            profile_name=s3_url._profile_name)
     if buffered:
         writer = io.BufferedWriter(writer)  # pytype: disable=wrong-arg-types
     return writer
@@ -880,7 +906,8 @@ def s3_memory_open(
         config=config,
         cache_key='s3_filelike_client',
         profile_name=s3_url._profile_name)
-    return S3MemoryHandler(bucket, key, mode, s3_client=client)
+    return S3MemoryHandler(
+        bucket, key, mode, s3_client=client, profile_name=s3_url._profile_name)
 
 
 s3_open = s3_buffered_open

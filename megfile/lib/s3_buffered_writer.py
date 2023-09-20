@@ -52,11 +52,13 @@ class S3BufferedWriter(Writable):
             block_size: int = DEFAULT_BLOCK_SIZE,
             max_block_size: int = DEFAULT_MAX_BLOCK_SIZE,
             max_buffer_size: int = DEFAULT_MAX_BUFFER_SIZE,
-            max_workers: Optional[int] = None):
+            max_workers: Optional[int] = None,
+            profile_name: Optional[str] = None):
 
         self._bucket = bucket
         self._key = key
         self._client = s3_client
+        self._profile_name = profile_name
 
         self._block_size = block_size
         self._max_block_size = max_block_size
@@ -86,7 +88,9 @@ class S3BufferedWriter(Writable):
 
     @property
     def name(self) -> str:
-        return 's3://%s/%s' % (self._bucket, self._key)
+        return 's3%s://%s/%s' % (
+            f"+{self._profile_name}" if self._profile_name else "",
+            self._bucket, self._key)
 
     @property
     def mode(self) -> str:
