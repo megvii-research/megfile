@@ -32,34 +32,36 @@ def safe_cli():  # pragma: no cover
         click.echo(f"\n[{type(e).__name__}] {e}", err=True)
 
 
-def get_echo_path(file_stat, base_path: str = ""):
+def get_echo_path(file_stat, base_path: str = "", full_path: bool = False):
     if base_path == file_stat.path:
         path = file_stat.name
+    elif full_path:
+        path = file_stat.path
     else:
         path = os.path.relpath(file_stat.path, start=base_path)
     return path
 
 
-def simple_echo(file_stat, base_path: str = ""):
-    click.echo(get_echo_path(file_stat, base_path))
+def simple_echo(file_stat, base_path: str = "", full_path: bool = False):
+    click.echo(get_echo_path(file_stat, base_path, full_path))
 
 
-def long_echo(file_stat, base_path: str = ""):
+def long_echo(file_stat, base_path: str = "", full_path: bool = False):
     click.echo(
         '%12d %s %s' % (
             file_stat.stat.size,
             time.strftime(
                 "%Y-%m-%d %H:%M:%S", time.localtime(file_stat.stat.mtime)),
-            get_echo_path(file_stat, base_path)))
+            get_echo_path(file_stat, base_path, full_path)))
 
 
-def human_echo(file_stat, base_path: str = ""):
+def human_echo(file_stat, base_path: str = "", full_path: bool = False):
     click.echo(
         '%10s %s %s' % (
             get_human_size(file_stat.stat.size),
             time.strftime(
                 "%Y-%m-%d %H:%M:%S", time.localtime(file_stat.stat.mtime)),
-            get_echo_path(file_stat, base_path)))
+            get_echo_path(file_stat, base_path, full_path)))
 
 
 def smart_list_stat(path):
@@ -91,9 +93,11 @@ def smart_list_stat(path):
     help='Displays file sizes in human readable format.')
 def ls(path: str, long: bool, recursive: bool, human_readable: bool):
     base_path = path
+    full_path = False
     if has_magic(path):
         scan_func = smart_glob_stat
         base_path = get_non_glob_dir(path)
+        full_path = True
     elif recursive:
         scan_func = smart_scan_stat
     else:
@@ -107,7 +111,7 @@ def ls(path: str, long: bool, recursive: bool, human_readable: bool):
         echo_func = simple_echo
 
     for file_stat in scan_func(path):
-        echo_func(file_stat, base_path)
+        echo_func(file_stat, base_path, full_path=full_path)
 
 
 @cli.command(
