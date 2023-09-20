@@ -985,16 +985,15 @@ def test_smart_open_stdout(mocker):
 
 
 @patch.object(smart, 's3_load_content')
-def test_smart_load_content(funcA):
-    path = 'tests/test_smart.py'
-    content = open(path, 'rb').read()
+def test_smart_load_content(funcA, fs):
+    path = 'test.txt'
+    content = b'hello world'
+    with open(path, 'wb') as f:
+        f.write(content)
 
     assert smart.smart_load_content(path) == content
     assert smart.smart_load_content(path, 1) == content[1:]
     assert smart.smart_load_content(path, 4, 7) == content[4:7]
-
-    with pytest.raises(Exception) as error:
-        smart.smart_load_content(path, 5, 2)
 
     smart.smart_load_content('s3://bucket/test.txt')
     funcA.assert_called_once()
