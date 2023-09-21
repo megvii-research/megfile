@@ -11,7 +11,7 @@ from tqdm import tqdm
 
 from megfile.interfaces import FileEntry
 from megfile.lib.glob import get_non_glob_dir, has_magic
-from megfile.smart import _smart_sync_single_file, smart_copy, smart_getmd5, smart_getmtime, smart_getsize, smart_glob, smart_glob_stat, smart_isdir, smart_isfile, smart_makedirs, smart_move, smart_open, smart_path_join, smart_remove, smart_rename, smart_scan_stat, smart_scandir, smart_stat, smart_sync, smart_sync_with_progress, smart_touch, smart_unlink
+from megfile.smart import _smart_sync_single_file, smart_copy, smart_getmd5, smart_getmtime, smart_getsize, smart_glob_stat, smart_isdir, smart_isfile, smart_makedirs, smart_move, smart_open, smart_path_join, smart_remove, smart_rename, smart_scan_stat, smart_scandir, smart_stat, smart_sync, smart_sync_with_progress, smart_touch, smart_unlink
 from megfile.smart_path import SmartPath
 from megfile.utils import get_human_size
 from megfile.version import VERSION
@@ -275,19 +275,27 @@ def sync(
         force: bool, quiet: bool):
     with ThreadPoolExecutor(max_workers=worker) as executor:
         if has_magic(src_path):
-            scan_func = partial(
-                smart_glob_stat, recursive=True, missing_ok=False)
+            src_root_path = get_non_glob_dir(src_path)
+
+            def scan_func(path):
+                for glob_file_entry in smart_glob_stat(path):
+                    if glob_file_entry.is_file():
+                        yield glob_file_entry
+                    else:
+                        for file_entry in smart_scan_stat(glob_file_entry.path,
+                                                          followlinks=True):
+                            yield file_entry
         else:
-            scan_func = partial(
-                smart_scan_stat, missing_ok=False, followlinks=True)
+            src_root_path = src_path
+            scan_func = partial(smart_scan_stat, followlinks=True)
 
         if progress_bar and not quiet:
             print('building progress bar', end='\r')
             file_entries = []
-            total_size = 0
+            total_count = total_size = 0
             for total_count, file_entry in enumerate(scan_func(src_path),
                                                      start=1):
-                if total_count > 1024:
+                if total_count > 1024 * 128:
                     file_entries = []
                 else:
                     file_entries.append(file_entry)
@@ -323,7 +331,7 @@ def sync(
             executor.submit(
                 _smart_sync_single_file,
                 dict(
-                    src_root_path=src_path,
+                    src_root_path=src_root_path,
                     dst_root_path=dst_path,
                     src_file_path=file_entry.path,
                     callback=callback,
