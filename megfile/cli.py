@@ -4,13 +4,14 @@ import shutil
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
+from functools import partial
 
 import click
 from tqdm import tqdm
 
 from megfile.interfaces import FileEntry
 from megfile.lib.glob import get_non_glob_dir, has_magic
-from megfile.smart import smart_copy, smart_getmd5, smart_getmtime, smart_getsize, smart_glob, smart_glob_stat, smart_isdir, smart_isfile, smart_makedirs, smart_move, smart_open, smart_path_join, smart_remove, smart_rename, smart_scan_stat, smart_scandir, smart_stat, smart_sync, smart_sync_with_progress, smart_touch, smart_unlink
+from megfile.smart import _smart_sync_single_file, smart_copy, smart_getmd5, smart_getmtime, smart_getsize, smart_glob_stat, smart_isdir, smart_isfile, smart_makedirs, smart_move, smart_open, smart_path_join, smart_remove, smart_rename, smart_scan_stat, smart_scandir, smart_stat, smart_sync, smart_sync_with_progress, smart_touch, smart_unlink
 from megfile.smart_path import SmartPath
 from megfile.utils import get_human_size
 from megfile.version import VERSION
@@ -268,65 +269,81 @@ def rm(path: str, recursive: bool):
     '--force',
     is_flag=True,
     help='Copy files forcely, ignore same files.')
+@click.option('-q', '--quiet', is_flag=True, help='Not show any progress log.')
 def sync(
         src_path: str, dst_path: str, progress_bar: bool, worker: int,
-        force: bool):
+        force: bool, quiet: bool):
     with ThreadPoolExecutor(max_workers=worker) as executor:
         if has_magic(src_path):
-            root_dir = get_non_glob_dir(src_path)
-            path_stats = []
-            for dir_or_file in smart_glob(src_path, recursive=True,
-                                          missing_ok=True):
-                path_stats.extend(list(smart_scan_stat(dir_or_file)))
+            src_root_path = get_non_glob_dir(src_path)
 
-            if progress_bar:
-                tbar = tqdm(total=len(path_stats), ascii=True)
-                sbar = tqdm(
-                    unit='B', ascii=True, unit_scale=True, unit_divisor=1024)
-
-                def callback(_filename: str, length: int):
-                    sbar.update(length)
-
-                def callback_after_copy_file(src_file_path, dst_file_path):
-                    tbar.update(1)
-
-                smart_sync(
-                    root_dir,
-                    dst_path,
-                    callback=callback,
-                    callback_after_copy_file=callback_after_copy_file,
-                    src_file_stats=path_stats,
-                    map_func=executor.map,
-                    force=force,
-                    followlinks=True,
-                )
-
-                tbar.close()
-                sbar.close()
-            else:
-                smart_sync(
-                    root_dir,
-                    dst_path,
-                    src_file_stats=path_stats,
-                    map_func=executor.map,
-                    force=force,
-                    followlinks=True,
-                )
+            def scan_func(path):
+                for glob_file_entry in smart_glob_stat(path):
+                    if glob_file_entry.is_file():
+                        yield glob_file_entry
+                    else:
+                        for file_entry in smart_scan_stat(glob_file_entry.path,
+                                                          followlinks=True):
+                            yield file_entry
         else:
-            if progress_bar:
-                smart_sync_with_progress(
-                    src_path,
-                    dst_path,
+            src_root_path = src_path
+            scan_func = partial(smart_scan_stat, followlinks=True)
+
+        if progress_bar and not quiet:
+            print('building progress bar', end='\r')
+            file_entries = []
+            total_count = total_size = 0
+            for total_count, file_entry in enumerate(scan_func(src_path),
+                                                     start=1):
+                if total_count > 1024 * 128:
+                    file_entries = []
+                else:
+                    file_entries.append(file_entry)
+                total_size += file_entry.stat.size
+                print(
+                    f'building progress bar, find {total_count} files',
+                    end='\r')
+
+            if not file_entries:
+                file_entries = scan_func(src_path)
+        else:
+            total_count = total_size = None
+            file_entries = scan_func(src_path)
+
+        if quiet:
+            callback = callback_after_copy_file = None
+        else:
+            tbar = tqdm(total=total_count, ascii=True)
+            sbar = tqdm(
+                unit='B',
+                ascii=True,
+                unit_scale=True,
+                unit_divisor=1024,
+                total=total_size)
+
+            def callback(_filename: str, length: int):
+                sbar.update(length)
+
+            def callback_after_copy_file(src_file_path, dst_file_path):
+                tbar.update(1)
+
+        for file_entry in file_entries:
+            executor.submit(
+                _smart_sync_single_file,
+                dict(
+                    src_root_path=src_root_path,
+                    dst_root_path=dst_path,
+                    src_file_path=file_entry.path,
+                    callback=callback,
                     followlinks=True,
-                    map_func=executor.map,
-                    force=force)
-            else:
-                smart_sync(
-                    src_path,
-                    dst_path,
-                    followlinks=True,
-                    map_func=executor.map,
-                    force=force)
+                    callback_after_copy_file=callback_after_copy_file,
+                    force=force,
+                ))
+    if not quiet:
+        tbar.close()
+        if progress_bar:
+            sbar.update(sbar.total - sbar.n)
+        sbar.close()
 
 
 @cli.command(short_help="Make the path if it doesn't already exist.")
