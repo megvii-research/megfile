@@ -250,6 +250,7 @@
                 <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="n">response</span><span class="o">.</span><span class="n">raw</span><span class="o">.</span><span class="n">auto_close</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">response</span><span class="o">.</span><span class="n">raw</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span>
         <span class="k">return</span> <span class="n">BufferedReader</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">raw</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="HttpPath.stat"><a class="viewcode-back" href="../../megfile.http_path.html#megfile.HttpPath.stat">[docs]</a>    <span class="k">def</span> <span class="nf">stat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StatResult</span><span class="p">:</span>

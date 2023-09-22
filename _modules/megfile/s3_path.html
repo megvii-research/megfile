@@ -269,6 +269,13 @@
 
 <span class="sd">    :returns: S3 client</span>
 <span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="n">cache_key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">thread_local</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cache_key</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">profile_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">get_s3_client</span><span class="p">,</span>
+            <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span>
+            <span class="n">profile_name</span><span class="o">=</span><span class="n">profile_name</span><span class="p">)</span>
+
     <span class="k">if</span> <span class="n">config</span><span class="p">:</span>
         <span class="n">config</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">botocore</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">Config</span><span class="p">(</span><span class="n">connect_timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
@@ -282,10 +289,6 @@
     <span class="k">if</span> <span class="n">addressing_style</span><span class="p">:</span>
         <span class="n">config</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
             <span class="n">botocore</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">Config</span><span class="p">(</span><span class="n">s3</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;addressing_style&#39;</span><span class="p">:</span> <span class="n">addressing_style</span><span class="p">}))</span>
-
-    <span class="k">if</span> <span class="n">cache_key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">thread_local</span><span class="p">(</span>
-            <span class="n">cache_key</span><span class="p">,</span> <span class="n">get_s3_client</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="n">profile_name</span><span class="o">=</span><span class="n">profile_name</span><span class="p">)</span>
 
     <span class="n">access_key</span><span class="p">,</span> <span class="n">secret_key</span> <span class="o">=</span> <span class="n">get_access_token</span><span class="p">(</span><span class="n">profile_name</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
@@ -651,7 +654,8 @@
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">if</span> <span class="n">mode</span> <span class="o">!=</span> <span class="s1">&#39;rb&#39;</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;unacceptable mode: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span>
-    <span class="n">s3_url</span> <span class="o">=</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">s3_url</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s3_url</span><span class="p">,</span> <span class="n">S3Path</span><span class="p">):</span>
+        <span class="n">s3_url</span> <span class="o">=</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">s3_url</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">followlinks</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">s3_url</span> <span class="o">=</span> <span class="n">s3_url</span><span class="o">.</span><span class="n">readlink</span><span class="p">()</span>
@@ -670,7 +674,8 @@
         <span class="n">s3_client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span>
         <span class="n">max_retries</span><span class="o">=</span><span class="n">max_retries</span><span class="p">,</span>
         <span class="n">max_workers</span><span class="o">=</span><span class="n">max_concurrency</span><span class="p">,</span>
-        <span class="n">block_size</span><span class="o">=</span><span class="n">max_block_size</span><span class="p">)</span></div>
+        <span class="n">block_size</span><span class="o">=</span><span class="n">max_block_size</span><span class="p">,</span>
+        <span class="n">profile_name</span><span class="o">=</span><span class="n">s3_url</span><span class="o">.</span><span class="n">_profile_name</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="s3_share_cache_open"><a class="viewcode-back" href="../../megfile.s3.html#megfile.s3_share_cache_open">[docs]</a><span class="nd">@_s3_binary_mode</span>
@@ -700,7 +705,8 @@
     <span class="k">if</span> <span class="n">mode</span> <span class="o">!=</span> <span class="s1">&#39;rb&#39;</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;unacceptable mode: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span>
 
-    <span class="n">s3_url</span> <span class="o">=</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">s3_url</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s3_url</span><span class="p">,</span> <span class="n">S3Path</span><span class="p">):</span>
+        <span class="n">s3_url</span> <span class="o">=</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">s3_url</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">followlinks</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">s3_url</span> <span class="o">=</span> <span class="n">s3_url</span><span class="o">.</span><span class="n">readlink</span><span class="p">()</span>
@@ -720,7 +726,8 @@
         <span class="n">s3_client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span>
         <span class="n">max_retries</span><span class="o">=</span><span class="n">max_retries</span><span class="p">,</span>
         <span class="n">max_workers</span><span class="o">=</span><span class="n">max_concurrency</span><span class="p">,</span>
-        <span class="n">block_size</span><span class="o">=</span><span class="n">max_block_size</span><span class="p">)</span></div>
+        <span class="n">block_size</span><span class="o">=</span><span class="n">max_block_size</span><span class="p">,</span>
+        <span class="n">profile_name</span><span class="o">=</span><span class="n">s3_url</span><span class="o">.</span><span class="n">_profile_name</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="s3_pipe_open"><a class="viewcode-back" href="../../megfile.s3.html#megfile.s3_pipe_open">[docs]</a><span class="nd">@_s3_binary_mode</span>
@@ -752,7 +759,8 @@
     <span class="k">if</span> <span class="n">mode</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;r&#39;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">s3_url</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
         <span class="k">raise</span> <span class="n">S3FileNotFoundError</span><span class="p">(</span><span class="s1">&#39;No such file: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">s3_url</span><span class="p">)</span>
 
-    <span class="n">s3_url</span> <span class="o">=</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">s3_url</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s3_url</span><span class="p">,</span> <span class="n">S3Path</span><span class="p">):</span>
+        <span class="n">s3_url</span> <span class="o">=</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">s3_url</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">followlinks</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">s3_url</span> <span class="o">=</span> <span class="n">s3_url</span><span class="o">.</span><span class="n">readlink</span><span class="p">()</span>
@@ -766,7 +774,12 @@
         <span class="n">cache_key</span><span class="o">=</span><span class="s1">&#39;s3_filelike_client&#39;</span><span class="p">,</span>
         <span class="n">profile_name</span><span class="o">=</span><span class="n">s3_url</span><span class="o">.</span><span class="n">_profile_name</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">S3PipeHandler</span><span class="p">(</span>
-        <span class="n">bucket</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">s3_client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span> <span class="n">join_thread</span><span class="o">=</span><span class="n">join_thread</span><span class="p">)</span></div>
+        <span class="n">bucket</span><span class="p">,</span>
+        <span class="n">key</span><span class="p">,</span>
+        <span class="n">mode</span><span class="p">,</span>
+        <span class="n">s3_client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span>
+        <span class="n">join_thread</span><span class="o">=</span><span class="n">join_thread</span><span class="p">,</span>
+        <span class="n">profile_name</span><span class="o">=</span><span class="n">s3_url</span><span class="o">.</span><span class="n">_profile_name</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="s3_cached_open"><a class="viewcode-back" href="../../megfile.s3.html#megfile.s3_cached_open">[docs]</a><span class="nd">@_s3_binary_mode</span>
@@ -792,7 +805,8 @@
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">if</span> <span class="n">mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;rb&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">,</span> <span class="s1">&#39;ab&#39;</span><span class="p">,</span> <span class="s1">&#39;rb+&#39;</span><span class="p">,</span> <span class="s1">&#39;wb+&#39;</span><span class="p">,</span> <span class="s1">&#39;ab+&#39;</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;unacceptable mode: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span>
-    <span class="n">s3_url</span> <span class="o">=</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">s3_url</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s3_url</span><span class="p">,</span> <span class="n">S3Path</span><span class="p">):</span>
+        <span class="n">s3_url</span> <span class="o">=</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">s3_url</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">followlinks</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">s3_url</span> <span class="o">=</span> <span class="n">s3_url</span><span class="o">.</span><span class="n">readlink</span><span class="p">()</span>
@@ -806,7 +820,12 @@
         <span class="n">cache_key</span><span class="o">=</span><span class="s1">&#39;s3_filelike_client&#39;</span><span class="p">,</span>
         <span class="n">profile_name</span><span class="o">=</span><span class="n">s3_url</span><span class="o">.</span><span class="n">_profile_name</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">S3CachedHandler</span><span class="p">(</span>
-        <span class="n">bucket</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">s3_client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span> <span class="n">cache_path</span><span class="o">=</span><span class="n">cache_path</span><span class="p">)</span></div>
+        <span class="n">bucket</span><span class="p">,</span>
+        <span class="n">key</span><span class="p">,</span>
+        <span class="n">mode</span><span class="p">,</span>
+        <span class="n">s3_client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span>
+        <span class="n">cache_path</span><span class="o">=</span><span class="n">cache_path</span><span class="p">,</span>
+        <span class="n">profile_name</span><span class="o">=</span><span class="n">s3_url</span><span class="o">.</span><span class="n">_profile_name</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="s3_buffered_open"><a class="viewcode-back" href="../../megfile.s3.html#megfile.s3_buffered_open">[docs]</a><span class="nd">@_s3_binary_mode</span>
@@ -844,7 +863,8 @@
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">if</span> <span class="n">mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;rb&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">,</span> <span class="s1">&#39;ab&#39;</span><span class="p">,</span> <span class="s1">&#39;rb+&#39;</span><span class="p">,</span> <span class="s1">&#39;wb+&#39;</span><span class="p">,</span> <span class="s1">&#39;ab+&#39;</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;unacceptable mode: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span>
-    <span class="n">s3_url</span> <span class="o">=</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">s3_url</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s3_url</span><span class="p">,</span> <span class="n">S3Path</span><span class="p">):</span>
+        <span class="n">s3_url</span> <span class="o">=</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">s3_url</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">followlinks</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">s3_url</span> <span class="o">=</span> <span class="n">s3_url</span><span class="o">.</span><span class="n">readlink</span><span class="p">()</span>
@@ -860,9 +880,19 @@
 
     <span class="k">if</span> <span class="s1">&#39;a&#39;</span> <span class="ow">in</span> <span class="n">mode</span> <span class="ow">or</span> <span class="s1">&#39;+&#39;</span> <span class="ow">in</span> <span class="n">mode</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">cache_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">S3MemoryHandler</span><span class="p">(</span><span class="n">bucket</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">s3_client</span><span class="o">=</span><span class="n">client</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">S3MemoryHandler</span><span class="p">(</span>
+                <span class="n">bucket</span><span class="p">,</span>
+                <span class="n">key</span><span class="p">,</span>
+                <span class="n">mode</span><span class="p">,</span>
+                <span class="n">s3_client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span>
+                <span class="n">profile_name</span><span class="o">=</span><span class="n">s3_url</span><span class="o">.</span><span class="n">_profile_name</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">S3CachedHandler</span><span class="p">(</span>
-            <span class="n">bucket</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">s3_client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span> <span class="n">cache_path</span><span class="o">=</span><span class="n">cache_path</span><span class="p">)</span>
+            <span class="n">bucket</span><span class="p">,</span>
+            <span class="n">key</span><span class="p">,</span>
+            <span class="n">mode</span><span class="p">,</span>
+            <span class="n">s3_client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span>
+            <span class="n">cache_path</span><span class="o">=</span><span class="n">cache_path</span><span class="p">,</span>
+            <span class="n">profile_name</span><span class="o">=</span><span class="n">s3_url</span><span class="o">.</span><span class="n">_profile_name</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;rb&#39;</span><span class="p">:</span>
         <span class="c1"># A rough conversion algorithm to align 2 types of Reader / Writer parameters</span>
@@ -881,7 +911,8 @@
                 <span class="n">max_retries</span><span class="o">=</span><span class="n">max_retries</span><span class="p">,</span>
                 <span class="n">max_workers</span><span class="o">=</span><span class="n">max_concurrency</span><span class="p">,</span>
                 <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span><span class="p">,</span>
-                <span class="n">block_forward</span><span class="o">=</span><span class="n">block_forward</span><span class="p">)</span>
+                <span class="n">block_forward</span><span class="o">=</span><span class="n">block_forward</span><span class="p">,</span>
+                <span class="n">profile_name</span><span class="o">=</span><span class="n">s3_url</span><span class="o">.</span><span class="n">_profile_name</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">reader</span> <span class="o">=</span> <span class="n">S3PrefetchReader</span><span class="p">(</span>
                 <span class="n">bucket</span><span class="p">,</span>
@@ -891,7 +922,8 @@
                 <span class="n">max_workers</span><span class="o">=</span><span class="n">max_concurrency</span><span class="p">,</span>
                 <span class="n">block_capacity</span><span class="o">=</span><span class="n">block_capacity</span><span class="p">,</span>
                 <span class="n">block_forward</span><span class="o">=</span><span class="n">block_forward</span><span class="p">,</span>
-                <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span><span class="p">)</span>
+                <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span><span class="p">,</span>
+                <span class="n">profile_name</span><span class="o">=</span><span class="n">s3_url</span><span class="o">.</span><span class="n">_profile_name</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">buffered</span><span class="p">:</span>
             <span class="n">reader</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BufferedReader</span><span class="p">(</span><span class="n">reader</span><span class="p">)</span>  <span class="c1"># pytype: disable=wrong-arg-types</span>
         <span class="k">return</span> <span class="n">reader</span>
@@ -903,7 +935,8 @@
             <span class="n">s3_client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span>
             <span class="n">max_workers</span><span class="o">=</span><span class="n">max_concurrency</span><span class="p">,</span>
             <span class="n">max_buffer_size</span><span class="o">=</span><span class="n">max_buffer_size</span><span class="p">,</span>
-            <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span><span class="p">)</span>
+            <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span><span class="p">,</span>
+            <span class="n">profile_name</span><span class="o">=</span><span class="n">s3_url</span><span class="o">.</span><span class="n">_profile_name</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">writer</span> <span class="o">=</span> <span class="n">S3BufferedWriter</span><span class="p">(</span>
             <span class="n">bucket</span><span class="p">,</span>
@@ -911,7 +944,8 @@
             <span class="n">s3_client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span>
             <span class="n">max_workers</span><span class="o">=</span><span class="n">max_concurrency</span><span class="p">,</span>
             <span class="n">max_buffer_size</span><span class="o">=</span><span class="n">max_buffer_size</span><span class="p">,</span>
-            <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span><span class="p">)</span>
+            <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span><span class="p">,</span>
+            <span class="n">profile_name</span><span class="o">=</span><span class="n">s3_url</span><span class="o">.</span><span class="n">_profile_name</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">buffered</span><span class="p">:</span>
         <span class="n">writer</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BufferedWriter</span><span class="p">(</span><span class="n">writer</span><span class="p">)</span>  <span class="c1"># pytype: disable=wrong-arg-types</span>
     <span class="k">return</span> <span class="n">writer</span></div>
@@ -934,7 +968,8 @@
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">if</span> <span class="n">mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;rb&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">,</span> <span class="s1">&#39;ab&#39;</span><span class="p">,</span> <span class="s1">&#39;rb+&#39;</span><span class="p">,</span> <span class="s1">&#39;wb+&#39;</span><span class="p">,</span> <span class="s1">&#39;ab+&#39;</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;unacceptable mode: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span>
-    <span class="n">s3_url</span> <span class="o">=</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">s3_url</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s3_url</span><span class="p">,</span> <span class="n">S3Path</span><span class="p">):</span>
+        <span class="n">s3_url</span> <span class="o">=</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">s3_url</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">followlinks</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">s3_url</span> <span class="o">=</span> <span class="n">s3_url</span><span class="o">.</span><span class="n">readlink</span><span class="p">()</span>
@@ -947,7 +982,8 @@
         <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span>
         <span class="n">cache_key</span><span class="o">=</span><span class="s1">&#39;s3_filelike_client&#39;</span><span class="p">,</span>
         <span class="n">profile_name</span><span class="o">=</span><span class="n">s3_url</span><span class="o">.</span><span class="n">_profile_name</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">S3MemoryHandler</span><span class="p">(</span><span class="n">bucket</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">s3_client</span><span class="o">=</span><span class="n">client</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">S3MemoryHandler</span><span class="p">(</span>
+        <span class="n">bucket</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">s3_client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span> <span class="n">profile_name</span><span class="o">=</span><span class="n">s3_url</span><span class="o">.</span><span class="n">_profile_name</span><span class="p">)</span></div>
 
 
 <span class="n">s3_open</span> <span class="o">=</span> <span class="n">s3_buffered_open</span>
@@ -967,7 +1003,8 @@
     <span class="kn">from</span> <span class="nn">megfile.fs</span> <span class="kn">import</span> <span class="n">is_fs</span>
     <span class="kn">from</span> <span class="nn">megfile.fs_path</span> <span class="kn">import</span> <span class="n">FSPath</span>
 
-    <span class="n">src_url</span> <span class="o">=</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">src_url</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">src_url</span><span class="p">,</span> <span class="n">S3Path</span><span class="p">):</span>
+        <span class="n">src_url</span> <span class="o">=</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">src_url</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">followlinks</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">src_url</span> <span class="o">=</span> <span class="n">src_url</span><span class="o">.</span><span class="n">readlink</span><span class="p">()</span>
@@ -2247,7 +2284,7 @@
             <span class="n">s3_open_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">BinaryIO</span><span class="p">]</span> <span class="o">=</span> <span class="n">s3_open</span><span class="p">,</span>
             <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IO</span><span class="p">[</span><span class="n">AnyStr</span><span class="p">]:</span>  <span class="c1"># pytype: disable=signature-mismatch</span>
         <span class="k">return</span> <span class="n">s3_open_func</span><span class="p">(</span>  <span class="c1"># pytype: disable=wrong-keyword-args</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">,</span>
+            <span class="bp">self</span><span class="p">,</span>
             <span class="n">mode</span><span class="p">,</span>
             <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">,</span>
             <span class="n">errors</span><span class="o">=</span><span class="n">errors</span><span class="p">,</span>

@@ -105,7 +105,8 @@
             <span class="n">tail_block_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">max_block_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_MAX_BLOCK_SIZE</span><span class="p">,</span>
             <span class="n">max_buffer_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_MAX_BUFFER_SIZE</span><span class="p">,</span>
-            <span class="n">max_workers</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">max_workers</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">profile_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="n">bucket</span><span class="p">,</span>
@@ -114,7 +115,8 @@
             <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span><span class="p">,</span>
             <span class="n">max_block_size</span><span class="o">=</span><span class="n">max_block_size</span><span class="p">,</span>
             <span class="n">max_buffer_size</span><span class="o">=</span><span class="n">max_buffer_size</span><span class="p">,</span>
-            <span class="n">max_workers</span><span class="o">=</span><span class="n">max_workers</span><span class="p">)</span>
+            <span class="n">max_workers</span><span class="o">=</span><span class="n">max_workers</span><span class="p">,</span>
+            <span class="n">profile_name</span><span class="o">=</span><span class="n">profile_name</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_head_block_size</span> <span class="o">=</span> <span class="n">head_block_size</span> <span class="ow">or</span> <span class="n">block_size</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_tail_block_size</span> <span class="o">=</span> <span class="n">tail_block_size</span> <span class="ow">or</span> <span class="n">block_size</span>

@@ -132,9 +132,9 @@
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="p">(</span><span class="n">BaseURIPath</span><span class="p">,</span> <span class="n">SmartPath</span><span class="p">)):</span>
             <span class="n">protocol</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">protocol</span>
             <span class="n">path_without_protocol</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">PurePath</span><span class="p">):</span>
-            <span class="n">protocol</span> <span class="o">=</span> <span class="s2">&quot;file&quot;</span>
-            <span class="n">path_without_protocol</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="p">(</span><span class="n">PurePath</span><span class="p">,</span> <span class="n">BasePath</span><span class="p">)):</span>
+            <span class="n">protocol</span><span class="p">,</span> <span class="n">path_without_protocol</span> <span class="o">=</span> <span class="n">SmartPath</span><span class="o">.</span><span class="n">_extract_protocol</span><span class="p">(</span>
+                <span class="n">fspath</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">ProtocolNotFoundError</span><span class="p">(</span><span class="s1">&#39;protocol not found: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">path</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">path_without_protocol</span>

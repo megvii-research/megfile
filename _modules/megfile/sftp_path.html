@@ -75,9 +75,11 @@
              
   <h1>Source code for megfile.sftp_path</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">atexit</span>
+<span class="kn">import</span> <span class="nn">fcntl</span>
 <span class="kn">import</span> <span class="nn">hashlib</span>
 <span class="kn">import</span> <span class="nn">io</span>
 <span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">random</span>
 <span class="kn">import</span> <span class="nn">shlex</span>
 <span class="kn">import</span> <span class="nn">socket</span>
 <span class="kn">import</span> <span class="nn">subprocess</span>
@@ -119,6 +121,7 @@
 <span class="n">SFTP_PRIVATE_KEY_PATH</span> <span class="o">=</span> <span class="s2">&quot;SFTP_PRIVATE_KEY_PATH&quot;</span>
 <span class="n">SFTP_PRIVATE_KEY_TYPE</span> <span class="o">=</span> <span class="s2">&quot;SFTP_PRIVATE_KEY_TYPE&quot;</span>
 <span class="n">SFTP_PRIVATE_KEY_PASSWORD</span> <span class="o">=</span> <span class="s2">&quot;SFTP_PRIVATE_KEY_PASSWORD&quot;</span>
+<span class="n">SFTP_MAX_UNAUTH_CONN</span> <span class="o">=</span> <span class="s2">&quot;SFTP_MAX_UNAUTH_CONN&quot;</span>
 <span class="n">MAX_RETRIES</span> <span class="o">=</span> <span class="mi">10</span>
 <span class="n">DEFAULT_SSH_CONNECT_TIMEOUT</span> <span class="o">=</span> <span class="mi">5</span>
 <span class="n">DEFAULT_SSH_KEEPALIVE_INTERVAL</span> <span class="o">=</span> <span class="mi">15</span>
@@ -270,6 +273,20 @@
 
     <span class="n">ssh_client</span> <span class="o">=</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">SSHClient</span><span class="p">()</span>
     <span class="n">ssh_client</span><span class="o">.</span><span class="n">set_missing_host_key_policy</span><span class="p">(</span><span class="n">paramiko</span><span class="o">.</span><span class="n">AutoAddPolicy</span><span class="p">())</span>
+    <span class="n">max_unauth_connections</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="n">SFTP_MAX_UNAUTH_CONN</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">fd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">open</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="s1">&#39;/tmp&#39;</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s1">&#39;megfile-sftp-</span><span class="si">{</span><span class="n">hostname</span><span class="si">}</span><span class="s1">-</span><span class="si">{</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">max_unauth_connections</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="p">),</span> <span class="n">os</span><span class="o">.</span><span class="n">O_WRONLY</span> <span class="o">|</span> <span class="n">os</span><span class="o">.</span><span class="n">O_CREAT</span> <span class="o">|</span> <span class="n">os</span><span class="o">.</span><span class="n">O_TRUNC</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="n">_logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="s2">&quot;Can&#39;t create file lock in &#39;/tmp&#39;, please control the SFTP concurrency count by yourself.&quot;</span>
+        <span class="p">)</span>
+        <span class="n">fd</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">fd</span><span class="p">:</span>
+        <span class="n">fcntl</span><span class="o">.</span><span class="n">flock</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">fcntl</span><span class="o">.</span><span class="n">LOCK_EX</span><span class="p">)</span>
     <span class="n">ssh_client</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
         <span class="n">hostname</span><span class="o">=</span><span class="n">hostname</span><span class="p">,</span>
         <span class="n">username</span><span class="o">=</span><span class="n">username</span><span class="p">,</span>
@@ -279,6 +296,9 @@
         <span class="n">auth_timeout</span><span class="o">=</span><span class="n">DEFAULT_SSH_CONNECT_TIMEOUT</span><span class="p">,</span>
         <span class="n">banner_timeout</span><span class="o">=</span><span class="n">DEFAULT_SSH_CONNECT_TIMEOUT</span><span class="p">,</span>
     <span class="p">)</span>
+    <span class="k">if</span> <span class="n">fd</span><span class="p">:</span>
+        <span class="n">fcntl</span><span class="o">.</span><span class="n">flock</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">fcntl</span><span class="o">.</span><span class="n">LOCK_UN</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
     <span class="n">atexit</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">ssh_client</span><span class="o">.</span><span class="n">close</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">ssh_client</span>
 
