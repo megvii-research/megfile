@@ -1,3 +1,13 @@
+## 2.2.6 - 2023.09.22
+- fix
+    - fix s3 client cache with profile name
+    - fix s3 error info of endpoint url in s3 open 
+- perf
+    - optimize concurrent SFTP connections
+    - optimize ls command with glob path
+    - optimize sync command
+    - add retry error 
+
 ## 2.2.5.post1 - 2023.09.19
 - fix
     - fix s3 error info of endpoint url
