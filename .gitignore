@@ -6,6 +6,8 @@ __pycache__/
 /.pytype_output
 *.pyc
 *.swp
+**py310/
+**gitignore
 .coverage
 html_cov/
 html_doc/
