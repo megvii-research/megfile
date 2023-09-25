@@ -4,7 +4,7 @@ import sys
 import pytest
 from click.testing import CliRunner
 
-from megfile.cli import cat, cp, head, ls, md5sum, mkdir, mtime, mv, rm, size, stat, sync, tail, to, touch, version
+from megfile.cli import cat, cp, head, ls, md5sum, mkdir, mtime, mv, oss, rm, size, stat, sync, tail, to, touch, version
 
 from .test_smart import s3_empty_client
 
@@ -308,3 +308,21 @@ def test_to(runner, tmpdir):
 
     with open(str(tmpdir / 'text'), 'rb') as f:
         assert f.read() == b'testtest2'
+
+
+def test_oss(runner):
+    result = runner.invoke(
+        oss, [
+            '-p', 'megfile/oss_config', 'Aws_access_key_id',
+            'Aws_secret_access_key'
+        ])
+    assert 'Your oss config' in result.output
+
+    result = runner.invoke(
+        oss, ['-p', 'megfile/oss_config', '-n', 'new_test', '1345', '2345'])
+    assert 'Your oss config' in result.output
+
+    result = runner.invoke(
+        oss, ['-p', 'megfile/oss_config', '-n', 'new_test', '7656', '3645'])
+    assert 'Your oss config' in result.output
+    #os.remove('megfile/oss_config')

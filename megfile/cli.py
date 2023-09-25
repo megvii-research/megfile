@@ -474,6 +474,59 @@ def version():
     click.echo(VERSION)
 
 
+@cli.group(short_help='Return the config file')
+def config():
+    pass
+
+
+@config.command(short_help='Return the config file for oss')
+@click.option(
+    '-p',
+    '--path',
+    type=str,
+    default='~/.aws/credentials',
+    help='korok config file')
+@click.option(
+    '-n', '--name', type=str, default='default', help='korok config file')
+@click.argument('aws_access_key_id')
+@click.argument('aws_secret_access_key')
+@click.option(
+    '-c', '--cover', type=bool, default=True, help='Cover the same_name config')
+def oss(path, name, aws_access_key_id, aws_secret_access_key, cover):
+    if os.path.exists(path):
+        used = False
+        with open(path, 'r') as fp:
+            text = fp.read().split('\n')
+        for i in range(0, len(text)):
+            line = text[i]
+            if line.startswith('['):
+                cur_name = line[1:-1]
+                if cur_name == name:
+                    used = True
+                    if not cover:
+                        raise NameError('This name has been used!')
+                    text[i + 1] = f'aws_access_key_id = {aws_access_key_id}'
+                    text[i +
+                         2] = f'aws_secret_access_key = {aws_secret_access_key}'
+                    break
+        if not used:  #name未被使用
+            text.append(f'\n[{name}]')
+            text.append(f'aws_access_key_id = {aws_access_key_id}')
+            text.append(f'aws_secret_access_key = {aws_secret_access_key}')
+
+        with open(path, 'w') as fp:
+            fp.write('\n'.join(text))
+        click.echo(f'Your oss config has been saved into {path}')
+        return
+    else:
+        with open(path, 'w') as fp:
+            fp.write(
+                f'[{name}]\n' + f'aws_access_key_id = {aws_access_key_id}\n' +
+                f'aws_secret_access_key = {aws_secret_access_key}\n')
+        click.echo(f'Your oss config has been saved into {path}')
+        return
+
+
 if __name__ == '__main__':
     # Usage: python -m megfile.cli
     safe_cli()  # pragma: no cover
