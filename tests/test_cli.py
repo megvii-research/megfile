@@ -313,16 +313,24 @@ def test_to(runner, tmpdir):
 def test_oss(runner):
     result = runner.invoke(
         oss, [
-            '-p', 'megfile/oss_config', 'Aws_access_key_id',
-            'Aws_secret_access_key'
+            '-p', 'megfile/oss_config', '-e', 'Endpoint', '-s', 'Addressing',
+            '-c', 'Aws_access_key_id', 'Aws_secret_access_key'
         ])
     assert 'Your oss config' in result.output
 
     result = runner.invoke(
-        oss, ['-p', 'megfile/oss_config', '-n', 'new_test', '1345', '2345'])
+        oss, [
+            '-p', 'megfile/oss_config', '-n', 'new_test', '-e', 'end-point',
+            '-s', 'add', '-c', '1345', '2345'
+        ])
     assert 'Your oss config' in result.output
 
     result = runner.invoke(
-        oss, ['-p', 'megfile/oss_config', '-n', 'new_test', '7656', '3645'])
+        oss,
+        ['-p', 'megfile/oss_config', '-n', 'new_test', '-c', '7656', '3645'])
+    assert 'Your oss config' in result.output
+
+    result = runner.invoke(
+        oss, ['-p', 'megfile/oss_config', '-n', 'nothing', '7656', '3645'])
     assert 'Your oss config' in result.output
     #os.remove('megfile/oss_config')

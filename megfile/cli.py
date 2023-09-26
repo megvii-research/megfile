@@ -490,41 +490,73 @@ def config():
     '-n', '--name', type=str, default='default', help='korok config file')
 @click.argument('aws_access_key_id')
 @click.argument('aws_secret_access_key')
-@click.option(
-    '-c', '--cover', type=bool, default=True, help='Cover the same_name config')
-def oss(path, name, aws_access_key_id, aws_secret_access_key, cover):
-    if os.path.exists(path):
-        used = False
-        with open(path, 'r') as fp:
-            text = fp.read().split('\n')
-        for i in range(0, len(text)):
-            line = text[i]
-            if line.startswith('['):
-                cur_name = line[1:-1]
-                if cur_name == name:
-                    used = True
-                    if not cover:
-                        raise NameError('This name has been used!')
-                    text[i + 1] = f'aws_access_key_id = {aws_access_key_id}'
-                    text[i +
-                         2] = f'aws_secret_access_key = {aws_secret_access_key}'
-                    break
-        if not used:  #name未被使用
-            text.append(f'\n[{name}]')
-            text.append(f'aws_access_key_id = {aws_access_key_id}')
-            text.append(f'aws_secret_access_key = {aws_secret_access_key}')
+@click.option('-e', '--endpoint_url', help='endpoint-url')
+@click.option('-s', '--addressing_style', help='addressing_style')
+@click.option('-c', '--cover', is_flag=True, help='Cover the same_name config')
+def oss(
+        path, name, aws_access_key_id, aws_secret_access_key, endpoint_url,
+        addressing_style, cover):
+    config_dict = {
+        'name': name,
+        'aws_access_key_id': aws_access_key_id,
+        'aws_secret_access_key': aws_secret_access_key,
+    }
+    s3 = {}
+    if endpoint_url:
+        s3.update({'endpoint_url': endpoint_url})
+    if addressing_style:
+        s3.update({'addressing_style': addressing_style})
+    if s3:
+        config_dict.update({'s3': s3})
 
+    def dumps(config_dict: dict) -> str:
+        content = '[{}]\n'.format(config_dict['name'])
+        content += 'aws_access_key_id = {}\n'.format(
+            config_dict['aws_access_key_id'])
+        content += 'aws_secret_access_key = {}\n'.format(
+            config_dict['aws_secret_access_key'])
+        if 's3' in config_dict.keys():
+            content += '\ns3 = \n'
+            s3: dict = config_dict['s3']
+            if 'endpoint_url' in s3.keys():
+                content += '\tendpoint_url = {}\n'.format(s3['endpoint_url'])
+            if 'addressing_style' in s3.keys():
+                content += '\taddressing_style = {}\n'.format(
+                    s3['addressing_style'])
+        return content
+
+    if not os.path.exists(path):  #如果该文件不存在
+        content_str = dumps(config_dict)
         with open(path, 'w') as fp:
-            fp.write('\n'.join(text))
+            fp.write(content_str)
         click.echo(f'Your oss config has been saved into {path}')
         return
-    else:
-        with open(path, 'w') as fp:
-            fp.write(
-                f'[{name}]\n' + f'aws_access_key_id = {aws_access_key_id}\n' +
-                f'aws_secret_access_key = {aws_secret_access_key}\n')
-        click.echo(f'Your oss config has been saved into {path}')
-        return
+    # 如果该文件已存在(需考虑名字重复使用问题)
+    used = False
+    with open(path, 'r') as fp:
+        text = fp.read()
+    sections = text.strip().split('[')
+
+    if len(sections[0]) <= 1:
+        sections = sections[1:]
+
+    for i in range(0, len(sections)):
+        section = sections[i]
+        cur_name = section.split(']')[0]
+        if cur_name == name:
+            if not cover:
+                raise NameError(f'{name} has been used.')
+            used = True
+            sections[i] = dumps(config_dict)
+            continue
+        sections[i] = '\n' + ('[' + section).strip() + '\n'
+    text = ''.join(sections)
+    if not used:  #name未被使用
+        text += '\n' + dumps(config_dict)
+    with open(path, 'w') as fp:
+        fp.write(text)
+    click.echo(f'Your oss config has been saved into {path}')
+    return
 
 
 if __name__ == '__main__':
