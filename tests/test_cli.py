@@ -4,7 +4,7 @@ import sys
 import pytest
 from click.testing import CliRunner
 
-from megfile.cli import cat, cp, head, ls, md5sum, mkdir, mtime, mv, oss, rm, size, stat, sync, tail, to, touch, version
+from megfile.cli import cat, cp, head, ls, md5sum, mkdir, mtime, mv, s3, rm, size, stat, sync, tail, to, touch, version
 
 from .test_smart import s3_empty_client
 
@@ -44,6 +44,7 @@ def test_mkdir(runner, tmpdir):
 
 
 def test_ls(runner, testdir):
+    import pdb;pdb.set_trace()
     result = runner.invoke(ls, [str(testdir)])
 
     assert result.exit_code == 0
@@ -310,27 +311,40 @@ def test_to(runner, tmpdir):
         assert f.read() == b'testtest2'
 
 
-def test_oss(runner):
+def test_s3(tmpdir,runner):
     result = runner.invoke(
-        oss, [
-            '-p', 'megfile/oss_config', '-e', 'Endpoint', '-s', 'Addressing',
-            '-c', 'Aws_access_key_id', 'Aws_secret_access_key'
+        s3, [
+            '-p', str(tmpdir / 'oss_config'), '-e', 'Endpoint', '-s', 'Addressing',
+            'Aws_access_key_id', 'Aws_secret_access_key'
         ])
     assert 'Your oss config' in result.output
 
     result = runner.invoke(
-        oss, [
-            '-p', 'megfile/oss_config', '-n', 'new_test', '-e', 'end-point',
-            '-s', 'add', '-c', '1345', '2345'
+        s3, [
+            '-p', str(tmpdir / 'oss_config'), '-n', 'new_test', '-e', 'end-point',
+            '-s', 'add', '1345', '2345'
         ])
     assert 'Your oss config' in result.output
 
     result = runner.invoke(
-        oss,
-        ['-p', 'megfile/oss_config', '-n', 'new_test', '-c', '7656', '3645'])
+        s3,
+        ['-p', str(tmpdir / 'oss_config'), '-n', 'new_test','7656', '3645'])
     assert 'Your oss config' in result.output
+    assert 'config has been updated' in result.output
+
+    try:
+        result = runner.invoke(
+            s3,
+            ['-p', str(tmpdir / 'oss_config'), '-n','new_test','-c','7656', '3645'])
+        assert False
+    except:
+        assert True
 
     result = runner.invoke(
-        oss, ['-p', 'megfile/oss_config', '-n', 'nothing', '7656', '3645'])
+        s3, ['-p', str(tmpdir / 'oss_config'), '-n', 'nothing', '7656', '3645'])
     assert 'Your oss config' in result.output
-    #os.remove('megfile/oss_config')
+    
+    with open(str(tmpdir / 'oss_config'),'r') as fp:
+        text = fp.read()
+        assert '[new_test]' in text
+        assert '[nothing]' in text
