@@ -1,3 +1,10 @@
+## 2.2.7 - 2023.10.08
+- fix
+    - exit 1 when cli had error
+- feat
+    - cli add `config` command
+    - cli support `--debug` parameter
+
 ## 2.2.6 - 2023.09.22
 - fix
     - fix s3 client cache with profile name
