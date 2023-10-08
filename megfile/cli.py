@@ -487,15 +487,16 @@ def config():
     default='~/.aws/credentials',
     help='s3 config file')
 @click.option(
-    '-n', '--profile_name', type=str, default='default', help='s3 config file')
+    '-n', '--profile-name', type=str, default='default', help='s3 config file')
 @click.argument('aws_access_key_id')
 @click.argument('aws_secret_access_key')
-@click.option('-e', '--endpoint_url', help='endpoint-url')
-@click.option('-s', '--addressing_style', help='addressing_style')
-@click.option('-c', '--no_cover', is_flag=True, help='Not cover the same_name config')
+@click.option('-e', '--endpoint-url', help='endpoint-url')
+@click.option('-s', '--addressing-style', help='addressing-style')
+@click.option(
+    '-c', '--no-cover', is_flag=True, help='Not cover the same-name config')
 def s3(
-        path, profile_name, aws_access_key_id, aws_secret_access_key, endpoint_url,
-        addressing_style, no_cover):
+        path, profile_name, aws_access_key_id, aws_secret_access_key,
+        endpoint_url, addressing_style, no_cover):
     config_dict = {
         'name': profile_name,
         'aws_access_key_id': aws_access_key_id,
@@ -531,7 +532,7 @@ def s3(
             fp.write(content_str)
         click.echo(f'Your oss config has been saved into {path}')
         return
-    
+
     # This file is already exists.
     # (Considering the occasion that profile_name has been used)
     used = False
@@ -547,7 +548,7 @@ def s3(
         cur_name = section.split(']')[0]
         # Given profile_name has been used.
         if cur_name == profile_name:
-            if no_cover: # default True(cover the same-name config).
+            if no_cover:  # default True(cover the same-name config).
                 raise NameError(f'{profile_name} has been used.')
             used = True
             sections[i] = dumps(config_dict)
