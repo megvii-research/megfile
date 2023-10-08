@@ -19,18 +19,26 @@ from megfile.version import VERSION
 logging.basicConfig(level=logging.ERROR)
 logging.getLogger('megfile').setLevel(level=logging.INFO)
 DEFAULT_BLOCK_SIZE = 8 * 2**20  # 8MB
+DEBUG = False
 
 
 @click.group()
-def cli():
+@click.option('--debug', is_flag=True, help='Enable debug mode.')
+def cli(debug):
     """Client"""
+    global DEBUG
+    DEBUG = debug
 
 
 def safe_cli():  # pragma: no cover
     try:
         cli()
     except Exception as e:
-        click.echo(f"\n[{type(e).__name__}] {e}", err=True)
+        if DEBUG:
+            raise
+        else:
+            click.echo(f"\n[{type(e).__name__}] {e}", err=True)
+            sys.exit(1)
 
 
 def get_echo_path(file_stat, base_path: str = "", full_path: bool = False):
@@ -492,8 +500,7 @@ def config():
 @click.argument('aws_secret_access_key')
 @click.option('-e', '--endpoint-url', help='endpoint-url')
 @click.option('-s', '--addressing-style', help='addressing-style')
-@click.option(
-    '-c', '--no-cover', is_flag=True, help='Not cover the same-name config')
+@click.option('--no-cover', is_flag=True, help='Not cover the same-name config')
 def s3(
         path, profile_name, aws_access_key_id, aws_secret_access_key,
         endpoint_url, addressing_style, no_cover):
@@ -561,7 +568,6 @@ def s3(
     with open(path, 'w') as fp:
         fp.write(text)
     click.echo(f'Your oss config has been saved into {path}')
-    return
 
 
 if __name__ == '__main__':
