@@ -102,10 +102,31 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li>
+    --addressing-style
+
+      <ul>
+        <li><a href="cli.html#cmdoption-megfile-config-s3-s">megfile-config-s3 command line option</a>
+</li>
+      </ul></li>
+      <li>
     --append
 
       <ul>
         <li><a href="cli.html#cmdoption-megfile-to-a">megfile-to command line option</a>
+</li>
+      </ul></li>
+      <li>
+    --debug
+
+      <ul>
+        <li><a href="cli.html#cmdoption-megfile-debug">megfile command line option</a>
+</li>
+      </ul></li>
+      <li>
+    --endpoint-url
+
+      <ul>
+        <li><a href="cli.html#cmdoption-megfile-config-s3-e">megfile-config-s3 command line option</a>
 </li>
       </ul></li>
       <li>
@@ -139,12 +160,33 @@
 </li>
       </ul></li>
       <li>
+    --no-cover
+
+      <ul>
+        <li><a href="cli.html#cmdoption-megfile-config-s3-no-cover">megfile-config-s3 command line option</a>
+</li>
+      </ul></li>
+      <li>
     --no-target-directory
 
       <ul>
         <li><a href="cli.html#cmdoption-megfile-cp-T">megfile-cp command line option</a>
 </li>
         <li><a href="cli.html#cmdoption-megfile-mv-T">megfile-mv command line option</a>
+</li>
+      </ul></li>
+      <li>
+    --path
+
+      <ul>
+        <li><a href="cli.html#cmdoption-megfile-config-s3-p">megfile-config-s3 command line option</a>
+</li>
+      </ul></li>
+      <li>
+    --profile-name
+
+      <ul>
+        <li><a href="cli.html#cmdoption-megfile-config-s3-n">megfile-config-s3 command line option</a>
 </li>
       </ul></li>
       <li>
@@ -185,6 +227,8 @@
         <li><a href="cli.html#cmdoption-megfile-to-o">megfile-to command line option</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     --worker
 
@@ -192,13 +236,18 @@
         <li><a href="cli.html#cmdoption-megfile-sync-w">megfile-sync command line option</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     -a
 
       <ul>
         <li><a href="cli.html#cmdoption-megfile-to-a">megfile-to command line option</a>
+</li>
+      </ul></li>
+      <li>
+    -e
+
+      <ul>
+        <li><a href="cli.html#cmdoption-megfile-config-s3-e">megfile-config-s3 command line option</a>
 </li>
       </ul></li>
       <li>
@@ -237,6 +286,8 @@
     -n
 
       <ul>
+        <li><a href="cli.html#cmdoption-megfile-config-s3-n">megfile-config-s3 command line option</a>
+</li>
         <li><a href="cli.html#cmdoption-megfile-head-n">megfile-head command line option</a>
 </li>
         <li><a href="cli.html#cmdoption-megfile-tail-n">megfile-tail command line option</a>
@@ -247,6 +298,13 @@
 
       <ul>
         <li><a href="cli.html#cmdoption-megfile-to-o">megfile-to command line option</a>
+</li>
+      </ul></li>
+      <li>
+    -p
+
+      <ul>
+        <li><a href="cli.html#cmdoption-megfile-config-s3-p">megfile-config-s3 command line option</a>
 </li>
       </ul></li>
       <li>
@@ -267,6 +325,13 @@
         <li><a href="cli.html#cmdoption-megfile-mv-r">megfile-mv command line option</a>
 </li>
         <li><a href="cli.html#cmdoption-megfile-rm-r">megfile-rm command line option</a>
+</li>
+      </ul></li>
+      <li>
+    -s
+
+      <ul>
+        <li><a href="cli.html#cmdoption-megfile-config-s3-s">megfile-config-s3 command line option</a>
 </li>
       </ul></li>
       <li>
@@ -357,6 +422,20 @@
 
       <ul>
         <li><a href="megfile.html#megfile.SmartPath.as_uri">(megfile.SmartPath method)</a>
+</li>
+      </ul></li>
+      <li>
+    AWS_ACCESS_KEY_ID
+
+      <ul>
+        <li><a href="cli.html#cmdoption-megfile-config-s3-arg-AWS_ACCESS_KEY_ID">megfile-config-s3 command line option</a>
+</li>
+      </ul></li>
+      <li>
+    AWS_SECRET_ACCESS_KEY
+
+      <ul>
+        <li><a href="cli.html#cmdoption-megfile-config-s3-arg-AWS_SECRET_ACCESS_KEY">megfile-config-s3 command line option</a>
 </li>
       </ul></li>
   </ul></td>
@@ -1252,10 +1331,44 @@
 </li>
       </ul></li>
       <li>
+    megfile command line option
+
+      <ul>
+        <li><a href="cli.html#cmdoption-megfile-debug">--debug</a>
+</li>
+      </ul></li>
+      <li>
     megfile-cat command line option
 
       <ul>
         <li><a href="cli.html#cmdoption-megfile-cat-arg-PATH">PATH</a>
+</li>
+      </ul></li>
+      <li>
+    megfile-config-s3 command line option
+
+      <ul>
+        <li><a href="cli.html#cmdoption-megfile-config-s3-s">--addressing-style</a>
+</li>
+        <li><a href="cli.html#cmdoption-megfile-config-s3-e">--endpoint-url</a>
+</li>
+        <li><a href="cli.html#cmdoption-megfile-config-s3-no-cover">--no-cover</a>
+</li>
+        <li><a href="cli.html#cmdoption-megfile-config-s3-p">--path</a>
+</li>
+        <li><a href="cli.html#cmdoption-megfile-config-s3-n">--profile-name</a>
+</li>
+        <li><a href="cli.html#cmdoption-megfile-config-s3-e">-e</a>
+</li>
+        <li><a href="cli.html#cmdoption-megfile-config-s3-n">-n</a>
+</li>
+        <li><a href="cli.html#cmdoption-megfile-config-s3-p">-p</a>
+</li>
+        <li><a href="cli.html#cmdoption-megfile-config-s3-s">-s</a>
+</li>
+        <li><a href="cli.html#cmdoption-megfile-config-s3-arg-AWS_ACCESS_KEY_ID">AWS_ACCESS_KEY_ID</a>
+</li>
+        <li><a href="cli.html#cmdoption-megfile-config-s3-arg-AWS_SECRET_ACCESS_KEY">AWS_SECRET_ACCESS_KEY</a>
 </li>
       </ul></li>
       <li>
@@ -1376,6 +1489,8 @@
         <li><a href="cli.html#cmdoption-megfile-stat-arg-PATH">PATH</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     megfile-sync command line option
 
@@ -1401,8 +1516,6 @@
         <li><a href="cli.html#cmdoption-megfile-sync-arg-SRC_PATH">SRC_PATH</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     megfile-tail command line option
 
