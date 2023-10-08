@@ -474,6 +474,96 @@ def version():
     click.echo(VERSION)
 
 
+@cli.group(short_help='Return the config file')
+def config():
+    pass
+
+
+@config.command(short_help='Return the config file for s3')
+@click.option(
+    '-p',
+    '--path',
+    type=str,
+    default='~/.aws/credentials',
+    help='s3 config file')
+@click.option(
+    '-n', '--profile-name', type=str, default='default', help='s3 config file')
+@click.argument('aws_access_key_id')
+@click.argument('aws_secret_access_key')
+@click.option('-e', '--endpoint-url', help='endpoint-url')
+@click.option('-s', '--addressing-style', help='addressing-style')
+@click.option(
+    '-c', '--no-cover', is_flag=True, help='Not cover the same-name config')
+def s3(
+        path, profile_name, aws_access_key_id, aws_secret_access_key,
+        endpoint_url, addressing_style, no_cover):
+    config_dict = {
+        'name': profile_name,
+        'aws_access_key_id': aws_access_key_id,
+        'aws_secret_access_key': aws_secret_access_key,
+    }
+    s3 = {}
+    if endpoint_url:
+        s3.update({'endpoint_url': endpoint_url})
+    if addressing_style:
+        s3.update({'addressing_style': addressing_style})
+    if s3:
+        config_dict.update({'s3': s3})
+
+    def dumps(config_dict: dict) -> str:
+        content = '[{}]\n'.format(config_dict['name'])
+        content += 'aws_access_key_id = {}\n'.format(
+            config_dict['aws_access_key_id'])
+        content += 'aws_secret_access_key = {}\n'.format(
+            config_dict['aws_secret_access_key'])
+        if 's3' in config_dict.keys():
+            content += '\ns3 = \n'
+            s3: dict = config_dict['s3']
+            if 'endpoint_url' in s3.keys():
+                content += '    endpoint_url = {}\n'.format(s3['endpoint_url'])
+            if 'addressing_style' in s3.keys():
+                content += '    addressing_style = {}\n'.format(
+                    s3['addressing_style'])
+        return content
+
+    if not os.path.exists(path):  #If this file doesn't exist.
+        content_str = dumps(config_dict)
+        with open(path, 'w') as fp:
+            fp.write(content_str)
+        click.echo(f'Your oss config has been saved into {path}')
+        return
+
+    # This file is already exists.
+    # (Considering the occasion that profile_name has been used)
+    used = False
+    with open(path, 'r') as fp:
+        text = fp.read()
+    sections = text.strip().split('[')
+
+    if len(sections[0]) <= 1:
+        sections = sections[1:]
+
+    for i in range(0, len(sections)):
+        section = sections[i]
+        cur_name = section.split(']')[0]
+        # Given profile_name has been used.
+        if cur_name == profile_name:
+            if no_cover:  # default True(cover the same-name config).
+                raise NameError(f'{profile_name} has been used.')
+            used = True
+            sections[i] = dumps(config_dict)
+            continue
+        sections[i] = '\n' + ('[' + section).strip() + '\n'
+        click.echo(f'The {profile_name} config has been updated.')
+    text = '\n'.join(sections)
+    if not used:  #Given profile_name not been used.
+        text += '\n' + dumps(config_dict)
+    with open(path, 'w') as fp:
+        fp.write(text)
+    click.echo(f'Your oss config has been saved into {path}')
+    return
+
+
 if __name__ == '__main__':
     # Usage: python -m megfile.cli
     safe_cli()  # pragma: no cover
