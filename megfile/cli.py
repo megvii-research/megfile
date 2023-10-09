@@ -19,18 +19,26 @@ from megfile.version import VERSION
 logging.basicConfig(level=logging.ERROR)
 logging.getLogger('megfile').setLevel(level=logging.INFO)
 DEFAULT_BLOCK_SIZE = 8 * 2**20  # 8MB
+DEBUG = False
 
 
 @click.group()
-def cli():
+@click.option('--debug', is_flag=True, help='Enable debug mode.')
+def cli(debug):
     """Client"""
+    global DEBUG
+    DEBUG = debug
 
 
 def safe_cli():  # pragma: no cover
     try:
         cli()
     except Exception as e:
-        click.echo(f"\n[{type(e).__name__}] {e}", err=True)
+        if DEBUG:
+            raise
+        else:
+            click.echo(f"\n[{type(e).__name__}] {e}", err=True)
+            sys.exit(1)
 
 
 def get_echo_path(file_stat, base_path: str = "", full_path: bool = False):
@@ -481,19 +489,14 @@ def config():
 
 @config.command(short_help='Return the config file for s3')
 @click.option(
-    '-p',
-    '--path',
-    type=str,
-    default='~/.aws/credentials',
-    help='s3 config file')
+    '-p', '--path', type=str, default='.aws/credentials', help='s3 config file')
 @click.option(
     '-n', '--profile-name', type=str, default='default', help='s3 config file')
 @click.argument('aws_access_key_id')
 @click.argument('aws_secret_access_key')
 @click.option('-e', '--endpoint-url', help='endpoint-url')
 @click.option('-s', '--addressing-style', help='addressing-style')
-@click.option(
-    '-c', '--no-cover', is_flag=True, help='Not cover the same-name config')
+@click.option('--no-cover', is_flag=True, help='Not cover the same-name config')
 def s3(
         path, profile_name, aws_access_key_id, aws_secret_access_key,
         endpoint_url, addressing_style, no_cover):
@@ -526,6 +529,7 @@ def s3(
                     s3['addressing_style'])
         return content
 
+    os.makedirs(os.path.dirname(path), exist_ok=True)  # make sure dirpath exist
     if not os.path.exists(path):  #If this file doesn't exist.
         content_str = dumps(config_dict)
         with open(path, 'w') as fp:
@@ -561,7 +565,6 @@ def s3(
     with open(path, 'w') as fp:
         fp.write(text)
     click.echo(f'Your oss config has been saved into {path}')
-    return
 
 
 if __name__ == '__main__':
