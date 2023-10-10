@@ -489,7 +489,11 @@ def config():
 
 @config.command(short_help='Return the config file for s3')
 @click.option(
-    '-p', '--path', type=str, default='.aws/credentials', help='s3 config file')
+    '-p',
+    '--path',
+    type=str,
+    default='~/.aws/credentials',
+    help='s3 config file')
 @click.option(
     '-n', '--profile-name', type=str, default='default', help='s3 config file')
 @click.argument('aws_access_key_id')
