@@ -492,7 +492,8 @@ def config():
     '-p',
     '--path',
     type=str,
-    help='s3 config file, default is $HOME/.aws/credentials',)
+    help='s3 config file, default is $HOME/.aws/credentials',
+)
 @click.option(
     '-n', '--profile-name', type=str, default='default', help='s3 config file')
 @click.argument('aws_access_key_id')
