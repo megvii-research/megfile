@@ -492,8 +492,8 @@ def config():
     '-p',
     '--path',
     type=str,
-    default='~/.aws/credentials',
-    help='s3 config file')
+    help='s3 config file, default is $HOME/.aws/credentials',
+)
 @click.option(
     '-n', '--profile-name', type=str, default='default', help='s3 config file')
 @click.argument('aws_access_key_id')
@@ -504,6 +504,9 @@ def config():
 def s3(
         path, profile_name, aws_access_key_id, aws_secret_access_key,
         endpoint_url, addressing_style, no_cover):
+    if not path:
+        path = os.path.join(os.path.expanduser('~'), '.aws', 'credentials'),
+
     config_dict = {
         'name': profile_name,
         'aws_access_key_id': aws_access_key_id,
