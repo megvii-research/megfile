@@ -533,6 +533,7 @@ def s3(
                     s3['addressing_style'])
         return content
 
+    os.makedirs(os.path.dirname(path), exist_ok=True)  # make sure dirpath exist
     if not os.path.exists(path):  #If this file doesn't exist.
         content_str = dumps(config_dict)
         with open(path, 'w') as fp:
