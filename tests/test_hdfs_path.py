@@ -8,19 +8,7 @@ from mock import patch
 from megfile.hdfs_path import HdfsPath, get_hdfs_client, get_hdfs_config
 from megfile.lib.hdfs_tools import hdfs_api
 
-
-@pytest.fixture
-def config_mocker(mocker):
-    mocker.patch(
-        'megfile.hdfs_path.get_hdfs_config',
-        return_value={
-            'user': 'user',
-            'url': 'http://127.0.0.1:8000',
-            'root': '/',
-            'timeout': 10,
-            'token': 'token',
-        })
-    yield
+from .test_hdfs import config_mocker, http_mocker
 
 
 @patch.dict(
@@ -178,3 +166,20 @@ def test_absolute():
     assert get_hdfs_config('test')['root'] == '/root'
     assert HdfsPath('hdfs+test://test').absolute(
     ).path_with_protocol == 'hdfs+test:///root/test'
+
+
+def test_hdfs_glob(http_mocker):
+    assert [
+        path.path_with_protocol
+        for path in HdfsPath('hdfs://root').glob(pattern='**/*.txt')
+    ] == [
+        'hdfs://root/1.txt',
+        'hdfs://root/a/2.txt',
+        'hdfs://root/b/3.txt',
+    ]
+    assert [
+        path.path_with_protocol
+        for path in HdfsPath('hdfs://root').glob(pattern='**/*.json')
+    ] == [
+        'hdfs://root/b/4.json',
+    ]

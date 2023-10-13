@@ -8,12 +8,19 @@ import requests_mock
 from megfile import hdfs
 from megfile.lib.hdfs_tools import hdfs_api
 
-from .test_hdfs_path import config_mocker
 
-
-def test_is_hdfs(requests_mock, config_mocker):
-    assert hdfs.is_hdfs('hdfs://A') is True
-    assert hdfs.is_hdfs('hdfs1://A') is False
+@pytest.fixture
+def config_mocker(mocker):
+    mocker.patch(
+        'megfile.hdfs_path.get_hdfs_config',
+        return_value={
+            'user': 'user',
+            'url': 'http://127.0.0.1:8000',
+            'root': '/',
+            'timeout': 10,
+            'token': 'token',
+        })
+    yield
 
 
 @pytest.fixture
@@ -145,6 +152,11 @@ def http_mocker(mocker, requests_mock, config_mocker):
 
     mock_dir('root')
     yield requests_mock
+
+
+def test_is_hdfs(config_mocker):
+    assert hdfs.is_hdfs('hdfs://A') is True
+    assert hdfs.is_hdfs('hdfs1://A') is False
 
 
 def test_hdfs_exists(http_mocker):

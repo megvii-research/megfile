@@ -99,11 +99,11 @@ def get_hdfs_client(profile_name: Optional[str] = None):
 
 def translate_hdfs_error(hdfs_error: Exception, hdfs_path: PathLike):
     if isinstance(hdfs_error, hdfs_api.HdfsError):
-        if hdfs_error.status_code in (401, 403):
+        if hdfs_error.status_code in (401, 403):  # pytype: disable=attribute-error
             return PermissionError('Permission denied: %r' % hdfs_path)
-        elif hdfs_error.status_code == 400:
-            return ValueError(f'{hdfs_error.message}, path: {hdfs_path}')
-        elif hdfs_error.status_code == 404:
+        elif hdfs_error.status_code == 400:  # pytype: disable=attribute-error
+            return ValueError(f'{hdfs_error.message}, path: {hdfs_path}')  # pytype: disable=attribute-error
+        elif hdfs_error.status_code == 404:  # pytype: disable=attribute-error
             return FileNotFoundError(f'No match file: {hdfs_path}')
     return hdfs_error
 
@@ -129,8 +129,7 @@ def hdfs_glob(
     :raises: UnsupportedError, when bucket part contains wildcard characters
     :returns: A list contains paths match `path`
     '''
-    return HdfsPath(path).glob(
-        pattern="", recursive=recursive, missing_ok=missing_ok)
+    return list(hdfs_iglob(path, recursive=recursive, missing_ok=missing_ok))
 
 
 def hdfs_glob_stat(
@@ -388,7 +387,7 @@ class HdfsPath(URIPath):
         :raises: FileNotFoundError, NotADirectoryError
         '''
         for filename in self.listdir(followlinks=followlinks):
-            yield self.joinpath(filename)
+            yield self.joinpath(filename)  # pytype: disable=bad-return-type
 
     def load(self, followlinks: bool = False) -> BinaryIO:
         '''Read all content in binary on specified path and write into memory
@@ -572,7 +571,7 @@ class HdfsPath(URIPath):
         if self.is_dir(followlinks=followlinks):
             hash_md5 = hashlib.md5()  # nosec
             for file_name in self.listdir():
-                chunk = self.joinpath(file_name).md5(
+                chunk = self.joinpath(file_name).md5(  # pytype: disable=attribute-error
                     recalculate=recalculate).encode()
                 hash_md5.update(chunk)
             return hash_md5.hexdigest()
