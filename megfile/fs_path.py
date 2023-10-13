@@ -37,6 +37,7 @@ __all__ = [
     'fs_resolve',
     'fs_move',
     'fs_makedirs',
+    'fs_lstat',
 ]
 
 
@@ -198,6 +199,16 @@ def fs_makedirs(path: PathLike, exist_ok: bool = False):
     :raises: FileExistsError
     '''
     return FSPath(path).mkdir(parents=True, exist_ok=exist_ok)
+
+
+def fs_lstat(path: PathLike) -> StatResult:
+    '''
+    Like Path.stat() but, if the path points to a symbolic link, return the symbolic link’s information rather than its target’s.
+
+    :param path: Given path
+    :returns: StatResult
+    '''
+    return FSPath(path).lstat()
 
 
 @SmartPath.register
@@ -600,14 +611,6 @@ class FSPath(URIPath):
                 if mtime < stat.st_mtime:
                     mtime = stat.st_mtime
         return result._replace(size=size, ctime=ctime, mtime=mtime)
-
-    def lstat(self) -> StatResult:
-        '''
-        Like Path.stat() but, if the path points to a symbolic link, return the symbolic link’s information rather than its target’s.
-
-        :returns: StatResult
-        '''
-        return self.stat(follow_symlinks=False)
 
     def unlink(self, missing_ok: bool = False) -> None:
         '''

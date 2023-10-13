@@ -30,7 +30,7 @@ from megfile.lib.s3_prefetch_reader import DEFAULT_BLOCK_SIZE, S3PrefetchReader
 from megfile.lib.s3_share_cache_reader import S3ShareCacheReader
 from megfile.lib.url import get_url_scheme
 from megfile.smart_path import SmartPath
-from megfile.utils import cachedproperty, calculate_md5, generate_cache_path, get_binary_mode, get_content_offset, is_readable, necessary_params, thread_local
+from megfile.utils import cachedproperty, calculate_md5, classproperty, generate_cache_path, get_binary_mode, get_content_offset, is_readable, necessary_params, thread_local
 
 __all__ = [
     'S3Path',
@@ -62,6 +62,7 @@ __all__ = [
     's3_rename',
     's3_makedirs',
     's3_concat',
+    's3_lstat',
 ]
 _logger = get_logger(__name__)
 content_md5_header = 'megfile-content-md5'
@@ -1246,6 +1247,11 @@ def s3_concat(
                     executor.submit(writer.upload_part_by_paths, index, group)
 
 
+def s3_lstat(path: PathLike) -> StatResult:
+    '''Like Path.stat() but, if the path points to a symbolic link, return the symbolic link’s information rather than its target’s.'''
+    return S3Path(path).lstat()
+
+
 @SmartPath.register
 class S3Path(URIPath):
 
@@ -1282,6 +1288,16 @@ class S3Path(URIPath):
         if path.startswith(protocol_prefix):
             path = path[len(protocol_prefix):]
         return path
+
+    @cachedproperty
+    def parts(self) -> Tuple[str]:
+        '''A tuple giving access to the path’s various components'''
+        parts = [f"{self._protocol_with_profile}://"]
+        path = self.path_without_protocol
+        path = path.lstrip('/')
+        if path != '':
+            parts.extend(path.split('/'))
+        return tuple(parts)
 
     @cachedproperty
     def _client(self):
@@ -1944,10 +1960,6 @@ class S3Path(URIPath):
                 mtime=content['LastModified'].timestamp(),
                 extra=content)
         return stat_record
-
-    def lstat(self) -> StatResult:
-        '''Like Path.stat() but, if the path points to a symbolic link, return the symbolic link’s information rather than its target’s.'''
-        return self.stat(follow_symlinks=False)
 
     def unlink(self, missing_ok: bool = False) -> None:
         '''

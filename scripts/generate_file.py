@@ -5,7 +5,7 @@ ALL_IGNORE_FUNC_LIST = dict(
     s3=[
         "open", "readlink", "iterdir", "is_mount", "is_socket", "is_fifo",
         "is_block_device", "is_char_device", "owner", "absolute", "rmdir",
-        "glob", "iglob", "glob_stat", "rename", "cwd", "mkdir",
+        "glob", "iglob", "glob_stat", "rename", "cwd", "mkdir", "parts",
         "path_without_protocol", "path_with_protocol"
     ],
     fs=[
@@ -19,6 +19,10 @@ ALL_IGNORE_FUNC_LIST = dict(
     sftp=[
         "path_without_protocol", "expanduser", "iterdir", "readlink", "cwd",
         "glob", "iglob", "glob_stat", "resolve", "relpath", "utime", "parts"
+    ],
+    hdfs=[
+        "iterdir", "absolute", "rmdir", "glob", "iglob", "glob_stat", "rename",
+        "mkdir", "path_without_protocol", "path_with_protocol", "parts"
     ],
 )
 
@@ -40,6 +44,10 @@ ALL_IMPORT_LINES = dict(
     ],
     sftp=[
         "from typing import IO, AnyStr, BinaryIO, Iterator, List, Tuple, Callable, Optional",
+        "from megfile.interfaces import FileEntry, PathLike, StatResult",
+    ],
+    hdfs=[
+        "from typing import IO, AnyStr, BinaryIO, Iterator, List, Optional, Tuple",
         "from megfile.interfaces import FileEntry, PathLike, StatResult",
     ],
 )
@@ -81,6 +89,16 @@ ALL_FUNC_NAME_MAPPING = dict(
         save="save_as",
         is_absolute="isabs",
         replace="move",
+    ),
+    hdfs=dict(
+        is_dir="isdir",
+        is_file="isfile",
+        load="load_from",
+        mkdir="makedirs",
+        md5="getmd5",
+        symlink_to="symlink",
+        is_symlink="islink",
+        save="save_as",
     ),
 )
 PARAMETER_PATTERN = re.compile(r'\[[^:]*\]')
@@ -245,5 +263,5 @@ def generate_file(current_file_type: str):
 
 
 if __name__ == "__main__":
-    for t in ['s3', 'fs', 'http', 'stdio', 'sftp']:
+    for t in ['s3', 'fs', 'http', 'stdio', 'sftp', 'hdfs']:
         generate_file(t)

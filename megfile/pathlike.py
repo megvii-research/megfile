@@ -864,6 +864,10 @@ class URIPath(BaseURIPath):
         """
         raise NotImplementedError(f"'utime' is unsupported on '{type(self)}'")
 
+    def lstat(self) -> StatResult:
+        '''Like stat() but, if the path points to a symbolic link, return the symbolic link’s information rather than its target’s.'''
+        return self.stat(follow_symlinks=False)
+
 
 class URIPathParents(Sequence):
 

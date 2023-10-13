@@ -1,3 +1,4 @@
+import configparser
 import logging
 import os
 import shutil
@@ -9,6 +10,7 @@ from functools import partial
 import click
 from tqdm import tqdm
 
+from megfile.hdfs_path import DEFAULT_HDFS_TIMEOUT
 from megfile.interfaces import FileEntry
 from megfile.lib.glob import get_non_glob_dir, has_magic
 from megfile.smart import _smart_sync_single_file, smart_copy, smart_getmd5, smart_getmtime, smart_getsize, smart_glob_stat, smart_isdir, smart_isfile, smart_makedirs, smart_move, smart_open, smart_path_join, smart_remove, smart_rename, smart_scan_stat, smart_scandir, smart_stat, smart_sync, smart_sync_with_progress, smart_touch, smart_unlink
@@ -492,6 +494,7 @@ def config():
     '-p',
     '--path',
     type=str,
+    default='~/.aws/credentials',
     help='s3 config file, default is $HOME/.aws/credentials',
 )
 @click.option(
@@ -504,8 +507,7 @@ def config():
 def s3(
         path, profile_name, aws_access_key_id, aws_secret_access_key,
         endpoint_url, addressing_style, no_cover):
-    if not path:
-        path = os.path.join(os.path.expanduser('~'), '.aws', 'credentials'),
+    path = os.path.expanduser(path)
 
     config_dict = {
         'name': profile_name,
@@ -560,7 +562,7 @@ def s3(
         # Given profile_name has been used.
         if cur_name == profile_name:
             if no_cover:  # default True(cover the same-name config).
-                raise NameError(f'{profile_name} has been used.')
+                raise NameError(f'profile-name has been used: {profile_name}')
             used = True
             sections[i] = dumps(config_dict)
             continue
@@ -572,6 +574,51 @@ def s3(
     with open(path, 'w') as fp:
         fp.write(text)
     click.echo(f'Your oss config has been saved into {path}')
+
+
+@config.command(short_help='Return the config file for s3')
+@click.argument('url')
+@click.option(
+    '-p',
+    '--path',
+    default='~/.hdfscli.cfg',
+    help='s3 config file, default is $HOME/.hdfscli.cfg',
+)
+@click.option('-n', '--profile-name', default='default', help='s3 config file')
+@click.option('-u', '--user', help='user name')
+@click.option('-r', '--root', help="hdfs path's root dir")
+@click.option('-t', '--token', help="token for requesting hdfs server")
+@click.option(
+    '-o',
+    '--timeout',
+    help=f"request hdfs server timeout, default {DEFAULT_HDFS_TIMEOUT}")
+@click.option('--no-cover', is_flag=True, help='Not cover the same-name config')
+def hdfs(url, path, profile_name, user, root, token, timeout, no_cover):
+    path = os.path.expanduser(path)
+    current_config = {
+        'url': url,
+        'user': user,
+        'root': root,
+        'token': token,
+        'timeout': timeout,
+    }
+    profile_name = f"{profile_name}.alias"
+    config = configparser.ConfigParser()
+    if os.path.exists(path):
+        config.read(path)
+    if 'global' not in config.sections():
+        config['global'] = {'default.alias': 'default'}
+    if profile_name in config.sections():
+        if no_cover:
+            raise NameError(f'profile-name has been used: {profile_name[:-6]}')
+    else:
+        config[profile_name] = {}
+    for key, value in current_config.items():
+        if value:
+            config[profile_name][key] = value
+    with open(path, 'w') as fp:
+        config.write(fp)
+    click.echo(f'Your hdfs config has been saved into {path}')
 
 
 if __name__ == '__main__':

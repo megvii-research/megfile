@@ -9,6 +9,7 @@ from moto import mock_s3
 
 from megfile.errors import ProtocolExistsError, ProtocolNotFoundError, S3FileNotFoundError
 from megfile.fs_path import FSPath
+from megfile.hdfs_path import HdfsPath
 from megfile.http_path import HttpPath, HttpsPath
 from megfile.interfaces import Access
 from megfile.s3_path import S3Path
@@ -55,19 +56,21 @@ def s3_empty_client(mocker):
 
 
 def test_register_result():
-    assert len(SmartPath._registered_protocols) == 6
+    assert len(SmartPath._registered_protocols) == 7
     assert S3Path.protocol in SmartPath._registered_protocols
     assert FSPath.protocol in SmartPath._registered_protocols
     assert HttpPath.protocol in SmartPath._registered_protocols
     assert HttpsPath.protocol in SmartPath._registered_protocols
     assert StdioPath.protocol in SmartPath._registered_protocols
     assert SftpPath.protocol in SmartPath._registered_protocols
+    assert HdfsPath.protocol in SmartPath._registered_protocols
 
     assert SmartPath._registered_protocols[S3Path.protocol] == S3Path
     assert SmartPath._registered_protocols[FSPath.protocol] == FSPath
     assert SmartPath._registered_protocols[HttpPath.protocol] == HttpPath
     assert SmartPath._registered_protocols[HttpsPath.protocol] == HttpsPath
     assert SmartPath._registered_protocols[StdioPath.protocol] == StdioPath
+    assert SmartPath._registered_protocols[HdfsPath.protocol] == HdfsPath
     assert SmartPath.from_uri(FS_TEST_ABSOLUTE_PATH) == SmartPath(
         FS_TEST_ABSOLUTE_PATH)
 

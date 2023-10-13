@@ -1,7 +1,7 @@
 from typing import IO, AnyStr, BinaryIO, Callable, Iterator, List, Optional, Tuple
 
 from megfile.interfaces import FileEntry, PathLike, StatResult
-from megfile.sftp_path import SftpPath, is_sftp, sftp_concat, sftp_download, sftp_glob, sftp_glob_stat, sftp_iglob, sftp_path_join, sftp_readlink, sftp_resolve, sftp_upload
+from megfile.sftp_path import SftpPath, is_sftp, sftp_concat, sftp_download, sftp_glob, sftp_glob_stat, sftp_iglob, sftp_lstat, sftp_path_join, sftp_readlink, sftp_resolve, sftp_upload
 
 __all__ = [
     'is_sftp',
@@ -14,6 +14,7 @@ __all__ = [
     'sftp_upload',
     'sftp_path_join',
     'sftp_concat',
+    'sftp_lstat',
     'sftp_exists',
     'sftp_getmtime',
     'sftp_getsize',
@@ -30,7 +31,6 @@ __all__ = [
     'sftp_scan_stat',
     'sftp_scandir',
     'sftp_stat',
-    'sftp_lstat',
     'sftp_unlink',
     'sftp_walk',
     'sftp_getmd5',
@@ -242,16 +242,6 @@ def sftp_stat(path: PathLike, follow_symlinks=True) -> StatResult:
     :returns: StatResult
     '''
     return SftpPath(path).stat(follow_symlinks)
-
-
-def sftp_lstat(path: PathLike) -> StatResult:
-    '''
-    Get StatResult of file on sftp, including file size and mtime, referring to fs_getsize and fs_getmtime
-
-    :param path: Given path
-    :returns: StatResult
-    '''
-    return SftpPath(path).lstat()
 
 
 def sftp_unlink(path: PathLike, missing_ok: bool = False) -> None:

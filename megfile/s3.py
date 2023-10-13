@@ -1,7 +1,7 @@
 from typing import BinaryIO, Callable, Iterator, List, Optional, Tuple
 
 from megfile.interfaces import Access, FileEntry, PathLike, StatResult
-from megfile.s3_path import S3BufferedWriter, S3Cacher, S3LimitedSeekableWriter, S3Path, S3PrefetchReader, S3ShareCacheReader, get_endpoint_url, get_s3_client, get_s3_session, is_s3, parse_s3_url, s3_buffered_open, s3_cached_open, s3_concat, s3_download, s3_glob, s3_glob_stat, s3_iglob, s3_load_content, s3_makedirs, s3_memory_open, s3_open, s3_path_join, s3_pipe_open, s3_prefetch_open, s3_readlink, s3_rename, s3_share_cache_open, s3_upload
+from megfile.s3_path import S3BufferedWriter, S3Cacher, S3LimitedSeekableWriter, S3Path, S3PrefetchReader, S3ShareCacheReader, get_endpoint_url, get_s3_client, get_s3_session, is_s3, parse_s3_url, s3_buffered_open, s3_cached_open, s3_concat, s3_download, s3_glob, s3_glob_stat, s3_iglob, s3_load_content, s3_lstat, s3_makedirs, s3_memory_open, s3_open, s3_path_join, s3_pipe_open, s3_prefetch_open, s3_readlink, s3_rename, s3_share_cache_open, s3_upload
 
 __all__ = [
     'parse_s3_url',
@@ -32,6 +32,7 @@ __all__ = [
     's3_rename',
     's3_makedirs',
     's3_concat',
+    's3_lstat',
     's3_access',
     's3_exists',
     's3_getmtime',
@@ -47,7 +48,6 @@ __all__ = [
     's3_scan_stat',
     's3_scandir',
     's3_stat',
-    's3_lstat',
     's3_unlink',
     's3_walk',
     's3_getmd5',
@@ -249,11 +249,6 @@ def s3_stat(path: PathLike, follow_symlinks=True) -> StatResult:
     :raises: S3FileNotFoundError, S3BucketNotFoundError
     '''
     return S3Path(path).stat(follow_symlinks)
-
-
-def s3_lstat(path: PathLike) -> StatResult:
-    '''Like Path.stat() but, if the path points to a symbolic link, return the symbolic link’s information rather than its target’s.'''
-    return S3Path(path).lstat()
 
 
 def s3_unlink(path: PathLike, missing_ok: bool = False) -> None:
