@@ -263,5 +263,7 @@ def hdfs_open(
         *,
         buffering: Optional[int] = None,
         encoding: Optional[str] = None,
+        errors: Optional[str] = None,
         **kwargs) -> IO[AnyStr]:  # pytype: disable=signature-mismatch
-    return HdfsPath(path).open(mode, buffering=buffering, encoding=encoding)
+    return HdfsPath(path).open(
+        mode, buffering=buffering, encoding=encoding, errors=errors)

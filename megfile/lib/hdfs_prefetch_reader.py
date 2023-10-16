@@ -46,6 +46,6 @@ class HdfsPrefetchReader(BasePrefetchReader):
             self, start: Optional[int] = None,
             end: Optional[int] = None) -> dict:
         with raise_hdfs_error(self.name):
-            with self._client.read(self._path, offset=start,
-                                   length=end - start) as f:
+            with self._client.read(self._path, offset=start or 0, length=end -
+                                   start if start and end else None) as f:
                 return {'Body': BytesIO(f.read())}
