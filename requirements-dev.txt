@@ -12,6 +12,7 @@ mutmut
 pyfakefs >= 4.5
 mock
 junit-xml ~= 1.9
+requests_mock
 
 # doc
 Sphinx ~= 5.0.0

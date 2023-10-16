@@ -82,6 +82,7 @@ def test_parts():
     assert S3Path('foo', '../bar').parts == ('s3://', 'foo', '..', 'bar')
     assert S3Path('foo/bar').parts == ('s3://', 'foo', 'bar')
     assert S3Path('/', 'foo', 'bar').parts == ('s3://', 'foo', 'bar')
+    assert S3Path('s3+a://foo/bar').parts == ('s3+a://', 'foo', 'bar')
 
 
 def test_drive():

@@ -37,6 +37,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
           pip install -r requirements.txt
+          pip install -r requirements-hdfs.txt
 
       - name: Run unit-test
         run: |
@@ -81,6 +82,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
           pip install -r requirements.txt
+          pip install -r requirements-hdfs.txt
 
       - name: Run style-check
         run: |
@@ -116,6 +118,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
           pip install -r requirements.txt
+          pip install -r requirements-hdfs.txt
 
       - name: Run static-check
         run: |
@@ -151,6 +154,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
           pip install -r requirements.txt
+          pip install -r requirements-hdfs.txt
 
       - name: Run bandit-check
         continue-on-error: true
@@ -198,6 +202,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
           pip install -r requirements.txt
+          pip install -r requirements-hdfs.txt
 
       - name: Run pyre-check
         continue-on-error: true

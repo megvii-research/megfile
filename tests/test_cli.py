@@ -1,10 +1,10 @@
+import configparser
 import os
-import sys
 
 import pytest
 from click.testing import CliRunner
 
-from megfile.cli import cat, cp, head, ls, md5sum, mkdir, mtime, mv, rm, s3, size, stat, sync, tail, to, touch, version
+from megfile.cli import cat, cp, hdfs, head, ls, md5sum, mkdir, mtime, mv, rm, s3, size, stat, sync, tail, to, touch, version
 
 from .test_smart import s3_empty_client
 
@@ -310,7 +310,7 @@ def test_to(runner, tmpdir):
         assert f.read() == b'testtest2'
 
 
-def test_s3(tmpdir, runner):
+def test_config_s3(tmpdir, runner):
     result = runner.invoke(
         s3, [
             '-p',
@@ -354,3 +354,40 @@ def test_s3(tmpdir, runner):
         text = fp.read()
         assert '[new_test]' in text
         assert '[nothing]' in text
+
+
+def test_config_hdfs(tmpdir, runner):
+    result = runner.invoke(
+        hdfs, [
+            "http://127.0.0.1:8000", '-p',
+            str(tmpdir / 'config'), '-u', 'penghongyang', '-r', '/', '-t',
+            'token', '-o', '20'
+        ])
+    assert 'Your hdfs config' in result.output
+
+    config = configparser.ConfigParser()
+    config.read(str(tmpdir / 'config'))
+    assert config['global']['default.alias'] == 'default'
+    assert config['default.alias']['url'] == 'http://127.0.0.1:8000'
+    assert config['default.alias']['user'] == 'penghongyang'
+    assert config['default.alias']['root'] == '/'
+    assert config['default.alias']['timeout'] == '20'
+    assert config['default.alias']['token'] == 'token'
+
+    result = runner.invoke(
+        hdfs, [
+            "http://127.0.0.1:8000", '-p',
+            str(tmpdir / 'config'), '-u', 'penghongyang', '-r', '/', '-t',
+            'token', '-o', '100'
+        ])
+    config.read(str(tmpdir / 'config'))
+    assert config['default.alias']['timeout'] == '100'
+
+    result = runner.invoke(
+        hdfs, [
+            "http://127.0.0.1:8000", '-p',
+            str(tmpdir / 'config'), '-u', 'penghongyang', '-r', '/', '-t',
+            'token', '-o', '100', '--no-cover'
+        ])
+    config.read(str(tmpdir / 'config'))
+    assert result.exit_code == 1

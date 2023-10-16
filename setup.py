@@ -52,5 +52,8 @@ setup(
     },
     tests_require=test_requirements,
     install_requires=requirements,
+    extras_require={
+        "hdfs": load_requirements('requirements-hdfs.txt'),
+    },
     python_requires='>=3.6',
 )

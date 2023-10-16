@@ -38,6 +38,7 @@ __all__ = [
     'sftp_upload',
     'sftp_path_join',
     'sftp_concat',
+    'sftp_lstat',
 ]
 
 SFTP_USERNAME = "SFTP_USERNAME"
@@ -528,6 +529,16 @@ def sftp_concat(src_paths: List[PathLike], dst_path: PathLike) -> None:
         raise OSError(f'Failed to concat {src_paths} to {dst_path}')
 
 
+def sftp_lstat(path: PathLike) -> StatResult:
+    '''
+    Get StatResult of file on sftp, including file size and mtime, referring to fs_getsize and fs_getmtime
+
+    :param path: Given path
+    :returns: StatResult
+    '''
+    return SftpPath(path).lstat()
+
+
 @SmartPath.register
 class SftpPath(URIPath):
     """sftp protocol
@@ -980,14 +991,6 @@ class SftpPath(URIPath):
         else:
             result = _make_stat(self._client.lstat(self._real_path))
         return result
-
-    def lstat(self) -> StatResult:
-        '''
-        Get StatResult of file on sftp, including file size and mtime, referring to fs_getsize and fs_getmtime
-
-        :returns: StatResult
-        '''
-        return self.stat(follow_symlinks=False)
 
     def unlink(self, missing_ok: bool = False) -> None:
         '''

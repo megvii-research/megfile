@@ -1,6 +1,6 @@
 from typing import BinaryIO, Callable, Iterator, List, Optional, Tuple
 
-from megfile.fs_path import FSPath, StatResult, _make_stat, fs_cwd, fs_glob, fs_glob_stat, fs_home, fs_iglob, fs_makedirs, fs_move, fs_path_join, fs_readlink, fs_rename, fs_resolve, is_fs
+from megfile.fs_path import FSPath, StatResult, _make_stat, fs_cwd, fs_glob, fs_glob_stat, fs_home, fs_iglob, fs_lstat, fs_makedirs, fs_move, fs_path_join, fs_readlink, fs_rename, fs_resolve, is_fs
 from megfile.interfaces import Access, FileEntry, PathLike, StatResult
 
 __all__ = [
@@ -18,6 +18,7 @@ __all__ = [
     'fs_resolve',
     'fs_move',
     'fs_makedirs',
+    'fs_lstat',
     'fs_isabs',
     'fs_abspath',
     'fs_access',
@@ -36,7 +37,6 @@ __all__ = [
     'fs_scan_stat',
     'fs_scandir',
     'fs_stat',
-    'fs_lstat',
     'fs_unlink',
     'fs_walk',
     'fs_getmd5',
@@ -258,16 +258,6 @@ def fs_stat(path: PathLike, follow_symlinks=True) -> StatResult:
     :returns: StatResult
     '''
     return FSPath(path).stat(follow_symlinks)
-
-
-def fs_lstat(path: PathLike) -> StatResult:
-    '''
-    Like Path.stat() but, if the path points to a symbolic link, return the symbolic link’s information rather than its target’s.
-
-    :param path: Given path
-    :returns: StatResult
-    '''
-    return FSPath(path).lstat()
 
 
 def fs_unlink(path: PathLike, missing_ok: bool = False) -> None:
