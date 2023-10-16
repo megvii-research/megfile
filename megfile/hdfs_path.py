@@ -605,15 +605,15 @@ class HdfsPath(URIPath):
                     file_obj = io.TextIOWrapper(
                         file_obj, encoding=encoding, errors=errors)  # pytype: disable=wrong-arg-types
                     file_obj.mode = mode
-                return file_obj
+                return file_obj  # pytype: disable=bad-return-type
             elif mode in ('w', 'wb'):
-                return self._client.write(
+                return self._client.write(  # pytype: disable=bad-return-type
                     self.path_without_protocol,
                     overwrite=True,
                     buffersize=buffering,
                     encoding=encoding)
             elif mode in ('a', 'ab'):
-                return self._client.write(
+                return self._client.write(  # pytype: disable=bad-return-type
                     self.path_without_protocol,
                     append=True,
                     buffersize=buffering,
