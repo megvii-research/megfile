@@ -81,51 +81,13 @@ def test_get_hdfs_client():
     assert isinstance(get_hdfs_client('client'), hdfs_api.InsecureClient)
 
 
-def test_iterdir(requests_mock, config_mocker):
-    requests_mock.get(
-        'http://127.0.0.1:8000/webhdfs/v1/A?op=LISTSTATUS',
-        json={
-            "FileStatuses": {
-                "FileStatus": [
-                    {
-                        "accessTime": 1320171722771,
-                        "blockSize": 33554432,
-                        "group": "supergroup",
-                        "length": 24930,
-                        "modificationTime": 1320171722771,
-                        "owner": "webuser",
-                        "pathSuffix": "a.patch",
-                        "permission": "644",
-                        "replication": 1,
-                        "type": "FILE"
-                    },
-                    {
-                        "accessTime": 0,
-                        "blockSize": 0,
-                        "group": "supergroup",
-                        "length": 0,
-                        "modificationTime": 1320895981256,
-                        "owner": "szetszwo",
-                        "pathSuffix": "bar",
-                        "permission": "711",
-                        "replication": 0,
-                        "type": "DIRECTORY"
-                    },
-                ]
-            }
-        })
+def test_iterdir(http_mocker):
+    assert [
+        path.path_with_protocol for path in HdfsPath('hdfs://root').iterdir()
+    ] == ['hdfs://root/1.txt', 'hdfs://root/a', 'hdfs://root/b']
 
-    assert list(HdfsPath('hdfs://A').iterdir()) == [
-        HdfsPath('hdfs://A/a.patch'),
-        HdfsPath('hdfs://A/bar'),
-    ]
-
-    # TODO: test not a dir
-    # requests_mock.get(
-    #     'http://127.0.0.1:8000/webhdfs/v1/A/1.json?op=LISTSTATUS',)
-
-    # with pytest.raises(NotADirectoryError):
-    #     list(HdfsPath('hdfs://A/1.json').iterdir())
+    with pytest.raises(NotADirectoryError):
+        list(HdfsPath('hdfs://root/1.txt').iterdir())
 
 
 def test_parts():

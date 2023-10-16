@@ -390,9 +390,9 @@ def translate_hdfs_error(hdfs_error: Exception, hdfs_path: PathLike):
     from megfile.lib.hdfs_tools import hdfs_api
 
     if isinstance(hdfs_error, hdfs_api.HdfsError):
-        if 'Path is not a file' in hdfs_error.message:
+        if hdfs_error.message and 'Path is not a file' in hdfs_error.message:  # pytype: disable=attribute-error
             return IsADirectoryError('Is a directory: %r' % hdfs_path)
-        elif 'Path is not a directory' in hdfs_error.message:
+        elif hdfs_error.message and 'Path is not a directory' in hdfs_error.message:  # pytype: disable=attribute-error
             return NotADirectoryError('Not a directory: %r' % hdfs_path)
         elif hdfs_error.status_code in (401, 403):  # pytype: disable=attribute-error
             return PermissionError('Permission denied: %r' % hdfs_path)
