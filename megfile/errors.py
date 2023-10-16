@@ -384,3 +384,28 @@ def s3_error_code_should_retry(error: str) -> bool:
     if error in ['InternalError', 'ServiceUnavailable', 'SlowDown']:
         return True
     return False
+
+
+def translate_hdfs_error(hdfs_error: Exception, hdfs_path: PathLike):
+    from megfile.lib.hdfs_tools import hdfs_api
+
+    if isinstance(hdfs_error, hdfs_api.HdfsError):
+        if 'Path is not a file' in hdfs_error.message:
+            return IsADirectoryError('Is a directory: %r' % hdfs_path)
+        elif 'Path is not a directory' in hdfs_error.message:
+            return NotADirectoryError('Not a directory: %r' % hdfs_path)
+        elif hdfs_error.status_code in (401, 403):  # pytype: disable=attribute-error
+            return PermissionError('Permission denied: %r' % hdfs_path)
+        elif hdfs_error.status_code == 400:  # pytype: disable=attribute-error
+            return ValueError(f'{hdfs_error.message}, path: {hdfs_path}')  # pytype: disable=attribute-error
+        elif hdfs_error.status_code == 404:  # pytype: disable=attribute-error
+            return FileNotFoundError(f'No match file: {hdfs_path}')
+    return hdfs_error
+
+
+@contextmanager
+def raise_hdfs_error(hdfs_path: PathLike):
+    try:
+        yield
+    except Exception as error:
+        raise translate_hdfs_error(error, hdfs_path)

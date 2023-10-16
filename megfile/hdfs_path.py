@@ -2,19 +2,19 @@ import hashlib
 import io
 import os
 import sys
-from contextlib import contextmanager
 from functools import lru_cache
 from typing import IO, AnyStr, BinaryIO, Iterator, List, Optional, Tuple
 
-from megfile.errors import _create_missing_ok_generator
+from megfile.errors import _create_missing_ok_generator, raise_hdfs_error
 from megfile.interfaces import FileEntry, PathLike, StatResult, URIPath
 from megfile.lib.compat import fspath
 from megfile.lib.glob import FSFunc, iglob
+from megfile.lib.hdfs_prefetch_reader import HdfsPrefetchReader
 from megfile.lib.hdfs_tools import hdfs_api
 from megfile.lib.url import get_url_scheme
 from megfile.pathlike import PathLike, URIPath
 from megfile.smart_path import SmartPath
-from megfile.utils import cachedproperty, classproperty
+from megfile.utils import cachedproperty
 
 __all__ = [
     'HdfsPath',
@@ -95,25 +95,6 @@ def get_hdfs_client(profile_name: Optional[str] = None):
         return hdfs_api.TokenClient(**config)
     config.pop('token', None)
     return hdfs_api.InsecureClient(**config)
-
-
-def translate_hdfs_error(hdfs_error: Exception, hdfs_path: PathLike):
-    if isinstance(hdfs_error, hdfs_api.HdfsError):
-        if hdfs_error.status_code in (401, 403):  # pytype: disable=attribute-error
-            return PermissionError('Permission denied: %r' % hdfs_path)
-        elif hdfs_error.status_code == 400:  # pytype: disable=attribute-error
-            return ValueError(f'{hdfs_error.message}, path: {hdfs_path}')  # pytype: disable=attribute-error
-        elif hdfs_error.status_code == 404:  # pytype: disable=attribute-error
-            return FileNotFoundError(f'No match file: {hdfs_path}')
-    return hdfs_error
-
-
-@contextmanager
-def raise_hdfs_error(hdfs_path: PathLike):
-    try:
-        yield
-    except Exception as error:
-        raise translate_hdfs_error(error, hdfs_path)
 
 
 def hdfs_glob(
@@ -376,6 +357,8 @@ class HdfsPath(URIPath):
         :returns: All contents have prefix of path.
         :raises: FileNotFoundError, NotADirectoryError
         '''
+        if not self.is_dir():
+            raise NotADirectoryError('Not a directory: %r' % self.path)
         with raise_hdfs_error(self.path_with_protocol):
             return self._client.list(self.path_without_protocol)
 
@@ -593,6 +576,7 @@ class HdfsPath(URIPath):
             *,
             buffering: Optional[int] = None,
             encoding: Optional[str] = None,
+            errors: Optional[str] = None,
             **kwargs) -> IO[AnyStr]:  # pytype: disable=signature-mismatch
         if '+' in mode:
             raise ValueError('unacceptable mode: %r' % mode)
@@ -604,10 +588,24 @@ class HdfsPath(URIPath):
 
         with raise_hdfs_error(self.path_with_protocol):
             if mode in ('r', 'rb'):
-                return self._client.read(
-                    self.path_without_protocol,
-                    buffer_size=buffering,
-                    encoding=encoding)
+                keys = [
+                    'block_size', 'block_capacity', 'block_forward',
+                    'max_retries', 'max_workers'
+                ]
+                input_kwargs = {}
+                for key in keys:
+                    if key in kwargs:
+                        input_kwargs[key] = kwargs[key]
+                file_obj = HdfsPrefetchReader(
+                    hdfs_path=self.path_without_protocol,
+                    client=self._client,
+                    profile_name=self._profile_name,
+                    **input_kwargs)
+                if 'b' not in mode:
+                    file_obj = io.TextIOWrapper(
+                        file_obj, encoding=encoding, errors=errors)  # pytype: disable=wrong-arg-types
+                    file_obj.mode = mode
+                return file_obj
             elif mode in ('w', 'wb'):
                 return self._client.write(
                     self.path_without_protocol,

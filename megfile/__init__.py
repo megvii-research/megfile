@@ -1,6 +1,6 @@
 from megfile.fs import fs_abspath, fs_access, fs_cwd, fs_exists, fs_expanduser, fs_getmd5, fs_getmtime, fs_getsize, fs_glob, fs_glob_stat, fs_home, fs_iglob, fs_isabs, fs_isdir, fs_isfile, fs_islink, fs_ismount, fs_listdir, fs_load_from, fs_lstat, fs_makedirs, fs_move, fs_readlink, fs_realpath, fs_relpath, fs_remove, fs_rename, fs_resolve, fs_save_as, fs_scan, fs_scan_stat, fs_scandir, fs_stat, fs_symlink, fs_sync, fs_unlink, fs_walk, is_fs
 from megfile.fs_path import FSPath
-from megfile.hdfs import hdfs_exists, hdfs_getmd5, hdfs_getmtime, hdfs_getsize, hdfs_isdir, hdfs_isfile, hdfs_listdir, hdfs_load_from, hdfs_move, hdfs_open, hdfs_remove, hdfs_save_as, hdfs_scan, hdfs_scan_stat, hdfs_scandir, hdfs_stat, hdfs_unlink, hdfs_walk, is_hdfs
+from megfile.hdfs import hdfs_exists, hdfs_getmd5, hdfs_getmtime, hdfs_getsize, hdfs_glob, hdfs_glob_stat, hdfs_iglob, hdfs_isdir, hdfs_isfile, hdfs_listdir, hdfs_load_from, hdfs_makedirs, hdfs_move, hdfs_open, hdfs_remove, hdfs_save_as, hdfs_scan, hdfs_scan_stat, hdfs_scandir, hdfs_stat, hdfs_unlink, hdfs_walk, is_hdfs
 from megfile.hdfs_path import HdfsPath
 from megfile.http import http_exists, http_getmtime, http_getsize, http_open, http_stat, is_http
 from megfile.http_path import HttpPath, HttpsPath
@@ -199,6 +199,10 @@ __all__ = [
     'hdfs_getmd5',
     'hdfs_save_as',
     'hdfs_open',
+    'hdfs_glob',
+    'hdfs_glob_stat',
+    'hdfs_iglob',
+    'hdfs_makedirs',
     'S3Path',
     'FSPath',
     'HttpPath',

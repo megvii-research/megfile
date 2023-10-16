@@ -390,6 +390,7 @@ def test_hdfs_open(http_mocker):
 
     with hdfs.hdfs_open('hdfs://root/a/2.txt', 'r') as f:
         assert f.read() == '22'
+        assert f.name == 'hdfs://root/a/2.txt'
 
 
 def test_hdfs_glob(http_mocker):
