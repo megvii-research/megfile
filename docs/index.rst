@@ -11,6 +11,7 @@ Welcome to megfile's documentation!
    :caption: Contents:
 
    readme
+   path_format
    configuration
    megfile
    cli
