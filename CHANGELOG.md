@@ -1,3 +1,9 @@
+## 2.2.8 - 2023.10.17
+- feat
+    - support hdfs protocol
+- fix
+    - fix `megfile config` command when config file's parent dir not exists
+
 ## 2.2.7 - 2023.10.08
 - fix
     - exit 1 when cli had error
