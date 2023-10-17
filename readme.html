@@ -19,7 +19,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="API Reference" href="megfile.html" />
+    <link rel="next" title="Path Format" href="path_format.html" />
     <link rel="prev" title="Welcome to megfile’s documentation!" href="index.html" /> 
 </head>
 
@@ -46,8 +46,8 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Getting Started</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#megfile-megvii-file-library">megfile - Megvii FILE library</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#support-protocols">Support Protocols</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#quick-start">Quick Start</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#path-format">Path Format</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#functional-interface">Functional Interface</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#smartpath-interface">SmartPath Interface</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#command-line-interface">Command Line Interface</a></li>
@@ -59,10 +59,16 @@
 <li class="toctree-l3"><a class="reference internal" href="#development-environment">Development Environment</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#configuration">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#use-enviroments">Use enviroments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#use-command">Use command</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#how-to-contribute">How to Contribute</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="path_format.html">Path Format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="megfile.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cli.html">Command Line Interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="advanced.html">Advanced User Guide</a></li>
@@ -118,62 +124,27 @@
 </ul>
 <p><code class="docutils literal notranslate"><span class="pre">megfile</span></code>‘s advantages are:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">smart_open</span></code> can open resources that use various protocols, including fs, s3, http(s) and stdio. Especially, reader / writer of s3 in <code class="docutils literal notranslate"><span class="pre">megfile</span></code> is implemented with multi-thread, which is faster than known competitors.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">smart_glob</span></code> is available on s3. And it supports zsh extended pattern syntax of <code class="docutils literal notranslate"><span class="pre">[]</span></code>, e.g. <code class="docutils literal notranslate"><span class="pre">s3://bucket/video.{mp4,avi}</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">smart_open</span></code> can open resources that use various protocols. Especially, reader / writer of s3 in <code class="docutils literal notranslate"><span class="pre">megfile</span></code> is implemented with multi-thread, which is faster than known competitors.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">smart_glob</span></code> is available on majority protocols. And it supports zsh extended pattern syntax of <code class="docutils literal notranslate"><span class="pre">[]</span></code>, e.g. <code class="docutils literal notranslate"><span class="pre">s3://bucket/video.{mp4,avi}</span></code>.</p></li>
 <li><p>All-inclusive functions like <code class="docutils literal notranslate"><span class="pre">smart_exists</span></code> / <code class="docutils literal notranslate"><span class="pre">smart_stat</span></code> / <code class="docutils literal notranslate"><span class="pre">smart_sync</span></code>. If you don’t find the functions you want, <a class="reference external" href="https://github.com/megvii-research/megfile/issues">submit an issue</a>.</p></li>
-<li><p>Compatible with <code class="docutils literal notranslate"><span class="pre">pathlib.Path</span></code> interface, referring to <code class="docutils literal notranslate"><span class="pre">S3Path</span></code> and <code class="docutils literal notranslate"><span class="pre">SmartPath</span></code>.</p></li>
+<li><p>Compatible with <code class="docutils literal notranslate"><span class="pre">pathlib.Path</span></code> interface, referring to <code class="docutils literal notranslate"><span class="pre">SmartPath</span></code> and other protocol classes like <code class="docutils literal notranslate"><span class="pre">S3Path</span></code>.</p></li>
+</ul>
+</section>
+<section id="support-protocols">
+<h2>Support Protocols<a class="headerlink" href="#support-protocols" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p>fs(local filesystem)</p></li>
+<li><p>s3</p></li>
+<li><p>sftp</p></li>
+<li><p>http</p></li>
+<li><p>stdio</p></li>
+<li><p>hdfs: <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">'megfile[hdfs]'</span></code></p></li>
 </ul>
 </section>
 <section id="quick-start">
 <h2>Quick Start<a class="headerlink" href="#quick-start" title="Permalink to this heading"></a></h2>
-<p>Here’s an example of writing a file to s3 / sftp / fs, syncing to local, reading and finally deleting it.</p>
-<section id="path-format">
-<h3>Path Format<a class="headerlink" href="#path-format" title="Permalink to this heading"></a></h3>
-<ul class="simple">
-<li><p>local file</p>
-<ul>
-<li><p>unix filesystem path</p></li>
-<li><p>examples:</p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">/data/test.txt</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">test.txt</span></code></p></li>
-<li><p>1</p></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><p>s3</p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">s3[+profile_name]://bucket/key</span></code></p></li>
-</ul>
-</li>
-<li><p>sftp</p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">sftp://[username[:password]&#64;]hostname[:port]//absolute_file_path</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">sftp://[username[:password]&#64;]hostname[:port]/relative_file_path</span></code></p></li>
-</ul>
-</li>
-<li><p>http</p>
-<ul>
-<li><p>http / https url</p></li>
-<li><p>examples:</p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">http://hostname/test</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">https://hostname/test</span></code></p></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><p>stdio</p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">stdio://-</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">stdio://0</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">stdio://1</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">stdio://2</span></code></p></li>
-</ul>
-</li>
-</ul>
-</section>
+<p>Path string in <code class="docutils literal notranslate"><span class="pre">megfile</span></code> almost is <code class="docutils literal notranslate"><span class="pre">protocol://path/to/file</span></code>, for example <code class="docutils literal notranslate"><span class="pre">s3://bucketA/key</span></code>. But sftp path is a little different, format is <code class="docutils literal notranslate"><span class="pre">sftp://[username[:password]&#64;]hostname[:port]//file_path</span></code>, and relative path is replace <code class="docutils literal notranslate"><span class="pre">//file_path</span></code> to <code class="docutils literal notranslate"><span class="pre">/file_path</span></code>.
+Here’s an example of writing a file to s3 / fs, syncing to local, reading and finally deleting it.</p>
 <section id="functional-interface">
 <h3>Functional Interface<a class="headerlink" href="#functional-interface" title="Permalink to this heading"></a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">megfile</span> <span class="kn">import</span> <span class="n">smart_open</span><span class="p">,</span> <span class="n">smart_exists</span><span class="p">,</span> <span class="n">smart_sync</span><span class="p">,</span> <span class="n">smart_remove</span><span class="p">,</span> <span class="n">smart_glob</span>
@@ -196,17 +167,12 @@
 
 <span class="c1"># glob files or directories in s3 bucket</span>
 <span class="n">smart_glob</span><span class="p">(</span><span class="s1">&#39;s3://playground/megfile-?.{mp4,avi}&#39;</span><span class="p">)</span>
-
-<span class="c1"># smart_open also support protocols like http / https</span>
-<span class="n">smart_open</span><span class="p">(</span><span class="s1">&#39;https://www.google.com&#39;</span><span class="p">)</span>
-
-<span class="c1"># smart_open also support protocols like sftp</span>
-<span class="n">smart_open</span><span class="p">(</span><span class="s1">&#39;sftp://username:password@sftp.server.com:22/path/to/file&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
 <section id="smartpath-interface">
 <h3>SmartPath Interface<a class="headerlink" href="#smartpath-interface" title="Permalink to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">SmartPath</span></code> has a similar interface with pathlib.Path.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">megfile.smart_path</span> <span class="kn">import</span> <span class="n">SmartPath</span>
 
 <span class="n">path</span> <span class="o">=</span> <span class="n">SmartPath</span><span class="p">(</span><span class="s1">&#39;s3://playground/megfile-test&#39;</span><span class="p">)</span>
@@ -263,69 +229,41 @@ pip3<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </
 </section>
 <section id="configuration">
 <h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this heading"></a></h2>
-<p>Before using <code class="docutils literal notranslate"><span class="pre">megfile</span></code> to access files on s3, you need to set up authentication credentials for your s3 account using the <a class="reference external" href="https://docs.aws.amazon.com/cli/latest/reference/configure/index.html">AWS CLI</a> or editing the file <code class="docutils literal notranslate"><span class="pre">~/.aws/config</span></code> directly, see also: <a class="reference external" href="https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html">boto3 configuration</a> &amp; <a class="reference external" href="https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html">boto3 credentials</a>. Megfile also support environments for s3, like <code class="docutils literal notranslate"><span class="pre">OSS_ENDPOINT</span></code>, <code class="docutils literal notranslate"><span class="pre">AWS_ACCESS_KEY_ID</span></code> , <code class="docutils literal notranslate"><span class="pre">AWS_SECRET_ACCESS_KEY</span></code> and <code class="docutils literal notranslate"><span class="pre">AWS_S3_ADDRESSING_STYLE</span></code>.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ aws configure
-AWS Access Key ID [None]: accesskey
-AWS Secret Access Key [None]: secretkey
-Default region name [None]:
-Default output format [None]:
+<p>Using <code class="docutils literal notranslate"><span class="pre">s3</span></code> as an example, the following describes the configuration methods. For more details, please refer to <a class="reference external" href="https://megvii-research.github.io/megfile/configuration.html">Configuration</a>.</p>
+<p>You can use enviroments and configuration file for configuration, and priority is that environment variables take precedence over configuration file.</p>
+<section id="use-enviroments">
+<h3>Use enviroments<a class="headerlink" href="#use-enviroments" title="Permalink to this heading"></a></h3>
+<p>You can use enviroments to setup authentication credentials for your s3 account:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">AWS_ACCESS_KEY_ID</span></code>: access key</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">AWS_SECRET_ACCESS_KEY</span></code>: secret key</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">OSS_ENDPOINT</span></code>: endpoint url of s3</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">AWS_S3_ADDRESSING_STYLE</span></code>: addressing style</p></li>
+</ul>
+</section>
+<section id="use-command">
+<h3>Use command<a class="headerlink" href="#use-command" title="Permalink to this heading"></a></h3>
+<p>You can update config file with <code class="docutils literal notranslate"><span class="pre">megfile</span></code> command easyly:
+<a class="reference external" href="https://megvii-research.github.io/megfile/cli.html#megfile-config-s3">megfile config s3 [OPTIONS] AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY</a></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ megfile config s3 accesskey secretkey
 
-# for aliyun oss only
-$ aws configure set s3.addressing_style virtual
-$ aws configure set s3.endpoint_url http://oss-cn-hangzhou.aliyuncs.com
-
-$ cat ~/.aws/config
-[default]
-aws_secret_access_key = accesskey
-aws_access_key_id = secretkey
-
-s3 =
-    addressing_style = virtual
-    endpoint_url = http://oss-cn-hangzhou.aliyuncs.com
+# for aliyun
+$ megfile config s3 accesskey secretkey \
+--addressing-style virtual \
+--endpoint-url http://oss-cn-hangzhou.aliyuncs.com \
 </pre></div>
 </div>
-<p>You also can operate s3 files with different endpoint urls, access keys and secret keys. You can set config for different profiles by environment(<code class="docutils literal notranslate"><span class="pre">PROFILE_NAME__AWS_ACCESS_KEY_ID</span></code>, <code class="docutils literal notranslate"><span class="pre">PROFILE_NAME__AWS_SECRET_ACCESS_KEY</span></code>, <code class="docutils literal notranslate"><span class="pre">PROFILE_NAME__OSS_ENDPOINT</span></code>, <code class="docutils literal notranslate"><span class="pre">PROFILE_NAME__AWS_S3_ADDRESSING_STYLE</span></code>) or <code class="docutils literal notranslate"><span class="pre">~/.aws/config</span></code>. Then you can operate files with path <code class="docutils literal notranslate"><span class="pre">s3+profile_name://bucket/key</span></code>.
-For example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span># set config with environment
-$ export PROFILE1__AWS_ACCESS_KEY_ID=profile1-accesskey
-$ export PROFILE1__AWS_SECRET_ACCESS_KEY=profile1-secretkey
-$ export PROFILE1__OSS_ENDPOINT=https://profile1.s3.custom.com
+<p>You can get the configuration from <code class="docutils literal notranslate"><span class="pre">~/.aws/credentials</span></code>, like:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">default</span><span class="p">]</span>
+<span class="n">aws_secret_access_key</span> <span class="o">=</span> <span class="n">accesskey</span>
+<span class="n">aws_access_key_id</span> <span class="o">=</span> <span class="n">secretkey</span>
 
-$ export PROFILE2__AWS_ACCESS_KEY_ID=profile2-accesskey
-$ export PROFILE2__AWS_SECRET_ACCESS_KEY=profile2-secretkey
-$ export PROFILE2__OSS_ENDPOINT=https://profile2.s3.custom.com
-
-# set config with file
-$ cat ~/.aws/config
-[profile1]
-aws_secret_access_key = profile1-accesskey
-aws_access_key_id = profile1-secretkey
-s3 =
-    endpoint_url = https://profile1.s3.custom.com
-
-[profile2]
-aws_secret_access_key = profile2-accesskey
-aws_access_key_id = profile2-secretkey
-s3 =
-    addressing_style = virtual
-    endpoint_url = https://profile2.s3.custom.com
-
-
-# python
-megfile.smart_copy(&#39;s3+profile1://bucket/key&#39;, &#39;s3+profile2://bucket/key&#39;)
+<span class="n">s3</span> <span class="o">=</span>
+    <span class="n">addressing_style</span> <span class="o">=</span> <span class="n">virtual</span>
+    <span class="n">endpoint_url</span> <span class="o">=</span> <span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">oss</span><span class="o">-</span><span class="n">cn</span><span class="o">-</span><span class="n">hangzhou</span><span class="o">.</span><span class="n">aliyuncs</span><span class="o">.</span><span class="n">com</span>
 </pre></div>
 </div>
-<p>sftp support some environments:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span># If you are not set username or password in path, you can set them in environments
-$ export SFTP_USERNAME=user
-$ export SFTP_PASSWORD=user_password
-
-# You can also set private key for sftp connection
-$ export SFTP_PRIVATE_KEY_PATH=/home/user/custom_private_key_path  # default not use private key
-$ export SFTP_PRIVATE_KEY_TYPE=RSA  # default is RSA
-$ export SFTP_PRIVATE_KEY_PASSWORD=private_key_password
-</pre></div>
-</div>
+</section>
 </section>
 <section id="how-to-contribute">
 <h2>How to Contribute<a class="headerlink" href="#how-to-contribute" title="Permalink to this heading"></a></h2>
@@ -368,7 +306,7 @@ $ export SFTP_PRIVATE_KEY_PASSWORD=private_key_password
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="index.html" class="btn btn-neutral float-left" title="Welcome to megfile’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="megfile.html" class="btn btn-neutral float-right" title="API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="path_format.html" class="btn btn-neutral float-right" title="Path Format" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

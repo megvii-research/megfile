@@ -42,6 +42,8 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../readme.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../path_format.html">Path Format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../configuration.html">Configuration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../megfile.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../cli.html">Command Line Interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../advanced.html">Advanced User Guide</a></li>
@@ -90,7 +92,7 @@
 <span class="p">]</span>
 
 
-<div class="viewcode-block" id="is_stdio"><a class="viewcode-back" href="../../megfile.stdio.html#megfile.is_stdio">[docs]</a><span class="k">def</span> <span class="nf">is_stdio</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<div class="viewcode-block" id="is_stdio"><a class="viewcode-back" href="../../megfile.stdio.html#megfile.stdio.is_stdio">[docs]</a><span class="k">def</span> <span class="nf">is_stdio</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;stdio scheme definition: stdio://-</span>
 
 <span class="sd">    .. note ::</span>
@@ -109,7 +111,7 @@
     <span class="k">return</span> <span class="n">scheme</span> <span class="o">==</span> <span class="s1">&#39;stdio&#39;</span></div>
 
 
-<div class="viewcode-block" id="StdioPath"><a class="viewcode-back" href="../../megfile.stdio_path.html#megfile.StdioPath">[docs]</a><span class="nd">@SmartPath</span><span class="o">.</span><span class="n">register</span>
+<div class="viewcode-block" id="StdioPath"><a class="viewcode-back" href="../../megfile.stdio_path.html#megfile.stdio.StdioPath">[docs]</a><span class="nd">@SmartPath</span><span class="o">.</span><span class="n">register</span>
 <span class="k">class</span> <span class="nc">StdioPath</span><span class="p">(</span><span class="n">BaseURIPath</span><span class="p">):</span>
 
     <span class="n">protocol</span> <span class="o">=</span> <span class="s2">&quot;stdio&quot;</span>
@@ -148,7 +150,7 @@
             <span class="k">return</span> <span class="n">STDReader</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">STDWriter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span>
 
-<div class="viewcode-block" id="StdioPath.open"><a class="viewcode-back" href="../../megfile.stdio_path.html#megfile.StdioPath.open">[docs]</a>    <span class="k">def</span> <span class="nf">open</span><span class="p">(</span>
+<div class="viewcode-block" id="StdioPath.open"><a class="viewcode-back" href="../../megfile.stdio_path.html#megfile.stdio.StdioPath.open">[docs]</a>    <span class="k">def</span> <span class="nf">open</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;rb&#39;</span><span class="p">,</span>
             <span class="n">encoding</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>

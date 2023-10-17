@@ -20,7 +20,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Advanced User Guide" href="advanced.html" />
-    <link rel="prev" title="megfile.sftp_path module" href="megfile.sftp_path.html" /> 
+    <link rel="prev" title="megfile.hdfs_path module" href="megfile.hdfs_path.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -45,11 +45,14 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="readme.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="path_format.html">Path Format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="megfile.html">API Reference</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Command Line Interface</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#megfile">megfile</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#megfile-cat">cat</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#megfile-config">config</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#megfile-config-hdfs">hdfs</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#megfile-config-s3">s3</a></li>
 </ul>
 </li>
@@ -136,6 +139,63 @@
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>megfile<span class="w"> </span>config<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>COMMAND<span class="w"> </span><span class="o">[</span>ARGS<span class="o">]</span>...
 </pre></div>
 </div>
+<section id="megfile-config-hdfs">
+<h4>hdfs<a class="headerlink" href="#megfile-config-hdfs" title="Permalink to this heading"></a></h4>
+<p>Return the config file for s3</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>megfile<span class="w"> </span>config<span class="w"> </span>hdfs<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>URL
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-megfile-config-hdfs-p">
+<span id="cmdoption-megfile-config-hdfs-path"></span><span class="sig-name descname"><span class="pre">-p</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--path</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;path&gt;</span></span><a class="headerlink" href="#cmdoption-megfile-config-hdfs-p" title="Permalink to this definition"></a></dt>
+<dd><p>s3 config file, default is $HOME/.hdfscli.cfg</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-megfile-config-hdfs-n">
+<span id="cmdoption-megfile-config-hdfs-profile-name"></span><span class="sig-name descname"><span class="pre">-n</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--profile-name</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;profile_name&gt;</span></span><a class="headerlink" href="#cmdoption-megfile-config-hdfs-n" title="Permalink to this definition"></a></dt>
+<dd><p>s3 config file</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-megfile-config-hdfs-u">
+<span id="cmdoption-megfile-config-hdfs-user"></span><span class="sig-name descname"><span class="pre">-u</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--user</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;user&gt;</span></span><a class="headerlink" href="#cmdoption-megfile-config-hdfs-u" title="Permalink to this definition"></a></dt>
+<dd><p>user name</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-megfile-config-hdfs-r">
+<span id="cmdoption-megfile-config-hdfs-root"></span><span class="sig-name descname"><span class="pre">-r</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--root</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;root&gt;</span></span><a class="headerlink" href="#cmdoption-megfile-config-hdfs-r" title="Permalink to this definition"></a></dt>
+<dd><p>hdfs path’s root dir</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-megfile-config-hdfs-t">
+<span id="cmdoption-megfile-config-hdfs-token"></span><span class="sig-name descname"><span class="pre">-t</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--token</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;token&gt;</span></span><a class="headerlink" href="#cmdoption-megfile-config-hdfs-t" title="Permalink to this definition"></a></dt>
+<dd><p>token for requesting hdfs server</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-megfile-config-hdfs-o">
+<span id="cmdoption-megfile-config-hdfs-timeout"></span><span class="sig-name descname"><span class="pre">-o</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--timeout</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;timeout&gt;</span></span><a class="headerlink" href="#cmdoption-megfile-config-hdfs-o" title="Permalink to this definition"></a></dt>
+<dd><p>request hdfs server timeout, default 10</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-megfile-config-hdfs-no-cover">
+<span class="sig-name descname"><span class="pre">--no-cover</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-megfile-config-hdfs-no-cover" title="Permalink to this definition"></a></dt>
+<dd><p>Not cover the same-name config</p>
+</dd></dl>
+
+<p class="rubric">Arguments</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-megfile-config-hdfs-arg-URL">
+<span id="cmdoption-megfile-config-hdfs-arg-url"></span><span class="sig-name descname"><span class="pre">URL</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-megfile-config-hdfs-arg-URL" title="Permalink to this definition"></a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+</section>
 <section id="megfile-config-s3">
 <h4>s3<a class="headerlink" href="#megfile-config-s3" title="Permalink to this heading"></a></h4>
 <p>Return the config file for s3</p>
@@ -146,7 +206,7 @@
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-megfile-config-s3-p">
 <span id="cmdoption-megfile-config-s3-path"></span><span class="sig-name descname"><span class="pre">-p</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--path</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;path&gt;</span></span><a class="headerlink" href="#cmdoption-megfile-config-s3-p" title="Permalink to this definition"></a></dt>
-<dd><p>s3 config file</p>
+<dd><p>s3 config file, default is $HOME/.aws/credentials</p>
 </dd></dl>
 
 <dl class="std option">
@@ -532,7 +592,7 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="megfile.sftp_path.html" class="btn btn-neutral float-left" title="megfile.sftp_path module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="megfile.hdfs_path.html" class="btn btn-neutral float-left" title="megfile.hdfs_path module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="advanced.html" class="btn btn-neutral float-right" title="Advanced User Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

@@ -42,6 +42,8 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="readme.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="path_format.html">Path Format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="megfile.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cli.html">Command Line Interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="advanced.html">Advanced User Guide</a></li>
@@ -163,6 +165,8 @@
     --no-cover
 
       <ul>
+        <li><a href="cli.html#cmdoption-megfile-config-hdfs-no-cover">megfile-config-hdfs command line option</a>
+</li>
         <li><a href="cli.html#cmdoption-megfile-config-s3-no-cover">megfile-config-s3 command line option</a>
 </li>
       </ul></li>
@@ -179,6 +183,8 @@
     --path
 
       <ul>
+        <li><a href="cli.html#cmdoption-megfile-config-hdfs-p">megfile-config-hdfs command line option</a>
+</li>
         <li><a href="cli.html#cmdoption-megfile-config-s3-p">megfile-config-s3 command line option</a>
 </li>
       </ul></li>
@@ -186,6 +192,8 @@
     --profile-name
 
       <ul>
+        <li><a href="cli.html#cmdoption-megfile-config-hdfs-n">megfile-config-hdfs command line option</a>
+</li>
         <li><a href="cli.html#cmdoption-megfile-config-s3-n">megfile-config-s3 command line option</a>
 </li>
       </ul></li>
@@ -221,14 +229,42 @@
 </li>
       </ul></li>
       <li>
+    --root
+
+      <ul>
+        <li><a href="cli.html#cmdoption-megfile-config-hdfs-r">megfile-config-hdfs command line option</a>
+</li>
+      </ul></li>
+      <li>
     --stdout
 
       <ul>
         <li><a href="cli.html#cmdoption-megfile-to-o">megfile-to command line option</a>
 </li>
       </ul></li>
+      <li>
+    --timeout
+
+      <ul>
+        <li><a href="cli.html#cmdoption-megfile-config-hdfs-o">megfile-config-hdfs command line option</a>
+</li>
+      </ul></li>
+      <li>
+    --token
+
+      <ul>
+        <li><a href="cli.html#cmdoption-megfile-config-hdfs-t">megfile-config-hdfs command line option</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    --user
+
+      <ul>
+        <li><a href="cli.html#cmdoption-megfile-config-hdfs-u">megfile-config-hdfs command line option</a>
+</li>
+      </ul></li>
       <li>
     --worker
 
@@ -286,6 +322,8 @@
     -n
 
       <ul>
+        <li><a href="cli.html#cmdoption-megfile-config-hdfs-n">megfile-config-hdfs command line option</a>
+</li>
         <li><a href="cli.html#cmdoption-megfile-config-s3-n">megfile-config-s3 command line option</a>
 </li>
         <li><a href="cli.html#cmdoption-megfile-head-n">megfile-head command line option</a>
@@ -297,6 +335,8 @@
     -o
 
       <ul>
+        <li><a href="cli.html#cmdoption-megfile-config-hdfs-o">megfile-config-hdfs command line option</a>
+</li>
         <li><a href="cli.html#cmdoption-megfile-to-o">megfile-to command line option</a>
 </li>
       </ul></li>
@@ -304,6 +344,8 @@
     -p
 
       <ul>
+        <li><a href="cli.html#cmdoption-megfile-config-hdfs-p">megfile-config-hdfs command line option</a>
+</li>
         <li><a href="cli.html#cmdoption-megfile-config-s3-p">megfile-config-s3 command line option</a>
 </li>
       </ul></li>
@@ -318,6 +360,8 @@
     -r
 
       <ul>
+        <li><a href="cli.html#cmdoption-megfile-config-hdfs-r">megfile-config-hdfs command line option</a>
+</li>
         <li><a href="cli.html#cmdoption-megfile-cp-r">megfile-cp command line option</a>
 </li>
         <li><a href="cli.html#cmdoption-megfile-ls-r">megfile-ls command line option</a>
@@ -344,6 +388,20 @@
 </li>
       </ul></li>
       <li>
+    -t
+
+      <ul>
+        <li><a href="cli.html#cmdoption-megfile-config-hdfs-t">megfile-config-hdfs command line option</a>
+</li>
+      </ul></li>
+      <li>
+    -u
+
+      <ul>
+        <li><a href="cli.html#cmdoption-megfile-config-hdfs-u">megfile-config-hdfs command line option</a>
+</li>
+      </ul></li>
+      <li>
     -w
 
       <ul>
@@ -359,71 +417,39 @@
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.absolute">absolute() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.absolute">(megfile.FSPath method)</a>
+        <li><a href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.absolute">(megfile.hdfs_path.HdfsPath method)</a>
 </li>
         <li><a href="megfile.s3_path.html#megfile.s3_path.S3Path.absolute">(megfile.s3_path.S3Path method)</a>
 </li>
-        <li><a href="megfile.html#megfile.S3Path.absolute">(megfile.S3Path method)</a>
-</li>
         <li><a href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.absolute">(megfile.sftp_path.SftpPath method)</a>
 </li>
-        <li><a href="megfile.html#megfile.SftpPath.absolute">(megfile.SftpPath method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.absolute">(megfile.smart_path.SmartPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SmartPath.absolute">(megfile.SmartPath method)</a>
 </li>
       </ul></li>
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.abspath">abspath() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.abspath">(megfile.FSPath method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.abspath">(megfile.smart_path.SmartPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SmartPath.abspath">(megfile.SmartPath method)</a>
 </li>
       </ul></li>
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.access">access() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.access">(megfile.FSPath method)</a>
-</li>
         <li><a href="megfile.s3_path.html#megfile.s3_path.S3Path.access">(megfile.s3_path.S3Path method)</a>
 </li>
-        <li><a href="megfile.html#megfile.S3Path.access">(megfile.S3Path method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.access">(megfile.smart_path.SmartPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SmartPath.access">(megfile.SmartPath method)</a>
 </li>
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.anchor">anchor (megfile.smart_path.SmartPath property)</a>
-
-      <ul>
-        <li><a href="megfile.html#megfile.SmartPath.anchor">(megfile.SmartPath property)</a>
 </li>
-      </ul></li>
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.anchor">anchor() (megfile.fs_path.FSPath method)</a>
-
-      <ul>
-        <li><a href="megfile.html#megfile.FSPath.anchor">(megfile.FSPath method)</a>
 </li>
-      </ul></li>
       <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.as_posix">as_posix() (megfile.smart_path.SmartPath method)</a>
-
-      <ul>
-        <li><a href="megfile.html#megfile.SmartPath.as_posix">(megfile.SmartPath method)</a>
 </li>
-      </ul></li>
       <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.as_uri">as_uri() (megfile.smart_path.SmartPath method)</a>
-
-      <ul>
-        <li><a href="megfile.html#megfile.SmartPath.as_uri">(megfile.SmartPath method)</a>
 </li>
-      </ul></li>
       <li>
     AWS_ACCESS_KEY_ID
 
@@ -453,29 +479,17 @@
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.chmod">chmod() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.chmod">(megfile.FSPath method)</a>
-</li>
         <li><a href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.chmod">(megfile.sftp_path.SftpPath method)</a>
 </li>
-        <li><a href="megfile.html#megfile.SftpPath.chmod">(megfile.SftpPath method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.chmod">(megfile.smart_path.SmartPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SmartPath.chmod">(megfile.SmartPath method)</a>
 </li>
       </ul></li>
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.copy">copy() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.copy">(megfile.FSPath method)</a>
-</li>
         <li><a href="megfile.s3_path.html#megfile.s3_path.S3Path.copy">(megfile.s3_path.S3Path method)</a>
 </li>
-        <li><a href="megfile.html#megfile.S3Path.copy">(megfile.S3Path method)</a>
-</li>
         <li><a href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.copy">(megfile.sftp_path.SftpPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SftpPath.copy">(megfile.SftpPath method)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -483,19 +497,11 @@
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.cwd">cwd() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.cwd">(megfile.FSPath method)</a>
-</li>
         <li><a href="megfile.s3_path.html#megfile.s3_path.S3Path.cwd">(megfile.s3_path.S3Path method)</a>
-</li>
-        <li><a href="megfile.html#megfile.S3Path.cwd">(megfile.S3Path method)</a>
 </li>
         <li><a href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.cwd">(megfile.sftp_path.SftpPath method)</a>
 </li>
-        <li><a href="megfile.html#megfile.SftpPath.cwd">(megfile.SftpPath method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.cwd">(megfile.smart_path.SmartPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SmartPath.cwd">(megfile.SmartPath method)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -505,19 +511,9 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.drive">drive (megfile.smart_path.SmartPath property)</a>
-
-      <ul>
-        <li><a href="megfile.html#megfile.SmartPath.drive">(megfile.SmartPath property)</a>
 </li>
-      </ul></li>
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.drive">drive() (megfile.fs_path.FSPath method)</a>
-
-      <ul>
-        <li><a href="megfile.html#megfile.FSPath.drive">(megfile.FSPath method)</a>
 </li>
-      </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     DST_PATH
 
@@ -538,23 +534,15 @@
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.exists">exists() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.exists">(megfile.FSPath method)</a>
+        <li><a href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.exists">(megfile.hdfs_path.HdfsPath method)</a>
 </li>
         <li><a href="megfile.http_path.html#megfile.http_path.HttpPath.exists">(megfile.http_path.HttpPath method)</a>
 </li>
-        <li><a href="megfile.html#megfile.HttpPath.exists">(megfile.HttpPath method)</a>
-</li>
         <li><a href="megfile.s3_path.html#megfile.s3_path.S3Path.exists">(megfile.s3_path.S3Path method)</a>
-</li>
-        <li><a href="megfile.html#megfile.S3Path.exists">(megfile.S3Path method)</a>
 </li>
         <li><a href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.exists">(megfile.sftp_path.SftpPath method)</a>
 </li>
-        <li><a href="megfile.html#megfile.SftpPath.exists">(megfile.SftpPath method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.exists">(megfile.smart_path.SmartPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SmartPath.exists">(megfile.SmartPath method)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -562,11 +550,7 @@
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.expanduser">expanduser() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.expanduser">(megfile.FSPath method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.expanduser">(megfile.smart_path.SmartPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SmartPath.expanduser">(megfile.SmartPath method)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -578,247 +562,91 @@
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.from_uri">from_uri() (megfile.fs_path.FSPath class method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.from_uri">(megfile.FSPath class method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.from_uri">(megfile.smart_path.SmartPath class method)</a>
 </li>
-        <li><a href="megfile.html#megfile.SmartPath.from_uri">(megfile.SmartPath class method)</a>
-</li>
       </ul></li>
-      <li><a href="megfile.html#megfile.fs_abspath">fs_abspath() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.fs.html#megfile.fs.fs_abspath">(in module megfile.fs)</a>
+      <li><a href="megfile.fs.html#megfile.fs.fs_abspath">fs_abspath() (in module megfile.fs)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.fs_access">fs_access() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.fs.html#megfile.fs.fs_access">(in module megfile.fs)</a>
+      <li><a href="megfile.fs.html#megfile.fs.fs_access">fs_access() (in module megfile.fs)</a>
 </li>
-      </ul></li>
       <li><a href="megfile.fs.html#megfile.fs.fs_copy">fs_copy() (in module megfile.fs)</a>
 </li>
-      <li><a href="megfile.html#megfile.fs_cwd">fs_cwd() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.fs.html#megfile.fs.fs_cwd">(in module megfile.fs)</a>
+      <li><a href="megfile.fs.html#megfile.fs.fs_cwd">fs_cwd() (in module megfile.fs)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.fs_exists">fs_exists() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.fs.html#megfile.fs.fs_exists">(in module megfile.fs)</a>
+      <li><a href="megfile.fs.html#megfile.fs.fs_exists">fs_exists() (in module megfile.fs)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.fs_expanduser">fs_expanduser() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.fs.html#megfile.fs.fs_expanduser">(in module megfile.fs)</a>
+      <li><a href="megfile.fs.html#megfile.fs.fs_expanduser">fs_expanduser() (in module megfile.fs)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.fs_getmd5">fs_getmd5() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.fs.html#megfile.fs.fs_getmd5">(in module megfile.fs)</a>
+      <li><a href="megfile.fs.html#megfile.fs.fs_getmd5">fs_getmd5() (in module megfile.fs)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.fs_getmtime">fs_getmtime() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.fs.html#megfile.fs.fs_getmtime">(in module megfile.fs)</a>
+      <li><a href="megfile.fs.html#megfile.fs.fs_getmtime">fs_getmtime() (in module megfile.fs)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.fs_getsize">fs_getsize() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.fs.html#megfile.fs.fs_getsize">(in module megfile.fs)</a>
+      <li><a href="megfile.fs.html#megfile.fs.fs_getsize">fs_getsize() (in module megfile.fs)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.fs_glob">fs_glob() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.fs.html#megfile.fs.fs_glob">(in module megfile.fs)</a>
+      <li><a href="megfile.fs.html#megfile.fs.fs_glob">fs_glob() (in module megfile.fs)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.fs_glob_stat">fs_glob_stat() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.fs.html#megfile.fs.fs_glob_stat">(in module megfile.fs)</a>
+      <li><a href="megfile.fs.html#megfile.fs.fs_glob_stat">fs_glob_stat() (in module megfile.fs)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.fs_home">fs_home() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.fs.html#megfile.fs.fs_home">(in module megfile.fs)</a>
+      <li><a href="megfile.fs.html#megfile.fs.fs_home">fs_home() (in module megfile.fs)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.fs_iglob">fs_iglob() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.fs.html#megfile.fs.fs_iglob">(in module megfile.fs)</a>
+      <li><a href="megfile.fs.html#megfile.fs.fs_iglob">fs_iglob() (in module megfile.fs)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.fs_isabs">fs_isabs() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.fs.html#megfile.fs.fs_isabs">(in module megfile.fs)</a>
+      <li><a href="megfile.fs.html#megfile.fs.fs_isabs">fs_isabs() (in module megfile.fs)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.fs_isdir">fs_isdir() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.fs.html#megfile.fs.fs_isdir">(in module megfile.fs)</a>
+      <li><a href="megfile.fs.html#megfile.fs.fs_isdir">fs_isdir() (in module megfile.fs)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.fs_isfile">fs_isfile() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.fs.html#megfile.fs.fs_isfile">(in module megfile.fs)</a>
+      <li><a href="megfile.fs.html#megfile.fs.fs_isfile">fs_isfile() (in module megfile.fs)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.fs_islink">fs_islink() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.fs.html#megfile.fs.fs_islink">(in module megfile.fs)</a>
+      <li><a href="megfile.fs.html#megfile.fs.fs_islink">fs_islink() (in module megfile.fs)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.fs_ismount">fs_ismount() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.fs.html#megfile.fs.fs_ismount">(in module megfile.fs)</a>
+      <li><a href="megfile.fs.html#megfile.fs.fs_ismount">fs_ismount() (in module megfile.fs)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.fs_listdir">fs_listdir() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.fs.html#megfile.fs.fs_listdir">(in module megfile.fs)</a>
+      <li><a href="megfile.fs.html#megfile.fs.fs_listdir">fs_listdir() (in module megfile.fs)</a>
 </li>
-      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="megfile.html#megfile.fs_load_from">fs_load_from() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.fs.html#megfile.fs.fs_load_from">(in module megfile.fs)</a>
+      <li><a href="megfile.fs.html#megfile.fs.fs_load_from">fs_load_from() (in module megfile.fs)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.fs_lstat">fs_lstat() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.fs.html#megfile.fs.fs_lstat">(in module megfile.fs)</a>
+      <li><a href="megfile.fs.html#megfile.fs.fs_lstat">fs_lstat() (in module megfile.fs)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.fs_makedirs">fs_makedirs() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.fs.html#megfile.fs.fs_makedirs">(in module megfile.fs)</a>
+      <li><a href="megfile.fs.html#megfile.fs.fs_makedirs">fs_makedirs() (in module megfile.fs)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.fs_move">fs_move() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.fs.html#megfile.fs.fs_move">(in module megfile.fs)</a>
+      <li><a href="megfile.fs.html#megfile.fs.fs_move">fs_move() (in module megfile.fs)</a>
 </li>
-      </ul></li>
       <li><a href="megfile.fs.html#megfile.fs.fs_path_join">fs_path_join() (in module megfile.fs)</a>
 </li>
-      <li><a href="megfile.html#megfile.fs_readlink">fs_readlink() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.fs.html#megfile.fs.fs_readlink">(in module megfile.fs)</a>
+      <li><a href="megfile.fs.html#megfile.fs.fs_readlink">fs_readlink() (in module megfile.fs)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.fs_realpath">fs_realpath() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.fs.html#megfile.fs.fs_realpath">(in module megfile.fs)</a>
+      <li><a href="megfile.fs.html#megfile.fs.fs_realpath">fs_realpath() (in module megfile.fs)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.fs_relpath">fs_relpath() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.fs.html#megfile.fs.fs_relpath">(in module megfile.fs)</a>
+      <li><a href="megfile.fs.html#megfile.fs.fs_relpath">fs_relpath() (in module megfile.fs)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.fs_remove">fs_remove() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.fs.html#megfile.fs.fs_remove">(in module megfile.fs)</a>
+      <li><a href="megfile.fs.html#megfile.fs.fs_remove">fs_remove() (in module megfile.fs)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.fs_rename">fs_rename() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.fs.html#megfile.fs.fs_rename">(in module megfile.fs)</a>
+      <li><a href="megfile.fs.html#megfile.fs.fs_rename">fs_rename() (in module megfile.fs)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.fs_resolve">fs_resolve() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.fs.html#megfile.fs.fs_resolve">(in module megfile.fs)</a>
+      <li><a href="megfile.fs.html#megfile.fs.fs_resolve">fs_resolve() (in module megfile.fs)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.fs_save_as">fs_save_as() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.fs.html#megfile.fs.fs_save_as">(in module megfile.fs)</a>
+      <li><a href="megfile.fs.html#megfile.fs.fs_save_as">fs_save_as() (in module megfile.fs)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.fs_scan">fs_scan() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.fs.html#megfile.fs.fs_scan">(in module megfile.fs)</a>
+      <li><a href="megfile.fs.html#megfile.fs.fs_scan">fs_scan() (in module megfile.fs)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.fs_scan_stat">fs_scan_stat() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.fs.html#megfile.fs.fs_scan_stat">(in module megfile.fs)</a>
+      <li><a href="megfile.fs.html#megfile.fs.fs_scan_stat">fs_scan_stat() (in module megfile.fs)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.fs_scandir">fs_scandir() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.fs.html#megfile.fs.fs_scandir">(in module megfile.fs)</a>
+      <li><a href="megfile.fs.html#megfile.fs.fs_scandir">fs_scandir() (in module megfile.fs)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.fs_stat">fs_stat() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.fs.html#megfile.fs.fs_stat">(in module megfile.fs)</a>
+      <li><a href="megfile.fs.html#megfile.fs.fs_stat">fs_stat() (in module megfile.fs)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.fs_symlink">fs_symlink() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.fs.html#megfile.fs.fs_symlink">(in module megfile.fs)</a>
+      <li><a href="megfile.fs.html#megfile.fs.fs_symlink">fs_symlink() (in module megfile.fs)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.fs_sync">fs_sync() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.fs.html#megfile.fs.fs_sync">(in module megfile.fs)</a>
+      <li><a href="megfile.fs.html#megfile.fs.fs_sync">fs_sync() (in module megfile.fs)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.fs_unlink">fs_unlink() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.fs.html#megfile.fs.fs_unlink">(in module megfile.fs)</a>
+      <li><a href="megfile.fs.html#megfile.fs.fs_unlink">fs_unlink() (in module megfile.fs)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.fs_walk">fs_walk() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.fs.html#megfile.fs.fs_walk">(in module megfile.fs)</a>
+      <li><a href="megfile.fs.html#megfile.fs.fs_walk">fs_walk() (in module megfile.fs)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.FSPath">FSPath (class in megfile)</a>
-
-      <ul>
-        <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath">(class in megfile.fs_path)</a>
+      <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath">FSPath (class in megfile.fs_path)</a>
 </li>
-      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -838,45 +666,29 @@
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.getmtime">getmtime() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.getmtime">(megfile.FSPath method)</a>
+        <li><a href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.getmtime">(megfile.hdfs_path.HdfsPath method)</a>
 </li>
         <li><a href="megfile.http_path.html#megfile.http_path.HttpPath.getmtime">(megfile.http_path.HttpPath method)</a>
 </li>
-        <li><a href="megfile.html#megfile.HttpPath.getmtime">(megfile.HttpPath method)</a>
-</li>
         <li><a href="megfile.s3_path.html#megfile.s3_path.S3Path.getmtime">(megfile.s3_path.S3Path method)</a>
-</li>
-        <li><a href="megfile.html#megfile.S3Path.getmtime">(megfile.S3Path method)</a>
 </li>
         <li><a href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.getmtime">(megfile.sftp_path.SftpPath method)</a>
 </li>
-        <li><a href="megfile.html#megfile.SftpPath.getmtime">(megfile.SftpPath method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.getmtime">(megfile.smart_path.SmartPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SmartPath.getmtime">(megfile.SmartPath method)</a>
 </li>
       </ul></li>
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.getsize">getsize() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.getsize">(megfile.FSPath method)</a>
+        <li><a href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.getsize">(megfile.hdfs_path.HdfsPath method)</a>
 </li>
         <li><a href="megfile.http_path.html#megfile.http_path.HttpPath.getsize">(megfile.http_path.HttpPath method)</a>
 </li>
-        <li><a href="megfile.html#megfile.HttpPath.getsize">(megfile.HttpPath method)</a>
-</li>
         <li><a href="megfile.s3_path.html#megfile.s3_path.S3Path.getsize">(megfile.s3_path.S3Path method)</a>
-</li>
-        <li><a href="megfile.html#megfile.S3Path.getsize">(megfile.S3Path method)</a>
 </li>
         <li><a href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.getsize">(megfile.sftp_path.SftpPath method)</a>
 </li>
-        <li><a href="megfile.html#megfile.SftpPath.getsize">(megfile.SftpPath method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.getsize">(megfile.smart_path.SmartPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SmartPath.getsize">(megfile.SmartPath method)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -884,47 +696,31 @@
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.glob">glob() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.glob">(megfile.FSPath method)</a>
+        <li><a href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.glob">(megfile.hdfs_path.HdfsPath method)</a>
 </li>
         <li><a href="megfile.s3_path.html#megfile.s3_path.S3Path.glob">(megfile.s3_path.S3Path method)</a>
 </li>
-        <li><a href="megfile.html#megfile.S3Path.glob">(megfile.S3Path method)</a>
-</li>
         <li><a href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.glob">(megfile.sftp_path.SftpPath method)</a>
 </li>
-        <li><a href="megfile.html#megfile.SftpPath.glob">(megfile.SftpPath method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.glob">(megfile.smart_path.SmartPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SmartPath.glob">(megfile.SmartPath method)</a>
 </li>
       </ul></li>
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.glob_stat">glob_stat() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.glob_stat">(megfile.FSPath method)</a>
+        <li><a href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.glob_stat">(megfile.hdfs_path.HdfsPath method)</a>
 </li>
         <li><a href="megfile.s3_path.html#megfile.s3_path.S3Path.glob_stat">(megfile.s3_path.S3Path method)</a>
 </li>
-        <li><a href="megfile.html#megfile.S3Path.glob_stat">(megfile.S3Path method)</a>
-</li>
         <li><a href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.glob_stat">(megfile.sftp_path.SftpPath method)</a>
 </li>
-        <li><a href="megfile.html#megfile.SftpPath.glob_stat">(megfile.SftpPath method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.glob_stat">(megfile.smart_path.SmartPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SmartPath.glob_stat">(megfile.SmartPath method)</a>
 </li>
       </ul></li>
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.group">group() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.group">(megfile.FSPath method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.group">(megfile.smart_path.SmartPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SmartPath.group">(megfile.SmartPath method)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -936,73 +732,79 @@
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.hardlink_to">hardlink_to() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.hardlink_to">(megfile.FSPath method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.hardlink_to">(megfile.smart_path.SmartPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SmartPath.hardlink_to">(megfile.SmartPath method)</a>
 </li>
       </ul></li>
       <li><a href="megfile.s3_path.html#megfile.s3_path.S3Path.hasbucket">hasbucket() (megfile.s3_path.S3Path method)</a>
-
-      <ul>
-        <li><a href="megfile.html#megfile.S3Path.hasbucket">(megfile.S3Path method)</a>
 </li>
-      </ul></li>
+      <li><a href="megfile.hdfs.html#megfile.hdfs.hdfs_exists">hdfs_exists() (in module megfile.hdfs)</a>
+</li>
+      <li><a href="megfile.hdfs.html#megfile.hdfs.hdfs_getmd5">hdfs_getmd5() (in module megfile.hdfs)</a>
+</li>
+      <li><a href="megfile.hdfs.html#megfile.hdfs.hdfs_getmtime">hdfs_getmtime() (in module megfile.hdfs)</a>
+</li>
+      <li><a href="megfile.hdfs.html#megfile.hdfs.hdfs_getsize">hdfs_getsize() (in module megfile.hdfs)</a>
+</li>
+      <li><a href="megfile.hdfs.html#megfile.hdfs.hdfs_glob">hdfs_glob() (in module megfile.hdfs)</a>
+</li>
+      <li><a href="megfile.hdfs.html#megfile.hdfs.hdfs_glob_stat">hdfs_glob_stat() (in module megfile.hdfs)</a>
+</li>
+      <li><a href="megfile.hdfs.html#megfile.hdfs.hdfs_iglob">hdfs_iglob() (in module megfile.hdfs)</a>
+</li>
+      <li><a href="megfile.hdfs.html#megfile.hdfs.hdfs_isdir">hdfs_isdir() (in module megfile.hdfs)</a>
+</li>
+      <li><a href="megfile.hdfs.html#megfile.hdfs.hdfs_isfile">hdfs_isfile() (in module megfile.hdfs)</a>
+</li>
+      <li><a href="megfile.hdfs.html#megfile.hdfs.hdfs_listdir">hdfs_listdir() (in module megfile.hdfs)</a>
+</li>
+      <li><a href="megfile.hdfs.html#megfile.hdfs.hdfs_load_from">hdfs_load_from() (in module megfile.hdfs)</a>
+</li>
+      <li><a href="megfile.hdfs.html#megfile.hdfs.hdfs_makedirs">hdfs_makedirs() (in module megfile.hdfs)</a>
+</li>
+      <li><a href="megfile.hdfs.html#megfile.hdfs.hdfs_move">hdfs_move() (in module megfile.hdfs)</a>
+</li>
+      <li><a href="megfile.hdfs.html#megfile.hdfs.hdfs_open">hdfs_open() (in module megfile.hdfs)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="megfile.hdfs.html#megfile.hdfs.hdfs_remove">hdfs_remove() (in module megfile.hdfs)</a>
+</li>
+      <li><a href="megfile.hdfs.html#megfile.hdfs.hdfs_save_as">hdfs_save_as() (in module megfile.hdfs)</a>
+</li>
+      <li><a href="megfile.hdfs.html#megfile.hdfs.hdfs_scan">hdfs_scan() (in module megfile.hdfs)</a>
+</li>
+      <li><a href="megfile.hdfs.html#megfile.hdfs.hdfs_scan_stat">hdfs_scan_stat() (in module megfile.hdfs)</a>
+</li>
+      <li><a href="megfile.hdfs.html#megfile.hdfs.hdfs_scandir">hdfs_scandir() (in module megfile.hdfs)</a>
+</li>
+      <li><a href="megfile.hdfs.html#megfile.hdfs.hdfs_stat">hdfs_stat() (in module megfile.hdfs)</a>
+</li>
+      <li><a href="megfile.hdfs.html#megfile.hdfs.hdfs_unlink">hdfs_unlink() (in module megfile.hdfs)</a>
+</li>
+      <li><a href="megfile.hdfs.html#megfile.hdfs.hdfs_walk">hdfs_walk() (in module megfile.hdfs)</a>
+</li>
+      <li><a href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath">HdfsPath (class in megfile.hdfs_path)</a>
+</li>
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.home">home() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.home">(megfile.FSPath method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.home">(megfile.smart_path.SmartPath method)</a>
 </li>
-        <li><a href="megfile.html#megfile.SmartPath.home">(megfile.SmartPath method)</a>
-</li>
       </ul></li>
-      <li><a href="megfile.html#megfile.http_exists">http_exists() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.http.html#megfile.http.http_exists">(in module megfile.http)</a>
+      <li><a href="megfile.http.html#megfile.http.http_exists">http_exists() (in module megfile.http)</a>
 </li>
-      </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="megfile.html#megfile.http_getmtime">http_getmtime() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.http.html#megfile.http.http_getmtime">(in module megfile.http)</a>
+      <li><a href="megfile.http.html#megfile.http.http_getmtime">http_getmtime() (in module megfile.http)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.http_getsize">http_getsize() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.http.html#megfile.http.http_getsize">(in module megfile.http)</a>
+      <li><a href="megfile.http.html#megfile.http.http_getsize">http_getsize() (in module megfile.http)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.http_open">http_open() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.http.html#megfile.http.http_open">(in module megfile.http)</a>
+      <li><a href="megfile.http.html#megfile.http.http_open">http_open() (in module megfile.http)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.http_stat">http_stat() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.http.html#megfile.http.http_stat">(in module megfile.http)</a>
+      <li><a href="megfile.http.html#megfile.http.http_stat">http_stat() (in module megfile.http)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.HttpPath">HttpPath (class in megfile)</a>
-
-      <ul>
-        <li><a href="megfile.http_path.html#megfile.http_path.HttpPath">(class in megfile.http_path)</a>
+      <li><a href="megfile.http_path.html#megfile.http_path.HttpPath">HttpPath (class in megfile.http_path)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.HttpsPath">HttpsPath (class in megfile)</a>
-
-      <ul>
-        <li><a href="megfile.http_path.html#megfile.http_path.HttpsPath">(class in megfile.http_path)</a>
+      <li><a href="megfile.http_path.html#megfile.http_path.HttpsPath">HttpsPath (class in megfile.http_path)</a>
 </li>
-      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -1012,49 +814,31 @@
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.iglob">iglob() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.iglob">(megfile.FSPath method)</a>
+        <li><a href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.iglob">(megfile.hdfs_path.HdfsPath method)</a>
 </li>
         <li><a href="megfile.s3_path.html#megfile.s3_path.S3Path.iglob">(megfile.s3_path.S3Path method)</a>
 </li>
-        <li><a href="megfile.html#megfile.S3Path.iglob">(megfile.S3Path method)</a>
-</li>
         <li><a href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.iglob">(megfile.sftp_path.SftpPath method)</a>
 </li>
-        <li><a href="megfile.html#megfile.SftpPath.iglob">(megfile.SftpPath method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.iglob">(megfile.smart_path.SmartPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SmartPath.iglob">(megfile.SmartPath method)</a>
 </li>
       </ul></li>
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.is_absolute">is_absolute() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.is_absolute">(megfile.FSPath method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.is_absolute">(megfile.smart_path.SmartPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SmartPath.is_absolute">(megfile.SmartPath method)</a>
 </li>
       </ul></li>
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.is_block_device">is_block_device() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.is_block_device">(megfile.FSPath method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.is_block_device">(megfile.smart_path.SmartPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SmartPath.is_block_device">(megfile.SmartPath method)</a>
 </li>
       </ul></li>
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.is_char_device">is_char_device() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.is_char_device">(megfile.FSPath method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.is_char_device">(megfile.smart_path.SmartPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SmartPath.is_char_device">(megfile.SmartPath method)</a>
 </li>
       </ul></li>
       <li><a href="megfile.fs.html#megfile.fs.StatResult.is_dir">is_dir() (megfile.fs.StatResult method)</a>
@@ -1062,29 +846,19 @@
       <ul>
         <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.is_dir">(megfile.fs_path.FSPath method)</a>
 </li>
-        <li><a href="megfile.html#megfile.FSPath.is_dir">(megfile.FSPath method)</a>
+        <li><a href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.is_dir">(megfile.hdfs_path.HdfsPath method)</a>
 </li>
         <li><a href="megfile.s3_path.html#megfile.s3_path.S3Path.is_dir">(megfile.s3_path.S3Path method)</a>
 </li>
-        <li><a href="megfile.html#megfile.S3Path.is_dir">(megfile.S3Path method)</a>
-</li>
         <li><a href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.is_dir">(megfile.sftp_path.SftpPath method)</a>
 </li>
-        <li><a href="megfile.html#megfile.SftpPath.is_dir">(megfile.SftpPath method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.is_dir">(megfile.smart_path.SmartPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SmartPath.is_dir">(megfile.SmartPath method)</a>
 </li>
       </ul></li>
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.is_fifo">is_fifo() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.is_fifo">(megfile.FSPath method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.is_fifo">(megfile.smart_path.SmartPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SmartPath.is_fifo">(megfile.SmartPath method)</a>
 </li>
       </ul></li>
       <li><a href="megfile.fs.html#megfile.fs.StatResult.is_file">is_file() (megfile.fs.StatResult method)</a>
@@ -1092,121 +866,67 @@
       <ul>
         <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.is_file">(megfile.fs_path.FSPath method)</a>
 </li>
-        <li><a href="megfile.html#megfile.FSPath.is_file">(megfile.FSPath method)</a>
+        <li><a href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.is_file">(megfile.hdfs_path.HdfsPath method)</a>
 </li>
         <li><a href="megfile.s3_path.html#megfile.s3_path.S3Path.is_file">(megfile.s3_path.S3Path method)</a>
 </li>
-        <li><a href="megfile.html#megfile.S3Path.is_file">(megfile.S3Path method)</a>
-</li>
         <li><a href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.is_file">(megfile.sftp_path.SftpPath method)</a>
 </li>
-        <li><a href="megfile.html#megfile.SftpPath.is_file">(megfile.SftpPath method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.is_file">(megfile.smart_path.SmartPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SmartPath.is_file">(megfile.SmartPath method)</a>
 </li>
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="megfile.html#megfile.is_fs">is_fs() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.fs.html#megfile.fs.is_fs">(in module megfile.fs)</a>
+      <li><a href="megfile.fs.html#megfile.fs.is_fs">is_fs() (in module megfile.fs)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.is_http">is_http() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.http.html#megfile.http.is_http">(in module megfile.http)</a>
+      <li><a href="megfile.hdfs.html#megfile.hdfs.is_hdfs">is_hdfs() (in module megfile.hdfs)</a>
 </li>
-      </ul></li>
+      <li><a href="megfile.http.html#megfile.http.is_http">is_http() (in module megfile.http)</a>
+</li>
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.is_mount">is_mount() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.is_mount">(megfile.FSPath method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.is_mount">(megfile.smart_path.SmartPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SmartPath.is_mount">(megfile.SmartPath method)</a>
 </li>
       </ul></li>
       <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.is_relative_to">is_relative_to() (megfile.smart_path.SmartPath method)</a>
-
-      <ul>
-        <li><a href="megfile.html#megfile.SmartPath.is_relative_to">(megfile.SmartPath method)</a>
 </li>
-      </ul></li>
       <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.is_reserved">is_reserved() (megfile.smart_path.SmartPath method)</a>
-
-      <ul>
-        <li><a href="megfile.html#megfile.SmartPath.is_reserved">(megfile.SmartPath method)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.is_s3">is_s3() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.s3.html#megfile.s3.is_s3">(in module megfile.s3)</a>
+      <li><a href="megfile.s3.html#megfile.s3.is_s3">is_s3() (in module megfile.s3)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.is_sftp">is_sftp() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.sftp.html#megfile.sftp.is_sftp">(in module megfile.sftp)</a>
+      <li><a href="megfile.sftp.html#megfile.sftp.is_sftp">is_sftp() (in module megfile.sftp)</a>
 </li>
-      </ul></li>
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.is_socket">is_socket() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.is_socket">(megfile.FSPath method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.is_socket">(megfile.smart_path.SmartPath method)</a>
 </li>
-        <li><a href="megfile.html#megfile.SmartPath.is_socket">(megfile.SmartPath method)</a>
-</li>
       </ul></li>
-      <li><a href="megfile.html#megfile.is_stdio">is_stdio() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.stdio.html#megfile.stdio.is_stdio">(in module megfile.stdio)</a>
+      <li><a href="megfile.stdio.html#megfile.stdio.is_stdio">is_stdio() (in module megfile.stdio)</a>
 </li>
-      </ul></li>
       <li><a href="megfile.fs.html#megfile.fs.StatResult.is_symlink">is_symlink() (megfile.fs.StatResult method)</a>
 
       <ul>
         <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.is_symlink">(megfile.fs_path.FSPath method)</a>
 </li>
-        <li><a href="megfile.html#megfile.FSPath.is_symlink">(megfile.FSPath method)</a>
-</li>
         <li><a href="megfile.s3_path.html#megfile.s3_path.S3Path.is_symlink">(megfile.s3_path.S3Path method)</a>
-</li>
-        <li><a href="megfile.html#megfile.S3Path.is_symlink">(megfile.S3Path method)</a>
 </li>
         <li><a href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.is_symlink">(megfile.sftp_path.SftpPath method)</a>
 </li>
-        <li><a href="megfile.html#megfile.SftpPath.is_symlink">(megfile.SftpPath method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.is_symlink">(megfile.smart_path.SmartPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SmartPath.is_symlink">(megfile.SmartPath method)</a>
 </li>
       </ul></li>
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.iterdir">iterdir() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.iterdir">(megfile.FSPath method)</a>
+        <li><a href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.iterdir">(megfile.hdfs_path.HdfsPath method)</a>
 </li>
         <li><a href="megfile.s3_path.html#megfile.s3_path.S3Path.iterdir">(megfile.s3_path.S3Path method)</a>
 </li>
-        <li><a href="megfile.html#megfile.S3Path.iterdir">(megfile.S3Path method)</a>
-</li>
         <li><a href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.iterdir">(megfile.sftp_path.SftpPath method)</a>
 </li>
-        <li><a href="megfile.html#megfile.SftpPath.iterdir">(megfile.SftpPath method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.iterdir">(megfile.smart_path.SmartPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SmartPath.iterdir">(megfile.SmartPath method)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -1218,11 +938,7 @@
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.joinpath">joinpath() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.joinpath">(megfile.FSPath method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.joinpath">(megfile.smart_path.SmartPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SmartPath.joinpath">(megfile.SmartPath method)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -1232,67 +948,35 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.lchmod">lchmod() (megfile.smart_path.SmartPath method)</a>
-
-      <ul>
-        <li><a href="megfile.html#megfile.SmartPath.lchmod">(megfile.SmartPath method)</a>
 </li>
-      </ul></li>
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.listdir">listdir() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.listdir">(megfile.FSPath method)</a>
+        <li><a href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.listdir">(megfile.hdfs_path.HdfsPath method)</a>
 </li>
         <li><a href="megfile.s3_path.html#megfile.s3_path.S3Path.listdir">(megfile.s3_path.S3Path method)</a>
 </li>
-        <li><a href="megfile.html#megfile.S3Path.listdir">(megfile.S3Path method)</a>
-</li>
         <li><a href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.listdir">(megfile.sftp_path.SftpPath method)</a>
 </li>
-        <li><a href="megfile.html#megfile.SftpPath.listdir">(megfile.SftpPath method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.listdir">(megfile.smart_path.SmartPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SmartPath.listdir">(megfile.SmartPath method)</a>
-</li>
-      </ul></li>
-      <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.load">load() (megfile.fs_path.FSPath method)</a>
-
-      <ul>
-        <li><a href="megfile.html#megfile.FSPath.load">(megfile.FSPath method)</a>
-</li>
-        <li><a href="megfile.s3_path.html#megfile.s3_path.S3Path.load">(megfile.s3_path.S3Path method)</a>
-</li>
-        <li><a href="megfile.html#megfile.S3Path.load">(megfile.S3Path method)</a>
-</li>
-        <li><a href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.load">(megfile.sftp_path.SftpPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SftpPath.load">(megfile.SftpPath method)</a>
-</li>
-        <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.load">(megfile.smart_path.SmartPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SmartPath.load">(megfile.SmartPath method)</a>
 </li>
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.lstat">lstat() (megfile.fs_path.FSPath method)</a>
+      <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.load">load() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.lstat">(megfile.FSPath method)</a>
+        <li><a href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.load">(megfile.hdfs_path.HdfsPath method)</a>
 </li>
-        <li><a href="megfile.s3_path.html#megfile.s3_path.S3Path.lstat">(megfile.s3_path.S3Path method)</a>
+        <li><a href="megfile.s3_path.html#megfile.s3_path.S3Path.load">(megfile.s3_path.S3Path method)</a>
 </li>
-        <li><a href="megfile.html#megfile.S3Path.lstat">(megfile.S3Path method)</a>
+        <li><a href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.load">(megfile.sftp_path.SftpPath method)</a>
 </li>
-        <li><a href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.lstat">(megfile.sftp_path.SftpPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SftpPath.lstat">(megfile.SftpPath method)</a>
-</li>
-        <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.lstat">(megfile.smart_path.SmartPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SmartPath.lstat">(megfile.SmartPath method)</a>
+        <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.load">(megfile.smart_path.SmartPath method)</a>
 </li>
       </ul></li>
+      <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.lstat">lstat() (megfile.smart_path.SmartPath method)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -1300,34 +984,17 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.match">match() (megfile.smart_path.SmartPath method)</a>
-
-      <ul>
-        <li><a href="megfile.html#megfile.SmartPath.match">(megfile.SmartPath method)</a>
 </li>
-      </ul></li>
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.md5">md5() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.md5">(megfile.FSPath method)</a>
+        <li><a href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.md5">(megfile.hdfs_path.HdfsPath method)</a>
 </li>
         <li><a href="megfile.s3_path.html#megfile.s3_path.S3Path.md5">(megfile.s3_path.S3Path method)</a>
 </li>
-        <li><a href="megfile.html#megfile.S3Path.md5">(megfile.S3Path method)</a>
-</li>
         <li><a href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.md5">(megfile.sftp_path.SftpPath method)</a>
 </li>
-        <li><a href="megfile.html#megfile.SftpPath.md5">(megfile.SftpPath method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.md5">(megfile.smart_path.SmartPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SmartPath.md5">(megfile.SmartPath method)</a>
-</li>
-      </ul></li>
-      <li>
-    megfile
-
-      <ul>
-        <li><a href="megfile.html#module-megfile">module</a>
 </li>
       </ul></li>
       <li>
@@ -1342,6 +1009,39 @@
 
       <ul>
         <li><a href="cli.html#cmdoption-megfile-cat-arg-PATH">PATH</a>
+</li>
+      </ul></li>
+      <li>
+    megfile-config-hdfs command line option
+
+      <ul>
+        <li><a href="cli.html#cmdoption-megfile-config-hdfs-no-cover">--no-cover</a>
+</li>
+        <li><a href="cli.html#cmdoption-megfile-config-hdfs-p">--path</a>
+</li>
+        <li><a href="cli.html#cmdoption-megfile-config-hdfs-n">--profile-name</a>
+</li>
+        <li><a href="cli.html#cmdoption-megfile-config-hdfs-r">--root</a>
+</li>
+        <li><a href="cli.html#cmdoption-megfile-config-hdfs-o">--timeout</a>
+</li>
+        <li><a href="cli.html#cmdoption-megfile-config-hdfs-t">--token</a>
+</li>
+        <li><a href="cli.html#cmdoption-megfile-config-hdfs-u">--user</a>
+</li>
+        <li><a href="cli.html#cmdoption-megfile-config-hdfs-n">-n</a>
+</li>
+        <li><a href="cli.html#cmdoption-megfile-config-hdfs-o">-o</a>
+</li>
+        <li><a href="cli.html#cmdoption-megfile-config-hdfs-p">-p</a>
+</li>
+        <li><a href="cli.html#cmdoption-megfile-config-hdfs-r">-r</a>
+</li>
+        <li><a href="cli.html#cmdoption-megfile-config-hdfs-t">-t</a>
+</li>
+        <li><a href="cli.html#cmdoption-megfile-config-hdfs-u">-u</a>
+</li>
+        <li><a href="cli.html#cmdoption-megfile-config-hdfs-arg-URL">URL</a>
 </li>
       </ul></li>
       <li>
@@ -1475,6 +1175,8 @@
         <li><a href="cli.html#cmdoption-megfile-rm-arg-PATH">PATH</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     megfile-size command line option
 
@@ -1489,8 +1191,6 @@
         <li><a href="cli.html#cmdoption-megfile-stat-arg-PATH">PATH</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     megfile-sync command line option
 
@@ -1561,6 +1261,20 @@
 
       <ul>
         <li><a href="megfile.fs_path.html#module-megfile.fs_path">module</a>
+</li>
+      </ul></li>
+      <li>
+    megfile.hdfs
+
+      <ul>
+        <li><a href="megfile.hdfs.html#module-megfile.hdfs">module</a>
+</li>
+      </ul></li>
+      <li>
+    megfile.hdfs_path
+
+      <ul>
+        <li><a href="megfile.hdfs_path.html#module-megfile.hdfs_path">module</a>
 </li>
       </ul></li>
       <li>
@@ -1636,19 +1350,13 @@
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.mkdir">mkdir() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.mkdir">(megfile.FSPath method)</a>
+        <li><a href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.mkdir">(megfile.hdfs_path.HdfsPath method)</a>
 </li>
         <li><a href="megfile.s3_path.html#megfile.s3_path.S3Path.mkdir">(megfile.s3_path.S3Path method)</a>
 </li>
-        <li><a href="megfile.html#megfile.S3Path.mkdir">(megfile.S3Path method)</a>
-</li>
         <li><a href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.mkdir">(megfile.sftp_path.SftpPath method)</a>
 </li>
-        <li><a href="megfile.html#megfile.SftpPath.mkdir">(megfile.SftpPath method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.mkdir">(megfile.smart_path.SmartPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SmartPath.mkdir">(megfile.SmartPath method)</a>
 </li>
       </ul></li>
       <li><a href="megfile.s3.html#megfile.s3.S3BufferedWriter.mode">mode (megfile.s3.S3BufferedWriter property)</a>
@@ -1657,11 +1365,13 @@
     module
 
       <ul>
-        <li><a href="megfile.html#module-megfile">megfile</a>
-</li>
         <li><a href="megfile.fs.html#module-megfile.fs">megfile.fs</a>
 </li>
         <li><a href="megfile.fs_path.html#module-megfile.fs_path">megfile.fs_path</a>
+</li>
+        <li><a href="megfile.hdfs.html#module-megfile.hdfs">megfile.hdfs</a>
+</li>
+        <li><a href="megfile.hdfs_path.html#module-megfile.hdfs_path">megfile.hdfs_path</a>
 </li>
         <li><a href="megfile.http.html#module-megfile.http">megfile.http</a>
 </li>
@@ -1684,10 +1394,10 @@
         <li><a href="megfile.stdio_path.html#module-megfile.stdio_path">megfile.stdio_path</a>
 </li>
       </ul></li>
-      <li><a href="megfile.s3_path.html#megfile.s3_path.S3Path.move">move() (megfile.s3_path.S3Path method)</a>
+      <li><a href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.move">move() (megfile.hdfs_path.HdfsPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.S3Path.move">(megfile.S3Path method)</a>
+        <li><a href="megfile.s3_path.html#megfile.s3_path.S3Path.move">(megfile.s3_path.S3Path method)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -1703,8 +1413,6 @@
 </li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.name">(megfile.smart_path.SmartPath property)</a>
 </li>
-        <li><a href="megfile.html#megfile.SmartPath.name">(megfile.SmartPath property)</a>
-</li>
       </ul></li>
   </ul></td>
 </tr></table>
@@ -1715,27 +1423,17 @@
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.open">open() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.open">(megfile.FSPath method)</a>
+        <li><a href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.open">(megfile.hdfs_path.HdfsPath method)</a>
 </li>
         <li><a href="megfile.http_path.html#megfile.http_path.HttpPath.open">(megfile.http_path.HttpPath method)</a>
 </li>
-        <li><a href="megfile.html#megfile.HttpPath.open">(megfile.HttpPath method)</a>
-</li>
         <li><a href="megfile.s3_path.html#megfile.s3_path.S3Path.open">(megfile.s3_path.S3Path method)</a>
-</li>
-        <li><a href="megfile.html#megfile.S3Path.open">(megfile.S3Path method)</a>
 </li>
         <li><a href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.open">(megfile.sftp_path.SftpPath method)</a>
 </li>
-        <li><a href="megfile.html#megfile.SftpPath.open">(megfile.SftpPath method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.open">(megfile.smart_path.SmartPath method)</a>
 </li>
-        <li><a href="megfile.html#megfile.SmartPath.open">(megfile.SmartPath method)</a>
-</li>
         <li><a href="megfile.stdio_path.html#megfile.stdio_path.StdioPath.open">(megfile.stdio_path.StdioPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.StdioPath.open">(megfile.StdioPath method)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -1743,11 +1441,7 @@
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.owner">owner() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.owner">(megfile.FSPath method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.owner">(megfile.smart_path.SmartPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SmartPath.owner">(megfile.SmartPath method)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -1757,33 +1451,21 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.parent">parent (megfile.smart_path.SmartPath property)</a>
-
-      <ul>
-        <li><a href="megfile.html#megfile.SmartPath.parent">(megfile.SmartPath property)</a>
 </li>
-      </ul></li>
       <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.parents">parents (megfile.smart_path.SmartPath property)</a>
-
-      <ul>
-        <li><a href="megfile.html#megfile.SmartPath.parents">(megfile.SmartPath property)</a>
 </li>
-      </ul></li>
       <li><a href="megfile.s3.html#megfile.s3.parse_s3_url">parse_s3_url() (in module megfile.s3)</a>
 </li>
       <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.parts">parts (megfile.smart_path.SmartPath property)</a>
-
-      <ul>
-        <li><a href="megfile.html#megfile.SmartPath.parts">(megfile.SmartPath property)</a>
 </li>
-      </ul></li>
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.parts">parts() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.parts">(megfile.FSPath method)</a>
+        <li><a href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.parts">(megfile.hdfs_path.HdfsPath method)</a>
+</li>
+        <li><a href="megfile.s3_path.html#megfile.s3_path.S3Path.parts">(megfile.s3_path.S3Path method)</a>
 </li>
         <li><a href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.parts">(megfile.sftp_path.SftpPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SftpPath.parts">(megfile.SftpPath method)</a>
 </li>
       </ul></li>
       <li>
@@ -1818,51 +1500,35 @@
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.path_with_protocol">path_with_protocol (megfile.fs_path.FSPath property)</a>
+</li>
+      <li><a href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.path_with_protocol">path_with_protocol() (megfile.hdfs_path.HdfsPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.path_with_protocol">(megfile.FSPath property)</a>
+        <li><a href="megfile.s3_path.html#megfile.s3_path.S3Path.path_with_protocol">(megfile.s3_path.S3Path method)</a>
 </li>
       </ul></li>
-      <li><a href="megfile.s3_path.html#megfile.s3_path.S3Path.path_with_protocol">path_with_protocol() (megfile.s3_path.S3Path method)</a>
+      <li><a href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.path_without_protocol">path_without_protocol() (megfile.hdfs_path.HdfsPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.S3Path.path_with_protocol">(megfile.S3Path method)</a>
-</li>
-      </ul></li>
-      <li><a href="megfile.s3_path.html#megfile.s3_path.S3Path.path_without_protocol">path_without_protocol() (megfile.s3_path.S3Path method)</a>
-
-      <ul>
-        <li><a href="megfile.html#megfile.S3Path.path_without_protocol">(megfile.S3Path method)</a>
+        <li><a href="megfile.s3_path.html#megfile.s3_path.S3Path.path_without_protocol">(megfile.s3_path.S3Path method)</a>
 </li>
       </ul></li>
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.protocol">protocol (megfile.fs_path.FSPath attribute)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.protocol">(megfile.FSPath attribute)</a>
+        <li><a href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.protocol">(megfile.hdfs_path.HdfsPath attribute)</a>
 </li>
         <li><a href="megfile.http_path.html#megfile.http_path.HttpPath.protocol">(megfile.http_path.HttpPath attribute)</a>
 </li>
         <li><a href="megfile.http_path.html#megfile.http_path.HttpsPath.protocol">(megfile.http_path.HttpsPath attribute)</a>
 </li>
-        <li><a href="megfile.html#megfile.HttpPath.protocol">(megfile.HttpPath attribute)</a>
-</li>
-        <li><a href="megfile.html#megfile.HttpsPath.protocol">(megfile.HttpsPath attribute)</a>
-</li>
         <li><a href="megfile.s3_path.html#megfile.s3_path.S3Path.protocol">(megfile.s3_path.S3Path attribute)</a>
-</li>
-        <li><a href="megfile.html#megfile.S3Path.protocol">(megfile.S3Path attribute)</a>
 </li>
         <li><a href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.protocol">(megfile.sftp_path.SftpPath attribute)</a>
 </li>
-        <li><a href="megfile.html#megfile.SftpPath.protocol">(megfile.SftpPath attribute)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.protocol">(megfile.smart_path.SmartPath property)</a>
 </li>
-        <li><a href="megfile.html#megfile.SmartPath.protocol">(megfile.SmartPath property)</a>
-</li>
         <li><a href="megfile.stdio_path.html#megfile.stdio_path.StdioPath.protocol">(megfile.stdio_path.StdioPath attribute)</a>
-</li>
-        <li><a href="megfile.html#megfile.StdioPath.protocol">(megfile.StdioPath attribute)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -1872,89 +1538,49 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.read_bytes">read_bytes() (megfile.smart_path.SmartPath method)</a>
-
-      <ul>
-        <li><a href="megfile.html#megfile.SmartPath.read_bytes">(megfile.SmartPath method)</a>
 </li>
-      </ul></li>
       <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.read_text">read_text() (megfile.smart_path.SmartPath method)</a>
-
-      <ul>
-        <li><a href="megfile.html#megfile.SmartPath.read_text">(megfile.SmartPath method)</a>
 </li>
-      </ul></li>
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.readlink">readlink() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.readlink">(megfile.FSPath method)</a>
-</li>
         <li><a href="megfile.s3_path.html#megfile.s3_path.S3Path.readlink">(megfile.s3_path.S3Path method)</a>
-</li>
-        <li><a href="megfile.html#megfile.S3Path.readlink">(megfile.S3Path method)</a>
 </li>
         <li><a href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.readlink">(megfile.sftp_path.SftpPath method)</a>
 </li>
-        <li><a href="megfile.html#megfile.SftpPath.readlink">(megfile.SftpPath method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.readlink">(megfile.smart_path.SmartPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SmartPath.readlink">(megfile.SmartPath method)</a>
 </li>
       </ul></li>
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.realpath">realpath() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.realpath">(megfile.FSPath method)</a>
-</li>
         <li><a href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.realpath">(megfile.sftp_path.SftpPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SftpPath.realpath">(megfile.SftpPath method)</a>
 </li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.realpath">(megfile.smart_path.SmartPath method)</a>
 </li>
-        <li><a href="megfile.html#megfile.SmartPath.realpath">(megfile.SmartPath method)</a>
-</li>
       </ul></li>
       <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.register">register() (megfile.smart_path.SmartPath class method)</a>
-
-      <ul>
-        <li><a href="megfile.html#megfile.SmartPath.register">(megfile.SmartPath class method)</a>
 </li>
-      </ul></li>
       <li><a href="megfile.smart.html#megfile.smart.register_copy_func">register_copy_func() (in module megfile.smart)</a>
 </li>
       <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.relative_to">relative_to() (megfile.smart_path.SmartPath method)</a>
-
-      <ul>
-        <li><a href="megfile.html#megfile.SmartPath.relative_to">(megfile.SmartPath method)</a>
 </li>
-      </ul></li>
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.relpath">relpath() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.relpath">(megfile.FSPath method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.relpath">(megfile.smart_path.SmartPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SmartPath.relpath">(megfile.SmartPath method)</a>
 </li>
       </ul></li>
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.remove">remove() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.remove">(megfile.FSPath method)</a>
+        <li><a href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.remove">(megfile.hdfs_path.HdfsPath method)</a>
 </li>
         <li><a href="megfile.s3_path.html#megfile.s3_path.S3Path.remove">(megfile.s3_path.S3Path method)</a>
 </li>
-        <li><a href="megfile.html#megfile.S3Path.remove">(megfile.S3Path method)</a>
-</li>
         <li><a href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.remove">(megfile.sftp_path.SftpPath method)</a>
 </li>
-        <li><a href="megfile.html#megfile.SftpPath.remove">(megfile.SftpPath method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.remove">(megfile.smart_path.SmartPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SmartPath.remove">(megfile.SmartPath method)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -1962,909 +1588,371 @@
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.rename">rename() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.rename">(megfile.FSPath method)</a>
+        <li><a href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.rename">(megfile.hdfs_path.HdfsPath method)</a>
 </li>
         <li><a href="megfile.s3_path.html#megfile.s3_path.S3Path.rename">(megfile.s3_path.S3Path method)</a>
 </li>
-        <li><a href="megfile.html#megfile.S3Path.rename">(megfile.S3Path method)</a>
-</li>
         <li><a href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.rename">(megfile.sftp_path.SftpPath method)</a>
 </li>
-        <li><a href="megfile.html#megfile.SftpPath.rename">(megfile.SftpPath method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.rename">(megfile.smart_path.SmartPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SmartPath.rename">(megfile.SmartPath method)</a>
 </li>
       </ul></li>
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.replace">replace() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.replace">(megfile.FSPath method)</a>
-</li>
         <li><a href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.replace">(megfile.sftp_path.SftpPath method)</a>
 </li>
-        <li><a href="megfile.html#megfile.SftpPath.replace">(megfile.SftpPath method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.replace">(megfile.smart_path.SmartPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SmartPath.replace">(megfile.SmartPath method)</a>
 </li>
       </ul></li>
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.resolve">resolve() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.resolve">(megfile.FSPath method)</a>
-</li>
         <li><a href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.resolve">(megfile.sftp_path.SftpPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SftpPath.resolve">(megfile.SftpPath method)</a>
 </li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.resolve">(megfile.smart_path.SmartPath method)</a>
 </li>
-        <li><a href="megfile.html#megfile.SmartPath.resolve">(megfile.SmartPath method)</a>
-</li>
       </ul></li>
       <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.rglob">rglob() (megfile.smart_path.SmartPath method)</a>
-
-      <ul>
-        <li><a href="megfile.html#megfile.SmartPath.rglob">(megfile.SmartPath method)</a>
 </li>
-      </ul></li>
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.rmdir">rmdir() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.rmdir">(megfile.FSPath method)</a>
-</li>
         <li><a href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.rmdir">(megfile.sftp_path.SftpPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SftpPath.rmdir">(megfile.SftpPath method)</a>
 </li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.rmdir">(megfile.smart_path.SmartPath method)</a>
 </li>
-        <li><a href="megfile.html#megfile.SmartPath.rmdir">(megfile.SmartPath method)</a>
-</li>
       </ul></li>
       <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.root">root (megfile.smart_path.SmartPath property)</a>
-
-      <ul>
-        <li><a href="megfile.html#megfile.SmartPath.root">(megfile.SmartPath property)</a>
 </li>
-      </ul></li>
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.root">root() (megfile.fs_path.FSPath method)</a>
-
-      <ul>
-        <li><a href="megfile.html#megfile.FSPath.root">(megfile.FSPath method)</a>
 </li>
-      </ul></li>
   </ul></td>
 </tr></table>
 
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="megfile.html#megfile.s3_access">s3_access() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.s3.html#megfile.s3.s3_access">(in module megfile.s3)</a>
+      <li><a href="megfile.s3.html#megfile.s3.s3_access">s3_access() (in module megfile.s3)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.s3_buffered_open">s3_buffered_open() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.s3.html#megfile.s3.s3_buffered_open">(in module megfile.s3)</a>
+      <li><a href="megfile.s3.html#megfile.s3.s3_buffered_open">s3_buffered_open() (in module megfile.s3)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.s3_cached_open">s3_cached_open() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.s3.html#megfile.s3.s3_cached_open">(in module megfile.s3)</a>
+      <li><a href="megfile.s3.html#megfile.s3.s3_cached_open">s3_cached_open() (in module megfile.s3)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.s3_concat">s3_concat() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.s3.html#megfile.s3.s3_concat">(in module megfile.s3)</a>
+      <li><a href="megfile.s3.html#megfile.s3.s3_concat">s3_concat() (in module megfile.s3)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.s3_copy">s3_copy() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.s3.html#megfile.s3.s3_copy">(in module megfile.s3)</a>
+      <li><a href="megfile.s3.html#megfile.s3.s3_copy">s3_copy() (in module megfile.s3)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.s3_download">s3_download() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.s3.html#megfile.s3.s3_download">(in module megfile.s3)</a>
+      <li><a href="megfile.s3.html#megfile.s3.s3_download">s3_download() (in module megfile.s3)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.s3_exists">s3_exists() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.s3.html#megfile.s3.s3_exists">(in module megfile.s3)</a>
+      <li><a href="megfile.s3.html#megfile.s3.s3_exists">s3_exists() (in module megfile.s3)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.s3_getmd5">s3_getmd5() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.s3.html#megfile.s3.s3_getmd5">(in module megfile.s3)</a>
+      <li><a href="megfile.s3.html#megfile.s3.s3_getmd5">s3_getmd5() (in module megfile.s3)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.s3_getmtime">s3_getmtime() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.s3.html#megfile.s3.s3_getmtime">(in module megfile.s3)</a>
+      <li><a href="megfile.s3.html#megfile.s3.s3_getmtime">s3_getmtime() (in module megfile.s3)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.s3_getsize">s3_getsize() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.s3.html#megfile.s3.s3_getsize">(in module megfile.s3)</a>
+      <li><a href="megfile.s3.html#megfile.s3.s3_getsize">s3_getsize() (in module megfile.s3)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.s3_glob">s3_glob() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.s3.html#megfile.s3.s3_glob">(in module megfile.s3)</a>
+      <li><a href="megfile.s3.html#megfile.s3.s3_glob">s3_glob() (in module megfile.s3)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.s3_glob_stat">s3_glob_stat() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.s3.html#megfile.s3.s3_glob_stat">(in module megfile.s3)</a>
+      <li><a href="megfile.s3.html#megfile.s3.s3_glob_stat">s3_glob_stat() (in module megfile.s3)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.s3_hasbucket">s3_hasbucket() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.s3.html#megfile.s3.s3_hasbucket">(in module megfile.s3)</a>
+      <li><a href="megfile.s3.html#megfile.s3.s3_hasbucket">s3_hasbucket() (in module megfile.s3)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.s3_iglob">s3_iglob() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.s3.html#megfile.s3.s3_iglob">(in module megfile.s3)</a>
+      <li><a href="megfile.s3.html#megfile.s3.s3_iglob">s3_iglob() (in module megfile.s3)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.s3_isdir">s3_isdir() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.s3.html#megfile.s3.s3_isdir">(in module megfile.s3)</a>
+      <li><a href="megfile.s3.html#megfile.s3.s3_isdir">s3_isdir() (in module megfile.s3)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.s3_isfile">s3_isfile() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.s3.html#megfile.s3.s3_isfile">(in module megfile.s3)</a>
+      <li><a href="megfile.s3.html#megfile.s3.s3_isfile">s3_isfile() (in module megfile.s3)</a>
 </li>
-      </ul></li>
       <li><a href="megfile.s3.html#megfile.s3.s3_islink">s3_islink() (in module megfile.s3)</a>
 </li>
-      <li><a href="megfile.html#megfile.s3_listdir">s3_listdir() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.s3.html#megfile.s3.s3_listdir">(in module megfile.s3)</a>
+      <li><a href="megfile.s3.html#megfile.s3.s3_listdir">s3_listdir() (in module megfile.s3)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.s3_load_content">s3_load_content() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.s3.html#megfile.s3.s3_load_content">(in module megfile.s3)</a>
+      <li><a href="megfile.s3.html#megfile.s3.s3_load_content">s3_load_content() (in module megfile.s3)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.s3_load_from">s3_load_from() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.s3.html#megfile.s3.s3_load_from">(in module megfile.s3)</a>
+      <li><a href="megfile.s3.html#megfile.s3.s3_load_from">s3_load_from() (in module megfile.s3)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.s3_lstat">s3_lstat() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.s3.html#megfile.s3.s3_lstat">(in module megfile.s3)</a>
+      <li><a href="megfile.s3.html#megfile.s3.s3_lstat">s3_lstat() (in module megfile.s3)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.s3_makedirs">s3_makedirs() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.s3.html#megfile.s3.s3_makedirs">(in module megfile.s3)</a>
+      <li><a href="megfile.s3.html#megfile.s3.s3_makedirs">s3_makedirs() (in module megfile.s3)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.s3_memory_open">s3_memory_open() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.s3.html#megfile.s3.s3_memory_open">(in module megfile.s3)</a>
+      <li><a href="megfile.s3.html#megfile.s3.s3_memory_open">s3_memory_open() (in module megfile.s3)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.s3_move">s3_move() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.s3.html#megfile.s3.s3_move">(in module megfile.s3)</a>
+      <li><a href="megfile.s3.html#megfile.s3.s3_move">s3_move() (in module megfile.s3)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.s3_open">s3_open() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.s3.html#megfile.s3.s3_open">(in module megfile.s3)</a>
+      <li><a href="megfile.s3.html#megfile.s3.s3_open">s3_open() (in module megfile.s3)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.s3_path_join">s3_path_join() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.s3.html#megfile.s3.s3_path_join">(in module megfile.s3)</a>
+      <li><a href="megfile.s3.html#megfile.s3.s3_path_join">s3_path_join() (in module megfile.s3)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.s3_pipe_open">s3_pipe_open() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.s3.html#megfile.s3.s3_pipe_open">(in module megfile.s3)</a>
+      <li><a href="megfile.s3.html#megfile.s3.s3_pipe_open">s3_pipe_open() (in module megfile.s3)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.s3_prefetch_open">s3_prefetch_open() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.s3.html#megfile.s3.s3_prefetch_open">(in module megfile.s3)</a>
+      <li><a href="megfile.s3.html#megfile.s3.s3_prefetch_open">s3_prefetch_open() (in module megfile.s3)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.s3_readlink">s3_readlink() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.s3.html#megfile.s3.s3_readlink">(in module megfile.s3)</a>
+      <li><a href="megfile.s3.html#megfile.s3.s3_readlink">s3_readlink() (in module megfile.s3)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.s3_remove">s3_remove() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.s3.html#megfile.s3.s3_remove">(in module megfile.s3)</a>
+      <li><a href="megfile.s3.html#megfile.s3.s3_remove">s3_remove() (in module megfile.s3)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.s3_rename">s3_rename() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.s3.html#megfile.s3.s3_rename">(in module megfile.s3)</a>
+      <li><a href="megfile.s3.html#megfile.s3.s3_rename">s3_rename() (in module megfile.s3)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.s3_save_as">s3_save_as() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.s3.html#megfile.s3.s3_save_as">(in module megfile.s3)</a>
+      <li><a href="megfile.s3.html#megfile.s3.s3_save_as">s3_save_as() (in module megfile.s3)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.s3_scan">s3_scan() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.s3.html#megfile.s3.s3_scan">(in module megfile.s3)</a>
+      <li><a href="megfile.s3.html#megfile.s3.s3_scan">s3_scan() (in module megfile.s3)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.s3_scan_stat">s3_scan_stat() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.s3.html#megfile.s3.s3_scan_stat">(in module megfile.s3)</a>
+      <li><a href="megfile.s3.html#megfile.s3.s3_scan_stat">s3_scan_stat() (in module megfile.s3)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.s3_scandir">s3_scandir() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.s3.html#megfile.s3.s3_scandir">(in module megfile.s3)</a>
+      <li><a href="megfile.s3.html#megfile.s3.s3_scandir">s3_scandir() (in module megfile.s3)</a>
 </li>
-      </ul></li>
       <li><a href="megfile.s3.html#megfile.s3.s3_share_cache_open">s3_share_cache_open() (in module megfile.s3)</a>
 </li>
-      <li><a href="megfile.html#megfile.s3_stat">s3_stat() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.s3.html#megfile.s3.s3_stat">(in module megfile.s3)</a>
+      <li><a href="megfile.s3.html#megfile.s3.s3_stat">s3_stat() (in module megfile.s3)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.s3_symlink">s3_symlink() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.s3.html#megfile.s3.s3_symlink">(in module megfile.s3)</a>
+      <li><a href="megfile.s3.html#megfile.s3.s3_symlink">s3_symlink() (in module megfile.s3)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.s3_sync">s3_sync() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.s3.html#megfile.s3.s3_sync">(in module megfile.s3)</a>
+      <li><a href="megfile.s3.html#megfile.s3.s3_sync">s3_sync() (in module megfile.s3)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.s3_unlink">s3_unlink() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.s3.html#megfile.s3.s3_unlink">(in module megfile.s3)</a>
+      <li><a href="megfile.s3.html#megfile.s3.s3_unlink">s3_unlink() (in module megfile.s3)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.s3_upload">s3_upload() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.s3.html#megfile.s3.s3_upload">(in module megfile.s3)</a>
+      <li><a href="megfile.s3.html#megfile.s3.s3_upload">s3_upload() (in module megfile.s3)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.s3_walk">s3_walk() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.s3.html#megfile.s3.s3_walk">(in module megfile.s3)</a>
+      <li><a href="megfile.s3.html#megfile.s3.s3_walk">s3_walk() (in module megfile.s3)</a>
 </li>
-      </ul></li>
       <li><a href="megfile.s3.html#megfile.s3.S3BufferedWriter">S3BufferedWriter (class in megfile.s3)</a>
 </li>
       <li><a href="megfile.s3.html#megfile.s3.S3Cacher">S3Cacher (class in megfile.s3)</a>
 </li>
       <li><a href="megfile.s3.html#megfile.s3.S3LimitedSeekableWriter">S3LimitedSeekableWriter (class in megfile.s3)</a>
 </li>
-      <li><a href="megfile.html#megfile.S3Path">S3Path (class in megfile)</a>
-
-      <ul>
-        <li><a href="megfile.s3_path.html#megfile.s3_path.S3Path">(class in megfile.s3_path)</a>
+      <li><a href="megfile.s3_path.html#megfile.s3_path.S3Path">S3Path (class in megfile.s3_path)</a>
 </li>
-      </ul></li>
       <li><a href="megfile.s3.html#megfile.s3.S3PrefetchReader">S3PrefetchReader (class in megfile.s3)</a>
 </li>
       <li><a href="megfile.s3.html#megfile.s3.S3ShareCacheReader">S3ShareCacheReader (class in megfile.s3)</a>
 </li>
       <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.samefile">samefile() (megfile.smart_path.SmartPath method)</a>
-
-      <ul>
-        <li><a href="megfile.html#megfile.SmartPath.samefile">(megfile.SmartPath method)</a>
 </li>
-      </ul></li>
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.save">save() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.save">(megfile.FSPath method)</a>
+        <li><a href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.save">(megfile.hdfs_path.HdfsPath method)</a>
 </li>
         <li><a href="megfile.s3_path.html#megfile.s3_path.S3Path.save">(megfile.s3_path.S3Path method)</a>
 </li>
-        <li><a href="megfile.html#megfile.S3Path.save">(megfile.S3Path method)</a>
-</li>
         <li><a href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.save">(megfile.sftp_path.SftpPath method)</a>
 </li>
-        <li><a href="megfile.html#megfile.SftpPath.save">(megfile.SftpPath method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.save">(megfile.smart_path.SmartPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SmartPath.save">(megfile.SmartPath method)</a>
 </li>
       </ul></li>
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.scan">scan() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.scan">(megfile.FSPath method)</a>
+        <li><a href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.scan">(megfile.hdfs_path.HdfsPath method)</a>
 </li>
         <li><a href="megfile.s3_path.html#megfile.s3_path.S3Path.scan">(megfile.s3_path.S3Path method)</a>
 </li>
-        <li><a href="megfile.html#megfile.S3Path.scan">(megfile.S3Path method)</a>
-</li>
         <li><a href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.scan">(megfile.sftp_path.SftpPath method)</a>
 </li>
-        <li><a href="megfile.html#megfile.SftpPath.scan">(megfile.SftpPath method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.scan">(megfile.smart_path.SmartPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SmartPath.scan">(megfile.SmartPath method)</a>
 </li>
       </ul></li>
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.scan_stat">scan_stat() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.scan_stat">(megfile.FSPath method)</a>
+        <li><a href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.scan_stat">(megfile.hdfs_path.HdfsPath method)</a>
 </li>
         <li><a href="megfile.s3_path.html#megfile.s3_path.S3Path.scan_stat">(megfile.s3_path.S3Path method)</a>
 </li>
-        <li><a href="megfile.html#megfile.S3Path.scan_stat">(megfile.S3Path method)</a>
-</li>
         <li><a href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.scan_stat">(megfile.sftp_path.SftpPath method)</a>
 </li>
-        <li><a href="megfile.html#megfile.SftpPath.scan_stat">(megfile.SftpPath method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.scan_stat">(megfile.smart_path.SmartPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SmartPath.scan_stat">(megfile.SmartPath method)</a>
 </li>
       </ul></li>
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.scandir">scandir() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.scandir">(megfile.FSPath method)</a>
+        <li><a href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.scandir">(megfile.hdfs_path.HdfsPath method)</a>
 </li>
         <li><a href="megfile.s3_path.html#megfile.s3_path.S3Path.scandir">(megfile.s3_path.S3Path method)</a>
 </li>
-        <li><a href="megfile.html#megfile.S3Path.scandir">(megfile.S3Path method)</a>
-</li>
         <li><a href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.scandir">(megfile.sftp_path.SftpPath method)</a>
 </li>
-        <li><a href="megfile.html#megfile.SftpPath.scandir">(megfile.SftpPath method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.scandir">(megfile.smart_path.SmartPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SmartPath.scandir">(megfile.SmartPath method)</a>
 </li>
       </ul></li>
       <li><a href="megfile.s3.html#megfile.s3.S3LimitedSeekableWriter.seek">seek() (megfile.s3.S3LimitedSeekableWriter method)</a>
 </li>
-      <li><a href="megfile.html#megfile.sftp_absolute">sftp_absolute() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.sftp.html#megfile.sftp.sftp_absolute">(in module megfile.sftp)</a>
+      <li><a href="megfile.sftp.html#megfile.sftp.sftp_absolute">sftp_absolute() (in module megfile.sftp)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.sftp_chmod">sftp_chmod() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.sftp.html#megfile.sftp.sftp_chmod">(in module megfile.sftp)</a>
+      <li><a href="megfile.sftp.html#megfile.sftp.sftp_chmod">sftp_chmod() (in module megfile.sftp)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.sftp_concat">sftp_concat() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.sftp.html#megfile.sftp.sftp_concat">(in module megfile.sftp)</a>
+      <li><a href="megfile.sftp.html#megfile.sftp.sftp_concat">sftp_concat() (in module megfile.sftp)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.sftp_copy">sftp_copy() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.sftp.html#megfile.sftp.sftp_copy">(in module megfile.sftp)</a>
+      <li><a href="megfile.sftp.html#megfile.sftp.sftp_copy">sftp_copy() (in module megfile.sftp)</a>
 </li>
-      </ul></li>
       <li><a href="megfile.sftp.html#megfile.sftp.sftp_download">sftp_download() (in module megfile.sftp)</a>
 </li>
-      <li><a href="megfile.html#megfile.sftp_exists">sftp_exists() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.sftp.html#megfile.sftp.sftp_exists">(in module megfile.sftp)</a>
+      <li><a href="megfile.sftp.html#megfile.sftp.sftp_exists">sftp_exists() (in module megfile.sftp)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.sftp_getmd5">sftp_getmd5() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.sftp.html#megfile.sftp.sftp_getmd5">(in module megfile.sftp)</a>
+      <li><a href="megfile.sftp.html#megfile.sftp.sftp_getmd5">sftp_getmd5() (in module megfile.sftp)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.sftp_getmtime">sftp_getmtime() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.sftp.html#megfile.sftp.sftp_getmtime">(in module megfile.sftp)</a>
+      <li><a href="megfile.sftp.html#megfile.sftp.sftp_getmtime">sftp_getmtime() (in module megfile.sftp)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.sftp_getsize">sftp_getsize() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.sftp.html#megfile.sftp.sftp_getsize">(in module megfile.sftp)</a>
+      <li><a href="megfile.sftp.html#megfile.sftp.sftp_getsize">sftp_getsize() (in module megfile.sftp)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.sftp_glob">sftp_glob() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.sftp.html#megfile.sftp.sftp_glob">(in module megfile.sftp)</a>
+      <li><a href="megfile.sftp.html#megfile.sftp.sftp_glob">sftp_glob() (in module megfile.sftp)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.sftp_glob_stat">sftp_glob_stat() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.sftp.html#megfile.sftp.sftp_glob_stat">(in module megfile.sftp)</a>
+      <li><a href="megfile.sftp.html#megfile.sftp.sftp_glob_stat">sftp_glob_stat() (in module megfile.sftp)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.sftp_iglob">sftp_iglob() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.sftp.html#megfile.sftp.sftp_iglob">(in module megfile.sftp)</a>
+      <li><a href="megfile.sftp.html#megfile.sftp.sftp_iglob">sftp_iglob() (in module megfile.sftp)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.sftp_isdir">sftp_isdir() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.sftp.html#megfile.sftp.sftp_isdir">(in module megfile.sftp)</a>
+      <li><a href="megfile.sftp.html#megfile.sftp.sftp_isdir">sftp_isdir() (in module megfile.sftp)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.sftp_isfile">sftp_isfile() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.sftp.html#megfile.sftp.sftp_isfile">(in module megfile.sftp)</a>
+      <li><a href="megfile.sftp.html#megfile.sftp.sftp_isfile">sftp_isfile() (in module megfile.sftp)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.sftp_islink">sftp_islink() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.sftp.html#megfile.sftp.sftp_islink">(in module megfile.sftp)</a>
+      <li><a href="megfile.sftp.html#megfile.sftp.sftp_islink">sftp_islink() (in module megfile.sftp)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.sftp_listdir">sftp_listdir() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.sftp.html#megfile.sftp.sftp_listdir">(in module megfile.sftp)</a>
+      <li><a href="megfile.sftp.html#megfile.sftp.sftp_listdir">sftp_listdir() (in module megfile.sftp)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.sftp_load_from">sftp_load_from() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.sftp.html#megfile.sftp.sftp_load_from">(in module megfile.sftp)</a>
+      <li><a href="megfile.sftp.html#megfile.sftp.sftp_load_from">sftp_load_from() (in module megfile.sftp)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.sftp_lstat">sftp_lstat() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.sftp.html#megfile.sftp.sftp_lstat">(in module megfile.sftp)</a>
+      <li><a href="megfile.sftp.html#megfile.sftp.sftp_lstat">sftp_lstat() (in module megfile.sftp)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.sftp_makedirs">sftp_makedirs() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.sftp.html#megfile.sftp.sftp_makedirs">(in module megfile.sftp)</a>
+      <li><a href="megfile.sftp.html#megfile.sftp.sftp_makedirs">sftp_makedirs() (in module megfile.sftp)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.sftp_move">sftp_move() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.sftp.html#megfile.sftp.sftp_move">(in module megfile.sftp)</a>
+      <li><a href="megfile.sftp.html#megfile.sftp.sftp_move">sftp_move() (in module megfile.sftp)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.sftp_open">sftp_open() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.sftp.html#megfile.sftp.sftp_open">(in module megfile.sftp)</a>
+      <li><a href="megfile.sftp.html#megfile.sftp.sftp_open">sftp_open() (in module megfile.sftp)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.sftp_path_join">sftp_path_join() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.sftp.html#megfile.sftp.sftp_path_join">(in module megfile.sftp)</a>
+      <li><a href="megfile.sftp.html#megfile.sftp.sftp_path_join">sftp_path_join() (in module megfile.sftp)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.sftp_readlink">sftp_readlink() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.sftp.html#megfile.sftp.sftp_readlink">(in module megfile.sftp)</a>
+      <li><a href="megfile.sftp.html#megfile.sftp.sftp_readlink">sftp_readlink() (in module megfile.sftp)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.sftp_realpath">sftp_realpath() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.sftp.html#megfile.sftp.sftp_realpath">(in module megfile.sftp)</a>
+      <li><a href="megfile.sftp.html#megfile.sftp.sftp_realpath">sftp_realpath() (in module megfile.sftp)</a>
 </li>
-      </ul></li>
+      <li><a href="megfile.sftp.html#megfile.sftp.sftp_remove">sftp_remove() (in module megfile.sftp)</a>
+</li>
+      <li><a href="megfile.sftp.html#megfile.sftp.sftp_rename">sftp_rename() (in module megfile.sftp)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="megfile.html#megfile.sftp_remove">sftp_remove() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.sftp.html#megfile.sftp.sftp_remove">(in module megfile.sftp)</a>
+      <li><a href="megfile.sftp.html#megfile.sftp.sftp_resolve">sftp_resolve() (in module megfile.sftp)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.sftp_rename">sftp_rename() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.sftp.html#megfile.sftp.sftp_rename">(in module megfile.sftp)</a>
+      <li><a href="megfile.sftp.html#megfile.sftp.sftp_rmdir">sftp_rmdir() (in module megfile.sftp)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.sftp_resolve">sftp_resolve() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.sftp.html#megfile.sftp.sftp_resolve">(in module megfile.sftp)</a>
+      <li><a href="megfile.sftp.html#megfile.sftp.sftp_save_as">sftp_save_as() (in module megfile.sftp)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.sftp_rmdir">sftp_rmdir() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.sftp.html#megfile.sftp.sftp_rmdir">(in module megfile.sftp)</a>
+      <li><a href="megfile.sftp.html#megfile.sftp.sftp_scan">sftp_scan() (in module megfile.sftp)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.sftp_save_as">sftp_save_as() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.sftp.html#megfile.sftp.sftp_save_as">(in module megfile.sftp)</a>
+      <li><a href="megfile.sftp.html#megfile.sftp.sftp_scan_stat">sftp_scan_stat() (in module megfile.sftp)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.sftp_scan">sftp_scan() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.sftp.html#megfile.sftp.sftp_scan">(in module megfile.sftp)</a>
+      <li><a href="megfile.sftp.html#megfile.sftp.sftp_scandir">sftp_scandir() (in module megfile.sftp)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.sftp_scan_stat">sftp_scan_stat() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.sftp.html#megfile.sftp.sftp_scan_stat">(in module megfile.sftp)</a>
+      <li><a href="megfile.sftp.html#megfile.sftp.sftp_stat">sftp_stat() (in module megfile.sftp)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.sftp_scandir">sftp_scandir() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.sftp.html#megfile.sftp.sftp_scandir">(in module megfile.sftp)</a>
+      <li><a href="megfile.sftp.html#megfile.sftp.sftp_symlink">sftp_symlink() (in module megfile.sftp)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.sftp_stat">sftp_stat() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.sftp.html#megfile.sftp.sftp_stat">(in module megfile.sftp)</a>
+      <li><a href="megfile.sftp.html#megfile.sftp.sftp_sync">sftp_sync() (in module megfile.sftp)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.sftp_symlink">sftp_symlink() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.sftp.html#megfile.sftp.sftp_symlink">(in module megfile.sftp)</a>
+      <li><a href="megfile.sftp.html#megfile.sftp.sftp_unlink">sftp_unlink() (in module megfile.sftp)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.sftp_sync">sftp_sync() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.sftp.html#megfile.sftp.sftp_sync">(in module megfile.sftp)</a>
-</li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.sftp_unlink">sftp_unlink() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.sftp.html#megfile.sftp.sftp_unlink">(in module megfile.sftp)</a>
-</li>
-      </ul></li>
       <li><a href="megfile.sftp.html#megfile.sftp.sftp_upload">sftp_upload() (in module megfile.sftp)</a>
 </li>
-      <li><a href="megfile.html#megfile.sftp_walk">sftp_walk() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.sftp.html#megfile.sftp.sftp_walk">(in module megfile.sftp)</a>
+      <li><a href="megfile.sftp.html#megfile.sftp.sftp_walk">sftp_walk() (in module megfile.sftp)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.SftpPath">SftpPath (class in megfile)</a>
-
-      <ul>
-        <li><a href="megfile.sftp_path.html#megfile.sftp_path.SftpPath">(class in megfile.sftp_path)</a>
+      <li><a href="megfile.sftp_path.html#megfile.sftp_path.SftpPath">SftpPath (class in megfile.sftp_path)</a>
 </li>
-      </ul></li>
       <li><a href="megfile.smart.html#megfile.smart.smart_abspath">smart_abspath() (in module megfile.smart)</a>
 </li>
-      <li><a href="megfile.html#megfile.smart_access">smart_access() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.smart.html#megfile.smart.smart_access">(in module megfile.smart)</a>
+      <li><a href="megfile.smart.html#megfile.smart.smart_access">smart_access() (in module megfile.smart)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.smart_cache">smart_cache() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.smart.html#megfile.smart.smart_cache">(in module megfile.smart)</a>
+      <li><a href="megfile.smart.html#megfile.smart.smart_cache">smart_cache() (in module megfile.smart)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.smart_combine_open">smart_combine_open() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.smart.html#megfile.smart.smart_combine_open">(in module megfile.smart)</a>
+      <li><a href="megfile.smart.html#megfile.smart.smart_combine_open">smart_combine_open() (in module megfile.smart)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.smart_concat">smart_concat() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.smart.html#megfile.smart.smart_concat">(in module megfile.smart)</a>
+      <li><a href="megfile.smart.html#megfile.smart.smart_concat">smart_concat() (in module megfile.smart)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.smart_copy">smart_copy() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.smart.html#megfile.smart.smart_copy">(in module megfile.smart)</a>
+      <li><a href="megfile.smart.html#megfile.smart.smart_copy">smart_copy() (in module megfile.smart)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.smart_exists">smart_exists() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.smart.html#megfile.smart.smart_exists">(in module megfile.smart)</a>
+      <li><a href="megfile.smart.html#megfile.smart.smart_exists">smart_exists() (in module megfile.smart)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.smart_getmd5">smart_getmd5() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.smart.html#megfile.smart.smart_getmd5">(in module megfile.smart)</a>
+      <li><a href="megfile.smart.html#megfile.smart.smart_getmd5">smart_getmd5() (in module megfile.smart)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.smart_getmtime">smart_getmtime() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.smart.html#megfile.smart.smart_getmtime">(in module megfile.smart)</a>
+      <li><a href="megfile.smart.html#megfile.smart.smart_getmtime">smart_getmtime() (in module megfile.smart)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.smart_getsize">smart_getsize() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.smart.html#megfile.smart.smart_getsize">(in module megfile.smart)</a>
+      <li><a href="megfile.smart.html#megfile.smart.smart_getsize">smart_getsize() (in module megfile.smart)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.smart_glob">smart_glob() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.smart.html#megfile.smart.smart_glob">(in module megfile.smart)</a>
+      <li><a href="megfile.smart.html#megfile.smart.smart_glob">smart_glob() (in module megfile.smart)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.smart_glob_stat">smart_glob_stat() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.smart.html#megfile.smart.smart_glob_stat">(in module megfile.smart)</a>
+      <li><a href="megfile.smart.html#megfile.smart.smart_glob_stat">smart_glob_stat() (in module megfile.smart)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.smart_iglob">smart_iglob() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.smart.html#megfile.smart.smart_iglob">(in module megfile.smart)</a>
+      <li><a href="megfile.smart.html#megfile.smart.smart_iglob">smart_iglob() (in module megfile.smart)</a>
 </li>
-      </ul></li>
       <li><a href="megfile.smart.html#megfile.smart.smart_isabs">smart_isabs() (in module megfile.smart)</a>
 </li>
-      <li><a href="megfile.html#megfile.smart_isdir">smart_isdir() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.smart.html#megfile.smart.smart_isdir">(in module megfile.smart)</a>
+      <li><a href="megfile.smart.html#megfile.smart.smart_isdir">smart_isdir() (in module megfile.smart)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.smart_isfile">smart_isfile() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.smart.html#megfile.smart.smart_isfile">(in module megfile.smart)</a>
+      <li><a href="megfile.smart.html#megfile.smart.smart_isfile">smart_isfile() (in module megfile.smart)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.smart_islink">smart_islink() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.smart.html#megfile.smart.smart_islink">(in module megfile.smart)</a>
+      <li><a href="megfile.smart.html#megfile.smart.smart_islink">smart_islink() (in module megfile.smart)</a>
 </li>
-      </ul></li>
       <li><a href="megfile.smart.html#megfile.smart.smart_ismount">smart_ismount() (in module megfile.smart)</a>
 </li>
-      <li><a href="megfile.html#megfile.smart_listdir">smart_listdir() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.smart.html#megfile.smart.smart_listdir">(in module megfile.smart)</a>
+      <li><a href="megfile.smart.html#megfile.smart.smart_listdir">smart_listdir() (in module megfile.smart)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.smart_load_content">smart_load_content() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.smart.html#megfile.smart.smart_load_content">(in module megfile.smart)</a>
+      <li><a href="megfile.smart.html#megfile.smart.smart_load_content">smart_load_content() (in module megfile.smart)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.smart_load_from">smart_load_from() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.smart.html#megfile.smart.smart_load_from">(in module megfile.smart)</a>
+      <li><a href="megfile.smart.html#megfile.smart.smart_load_from">smart_load_from() (in module megfile.smart)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.smart_load_text">smart_load_text() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.smart.html#megfile.smart.smart_load_text">(in module megfile.smart)</a>
+      <li><a href="megfile.smart.html#megfile.smart.smart_load_text">smart_load_text() (in module megfile.smart)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.smart_lstat">smart_lstat() (in module megfile)</a>
+      <li><a href="megfile.smart.html#megfile.smart.smart_makedirs">smart_makedirs() (in module megfile.smart)</a>
 </li>
-      <li><a href="megfile.html#megfile.smart_makedirs">smart_makedirs() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.smart.html#megfile.smart.smart_makedirs">(in module megfile.smart)</a>
+      <li><a href="megfile.smart.html#megfile.smart.smart_move">smart_move() (in module megfile.smart)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.smart_move">smart_move() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.smart.html#megfile.smart.smart_move">(in module megfile.smart)</a>
+      <li><a href="megfile.smart.html#megfile.smart.smart_open">smart_open() (in module megfile.smart)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.smart_open">smart_open() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.smart.html#megfile.smart.smart_open">(in module megfile.smart)</a>
+      <li><a href="megfile.smart.html#megfile.smart.smart_path_join">smart_path_join() (in module megfile.smart)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.smart_path_join">smart_path_join() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.smart.html#megfile.smart.smart_path_join">(in module megfile.smart)</a>
+      <li><a href="megfile.smart.html#megfile.smart.smart_readlink">smart_readlink() (in module megfile.smart)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.smart_readlink">smart_readlink() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.smart.html#megfile.smart.smart_readlink">(in module megfile.smart)</a>
+      <li><a href="megfile.smart.html#megfile.smart.smart_realpath">smart_realpath() (in module megfile.smart)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.smart_realpath">smart_realpath() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.smart.html#megfile.smart.smart_realpath">(in module megfile.smart)</a>
-</li>
-      </ul></li>
       <li><a href="megfile.smart.html#megfile.smart.smart_relpath">smart_relpath() (in module megfile.smart)</a>
 </li>
-      <li><a href="megfile.html#megfile.smart_remove">smart_remove() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.smart.html#megfile.smart.smart_remove">(in module megfile.smart)</a>
+      <li><a href="megfile.smart.html#megfile.smart.smart_remove">smart_remove() (in module megfile.smart)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.smart_rename">smart_rename() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.smart.html#megfile.smart.smart_rename">(in module megfile.smart)</a>
+      <li><a href="megfile.smart.html#megfile.smart.smart_rename">smart_rename() (in module megfile.smart)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.smart_save_as">smart_save_as() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.smart.html#megfile.smart.smart_save_as">(in module megfile.smart)</a>
+      <li><a href="megfile.smart.html#megfile.smart.smart_save_as">smart_save_as() (in module megfile.smart)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.smart_save_content">smart_save_content() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.smart.html#megfile.smart.smart_save_content">(in module megfile.smart)</a>
+      <li><a href="megfile.smart.html#megfile.smart.smart_save_content">smart_save_content() (in module megfile.smart)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.smart_save_text">smart_save_text() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.smart.html#megfile.smart.smart_save_text">(in module megfile.smart)</a>
+      <li><a href="megfile.smart.html#megfile.smart.smart_save_text">smart_save_text() (in module megfile.smart)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.smart_scan">smart_scan() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.smart.html#megfile.smart.smart_scan">(in module megfile.smart)</a>
+      <li><a href="megfile.smart.html#megfile.smart.smart_scan">smart_scan() (in module megfile.smart)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.smart_scan_stat">smart_scan_stat() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.smart.html#megfile.smart.smart_scan_stat">(in module megfile.smart)</a>
+      <li><a href="megfile.smart.html#megfile.smart.smart_scan_stat">smart_scan_stat() (in module megfile.smart)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.smart_scandir">smart_scandir() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.smart.html#megfile.smart.smart_scandir">(in module megfile.smart)</a>
+      <li><a href="megfile.smart.html#megfile.smart.smart_scandir">smart_scandir() (in module megfile.smart)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.smart_stat">smart_stat() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.smart.html#megfile.smart.smart_stat">(in module megfile.smart)</a>
+      <li><a href="megfile.smart.html#megfile.smart.smart_stat">smart_stat() (in module megfile.smart)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.smart_symlink">smart_symlink() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.smart.html#megfile.smart.smart_symlink">(in module megfile.smart)</a>
+      <li><a href="megfile.smart.html#megfile.smart.smart_symlink">smart_symlink() (in module megfile.smart)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.smart_sync">smart_sync() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.smart.html#megfile.smart.smart_sync">(in module megfile.smart)</a>
+      <li><a href="megfile.smart.html#megfile.smart.smart_sync">smart_sync() (in module megfile.smart)</a>
 </li>
-      </ul></li>
       <li><a href="megfile.smart.html#megfile.smart.smart_sync_with_progress">smart_sync_with_progress() (in module megfile.smart)</a>
 </li>
-      <li><a href="megfile.html#megfile.smart_touch">smart_touch() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.smart.html#megfile.smart.smart_touch">(in module megfile.smart)</a>
+      <li><a href="megfile.smart.html#megfile.smart.smart_touch">smart_touch() (in module megfile.smart)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.smart_unlink">smart_unlink() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.smart.html#megfile.smart.smart_unlink">(in module megfile.smart)</a>
+      <li><a href="megfile.smart.html#megfile.smart.smart_unlink">smart_unlink() (in module megfile.smart)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.smart_walk">smart_walk() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.smart.html#megfile.smart.smart_walk">(in module megfile.smart)</a>
+      <li><a href="megfile.smart.html#megfile.smart.smart_walk">smart_walk() (in module megfile.smart)</a>
 </li>
-      </ul></li>
       <li><a href="megfile.smart.html#megfile.smart.SmartCacher">SmartCacher (class in megfile.smart)</a>
 </li>
-      <li><a href="megfile.html#megfile.SmartPath">SmartPath (class in megfile)</a>
-
-      <ul>
-        <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath">(class in megfile.smart_path)</a>
+      <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath">SmartPath (class in megfile.smart_path)</a>
 </li>
-      </ul></li>
       <li>
     SRC_PATH
 
@@ -2905,93 +1993,47 @@
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.stat">stat() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.stat">(megfile.FSPath method)</a>
+        <li><a href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.stat">(megfile.hdfs_path.HdfsPath method)</a>
 </li>
         <li><a href="megfile.http_path.html#megfile.http_path.HttpPath.stat">(megfile.http_path.HttpPath method)</a>
 </li>
-        <li><a href="megfile.html#megfile.HttpPath.stat">(megfile.HttpPath method)</a>
-</li>
         <li><a href="megfile.s3_path.html#megfile.s3_path.S3Path.stat">(megfile.s3_path.S3Path method)</a>
-</li>
-        <li><a href="megfile.html#megfile.S3Path.stat">(megfile.S3Path method)</a>
 </li>
         <li><a href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.stat">(megfile.sftp_path.SftpPath method)</a>
 </li>
-        <li><a href="megfile.html#megfile.SftpPath.stat">(megfile.SftpPath method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.stat">(megfile.smart_path.SmartPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SmartPath.stat">(megfile.SmartPath method)</a>
 </li>
       </ul></li>
       <li><a href="megfile.fs.html#megfile.fs.StatResult">StatResult (class in megfile.fs)</a>
 </li>
-      <li><a href="megfile.html#megfile.stdio_open">stdio_open() (in module megfile)</a>
-
-      <ul>
-        <li><a href="megfile.stdio.html#megfile.stdio.stdio_open">(in module megfile.stdio)</a>
+      <li><a href="megfile.stdio.html#megfile.stdio.stdio_open">stdio_open() (in module megfile.stdio)</a>
 </li>
-      </ul></li>
-      <li><a href="megfile.html#megfile.StdioPath">StdioPath (class in megfile)</a>
-
-      <ul>
-        <li><a href="megfile.stdio_path.html#megfile.stdio_path.StdioPath">(class in megfile.stdio_path)</a>
+      <li><a href="megfile.stdio_path.html#megfile.stdio_path.StdioPath">StdioPath (class in megfile.stdio_path)</a>
 </li>
-      </ul></li>
       <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.stem">stem (megfile.smart_path.SmartPath property)</a>
-
-      <ul>
-        <li><a href="megfile.html#megfile.SmartPath.stem">(megfile.SmartPath property)</a>
 </li>
-      </ul></li>
       <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.suffix">suffix (megfile.smart_path.SmartPath property)</a>
-
-      <ul>
-        <li><a href="megfile.html#megfile.SmartPath.suffix">(megfile.SmartPath property)</a>
 </li>
-      </ul></li>
       <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.suffixes">suffixes (megfile.smart_path.SmartPath property)</a>
-
-      <ul>
-        <li><a href="megfile.html#megfile.SmartPath.suffixes">(megfile.SmartPath property)</a>
 </li>
-      </ul></li>
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.symlink">symlink() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.symlink">(megfile.FSPath method)</a>
-</li>
         <li><a href="megfile.s3_path.html#megfile.s3_path.S3Path.symlink">(megfile.s3_path.S3Path method)</a>
-</li>
-        <li><a href="megfile.html#megfile.S3Path.symlink">(megfile.S3Path method)</a>
 </li>
         <li><a href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.symlink">(megfile.sftp_path.SftpPath method)</a>
 </li>
-        <li><a href="megfile.html#megfile.SftpPath.symlink">(megfile.SftpPath method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.symlink">(megfile.smart_path.SmartPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SmartPath.symlink">(megfile.SmartPath method)</a>
 </li>
       </ul></li>
       <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.symlink_to">symlink_to() (megfile.smart_path.SmartPath method)</a>
-
-      <ul>
-        <li><a href="megfile.html#megfile.SmartPath.symlink_to">(megfile.SmartPath method)</a>
 </li>
-      </ul></li>
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.sync">sync() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.sync">(megfile.FSPath method)</a>
-</li>
         <li><a href="megfile.s3_path.html#megfile.s3_path.S3Path.sync">(megfile.s3_path.S3Path method)</a>
 </li>
-        <li><a href="megfile.html#megfile.S3Path.sync">(megfile.S3Path method)</a>
-</li>
         <li><a href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.sync">(megfile.sftp_path.SftpPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SftpPath.sync">(megfile.SftpPath method)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -3005,11 +2047,7 @@
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.touch">touch() (megfile.smart_path.SmartPath method)</a>
-
-      <ul>
-        <li><a href="megfile.html#megfile.SmartPath.touch">(megfile.SmartPath method)</a>
 </li>
-      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -3019,35 +2057,30 @@
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.unlink">unlink() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.unlink">(megfile.FSPath method)</a>
+        <li><a href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.unlink">(megfile.hdfs_path.HdfsPath method)</a>
 </li>
         <li><a href="megfile.s3_path.html#megfile.s3_path.S3Path.unlink">(megfile.s3_path.S3Path method)</a>
 </li>
-        <li><a href="megfile.html#megfile.S3Path.unlink">(megfile.S3Path method)</a>
-</li>
         <li><a href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.unlink">(megfile.sftp_path.SftpPath method)</a>
 </li>
-        <li><a href="megfile.html#megfile.SftpPath.unlink">(megfile.SftpPath method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.unlink">(megfile.smart_path.SmartPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SmartPath.unlink">(megfile.SmartPath method)</a>
 </li>
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    URL
+
+      <ul>
+        <li><a href="cli.html#cmdoption-megfile-config-hdfs-arg-URL">megfile-config-hdfs command line option</a>
+</li>
+      </ul></li>
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.utime">utime() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.utime">(megfile.FSPath method)</a>
-</li>
         <li><a href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.utime">(megfile.sftp_path.SftpPath method)</a>
 </li>
-        <li><a href="megfile.html#megfile.SftpPath.utime">(megfile.SftpPath method)</a>
-</li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.utime">(megfile.smart_path.SmartPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SmartPath.utime">(megfile.SmartPath method)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -3059,41 +2092,23 @@
       <li><a href="megfile.fs_path.html#megfile.fs_path.FSPath.walk">walk() (megfile.fs_path.FSPath method)</a>
 
       <ul>
-        <li><a href="megfile.html#megfile.FSPath.walk">(megfile.FSPath method)</a>
+        <li><a href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.walk">(megfile.hdfs_path.HdfsPath method)</a>
 </li>
         <li><a href="megfile.s3_path.html#megfile.s3_path.S3Path.walk">(megfile.s3_path.S3Path method)</a>
 </li>
-        <li><a href="megfile.html#megfile.S3Path.walk">(megfile.S3Path method)</a>
-</li>
         <li><a href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.walk">(megfile.sftp_path.SftpPath method)</a>
-</li>
-        <li><a href="megfile.html#megfile.SftpPath.walk">(megfile.SftpPath method)</a>
 </li>
         <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.walk">(megfile.smart_path.SmartPath method)</a>
 </li>
-        <li><a href="megfile.html#megfile.SmartPath.walk">(megfile.SmartPath method)</a>
-</li>
       </ul></li>
       <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.with_name">with_name() (megfile.smart_path.SmartPath method)</a>
-
-      <ul>
-        <li><a href="megfile.html#megfile.SmartPath.with_name">(megfile.SmartPath method)</a>
 </li>
-      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.with_stem">with_stem() (megfile.smart_path.SmartPath method)</a>
-
-      <ul>
-        <li><a href="megfile.html#megfile.SmartPath.with_stem">(megfile.SmartPath method)</a>
 </li>
-      </ul></li>
       <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.with_suffix">with_suffix() (megfile.smart_path.SmartPath method)</a>
-
-      <ul>
-        <li><a href="megfile.html#megfile.SmartPath.with_suffix">(megfile.SmartPath method)</a>
 </li>
-      </ul></li>
       <li><a href="megfile.s3.html#megfile.s3.S3BufferedWriter.write">write() (megfile.s3.S3BufferedWriter method)</a>
 
       <ul>
@@ -3101,17 +2116,9 @@
 </li>
       </ul></li>
       <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.write_bytes">write_bytes() (megfile.smart_path.SmartPath method)</a>
-
-      <ul>
-        <li><a href="megfile.html#megfile.SmartPath.write_bytes">(megfile.SmartPath method)</a>
 </li>
-      </ul></li>
       <li><a href="megfile.smart_path.html#megfile.smart_path.SmartPath.write_text">write_text() (megfile.smart_path.SmartPath method)</a>
-
-      <ul>
-        <li><a href="megfile.html#megfile.SmartPath.write_text">(megfile.SmartPath method)</a>
 </li>
-      </ul></li>
   </ul></td>
 </tr></table>
 

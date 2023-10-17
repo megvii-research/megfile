@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Use enviroments &mdash; megfile  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            megfile
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../readme.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../path_format.html">Path Format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../megfile.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced.html">Advanced User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">CHANGELOG</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/megvii-research/megfile">GitHub</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">megfile</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Use enviroments</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/configuration/hdfs.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p>Please use command <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">'megfile[hdfs]'</span></code> to install hdfs requirements.
+You can use enviroments and configuration file for configuration, and priority is that environment variables take precedence over configuration file.</p>
+<section id="use-enviroments">
+<h1>Use enviroments<a class="headerlink" href="#use-enviroments" title="Permalink to this heading"></a></h1>
+<p>You can use enviroments to setup authentication credentials and other configuration items:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">HDFS_USER</span></code>: hdfs user</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">HDFS_URL</span></code>: The url can be configured to support High Availability namenodes when using WebHDFS, simply add more URLs by delimiting with a semicolon (<code class="docutils literal notranslate"><span class="pre">;</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">HDFS_ROOT</span></code>: hdfs root directory when using relative path</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">HDFS_TIMEOUT</span></code>: request hdfs server timeout</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">HDFS_TOKEN</span></code>: hdfs token if hdfs server require</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">HDFS_CONFIG_PATH</span></code>: hdfs config file, default is <code class="docutils literal notranslate"><span class="pre">~/.hdfscli.cfg</span></code></p></li>
+</ul>
+</section>
+<section id="use-command">
+<h1>Use command<a class="headerlink" href="#use-command" title="Permalink to this heading"></a></h1>
+<p>You can update config file with <code class="docutils literal notranslate"><span class="pre">megfile</span></code> command easyly:
+<a class="reference external" href="https://megvii-research.github.io/megfile/cli.html#megfile-config-hdfs">megfile config hdfs [OPTIONS] URL</a></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>megfile<span class="w"> </span>config<span class="w"> </span>hdfs<span class="w"> </span>http://127.0.0.1:8000<span class="w"> </span>--user<span class="w"> </span>admin<span class="w"> </span>--root<span class="w"> </span><span class="s1">&#39;/&#39;</span><span class="w"> </span>--token<span class="w"> </span>xxx
+</pre></div>
+</div>
+<p>You can get the configuration from <code class="docutils literal notranslate"><span class="pre">~/.hdfscli.cfg</span></code>, like:</p>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="k">[global]</span>
+<span class="na">default.alias</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">default</span>
+
+<span class="k">[default.alias]</span>
+<span class="na">url</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">http://127.0.0.1:8000</span>
+<span class="na">user</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">admin</span>
+<span class="na">root</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">/</span>
+<span class="na">token</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">xxx</span>
+</pre></div>
+</div>
+<p>Most information about configuration file: <a class="reference external" href="https://hdfscli.readthedocs.io/en/latest/quickstart.html#configuration">https://hdfscli.readthedocs.io/en/latest/quickstart.html#configuration</a></p>
+</section>
+<section id="config-for-different-hdfs-server">
+<h1>Config for different hdfs server<a class="headerlink" href="#config-for-different-hdfs-server" title="Permalink to this heading"></a></h1>
+<p>You can operate hdfs files in different hdfs server.
+For example, you have two hdfs server with different url. With configuration, you can use path with profile name like <code class="docutils literal notranslate"><span class="pre">hdfs+profile_name://bucket/key</span></code> to operate different hdfs server:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">megfile</span> <span class="kn">import</span> <span class="n">smart_sync</span>
+
+<span class="n">smart_sync</span><span class="p">(</span><span class="s1">&#39;hdfs+profile1://path/to/file&#39;</span><span class="p">,</span> <span class="s1">&#39;hdfs+profile2://path/to/file&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="using-environment">
+<h2>Using environment<a class="headerlink" href="#using-environment" title="Permalink to this heading"></a></h2>
+<p>You need use <code class="docutils literal notranslate"><span class="pre">PROFILE_NAME__</span></code> prefix, like:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">PROFILE1__HDFS_USER</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">PROFILE1__HDFS_URL</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">PROFILE1__HDFS_ROOT</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">PROFILE1__HDFS_TIMEOUT</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">PROFILE1__HDFS_TOKEN</span></code></p></li>
+</ul>
+</section>
+<section id="using-command">
+<h2>Using command:<a class="headerlink" href="#using-command" title="Permalink to this heading"></a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>megfile<span class="w"> </span>config<span class="w"> </span>hdfs<span class="w"> </span>http://127.0.0.1:8000<span class="w"> </span>--user<span class="w"> </span>admin<span class="w"> </span><span class="se">\</span>
+--root<span class="w"> </span>/b<span class="w"> </span>--token<span class="w"> </span>aaa<span class="w"> </span>--profile-name<span class="w"> </span>profile1
+
+megfile<span class="w"> </span>config<span class="w"> </span>hdfs<span class="w"> </span>http://127.0.0.1:8001<span class="w"> </span>--user<span class="w"> </span>admin<span class="w"> </span><span class="se">\</span>
+--root<span class="w"> </span>/a<span class="w"> </span>--token<span class="w"> </span>bbb<span class="w"> </span>--profile-name<span class="w"> </span>profile2
+</pre></div>
+</div>
+<p>Then the configuration file’s content will be:</p>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="k">[global]</span>
+<span class="na">default.alias</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">default</span>
+
+<span class="k">[default.alias]</span>
+<span class="na">url</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">http://127.0.0.1:8000</span>
+<span class="na">user</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">admin</span>
+<span class="na">root</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">/a</span>
+<span class="na">token</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">aaa</span>
+
+<span class="k">[test.alias]</span>
+<span class="na">url</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">http://127.0.0.1:8001</span>
+<span class="na">user</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">admin</span>
+<span class="na">root</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">/b</span>
+<span class="na">token</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">bbb</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, r-eng.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

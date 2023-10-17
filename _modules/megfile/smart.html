@@ -42,6 +42,8 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../readme.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../path_format.html">Path Format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../configuration.html">Configuration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../megfile.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../cli.html">Command Line Interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../advanced.html">Advanced User Guide</a></li>
@@ -145,7 +147,7 @@
 <span class="p">]</span>
 
 
-<div class="viewcode-block" id="smart_symlink"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_symlink">[docs]</a><span class="k">def</span> <span class="nf">smart_symlink</span><span class="p">(</span><span class="n">src_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="smart_symlink"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_symlink">[docs]</a><span class="k">def</span> <span class="nf">smart_symlink</span><span class="p">(</span><span class="n">src_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Create a symbolic link pointing to src_path named path.</span>
 
@@ -155,7 +157,7 @@
     <span class="k">return</span> <span class="n">SmartPath</span><span class="p">(</span><span class="n">src_path</span><span class="p">)</span><span class="o">.</span><span class="n">symlink</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="smart_readlink"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_readlink">[docs]</a><span class="k">def</span> <span class="nf">smart_readlink</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PathLike</span><span class="p">:</span>
+<div class="viewcode-block" id="smart_readlink"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_readlink">[docs]</a><span class="k">def</span> <span class="nf">smart_readlink</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PathLike</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Return a string representing the path to which the symbolic link points.</span>
 <span class="sd">    :param path: Path to be read</span>
@@ -164,7 +166,7 @@
     <span class="k">return</span> <span class="n">SmartPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">readlink</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="smart_isdir"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_isdir">[docs]</a><span class="k">def</span> <span class="nf">smart_isdir</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<div class="viewcode-block" id="smart_isdir"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_isdir">[docs]</a><span class="k">def</span> <span class="nf">smart_isdir</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Test if a file path or an s3 url is directory</span>
 
@@ -174,7 +176,7 @@
     <span class="k">return</span> <span class="n">SmartPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">is_dir</span><span class="p">(</span><span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="smart_isfile"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_isfile">[docs]</a><span class="k">def</span> <span class="nf">smart_isfile</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<div class="viewcode-block" id="smart_isfile"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_isfile">[docs]</a><span class="k">def</span> <span class="nf">smart_isfile</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Test if a file path or an s3 url is file</span>
 
@@ -184,11 +186,11 @@
     <span class="k">return</span> <span class="n">SmartPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">(</span><span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="smart_islink"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_islink">[docs]</a><span class="k">def</span> <span class="nf">smart_islink</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<div class="viewcode-block" id="smart_islink"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_islink">[docs]</a><span class="k">def</span> <span class="nf">smart_islink</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">SmartPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">is_symlink</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="smart_access"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_access">[docs]</a><span class="k">def</span> <span class="nf">smart_access</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="n">Access</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<div class="viewcode-block" id="smart_access"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_access">[docs]</a><span class="k">def</span> <span class="nf">smart_access</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="n">Access</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Test if path has access permission described by mode</span>
 
@@ -199,7 +201,7 @@
     <span class="k">return</span> <span class="n">SmartPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">access</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="smart_exists"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_exists">[docs]</a><span class="k">def</span> <span class="nf">smart_exists</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<div class="viewcode-block" id="smart_exists"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_exists">[docs]</a><span class="k">def</span> <span class="nf">smart_exists</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Test if path or s3_url exists</span>
 
@@ -209,7 +211,7 @@
     <span class="k">return</span> <span class="n">SmartPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="smart_listdir"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_listdir">[docs]</a><span class="k">def</span> <span class="nf">smart_listdir</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<div class="viewcode-block" id="smart_listdir"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_listdir">[docs]</a><span class="k">def</span> <span class="nf">smart_listdir</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Get all contents of given s3_url or file path. The result is in acsending alphabetical order.</span>
 
@@ -222,7 +224,7 @@
     <span class="k">return</span> <span class="n">SmartPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">listdir</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="smart_scandir"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_scandir">[docs]</a><span class="k">def</span> <span class="nf">smart_scandir</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">FileEntry</span><span class="p">]:</span>
+<div class="viewcode-block" id="smart_scandir"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_scandir">[docs]</a><span class="k">def</span> <span class="nf">smart_scandir</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">FileEntry</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Get all content of given s3_url or file path.</span>
 
@@ -251,7 +253,7 @@
     <span class="k">return</span> <span class="n">SmartPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">scandir</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="smart_getsize"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_getsize">[docs]</a><span class="k">def</span> <span class="nf">smart_getsize</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<div class="viewcode-block" id="smart_getsize"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_getsize">[docs]</a><span class="k">def</span> <span class="nf">smart_getsize</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Get file size on the given s3_url or file path (in bytes).</span>
 <span class="sd">    If the path in a directory, return the sum of all file size in it, including file in subdirectories (if exist).</span>
@@ -264,7 +266,7 @@
     <span class="k">return</span> <span class="n">SmartPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">getsize</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="smart_getmtime"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_getmtime">[docs]</a><span class="k">def</span> <span class="nf">smart_getmtime</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<div class="viewcode-block" id="smart_getmtime"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_getmtime">[docs]</a><span class="k">def</span> <span class="nf">smart_getmtime</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Get last-modified time of the file on the given s3_url or file path (in Unix timestamp format).</span>
 <span class="sd">    If the path is an existent directory, return the latest modified time of all file in it. The mtime of empty directory is 1970-01-01 00:00:00</span>
@@ -276,7 +278,7 @@
     <span class="k">return</span> <span class="n">SmartPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">getmtime</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="smart_stat"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_stat">[docs]</a><span class="k">def</span> <span class="nf">smart_stat</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StatResult</span><span class="p">:</span>
+<div class="viewcode-block" id="smart_stat"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_stat">[docs]</a><span class="k">def</span> <span class="nf">smart_stat</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StatResult</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Get StatResult of s3_url or file path</span>
 
@@ -287,7 +289,7 @@
     <span class="k">return</span> <span class="n">SmartPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">follow_symlinks</span><span class="o">=</span><span class="n">follow_symlinks</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="smart_lstat"><a class="viewcode-back" href="../../megfile.html#megfile.smart_lstat">[docs]</a><span class="k">def</span> <span class="nf">smart_lstat</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StatResult</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">smart_lstat</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StatResult</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Get StatResult of path but do not follow symbolic links</span>
 
@@ -295,7 +297,7 @@
 <span class="sd">    :returns: StatResult</span>
 <span class="sd">    :raises: FileNotFoundError</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="k">return</span> <span class="n">SmartPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">lstat</span><span class="p">()</span></div>
+    <span class="k">return</span> <span class="n">SmartPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">lstat</span><span class="p">()</span>
 
 
 <span class="n">_copy_funcs</span> <span class="o">=</span> <span class="p">{</span>
@@ -315,7 +317,7 @@
 <span class="p">}</span>
 
 
-<div class="viewcode-block" id="register_copy_func"><a class="viewcode-back" href="../../megfile.smart.html#megfile.register_copy_func">[docs]</a><span class="k">def</span> <span class="nf">register_copy_func</span><span class="p">(</span>
+<div class="viewcode-block" id="register_copy_func"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.register_copy_func">[docs]</a><span class="k">def</span> <span class="nf">register_copy_func</span><span class="p">(</span>
         <span class="n">src_protocol</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">dst_protocol</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">copy_func</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span>
@@ -367,7 +369,7 @@
         <span class="k">pass</span>
 
 
-<div class="viewcode-block" id="smart_copy"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_copy">[docs]</a><span class="k">def</span> <span class="nf">smart_copy</span><span class="p">(</span>
+<div class="viewcode-block" id="smart_copy"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_copy">[docs]</a><span class="k">def</span> <span class="nf">smart_copy</span><span class="p">(</span>
         <span class="n">src_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
         <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
         <span class="n">callback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">],</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -452,7 +454,7 @@
         <span class="n">callback_after_copy_file</span><span class="p">(</span><span class="n">src_file_path</span><span class="p">,</span> <span class="n">dst_abs_file_path</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="smart_sync"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_sync">[docs]</a><span class="k">def</span> <span class="nf">smart_sync</span><span class="p">(</span>
+<div class="viewcode-block" id="smart_sync"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_sync">[docs]</a><span class="k">def</span> <span class="nf">smart_sync</span><span class="p">(</span>
         <span class="n">src_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
         <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
         <span class="n">callback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -530,7 +532,7 @@
         <span class="k">pass</span></div>
 
 
-<div class="viewcode-block" id="smart_sync_with_progress"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_sync_with_progress">[docs]</a><span class="k">def</span> <span class="nf">smart_sync_with_progress</span><span class="p">(</span>
+<div class="viewcode-block" id="smart_sync_with_progress"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_sync_with_progress">[docs]</a><span class="k">def</span> <span class="nf">smart_sync_with_progress</span><span class="p">(</span>
         <span class="n">src_path</span><span class="p">,</span>
         <span class="n">dst_path</span><span class="p">,</span>
         <span class="n">callback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -566,7 +568,7 @@
     <span class="n">sbar</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="smart_remove"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_remove">[docs]</a><span class="k">def</span> <span class="nf">smart_remove</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="smart_remove"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_remove">[docs]</a><span class="k">def</span> <span class="nf">smart_remove</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Remove the file or directory on s3 or fs, `s3://` and `s3://bucket` are not permitted to remove</span>
 
@@ -577,7 +579,7 @@
     <span class="n">SmartPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">missing_ok</span><span class="o">=</span><span class="n">missing_ok</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="smart_rename"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_rename">[docs]</a><span class="k">def</span> <span class="nf">smart_rename</span><span class="p">(</span><span class="n">src_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="smart_rename"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_rename">[docs]</a><span class="k">def</span> <span class="nf">smart_rename</span><span class="p">(</span><span class="n">src_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Move file on s3 or fs. `s3://` or `s3://bucket` is not allowed to move</span>
 
@@ -595,7 +597,7 @@
     <span class="n">smart_unlink</span><span class="p">(</span><span class="n">src_path</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="smart_move"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_move">[docs]</a><span class="k">def</span> <span class="nf">smart_move</span><span class="p">(</span><span class="n">src_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="smart_move"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_move">[docs]</a><span class="k">def</span> <span class="nf">smart_move</span><span class="p">(</span><span class="n">src_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Move file/directory on s3 or fs. `s3://` or `s3://bucket` is not allowed to move</span>
 
@@ -611,7 +613,7 @@
     <span class="n">smart_remove</span><span class="p">(</span><span class="n">src_path</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="smart_unlink"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_unlink">[docs]</a><span class="k">def</span> <span class="nf">smart_unlink</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="smart_unlink"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_unlink">[docs]</a><span class="k">def</span> <span class="nf">smart_unlink</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Remove the file on s3 or fs</span>
 
@@ -622,7 +624,7 @@
     <span class="n">SmartPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">missing_ok</span><span class="o">=</span><span class="n">missing_ok</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="smart_makedirs"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_makedirs">[docs]</a><span class="k">def</span> <span class="nf">smart_makedirs</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">exist_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="smart_makedirs"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_makedirs">[docs]</a><span class="k">def</span> <span class="nf">smart_makedirs</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">exist_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Create a directory if is on fs.</span>
 <span class="sd">    If on s3, it actually check if target exists, and check if bucket has WRITE access</span>
@@ -634,7 +636,7 @@
     <span class="n">SmartPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">exist_ok</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="smart_open"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_open">[docs]</a><span class="k">def</span> <span class="nf">smart_open</span><span class="p">(</span>
+<div class="viewcode-block" id="smart_open"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_open">[docs]</a><span class="k">def</span> <span class="nf">smart_open</span><span class="p">(</span>
         <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
         <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span>
         <span class="n">s3_open_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">BinaryIO</span><span class="p">]</span> <span class="o">=</span> <span class="n">s3_open</span><span class="p">,</span>
@@ -682,7 +684,7 @@
     <span class="k">return</span> <span class="n">SmartPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="smart_path_join"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_path_join">[docs]</a><span class="k">def</span> <span class="nf">smart_path_join</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="o">*</span><span class="n">other_paths</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<div class="viewcode-block" id="smart_path_join"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_path_join">[docs]</a><span class="k">def</span> <span class="nf">smart_path_join</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="o">*</span><span class="n">other_paths</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Concat 2 or more path to a complete path</span>
 
@@ -700,7 +702,7 @@
     <span class="k">return</span> <span class="n">fspath</span><span class="p">(</span><span class="n">SmartPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="o">*</span><span class="n">other_paths</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="smart_walk"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_walk">[docs]</a><span class="k">def</span> <span class="nf">smart_walk</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<div class="viewcode-block" id="smart_walk"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_walk">[docs]</a><span class="k">def</span> <span class="nf">smart_walk</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
               <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]]:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Generate the file names in a directory tree by walking the tree top-down.</span>
@@ -722,7 +724,7 @@
     <span class="k">return</span> <span class="n">SmartPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="smart_scan"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_scan">[docs]</a><span class="k">def</span> <span class="nf">smart_scan</span><span class="p">(</span>
+<div class="viewcode-block" id="smart_scan"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_scan">[docs]</a><span class="k">def</span> <span class="nf">smart_scan</span><span class="p">(</span>
         <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
@@ -741,7 +743,7 @@
     <span class="k">return</span> <span class="n">SmartPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">scan</span><span class="p">(</span><span class="n">missing_ok</span><span class="o">=</span><span class="n">missing_ok</span><span class="p">,</span> <span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="smart_scan_stat"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_scan_stat">[docs]</a><span class="k">def</span> <span class="nf">smart_scan_stat</span><span class="p">(</span>
+<div class="viewcode-block" id="smart_scan_stat"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_scan_stat">[docs]</a><span class="k">def</span> <span class="nf">smart_scan_stat</span><span class="p">(</span>
         <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">FileEntry</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
@@ -778,7 +780,7 @@
     <span class="k">return</span> <span class="n">group_glob_list</span>
 
 
-<div class="viewcode-block" id="smart_glob"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_glob">[docs]</a><span class="k">def</span> <span class="nf">smart_glob</span><span class="p">(</span>
+<div class="viewcode-block" id="smart_glob"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_glob">[docs]</a><span class="k">def</span> <span class="nf">smart_glob</span><span class="p">(</span>
         <span class="n">pathname</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
@@ -800,7 +802,7 @@
     <span class="k">return</span> <span class="n">result</span></div>
 
 
-<div class="viewcode-block" id="smart_iglob"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_iglob">[docs]</a><span class="k">def</span> <span class="nf">smart_iglob</span><span class="p">(</span>
+<div class="viewcode-block" id="smart_iglob"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_iglob">[docs]</a><span class="k">def</span> <span class="nf">smart_iglob</span><span class="p">(</span>
         <span class="n">pathname</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
@@ -820,7 +822,7 @@
             <span class="k">yield</span> <span class="n">path_obj</span><span class="o">.</span><span class="n">path</span></div>
 
 
-<div class="viewcode-block" id="smart_glob_stat"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_glob_stat">[docs]</a><span class="k">def</span> <span class="nf">smart_glob_stat</span><span class="p">(</span>
+<div class="viewcode-block" id="smart_glob_stat"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_glob_stat">[docs]</a><span class="k">def</span> <span class="nf">smart_glob_stat</span><span class="p">(</span>
         <span class="n">pathname</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">FileEntry</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
@@ -838,7 +840,7 @@
             <span class="n">pattern</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">,</span> <span class="n">missing_ok</span><span class="o">=</span><span class="n">missing_ok</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="smart_save_as"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_save_as">[docs]</a><span class="k">def</span> <span class="nf">smart_save_as</span><span class="p">(</span><span class="n">file_object</span><span class="p">:</span> <span class="n">BinaryIO</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="smart_save_as"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_save_as">[docs]</a><span class="k">def</span> <span class="nf">smart_save_as</span><span class="p">(</span><span class="n">file_object</span><span class="p">:</span> <span class="n">BinaryIO</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;Write the opened binary stream to specified path, but the stream won&#39;t be closed</span>
 
 <span class="sd">    :param file_object: Stream to be read</span>
@@ -847,7 +849,7 @@
     <span class="n">SmartPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">file_object</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="smart_load_from"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_load_from">[docs]</a><span class="k">def</span> <span class="nf">smart_load_from</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BinaryIO</span><span class="p">:</span>
+<div class="viewcode-block" id="smart_load_from"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_load_from">[docs]</a><span class="k">def</span> <span class="nf">smart_load_from</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BinaryIO</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;Read all content in binary on specified path and write into memory</span>
 
 <span class="sd">    User should close the BinaryIO manually</span>
@@ -858,7 +860,7 @@
     <span class="k">return</span> <span class="n">SmartPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">load</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="smart_combine_open"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_combine_open">[docs]</a><span class="k">def</span> <span class="nf">smart_combine_open</span><span class="p">(</span>
+<div class="viewcode-block" id="smart_combine_open"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_combine_open">[docs]</a><span class="k">def</span> <span class="nf">smart_combine_open</span><span class="p">(</span>
         <span class="n">path_glob</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;rb&#39;</span><span class="p">,</span>
         <span class="n">open_func</span><span class="o">=</span><span class="n">smart_open</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CombineReader</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;Open a unified reader that supports multi file reading.</span>
@@ -872,7 +874,7 @@
     <span class="k">return</span> <span class="n">combine</span><span class="p">(</span><span class="n">file_objects</span><span class="p">,</span> <span class="n">path_glob</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="smart_abspath"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_abspath">[docs]</a><span class="k">def</span> <span class="nf">smart_abspath</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">):</span>
+<div class="viewcode-block" id="smart_abspath"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_abspath">[docs]</a><span class="k">def</span> <span class="nf">smart_abspath</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;Return the absolute path of given path</span>
 
 <span class="sd">    :param path: Given path</span>
@@ -881,7 +883,7 @@
     <span class="k">return</span> <span class="n">SmartPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">abspath</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="smart_realpath"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_realpath">[docs]</a><span class="k">def</span> <span class="nf">smart_realpath</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">):</span>
+<div class="viewcode-block" id="smart_realpath"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_realpath">[docs]</a><span class="k">def</span> <span class="nf">smart_realpath</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;Return the real path of given path</span>
 
 <span class="sd">    :param path: Given path</span>
@@ -890,7 +892,7 @@
     <span class="k">return</span> <span class="n">SmartPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">realpath</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="smart_relpath"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_relpath">[docs]</a><span class="k">def</span> <span class="nf">smart_relpath</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="smart_relpath"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_relpath">[docs]</a><span class="k">def</span> <span class="nf">smart_relpath</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;Return the relative path of given path</span>
 
 <span class="sd">    :param path: Given path</span>
@@ -900,7 +902,7 @@
     <span class="k">return</span> <span class="n">SmartPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">relpath</span><span class="p">(</span><span class="n">start</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="smart_isabs"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_isabs">[docs]</a><span class="k">def</span> <span class="nf">smart_isabs</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<div class="viewcode-block" id="smart_isabs"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_isabs">[docs]</a><span class="k">def</span> <span class="nf">smart_isabs</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;Test whether a path is absolute</span>
 
 <span class="sd">    :param path: Given path</span>
@@ -909,7 +911,7 @@
     <span class="k">return</span> <span class="n">SmartPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">is_absolute</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="smart_ismount"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_ismount">[docs]</a><span class="k">def</span> <span class="nf">smart_ismount</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<div class="viewcode-block" id="smart_ismount"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_ismount">[docs]</a><span class="k">def</span> <span class="nf">smart_ismount</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;Test whether a path is a mount point</span>
 
 <span class="sd">    :param path: Given path</span>
@@ -918,7 +920,7 @@
     <span class="k">return</span> <span class="n">SmartPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">is_mount</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="smart_load_content"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_load_content">[docs]</a><span class="k">def</span> <span class="nf">smart_load_content</span><span class="p">(</span>
+<div class="viewcode-block" id="smart_load_content"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_load_content">[docs]</a><span class="k">def</span> <span class="nf">smart_load_content</span><span class="p">(</span>
         <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">stop</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
@@ -941,7 +943,7 @@
         <span class="k">return</span> <span class="n">fd</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">offset</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="smart_save_content"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_save_content">[docs]</a><span class="k">def</span> <span class="nf">smart_save_content</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">content</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="smart_save_content"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_save_content">[docs]</a><span class="k">def</span> <span class="nf">smart_save_content</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">content</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;Save bytes content to specified path</span>
 
 <span class="sd">    param path: Path to save content</span>
@@ -950,7 +952,7 @@
         <span class="n">fd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">content</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="smart_load_text"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_load_text">[docs]</a><span class="k">def</span> <span class="nf">smart_load_text</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<div class="viewcode-block" id="smart_load_text"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_load_text">[docs]</a><span class="k">def</span> <span class="nf">smart_load_text</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Read content from path</span>
 
@@ -960,7 +962,7 @@
         <span class="k">return</span> <span class="n">fd</span><span class="o">.</span><span class="n">read</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="smart_save_text"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_save_text">[docs]</a><span class="k">def</span> <span class="nf">smart_save_text</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="smart_save_text"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_save_text">[docs]</a><span class="k">def</span> <span class="nf">smart_save_text</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;Save text to specified path</span>
 
 <span class="sd">    param path: Path to save text</span>
@@ -969,7 +971,7 @@
         <span class="n">fd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">text</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="SmartCacher"><a class="viewcode-back" href="../../megfile.smart.html#megfile.SmartCacher">[docs]</a><span class="k">class</span> <span class="nc">SmartCacher</span><span class="p">(</span><span class="n">FileCacher</span><span class="p">):</span>
+<div class="viewcode-block" id="SmartCacher"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.SmartCacher">[docs]</a><span class="k">class</span> <span class="nc">SmartCacher</span><span class="p">(</span><span class="n">FileCacher</span><span class="p">):</span>
     <span class="n">cache_path</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -992,7 +994,7 @@
             <span class="n">os</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_path</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="smart_cache"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_cache">[docs]</a><span class="k">def</span> <span class="nf">smart_cache</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">cacher</span><span class="o">=</span><span class="n">SmartCacher</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">):</span>
+<div class="viewcode-block" id="smart_cache"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_cache">[docs]</a><span class="k">def</span> <span class="nf">smart_cache</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">cacher</span><span class="o">=</span><span class="n">SmartCacher</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;Return a path to Posixpath Interface</span>
 
 <span class="sd">    param path: Path to cache</span>
@@ -1004,7 +1006,7 @@
     <span class="k">return</span> <span class="n">NullCacher</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="smart_touch"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_touch">[docs]</a><span class="k">def</span> <span class="nf">smart_touch</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">):</span>
+<div class="viewcode-block" id="smart_touch"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_touch">[docs]</a><span class="k">def</span> <span class="nf">smart_touch</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;Create a new file on path</span>
 
 <span class="sd">    param path: Path to create file</span>
@@ -1013,7 +1015,7 @@
         <span class="k">pass</span></div>
 
 
-<div class="viewcode-block" id="smart_getmd5"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_getmd5">[docs]</a><span class="k">def</span> <span class="nf">smart_getmd5</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">recalculate</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="smart_getmd5"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_getmd5">[docs]</a><span class="k">def</span> <span class="nf">smart_getmd5</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">recalculate</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;Get md5 value of file</span>
 
 <span class="sd">    param path: File path</span>
@@ -1040,7 +1042,7 @@
                     <span class="n">dst_fd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="smart_concat"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart_concat">[docs]</a><span class="k">def</span> <span class="nf">smart_concat</span><span class="p">(</span><span class="n">src_paths</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">PathLike</span><span class="p">],</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="smart_concat"><a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_concat">[docs]</a><span class="k">def</span> <span class="nf">smart_concat</span><span class="p">(</span><span class="n">src_paths</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">PathLike</span><span class="p">],</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Concatenate src_paths to dst_path</span>
 <span class="sd">    </span>

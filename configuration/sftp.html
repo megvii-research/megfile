@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Overview: module code &mdash; megfile  documentation</title>
+  <title>Use enviroments &mdash; megfile  documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -65,8 +66,9 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">Overview: module code</li>
+      <li class="breadcrumb-item active">Use enviroments</li>
       <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/configuration/sftp.md.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -74,27 +76,20 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <h1>All modules for which code is available</h1>
-<ul><li><a href="megfile/fs.html">megfile.fs</a></li>
-<li><a href="megfile/fs_path.html">megfile.fs_path</a></li>
-<li><a href="megfile/hdfs.html">megfile.hdfs</a></li>
-<li><a href="megfile/hdfs_path.html">megfile.hdfs_path</a></li>
-<li><a href="megfile/http.html">megfile.http</a></li>
-<li><a href="megfile/http_path.html">megfile.http_path</a></li>
-<li><a href="megfile/lib/s3_buffered_writer.html">megfile.lib.s3_buffered_writer</a></li>
-<li><a href="megfile/lib/s3_limited_seekable_writer.html">megfile.lib.s3_limited_seekable_writer</a></li>
-<li><a href="megfile/lib/s3_prefetch_reader.html">megfile.lib.s3_prefetch_reader</a></li>
-<li><a href="megfile/lib/s3_share_cache_reader.html">megfile.lib.s3_share_cache_reader</a></li>
-<li><a href="megfile/pathlike.html">megfile.pathlike</a></li>
-<li><a href="megfile/s3.html">megfile.s3</a></li>
-<li><a href="megfile/s3_path.html">megfile.s3_path</a></li>
-<li><a href="megfile/sftp.html">megfile.sftp</a></li>
-<li><a href="megfile/sftp_path.html">megfile.sftp_path</a></li>
-<li><a href="megfile/smart.html">megfile.smart</a></li>
-<li><a href="megfile/smart_path.html">megfile.smart_path</a></li>
-<li><a href="megfile/stdio.html">megfile.stdio</a></li>
-<li><a href="megfile/stdio_path.html">megfile.stdio_path</a></li>
+  <p>Sftp is a little different from other protocols, because you can set some configurations in path(<code class="docutils literal notranslate"><span class="pre">sftp://[username[:password]&#64;]hostname[:port]/file_path</span></code>). <strong>But we suggest you not to use password in path.</strong> You can use enviroments setting configuration, and priority is that path settings take precedence over enviroments.</p>
+<section id="use-enviroments">
+<h1>Use enviroments<a class="headerlink" href="#use-enviroments" title="Permalink to this heading"></a></h1>
+<p>You can use enviroments to setup authentication credentials:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">SFTP_USERNAME</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SFTP_PASSWORD</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SFTP_PRIVATE_KEY_PATH</span></code>: ssh private key path</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SFTP_PRIVATE_KEY_TYPE</span></code>: algorithm of ssh key</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SFTP_PRIVATE_KEY_PASSWORD</span></code>: if don’t have passwd, not set this environment</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SFTP_MAX_UNAUTH_CONN</span></code>: this enviroment is about sftp server’s MaxStartups configuration, for connect to sftp server concurrently.</p></li>
 </ul>
+</section>
+
 
            </div>
           </div>

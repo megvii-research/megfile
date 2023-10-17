@@ -42,6 +42,8 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../readme.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../path_format.html">Path Format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../configuration.html">Configuration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../megfile.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../cli.html">Command Line Interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../advanced.html">Advanced User Guide</a></li>
@@ -103,7 +105,7 @@
     <span class="k">return</span> <span class="n">smart_property</span>
 
 
-<div class="viewcode-block" id="SmartPath"><a class="viewcode-back" href="../../megfile.smart_path.html#megfile.SmartPath">[docs]</a><span class="k">class</span> <span class="nc">SmartPath</span><span class="p">(</span><span class="n">BasePath</span><span class="p">):</span>
+<div class="viewcode-block" id="SmartPath"><a class="viewcode-back" href="../../megfile.smart_path.html#megfile.smart_path.SmartPath">[docs]</a><span class="k">class</span> <span class="nc">SmartPath</span><span class="p">(</span><span class="n">BasePath</span><span class="p">):</span>
     <span class="n">_registered_protocols</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">PathLike</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="o">*</span><span class="n">other_paths</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">):</span>
@@ -150,7 +152,7 @@
         <span class="n">path_class</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_registered_protocols</span><span class="p">[</span><span class="n">protocol</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">path_class</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
 
-<div class="viewcode-block" id="SmartPath.register"><a class="viewcode-back" href="../../megfile.smart_path.html#megfile.SmartPath.register">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="SmartPath.register"><a class="viewcode-back" href="../../megfile.smart_path.html#megfile.smart_path.SmartPath.register">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">register</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path_class</span><span class="p">,</span> <span class="n">override_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
         <span class="n">protocol</span> <span class="o">=</span> <span class="n">path_class</span><span class="o">.</span><span class="n">protocol</span>
         <span class="k">if</span> <span class="n">protocol</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_registered_protocols</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">override_ok</span><span class="p">:</span>
@@ -200,7 +202,7 @@
     <span class="k">def</span> <span class="nf">protocol</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pathlike</span><span class="o">.</span><span class="n">protocol</span>  <span class="c1"># pytype: disable=attribute-error</span>
 
-<div class="viewcode-block" id="SmartPath.from_uri"><a class="viewcode-back" href="../../megfile.smart_path.html#megfile.SmartPath.from_uri">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="SmartPath.from_uri"><a class="viewcode-back" href="../../megfile.smart_path.html#megfile.smart_path.SmartPath.from_uri">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_uri</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
 
@@ -261,7 +263,7 @@
     <span class="n">stem</span> <span class="o">=</span> <span class="n">_bind_property</span><span class="p">(</span><span class="s1">&#39;stem&#39;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="get_traditional_path"><a class="viewcode-back" href="../../megfile.smart_path.html#megfile.get_traditional_path">[docs]</a><span class="k">def</span> <span class="nf">get_traditional_path</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<div class="viewcode-block" id="get_traditional_path"><a class="viewcode-back" href="../../megfile.smart_path.html#megfile.smart_path.get_traditional_path">[docs]</a><span class="k">def</span> <span class="nf">get_traditional_path</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">fspath</span><span class="p">(</span><span class="n">SmartPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">)</span></div>
 </pre></div>
 

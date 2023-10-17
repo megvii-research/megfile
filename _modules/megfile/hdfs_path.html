@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>megfile.hdfs_path &mdash; megfile  documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            megfile
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../readme.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../path_format.html">Path Format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../megfile.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../advanced.html">Advanced User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">CHANGELOG</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/megvii-research/megfile">GitHub</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">megfile</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">megfile.hdfs_path</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for megfile.hdfs_path</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">hashlib</span>
+<span class="kn">import</span> <span class="nn">io</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">lru_cache</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">IO</span><span class="p">,</span> <span class="n">AnyStr</span><span class="p">,</span> <span class="n">BinaryIO</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="kn">from</span> <span class="nn">megfile.errors</span> <span class="kn">import</span> <span class="n">_create_missing_ok_generator</span><span class="p">,</span> <span class="n">raise_hdfs_error</span>
+<span class="kn">from</span> <span class="nn">megfile.interfaces</span> <span class="kn">import</span> <span class="n">FileEntry</span><span class="p">,</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">StatResult</span><span class="p">,</span> <span class="n">URIPath</span>
+<span class="kn">from</span> <span class="nn">megfile.lib.compat</span> <span class="kn">import</span> <span class="n">fspath</span>
+<span class="kn">from</span> <span class="nn">megfile.lib.glob</span> <span class="kn">import</span> <span class="n">FSFunc</span><span class="p">,</span> <span class="n">iglob</span>
+<span class="kn">from</span> <span class="nn">megfile.lib.hdfs_prefetch_reader</span> <span class="kn">import</span> <span class="n">HdfsPrefetchReader</span>
+<span class="kn">from</span> <span class="nn">megfile.lib.hdfs_tools</span> <span class="kn">import</span> <span class="n">hdfs_api</span>
+<span class="kn">from</span> <span class="nn">megfile.lib.url</span> <span class="kn">import</span> <span class="n">get_url_scheme</span>
+<span class="kn">from</span> <span class="nn">megfile.pathlike</span> <span class="kn">import</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">URIPath</span>
+<span class="kn">from</span> <span class="nn">megfile.smart_path</span> <span class="kn">import</span> <span class="n">SmartPath</span>
+<span class="kn">from</span> <span class="nn">megfile.utils</span> <span class="kn">import</span> <span class="n">cachedproperty</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;HdfsPath&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;is_hdfs&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;hdfs_glob&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;hdfs_glob_stat&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;hdfs_iglob&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;hdfs_makedirs&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="n">HDFS_USER</span> <span class="o">=</span> <span class="s2">&quot;HDFS_USER&quot;</span>
+<span class="n">HDFS_URL</span> <span class="o">=</span> <span class="s2">&quot;HDFS_URL&quot;</span>
+<span class="n">HDFS_ROOT</span> <span class="o">=</span> <span class="s2">&quot;HDFS_ROOT&quot;</span>
+<span class="n">HDFS_TIMEOUT</span> <span class="o">=</span> <span class="s2">&quot;HDFS_TIMEOUT&quot;</span>
+<span class="n">HDFS_TOKEN</span> <span class="o">=</span> <span class="s2">&quot;HDFS_TOKEN&quot;</span>
+<span class="n">HDFS_CONFIG_PATH</span> <span class="o">=</span> <span class="s2">&quot;HDFS_CONFIG_PATH&quot;</span>
+<span class="n">MAX_RETRIES</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">DEFAULT_HDFS_TIMEOUT</span> <span class="o">=</span> <span class="mi">10</span>
+
+
+<div class="viewcode-block" id="is_hdfs"><a class="viewcode-back" href="../../megfile.hdfs.html#megfile.hdfs.is_hdfs">[docs]</a><span class="k">def</span> <span class="nf">is_hdfs</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>  <span class="c1"># pytype: disable=invalid-annotation</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;Test if a path is sftp path</span>
+
+<span class="sd">    :param path: Path to be tested</span>
+<span class="sd">    :returns: True of a path is sftp path, else False</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">fspath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;hdfs://&quot;</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">get_hdfs_config</span><span class="p">(</span><span class="n">profile_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="n">env_profile</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">profile_name</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="si">}</span><span class="s2">__&quot;</span> <span class="k">if</span> <span class="n">profile_name</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;user&#39;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">env_profile</span><span class="si">}{</span><span class="n">HDFS_USER</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">),</span>
+        <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">env_profile</span><span class="si">}{</span><span class="n">HDFS_URL</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">),</span>
+        <span class="s1">&#39;root&#39;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">env_profile</span><span class="si">}{</span><span class="n">HDFS_ROOT</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">),</span>
+        <span class="s1">&#39;timeout&#39;</span><span class="p">:</span> <span class="n">DEFAULT_HDFS_TIMEOUT</span><span class="p">,</span>
+        <span class="s1">&#39;token&#39;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">env_profile</span><span class="si">}{</span><span class="n">HDFS_TOKEN</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">),</span>
+    <span class="p">}</span>
+    <span class="n">timeout_env</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">env_profile</span><span class="si">}{</span><span class="n">HDFS_TIMEOUT</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="n">timeout_env</span><span class="p">):</span>
+        <span class="n">config</span><span class="p">[</span><span class="s1">&#39;timeout&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="n">timeout_env</span><span class="p">))</span>
+
+    <span class="n">config_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="n">HDFS_CONFIG_PATH</span><span class="p">)</span> <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span>
+        <span class="s1">&#39;~/.hdfscli.cfg&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">config_path</span><span class="p">):</span>
+        <span class="n">all_config</span> <span class="o">=</span> <span class="n">hdfs_api</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">Config</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">config_path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">profile_name</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">all_config</span><span class="o">.</span><span class="n">has_section</span><span class="p">(</span><span class="n">all_config</span><span class="o">.</span><span class="n">global_section</span><span class="p">)</span> <span class="ow">and</span>
+                    <span class="n">all_config</span><span class="o">.</span><span class="n">has_option</span><span class="p">(</span><span class="n">all_config</span><span class="o">.</span><span class="n">global_section</span><span class="p">,</span>
+                                          <span class="s1">&#39;default.alias&#39;</span><span class="p">)):</span>
+                <span class="n">profile_name</span> <span class="o">=</span> <span class="n">all_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                    <span class="n">all_config</span><span class="o">.</span><span class="n">global_section</span><span class="p">,</span> <span class="s1">&#39;default.alias&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">suffix</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;.alias&#39;</span><span class="p">,</span> <span class="s1">&#39;_alias&#39;</span><span class="p">):</span>
+            <span class="n">section</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">profile_name</span><span class="p">,</span> <span class="n">suffix</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">all_config</span><span class="o">.</span><span class="n">has_section</span><span class="p">(</span><span class="n">section</span><span class="p">):</span>
+                <span class="n">options</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">all_config</span><span class="o">.</span><span class="n">items</span><span class="p">(</span><span class="n">section</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">value</span> <span class="ow">and</span> <span class="n">options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+                        <span class="n">config</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+                <span class="k">break</span>
+
+    <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;url&#39;</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">config</span>
+
+    <span class="k">raise</span> <span class="n">hdfs_api</span><span class="o">.</span><span class="n">HdfsError</span><span class="p">(</span>
+        <span class="s1">&#39;Config error, please set enviroments or use &quot;refile config hdfs ...&quot;&#39;</span><span class="p">)</span>
+
+
+<span class="nd">@lru_cache</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">get_hdfs_client</span><span class="p">(</span><span class="n">profile_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">hdfs_api</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
+            <span class="s2">&quot;hdfs not found, please `pip install &#39;megfile[hdfs]&#39;`&quot;</span><span class="p">)</span>
+
+    <span class="n">config</span> <span class="o">=</span> <span class="n">get_hdfs_config</span><span class="p">(</span><span class="n">profile_name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;token&#39;</span><span class="p">]:</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;user&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">hdfs_api</span><span class="o">.</span><span class="n">TokenClient</span><span class="p">(</span><span class="o">**</span><span class="n">config</span><span class="p">)</span>
+    <span class="n">config</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;token&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">hdfs_api</span><span class="o">.</span><span class="n">InsecureClient</span><span class="p">(</span><span class="o">**</span><span class="n">config</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="hdfs_glob"><a class="viewcode-back" href="../../megfile.hdfs.html#megfile.hdfs.hdfs_glob">[docs]</a><span class="k">def</span> <span class="nf">hdfs_glob</span><span class="p">(</span>
+        <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
+        <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;Return hdfs path list in ascending alphabetical order, in which path matches glob pattern</span>
+<span class="sd">    Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError</span>
+
+<span class="sd">    :param recursive: If False, `**` will not search directory recursively</span>
+<span class="sd">    :param missing_ok: If False and target path doesn&#39;t match any file, raise FileNotFoundError</span>
+<span class="sd">    :raises: UnsupportedError, when bucket part contains wildcard characters</span>
+<span class="sd">    :returns: A list contains paths match `path`</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">hdfs_iglob</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">,</span> <span class="n">missing_ok</span><span class="o">=</span><span class="n">missing_ok</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="hdfs_glob_stat"><a class="viewcode-back" href="../../megfile.hdfs.html#megfile.hdfs.hdfs_glob_stat">[docs]</a><span class="k">def</span> <span class="nf">hdfs_glob_stat</span><span class="p">(</span>
+        <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">FileEntry</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;Return a generator contains tuples of path and file stat, in ascending alphabetical order, in which path matches glob pattern</span>
+<span class="sd">    Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError</span>
+
+<span class="sd">    :param recursive: If False, `**` will not search directory recursively</span>
+<span class="sd">    :param missing_ok: If False and target path doesn&#39;t match any file, raise FileNotFoundError</span>
+<span class="sd">    :raises: UnsupportedError, when bucket part contains wildcard characters</span>
+<span class="sd">    :returns: A generator contains tuples of path and file stat, in which paths match `path`</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">HdfsPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">glob_stat</span><span class="p">(</span>
+        <span class="n">pattern</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">,</span> <span class="n">missing_ok</span><span class="o">=</span><span class="n">missing_ok</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="hdfs_iglob"><a class="viewcode-back" href="../../megfile.hdfs.html#megfile.hdfs.hdfs_iglob">[docs]</a><span class="k">def</span> <span class="nf">hdfs_iglob</span><span class="p">(</span>
+        <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
+        <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;Return hdfs path iterator in ascending alphabetical order, in which path matches glob pattern</span>
+<span class="sd">    Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError</span>
+
+<span class="sd">    :param recursive: If False, `**` will not search directory recursively</span>
+<span class="sd">    :param missing_ok: If False and target path doesn&#39;t match any file, raise FileNotFoundError</span>
+<span class="sd">    :raises: UnsupportedError, when bucket part contains wildcard characters</span>
+<span class="sd">    :returns: An iterator contains paths match `path`</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">for</span> <span class="n">path_obj</span> <span class="ow">in</span> <span class="n">HdfsPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">iglob</span><span class="p">(</span><span class="n">pattern</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">,</span>
+                                         <span class="n">missing_ok</span><span class="o">=</span><span class="n">missing_ok</span><span class="p">):</span>
+        <span class="k">yield</span> <span class="n">path_obj</span><span class="o">.</span><span class="n">path_with_protocol</span></div>
+
+
+<div class="viewcode-block" id="hdfs_makedirs"><a class="viewcode-back" href="../../megfile.hdfs.html#megfile.hdfs.hdfs_makedirs">[docs]</a><span class="k">def</span> <span class="nf">hdfs_makedirs</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">exist_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Create an hdfs directory.</span>
+<span class="sd">    Purely creating directory is invalid because it&#39;s unavailable on OSS.</span>
+<span class="sd">    This function is to test the target bucket have WRITE access.</span>
+
+<span class="sd">    :param path: Given path</span>
+<span class="sd">    :param exist_ok: If False and target directory exists, raise S3FileExistsError</span>
+<span class="sd">    :raises: FileExistsError</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">HdfsPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="n">exist_ok</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="HdfsPath"><a class="viewcode-back" href="../../megfile.hdfs_path.html#megfile.hdfs.HdfsPath">[docs]</a><span class="nd">@SmartPath</span><span class="o">.</span><span class="n">register</span>
+<span class="k">class</span> <span class="nc">HdfsPath</span><span class="p">(</span><span class="n">URIPath</span><span class="p">):</span>
+    <span class="n">protocol</span> <span class="o">=</span> <span class="s2">&quot;hdfs&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="o">*</span><span class="n">other_paths</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="o">*</span><span class="n">other_paths</span><span class="p">)</span>
+        <span class="n">protocol</span> <span class="o">=</span> <span class="n">get_url_scheme</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_protocol_with_profile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_profile_name</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">protocol</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;hdfs+&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_protocol_with_profile</span> <span class="o">=</span> <span class="n">protocol</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_profile_name</span> <span class="o">=</span> <span class="n">protocol</span><span class="p">[</span><span class="mi">5</span><span class="p">:]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_client</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">get_hdfs_client</span><span class="p">(</span><span class="n">profile_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_profile_name</span><span class="p">)</span>
+
+<div class="viewcode-block" id="HdfsPath.path_with_protocol"><a class="viewcode-back" href="../../megfile.hdfs_path.html#megfile.hdfs.HdfsPath.path_with_protocol">[docs]</a>    <span class="nd">@cachedproperty</span>
+    <span class="k">def</span> <span class="nf">path_with_protocol</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;Return path with protocol, like hdfs://path&#39;&#39;&#39;</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span>
+        <span class="n">protocol_prefix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_protocol_with_profile</span> <span class="o">+</span> <span class="s2">&quot;://&quot;</span>
+        <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">protocol_prefix</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">path</span>
+        <span class="k">return</span> <span class="n">protocol_prefix</span> <span class="o">+</span> <span class="n">path</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="HdfsPath.path_without_protocol"><a class="viewcode-back" href="../../megfile.hdfs_path.html#megfile.hdfs.HdfsPath.path_without_protocol">[docs]</a>    <span class="nd">@cachedproperty</span>
+    <span class="k">def</span> <span class="nf">path_without_protocol</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;Return path without protocol, example: if path is hdfs://path, return path&#39;&#39;&#39;</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span>
+        <span class="n">protocol_prefix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_protocol_with_profile</span> <span class="o">+</span> <span class="s2">&quot;://&quot;</span>
+        <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">protocol_prefix</span><span class="p">):</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">path</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">protocol_prefix</span><span class="p">):]</span>
+        <span class="k">return</span> <span class="n">path</span></div>
+
+<div class="viewcode-block" id="HdfsPath.parts"><a class="viewcode-back" href="../../megfile.hdfs_path.html#megfile.hdfs.HdfsPath.parts">[docs]</a>    <span class="nd">@cachedproperty</span>
+    <span class="k">def</span> <span class="nf">parts</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;A tuple giving access to the path’s various components&#39;&#39;&#39;</span>
+        <span class="n">parts</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_protocol_with_profile</span><span class="si">}</span><span class="s2">://&quot;</span><span class="p">]</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">path</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+            <span class="n">parts</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="HdfsPath.exists"><a class="viewcode-back" href="../../megfile.hdfs_path.html#megfile.hdfs.HdfsPath.exists">[docs]</a>    <span class="k">def</span> <span class="nf">exists</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Test if path exists</span>
+
+<span class="sd">        If the bucket of path are not permitted to read, return False</span>
+
+<span class="sd">        :returns: True if path eixsts, else False</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="HdfsPath.stat"><a class="viewcode-back" href="../../megfile.hdfs_path.html#megfile.hdfs.HdfsPath.stat">[docs]</a>    <span class="k">def</span> <span class="nf">stat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StatResult</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Get StatResult of path file, including file size and mtime, referring to hdfs_getsize and hdfs_getmtime</span>
+
+<span class="sd">        If path is not an existent path, which means hdfs_exist(path) returns False, then raise FileNotFoundError</span>
+<span class="sd">        If attempt to get StatResult of complete hdfs, such as hdfs_dir_url == &#39;hdfs://&#39;, raise BucketNotFoundError</span>
+
+<span class="sd">        :returns: StatResult</span>
+<span class="sd">        :raises: FileNotFoundError</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">with</span> <span class="n">raise_hdfs_error</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">):</span>
+            <span class="n">stat_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">StatResult</span><span class="p">(</span>
+                <span class="n">size</span><span class="o">=</span><span class="n">stat_data</span><span class="p">[</span><span class="s1">&#39;length&#39;</span><span class="p">],</span>
+                <span class="n">mtime</span><span class="o">=</span><span class="n">stat_data</span><span class="p">[</span><span class="s1">&#39;modificationTime&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">,</span>
+                <span class="n">isdir</span><span class="o">=</span><span class="n">stat_data</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;DIRECTORY&#39;</span><span class="p">,</span>
+                <span class="n">islnk</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">extra</span><span class="o">=</span><span class="n">stat_data</span><span class="p">,</span>
+            <span class="p">)</span></div>
+
+<div class="viewcode-block" id="HdfsPath.getmtime"><a class="viewcode-back" href="../../megfile.hdfs_path.html#megfile.hdfs.HdfsPath.getmtime">[docs]</a>    <span class="k">def</span> <span class="nf">getmtime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Get last-modified time of the file on the given path path (in Unix timestamp format).</span>
+<span class="sd">        If the path is an existent directory, return the latest modified time of all file in it. The mtime of empty directory is 1970-01-01 00:00:00</span>
+
+<span class="sd">        If path is not an existent path, which means hdfs_exist(path) returns False, then raise FileNotFoundError</span>
+
+<span class="sd">        :returns: Last-modified time</span>
+<span class="sd">        :raises: FileNotFoundError</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">follow_symlinks</span><span class="o">=</span><span class="n">follow_symlinks</span><span class="p">)</span><span class="o">.</span><span class="n">mtime</span></div>
+
+<div class="viewcode-block" id="HdfsPath.getsize"><a class="viewcode-back" href="../../megfile.hdfs_path.html#megfile.hdfs.HdfsPath.getsize">[docs]</a>    <span class="k">def</span> <span class="nf">getsize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Get file size on the given path path (in bytes).</span>
+<span class="sd">        If the path in a directory, return the sum of all file size in it, including file in subdirectories (if exist).</span>
+<span class="sd">        The result excludes the size of directory itself. In other words, return 0 Byte on an empty directory path.</span>
+
+<span class="sd">        If path is not an existent path, which means hdfs_exist(path) returns False, then raise FileNotFoundError</span>
+
+<span class="sd">        :returns: File size</span>
+<span class="sd">        :raises: FileNotFoundError</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">follow_symlinks</span><span class="o">=</span><span class="n">follow_symlinks</span><span class="p">)</span><span class="o">.</span><span class="n">size</span></div>
+
+<div class="viewcode-block" id="HdfsPath.glob"><a class="viewcode-back" href="../../megfile.hdfs_path.html#megfile.hdfs.HdfsPath.glob">[docs]</a>    <span class="k">def</span> <span class="nf">glob</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">pattern</span><span class="p">,</span>
+            <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s1">&#39;HdfsPath&#39;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;Return hdfs path list, in which path matches glob pattern</span>
+<span class="sd">        Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError</span>
+
+<span class="sd">        :param pattern: Glob the given relative pattern in the directory represented by this path</span>
+<span class="sd">        :param recursive: If False, `**` will not search directory recursively</span>
+<span class="sd">        :param missing_ok: If False and target path doesn&#39;t match any file, raise FileNotFoundError</span>
+<span class="sd">        :raises: UnsupportedError, when bucket part contains wildcard characters</span>
+<span class="sd">        :returns: A list contains paths match `hdfs_pathname`</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">iglob</span><span class="p">(</span>
+                <span class="n">pattern</span><span class="o">=</span><span class="n">pattern</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">,</span> <span class="n">missing_ok</span><span class="o">=</span><span class="n">missing_ok</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="HdfsPath.glob_stat"><a class="viewcode-back" href="../../megfile.hdfs_path.html#megfile.hdfs.HdfsPath.glob_stat">[docs]</a>    <span class="k">def</span> <span class="nf">glob_stat</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">FileEntry</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;Return a generator contains tuples of path and file stat, in which path matches glob pattern</span>
+<span class="sd">        Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError</span>
+
+<span class="sd">        :param pattern: Glob the given relative pattern in the directory represented by this path</span>
+<span class="sd">        :param recursive: If False, `**` will not search directory recursively</span>
+<span class="sd">        :param missing_ok: If False and target path doesn&#39;t match any file, raise FileNotFoundError</span>
+<span class="sd">        :raises: UnsupportedError, when bucket part contains wildcard characters</span>
+<span class="sd">        :returns: A generator contains tuples of path and file stat, in which paths match `hdfs_pathname`</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">path_obj</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">iglob</span><span class="p">(</span><span class="n">pattern</span><span class="o">=</span><span class="n">pattern</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">,</span>
+                                   <span class="n">missing_ok</span><span class="o">=</span><span class="n">missing_ok</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="n">FileEntry</span><span class="p">(</span><span class="n">path_obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">path_obj</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">path_obj</span><span class="o">.</span><span class="n">stat</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="HdfsPath.iglob"><a class="viewcode-back" href="../../megfile.hdfs_path.html#megfile.hdfs.HdfsPath.iglob">[docs]</a>    <span class="k">def</span> <span class="nf">iglob</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">pattern</span><span class="p">,</span>
+            <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="s1">&#39;HdfsPath&#39;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;Return hdfs path iterator, in which path matches glob pattern</span>
+<span class="sd">        Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError</span>
+
+<span class="sd">        :param pattern: Glob the given relative pattern in the directory represented by this path</span>
+<span class="sd">        :param recursive: If False, `**` will not search directory recursively</span>
+<span class="sd">        :param missing_ok: If False and target path doesn&#39;t match any file, raise FileNotFoundError</span>
+<span class="sd">        :raises: UnsupportedError, when bucket part contains wildcard characters</span>
+<span class="sd">        :returns: An iterator contains paths match `hdfs_pathname`</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">glob_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span>
+        <span class="k">if</span> <span class="n">pattern</span><span class="p">:</span>
+            <span class="n">glob_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span><span class="o">.</span><span class="n">path_with_protocol</span>
+
+        <span class="k">def</span> <span class="nf">_scandir</span><span class="p">(</span><span class="n">dirname</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]]:</span>
+            <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">dirname</span><span class="p">)</span><span class="o">.</span><span class="n">scandir</span><span class="p">():</span>
+                <span class="k">yield</span> <span class="n">entry</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">entry</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()</span>
+
+        <span class="k">def</span> <span class="nf">_exist</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">_is_dir</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">is_dir</span><span class="p">(</span><span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span>
+
+        <span class="n">fs_func</span> <span class="o">=</span> <span class="n">FSFunc</span><span class="p">(</span><span class="n">_exist</span><span class="p">,</span> <span class="n">_is_dir</span><span class="p">,</span> <span class="n">_scandir</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">real_path</span> <span class="ow">in</span> <span class="n">_create_missing_ok_generator</span><span class="p">(</span>
+                <span class="n">iglob</span><span class="p">(</span><span class="n">fspath</span><span class="p">(</span><span class="n">glob_path</span><span class="p">),</span> <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">,</span> <span class="n">fs</span><span class="o">=</span><span class="n">fs_func</span><span class="p">),</span>
+                <span class="n">missing_ok</span><span class="p">,</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s1">&#39;No match file: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">glob_path</span><span class="p">)):</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">real_path</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="HdfsPath.is_dir"><a class="viewcode-back" href="../../megfile.hdfs_path.html#megfile.hdfs.HdfsPath.is_dir">[docs]</a>    <span class="k">def</span> <span class="nf">is_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Test if an hdfs url is directory</span>
+<span class="sd">        Specific procedures are as follows:</span>
+<span class="sd">        If there exists a suffix, of which ``os.path.join(path, suffix)`` is a file</span>
+<span class="sd">        If the url is empty bucket or hdfs://</span>
+
+<span class="sd">        :param followlinks: whether followlinks is True or False, result is the same. Because hdfs symlink not support dir.</span>
+<span class="sd">        :returns: True if path is hdfs directory, else False</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="HdfsPath.is_file"><a class="viewcode-back" href="../../megfile.hdfs_path.html#megfile.hdfs.HdfsPath.is_file">[docs]</a>    <span class="k">def</span> <span class="nf">is_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Test if an path is file</span>
+
+<span class="sd">        :returns: True if path is hdfs file, else False</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="HdfsPath.listdir"><a class="viewcode-back" href="../../megfile.hdfs_path.html#megfile.hdfs.HdfsPath.listdir">[docs]</a>    <span class="k">def</span> <span class="nf">listdir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Get all contents of given path.</span>
+
+<span class="sd">        :returns: All contents have prefix of path.</span>
+<span class="sd">        :raises: FileNotFoundError, NotADirectoryError</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">NotADirectoryError</span><span class="p">(</span><span class="s1">&#39;Not a directory: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">raise_hdfs_error</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="HdfsPath.iterdir"><a class="viewcode-back" href="../../megfile.hdfs_path.html#megfile.hdfs.HdfsPath.iterdir">[docs]</a>    <span class="k">def</span> <span class="nf">iterdir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="s1">&#39;HdfsPath&#39;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Get all contents of given path.</span>
+
+<span class="sd">        :returns: All contents have prefix of path.</span>
+<span class="sd">        :raises: FileNotFoundError, NotADirectoryError</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>  <span class="c1"># pytype: disable=bad-return-type</span></div>
+
+<div class="viewcode-block" id="HdfsPath.load"><a class="viewcode-back" href="../../megfile.hdfs_path.html#megfile.hdfs.HdfsPath.load">[docs]</a>    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BinaryIO</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;Read all content in binary on specified path and write into memory</span>
+
+<span class="sd">        User should close the BinaryIO manually</span>
+
+<span class="sd">        :returns: BinaryIO</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="n">buffer</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">buffer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+        <span class="n">buffer</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">buffer</span></div>
+
+<div class="viewcode-block" id="HdfsPath.mkdir"><a class="viewcode-back" href="../../megfile.hdfs_path.html#megfile.hdfs.HdfsPath.mkdir">[docs]</a>    <span class="k">def</span> <span class="nf">mkdir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="mo">0o777</span><span class="p">,</span> <span class="n">parents</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">exist_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Create an hdfs directory.</span>
+<span class="sd">        Purely creating directory is invalid because it&#39;s unavailable on OSS.</span>
+<span class="sd">        This function is to test the target bucket have WRITE access.</span>
+
+<span class="sd">        :param mode: Octal permission to set on the newly created directory. </span>
+<span class="sd">            These permissions will only be set on directories that do not already exist.</span>
+<span class="sd">        :param parents: parents is ignored, only be compatible with pathlib.Path</span>
+<span class="sd">        :param exist_ok: If False and target directory exists, raise FileExistsError</span>
+<span class="sd">        :raises: BucketNotFoundError, FileExistsError</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">exist_ok</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">FileExistsError</span><span class="p">(</span><span class="s1">&#39;File exists: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">raise_hdfs_error</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="n">permission</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="HdfsPath.rename"><a class="viewcode-back" href="../../megfile.hdfs_path.html#megfile.hdfs.HdfsPath.rename">[docs]</a>    <span class="k">def</span> <span class="nf">rename</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;HdfsPath&#39;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Move hdfs file path from src_path to dst_path</span>
+
+<span class="sd">        :param dst_path: Given destination path</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">dst_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">raise_hdfs_error</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="n">dst_path</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">dst_path</span></div>
+
+<div class="viewcode-block" id="HdfsPath.move"><a class="viewcode-back" href="../../megfile.hdfs_path.html#megfile.hdfs.HdfsPath.move">[docs]</a>    <span class="k">def</span> <span class="nf">move</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Move file/directory path from src_path to dst_path</span>
+
+<span class="sd">        :param dst_path: Given destination path</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">dst_path</span><span class="o">=</span><span class="n">dst_path</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="HdfsPath.remove"><a class="viewcode-back" href="../../megfile.hdfs_path.html#megfile.hdfs.HdfsPath.remove">[docs]</a>    <span class="k">def</span> <span class="nf">remove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Remove the file or directory on hdfs, `hdfs://` and `hdfs://bucket` are not permitted to remove</span>
+
+<span class="sd">        :param missing_ok: if False and target file/directory not exists, raise FileNotFoundError</span>
+<span class="sd">        :raises: FileNotFoundError, UnsupportedError</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">raise_hdfs_error</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">missing_ok</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="ne">FileNotFoundError</span><span class="p">):</span>
+                <span class="k">raise</span></div>
+
+<div class="viewcode-block" id="HdfsPath.scan"><a class="viewcode-back" href="../../megfile.hdfs_path.html#megfile.hdfs.HdfsPath.scan">[docs]</a>    <span class="k">def</span> <span class="nf">scan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+             <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Iteratively traverse only files in given hdfs directory.</span>
+<span class="sd">        Every iteration on generator yields a path string.</span>
+
+<span class="sd">        If path is a file path, yields the file only</span>
+<span class="sd">        If path is a non-existent path, return an empty generator</span>
+<span class="sd">        If path is a bucket path, return all file paths in the bucket</span>
+<span class="sd">        If path is an empty bucket, return an empty generator</span>
+<span class="sd">        If path doesn&#39;t contain any bucket, which is path == &#39;hdfs://&#39;, raise UnsupportedError. walk() on complete hdfs is not supported in megfile</span>
+
+<span class="sd">        :param missing_ok: If False and there&#39;s no file in the directory, raise FileNotFoundError</span>
+<span class="sd">        :raises: UnsupportedError</span>
+<span class="sd">        :returns: A file path generator</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">file_entry</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">scan_stat</span><span class="p">(</span><span class="n">missing_ok</span><span class="o">=</span><span class="n">missing_ok</span><span class="p">,</span>
+                                         <span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="n">file_entry</span><span class="o">.</span><span class="n">path</span></div>
+
+<div class="viewcode-block" id="HdfsPath.scan_stat"><a class="viewcode-back" href="../../megfile.hdfs_path.html#megfile.hdfs.HdfsPath.scan_stat">[docs]</a>    <span class="k">def</span> <span class="nf">scan_stat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+                  <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">FileEntry</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Iteratively traverse only files in given directory.</span>
+<span class="sd">        Every iteration on generator yields a tuple of path string and file stat</span>
+
+<span class="sd">        :param missing_ok: If False and there&#39;s no file in the directory, raise FileNotFoundError</span>
+<span class="sd">        :raises: UnsupportedError</span>
+<span class="sd">        :returns: A file path generator</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">with</span> <span class="n">raise_hdfs_error</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">):</span>
+            <span class="k">for</span> <span class="p">(</span><span class="n">root</span><span class="p">,</span>
+                 <span class="n">_root_status</span><span class="p">),</span> <span class="n">_dir_infos</span><span class="p">,</span> <span class="n">file_infos</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="n">status</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                     <span class="n">ignore_missing</span><span class="o">=</span><span class="n">missing_ok</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">filename</span><span class="p">,</span> <span class="n">stat_data</span> <span class="ow">in</span> <span class="n">file_infos</span><span class="p">:</span>
+                    <span class="k">yield</span> <span class="n">FileEntry</span><span class="p">(</span>
+                        <span class="n">name</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span>
+                        <span class="n">path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_protocol_with_profile</span><span class="si">}</span><span class="s2">://</span><span class="si">{</span><span class="n">root</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+                        <span class="p">)</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">,</span>
+                        <span class="n">stat</span><span class="o">=</span><span class="n">StatResult</span><span class="p">(</span>
+                            <span class="n">size</span><span class="o">=</span><span class="n">stat_data</span><span class="p">[</span><span class="s1">&#39;length&#39;</span><span class="p">],</span>
+                            <span class="n">mtime</span><span class="o">=</span><span class="n">stat_data</span><span class="p">[</span><span class="s1">&#39;modificationTime&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">,</span>
+                            <span class="n">isdir</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                            <span class="n">islnk</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                            <span class="n">extra</span><span class="o">=</span><span class="n">stat_data</span><span class="p">,</span>
+                        <span class="p">))</span></div>
+
+<div class="viewcode-block" id="HdfsPath.scandir"><a class="viewcode-back" href="../../megfile.hdfs_path.html#megfile.hdfs.HdfsPath.scandir">[docs]</a>    <span class="k">def</span> <span class="nf">scandir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">FileEntry</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Get all contents of given path, the order of result is not guaranteed.</span>
+
+<span class="sd">        :returns: All contents have prefix of path</span>
+<span class="sd">        :raises: FileNotFoundError, NotADirectoryError</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">with</span> <span class="n">raise_hdfs_error</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">filename</span><span class="p">,</span> <span class="n">stat_data</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">list</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="n">status</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+                <span class="k">yield</span> <span class="n">FileEntry</span><span class="p">(</span>
+                    <span class="n">name</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span>
+                    <span class="n">path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">,</span>
+                    <span class="n">stat</span><span class="o">=</span><span class="n">StatResult</span><span class="p">(</span>
+                        <span class="n">size</span><span class="o">=</span><span class="n">stat_data</span><span class="p">[</span><span class="s1">&#39;length&#39;</span><span class="p">],</span>
+                        <span class="n">mtime</span><span class="o">=</span><span class="n">stat_data</span><span class="p">[</span><span class="s1">&#39;modificationTime&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">,</span>
+                        <span class="n">isdir</span><span class="o">=</span><span class="n">stat_data</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;DIRECTORY&#39;</span><span class="p">,</span>
+                        <span class="n">islnk</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                        <span class="n">extra</span><span class="o">=</span><span class="n">stat_data</span><span class="p">,</span>
+                    <span class="p">))</span></div>
+
+<div class="viewcode-block" id="HdfsPath.unlink"><a class="viewcode-back" href="../../megfile.hdfs_path.html#megfile.hdfs.HdfsPath.unlink">[docs]</a>    <span class="k">def</span> <span class="nf">unlink</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Remove the file on hdfs</span>
+
+<span class="sd">        :param missing_ok: if False and target file not exists, raise FileNotFoundError</span>
+<span class="sd">        :raises: FileNotFoundError, IsADirectoryError</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">IsADirectoryError</span><span class="p">(</span><span class="s1">&#39;Path is a directory: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">missing_ok</span><span class="o">=</span><span class="n">missing_ok</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="HdfsPath.walk"><a class="viewcode-back" href="../../megfile.hdfs_path.html#megfile.hdfs.HdfsPath.walk">[docs]</a>    <span class="k">def</span> <span class="nf">walk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]]:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Iteratively traverse the given hdfs directory, in top-bottom order. In other words, firstly traverse parent directory, if subdirectories exist, traverse the subdirectories.</span>
+<span class="sd">        Every iteration on generator yields a 3-tuple: (root, dirs, files)</span>
+
+<span class="sd">        - root: Current hdfs path;</span>
+<span class="sd">        - dirs: Name list of subdirectories in current directory.</span>
+<span class="sd">        - files: Name list of files in current directory.</span>
+
+<span class="sd">        If path is a file path, return an empty generator</span>
+<span class="sd">        If path is a non-existent path, return an empty generator</span>
+<span class="sd">        If path is a bucket path, bucket will be the top directory, and will be returned at first iteration of generator</span>
+<span class="sd">        If path is an empty bucket, only yield one 3-tuple (notes: hdfs doesn&#39;t have empty directory)</span>
+<span class="sd">        If path doesn&#39;t contain any bucket, which is path == &#39;hdfs://&#39;, raise UnsupportedError. walk() on complete hdfs is not supported in megfile</span>
+
+<span class="sd">        :param followlinks: whether followlinks is True or False, result is the same. Because hdfs not support symlink.</span>
+<span class="sd">        :returns: A 3-tuple generator</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">with</span> <span class="n">raise_hdfs_error</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="n">ignore_missing</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">allow_dir_changes</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+                <span class="k">yield</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_protocol_with_profile</span><span class="si">}</span><span class="s2">://</span><span class="si">{</span><span class="n">path</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">files</span></div>
+
+<div class="viewcode-block" id="HdfsPath.md5"><a class="viewcode-back" href="../../megfile.hdfs_path.html#megfile.hdfs.HdfsPath.md5">[docs]</a>    <span class="k">def</span> <span class="nf">md5</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">recalculate</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Get checksum of the file or dir.</span>
+
+<span class="sd">        :param recalculate: Ignore this parameter, just for compatibility</span>
+<span class="sd">        :param followlinks: Ignore this parameter, just for compatibility</span>
+<span class="sd">        :returns: checksum</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dir</span><span class="p">(</span><span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">):</span>
+            <span class="n">hash_md5</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">md5</span><span class="p">()</span>  <span class="c1"># nosec</span>
+            <span class="k">for</span> <span class="n">file_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">listdir</span><span class="p">():</span>
+                <span class="n">chunk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span><span class="o">.</span><span class="n">md5</span><span class="p">(</span>  <span class="c1"># pytype: disable=attribute-error</span>
+                    <span class="n">recalculate</span><span class="o">=</span><span class="n">recalculate</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span>
+                <span class="n">hash_md5</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">hash_md5</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+        <span class="k">with</span> <span class="n">raise_hdfs_error</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">checksum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)[</span><span class="s1">&#39;bytes&#39;</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="HdfsPath.save"><a class="viewcode-back" href="../../megfile.hdfs_path.html#megfile.hdfs.HdfsPath.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_object</span><span class="p">:</span> <span class="n">BinaryIO</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;Write the opened binary stream to specified path, but the stream won&#39;t be closed</span>
+
+<span class="sd">        :param file_object: Stream to be read</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">with</span> <span class="n">raise_hdfs_error</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">file_object</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="HdfsPath.open"><a class="viewcode-back" href="../../megfile.hdfs_path.html#megfile.hdfs.HdfsPath.open">[docs]</a>    <span class="k">def</span> <span class="nf">open</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span>
+            <span class="o">*</span><span class="p">,</span>
+            <span class="n">buffering</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">encoding</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">errors</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IO</span><span class="p">[</span><span class="n">AnyStr</span><span class="p">]:</span>  <span class="c1"># pytype: disable=signature-mismatch</span>
+        <span class="k">if</span> <span class="s1">&#39;+&#39;</span> <span class="ow">in</span> <span class="n">mode</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;unacceptable mode: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s1">&#39;b&#39;</span> <span class="ow">in</span> <span class="n">mode</span><span class="p">:</span>
+            <span class="n">encoding</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">encoding</span><span class="p">:</span>
+            <span class="n">encoding</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">getdefaultencoding</span><span class="p">()</span>
+
+        <span class="k">with</span> <span class="n">raise_hdfs_error</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">mode</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">):</span>
+                <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="s1">&#39;block_size&#39;</span><span class="p">,</span> <span class="s1">&#39;block_capacity&#39;</span><span class="p">,</span> <span class="s1">&#39;block_forward&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;max_retries&#39;</span><span class="p">,</span> <span class="s1">&#39;max_workers&#39;</span>
+                <span class="p">]</span>
+                <span class="n">input_kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                        <span class="n">input_kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+                <span class="n">file_obj</span> <span class="o">=</span> <span class="n">HdfsPrefetchReader</span><span class="p">(</span>
+                    <span class="n">hdfs_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span>
+                    <span class="n">client</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="p">,</span>
+                    <span class="n">profile_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_profile_name</span><span class="p">,</span>
+                    <span class="o">**</span><span class="n">input_kwargs</span><span class="p">)</span>
+                <span class="k">if</span> <span class="s1">&#39;b&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">mode</span><span class="p">:</span>
+                    <span class="n">file_obj</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">TextIOWrapper</span><span class="p">(</span>
+                        <span class="n">file_obj</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="n">errors</span><span class="p">)</span>  <span class="c1"># pytype: disable=wrong-arg-types</span>
+                    <span class="n">file_obj</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="n">mode</span>
+                <span class="k">return</span> <span class="n">file_obj</span>  <span class="c1"># pytype: disable=bad-return-type</span>
+            <span class="k">elif</span> <span class="n">mode</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">):</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>  <span class="c1"># pytype: disable=bad-return-type</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span>
+                    <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">buffersize</span><span class="o">=</span><span class="n">buffering</span><span class="p">,</span>
+                    <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">mode</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;ab&#39;</span><span class="p">):</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>  <span class="c1"># pytype: disable=bad-return-type</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span>
+                    <span class="n">append</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">buffersize</span><span class="o">=</span><span class="n">buffering</span><span class="p">,</span>
+                    <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;unacceptable mode: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="HdfsPath.absolute"><a class="viewcode-back" href="../../megfile.hdfs_path.html#megfile.hdfs.HdfsPath.absolute">[docs]</a>    <span class="k">def</span> <span class="nf">absolute</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;HdfsPath&#39;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Make the path absolute, without normalization or resolving symlinks. Returns a new path object</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">with</span> <span class="n">raise_hdfs_error</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">):</span>
+            <span class="n">real_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_protocol_with_profile</span><span class="si">}</span><span class="s2">:///</span><span class="si">{</span><span class="n">real_path</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, r-eng.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
