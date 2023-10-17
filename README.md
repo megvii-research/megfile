@@ -33,7 +33,7 @@ megfile - Megvii FILE library
 - sftp
 - http
 - stdio
-- hdfs: `pip install megfile[hdfs]`
+- hdfs: `pip install 'megfile[hdfs]'`
 
 ## Quick Start
 
