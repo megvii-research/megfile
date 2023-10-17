@@ -22,37 +22,23 @@ megfile - Megvii FILE library
 
 `megfile`'s advantages are:
 
-* `smart_open` can open resources that use various protocols, including fs, s3, http(s) and stdio. Especially, reader / writer of s3 in `megfile` is implemented with multi-thread, which is faster than known competitors.
-* `smart_glob` is available on s3. And it supports zsh extended pattern syntax of `[]`, e.g. `s3://bucket/video.{mp4,avi}`.
+* `smart_open` can open resources that use various protocols. Especially, reader / writer of s3 in `megfile` is implemented with multi-thread, which is faster than known competitors.
+* `smart_glob` is available on majority protocols. And it supports zsh extended pattern syntax of `[]`, e.g. `s3://bucket/video.{mp4,avi}`.
 * All-inclusive functions like `smart_exists` / `smart_stat` / `smart_sync`. If you don't find the functions you want, [submit an issue](https://github.com/megvii-research/megfile/issues).
-* Compatible with `pathlib.Path` interface, referring to `S3Path` and `SmartPath`.
+* Compatible with `pathlib.Path` interface, referring to `SmartPath` and other protocol classes like `S3Path`.
+
+## Support Protocols
+- fs(local filesystem)
+- s3
+- sftp
+- http
+- stdio
+- hdfs
 
 ## Quick Start
 
-Here's an example of writing a file to s3 / sftp / fs, syncing to local, reading and finally deleting it.
-
-### Path Format
-- local file
-    - unix filesystem path
-    - examples:
-        - `/data/test.txt`
-        - `test.txt`
-        - 1
-- s3
-    - `s3[+profile_name]://bucket/key`
-- sftp
-    - `sftp://[username[:password]@]hostname[:port]//absolute_file_path`
-    - `sftp://[username[:password]@]hostname[:port]/relative_file_path`
-- http
-    - http / https url
-    - examples:
-        - `http://hostname/test`
-        - `https://hostname/test`
-- stdio
-    - `stdio://-`
-    - `stdio://0`
-    - `stdio://1`
-    - `stdio://2`
+Path string in `megfile` almost is `protocol://path/to/file`, for example `s3://bucketA/key`. But sftp path is a little different, format is `sftp://[username[:password]@]hostname[:port]//file_path`, and relative path is replace `//file_path` to `/file_path`.
+Here's an example of writing a file to s3 / fs, syncing to local, reading and finally deleting it.
 
 ### Functional Interface
 ```python
@@ -76,15 +62,12 @@ smart_remove('s3://playground/megfile-test')
 
 # glob files or directories in s3 bucket
 smart_glob('s3://playground/megfile-?.{mp4,avi}')
-
-# smart_open also support protocols like http / https
-smart_open('https://www.google.com')
-
-# smart_open also support protocols like sftp
-smart_open('sftp://username:password@sftp.server.com:22/path/to/file')
 ```
 
 ### SmartPath Interface
+
+`SmartPath` has a similar interface with pathlib.Path.
+
 ```python
 from megfile.smart_path import SmartPath
 
@@ -139,20 +122,32 @@ pip3 install -r requirements.txt -r requirements-dev.txt
 
 ## Configuration
 
-Before using `megfile` to access files on s3, you need to set up authentication credentials for your s3 account using the [AWS CLI](https://docs.aws.amazon.com/cli/latest/reference/configure/index.html) or editing the file `~/.aws/credentials` directly, see also: [boto3 configuration](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html) & [boto3 credentials](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html). Megfile also support environments for s3, like `OSS_ENDPOINT`, `AWS_ACCESS_KEY_ID` , `AWS_SECRET_ACCESS_KEY` and `AWS_S3_ADDRESSING_STYLE`.
+Using `s3` as an example, the following describes the configuration methods. For more details, please refer to [Configuration](https://megvii-research.github.io/megfile/configuration.html).
+
+You can use enviroments and configuration file for configuration, and priority is that environment variables take precedence over configuration file.
+
+### Use enviroments
+You can use enviroments to setup authentication credentials for your s3 account:
+- `AWS_ACCESS_KEY_ID`: access key
+- `AWS_SECRET_ACCESS_KEY`: secret key
+- `OSS_ENDPOINT`: endpoint url of s3
+- `AWS_S3_ADDRESSING_STYLE`: addressing style
+
+### Use command
+You can update config file with `megfile` command easyly:
+[megfile config s3 [OPTIONS] AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY](https://megvii-research.github.io/megfile/cli.html#megfile-config-s3) 
 
 ```
-$ aws configure
-AWS Access Key ID [None]: accesskey
-AWS Secret Access Key [None]: secretkey
-Default region name [None]:
-Default output format [None]:
+$ megfile config s3 accesskey secretkey
 
-# for aliyun oss only
-$ aws configure set s3.addressing_style virtual
-$ aws configure set s3.endpoint_url http://oss-cn-hangzhou.aliyuncs.com
+# for aliyun
+$ megfile config s3 accesskey secretkey \
+--addressing-style virtual \
+--endpoint-url http://oss-cn-hangzhou.aliyuncs.com \
+```
 
-$ cat ~/.aws/credentials
+You can get the configuration from `~/.aws/credentials`, like:
+```
 [default]
 aws_secret_access_key = accesskey
 aws_access_key_id = secretkey
@@ -160,50 +155,6 @@ aws_access_key_id = secretkey
 s3 =
     addressing_style = virtual
     endpoint_url = http://oss-cn-hangzhou.aliyuncs.com
-```
-
-You also can operate s3 files with different endpoint urls, access keys and secret keys. You can set config for different profiles by environment(`PROFILE_NAME__AWS_ACCESS_KEY_ID`, `PROFILE_NAME__AWS_SECRET_ACCESS_KEY`, `PROFILE_NAME__OSS_ENDPOINT`, `PROFILE_NAME__AWS_S3_ADDRESSING_STYLE`) or `~/.aws/credentials`. Then you can operate files with path `s3+profile_name://bucket/key`.
-For example:
-```
-# set config with environment
-$ export PROFILE1__AWS_ACCESS_KEY_ID=profile1-accesskey
-$ export PROFILE1__AWS_SECRET_ACCESS_KEY=profile1-secretkey
-$ export PROFILE1__OSS_ENDPOINT=https://profile1.s3.custom.com
-
-$ export PROFILE2__AWS_ACCESS_KEY_ID=profile2-accesskey
-$ export PROFILE2__AWS_SECRET_ACCESS_KEY=profile2-secretkey
-$ export PROFILE2__OSS_ENDPOINT=https://profile2.s3.custom.com
-
-# set config with file
-$ cat ~/.aws/credentials
-[profile1]
-aws_secret_access_key = profile1-accesskey
-aws_access_key_id = profile1-secretkey
-s3 =
-    endpoint_url = https://profile1.s3.custom.com
-
-[profile2]
-aws_secret_access_key = profile2-accesskey
-aws_access_key_id = profile2-secretkey
-s3 =
-    addressing_style = virtual
-    endpoint_url = https://profile2.s3.custom.com
-
-
-# python
-megfile.smart_copy('s3+profile1://bucket/key', 's3+profile2://bucket/key')
-```
-
-sftp support some environments:
-```
-# If you are not set username or password in path, you can set them in environments
-$ export SFTP_USERNAME=user
-$ export SFTP_PASSWORD=user_password
-
-# You can also set private key for sftp connection 
-$ export SFTP_PRIVATE_KEY_PATH=/home/user/custom_private_key_path  # default not use private key
-$ export SFTP_PRIVATE_KEY_TYPE=RSA  # default is RSA
-$ export SFTP_PRIVATE_KEY_PASSWORD=private_key_password
 ```
 
 ## How to Contribute
