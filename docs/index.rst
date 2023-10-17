@@ -11,6 +11,7 @@ Welcome to megfile's documentation!
    :caption: Contents:
 
    readme
+   configuration
    megfile
    cli
    advanced

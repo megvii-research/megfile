@@ -1,6 +1,11 @@
 API Reference
 =============
 
+.. toctree::
+   megfile.smart
+   megfile.smart_path
+
+
 Submodules
 ----------
 
@@ -10,19 +15,11 @@ Submodules
    megfile.fs_path
    megfile.s3
    megfile.s3_path
-   megfile.smart
-   megfile.smart_path
    megfile.http
    megfile.http_path
    megfile.stdio
    megfile.stdio_path
    megfile.sftp
    megfile.sftp_path
-
-Module contents
----------------
-
-.. automodule:: megfile
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   megfile.hdfs
+   megfile.hdfs_path
