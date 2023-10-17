@@ -87,7 +87,7 @@ def get_hdfs_config(profile_name: Optional[str] = None):
 def get_hdfs_client(profile_name: Optional[str] = None):
     if not hdfs_api:  # pragma: no cover
         raise ImportError(
-            'hdfs not found, please `pip install "megfile[hdfs]"`')
+            "hdfs not found, please `pip install 'megfile[hdfs]'`")
 
     config = get_hdfs_config(profile_name)
     if config['token']:
