@@ -1,3 +1,4 @@
+Please use command `pip install megfile[hdfs]` to install hdfs requirements.
 You can use enviroments and configuration file for configuration, and priority is that environment variables take precedence over configuration file.
 
 ### Use enviroments
