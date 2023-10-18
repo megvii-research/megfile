@@ -13,7 +13,7 @@ from tqdm import tqdm
 from megfile.hdfs_path import DEFAULT_HDFS_TIMEOUT
 from megfile.interfaces import FileEntry
 from megfile.lib.glob import get_non_glob_dir, has_magic
-from megfile.smart import _smart_sync_single_file, smart_copy, smart_getmd5, smart_getmtime, smart_getsize, smart_glob_stat, smart_isdir, smart_isfile, smart_makedirs, smart_move, smart_open, smart_path_join, smart_remove, smart_rename, smart_scan_stat, smart_scandir, smart_stat, smart_sync, smart_sync_with_progress, smart_touch, smart_unlink
+from megfile.smart import _smart_sync_single_file, smart_copy, smart_exists, smart_getmd5, smart_getmtime, smart_getsize, smart_glob_stat, smart_isdir, smart_isfile, smart_makedirs, smart_move, smart_open, smart_path_join, smart_remove, smart_rename, smart_scan_stat, smart_scandir, smart_stat, smart_sync, smart_sync_with_progress, smart_touch, smart_unlink
 from megfile.smart_path import SmartPath
 from megfile.utils import get_human_size
 from megfile.version import VERSION
@@ -288,7 +288,7 @@ def sync(
             src_root_path = get_non_glob_dir(src_path)
 
             def scan_func(path):
-                for glob_file_entry in smart_glob_stat(path):
+                for glob_file_entry in smart_glob_stat(path, missing_ok=False):
                     if glob_file_entry.is_file():
                         yield glob_file_entry
                     else:
@@ -297,7 +297,8 @@ def sync(
                             yield file_entry
         else:
             src_root_path = src_path
-            scan_func = partial(smart_scan_stat, followlinks=True)
+            scan_func = partial(
+                smart_scan_stat, followlinks=True, missing_ok=False)
 
         if progress_bar and not quiet:
             print('building progress bar', end='\r')
