@@ -13,7 +13,7 @@ from tqdm import tqdm
 from megfile.hdfs_path import DEFAULT_HDFS_TIMEOUT
 from megfile.interfaces import FileEntry
 from megfile.lib.glob import get_non_glob_dir, has_magic
-from megfile.smart import _smart_sync_single_file, smart_copy, smart_getmd5, smart_getmtime, smart_getsize, smart_glob_stat, smart_isdir, smart_isfile, smart_makedirs, smart_move, smart_open, smart_path_join, smart_remove, smart_rename, smart_scan_stat, smart_scandir, smart_stat, smart_sync, smart_sync_with_progress, smart_touch, smart_unlink
+from megfile.smart import _smart_sync_single_file, smart_copy, smart_exists, smart_getmd5, smart_getmtime, smart_getsize, smart_glob_stat, smart_isdir, smart_isfile, smart_makedirs, smart_move, smart_open, smart_path_join, smart_remove, smart_rename, smart_scan_stat, smart_scandir, smart_stat, smart_sync, smart_sync_with_progress, smart_touch, smart_unlink
 from megfile.smart_path import SmartPath
 from megfile.utils import get_human_size
 from megfile.version import VERSION
@@ -283,6 +283,8 @@ def rm(path: str, recursive: bool):
 def sync(
         src_path: str, dst_path: str, progress_bar: bool, worker: int,
         force: bool, quiet: bool):
+    if not smart_exists(src_path):
+        raise FileNotFoundError(f'No such file or directory: {src_path}')
     with ThreadPoolExecutor(max_workers=worker) as executor:
         if has_magic(src_path):
             src_root_path = get_non_glob_dir(src_path)

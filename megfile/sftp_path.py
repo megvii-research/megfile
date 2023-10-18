@@ -214,6 +214,7 @@ def _get_ssh_client(
         fcntl.flock(fd, fcntl.LOCK_EX)
     ssh_client.connect(
         hostname=hostname,
+        port=port,
         username=username,
         password=password,
         pkey=private_key,
