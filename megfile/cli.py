@@ -297,7 +297,8 @@ def sync(
                             yield file_entry
         else:
             src_root_path = src_path
-            scan_func = partial(smart_scan_stat, followlinks=True, missing_ok=False)
+            scan_func = partial(
+                smart_scan_stat, followlinks=True, missing_ok=False)
 
         if progress_bar and not quiet:
             print('building progress bar', end='\r')
