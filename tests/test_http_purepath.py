@@ -1,8 +1,11 @@
-from pathlib import Path
+import io
+from copy import deepcopy
 
 import pytest
+import requests
+import requests_mock  # noqa
 
-from megfile.http_path import HttpPath
+from megfile.http_path import HttpPath, get_http_session
 from megfile.lib.compat import fspath
 
 
@@ -258,3 +261,80 @@ def test_with_suffix():
     assert path.with_suffix('.txt') == HttpPath('baz.txt')
     path = HttpPath('baz.txt')
     assert path.with_suffix('') == HttpPath('baz')
+
+
+def test_http_retry(requests_mock, mocker):
+    max_retries = 2
+    mocker.patch('megfile.http_path.max_retries', max_retries)
+    requests_mock.post('http://foo', status_code=500)
+    session = get_http_session()
+    history_index = 0
+
+    with pytest.raises(requests.exceptions.HTTPError):
+        session.post('http://foo', files={'foo': 'bar'})
+    for _ in range(max_retries):
+        assert b'name="foo"' in requests_mock.request_history[
+            history_index].body
+        assert b'bar' in requests_mock.request_history[history_index].body
+        history_index += 1
+
+    with pytest.raises(requests.exceptions.HTTPError):
+        session.post('http://foo', files={'foo': io.BytesIO(b'bar')})
+    for _ in range(max_retries):
+        assert b'bar' in requests_mock.request_history[history_index].body
+        history_index += 1
+
+    with pytest.raises(requests.exceptions.HTTPError):
+        session.post('http://foo', files={'foo': io.BytesIO(b'bar')})
+    for _ in range(max_retries):
+        assert b'bar' in requests_mock.request_history[history_index].body
+        history_index += 1
+
+    with pytest.raises(requests.exceptions.HTTPError):
+        session.post(
+            'http://foo', files={'foo': ('filename', io.BytesIO(b'bar'))})
+    for _ in range(max_retries):
+        assert b'name="filename"' in requests_mock.request_history[
+            history_index].body
+        assert b'bar' in requests_mock.request_history[history_index].body
+        history_index += 1
+
+    with pytest.raises(requests.exceptions.HTTPError):
+        session.post(
+            'http://foo',
+            files={
+                'foo':
+                ('filename', io.BytesIO(b'bar'), 'application/vnd.ms-excel')
+            })
+    for _ in range(max_retries):
+        assert b'name="filename"' in requests_mock.request_history[
+            history_index].body
+        assert b'bar' in requests_mock.request_history[history_index].body
+        history_index += 1
+
+    with pytest.raises(requests.exceptions.HTTPError):
+        session.post(
+            'http://foo',
+            files={
+                'foo': (
+                    'filename', io.BytesIO(b'bar'), 'application/vnd.ms-excel',
+                    {
+                        'Expires': '0'
+                    })
+            })
+    for _ in range(max_retries):
+        assert b'name="filename"' in requests_mock.request_history[
+            history_index].body
+        assert b'bar' in requests_mock.request_history[history_index].body
+        history_index += 1
+
+    with pytest.raises(requests.exceptions.HTTPError):
+        session.post('http://foo', data=io.BytesIO(b'bar'))
+    for _ in range(max_retries):
+        assert b'bar' == deepcopy(
+            requests_mock.request_history[history_index].body).read()
+        history_index += 1
+
+    with pytest.raises(requests.exceptions.HTTPError):
+        session.post('http://foo', data=(s for s in ['a']))
+    assert history_index + 1 == len(requests_mock.request_history)
