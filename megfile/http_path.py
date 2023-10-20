@@ -83,7 +83,10 @@ def get_http_session(
                     with SmartPath(file_object.name).open('rb') as f:
                         return io.BytesIO(f.read())
                 else:
-                    raise OSError("File be uploaded unsupport 'seek'")
+                    _logger.warning(
+                        f'Can not retry http request, because the file object is not seekable and unsupport "name"'
+                    )
+                    raise
 
             for key, file_info in files.items():
                 if hasattr(file_info, 'seek'):
