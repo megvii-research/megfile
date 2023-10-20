@@ -1,3 +1,8 @@
+## 2.2.8.post1 - 2023.10.20
+- fix
+    - fix sftp custom port not working error
+    - fix http retry error when upload file
+
 ## 2.2.8 - 2023.10.17
 - feat
     - support hdfs protocol
