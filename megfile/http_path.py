@@ -1,8 +1,9 @@
+import io
 import time
 from functools import partial
 from io import BufferedReader
 from logging import getLogger as get_logger
-from typing import Iterable, Optional, Union
+from typing import Iterable, Iterator, Optional, Union
 
 import requests
 
@@ -31,7 +32,8 @@ max_retries = 10
 
 def get_http_session(
         timeout: int = 10,
-        status_forcelist: Iterable[int] = (502, 503, 504)) -> requests.Session:
+        status_forcelist: Iterable[int] = (500, 502, 503,
+                                           504)) -> requests.Session:
     session = requests.Session()
 
     def after_callback(response, *args, **kwargs):
@@ -44,12 +46,66 @@ def get_http_session(
             'send http request: %s %r, with parameters: %s', method, url,
             kwargs)
 
+    def retry_callback(
+            error,
+            method,
+            url,
+            params=None,
+            data=None,
+            headers=None,
+            cookies=None,
+            files=None,
+            auth=None,
+            timeout=None,
+            allow_redirects=True,
+            proxies=None,
+            hooks=None,
+            stream=None,
+            verify=None,
+            cert=None,
+            json=None,
+            **kwargs,
+    ):
+        if data and hasattr(data, 'seek'):
+            data.seek(0)
+        elif isinstance(data, Iterator):
+            _logger.warning(f'Can not retry http request with iterator data')
+            raise
+        if files:
+
+            def seek_or_reopen(file_object):
+                if isinstance(file_object, (str, bytes)):
+                    return file_object
+                elif hasattr(file_object, 'seek'):
+                    file_object.seek(0)
+                    return file_object
+                elif hasattr(file_object, 'name'):
+                    with SmartPath(file_object.name).open('rb') as f:
+                        return io.BytesIO(f.read())
+                else:
+                    raise OSError("File be uploaded unsupport 'seek'")
+
+            for key, file_info in files.items():
+                if hasattr(file_info, 'seek'):
+                    file_info.seek(0)
+                elif isinstance(file_info,
+                                (tuple, list)) and len(file_info) >= 2:
+                    file_info = list(file_info)
+                    if isinstance(file_info[1],
+                                  (tuple, list)) and len(file_info[1]) >= 2:
+                        file_info[1] = list(file_info[1])
+                        file_info[1] = seek_or_reopen(file_info[1])
+                    else:
+                        file_info[1] = seek_or_reopen(file_info[1])
+                    files[key] = file_info
+
     session.request = patch_method(
         partial(session.request, timeout=timeout),
         max_retries=max_retries,
         should_retry=http_should_retry,
         before_callback=before_callback,
         after_callback=after_callback,
+        retry_callback=retry_callback,
     )
     return session
 
