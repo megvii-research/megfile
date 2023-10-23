@@ -3,7 +3,7 @@ import time
 from functools import partial
 from io import BufferedReader
 from logging import getLogger as get_logger
-from typing import Iterable, Iterator, Optional, Union
+from typing import Iterable, Iterator, Optional, Tuple, Union
 
 import requests
 
@@ -31,9 +31,9 @@ max_retries = 10
 
 
 def get_http_session(
-        timeout: int = 10,
-        status_forcelist: Iterable[int] = (500, 502, 503,
-                                           504)) -> requests.Session:
+        timeout: Union[int, Tuple[int, int]] = (9, 60),
+        status_forcelist: Iterable[int] = (500, 502, 503, 504)
+) -> requests.Session:
     session = requests.Session()
 
     def after_callback(response, *args, **kwargs):
