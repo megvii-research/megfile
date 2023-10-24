@@ -80,7 +80,7 @@ def get_hdfs_config(profile_name: Optional[str] = None):
         return config
 
     raise hdfs_api.HdfsError(
-        'Config error, please set enviroments or use "refile config hdfs ..."')
+        'Config error, please set enviroments or use "megfile config hdfs ..."')
 
 
 @lru_cache()
