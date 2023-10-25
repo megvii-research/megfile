@@ -430,11 +430,13 @@ def smart_sync(
     :param map_func: A Callable func like `map`. You can use ThreadPoolExecutor.map, Pool.map and so on if you need concurrent capability.
             default is standard library `map`.
     '''
+    if not smart_exists(src_path):
+        raise FileNotFoundError(f'No match file: {src_path}')
+
     src_path, dst_path = get_traditional_path(src_path), get_traditional_path(
         dst_path)
     if not src_file_stats:
-        src_file_stats = smart_scan_stat(
-            src_path, missing_ok=False, followlinks=followlinks)
+        src_file_stats = smart_scan_stat(src_path, followlinks=followlinks)
 
     def create_generator():
         for src_file_entry in src_file_stats:
@@ -461,10 +463,12 @@ def smart_sync_with_progress(
         followlinks: bool = False,
         map_func: Callable[[Callable, Iterable], Iterator] = map,
         force: bool = False):
+    if not smart_exists(src_path):
+        raise FileNotFoundError(f'No match file: {src_path}')
+
     src_path, dst_path = get_traditional_path(src_path), get_traditional_path(
         dst_path)
-    file_stats = list(
-        smart_scan_stat(src_path, missing_ok=False, followlinks=followlinks))
+    file_stats = list(smart_scan_stat(src_path, followlinks=followlinks))
     tbar = tqdm(total=len(file_stats), ascii=True)
     sbar = tqdm(unit='B', ascii=True, unit_scale=True, unit_divisor=1024)
 

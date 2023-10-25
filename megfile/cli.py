@@ -290,9 +290,11 @@ def sync(
     with ThreadPoolExecutor(max_workers=worker) as executor:
         if has_magic(src_path):
             src_root_path = get_non_glob_dir(src_path)
+            if not smart_exists(src_root_path):
+                raise FileNotFoundError(f'No match file: {src_path}')
 
             def scan_func(path):
-                for glob_file_entry in smart_glob_stat(path, missing_ok=False):
+                for glob_file_entry in smart_glob_stat(path):
                     if glob_file_entry.is_file():
                         yield glob_file_entry
                     else:
@@ -300,9 +302,10 @@ def sync(
                                                           followlinks=True):
                             yield file_entry
         else:
+            if not smart_exists(src_path):
+                raise FileNotFoundError(f'No match file: {src_path}')
             src_root_path = src_path
-            scan_func = partial(
-                smart_scan_stat, followlinks=True, missing_ok=False)
+            scan_func = partial(smart_scan_stat, followlinks=True)
 
         if progress_bar and not quiet:
             print('building progress bar', end='\r')
