@@ -4,7 +4,7 @@ You can use enviroments and configuration file for configuration, and priority i
 ### Use enviroments
 You can use enviroments to setup authentication credentials and other configuration items:
 - `HDFS_USER`: hdfs user
-- `HDFS_URL`: The url can be configured to support High Availability namenodes when using WebHDFS, simply add more URLs by delimiting with a semicolon (`;`)
+- `HDFS_URL`: The url can be configured to support High Availability namenodes of **WebHDFS**, simply add more URLs by delimiting with a semicolon (`;`)
 - `HDFS_ROOT`: hdfs root directory when using relative path
 - `HDFS_TIMEOUT`: request hdfs server timeout
 - `HDFS_TOKEN`: hdfs token if hdfs server require
@@ -15,7 +15,7 @@ You can update config file with `megfile` command easyly:
 [megfile config hdfs [OPTIONS] URL](https://megvii-research.github.io/megfile/cli.html#megfile-config-hdfs) 
 
 ```bash
-$ megfile config hdfs http://127.0.0.1:8000 --user admin --root '/' --token xxx
+$ megfile config hdfs http://127.0.0.1:50070 --user admin --root '/' --token xxx
 ```
 
 You can get the configuration from `~/.hdfscli.cfg`, like:
@@ -24,7 +24,7 @@ You can get the configuration from `~/.hdfscli.cfg`, like:
 default.alias = default
 
 [default.alias]
-url = http://127.0.0.1:8000
+url = http://127.0.0.1:50070
 user = admin
 root = /
 token = xxx

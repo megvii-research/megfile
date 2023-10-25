@@ -27,7 +27,11 @@ DEBUG = False
 @click.group()
 @click.option('--debug', is_flag=True, help='Enable debug mode.')
 def cli(debug):
-    """Client"""
+    """
+    Client for megfile.
+    
+    If you install megfile with ``--user``, you also need configure ``$HOME/.local/bin`` into ``$PATH``.
+    """
     global DEBUG
     DEBUG = debug
 
