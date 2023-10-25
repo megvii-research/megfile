@@ -1,3 +1,7 @@
+## 2.2.8.post2 - 2023.10.25
+- fix
+    - fix sync when empty dir
+
 ## 2.2.8.post1 - 2023.10.20
 - fix
     - fix sftp custom port not working error
