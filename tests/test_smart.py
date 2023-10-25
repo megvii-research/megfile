@@ -364,6 +364,10 @@ def test_smart_sync(mocker):
                 FileEntry(name='d', path="a/d", stat=None),
             ]
 
+    def exists(path, followlinks: bool = False):
+        return path in ('folder', 'folder/fileA', 'a')
+
+    mocker.patch('megfile.smart.smart_exists', side_effect=exists)
     smart_scan_stat.side_effect = scan_stat
 
     smart.smart_sync('folder', 'dst', followlinks=True)
