@@ -713,8 +713,9 @@ class SftpPath(URIPath):
 
         fs = FSFunc(_exist, _is_dir, _scandir)
         for real_path in _create_missing_ok_generator(
-                iglob(fspath(glob_path), recursive=recursive, fs=fs),
-                missing_ok, FileNotFoundError('No match file: %r' % glob_path)):
+                iglob(fspath(glob_path), recursive=recursive,
+                      fs=fs), missing_ok,
+                FileNotFoundError('No match any file: %r' % glob_path)):
             yield self.from_path(real_path)
 
     def is_dir(self, followlinks: bool = False) -> bool:
@@ -955,7 +956,8 @@ class SftpPath(URIPath):
 
         return _create_missing_ok_generator(
             create_generator(), missing_ok,
-            FileNotFoundError('No match file: %r' % self.path_with_protocol))
+            FileNotFoundError(
+                'No match any file in: %r' % self.path_with_protocol))
 
     def scandir(self) -> Iterator[FileEntry]:
         '''

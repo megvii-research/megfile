@@ -1483,7 +1483,7 @@ class S3Path(URIPath):
 
         return _create_missing_ok_generator(
             create_generator(), missing_ok,
-            S3FileNotFoundError('No match file: %r' % s3_pathname))
+            S3FileNotFoundError('No match any file: %r' % s3_pathname))
 
     def iglob(
             self,
@@ -1827,7 +1827,8 @@ class S3Path(URIPath):
 
         return _create_missing_ok_generator(
             create_generator(), missing_ok,
-            S3FileNotFoundError('No match file: %r' % self.path_with_protocol))
+            S3FileNotFoundError(
+                'No match any file in: %r' % self.path_with_protocol))
 
     def scandir(self, followlinks: bool = False) -> Iterator[FileEntry]:
         '''

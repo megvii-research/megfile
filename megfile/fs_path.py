@@ -112,7 +112,7 @@ def fs_iglob(path: PathLike, recursive: bool = True,
     '''
     for path in _create_missing_ok_generator(
             iglob(fspath(path), recursive=recursive), missing_ok,
-            FileNotFoundError('No match file: %r' % path)):
+            FileNotFoundError('No match any file: %r' % path)):
         yield path
 
 
@@ -547,7 +547,7 @@ class FSPath(URIPath):
         '''
         return _create_missing_ok_generator(
             self._scan(followlinks=followlinks), missing_ok,
-            FileNotFoundError('No match file: %r' % self.path_without_protocol))
+            FileNotFoundError('No match any file in: %r' % self.path))
 
     def scan_stat(self, missing_ok: bool = True,
                   followlinks: bool = False) -> Iterator[FileEntry]:
@@ -567,7 +567,7 @@ class FSPath(URIPath):
             if missing_ok:
                 return
             raise FileNotFoundError(
-                'No match file: %r' % self.path_without_protocol)
+                'No match any file in: %r' % self.path_without_protocol)
 
     def scandir(self) -> Iterator[FileEntry]:
         '''
