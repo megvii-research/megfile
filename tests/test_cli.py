@@ -4,7 +4,7 @@ import os
 import pytest
 from click.testing import CliRunner
 
-from megfile.cli import cat, cp, hdfs, head, ls, md5sum, mkdir, mtime, mv, rm, s3, size, stat, sync, tail, to, touch, version
+from megfile.cli import cat, cp, hdfs, head, ll, ls, md5sum, mkdir, mtime, mv, rm, s3, size, stat, sync, tail, to, touch, version
 
 from .test_smart import s3_empty_client
 
@@ -70,7 +70,7 @@ def test_ls_long(runner, testdir):
     result = runner.invoke(ls, ['--long', str(testdir)])
 
     assert result.exit_code == 0
-    assert result.output.endswith('text\n')
+    assert result.output.endswith('text\ntotal: 5 B\n')
     assert ' 5 ' in result.output
 
 
@@ -78,8 +78,16 @@ def test_ls_hunman_readable(runner, testdir):
     result = runner.invoke(ls, ['--long', '--human-readable', str(testdir)])
 
     assert result.exit_code == 0
-    assert result.output.endswith('text\n')
+    assert result.output.endswith('text\ntotal: 5 B\n')
     assert ' 5 B ' in result.output
+
+
+def test_ll(runner, testdir):
+    result_ls = runner.invoke(ls, ['--long', '--human-readable', str(testdir)])
+    result_ll = runner.invoke(ll, [str(testdir)])
+
+    assert result_ll.exit_code == 0
+    assert result_ls.output == result_ll.output
 
 
 def test_cat(runner, testdir):

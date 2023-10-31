@@ -86,6 +86,33 @@ def smart_list_stat(path):
         yield from smart_scandir(path)
 
 
+def _ls(path: str, long: bool, recursive: bool, human_readable: bool):
+    base_path = path
+    full_path = False
+    if has_magic(path):
+        scan_func = smart_glob_stat
+        base_path = get_non_glob_dir(path)
+        full_path = True
+    elif recursive:
+        scan_func = smart_scan_stat
+    else:
+        scan_func = smart_list_stat
+    if long:
+        if human_readable:
+            echo_func = human_echo
+        else:
+            echo_func = long_echo
+    else:
+        echo_func = simple_echo
+
+    total_size = 0
+    for file_stat in scan_func(path):
+        total_size += file_stat.stat.size
+        echo_func(file_stat, base_path, full_path=full_path)
+    if long:
+        click.echo(f'total: {get_human_size(total_size)}')
+
+
 @cli.command(short_help='List all the objects in the path.')
 @click.argument('path')
 @click.option(
@@ -107,26 +134,20 @@ def smart_list_stat(path):
     is_flag=True,
     help='Displays file sizes in human readable format.')
 def ls(path: str, long: bool, recursive: bool, human_readable: bool):
-    base_path = path
-    full_path = False
-    if has_magic(path):
-        scan_func = smart_glob_stat
-        base_path = get_non_glob_dir(path)
-        full_path = True
-    elif recursive:
-        scan_func = smart_scan_stat
-    else:
-        scan_func = smart_list_stat
-    if long:
-        if human_readable:
-            echo_func = human_echo
-        else:
-            echo_func = long_echo
-    else:
-        echo_func = simple_echo
+    _ls(path, long=long, recursive=recursive, human_readable=human_readable)
 
-    for file_stat in scan_func(path):
-        echo_func(file_stat, base_path, full_path=full_path)
+
+@cli.command(short_help='List all the objects in the path.')
+@click.argument('path')
+@click.option(
+    '-r',
+    '--recursive',
+    is_flag=True,
+    help=
+    'Command is performed on all files or objects under the specified directory or prefix.'
+)
+def ll(path: str, recursive: bool):
+    _ls(path, long=True, recursive=recursive, human_readable=True)
 
 
 @cli.command(
