@@ -479,9 +479,12 @@ def sftp_upload(
 
     sftp_callback = None
     if callback:
+        bytes_transferred_before = 0
 
         def sftp_callback(bytes_transferred: int, _total_bytes: int):
-            callback(bytes_transferred)
+            nonlocal bytes_transferred_before
+            callback(bytes_transferred - bytes_transferred_before)
+            bytes_transferred_before = bytes_transferred
 
     dst_path._client.put(
         src_path.path_without_protocol,
