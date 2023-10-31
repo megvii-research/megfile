@@ -174,7 +174,8 @@ def cp(
         no_target_directory: bool,
         progress_bar: bool,
 ):
-    if not no_target_directory and smart_isdir(dst_path):
+    if not no_target_directory and (dst_path.endswith('/') or
+                                    smart_isdir(dst_path)):
         dst_path = smart_path_join(dst_path, os.path.basename(src_path))
     if recursive:
         with ThreadPoolExecutor(max_workers=(os.cpu_count() or 1) *
@@ -235,7 +236,8 @@ def mv(
         no_target_directory: bool,
         progress_bar: bool,
 ):
-    if smart_isdir(dst_path) and not no_target_directory:
+    if not no_target_directory and (dst_path.endswith('/') or
+                                    smart_isdir(dst_path)):
         dst_path = smart_path_join(dst_path, os.path.basename(src_path))
     if progress_bar:
         src_protocol, _ = SmartPath._extract_protocol(src_path)
