@@ -1,3 +1,14 @@
+## 2.2.9 - 2023.10.31
+- feat
+    - cli support `ll` command
+- perf
+    - optimize error message of scan funcs
+    - when dst in cli `mv` and `cp` is endswith `/`, will put file into the dst dir even if it doesn't exist
+- fix
+    - fix sync when empty dir
+    - fix the return value of the callback for smart_copy when the path is sftp
+
+
 ## 2.2.8.post2 - 2023.10.25
 - fix
     - fix sync when empty dir
