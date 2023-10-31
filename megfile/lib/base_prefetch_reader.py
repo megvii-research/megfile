@@ -13,7 +13,7 @@ from megfile.utils import get_human_size, process_local
 
 DEFAULT_BLOCK_SIZE = 8 * 2**20  # 8MB
 DEFAULT_BLOCK_CAPACITY = 16
-GLOBAL_MAX_WORKERS = 128
+GLOBAL_MAX_WORKERS = 32
 
 BACKOFF_INITIAL = 64 * 2**20  # 64MB
 BACKOFF_FACTOR = 4
