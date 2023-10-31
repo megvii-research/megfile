@@ -83,7 +83,7 @@ You can use enviroments and configuration file for configuration, and priority i
 <p>You can use enviroments to setup authentication credentials and other configuration items:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">HDFS_USER</span></code>: hdfs user</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">HDFS_URL</span></code>: The url can be configured to support High Availability namenodes when using WebHDFS, simply add more URLs by delimiting with a semicolon (<code class="docutils literal notranslate"><span class="pre">;</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">HDFS_URL</span></code>: The url can be configured to support High Availability namenodes of <strong>WebHDFS</strong>, simply add more URLs by delimiting with a semicolon (<code class="docutils literal notranslate"><span class="pre">;</span></code>)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">HDFS_ROOT</span></code>: hdfs root directory when using relative path</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">HDFS_TIMEOUT</span></code>: request hdfs server timeout</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">HDFS_TOKEN</span></code>: hdfs token if hdfs server require</p></li>
@@ -94,7 +94,7 @@ You can use enviroments and configuration file for configuration, and priority i
 <h1>Use command<a class="headerlink" href="#use-command" title="Permalink to this heading"></a></h1>
 <p>You can update config file with <code class="docutils literal notranslate"><span class="pre">megfile</span></code> command easyly:
 <a class="reference external" href="https://megvii-research.github.io/megfile/cli.html#megfile-config-hdfs">megfile config hdfs [OPTIONS] URL</a></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>megfile<span class="w"> </span>config<span class="w"> </span>hdfs<span class="w"> </span>http://127.0.0.1:8000<span class="w"> </span>--user<span class="w"> </span>admin<span class="w"> </span>--root<span class="w"> </span><span class="s1">&#39;/&#39;</span><span class="w"> </span>--token<span class="w"> </span>xxx
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>megfile<span class="w"> </span>config<span class="w"> </span>hdfs<span class="w"> </span>http://127.0.0.1:50070<span class="w"> </span>--user<span class="w"> </span>admin<span class="w"> </span>--root<span class="w"> </span><span class="s1">&#39;/&#39;</span><span class="w"> </span>--token<span class="w"> </span>xxx
 </pre></div>
 </div>
 <p>You can get the configuration from <code class="docutils literal notranslate"><span class="pre">~/.hdfscli.cfg</span></code>, like:</p>
@@ -102,7 +102,7 @@ You can use enviroments and configuration file for configuration, and priority i
 <span class="na">default.alias</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">default</span>
 
 <span class="k">[default.alias]</span>
-<span class="na">url</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">http://127.0.0.1:8000</span>
+<span class="na">url</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">http://127.0.0.1:50070</span>
 <span class="na">user</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">admin</span>
 <span class="na">root</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">/</span>
 <span class="na">token</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">xxx</span>

@@ -508,11 +508,13 @@
 <span class="sd">    :param map_func: A Callable func like `map`. You can use ThreadPoolExecutor.map, Pool.map and so on if you need concurrent capability.</span>
 <span class="sd">            default is standard library `map`.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">smart_exists</span><span class="p">(</span><span class="n">src_path</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;No match file: </span><span class="si">{</span><span class="n">src_path</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
     <span class="n">src_path</span><span class="p">,</span> <span class="n">dst_path</span> <span class="o">=</span> <span class="n">get_traditional_path</span><span class="p">(</span><span class="n">src_path</span><span class="p">),</span> <span class="n">get_traditional_path</span><span class="p">(</span>
         <span class="n">dst_path</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">src_file_stats</span><span class="p">:</span>
-        <span class="n">src_file_stats</span> <span class="o">=</span> <span class="n">smart_scan_stat</span><span class="p">(</span>
-            <span class="n">src_path</span><span class="p">,</span> <span class="n">missing_ok</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span>
+        <span class="n">src_file_stats</span> <span class="o">=</span> <span class="n">smart_scan_stat</span><span class="p">(</span><span class="n">src_path</span><span class="p">,</span> <span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">create_generator</span><span class="p">():</span>
         <span class="k">for</span> <span class="n">src_file_entry</span> <span class="ow">in</span> <span class="n">src_file_stats</span><span class="p">:</span>
@@ -539,10 +541,12 @@
         <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">map_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Callable</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">],</span> <span class="n">Iterator</span><span class="p">]</span> <span class="o">=</span> <span class="nb">map</span><span class="p">,</span>
         <span class="n">force</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">smart_exists</span><span class="p">(</span><span class="n">src_path</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;No match file: </span><span class="si">{</span><span class="n">src_path</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
     <span class="n">src_path</span><span class="p">,</span> <span class="n">dst_path</span> <span class="o">=</span> <span class="n">get_traditional_path</span><span class="p">(</span><span class="n">src_path</span><span class="p">),</span> <span class="n">get_traditional_path</span><span class="p">(</span>
         <span class="n">dst_path</span><span class="p">)</span>
-    <span class="n">file_stats</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
-        <span class="n">smart_scan_stat</span><span class="p">(</span><span class="n">src_path</span><span class="p">,</span> <span class="n">missing_ok</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">))</span>
+    <span class="n">file_stats</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">smart_scan_stat</span><span class="p">(</span><span class="n">src_path</span><span class="p">,</span> <span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">))</span>
     <span class="n">tbar</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">file_stats</span><span class="p">),</span> <span class="n">ascii</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">sbar</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">unit</span><span class="o">=</span><span class="s1">&#39;B&#39;</span><span class="p">,</span> <span class="n">ascii</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">unit_scale</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">unit_divisor</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span>
 

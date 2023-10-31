@@ -58,6 +58,7 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#megfile-cp">cp</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#megfile-head">head</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#megfile-ll">ll</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#megfile-ls">ls</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#megfile-md5sum">md5sum</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#megfile-mkdir">mkdir</a></li>
@@ -108,7 +109,8 @@
 <h1>Command Line Interface<a class="headerlink" href="#command-line-interface" title="Permalink to this heading"></a></h1>
 <section id="megfile">
 <h2>megfile<a class="headerlink" href="#megfile" title="Permalink to this heading"></a></h2>
-<p>Client</p>
+<p>Client for megfile.</p>
+<p>If you install megfile with <code class="docutils literal notranslate"><span class="pre">--user</span></code>, you also need configure <code class="docutils literal notranslate"><span class="pre">$HOME/.local/bin</span></code> into <code class="docutils literal notranslate"><span class="pre">$PATH</span></code>.</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>megfile<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>COMMAND<span class="w"> </span><span class="o">[</span>ARGS<span class="o">]</span>...
 </pre></div>
 </div>
@@ -304,6 +306,27 @@
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-megfile-head-arg-PATH">
 <span id="cmdoption-megfile-head-arg-path"></span><span class="sig-name descname"><span class="pre">PATH</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-megfile-head-arg-PATH" title="Permalink to this definition"></a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+</section>
+<section id="megfile-ll">
+<h3>ll<a class="headerlink" href="#megfile-ll" title="Permalink to this heading"></a></h3>
+<p>List all the objects in the path.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>megfile<span class="w"> </span>ll<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>PATH
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-megfile-ll-r">
+<span id="cmdoption-megfile-ll-recursive"></span><span class="sig-name descname"><span class="pre">-r</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--recursive</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-megfile-ll-r" title="Permalink to this definition"></a></dt>
+<dd><p>Command is performed on all files or objects under the specified directory or prefix.</p>
+</dd></dl>
+
+<p class="rubric">Arguments</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-megfile-ll-arg-PATH">
+<span id="cmdoption-megfile-ll-arg-path"></span><span class="sig-name descname"><span class="pre">PATH</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-megfile-ll-arg-PATH" title="Permalink to this definition"></a></dt>
 <dd><p>Required argument</p>
 </dd></dl>
 

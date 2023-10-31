@@ -1561,7 +1561,7 @@
 
         <span class="k">return</span> <span class="n">_create_missing_ok_generator</span><span class="p">(</span>
             <span class="n">create_generator</span><span class="p">(),</span> <span class="n">missing_ok</span><span class="p">,</span>
-            <span class="n">S3FileNotFoundError</span><span class="p">(</span><span class="s1">&#39;No match file: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">s3_pathname</span><span class="p">))</span></div>
+            <span class="n">S3FileNotFoundError</span><span class="p">(</span><span class="s1">&#39;No match any file: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">s3_pathname</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="S3Path.iglob"><a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3.S3Path.iglob">[docs]</a>    <span class="k">def</span> <span class="nf">iglob</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
@@ -1905,7 +1905,8 @@
 
         <span class="k">return</span> <span class="n">_create_missing_ok_generator</span><span class="p">(</span>
             <span class="n">create_generator</span><span class="p">(),</span> <span class="n">missing_ok</span><span class="p">,</span>
-            <span class="n">S3FileNotFoundError</span><span class="p">(</span><span class="s1">&#39;No match file: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">))</span></div>
+            <span class="n">S3FileNotFoundError</span><span class="p">(</span>
+                <span class="s1">&#39;No match any file in: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="S3Path.scandir"><a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3.S3Path.scandir">[docs]</a>    <span class="k">def</span> <span class="nf">scandir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">FileEntry</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
