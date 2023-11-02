@@ -950,7 +950,10 @@ class SftpPath(URIPath):
             for name in self.listdir():
                 current_path = self.joinpath(name)
                 if current_path.is_dir():
-                    yield from current_path.scan_stat()
+                    yield from current_path.scan_stat(
+                        missing_ok=missing_ok,
+                        followlinks=followlinks,
+                    )
                 else:
                     yield FileEntry(
                         current_path.name,  # type: ignore

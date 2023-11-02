@@ -580,7 +580,8 @@ class FSPath(URIPath):
             with os.scandir(self.path_without_protocol) as entries:
                 for entry in entries:
                     yield FileEntry(
-                        entry.name, entry.path, _make_stat(entry.stat()))
+                        entry.name, entry.path,
+                        _make_stat(entry.stat(follow_symlinks=False)))
 
         return ContextIterator(create_generator())
 
