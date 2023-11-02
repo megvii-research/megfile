@@ -1821,6 +1821,19 @@ class S3Path(URIPath):
                         full_path = s3_path_join(
                             f'{self._protocol_with_profile}://', bucket,
                             content['Key'])
+
+                        try:
+                            origin_path = self.from_path(full_path).readlink()
+                            content['islnk'] = True
+                            if followlinks:
+                                yield FileEntry(
+                                    origin_path.name,
+                                    origin_path.path_with_protocol,
+                                    origin_path.lstat())
+                                continue
+                        except S3NotALinkError:
+                            pass
+
                         yield FileEntry(
                             S3Path(full_path).name, full_path,
                             _make_stat(content))
@@ -1885,8 +1898,17 @@ class S3Path(URIPath):
                         src_url = generate_s3_path(
                             self._protocol_with_profile, bucket, content['Key'])
 
-                        if followlinks and S3Path(src_url).is_symlink():
+                        try:
+                            origin_path = self.from_path(src_url).readlink()
                             content['islnk'] = True
+                            if followlinks:
+                                yield FileEntry(
+                                    origin_path.name,
+                                    origin_path.path_with_protocol,
+                                    origin_path.lstat())
+                                continue
+                        except S3NotALinkError:
+                            pass
 
                         yield FileEntry(
                             content['Key'][len(prefix):], src_url,
