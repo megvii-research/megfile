@@ -1,3 +1,7 @@
+## 2.2.9.post1 - 2023.11.02
+- fix
+    - fix `is_symlink` in `StatResult` from scan funcs
+
 ## 2.2.9 - 2023.10.31
 - feat
     - cli support `ll` command
