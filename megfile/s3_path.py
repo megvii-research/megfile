@@ -960,8 +960,13 @@ def s3_download(
         os.makedirs(dst_directory, exist_ok=True)
 
     client = get_s3_client(profile_name=src_url._profile_name)
+    download_file = patch_method(
+        client.download_file,
+        max_retries=max_retries,
+        should_retry=s3_should_retry,
+    )
     try:
-        client.download_file(
+        download_file(
             src_bucket,
             src_key,
             dst_path.path_without_protocol,
@@ -1001,10 +1006,15 @@ def s3_upload(
         raise S3IsADirectoryError('Is a directory: %r' % dst_url)
 
     client = get_s3_client(profile_name=S3Path(dst_url)._profile_name)
-    with open(src_path.path_without_protocol, 'rb') as src:
-        with raise_s3_error(dst_url):
-            client.upload_fileobj(
-                src, Bucket=dst_bucket, Key=dst_key, Callback=callback)
+    upload_fileobj = patch_method(
+        client.upload_fileobj,
+        max_retries=max_retries,
+        should_retry=s3_should_retry,
+    )
+
+    with open(src_path.path_without_protocol,
+              'rb') as src, raise_s3_error(dst_url):
+        upload_fileobj(src, Bucket=dst_bucket, Key=dst_key, Callback=callback)
 
 
 def s3_load_content(
@@ -2292,17 +2302,27 @@ class MultiPartWriter:
     def upload_part_by_paths(
             self, part_num: int, paths: List[Tuple[PathLike, str]]) -> None:
         file_obj = io.BytesIO()
+
+        def get_object(
+                client, bucket, key, range_str: Optional[str] = None) -> bytes:
+            if range_str:
+                return client.get_object(
+                    Bucket=bucket, Key=key, Range=range_str)['Body'].read()
+            else:
+                return client.get_object(Bucket=bucket, Key=key)['Body'].read()
+
+        get_object = patch_method(
+            get_object,
+            max_retries=max_retries,
+            should_retry=s3_should_retry,
+        )
         for path, bytes_range in paths:
             bucket, key = parse_s3_url(path)
             if bytes_range:
                 file_obj.write(
-                    self._client.get_object(
-                        Bucket=bucket, Key=key,
-                        Range=bytes_range)['Body'].read())
+                    get_object(self._client, bucket, key, bytes_range))
             else:
-                file_obj.write(
-                    self._client.get_object(Bucket=bucket,
-                                            Key=key)['Body'].read())
+                file_obj.write(get_object(self._client, bucket, key))
         file_obj.seek(0, os.SEEK_SET)
         self.upload_part(part_num, file_obj)
 
