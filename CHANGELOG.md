@@ -1,3 +1,7 @@
+## 2.2.9.post2 - 2023.11.08
+- fix
+    - fix the issue where `s3_upload` and `s3_download` are not retrying correctly.
+
 ## 2.2.9.post1 - 2023.11.02
 - fix
     - fix `is_symlink` in `StatResult` from scan funcs
