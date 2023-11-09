@@ -1,3 +1,7 @@
+## 2.2.9.post3 - 2023.11.09
+- fix
+    - Reduce unnecessary requests in the s3 scan.
+
 ## 2.2.9.post2 - 2023.11.08
 - fix
     - fix the issue where `s3_upload` and `s3_download` are not retrying correctly.
