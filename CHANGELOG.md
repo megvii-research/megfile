@@ -1,3 +1,7 @@
+## 2.2.9.post4 - 2023.11.17
+- fix
+    - The file object returned by `sftp_open` supports the `name` property.
+
 ## 2.2.9.post3 - 2023.11.09
 - fix
     - Reduce unnecessary requests in the s3 scan.
