@@ -1159,6 +1159,7 @@ class SftpPath(URIPath):
             raise FileNotFoundError(
                 'No such file: %r' % self.path_with_protocol)
         fileobj = self._client.open(self._real_path, mode, bufsize=buffering)
+        fileobj.name = self.path
         if 'r' in mode and 'b' not in mode:
             return io.TextIOWrapper(
                 fileobj, encoding=encoding, errors=errors)  # type: ignore
