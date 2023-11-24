@@ -90,9 +90,11 @@ s3_retry_exceptions = [
     botocore.exceptions.IncompleteReadError,
     botocore.exceptions.EndpointConnectionError,
     botocore.exceptions.ReadTimeoutError,
+    botocore.exceptions.ConnectTimeoutError,
     botocore.exceptions.ProxyConnectionError,
     botocore.exceptions.ConnectionClosedError,
     requests.exceptions.ReadTimeout,
+    requests.exceptions.ConnectTimeout,
     urllib3.exceptions.IncompleteRead,
     urllib3.exceptions.ProtocolError,
     urllib3.exceptions.ReadTimeoutError,
@@ -116,6 +118,7 @@ def s3_should_retry(error: Exception) -> bool:
 
 http_retry_exceptions = (
     requests.exceptions.ReadTimeout,
+    requests.exceptions.ConnectTimeout,
     requests.exceptions.ChunkedEncodingError,
     requests.exceptions.HTTPError,
     requests.exceptions.ProxyError,
