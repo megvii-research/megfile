@@ -145,6 +145,8 @@ def test_s3_should_retry():
             assert s3_should_retry(Error(endpoint_url='test')) is True
         elif Error is botocore.exceptions.ReadTimeoutError:
             assert s3_should_retry(Error(endpoint_url='test')) is True
+        elif Error is botocore.exceptions.ConnectTimeoutError:
+            assert s3_should_retry(Error(endpoint_url='test')) is True
         elif Error is botocore.exceptions.ResponseStreamingError:
             assert s3_should_retry(Error(error='test')) is True
         elif Error is botocore.exceptions.ProxyConnectionError:
