@@ -1,3 +1,7 @@
+## 2.2.9.post4 - 2023.11.26
+- fix
+    - add connect errors to retry list
+
 ## 2.2.9.post4 - 2023.11.17
 - fix
     - The file object returned by `sftp_open` supports the `name` property.
