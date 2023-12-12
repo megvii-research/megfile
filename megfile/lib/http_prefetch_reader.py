@@ -4,8 +4,9 @@ from typing import Optional
 
 import requests
 
+from megfile.config import DEFAULT_BLOCK_CAPACITY, DEFAULT_BLOCK_SIZE
 from megfile.errors import UnsupportedError, http_should_retry, patch_method
-from megfile.lib.base_prefetch_reader import DEFAULT_BLOCK_CAPACITY, DEFAULT_BLOCK_SIZE, BasePrefetchReader
+from megfile.lib.base_prefetch_reader import BasePrefetchReader
 
 
 class HttpPrefetchReader(BasePrefetchReader):

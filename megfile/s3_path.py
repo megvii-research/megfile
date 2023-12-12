@@ -12,6 +12,7 @@ import boto3
 import botocore
 from botocore.awsrequest import AWSResponse
 
+from megfile.config import DEFAULT_BLOCK_SIZE
 from megfile.errors import S3BucketNotFoundError, S3ConfigError, S3FileExistsError, S3FileNotFoundError, S3IsADirectoryError, S3NameTooLongError, S3NotADirectoryError, S3NotALinkError, S3PermissionError, S3UnknownError, SameFileError, UnsupportedError, _create_missing_ok_generator
 from megfile.errors import _logger as error_logger
 from megfile.errors import patch_method, raise_s3_error, s3_error_code_should_retry, s3_should_retry, translate_fs_error, translate_s3_error
@@ -26,7 +27,7 @@ from megfile.lib.s3_cached_handler import S3CachedHandler
 from megfile.lib.s3_limited_seekable_writer import S3LimitedSeekableWriter
 from megfile.lib.s3_memory_handler import S3MemoryHandler
 from megfile.lib.s3_pipe_handler import S3PipeHandler
-from megfile.lib.s3_prefetch_reader import DEFAULT_BLOCK_SIZE, S3PrefetchReader
+from megfile.lib.s3_prefetch_reader import S3PrefetchReader
 from megfile.lib.s3_share_cache_reader import S3ShareCacheReader
 from megfile.lib.url import get_url_scheme
 from megfile.smart_path import SmartPath

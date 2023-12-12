@@ -7,9 +7,9 @@ from typing import Iterable, Iterator, Optional, Tuple, Union
 
 import requests
 
+from megfile.config import DEFAULT_BLOCK_SIZE
 from megfile.errors import http_should_retry, patch_method, translate_http_error
 from megfile.interfaces import PathLike, StatResult, URIPath
-from megfile.lib.base_prefetch_reader import DEFAULT_BLOCK_SIZE
 from megfile.lib.compat import fspath
 from megfile.lib.http_prefetch_reader import HttpPrefetchReader
 from megfile.lib.s3_buffered_writer import DEFAULT_MAX_BUFFER_SIZE
