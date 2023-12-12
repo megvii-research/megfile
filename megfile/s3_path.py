@@ -12,6 +12,7 @@ import boto3
 import botocore
 from botocore.awsrequest import AWSResponse
 
+from megfile.config import DEFAULT_BLOCK_SIZE, GLOBAL_MAX_WORKERS, S3_CLIENT_CACHE_MODE
 from megfile.errors import S3BucketNotFoundError, S3ConfigError, S3FileExistsError, S3FileNotFoundError, S3IsADirectoryError, S3NameTooLongError, S3NotADirectoryError, S3NotALinkError, S3PermissionError, S3UnknownError, SameFileError, UnsupportedError, _create_missing_ok_generator
 from megfile.errors import _logger as error_logger
 from megfile.errors import patch_method, raise_s3_error, s3_error_code_should_retry, s3_should_retry, translate_fs_error, translate_s3_error
@@ -26,11 +27,11 @@ from megfile.lib.s3_cached_handler import S3CachedHandler
 from megfile.lib.s3_limited_seekable_writer import S3LimitedSeekableWriter
 from megfile.lib.s3_memory_handler import S3MemoryHandler
 from megfile.lib.s3_pipe_handler import S3PipeHandler
-from megfile.lib.s3_prefetch_reader import DEFAULT_BLOCK_SIZE, S3PrefetchReader
+from megfile.lib.s3_prefetch_reader import S3PrefetchReader
 from megfile.lib.s3_share_cache_reader import S3ShareCacheReader
 from megfile.lib.url import get_url_scheme
 from megfile.smart_path import SmartPath
-from megfile.utils import cachedproperty, calculate_md5, classproperty, generate_cache_path, get_binary_mode, get_content_offset, is_readable, necessary_params, thread_local
+from megfile.utils import cachedproperty, calculate_md5, generate_cache_path, get_binary_mode, get_content_offset, is_readable, necessary_params, process_local, thread_local
 
 __all__ = [
     'S3Path',
@@ -67,7 +68,7 @@ __all__ = [
 _logger = get_logger(__name__)
 content_md5_header = 'megfile-content-md5'
 endpoint_url = 'https://s3.amazonaws.com'
-max_pool_connections = 32
+max_pool_connections = GLOBAL_MAX_WORKERS  # for compatibility
 max_retries = 10
 max_keys = 1000
 
@@ -195,16 +196,22 @@ def get_s3_client(
     :returns: S3 client
     '''
     if cache_key is not None:
-        return thread_local(
+        local_storage = thread_local
+        if S3_CLIENT_CACHE_MODE == 'process_local':
+            local_storage = process_local
+        return local_storage(
             f"{cache_key}:{profile_name}",
             get_s3_client,
             config=config,
             profile_name=profile_name)
 
     if config:
-        config = config.merge(botocore.config.Config(connect_timeout=5))
+        config = botocore.config.Config(
+            connect_timeout=5,
+            max_pool_connections=GLOBAL_MAX_WORKERS).merge(config)
     else:
-        config = botocore.config.Config(connect_timeout=5)
+        config = botocore.config.Config(
+            connect_timeout=5, max_pool_connections=GLOBAL_MAX_WORKERS)
 
     addressing_style_env_key = 'AWS_S3_ADDRESSING_STYLE'
     if profile_name:
@@ -231,6 +238,15 @@ def get_s3_client(
     return client
 
 
+def get_s3_client_with_cache(
+        config: Optional[botocore.config.Config] = None,
+        profile_name: Optional[str] = None):
+    return get_s3_client(
+        config=config,
+        cache_key='s3_filelike_client',
+        profile_name=profile_name)
+
+
 def s3_path_join(path: PathLike, *other_paths: PathLike) -> str:
     '''
     Concat 2 or more path to a complete path
@@ -248,7 +264,7 @@ def s3_path_join(path: PathLike, *other_paths: PathLike) -> str:
 
 
 def _list_all_buckets(profile_name: Optional[str] = None) -> List[str]:
-    client = get_s3_client(profile_name=profile_name)
+    client = get_s3_client_with_cache(profile_name=profile_name)
     response = client.list_buckets()
     return [content['Name'] for content in response['Buckets']]
 
@@ -467,7 +483,7 @@ def _s3_glob_stat_single_path(
         pattern = re.compile(translate(_s3_pathname))
         bucket, key = parse_s3_url(top_dir)
         prefix = _become_prefix(key)
-        client = get_s3_client(profile_name=profile_name)
+        client = get_s3_client_with_cache(profile_name=profile_name)
         with raise_s3_error(_s3_pathname):
             for resp in _list_objects_recursive(client, bucket, prefix,
                                                 delimiter):
@@ -589,10 +605,8 @@ def s3_prefetch_open(
 
     bucket, key = parse_s3_url(s3_url.path_with_protocol)
     config = botocore.config.Config(max_pool_connections=max_pool_connections)
-    client = get_s3_client(
-        config=config,
-        cache_key='s3_filelike_client',
-        profile_name=s3_url._profile_name)
+    client = get_s3_client_with_cache(
+        config=config, profile_name=s3_url._profile_name)
     return S3PrefetchReader(
         bucket,
         key,
@@ -640,10 +654,8 @@ def s3_share_cache_open(
 
     bucket, key = parse_s3_url(s3_url.path_with_protocol)
     config = botocore.config.Config(max_pool_connections=max_pool_connections)
-    client = get_s3_client(
-        config=config,
-        cache_key='s3_filelike_client',
-        profile_name=s3_url._profile_name)
+    client = get_s3_client_with_cache(
+        config=config, profile_name=s3_url._profile_name)
     return S3ShareCacheReader(
         bucket,
         key,
@@ -694,10 +706,8 @@ def s3_pipe_open(
 
     bucket, key = parse_s3_url(s3_url.path_with_protocol)
     config = botocore.config.Config(max_pool_connections=max_pool_connections)
-    client = get_s3_client(
-        config=config,
-        cache_key='s3_filelike_client',
-        profile_name=s3_url._profile_name)
+    client = get_s3_client_with_cache(
+        config=config, profile_name=s3_url._profile_name)
     return S3PipeHandler(
         bucket,
         key,
@@ -740,10 +750,8 @@ def s3_cached_open(
 
     bucket, key = parse_s3_url(s3_url.path_with_protocol)
     config = botocore.config.Config(max_pool_connections=max_pool_connections)
-    client = get_s3_client(
-        config=config,
-        cache_key='s3_filelike_client',
-        profile_name=s3_url._profile_name)
+    client = get_s3_client_with_cache(
+        config=config, profile_name=s3_url._profile_name)
     return S3CachedHandler(
         bucket,
         key,
@@ -798,10 +806,8 @@ def s3_buffered_open(
 
     bucket, key = parse_s3_url(s3_url.path_with_protocol)
     config = botocore.config.Config(max_pool_connections=max_pool_connections)
-    client = get_s3_client(
-        config=config,
-        cache_key='s3_filelike_client',
-        profile_name=s3_url._profile_name)
+    client = get_s3_client_with_cache(
+        config=config, profile_name=s3_url._profile_name)
 
     if 'a' in mode or '+' in mode:
         if cache_path is None:
@@ -903,10 +909,8 @@ def s3_memory_open(
 
     bucket, key = parse_s3_url(s3_url.path_with_protocol)
     config = botocore.config.Config(max_pool_connections=max_pool_connections)
-    client = get_s3_client(
-        config=config,
-        cache_key='s3_filelike_client',
-        profile_name=s3_url._profile_name)
+    client = get_s3_client_with_cache(
+        config=config, profile_name=s3_url._profile_name)
     return S3MemoryHandler(
         bucket, key, mode, s3_client=client, profile_name=s3_url._profile_name)
 
@@ -959,7 +963,7 @@ def s3_download(
     if dst_directory != '':
         os.makedirs(dst_directory, exist_ok=True)
 
-    client = get_s3_client(profile_name=src_url._profile_name)
+    client = get_s3_client_with_cache(profile_name=src_url._profile_name)
     download_file = patch_method(
         client.download_file,
         max_retries=max_retries,
@@ -1005,7 +1009,8 @@ def s3_upload(
     if not dst_key or dst_key.endswith('/'):
         raise S3IsADirectoryError('Is a directory: %r' % dst_url)
 
-    client = get_s3_client(profile_name=S3Path(dst_url)._profile_name)
+    client = get_s3_client_with_cache(
+        profile_name=S3Path(dst_url)._profile_name)
     upload_fileobj = patch_method(
         client.upload_fileobj,
         max_retries=max_retries,
@@ -1054,7 +1059,7 @@ def s3_load_content(
         return b''
     range_str = 'bytes=%d-%d' % (start, stop - 1)
 
-    client = get_s3_client(profile_name=s3_url._profile_name)
+    client = get_s3_client_with_cache(profile_name=s3_url._profile_name)
     with raise_s3_error(s3_url.path):
         return patch_method(
             _get_object,
@@ -1311,7 +1316,7 @@ class S3Path(URIPath):
 
     @cachedproperty
     def _client(self):
-        return get_s3_client(profile_name=self._profile_name)
+        return get_s3_client_with_cache(profile_name=self._profile_name)
 
     def _s3_get_metadata(self) -> dict:
         '''

@@ -10,6 +10,7 @@ from functools import partial
 import click
 from tqdm import tqdm
 
+from megfile.config import DEFAULT_BLOCK_SIZE
 from megfile.hdfs_path import DEFAULT_HDFS_TIMEOUT
 from megfile.interfaces import FileEntry
 from megfile.lib.glob import get_non_glob_dir, has_magic
@@ -20,7 +21,6 @@ from megfile.version import VERSION
 
 logging.basicConfig(level=logging.ERROR)
 logging.getLogger('megfile').setLevel(level=logging.INFO)
-DEFAULT_BLOCK_SIZE = 8 * 2**20  # 8MB
 DEBUG = False
 
 

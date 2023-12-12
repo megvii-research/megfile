@@ -1,8 +1,8 @@
 Please use command `pip install 'megfile[hdfs]'` to install hdfs requirements.
-You can use enviroments and configuration file for configuration, and priority is that environment variables take precedence over configuration file.
+You can use environments and configuration file for configuration, and priority is that environment variables take precedence over configuration file.
 
-### Use enviroments
-You can use enviroments to setup authentication credentials and other configuration items:
+### Use environments
+You can use environments to setup authentication credentials and other configuration items:
 - `HDFS_USER`: hdfs user
 - `HDFS_URL`: The url can be configured to support High Availability namenodes of **WebHDFS**, simply add more URLs by delimiting with a semicolon (`;`)
 - `HDFS_ROOT`: hdfs root directory when using relative path

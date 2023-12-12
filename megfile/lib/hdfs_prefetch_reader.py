@@ -1,8 +1,9 @@
 from io import BytesIO
 from typing import Optional
 
+from megfile.config import DEFAULT_BLOCK_CAPACITY, DEFAULT_BLOCK_SIZE
 from megfile.errors import raise_hdfs_error
-from megfile.lib.base_prefetch_reader import DEFAULT_BLOCK_CAPACITY, DEFAULT_BLOCK_SIZE, BasePrefetchReader
+from megfile.lib.base_prefetch_reader import BasePrefetchReader
 
 
 class HdfsPrefetchReader(BasePrefetchReader):

@@ -124,10 +124,10 @@ pip3 install -r requirements.txt -r requirements-dev.txt
 
 Using `s3` as an example, the following describes the configuration methods. For more details, please refer to [Configuration](https://megvii-research.github.io/megfile/configuration.html).
 
-You can use enviroments and configuration file for configuration, and priority is that environment variables take precedence over configuration file.
+You can use environments and configuration file for configuration, and priority is that environment variables take precedence over configuration file.
 
-### Use enviroments
-You can use enviroments to setup authentication credentials for your s3 account:
+### Use environments
+You can use environments to setup authentication credentials for your s3 account:
 - `AWS_ACCESS_KEY_ID`: access key
 - `AWS_SECRET_ACCESS_KEY`: secret key
 - `OSS_ENDPOINT`: endpoint url of s3

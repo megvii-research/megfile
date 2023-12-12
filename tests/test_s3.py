@@ -17,9 +17,10 @@ from mock import patch
 from moto import mock_s3
 
 from megfile import s3, s3_path, smart
+from megfile.config import DEFAULT_BLOCK_SIZE, DEFAULT_MAX_BUFFER_SIZE, GLOBAL_MAX_WORKERS
 from megfile.errors import S3BucketNotFoundError, S3FileNotFoundError, S3IsADirectoryError, S3NameTooLongError, S3NotALinkError, S3PermissionError, S3UnknownError, SameFileError, UnknownError, UnsupportedError, translate_s3_error
 from megfile.interfaces import Access, FileEntry, StatResult
-from megfile.s3_path import DEFAULT_MAX_BUFFER_SIZE, S3CachedHandler, S3MemoryHandler, _group_s3path_by_bucket, _group_s3path_by_prefix, _list_objects_recursive, _parse_s3_url_ignore_brace, _patch_make_request, _s3_split_magic, _s3_split_magic_ignore_brace
+from megfile.s3_path import S3CachedHandler, S3MemoryHandler, _group_s3path_by_bucket, _group_s3path_by_prefix, _list_objects_recursive, _parse_s3_url_ignore_brace, _patch_make_request, _s3_split_magic, _s3_split_magic_ignore_brace
 
 from . import Any, FakeStatResult, Now
 
@@ -335,12 +336,11 @@ def test_get_s3_client_with_config(mocker):
 
     class EQConfig(botocore.config.Config):
 
-        def merge(self, other_config):
-            c = super().merge(other_config)
-            self._user_provided_options = c._user_provided_options
-            return self
+        def __eq__(self, other):
+            return self._user_provided_options == other._user_provided_options
 
-    config = EQConfig(max_pool_connections=20, connect_timeout=1)
+    config = EQConfig(
+        max_pool_connections=GLOBAL_MAX_WORKERS, connect_timeout=1)
     s3.get_s3_client(config)
     access_key, secret_key = s3_path.get_access_token()
 
@@ -2706,7 +2706,7 @@ def test_s3_buffered_open(mocker, s3_empty_client, fs):
 
     reader = s3.s3_buffered_open('s3://bucket/key', 'rb', forward_ratio=0.5)
     assert isinstance(reader.raw, s3.S3PrefetchReader)
-    assert reader.raw._block_forward == DEFAULT_MAX_BUFFER_SIZE // s3_path.DEFAULT_BLOCK_SIZE * 0.5
+    assert reader.raw._block_forward == DEFAULT_MAX_BUFFER_SIZE // DEFAULT_BLOCK_SIZE * 0.5
 
     reader = s3.s3_buffered_open(
         's3://bucket/key', 'rb', share_cache_key='share')

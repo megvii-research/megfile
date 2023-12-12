@@ -3,8 +3,9 @@ from concurrent.futures import Future
 from io import BytesIO
 from typing import Optional
 
+from megfile.config import BACKOFF_FACTOR, BACKOFF_INITIAL, DEFAULT_BLOCK_CAPACITY, DEFAULT_BLOCK_SIZE, GLOBAL_MAX_WORKERS, NEWLINE
 from megfile.errors import S3FileChangedError, S3InvalidRangeError, patch_method, raise_s3_error, s3_should_retry
-from megfile.lib.base_prefetch_reader import BACKOFF_FACTOR, BACKOFF_INITIAL, DEFAULT_BLOCK_CAPACITY, DEFAULT_BLOCK_SIZE, GLOBAL_MAX_WORKERS, NEWLINE, BasePrefetchReader, LRUCacheFutureManager
+from megfile.lib.base_prefetch_reader import BasePrefetchReader, LRUCacheFutureManager
 
 __all__ = [
     'DEFAULT_BLOCK_CAPACITY',

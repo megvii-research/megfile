@@ -8,17 +8,9 @@ from math import ceil
 from statistics import mean
 from typing import Optional
 
+from megfile.config import BACKOFF_FACTOR, BACKOFF_INITIAL, DEFAULT_BLOCK_CAPACITY, DEFAULT_BLOCK_SIZE, GLOBAL_MAX_WORKERS, NEWLINE
 from megfile.interfaces import Readable, Seekable
 from megfile.utils import get_human_size, process_local
-
-DEFAULT_BLOCK_SIZE = 8 * 2**20  # 8MB
-DEFAULT_BLOCK_CAPACITY = 16
-GLOBAL_MAX_WORKERS = 32
-
-BACKOFF_INITIAL = 64 * 2**20  # 64MB
-BACKOFF_FACTOR = 4
-
-NEWLINE = ord('\n')
 
 _logger = get_logger(__name__)
 
@@ -53,7 +45,7 @@ class BasePrefetchReader(Readable, Seekable, ABC):
 
         self._is_auto_scaling = block_forward is None
         if block_forward is None:
-            block_forward = block_capacity - 1
+            block_forward = max(block_capacity - 1, 1)
 
         assert block_capacity > block_forward, 'block_capacity should greater than block_forward, got: block_capacity=%s, block_forward=%s' % (
             block_capacity, block_forward)

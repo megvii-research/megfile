@@ -3,16 +3,9 @@ from concurrent.futures import Future
 from logging import getLogger as get_logger
 from typing import Optional
 
+from megfile.config import DEFAULT_BLOCK_CAPACITY, DEFAULT_BLOCK_SIZE
 from megfile.lib.s3_prefetch_reader import LRUCacheFutureManager, S3PrefetchReader
 from megfile.utils import thread_local
-
-DEFAULT_BLOCK_SIZE = 8 * 2**20  # 8MB
-DEFAULT_BLOCK_FORWARD = 12
-GLOBAL_MAX_WORKERS = 128
-
-DEFAULT_BLOCK_CAPACITY = 32
-
-NEWLINE = ord('\n')
 
 _logger = get_logger(__name__)
 
@@ -50,12 +43,6 @@ class S3ShareCacheReader(S3PrefetchReader):
             max_workers=max_workers,
             profile_name=profile_name,
         )
-
-    def _get_block_forward(
-            self, block_capacity: int, block_forward: Optional[int]):
-        if block_forward is None:
-            block_forward = DEFAULT_BLOCK_FORWARD
-        return block_forward
 
     def _get_futures(self):
         futures = thread_local(
