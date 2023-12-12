@@ -13,3 +13,6 @@ BACKOFF_INITIAL = 64 * 2**20  # 64MB
 BACKOFF_FACTOR = 4
 
 NEWLINE = ord('\n')
+
+S3_CLIENT_CACHE_MODE = os.getenv(
+    'MEGFILE_S3_CLIENT_CACHE_MODE') or 'thread_local'
