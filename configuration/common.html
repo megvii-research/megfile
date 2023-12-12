@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Overview: module code &mdash; megfile  documentation</title>
+  <title>Environment configurations &mdash; megfile  documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
 
@@ -67,8 +68,9 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">Overview: module code</li>
+      <li class="breadcrumb-item active">Environment configurations</li>
       <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/configuration/common.md.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -76,27 +78,18 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <h1>All modules for which code is available</h1>
-<ul><li><a href="megfile/fs.html">megfile.fs</a></li>
-<li><a href="megfile/fs_path.html">megfile.fs_path</a></li>
-<li><a href="megfile/hdfs.html">megfile.hdfs</a></li>
-<li><a href="megfile/hdfs_path.html">megfile.hdfs_path</a></li>
-<li><a href="megfile/http.html">megfile.http</a></li>
-<li><a href="megfile/http_path.html">megfile.http_path</a></li>
-<li><a href="megfile/lib/s3_buffered_writer.html">megfile.lib.s3_buffered_writer</a></li>
-<li><a href="megfile/lib/s3_limited_seekable_writer.html">megfile.lib.s3_limited_seekable_writer</a></li>
-<li><a href="megfile/lib/s3_prefetch_reader.html">megfile.lib.s3_prefetch_reader</a></li>
-<li><a href="megfile/lib/s3_share_cache_reader.html">megfile.lib.s3_share_cache_reader</a></li>
-<li><a href="megfile/pathlike.html">megfile.pathlike</a></li>
-<li><a href="megfile/s3.html">megfile.s3</a></li>
-<li><a href="megfile/s3_path.html">megfile.s3_path</a></li>
-<li><a href="megfile/sftp.html">megfile.sftp</a></li>
-<li><a href="megfile/sftp_path.html">megfile.sftp_path</a></li>
-<li><a href="megfile/smart.html">megfile.smart</a></li>
-<li><a href="megfile/smart_path.html">megfile.smart_path</a></li>
-<li><a href="megfile/stdio.html">megfile.stdio</a></li>
-<li><a href="megfile/stdio_path.html">megfile.stdio_path</a></li>
+  <section id="environment-configurations">
+<h1>Environment configurations<a class="headerlink" href="#environment-configurations" title="Permalink to this heading"></a></h1>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_BLOCK_SIZE</span></code>: block size in some <code class="docutils literal notranslate"><span class="pre">open</span></code> func, like <code class="docutils literal notranslate"><span class="pre">http_open</span></code>, <code class="docutils literal notranslate"><span class="pre">s3_open</span></code>, default is <code class="docutils literal notranslate"><span class="pre">8MB</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_MAX_BLOCK_SIZE</span></code>: max block size in some <code class="docutils literal notranslate"><span class="pre">open</span></code> func, like <code class="docutils literal notranslate"><span class="pre">http_open</span></code>, <code class="docutils literal notranslate"><span class="pre">s3_open</span></code>, default is <code class="docutils literal notranslate"><span class="pre">block</span> <span class="pre">size</span> <span class="pre">*</span> <span class="pre">16</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_MAX_BUFFER_SIZE</span></code>: max buffer size in some <code class="docutils literal notranslate"><span class="pre">open</span></code> func, like <code class="docutils literal notranslate"><span class="pre">http_open</span></code>, <code class="docutils literal notranslate"><span class="pre">s3_open</span></code>, default is <code class="docutils literal notranslate"><span class="pre">block</span> <span class="pre">size</span> <span class="pre">*</span> <span class="pre">16</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_MAX_WORKERS</span></code>: max threads will be used, default is <code class="docutils literal notranslate"><span class="pre">32</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_BLOCK_CAPACITY</span></code>: default cache capacity of block and concurrency, default is <code class="docutils literal notranslate"><span class="pre">16</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_S3_CLIENT_CACHE_MODE</span></code>: s3 client cache mode, <code class="docutils literal notranslate"><span class="pre">thread_local</span></code> or <code class="docutils literal notranslate"><span class="pre">process_local</span></code>, default is <code class="docutils literal notranslate"><span class="pre">thread_local</span></code>, <strong>it’s a experimental feature.</strong></p></li>
 </ul>
+</section>
+
 
            </div>
           </div>

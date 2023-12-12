@@ -1,11 +1,13 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>megfile.lib.s3_share_cache_reader &mdash; megfile  documentation</title>
-      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
+
+  
   <!--[if lt IE 9]>
     <script src="../../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -81,16 +83,9 @@
 <span class="kn">from</span> <span class="nn">logging</span> <span class="kn">import</span> <span class="n">getLogger</span> <span class="k">as</span> <span class="n">get_logger</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
 
+<span class="kn">from</span> <span class="nn">megfile.config</span> <span class="kn">import</span> <span class="n">DEFAULT_BLOCK_CAPACITY</span><span class="p">,</span> <span class="n">DEFAULT_BLOCK_SIZE</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.s3_prefetch_reader</span> <span class="kn">import</span> <span class="n">LRUCacheFutureManager</span><span class="p">,</span> <span class="n">S3PrefetchReader</span>
 <span class="kn">from</span> <span class="nn">megfile.utils</span> <span class="kn">import</span> <span class="n">thread_local</span>
-
-<span class="n">DEFAULT_BLOCK_SIZE</span> <span class="o">=</span> <span class="mi">8</span> <span class="o">*</span> <span class="mi">2</span><span class="o">**</span><span class="mi">20</span>  <span class="c1"># 8MB</span>
-<span class="n">DEFAULT_BLOCK_FORWARD</span> <span class="o">=</span> <span class="mi">12</span>
-<span class="n">GLOBAL_MAX_WORKERS</span> <span class="o">=</span> <span class="mi">128</span>
-
-<span class="n">DEFAULT_BLOCK_CAPACITY</span> <span class="o">=</span> <span class="mi">32</span>
-
-<span class="n">NEWLINE</span> <span class="o">=</span> <span class="nb">ord</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
 
 <span class="n">_logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -128,12 +123,6 @@
             <span class="n">max_workers</span><span class="o">=</span><span class="n">max_workers</span><span class="p">,</span>
             <span class="n">profile_name</span><span class="o">=</span><span class="n">profile_name</span><span class="p">,</span>
         <span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">_get_block_forward</span><span class="p">(</span>
-            <span class="bp">self</span><span class="p">,</span> <span class="n">block_capacity</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">block_forward</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
-        <span class="k">if</span> <span class="n">block_forward</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">block_forward</span> <span class="o">=</span> <span class="n">DEFAULT_BLOCK_FORWARD</span>
-        <span class="k">return</span> <span class="n">block_forward</span>
 
     <span class="k">def</span> <span class="nf">_get_futures</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">futures</span> <span class="o">=</span> <span class="n">thread_local</span><span class="p">(</span>
