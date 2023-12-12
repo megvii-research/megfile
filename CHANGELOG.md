@@ -1,4 +1,8 @@
-## 2.2.9.post4 - 2023.11.26
+## 2.2.10 - 2023.12.12
+- feat
+    - support some new environments for config
+
+## 2.2.9.post5 - 2023.11.26
 - fix
     - add connect errors to retry list
 
