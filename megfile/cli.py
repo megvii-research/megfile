@@ -368,18 +368,17 @@ def sync(
             def callback_after_copy_file(src_file_path, dst_file_path):
                 tbar.update(1)
 
-        for file_entry in file_entries:
-            executor.submit(
-                _smart_sync_single_file,
-                dict(
-                    src_root_path=src_root_path,
-                    dst_root_path=dst_path,
-                    src_file_path=file_entry.path,
-                    callback=callback,
-                    followlinks=True,
-                    callback_after_copy_file=callback_after_copy_file,
-                    force=force,
-                ))
+        params_iter = (
+            dict(
+                src_root_path=src_root_path,
+                dst_root_path=dst_path,
+                src_file_path=file_entry.path,
+                callback=callback,
+                followlinks=True,
+                callback_after_copy_file=callback_after_copy_file,
+                force=force,
+            ) for file_entry in file_entries)
+        list(executor.map(_smart_sync_single_file, params_iter))
     if not quiet:
         tbar.close()
         if progress_bar:
