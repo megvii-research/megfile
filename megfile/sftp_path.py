@@ -420,10 +420,14 @@ def sftp_download(
 
     if not is_fs(dst_url):
         raise OSError(f'dst_url is not fs path: {dst_url}')
-    if not is_sftp(src_url):
+    if not is_sftp(src_url) and not isinstance(src_url, SftpPath):
         raise OSError(f'src_url is not sftp path: {src_url}')
 
-    src_path = SftpPath(src_url)
+    if isinstance(src_url, SftpPath):
+        src_path = src_url
+    else:
+        src_path = SftpPath(src_url)
+
     if followlinks and src_path.is_symlink():
         src_path = src_path.readlink()
     if src_path.is_dir():
@@ -436,9 +440,12 @@ def sftp_download(
 
     sftp_callback = None
     if callback:
+        bytes_transferred_before = 0
 
         def sftp_callback(bytes_transferred: int, _total_bytes: int):
-            callback(bytes_transferred)
+            nonlocal bytes_transferred_before
+            callback(bytes_transferred - bytes_transferred_before)
+            bytes_transferred_before = bytes_transferred
 
     src_path._client.get(
         src_path._real_path,
@@ -463,7 +470,7 @@ def sftp_upload(
 
     if not is_fs(src_url):
         raise OSError(f'src_url is not fs path: {src_url}')
-    if not is_sftp(dst_url):
+    if not is_sftp(dst_url) and not isinstance(dst_url, SftpPath):
         raise OSError(f'dst_url is not sftp path: {dst_url}')
 
     if followlinks and os.path.islink(src_url):
@@ -474,7 +481,10 @@ def sftp_upload(
         raise IsADirectoryError('Is a directory: %r' % dst_url)
 
     src_path = FSPath(src_url)
-    dst_path = SftpPath(dst_url)
+    if isinstance(dst_url, SftpPath):
+        dst_path = dst_url
+    else:
+        dst_path = SftpPath(dst_url)
     dst_path.parent.makedirs(exist_ok=True)
 
     sftp_callback = None
@@ -1252,6 +1262,8 @@ class SftpPath(URIPath):
                 _logger.error(exec_result.stderr)
                 raise OSError(
                     f'Copy file error, returncode: {exec_result.returncode}')
+            if callback:
+                callback(self.stat(follow_symlinks=followlinks).size)
         else:
             with self.open('rb') as fsrc:
                 with dst_path.open('wb') as fdst:

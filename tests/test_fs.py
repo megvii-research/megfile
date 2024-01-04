@@ -1035,7 +1035,7 @@ def test_fs_copy(filesystem, mocker):
             self._num += x
 
     def callback_file(count):
-        assert count in [16 * 1024, 1]
+        assert count in [16 * 1024 + 1]
 
     def callback_symlink(count):
         assert count == symlink_src_stat.size

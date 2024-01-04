@@ -6,7 +6,6 @@ import shutil
 from stat import S_ISDIR as stat_isdir
 from stat import S_ISLNK as stat_islnk
 from typing import IO, AnyStr, BinaryIO, Callable, Iterator, List, Optional, Tuple, Union
-from unittest.mock import patch
 
 from megfile.errors import _create_missing_ok_generator
 from megfile.interfaces import Access, ContextIterator, FileEntry, PathLike, StatResult
@@ -708,30 +707,12 @@ class FSPath(URIPath):
             callback: Optional[Callable[[int], None]] = None,
             followlinks: bool = False):
 
-        def _patch_copyfileobj(callback=None):
+        shutil.copy2(
+            self.path_without_protocol, dst_path, follow_symlinks=followlinks)
 
-            def _copyfileobj(fsrc, fdst, length=16 * 1024):
-                """copy data from file-like object fsrc to file-like object fdst"""
-                while 1:
-                    buf = fsrc.read(length)
-                    if not buf:
-                        break
-                    fdst.write(buf)
-                    if callback:
-                        callback(len(buf))
-
-            return _copyfileobj
-
-        src_stat = self.lstat()
-        with patch('shutil.copyfileobj', _patch_copyfileobj(callback)):
-            shutil.copy2(
-                self.path_without_protocol,
-                dst_path,
-                follow_symlinks=followlinks)
-            if src_stat.is_symlink() and not followlinks:
-                if callback:
-                    callback(src_stat.size)
-                return
+        # After python3.8, patch `shutil.copyfile` is not a good way, because `shutil.copy2` will not call it in some cases.
+        if callback:
+            callback(self.stat(follow_symlinks=followlinks).size)
 
     def copy(
             self,
