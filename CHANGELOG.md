@@ -1,3 +1,8 @@
+## 2.2.10.post1 - 2024.01.04
+- fix
+    - fix callback in smart_copy 
+    - sync command show error log correctly 
+
 ## 2.2.10 - 2023.12.12
 - feat
     - support some new environments for config
