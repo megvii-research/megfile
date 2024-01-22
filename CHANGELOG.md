@@ -1,3 +1,11 @@
+## 3.0.0 - 2024.01.22
+- Incompatible updates
+    - python3.6 and python3.7 is no longer supported
+- chore
+    - support python3.12
+- perf
+    - command `ls` and `ll` support symlink files
+
 ## 2.2.10.post1 - 2024.01.04
 - fix
     - fix callback in smart_copy 
