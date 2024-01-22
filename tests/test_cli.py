@@ -82,6 +82,15 @@ def test_ls_hunman_readable(runner, testdir):
     assert ' 5 B ' in result.output
 
 
+def test_ls_symlink(runner, testdir):
+    os.symlink(str(testdir / 'text'), str(testdir / 'symlink'))
+    result = runner.invoke(ls, [str(testdir)])
+
+    assert result.exit_code == 0
+    assert sorted(result.output.split('\n')) == sorted(
+        ['text', f'symlink -> {testdir}/text', ''])
+
+
 def test_ll(runner, testdir):
     result_ls = runner.invoke(ls, ['--long', '--human-readable', str(testdir)])
     result_ll = runner.invoke(ll, [str(testdir)])
