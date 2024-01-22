@@ -3,6 +3,7 @@ import io
 import os
 import pathlib
 import shutil
+from shutil import copytree
 from stat import S_ISDIR as stat_isdir
 from stat import S_ISLNK as stat_islnk
 from typing import IO, AnyStr, BinaryIO, Callable, Iterator, List, Optional, Tuple, Union
@@ -10,7 +11,6 @@ from typing import IO, AnyStr, BinaryIO, Callable, Iterator, List, Optional, Tup
 from megfile.errors import _create_missing_ok_generator
 from megfile.interfaces import Access, ContextIterator, FileEntry, PathLike, StatResult
 from megfile.lib.compare import is_same_file
-from megfile.lib.compat import copytree
 from megfile.lib.glob import iglob
 from megfile.lib.url import get_url_scheme
 from megfile.utils import cachedproperty, calculate_md5
