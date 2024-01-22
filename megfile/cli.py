@@ -109,7 +109,7 @@ def _ls(path: str, long: bool, recursive: bool, human_readable: bool):
         output = echo_func(file_stat, base_path, full_path=full_path)
         if file_stat.is_symlink():
             try:
-                link = os.path.normpath(smart_readlink(file_stat.path))
+                link = smart_readlink(file_stat.path)
             except FileNotFoundError as e:
                 link = repr(e)
             output += ' -> %s' % link

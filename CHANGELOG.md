@@ -1,3 +1,7 @@
+## 3.0.0.post1 - 2024.01.23
+- fix
+    - fix symlink paths in command `ls` and `ll`
+
 ## 3.0.0 - 2024.01.22
 - Incompatible updates
     - python3.6 and python3.7 is no longer supported
