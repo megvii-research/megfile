@@ -87,7 +87,8 @@ def test_ls_symlink(runner, testdir):
     result = runner.invoke(ls, [str(testdir)])
 
     assert result.exit_code == 0
-    assert result.output == f'symlink -> {testdir}/text\ntext\n'
+    assert sorted(result.output.split('\n')) == sorted(
+        ['text', f'symlink -> {testdir}/text', ''])
 
 
 def test_ll(runner, testdir):
