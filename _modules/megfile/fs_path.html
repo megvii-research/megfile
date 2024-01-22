@@ -83,15 +83,14 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">pathlib</span>
 <span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">from</span> <span class="nn">shutil</span> <span class="kn">import</span> <span class="n">copytree</span>
 <span class="kn">from</span> <span class="nn">stat</span> <span class="kn">import</span> <span class="n">S_ISDIR</span> <span class="k">as</span> <span class="n">stat_isdir</span>
 <span class="kn">from</span> <span class="nn">stat</span> <span class="kn">import</span> <span class="n">S_ISLNK</span> <span class="k">as</span> <span class="n">stat_islnk</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">IO</span><span class="p">,</span> <span class="n">AnyStr</span><span class="p">,</span> <span class="n">BinaryIO</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
-<span class="kn">from</span> <span class="nn">unittest.mock</span> <span class="kn">import</span> <span class="n">patch</span>
 
 <span class="kn">from</span> <span class="nn">megfile.errors</span> <span class="kn">import</span> <span class="n">_create_missing_ok_generator</span>
 <span class="kn">from</span> <span class="nn">megfile.interfaces</span> <span class="kn">import</span> <span class="n">Access</span><span class="p">,</span> <span class="n">ContextIterator</span><span class="p">,</span> <span class="n">FileEntry</span><span class="p">,</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">StatResult</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.compare</span> <span class="kn">import</span> <span class="n">is_same_file</span>
-<span class="kn">from</span> <span class="nn">megfile.lib.compat</span> <span class="kn">import</span> <span class="n">copytree</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.glob</span> <span class="kn">import</span> <span class="n">iglob</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.url</span> <span class="kn">import</span> <span class="n">get_url_scheme</span>
 <span class="kn">from</span> <span class="nn">megfile.utils</span> <span class="kn">import</span> <span class="n">cachedproperty</span><span class="p">,</span> <span class="n">calculate_md5</span>
@@ -788,30 +787,12 @@
             <span class="n">callback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">],</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
 
-        <span class="k">def</span> <span class="nf">_patch_copyfileobj</span><span class="p">(</span><span class="n">callback</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span>
 
-            <span class="k">def</span> <span class="nf">_copyfileobj</span><span class="p">(</span><span class="n">fsrc</span><span class="p">,</span> <span class="n">fdst</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">16</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">):</span>
-<span class="w">                </span><span class="sd">&quot;&quot;&quot;copy data from file-like object fsrc to file-like object fdst&quot;&quot;&quot;</span>
-                <span class="k">while</span> <span class="mi">1</span><span class="p">:</span>
-                    <span class="n">buf</span> <span class="o">=</span> <span class="n">fsrc</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="ow">not</span> <span class="n">buf</span><span class="p">:</span>
-                        <span class="k">break</span>
-                    <span class="n">fdst</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">callback</span><span class="p">:</span>
-                        <span class="n">callback</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">buf</span><span class="p">))</span>
-
-            <span class="k">return</span> <span class="n">_copyfileobj</span>
-
-        <span class="n">src_stat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lstat</span><span class="p">()</span>
-        <span class="k">with</span> <span class="n">patch</span><span class="p">(</span><span class="s1">&#39;shutil.copyfileobj&#39;</span><span class="p">,</span> <span class="n">_patch_copyfileobj</span><span class="p">(</span><span class="n">callback</span><span class="p">)):</span>
-            <span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span>
-                <span class="n">dst_path</span><span class="p">,</span>
-                <span class="n">follow_symlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">src_stat</span><span class="o">.</span><span class="n">is_symlink</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">followlinks</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">callback</span><span class="p">:</span>
-                    <span class="n">callback</span><span class="p">(</span><span class="n">src_stat</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
-                <span class="k">return</span>
+        <span class="c1"># After python3.8, patch `shutil.copyfile` is not a good way, because `shutil.copy2` will not call it in some cases.</span>
+        <span class="k">if</span> <span class="n">callback</span><span class="p">:</span>
+            <span class="n">callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">follow_symlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
 
 <div class="viewcode-block" id="FSPath.copy"><a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
