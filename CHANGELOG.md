@@ -1,4 +1,4 @@
-## 3.0.0.post1 - 2024.01.23
+## 3.0.0.post1 - 2024.01.22
 - fix
     - fix symlink paths in command `ls` and `ll`
 
