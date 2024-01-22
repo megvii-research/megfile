@@ -14,7 +14,7 @@ from megfile.config import DEFAULT_BLOCK_SIZE
 from megfile.hdfs_path import DEFAULT_HDFS_TIMEOUT
 from megfile.interfaces import FileEntry
 from megfile.lib.glob import get_non_glob_dir, has_magic
-from megfile.smart import _smart_sync_single_file, smart_copy, smart_exists, smart_getmd5, smart_getmtime, smart_getsize, smart_glob_stat, smart_isdir, smart_isfile, smart_makedirs, smart_move, smart_open, smart_path_join, smart_remove, smart_rename, smart_scan_stat, smart_scandir, smart_stat, smart_sync, smart_sync_with_progress, smart_touch, smart_unlink
+from megfile.smart import _smart_sync_single_file, smart_copy, smart_exists, smart_getmd5, smart_getmtime, smart_getsize, smart_glob_stat, smart_isdir, smart_isfile, smart_makedirs, smart_move, smart_open, smart_path_join, smart_readlink, smart_realpath, smart_remove, smart_rename, smart_scan_stat, smart_scandir, smart_stat, smart_sync, smart_sync_with_progress, smart_touch, smart_unlink
 from megfile.smart_path import SmartPath
 from megfile.utils import get_human_size
 from megfile.version import VERSION
@@ -58,25 +58,23 @@ def get_echo_path(file_stat, base_path: str = "", full_path: bool = False):
 
 
 def simple_echo(file_stat, base_path: str = "", full_path: bool = False):
-    click.echo(get_echo_path(file_stat, base_path, full_path))
+    return get_echo_path(file_stat, base_path, full_path)
 
 
 def long_echo(file_stat, base_path: str = "", full_path: bool = False):
-    click.echo(
-        '%12d %s %s' % (
-            file_stat.stat.size,
-            time.strftime(
-                "%Y-%m-%d %H:%M:%S", time.localtime(file_stat.stat.mtime)),
-            get_echo_path(file_stat, base_path, full_path)))
+    return '%12d %s %s' % (
+        file_stat.stat.size,
+        time.strftime(
+            "%Y-%m-%d %H:%M:%S", time.localtime(file_stat.stat.mtime)),
+        get_echo_path(file_stat, base_path, full_path))
 
 
 def human_echo(file_stat, base_path: str = "", full_path: bool = False):
-    click.echo(
-        '%10s %s %s' % (
-            get_human_size(file_stat.stat.size),
-            time.strftime(
-                "%Y-%m-%d %H:%M:%S", time.localtime(file_stat.stat.mtime)),
-            get_echo_path(file_stat, base_path, full_path)))
+    return '%10s %s %s' % (
+        get_human_size(file_stat.stat.size),
+        time.strftime(
+            "%Y-%m-%d %H:%M:%S", time.localtime(file_stat.stat.mtime)),
+        get_echo_path(file_stat, base_path, full_path))
 
 
 def smart_list_stat(path):
@@ -108,7 +106,14 @@ def _ls(path: str, long: bool, recursive: bool, human_readable: bool):
     total_size = 0
     for file_stat in scan_func(path):
         total_size += file_stat.stat.size
-        echo_func(file_stat, base_path, full_path=full_path)
+        output = echo_func(file_stat, base_path, full_path=full_path)
+        if file_stat.is_symlink():
+            try:
+                link = os.path.normpath(smart_readlink(file_stat.path))
+            except FileNotFoundError as e:
+                link = repr(e)
+            output += ' -> %s' % link
+        click.echo(output)
     if long:
         click.echo(f'total: {get_human_size(total_size)}')
 

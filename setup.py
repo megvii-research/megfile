@@ -54,5 +54,5 @@ setup(
     extras_require={
         "hdfs": load_requirements('requirements-hdfs.txt'),
     },
-    python_requires='>=3.6',
+    python_requires='>=3.8',
 )
