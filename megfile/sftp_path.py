@@ -105,8 +105,13 @@ def sftp_should_retry(error: Exception) -> bool:
             socket.timeout,
     )):
         return True
-    elif isinstance(error, OSError) and str(error) == 'Socket is closed':
-        return True
+    elif isinstance(error, OSError):
+        for err_msg in [
+                'Socket is closed',
+                'Cannot assign requested address',
+        ]:
+            if err_msg in str(error):
+                return True
     return False
 
 
