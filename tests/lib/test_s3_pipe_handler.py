@@ -4,7 +4,7 @@ from subprocess import TimeoutExpired, check_call
 
 import boto3
 import pytest
-from moto import mock_s3
+from moto import mock_aws
 
 from megfile.errors import S3Exception
 from megfile.lib.s3_pipe_handler import S3PipeHandler

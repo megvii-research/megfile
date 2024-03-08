@@ -5,7 +5,7 @@ import boto3
 import moto
 import moto.s3
 import pytest
-from moto import mock_s3
+from moto import mock_aws
 
 from megfile.lib.s3_limited_seekable_writer import S3LimitedSeekableWriter
 from tests.test_s3 import s3_empty_client

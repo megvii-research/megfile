@@ -6,7 +6,7 @@ import boto3
 import moto
 import moto.s3
 import pytest
-from moto import mock_s3
+from moto import mock_aws
 
 from megfile.errors import S3UnknownError
 from megfile.lib.s3_buffered_writer import S3BufferedWriter

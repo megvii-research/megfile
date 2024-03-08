@@ -3,7 +3,7 @@ import time
 
 import boto3
 import pytest
-from moto import mock_s3
+from moto import mock_aws
 
 from megfile.lib import s3_share_cache_reader
 from megfile.lib.s3_share_cache_reader import S3ShareCacheReader, ShareCacheFutureManager

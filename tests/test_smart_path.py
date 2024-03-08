@@ -5,7 +5,7 @@ from io import BufferedReader, BytesIO
 import boto3
 import pytest
 from mock import patch
-from moto import mock_s3
+from moto import mock_aws
 
 from megfile.errors import ProtocolExistsError, ProtocolNotFoundError, S3FileNotFoundError
 from megfile.fs_path import FSPath
@@ -48,7 +48,7 @@ BUCKET = "bucket"
 
 @pytest.fixture
 def s3_empty_client(mocker):
-    with mock_s3():
+    with mock_aws():
         client = boto3.client('s3')
         client.create_bucket(Bucket=BUCKET)
         mocker.patch('megfile.s3_path.get_s3_client', return_value=client)
