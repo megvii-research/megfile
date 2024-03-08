@@ -10,7 +10,7 @@ cryptography >= 3.3.2
 aws-xray-sdk == 2.8.0
 mutmut
 pyfakefs >= 4.5
-mock ~= 5.0.0
+mock ~= 4.0.0
 junit-xml ~= 1.9
 requests_mock
 
