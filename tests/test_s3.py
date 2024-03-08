@@ -14,7 +14,7 @@ import boto3
 import botocore
 import pytest
 from mock import patch
-from moto import mock_s3
+from moto import mock_aws
 
 from megfile import s3, s3_path, smart
 from megfile.config import DEFAULT_BLOCK_SIZE, DEFAULT_MAX_BUFFER_SIZE, GLOBAL_MAX_WORKERS
@@ -133,7 +133,7 @@ FILE_LIST = [
 
 @pytest.fixture
 def s3_empty_client(mocker):
-    with mock_s3():
+    with mock_aws():
         client = boto3.client('s3')
         mocker.patch('megfile.s3_path.get_s3_client', return_value=client)
         yield client
@@ -185,7 +185,7 @@ def s3_empty_client_with_patch_make_request(mocker):
             raise S3UnknownError(error=Exception(), path='test')
         return request_context
 
-    with mock_s3():
+    with mock_aws():
         client = boto3.client('s3')
         client._make_request = patch_make_request
         _patch_make_request(client)
@@ -2946,7 +2946,7 @@ def s3_empty_client_with_patch(mocker):
     def error_method(*args, **kwargs):
         raise S3UnknownError()
 
-    with mock_s3():
+    with mock_aws():
         client = boto3.client('s3')
         client.list_objects_v2 = list_objects_v2
         client.head_bucket = error_method
@@ -3011,7 +3011,7 @@ def s3_empty_client_with_patch_for_has_bucket(mocker):
             'head_bucket',
         )
 
-    with mock_s3():
+    with mock_aws():
         client = boto3.client('s3')
         client.head_bucket = head_bucket_without_permission
         mocker.patch('megfile.s3_path.get_s3_client', return_value=client)

@@ -104,8 +104,10 @@ def _ls(path: str, long: bool, recursive: bool, human_readable: bool):
         echo_func = simple_echo
 
     total_size = 0
+    total_count = 0
     for file_stat in scan_func(path):
         total_size += file_stat.stat.size
+        total_count += 1
         output = echo_func(file_stat, base_path, full_path=full_path)
         if file_stat.is_symlink():
             try:
@@ -115,7 +117,7 @@ def _ls(path: str, long: bool, recursive: bool, human_readable: bool):
             output += ' -> %s' % link
         click.echo(output)
     if long:
-        click.echo(f'total: {get_human_size(total_size)}')
+        click.echo(f'total({total_count}): {get_human_size(total_size)}')
 
 
 @cli.command(short_help='List all the objects in the path.')

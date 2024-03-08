@@ -70,7 +70,7 @@ def test_ls_long(runner, testdir):
     result = runner.invoke(ls, ['--long', str(testdir)])
 
     assert result.exit_code == 0
-    assert result.output.endswith('text\ntotal: 5 B\n')
+    assert result.output.endswith('text\ntotal(1): 5 B\n')
     assert ' 5 ' in result.output
 
 
@@ -78,7 +78,7 @@ def test_ls_hunman_readable(runner, testdir):
     result = runner.invoke(ls, ['--long', '--human-readable', str(testdir)])
 
     assert result.exit_code == 0
-    assert result.output.endswith('text\ntotal: 5 B\n')
+    assert result.output.endswith('text\ntotal(1): 5 B\n')
     assert ' 5 B ' in result.output
 
 

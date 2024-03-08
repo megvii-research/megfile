@@ -5,7 +5,7 @@ pytest
 pytest-cov
 pytest-mock > 3.6.0
 pytest-socket
-moto[s3] >= 2.2.2
+moto[s3] >= 5.0.0
 cryptography >= 3.3.2
 aws-xray-sdk == 2.8.0
 mutmut
