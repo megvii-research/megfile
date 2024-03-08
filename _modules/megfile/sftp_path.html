@@ -185,8 +185,13 @@
             <span class="n">socket</span><span class="o">.</span><span class="n">timeout</span><span class="p">,</span>
     <span class="p">)):</span>
         <span class="k">return</span> <span class="kc">True</span>
-    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span><span class="n">error</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;Socket is closed&#39;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">err_msg</span> <span class="ow">in</span> <span class="p">[</span>
+                <span class="s1">&#39;Socket is closed&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;Cannot assign requested address&#39;</span><span class="p">,</span>
+        <span class="p">]:</span>
+            <span class="k">if</span> <span class="n">err_msg</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">error</span><span class="p">):</span>
+                <span class="k">return</span> <span class="kc">True</span>
     <span class="k">return</span> <span class="kc">False</span>
 
 
