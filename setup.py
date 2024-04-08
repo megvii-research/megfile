@@ -1,5 +1,6 @@
-from setuptools import find_packages, setup
 from importlib.machinery import SourceFileLoader
+
+from setuptools import find_packages, setup
 
 try:
     from sphinx.setup_command import BuildDoc
