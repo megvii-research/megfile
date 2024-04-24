@@ -7,7 +7,7 @@ from typing import IO, Any, AnyStr, BinaryIO, Callable, Iterable, Iterator, List
 
 from tqdm import tqdm
 
-from megfile.errors import SameFileError
+from megfile.errors import S3UnknownError
 from megfile.fs import fs_copy, is_fs
 from megfile.interfaces import Access, ContextIterator, FileCacher, FileEntry, NullCacher, PathLike, StatResult
 from megfile.lib.combine_reader import CombineReader
@@ -331,9 +331,17 @@ def smart_copy(
         copy_func = _copy_funcs[src_protocol][dst_protocol]
     except KeyError:
         copy_func = _default_copy_func
-    copy_func(
-        src_path, dst_path, callback=callback,
-        followlinks=followlinks)  # type: ignore
+    try:
+        copy_func(
+            src_path, dst_path, callback=callback,
+            followlinks=followlinks)  # type: ignore
+    except S3UnknownError as e:
+        if 'cannot schedule new futures after interpreter shutdown' in str(e):
+            _default_copy_func(
+                src_path, dst_path, callback=callback,
+                followlinks=followlinks)  # type: ignore
+        else:
+            raise
 
 
 def _smart_sync_single_file(items: dict):
