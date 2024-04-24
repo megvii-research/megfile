@@ -87,7 +87,7 @@
 
 <span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
 
-<span class="kn">from</span> <span class="nn">megfile.errors</span> <span class="kn">import</span> <span class="n">SameFileError</span>
+<span class="kn">from</span> <span class="nn">megfile.errors</span> <span class="kn">import</span> <span class="n">S3UnknownError</span>
 <span class="kn">from</span> <span class="nn">megfile.fs</span> <span class="kn">import</span> <span class="n">fs_copy</span><span class="p">,</span> <span class="n">is_fs</span>
 <span class="kn">from</span> <span class="nn">megfile.interfaces</span> <span class="kn">import</span> <span class="n">Access</span><span class="p">,</span> <span class="n">ContextIterator</span><span class="p">,</span> <span class="n">FileCacher</span><span class="p">,</span> <span class="n">FileEntry</span><span class="p">,</span> <span class="n">NullCacher</span><span class="p">,</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">StatResult</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.combine_reader</span> <span class="kn">import</span> <span class="n">CombineReader</span>
@@ -411,9 +411,17 @@
         <span class="n">copy_func</span> <span class="o">=</span> <span class="n">_copy_funcs</span><span class="p">[</span><span class="n">src_protocol</span><span class="p">][</span><span class="n">dst_protocol</span><span class="p">]</span>
     <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
         <span class="n">copy_func</span> <span class="o">=</span> <span class="n">_default_copy_func</span>
-    <span class="n">copy_func</span><span class="p">(</span>
-        <span class="n">src_path</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">callback</span><span class="p">,</span>
-        <span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span>  <span class="c1"># type: ignore</span></div>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">copy_func</span><span class="p">(</span>
+            <span class="n">src_path</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">callback</span><span class="p">,</span>
+            <span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+    <span class="k">except</span> <span class="n">S3UnknownError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s1">&#39;cannot schedule new futures after interpreter shutdown&#39;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">):</span>
+            <span class="n">_default_copy_func</span><span class="p">(</span>
+                <span class="n">src_path</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">callback</span><span class="p">,</span>
+                <span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span></div>
 
 
 <span class="k">def</span> <span class="nf">_smart_sync_single_file</span><span class="p">(</span><span class="n">items</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>

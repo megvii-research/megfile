@@ -1,6 +1,11 @@
 Advanced User Guide
 ===================
 
-Define custom protocol
+Define Custom Protocol
 ----------------------
-.. mdinclude:: ./advanced.custom_protocol.md
+.. mdinclude:: ./advanced/custom_protocol.md
+
+Glob Pattern
+----------------------
+.. mdinclude:: ./advanced/glob.md
+
