@@ -472,7 +472,8 @@ def tail(path: str, lines: int, follow: bool):
 
     for line in line_list[:-1]:
         click.echo(line)
-    click.echo(line_list[-1], nl=False)
+    if line_list:
+        click.echo(line_list[-1], nl=False)
 
     if follow:
         offset = file_size
