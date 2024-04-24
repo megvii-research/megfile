@@ -443,7 +443,12 @@ def head(path: str, lines: int):
     type=click.INT,
     default=10,
     help='print the last NUM lines')
-def tail(path: str, lines: int):
+@click.option(
+    '-f',
+    '--follow',
+    is_flag=True,
+    help='output appended data as the file grows')
+def tail(path: str, lines: int, follow: bool):
     line_list = []
     with smart_open(path, 'rb') as f:
         f.seek(0, os.SEEK_END)
