@@ -443,7 +443,12 @@ def head(path: str, lines: int):
     type=click.INT,
     default=10,
     help='print the last NUM lines')
-def tail(path: str, lines: int):
+@click.option(
+    '-f',
+    '--follow',
+    is_flag=True,
+    help='output appended data as the file grows')
+def tail(path: str, lines: int, follow: bool):
     line_list = []
     with smart_open(path, 'rb') as f:
         f.seek(0, os.SEEK_END)
@@ -464,8 +469,22 @@ def tail(path: str, lines: int):
                 break
             else:
                 line_list = block_lines
-    for line in line_list:
+
+    for line in line_list[:-1]:
         click.echo(line)
+    click.echo(line_list[-1], nl=False)
+
+    if follow:
+        offset = file_size
+        while True:
+            with smart_open(path, 'rb') as f:
+                f.seek(offset)
+                line = f.readline()
+                offset = f.tell()
+                if not line:
+                    time.sleep(1)
+                    continue
+                click.echo(line, nl=False)
 
 
 @cli.command(short_help='Write bytes from stdin to file.')
