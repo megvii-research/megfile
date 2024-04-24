@@ -304,13 +304,13 @@ def test_head_and_tail(runner, tmpdir, mocker):
     result = runner.invoke(tail, ['-n', '2', str(tmpdir / 'text')])
 
     assert result.exit_code == 0
-    assert result.output == '9\n\n'
+    assert result.output == '9\n'
 
     mocker.patch('megfile.config.DEFAULT_BLOCK_SIZE', 1)
     result = runner.invoke(tail, ['-n', '5', str(tmpdir / 'text')])
 
     assert result.exit_code == 0
-    assert result.output == '6\n7\n8\n9\n\n'
+    assert result.output == '6\n7\n8\n9\n'
 
 
 def test_to(runner, tmpdir):
