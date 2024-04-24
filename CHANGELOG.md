@@ -1,3 +1,9 @@
+## 3.0.2 - 2024.04.24
+- feat
+    - support `-f` / `--follow` in `tail` command
+- fix
+    - fix `smart_copy` bug in the function registered by `atexit`
+
 ## 3.0.1 - 2024.03.08
 - feat
     - command `ll` show file count
