@@ -461,7 +461,10 @@ def _s3_glob_stat_single_path(
         return False
 
     def create_generator(_s3_pathname) -> Iterator[FileEntry]:
-        if not S3Path(top_dir).exists():
+        top_dir_with_profile = top_dir
+        if profile_name:
+            top_dir_with_profile = f's3+{profile_name}://{top_dir[5:]}'
+        if not S3Path(top_dir_with_profile).exists():
             return
         if not has_magic(_s3_pathname):
             _s3_pathname_obj = S3Path(_s3_pathname)
