@@ -1,7 +1,3 @@
-## 3.0.2.post1 - 2024.04.25
-- fix
-    - fix `smart_glob` bug of s3 path with profile name
-
 ## 3.0.2 - 2024.04.24
 - feat
     - support `-f` / `--follow` in `tail` command
