@@ -1,7 +1,8 @@
+import pickle
 import resource
 from io import BytesIO, TextIOWrapper
 
-from megfile.utils import _get_class, binary_open, combine, get_human_size, necessary_params, patch_rlimit
+from megfile.utils import _get_class, _is_pickle, binary_open, combine, get_human_size, necessary_params, patch_rlimit
 
 
 def test_patch_rlimit(mocker):
@@ -47,3 +48,29 @@ def test_get_class():
         pass
 
     assert _get_class(Test) == _get_class(Test())
+
+
+def test__is_pickle():
+    data = 'test'
+    fileObj = BytesIO(pickle.dumps(data))
+    fileObj.name = 'test.pkl'
+    fileObj.mode = 'rb'
+    assert _is_pickle(fileObj) is True
+
+    fileObj.name = 'test'
+    assert _is_pickle(fileObj) is True
+
+    empty_file = BytesIO()
+    empty_file.name = 'test'
+    empty_file.mode = 'rb'
+    assert _is_pickle(empty_file) is False
+
+    fileObj = BytesIO(b'test')
+    fileObj.name = 'test'
+    fileObj.mode = 'rb'
+    assert _is_pickle(fileObj) is False
+
+    fileObj = BytesIO()
+    fileObj.name = 'test'
+    fileObj.mode = 'wb'
+    assert _is_pickle(fileObj) is False

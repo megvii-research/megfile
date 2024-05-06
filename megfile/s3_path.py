@@ -31,7 +31,7 @@ from megfile.lib.s3_prefetch_reader import S3PrefetchReader
 from megfile.lib.s3_share_cache_reader import S3ShareCacheReader
 from megfile.lib.url import get_url_scheme
 from megfile.smart_path import SmartPath
-from megfile.utils import cachedproperty, calculate_md5, generate_cache_path, get_binary_mode, get_content_offset, is_readable, necessary_params, process_local, thread_local
+from megfile.utils import _is_pickle, cachedproperty, calculate_md5, generate_cache_path, get_binary_mode, get_content_offset, is_readable, necessary_params, process_local, thread_local
 
 __all__ = [
     'S3Path',
@@ -775,7 +775,7 @@ def s3_buffered_open(
         forward_ratio: Optional[float] = None,
         block_size: int = DEFAULT_BLOCK_SIZE,
         limited_seekable: bool = False,
-        buffered: bool = True,
+        buffered: bool = False,
         share_cache_key: Optional[str] = None,
         cache_path: Optional[str] = None
 ) -> Union[S3PrefetchReader, S3BufferedWriter, io.BufferedReader, io.
@@ -858,7 +858,7 @@ def s3_buffered_open(
                 block_forward=block_forward,
                 block_size=block_size,
                 profile_name=s3_url._profile_name)
-        if buffered:
+        if buffered or _is_pickle(reader):
             reader = io.BufferedReader(reader)  # pytype: disable=wrong-arg-types
         return reader
 
@@ -880,7 +880,7 @@ def s3_buffered_open(
             max_buffer_size=max_buffer_size,
             block_size=block_size,
             profile_name=s3_url._profile_name)
-    if buffered:
+    if buffered or _is_pickle(writer):
         writer = io.BufferedWriter(writer)  # pytype: disable=wrong-arg-types
     return writer
 
