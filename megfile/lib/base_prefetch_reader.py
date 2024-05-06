@@ -1,5 +1,5 @@
 import os
-from abc import ABC, abstractmethod, abstractproperty
+from abc import ABC, abstractmethod
 from collections import OrderedDict
 from concurrent.futures import Future, ThreadPoolExecutor
 from io import BytesIO
@@ -85,7 +85,8 @@ class BasePrefetchReader(Readable, Seekable, ABC):
     def _get_futures(self):
         return LRUCacheFutureManager()
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def name(self) -> str:
         pass
 
