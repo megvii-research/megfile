@@ -393,6 +393,37 @@ def test_hdfs_open(http_mocker):
         assert f.name == 'hdfs://root/a/2.txt'
 
 
+def test_hdfs_open_pickle(http_mocker):
+
+    http_mocker.get(
+        f'http://127.0.0.1:8000/webhdfs/v1/root/1.pkl?op=GETFILESTATUS',
+        json={
+            "FileStatus": {
+                "accessTime": 0,
+                "blockSize": 0,
+                "group": "supergroup",
+                "length": 4,
+                "modificationTime": 1320173277227,
+                "owner": "webuser",
+                "pathSuffix": "",
+                "permission": "777",
+                "replication": 0,
+                "type": "FILE"
+            }
+        })
+    http_mocker.get(
+        f'http://127.0.0.1:8000/webhdfs/v1/root/1.pkl?op=OPEN',
+        text='test',
+        status_code=200,
+        headers={
+            'Content-Length': "4",
+            'Content-Type': 'application/octet-stream'
+        })
+
+    with hdfs.hdfs_open('hdfs://root/1.pkl', 'rb') as f:
+        assert isinstance(f, io.BufferedReader)
+
+
 def test_hdfs_glob(http_mocker):
     assert hdfs.hdfs_glob('hdfs://root/**/*.txt') == [
         'hdfs://root/1.txt',

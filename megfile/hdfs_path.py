@@ -14,7 +14,7 @@ from megfile.lib.hdfs_tools import hdfs_api
 from megfile.lib.url import get_url_scheme
 from megfile.pathlike import PathLike, URIPath
 from megfile.smart_path import SmartPath
-from megfile.utils import cachedproperty
+from megfile.utils import _is_pickle, cachedproperty
 
 __all__ = [
     'HdfsPath',
@@ -603,6 +603,8 @@ class HdfsPath(URIPath):
                     client=self._client,
                     profile_name=self._profile_name,
                     **input_kwargs)
+                if _is_pickle(file_obj):  # pytype: disable=wrong-arg-types
+                    file_obj = io.BufferedReader(file_obj)  # pytype: disable=wrong-arg-types
                 if 'b' not in mode:
                     file_obj = io.TextIOWrapper(
                         file_obj, encoding=encoding, errors=errors)  # pytype: disable=wrong-arg-types

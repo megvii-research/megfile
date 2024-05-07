@@ -1,8 +1,11 @@
+import io
 import os
+import pickle
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 
 import pytest
 
+from megfile.lib.shadow_handler import ShadowHandler
 from megfile.s3 import s3_buffered_open
 from megfile.smart import smart_open
 from megfile.utils import get_content_size, is_readable, is_seekable, is_writable, lazy_open, process_local, shadow_copy, thread_local
@@ -105,6 +108,29 @@ def test_fs_abilities():
     assert is_writable(io_object) is True
     assert is_readable(io_object) is True
     assert is_seekable(io_object) is True
+
+
+def test_shadow_copy_pickle_file(fs):
+    with open('test', 'wb') as f:
+        f.write(b'test')
+
+    with open('test', 'rb') as f:
+        assert isinstance(shadow_copy(f), ShadowHandler)
+
+    with open('test.pkl', 'wb') as f:
+        f.mode = 'wb'
+        assert isinstance(shadow_copy(f), io.BufferedWriter)
+
+    with open('test', 'wb') as f:
+        f.write(pickle.dumps(b'test'))
+
+    with open('test', 'rb') as f:
+        f.mode = 'rb'
+        assert isinstance(shadow_copy(f), io.BufferedReader)
+
+    with open('test', 'rb+') as f:
+        f.mode = 'rb+'
+        assert isinstance(shadow_copy(f), io.BufferedRandom)
 
 
 def test_pipe_abilities():

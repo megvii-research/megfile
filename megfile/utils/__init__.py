@@ -6,9 +6,6 @@ import uuid
 from copy import copy
 from functools import wraps
 from io import BufferedIOBase, BufferedRandom, BufferedReader, BufferedWriter, BytesIO, StringIO, TextIOBase, TextIOWrapper
-from multiprocessing.util import register_after_fork
-from threading import RLock as _RLock
-from threading import local
 from typing import IO, Callable, Optional
 
 from megfile.utils.mutex import ProcessLocal, ThreadLocal
@@ -72,6 +69,20 @@ def is_writable(fileobj: IO) -> bool:
     return hasattr(fileobj, 'write')
 
 
+def _is_pickle(fileobj: IO) -> bool:
+    ''' Test if File Object is pickle'''
+    if fileobj.name.endswith('.pkl') or fileobj.name.endswith('.pickle'):
+        return True
+
+    if 'r' in fileobj.mode and 'b' in fileobj.mode:
+        offset = fileobj.tell()
+        data = fileobj.read(2)
+        fileobj.seek(offset)
+        if len(data) >= 2 and data[0] == 128 and 2 <= data[1] <= 5:
+            return True
+    return False
+
+
 def get_content_offset(start: Optional[int], stop: Optional[int], size: int):
     if start is None:
         start = 0
@@ -94,7 +105,7 @@ def get_mode(fileobj, default='r'):
     return getattr(fileobj, 'mode', default)
 
 
-def shadow_copy(fileobj: IO, intrusive: bool = True, buffered: bool = True):
+def shadow_copy(fileobj: IO, intrusive: bool = True, buffered: bool = False):
     ''' Create a File-Like Object, maintaining file pointer, to avoid misunderstanding the position when read / write / seek
 
     :param intrusive: If is intrusive. If True, move file pointer to the original position after every read / write / seek. If False, then not.
@@ -103,7 +114,7 @@ def shadow_copy(fileobj: IO, intrusive: bool = True, buffered: bool = True):
     from megfile.lib.shadow_handler import ShadowHandler
     result = ShadowHandler(fileobj, intrusive=intrusive)
     mode = get_mode(fileobj)
-    if buffered and "b" in mode:
+    if "b" in mode and (buffered or _is_pickle(result)):  # pytype: disable=wrong-arg-types
         if "+" in mode:
             result = BufferedRandom(result)
         elif "x" in mode or "w" in mode or "a" in mode:

@@ -16,7 +16,7 @@ from megfile.lib.s3_buffered_writer import DEFAULT_MAX_BUFFER_SIZE
 from megfile.lib.url import get_url_scheme
 from megfile.pathlike import PathLike
 from megfile.smart_path import SmartPath
-from megfile.utils import binary_open
+from megfile.utils import _is_pickle, binary_open
 
 __all__ = [
     'HttpPath',
@@ -223,7 +223,7 @@ class HttpPath(URIPath):
             else:
                 block_forward = max(int(block_capacity * forward_ratio), 1)
 
-            return HttpPrefetchReader(
+            reader = HttpPrefetchReader(
                 self.path_with_protocol,
                 content_size=content_size,
                 max_retries=max_retries,
@@ -232,6 +232,10 @@ class HttpPath(URIPath):
                 block_forward=block_forward,
                 block_size=block_size,
             )
+            if _is_pickle(reader):  # pytype: disable=wrong-arg-types
+                reader = io.BufferedReader(reader)  # pytype: disable=wrong-arg-types
+            return reader
+
         response.raw.auto_close = False
         response.raw.name = self.path_with_protocol
         return BufferedReader(response.raw)

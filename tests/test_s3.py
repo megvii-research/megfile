@@ -1,12 +1,13 @@
 import hashlib
 import os
+import pickle
 import sys
 import threading
 import time
 from collections import namedtuple
 from enum import Enum
 from functools import partial
-from io import BytesIO
+from io import BufferedReader, BufferedWriter, BytesIO
 from pathlib import Path
 from typing import Iterable, List, Tuple
 
@@ -2696,21 +2697,34 @@ def test_s3_buffered_open(mocker, s3_empty_client, fs):
     s3_empty_client.create_bucket(Bucket='bucket')
 
     writer = s3.s3_buffered_open('s3://bucket/key', 'wb')
-    assert isinstance(writer.raw, s3.S3BufferedWriter)
+    assert isinstance(writer, s3.S3BufferedWriter)
 
     writer = s3.s3_buffered_open('s3://bucket/key', 'ab', cache_path='/test')
     assert isinstance(writer, S3CachedHandler)
 
     writer = s3.s3_buffered_open('s3://bucket/key', 'wb', limited_seekable=True)
-    assert isinstance(writer.raw, s3.S3LimitedSeekableWriter)
+    assert isinstance(writer, s3.S3LimitedSeekableWriter)
 
+    writer = s3.s3_buffered_open('s3://bucket/key.pkl', 'wb')
+    assert isinstance(writer, BufferedWriter)
+
+    s3_empty_client.put_object(
+        Bucket='bucket', Key='key', Body=pickle.dumps('test'))
+    reader = s3.s3_buffered_open('s3://bucket/key', 'rb')
+    assert isinstance(reader, BufferedReader)
+
+    s3_empty_client.put_object(Bucket='bucket', Key='key.pkl', Body=content)
+    reader = s3.s3_buffered_open('s3://bucket/key.pkl', 'rb')
+    assert isinstance(reader, BufferedReader)
+
+    s3_empty_client.put_object(Bucket='bucket', Key='key', Body=content)
     reader = s3.s3_buffered_open('s3://bucket/key', 'rb', forward_ratio=0.5)
-    assert isinstance(reader.raw, s3.S3PrefetchReader)
-    assert reader.raw._block_forward == DEFAULT_MAX_BUFFER_SIZE // DEFAULT_BLOCK_SIZE * 0.5
+    assert isinstance(reader, s3.S3PrefetchReader)
+    assert reader._block_forward == DEFAULT_MAX_BUFFER_SIZE // DEFAULT_BLOCK_SIZE * 0.5
 
     reader = s3.s3_buffered_open(
         's3://bucket/key', 'rb', share_cache_key='share')
-    assert isinstance(reader.raw, s3.S3ShareCacheReader)
+    assert isinstance(reader, s3.S3ShareCacheReader)
 
     with s3.s3_buffered_open('s3://bucket/key', 'wb') as writer:
         assert writer.name == 's3://bucket/key'
@@ -2803,10 +2817,10 @@ def test_s3_open(s3_empty_client):
     s3_empty_client.put_object(Bucket='bucket', Key='key', Body=content)
 
     writer = s3.s3_open('s3://bucket/key', 'wb')
-    assert isinstance(writer.raw, s3.S3BufferedWriter)
+    assert isinstance(writer, s3.S3BufferedWriter)
 
     reader = s3.s3_open('s3://bucket/key', 'rb')
-    assert isinstance(reader.raw, s3.S3PrefetchReader)
+    assert isinstance(reader, s3.S3PrefetchReader)
 
     writer = s3.s3_open('s3://bucket/key', 'ab')
     assert isinstance(writer, S3MemoryHandler)
