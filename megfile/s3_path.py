@@ -858,7 +858,7 @@ def s3_buffered_open(
                 block_forward=block_forward,
                 block_size=block_size,
                 profile_name=s3_url._profile_name)
-        if buffered or _is_pickle(reader):
+        if buffered or _is_pickle(reader):  # pytype: disable=wrong-arg-types
             reader = io.BufferedReader(reader)  # pytype: disable=wrong-arg-types
         return reader
 
@@ -880,7 +880,7 @@ def s3_buffered_open(
             max_buffer_size=max_buffer_size,
             block_size=block_size,
             profile_name=s3_url._profile_name)
-    if buffered or _is_pickle(writer):
+    if buffered or _is_pickle(writer):  # pytype: disable=wrong-arg-types
         writer = io.BufferedWriter(writer)  # pytype: disable=wrong-arg-types
     return writer
 

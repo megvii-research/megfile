@@ -1,5 +1,6 @@
+import pickle
 import time
-from io import BytesIO
+from io import BufferedReader, BytesIO
 
 import pytest
 import requests
@@ -93,6 +94,30 @@ def test_http_open(mocker):
     assert str(
         error.value
     ) == 'Unknown error encountered: \'http://test\', error: requests.exceptions.ReadTimeout(\'test\')'
+
+
+def test_http_open_pickle(mocker):
+    requests_get_func = mocker.patch('requests.Session.get')
+
+    class PickleResponse(FakeResponse):
+        status_code = 200
+
+        @cachedproperty
+        def raw(self):
+            return BytesIO(pickle.dumps(b'test'))
+
+        @property
+        def headers(self):
+            return {
+                "Content-Length": str(len(pickle.dumps(b'test'))),
+                'Content-Type': 'test/test',
+                "Last-Modified": "Wed, 24 Nov 2021 07:18:41 GMT",
+                'Accept-Ranges': 'bytes',
+            }
+
+    requests_get_func.return_value = PickleResponse()
+    with http_open('http://test', 'rb') as http_reader:
+        assert isinstance(http_reader, BufferedReader)
 
 
 def test_http_open_range(mocker):

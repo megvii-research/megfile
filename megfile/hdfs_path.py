@@ -603,8 +603,8 @@ class HdfsPath(URIPath):
                     client=self._client,
                     profile_name=self._profile_name,
                     **input_kwargs)
-                if _is_pickle(file_obj):
-                    file_obj = io.BufferedReader(file_obj)
+                if _is_pickle(file_obj):  # pytype: disable=wrong-arg-types
+                    file_obj = io.BufferedReader(file_obj)  # pytype: disable=wrong-arg-types
                 if 'b' not in mode:
                     file_obj = io.TextIOWrapper(
                         file_obj, encoding=encoding, errors=errors)  # pytype: disable=wrong-arg-types

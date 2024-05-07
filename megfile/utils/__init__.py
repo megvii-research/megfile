@@ -114,7 +114,7 @@ def shadow_copy(fileobj: IO, intrusive: bool = True, buffered: bool = False):
     from megfile.lib.shadow_handler import ShadowHandler
     result = ShadowHandler(fileobj, intrusive=intrusive)
     mode = get_mode(fileobj)
-    if "b" in mode and (buffered or _is_pickle(result)):
+    if "b" in mode and (buffered or _is_pickle(result)):  # pytype: disable=wrong-arg-types
         if "+" in mode:
             result = BufferedRandom(result)
         elif "x" in mode or "w" in mode or "a" in mode:

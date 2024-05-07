@@ -232,8 +232,8 @@ class HttpPath(URIPath):
                 block_forward=block_forward,
                 block_size=block_size,
             )
-            if _is_pickle(reader):
-                reader = io.BufferedReader(reader)
+            if _is_pickle(reader):  # pytype: disable=wrong-arg-types
+                reader = io.BufferedReader(reader)  # pytype: disable=wrong-arg-types
             return reader
 
         response.raw.auto_close = False
