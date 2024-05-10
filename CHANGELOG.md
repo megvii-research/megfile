@@ -1,3 +1,7 @@
+## 3.0.3 - 2024.05.10
+- perf
+    - optimize read and write performance for s3, http and hdfs 
+
 ## 3.0.2.post1 - 2024.04.25
 - fix
     - fix `smart_glob` bug of s3 path with profile name
