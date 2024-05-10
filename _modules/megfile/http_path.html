@@ -96,7 +96,7 @@
 <span class="kn">from</span> <span class="nn">megfile.lib.url</span> <span class="kn">import</span> <span class="n">get_url_scheme</span>
 <span class="kn">from</span> <span class="nn">megfile.pathlike</span> <span class="kn">import</span> <span class="n">PathLike</span>
 <span class="kn">from</span> <span class="nn">megfile.smart_path</span> <span class="kn">import</span> <span class="n">SmartPath</span>
-<span class="kn">from</span> <span class="nn">megfile.utils</span> <span class="kn">import</span> <span class="n">binary_open</span>
+<span class="kn">from</span> <span class="nn">megfile.utils</span> <span class="kn">import</span> <span class="n">_is_pickle</span><span class="p">,</span> <span class="n">binary_open</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s1">&#39;HttpPath&#39;</span><span class="p">,</span>
@@ -303,7 +303,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">block_forward</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">block_capacity</span> <span class="o">*</span> <span class="n">forward_ratio</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
 
-            <span class="k">return</span> <span class="n">HttpPrefetchReader</span><span class="p">(</span>
+            <span class="n">reader</span> <span class="o">=</span> <span class="n">HttpPrefetchReader</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">,</span>
                 <span class="n">content_size</span><span class="o">=</span><span class="n">content_size</span><span class="p">,</span>
                 <span class="n">max_retries</span><span class="o">=</span><span class="n">max_retries</span><span class="p">,</span>
@@ -312,6 +312,10 @@
                 <span class="n">block_forward</span><span class="o">=</span><span class="n">block_forward</span><span class="p">,</span>
                 <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span><span class="p">,</span>
             <span class="p">)</span>
+            <span class="k">if</span> <span class="n">_is_pickle</span><span class="p">(</span><span class="n">reader</span><span class="p">):</span>  <span class="c1"># pytype: disable=wrong-arg-types</span>
+                <span class="n">reader</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BufferedReader</span><span class="p">(</span><span class="n">reader</span><span class="p">)</span>  <span class="c1"># pytype: disable=wrong-arg-types</span>
+            <span class="k">return</span> <span class="n">reader</span>
+
         <span class="n">response</span><span class="o">.</span><span class="n">raw</span><span class="o">.</span><span class="n">auto_close</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">response</span><span class="o">.</span><span class="n">raw</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span>
         <span class="k">return</span> <span class="n">BufferedReader</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">raw</span><span class="p">)</span></div>

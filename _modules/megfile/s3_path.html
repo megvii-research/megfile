@@ -111,7 +111,7 @@
 <span class="kn">from</span> <span class="nn">megfile.lib.s3_share_cache_reader</span> <span class="kn">import</span> <span class="n">S3ShareCacheReader</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.url</span> <span class="kn">import</span> <span class="n">get_url_scheme</span>
 <span class="kn">from</span> <span class="nn">megfile.smart_path</span> <span class="kn">import</span> <span class="n">SmartPath</span>
-<span class="kn">from</span> <span class="nn">megfile.utils</span> <span class="kn">import</span> <span class="n">cachedproperty</span><span class="p">,</span> <span class="n">calculate_md5</span><span class="p">,</span> <span class="n">generate_cache_path</span><span class="p">,</span> <span class="n">get_binary_mode</span><span class="p">,</span> <span class="n">get_content_offset</span><span class="p">,</span> <span class="n">is_readable</span><span class="p">,</span> <span class="n">necessary_params</span><span class="p">,</span> <span class="n">process_local</span><span class="p">,</span> <span class="n">thread_local</span>
+<span class="kn">from</span> <span class="nn">megfile.utils</span> <span class="kn">import</span> <span class="n">_is_pickle</span><span class="p">,</span> <span class="n">cachedproperty</span><span class="p">,</span> <span class="n">calculate_md5</span><span class="p">,</span> <span class="n">generate_cache_path</span><span class="p">,</span> <span class="n">get_binary_mode</span><span class="p">,</span> <span class="n">get_content_offset</span><span class="p">,</span> <span class="n">is_readable</span><span class="p">,</span> <span class="n">necessary_params</span><span class="p">,</span> <span class="n">process_local</span><span class="p">,</span> <span class="n">thread_local</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s1">&#39;S3Path&#39;</span><span class="p">,</span>
@@ -541,7 +541,10 @@
         <span class="k">return</span> <span class="kc">False</span>
 
     <span class="k">def</span> <span class="nf">create_generator</span><span class="p">(</span><span class="n">_s3_pathname</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">FileEntry</span><span class="p">]:</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">top_dir</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="n">top_dir_with_profile</span> <span class="o">=</span> <span class="n">top_dir</span>
+        <span class="k">if</span> <span class="n">profile_name</span><span class="p">:</span>
+            <span class="n">top_dir_with_profile</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;s3+</span><span class="si">{</span><span class="n">profile_name</span><span class="si">}</span><span class="s1">://</span><span class="si">{</span><span class="n">top_dir</span><span class="p">[</span><span class="mi">5</span><span class="p">:]</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">top_dir_with_profile</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
             <span class="k">return</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">has_magic</span><span class="p">(</span><span class="n">_s3_pathname</span><span class="p">):</span>
             <span class="n">_s3_pathname_obj</span> <span class="o">=</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">_s3_pathname</span><span class="p">)</span>
@@ -852,7 +855,7 @@
         <span class="n">forward_ratio</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">block_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_BLOCK_SIZE</span><span class="p">,</span>
         <span class="n">limited_seekable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="n">buffered</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">buffered</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">share_cache_key</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">cache_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">S3PrefetchReader</span><span class="p">,</span> <span class="n">S3BufferedWriter</span><span class="p">,</span> <span class="n">io</span><span class="o">.</span><span class="n">BufferedReader</span><span class="p">,</span> <span class="n">io</span><span class="o">.</span>
@@ -935,7 +938,7 @@
                 <span class="n">block_forward</span><span class="o">=</span><span class="n">block_forward</span><span class="p">,</span>
                 <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span><span class="p">,</span>
                 <span class="n">profile_name</span><span class="o">=</span><span class="n">s3_url</span><span class="o">.</span><span class="n">_profile_name</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">buffered</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">buffered</span> <span class="ow">or</span> <span class="n">_is_pickle</span><span class="p">(</span><span class="n">reader</span><span class="p">):</span>  <span class="c1"># pytype: disable=wrong-arg-types</span>
             <span class="n">reader</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BufferedReader</span><span class="p">(</span><span class="n">reader</span><span class="p">)</span>  <span class="c1"># pytype: disable=wrong-arg-types</span>
         <span class="k">return</span> <span class="n">reader</span>
 
@@ -957,7 +960,7 @@
             <span class="n">max_buffer_size</span><span class="o">=</span><span class="n">max_buffer_size</span><span class="p">,</span>
             <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span><span class="p">,</span>
             <span class="n">profile_name</span><span class="o">=</span><span class="n">s3_url</span><span class="o">.</span><span class="n">_profile_name</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">buffered</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">buffered</span> <span class="ow">or</span> <span class="n">_is_pickle</span><span class="p">(</span><span class="n">writer</span><span class="p">):</span>  <span class="c1"># pytype: disable=wrong-arg-types</span>
         <span class="n">writer</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BufferedWriter</span><span class="p">(</span><span class="n">writer</span><span class="p">)</span>  <span class="c1"># pytype: disable=wrong-arg-types</span>
     <span class="k">return</span> <span class="n">writer</span></div>
 
