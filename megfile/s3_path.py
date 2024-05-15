@@ -138,15 +138,19 @@ def get_endpoint_url(profile_name: Optional[str] = None) -> str:
 
     :returns: S3 endpoint url
     '''
-    environ_key = f'{profile_name}__OSS_ENDPOINT'.upper(
-    ) if profile_name else 'OSS_ENDPOINT'
-    environ_endpoint_url = os.environ.get(environ_key)
-    if environ_endpoint_url:
-        warning_endpoint_url(environ_key, environ_endpoint_url)
-        return environ_endpoint_url
+    if profile_name:
+        environ_keys = (f'{profile_name}__OSS_ENDPOINT'.upper(),)
+    else:
+        environ_keys = ('OSS_ENDPOINT', 'AWS_ENDPOINT_URL')
+    for environ_key in environ_keys:
+        environ_endpoint_url = os.environ.get(environ_key)
+        if environ_endpoint_url:
+            warning_endpoint_url(environ_key, environ_endpoint_url)
+            return environ_endpoint_url
     try:
-        config_endpoint_url = get_scoped_config(profile_name=profile_name).get(
-            's3', {}).get('endpoint_url')
+        config = get_scoped_config(profile_name=profile_name)
+        config_endpoint_url = config.get('s3', {}).get('endpoint_url')
+        config_endpoint_url = config_endpoint_url or config.get('endpoint_url')
         if config_endpoint_url:
             warning_endpoint_url('~/.aws/config', config_endpoint_url)
             return config_endpoint_url
