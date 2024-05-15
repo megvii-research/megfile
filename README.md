@@ -127,10 +127,10 @@ Using `s3` as an example, the following describes the configuration methods. For
 You can use environments and configuration file for configuration, and priority is that environment variables take precedence over configuration file.
 
 ### Use environments
-You can use environments to setup authentication credentials for your s3 account:
+You can use environments to setup authentication credentials for your `s3` account:
 - `AWS_ACCESS_KEY_ID`: access key
 - `AWS_SECRET_ACCESS_KEY`: secret key
-- `OSS_ENDPOINT`: endpoint url of s3
+- `OSS_ENDPOINT` / `AWS_ENDPOINT_URL_S3` / `AWS_ENDPOINT_URL`: endpoint url of s3
 - `AWS_S3_ADDRESSING_STYLE`: addressing style
 
 ### Use command

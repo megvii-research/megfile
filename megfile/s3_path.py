@@ -141,7 +141,8 @@ def get_endpoint_url(profile_name: Optional[str] = None) -> str:
     if profile_name:
         environ_keys = (f'{profile_name}__OSS_ENDPOINT'.upper(),)
     else:
-        environ_keys = ('OSS_ENDPOINT', 'AWS_ENDPOINT_URL')
+        environ_keys = (
+            'OSS_ENDPOINT', 'AWS_ENDPOINT_URL_S3', 'AWS_ENDPOINT_URL')
     for environ_key in environ_keys:
         environ_endpoint_url = os.environ.get(environ_key)
         if environ_endpoint_url:
