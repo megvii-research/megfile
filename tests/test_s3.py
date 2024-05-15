@@ -256,8 +256,29 @@ def test_get_endpoint_url(mocker):
 def test_get_endpoint_url_from_env(mocker):
     mocker.patch('megfile.s3_path.get_scoped_config', return_value={})
     mocker.patch.dict(os.environ, {'OSS_ENDPOINT': 'oss-endpoint'})
-
     assert s3.get_endpoint_url() == 'oss-endpoint'
+
+
+def test_get_endpoint_url_from_env2(mocker):
+    mocker.patch('megfile.s3_path.get_scoped_config', return_value={})
+    mocker.patch.dict(os.environ, {'AWS_ENDPOINT_URL': 'oss-endpoint2'})
+    assert s3.get_endpoint_url() == 'oss-endpoint2'
+
+
+def test_get_endpoint_url_from_env3(mocker):
+    mocker.patch('megfile.s3_path.get_scoped_config', return_value={})
+    mocker.patch.dict(
+        os.environ, {
+            'OSS_ENDPOINT': 'oss-endpoint',
+            'AWS_ENDPOINT_URL': 'oss-endpoint2'
+        })
+    assert s3.get_endpoint_url() == 'oss-endpoint'
+
+
+def test_get_endpoint_url_from_env4(mocker):
+    mocker.patch('megfile.s3_path.get_scoped_config', return_value={})
+    mocker.patch.dict(os.environ, {'AWS_ENDPOINT_URL_S3': 'oss-endpoint3'})
+    assert s3.get_endpoint_url() == 'oss-endpoint3'
 
 
 def test_get_endpoint_url_from_scoped_config(mocker):
@@ -266,7 +287,21 @@ def test_get_endpoint_url_from_scoped_config(mocker):
         return_value={'s3': {
             'endpoint_url': 'test_endpoint_url'
         }})
+    assert s3.get_endpoint_url() == 'test_endpoint_url'
 
+    mocker.patch(
+        'megfile.s3_path.get_scoped_config',
+        return_value={'endpoint_url': 'test_endpoint_url2'})
+    assert s3.get_endpoint_url() == 'test_endpoint_url2'
+
+    mocker.patch(
+        'megfile.s3_path.get_scoped_config',
+        return_value={
+            's3': {
+                'endpoint_url': 'test_endpoint_url'
+            },
+            'endpoint_url': 'test_endpoint_url2'
+        })
     assert s3.get_endpoint_url() == 'test_endpoint_url'
 
 
