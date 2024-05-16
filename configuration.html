@@ -136,7 +136,7 @@ You can use environments and configuration file for configuration, and priority 
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">AWS_ACCESS_KEY_ID</span></code>: access key</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">AWS_SECRET_ACCESS_KEY</span></code>: secret key</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">OSS_ENDPOINT</span></code>: endpoint url of s3</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">OSS_ENDPOINT</span></code> / <code class="docutils literal notranslate"><span class="pre">AWS_ENDPOINT_URL_S3</span></code> / <code class="docutils literal notranslate"><span class="pre">AWS_ENDPOINT_URL</span></code>: endpoint url of s3</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">AWS_S3_ADDRESSING_STYLE</span></code>: addressing style</p></li>
 </ul>
 </section>
@@ -144,22 +144,30 @@ You can use environments and configuration file for configuration, and priority 
 <h3>Use command<a class="headerlink" href="#use-command" title="Permalink to this heading"></a></h3>
 <p>You can update config file with <code class="docutils literal notranslate"><span class="pre">megfile</span></code> command easyly:
 <a class="reference external" href="https://megvii-research.github.io/megfile/cli.html#megfile-config-s3">megfile config s3 [OPTIONS] AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY</a></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>megfile<span class="w"> </span>config<span class="w"> </span>s3<span class="w"> </span>accesskey<span class="w"> </span>secretkey
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>megfile<span class="w"> </span>config<span class="w"> </span>s3<span class="w"> </span>access_key<span class="w"> </span>secret_key
 
 <span class="c1"># for aliyun</span>
-$<span class="w"> </span>megfile<span class="w"> </span>config<span class="w"> </span>s3<span class="w"> </span>accesskey<span class="w"> </span>secretkey<span class="w"> </span><span class="se">\</span>
+$<span class="w"> </span>megfile<span class="w"> </span>config<span class="w"> </span>s3<span class="w"> </span>access_key<span class="w"> </span>secret_key<span class="w"> </span><span class="se">\</span>
 --addressing-style<span class="w"> </span>virtual<span class="w"> </span><span class="se">\</span>
 --endpoint-url<span class="w"> </span>http://oss-cn-hangzhou.aliyuncs.com<span class="w"> </span><span class="se">\</span>
 </pre></div>
 </div>
 <p>You can get the configuration from <code class="docutils literal notranslate"><span class="pre">~/.aws/credentials</span></code>, like:</p>
 <div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="k">[default]</span>
-<span class="na">aws_secret_access_key</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">accesskey</span>
-<span class="na">aws_access_key_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">secretkey</span>
+<span class="na">aws_secret_access_key</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">access_key</span>
+<span class="na">aws_access_key_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">secret_key</span>
 
 <span class="na">s3</span><span class="w"> </span><span class="o">=</span>
 <span class="w">    </span><span class="na">addressing_style</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">virtual</span>
 <span class="w">    </span><span class="na">endpoint_url</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">http://oss-cn-hangzhou.aliyuncs.com</span>
+</pre></div>
+</div>
+<p>Megfile also support a custom global endpoint url, if you not configure a endpoint url for S3 in the file. Example:</p>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="k">[default]</span>
+<span class="na">aws_secret_access_key</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">access_key</span>
+<span class="na">aws_access_key_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">secret_key</span>
+
+<span class="na">endpoint_url</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">http://oss-cn-hangzhou.aliyuncs.com</span>
 </pre></div>
 </div>
 </section>
@@ -184,13 +192,13 @@ For example, you have two s3 server with different endpoint_url, access_key and 
 </section>
 <section id="using-command">
 <h4>Using command:<a class="headerlink" href="#using-command" title="Permalink to this heading"></a></h4>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>megfile<span class="w"> </span>config<span class="w"> </span>s3<span class="w"> </span>AWS_ACCESS_KEY_ID<span class="w"> </span>AWS_SECRET_ACCESS_KEY<span class="w"> </span>--profile-name<span class="w"> </span>profile1
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>megfile<span class="w"> </span>config<span class="w"> </span>s3<span class="w"> </span>access_key<span class="w"> </span>secret_key<span class="w"> </span>--profile-name<span class="w"> </span>profile1
 </pre></div>
 </div>
 <p>Then the config file’s content will be:</p>
 <div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="k">[profile1]</span>
-<span class="na">aws_secret_access_key</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">accesskey</span>
-<span class="na">aws_access_key_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">secretkey</span>
+<span class="na">aws_access_key_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">access_key</span>
+<span class="na">aws_secret_access_key</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">secret_key</span>
 </pre></div>
 </div>
 </section>

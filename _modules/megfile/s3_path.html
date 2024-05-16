@@ -218,15 +218,20 @@
 
 <span class="sd">    :returns: S3 endpoint url</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="n">environ_key</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">profile_name</span><span class="si">}</span><span class="s1">__OSS_ENDPOINT&#39;</span><span class="o">.</span><span class="n">upper</span><span class="p">(</span>
-    <span class="p">)</span> <span class="k">if</span> <span class="n">profile_name</span> <span class="k">else</span> <span class="s1">&#39;OSS_ENDPOINT&#39;</span>
-    <span class="n">environ_endpoint_url</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">environ_key</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">environ_endpoint_url</span><span class="p">:</span>
-        <span class="n">warning_endpoint_url</span><span class="p">(</span><span class="n">environ_key</span><span class="p">,</span> <span class="n">environ_endpoint_url</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">environ_endpoint_url</span>
+    <span class="k">if</span> <span class="n">profile_name</span><span class="p">:</span>
+        <span class="n">environ_keys</span> <span class="o">=</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">profile_name</span><span class="si">}</span><span class="s1">__OSS_ENDPOINT&#39;</span><span class="o">.</span><span class="n">upper</span><span class="p">(),)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">environ_keys</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s1">&#39;OSS_ENDPOINT&#39;</span><span class="p">,</span> <span class="s1">&#39;AWS_ENDPOINT_URL_S3&#39;</span><span class="p">,</span> <span class="s1">&#39;AWS_ENDPOINT_URL&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">environ_key</span> <span class="ow">in</span> <span class="n">environ_keys</span><span class="p">:</span>
+        <span class="n">environ_endpoint_url</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">environ_key</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">environ_endpoint_url</span><span class="p">:</span>
+            <span class="n">warning_endpoint_url</span><span class="p">(</span><span class="n">environ_key</span><span class="p">,</span> <span class="n">environ_endpoint_url</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">environ_endpoint_url</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">config_endpoint_url</span> <span class="o">=</span> <span class="n">get_scoped_config</span><span class="p">(</span><span class="n">profile_name</span><span class="o">=</span><span class="n">profile_name</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-            <span class="s1">&#39;s3&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;endpoint_url&#39;</span><span class="p">)</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="n">get_scoped_config</span><span class="p">(</span><span class="n">profile_name</span><span class="o">=</span><span class="n">profile_name</span><span class="p">)</span>
+        <span class="n">config_endpoint_url</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;s3&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;endpoint_url&#39;</span><span class="p">)</span>
+        <span class="n">config_endpoint_url</span> <span class="o">=</span> <span class="n">config_endpoint_url</span> <span class="ow">or</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;endpoint_url&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">config_endpoint_url</span><span class="p">:</span>
             <span class="n">warning_endpoint_url</span><span class="p">(</span><span class="s1">&#39;~/.aws/config&#39;</span><span class="p">,</span> <span class="n">config_endpoint_url</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">config_endpoint_url</span>
