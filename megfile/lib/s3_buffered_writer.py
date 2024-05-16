@@ -1,3 +1,4 @@
+import os
 from collections import OrderedDict
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from io import BytesIO
@@ -5,8 +6,10 @@ from logging import getLogger as get_logger
 from threading import Lock
 from typing import NamedTuple, Optional
 
+from botocore.exceptions import ClientError
+
 from megfile.config import BACKOFF_FACTOR, BACKOFF_INITIAL, DEFAULT_BLOCK_SIZE, DEFAULT_MAX_BLOCK_SIZE, DEFAULT_MAX_BUFFER_SIZE, GLOBAL_MAX_WORKERS
-from megfile.errors import raise_s3_error
+from megfile.errors import patch_method, raise_s3_error, s3_should_retry
 from megfile.interfaces import Writable
 from megfile.utils import get_human_size, process_local
 
@@ -32,6 +35,9 @@ class PartResult(_PartResult):
             'PartNumber': self.part_number,
             'ETag': self.etag,
         }
+
+
+max_retries = int(os.environ.get('MEGFILE_S3_MAX_PUT_RETRY', '10'))
 
 
 class S3BufferedWriter(Writable):
@@ -144,7 +150,8 @@ class S3BufferedWriter(Writable):
         }
 
     def _upload_buffer(self, part_number, content):
-        with raise_s3_error(self.name):
+
+        def _do_upload():
             return PartResult(
                 self._client.upload_part(
                     Bucket=self._bucket,
@@ -153,6 +160,18 @@ class S3BufferedWriter(Writable):
                     PartNumber=part_number,
                     Body=content,
                 )['ETag'], part_number, len(content))
+
+        def _retry_callback(error, *args, **kwargs):
+            _logger.warn(
+                f"upload_buffer: bucket={self._bucket}  key={self._key} upload_id={self._upload_id} part_num={part_number} get error {error}"
+            )
+
+        do_upload = patch_method(
+            _do_upload, max_retries, s3_should_retry, None, None,
+            _retry_callback)
+
+        with raise_s3_error(self.name):
+            return do_upload()
 
     def _submit_upload_buffer(self, part_number, content):
         self._futures[part_number] = self._executor.submit(
@@ -199,12 +218,24 @@ class S3BufferedWriter(Writable):
     def _close(self):
         _logger.debug('close file: %r' % self.name)
 
+        def _retry_callback(error, *args, **kwargs):
+            _logger.warn(
+                f"close_putobj: bucket={self._bucket}  key={self._key} error={error}"
+            )
+
+        def _do_put_obj():
+            self._client.put_object(
+                Bucket=self._bucket,
+                Key=self._key,
+                Body=self._buffer.getvalue())
+
+        do_put_obj = patch_method(
+            _do_put_obj, max_retries, s3_should_retry, None, None,
+            _retry_callback)
+
         if not self._is_multipart:
             with raise_s3_error(self.name):
-                self._client.put_object(
-                    Bucket=self._bucket,
-                    Key=self._key,
-                    Body=self._buffer.getvalue())
+                do_put_obj()
             self._shutdown()
             return
 

@@ -75,7 +75,13 @@ def full_error_message(error):
 
 
 def client_error_code(error: ClientError) -> str:
-    return error.response.get('Error', {}).get('Code', 'Unknown')  # pytype: disable=attribute-error
+    err = error.response.get('Error', {})  # pytype: disable=attribute-error
+    if len(err) == 0:
+        return 'Unknown'
+    code = err.get('Code', 'Unknown')  # pytype: disable=attribute-error
+    if code == 'Unknown':
+        code = err.get('code', 'Unknown')  # pytype: disable=attribute-error
+    return code
 
 
 def client_error_message(error: ClientError) -> str:
@@ -164,7 +170,7 @@ def patch_method(
                 if retries == max_retries:
                     raise
                 retry_interval = min(0.1 * 2**retries, 30)
-                _logger.info(
+                _logger.warn(
                     'unknown error encountered: %s, retry in %0.1f seconds after %d tries'
                     % (full_error_message(error), retry_interval, retries))
                 time.sleep(retry_interval)

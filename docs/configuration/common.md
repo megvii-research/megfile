@@ -5,3 +5,4 @@
 - `MEGFILE_MAX_WORKERS`: max threads will be used, default is `32`
 - `MEGFILE_BLOCK_CAPACITY`: default cache capacity of block and concurrency, default is `16`
 - `MEGFILE_S3_CLIENT_CACHE_MODE`: s3 client cache mode, `thread_local` or `process_local`, default is `thread_local`, **it's a experimental feature.**
+- `MEGFILE_S3_MAX_PUT_RETRY`: max retry times of s3 put, default is `10`
