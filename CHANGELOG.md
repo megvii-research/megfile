@@ -1,3 +1,7 @@
+## 3.0.4 - 2024.05.16
+- feat
+    - Support more official S3 configurations. New env: `AWS_ENDPOINT_URL_S3`, `AWS_ENDPOINT_URL`.
+
 ## 3.0.3 - 2024.05.10
 - perf
     - optimize read and write performance for s3, http and hdfs 
