@@ -41,14 +41,12 @@ jobs:
 
       - name: Run unit-test
         run: |
-          make test && echo $CODECOV_TOKEN
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          make test
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
-          fail_ci_if_error: true
+          fail_ci_if_error: false
           files: coverage.xml
           env_vars: OS,PYTHON
         env:
