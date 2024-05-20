@@ -42,7 +42,7 @@ jobs:
       - name: Run unit-test
         run: |
           make test && echo $CODECOV_TOKEN
-        with:
+        env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Upload coverage to Codecov
