@@ -48,9 +48,7 @@ jobs:
         with:
           fail_ci_if_error: true
           files: coverage.xml
-          env_vars: OS,PYTHON
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          env_vars: OS,PYTHON,secrets.CODECOV_TOKEN
 
   style:
     runs-on: ${{ matrix.os }}
