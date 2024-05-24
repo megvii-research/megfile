@@ -243,7 +243,7 @@ class HttpPath(URIPath):
         # response.raw.auto_close = False
         # response.raw.decode_content = True
         # return BufferedReader(response.raw)
-        return BufferedReader(Response(response.raw))
+        return BufferedReader(Response(response.raw))  # pytype: disable=wrong-arg-types
 
     def stat(self, follow_symlinks=True) -> StatResult:
         '''
