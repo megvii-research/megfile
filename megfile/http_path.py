@@ -1,7 +1,6 @@
-import io
 import time
 from functools import partial
-from io import BufferedReader
+from io import BufferedReader, BytesIO
 from logging import getLogger as get_logger
 from typing import Iterable, Iterator, Optional, Tuple, Union
 
@@ -81,7 +80,7 @@ def get_http_session(
                     return file_object
                 elif hasattr(file_object, 'name'):
                     with SmartPath(file_object.name).open('rb') as f:
-                        return io.BytesIO(f.read())
+                        return BytesIO(f.read())
                 else:
                     _logger.warning(
                         f'Can not retry http request, because the file object is not seekable and unsupport "name"'
@@ -213,8 +212,9 @@ class HttpPath(URIPath):
             raise translate_http_error(error, self.path_with_protocol)
 
         content_size = int(response.headers['Content-Length'])
-        if response.headers.get(
-                'Accept-Ranges') == 'bytes' and content_size >= block_size * 2:
+        if (response.headers.get('Accept-Ranges') == 'bytes' and
+                content_size >= block_size * 2 and
+                not response.headers.get('Content-Encoding')):
             response.close()
 
             block_capacity = max_buffer_size // block_size
@@ -233,11 +233,12 @@ class HttpPath(URIPath):
                 block_size=block_size,
             )
             if _is_pickle(reader):  # pytype: disable=wrong-arg-types
-                reader = io.BufferedReader(reader)  # pytype: disable=wrong-arg-types
+                reader = BufferedReader(reader)  # pytype: disable=wrong-arg-types
             return reader
 
         response.raw.auto_close = False
         response.raw.name = self.path_with_protocol
+        response.raw.decode_content = True
         return BufferedReader(response.raw)
 
     def stat(self, follow_symlinks=True) -> StatResult:
