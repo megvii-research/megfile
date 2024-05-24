@@ -1,6 +1,7 @@
 import pickle
 import time
 from io import BufferedReader, BytesIO
+from typing import Optional
 
 import pytest
 import requests
@@ -16,12 +17,18 @@ def test_is_http():
     assert not is_http("no-http://www.baidu.com")
 
 
+class PatchedBytesIO(BytesIO):
+
+    def read(self, size: Optional[int] = None, **kwargs) -> bytes:
+        return super().read(size)
+
+
 class FakeResponse:
     status_code = 0
 
     @cachedproperty
     def raw(self):
-        return BytesIO(b'test')
+        return PatchedBytesIO(b'test')
 
     @property
     def headers(self):

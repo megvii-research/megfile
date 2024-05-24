@@ -2,13 +2,15 @@ import time
 from functools import partial
 from io import BufferedReader, BytesIO
 from logging import getLogger as get_logger
+from threading import Lock
 from typing import Iterable, Iterator, Optional, Tuple, Union
 
 import requests
+from urllib3 import HTTPResponse
 
 from megfile.config import DEFAULT_BLOCK_SIZE
 from megfile.errors import http_should_retry, patch_method, translate_http_error
-from megfile.interfaces import PathLike, StatResult, URIPath
+from megfile.interfaces import PathLike, Readable, StatResult, URIPath
 from megfile.lib.compat import fspath
 from megfile.lib.http_prefetch_reader import HttpPrefetchReader
 from megfile.lib.s3_buffered_writer import DEFAULT_MAX_BUFFER_SIZE
@@ -236,10 +238,12 @@ class HttpPath(URIPath):
                 reader = BufferedReader(reader)  # pytype: disable=wrong-arg-types
             return reader
 
-        response.raw.auto_close = False
         response.raw.name = self.path_with_protocol
-        response.raw.decode_content = True
-        return BufferedReader(response.raw)
+        # TODO: When python version must bigger than 3.10, use urllib3>=2.0.0 instead of 'Response'
+        # response.raw.auto_close = False
+        # response.raw.decode_content = True
+        # return BufferedReader(response.raw)
+        return BufferedReader(Response(response.raw))
 
     def stat(self, follow_symlinks=True) -> StatResult:
         '''
@@ -317,3 +321,105 @@ class HttpPath(URIPath):
 class HttpsPath(HttpPath):
 
     protocol = "https"
+
+
+class Response(Readable):
+
+    def __init__(self, raw: HTTPResponse) -> None:
+        super().__init__()
+
+        raw.auto_close = False
+        self._block_size = 128 * 2**10  # 128KB
+        self._raw = raw
+        self._offset = 0
+        self._buffer = BytesIO()
+        self._lock = Lock()
+
+    @property
+    def name(self):
+        return self._raw.name
+
+    def mode(self):
+        return 'rb'
+
+    def tell(self) -> int:
+        return self._offset
+
+    def _clear_buffer(self) -> None:
+        self._buffer.seek(0)
+        self._buffer.truncate()
+
+    def read(self, size: Optional[int] = None) -> bytes:
+        if size == 0:
+            return b''
+        if size is not None and size < 0:
+            size = None
+
+        with self._lock:
+            while not size or self._buffer.tell() < size:
+                data = self._raw.read(self._block_size, decode_content=True)
+                if not data:
+                    break
+                self._buffer.write(data)
+            self._buffer.seek(0)
+            content = self._buffer.read(size)
+            residue = self._buffer.read()
+            self._clear_buffer()
+            if residue:
+                self._buffer.write(residue)
+            self._offset += len(content)
+        return content
+
+    def readline(self, size: Optional[int] = None) -> bytes:
+        if size == 0:
+            return b''
+        if size is not None and size < 0:
+            size = None
+
+        with self._lock:
+            self._buffer.seek(0)
+            buffer = self._buffer.read()
+            self._clear_buffer()
+            if b'\n' in buffer:
+                content = buffer[:buffer.index(b'\n') + 1]
+                if size:
+                    content = content[:size]
+                self._buffer.write(buffer[len(content):])
+            elif size and len(buffer) >= size:
+                content = buffer[:size]
+                self._buffer.write(buffer[size:])
+            else:
+                content = None
+                self._buffer.write(buffer)
+                while True:
+                    if size and self._buffer.tell() >= size:
+                        break
+                    data = self._raw.read(self._block_size, decode_content=True)
+                    if not data:
+                        break
+                    elif b"\n" in data:
+                        last_content, residue = data.split(b"\n", 1)
+                        self._buffer.write(last_content)
+                        self._buffer.write(b"\n")
+                        self._buffer.seek(0)
+                        content = self._buffer.read()
+                        self._clear_buffer()
+                        if size and len(content) > size:
+                            self._buffer.write(content[size:])
+                            content = content[:size]
+                        if residue:
+                            self._buffer.write(residue)
+                        break
+                    else:
+                        self._buffer.write(data)
+                if content is None:
+                    content = self._buffer.read(size)
+                    residue = self._buffer.read()
+                    self._clear_buffer()
+                    if residue:
+                        self._buffer.write(residue)
+            self._offset += len(content)
+        return content
+
+    def _close(self) -> None:
+        return self._raw.close()
