@@ -359,3 +359,18 @@ def test_response():
     resp = Response(fp)
     assert resp.name == 'foo'
     assert resp.readlines() == [b'1\n', b'2\n', b'3\n', b'4\n']
+
+    fp = io.BytesIO(b'1\n2\n3\n4\n')
+    fp.name = 'foo'
+    real_read = fp.read
+    fp.read = lambda size, **kwargs: real_read(size)
+
+    resp = Response(fp)
+    assert resp.name == 'foo'
+    lines = []
+    while True:
+        line = resp.readline()
+        if not line:
+            break
+        lines.append(line)
+    assert lines == [b'1\n', b'2\n', b'3\n', b'4\n']
