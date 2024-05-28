@@ -339,6 +339,7 @@ class Response(Readable):
     def name(self):
         return self._raw.name
 
+    @property
     def mode(self):
         return 'rb'
 
@@ -412,7 +413,9 @@ class Response(Readable):
                         break
                     else:
                         self._buffer.write(data)
+
                 if content is None:
+                    self._buffer.seek(0)
                     content = self._buffer.read(size)
                     residue = self._buffer.read()
                     self._clear_buffer()

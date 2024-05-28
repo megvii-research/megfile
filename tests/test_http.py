@@ -104,7 +104,6 @@ def test_http_open(mocker):
 
 
 def test_http_open_pickle(mocker):
-    requests_get_func = mocker.patch('requests.Session.get')
 
     class PickleResponse(FakeResponse):
         status_code = 200
@@ -112,6 +111,14 @@ def test_http_open_pickle(mocker):
         @cachedproperty
         def raw(self):
             return BytesIO(pickle.dumps(b'test'))
+
+        @cachedproperty
+        def content(self):
+            return pickle.dumps(b'test')
+
+        @cachedproperty
+        def cookies(self):
+            return {}
 
         @property
         def headers(self):
@@ -122,8 +129,11 @@ def test_http_open_pickle(mocker):
                 'Accept-Ranges': 'bytes',
             }
 
+    requests_get_func = mocker.patch('requests.Session.get')
+    mocker.patch('requests.get', return_value=PickleResponse())
+
     requests_get_func.return_value = PickleResponse()
-    with http_open('http://test', 'rb') as http_reader:
+    with http_open('http://test', 'rb', block_size=1) as http_reader:
         assert isinstance(http_reader, BufferedReader)
 
 
