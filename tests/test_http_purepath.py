@@ -1,11 +1,12 @@
 import io
 from copy import deepcopy
+from typing import Optional
 
 import pytest
 import requests
 import requests_mock  # noqa
 
-from megfile.http_path import HttpPath, get_http_session
+from megfile.http_path import HttpPath, Response, get_http_session
 from megfile.lib.compat import fspath
 
 
@@ -338,3 +339,23 @@ def test_http_retry(requests_mock, mocker):
     with pytest.raises(requests.exceptions.HTTPError):
         session.post('http://foo', data=(s for s in ['a']))
     assert history_index + 1 == len(requests_mock.request_history)
+
+
+def test_response():
+    fp = io.BytesIO(b'test')
+    fp.name = 'foo'
+    real_read = fp.read
+    fp.read = lambda size, **kwargs: real_read(size)
+
+    resp = Response(fp)
+    assert resp.name == 'foo'
+    assert resp.read() == b'test'
+
+    fp = io.BytesIO(b'1\n2\n3\n4\n')
+    fp.name = 'foo'
+    real_read = fp.read
+    fp.read = lambda size, **kwargs: real_read(size)
+
+    resp = Response(fp)
+    assert resp.name == 'foo'
+    assert resp.readlines() == [b'1\n', b'2\n', b'3\n', b'4\n']
