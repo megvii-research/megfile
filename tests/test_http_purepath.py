@@ -1,11 +1,12 @@
 import io
 from copy import deepcopy
+from typing import Optional
 
 import pytest
 import requests
 import requests_mock  # noqa
 
-from megfile.http_path import HttpPath, get_http_session
+from megfile.http_path import HttpPath, Response, get_http_session, is_http
 from megfile.lib.compat import fspath
 
 
@@ -338,3 +339,73 @@ def test_http_retry(requests_mock, mocker):
     with pytest.raises(requests.exceptions.HTTPError):
         session.post('http://foo', data=(s for s in ['a']))
     assert history_index + 1 == len(requests_mock.request_history)
+
+
+def test_response():
+    fp = io.BytesIO(b'test')
+    fp.name = 'foo'
+    real_read = fp.read
+    fp.read = lambda size, **kwargs: real_read(size)
+
+    resp = Response(fp)
+    assert resp.mode == 'rb'
+    assert resp.name == 'foo'
+    assert resp.read(0) == b''
+    assert resp.read(1) == b't'
+    assert resp.read(-1) == b'est'
+    assert resp.tell() == 4
+
+    fp = io.BytesIO(b'1\n2\n3\n4\n')
+    fp.name = 'foo'
+    real_read = fp.read
+    fp.read = lambda size, **kwargs: real_read(size)
+
+    resp = Response(fp)
+    assert resp.name == 'foo'
+    assert resp.readlines() == [b'1\n', b'2\n', b'3\n', b'4\n']
+
+    fp = io.BytesIO(b'1\n2\n3\n4\n')
+    fp.name = 'foo'
+    real_read = fp.read
+    fp.read = lambda size, **kwargs: real_read(size)
+
+    resp = Response(fp)
+    assert resp.name == 'foo'
+    lines = []
+    for i in range(4):
+        line = resp.readline(-1)
+        assert resp.tell() == (i + 1) * 2
+        if not line:
+            break
+        lines.append(line)
+    assert lines == [b'1\n', b'2\n', b'3\n', b'4\n']
+
+    fp = io.BytesIO(b'11\n2\n3\n4\n')
+    fp.name = 'foo'
+    real_read = fp.read
+    fp.read = lambda size, **kwargs: real_read(size)
+
+    resp = Response(fp)
+    resp._block_size = 4
+    assert resp.name == 'foo'
+    assert resp.readline(0) == b''
+    assert resp.readline(1) == b'1'
+    assert resp.readline(2) == b'1\n'
+    assert resp.readline(1) == b'2'
+    assert resp.readline(1) == b'\n'
+
+    fp = io.BytesIO(b'123')
+    fp.name = 'foo'
+    real_read = fp.read
+    fp.read = lambda size, **kwargs: real_read(size)
+
+    resp = Response(fp)
+    resp._block_size = 2
+    assert resp.readline(1) == b'1'
+    assert resp.readline() == b'23'
+    assert resp.readline() == b''
+
+
+def test_is_http():
+    assert is_http('http://foo') is True
+    assert is_http('s3://foo') is False
