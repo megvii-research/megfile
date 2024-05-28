@@ -8,7 +8,7 @@ from typing import Iterable, Iterator, Optional, Tuple, Union
 import requests
 from urllib3 import HTTPResponse
 
-from megfile.config import DEFAULT_BLOCK_SIZE
+from megfile.config import DEFAULT_BLOCK_SIZE, HTTP_MAX_RETRY_TIMES
 from megfile.errors import http_should_retry, patch_method, translate_http_error
 from megfile.interfaces import PathLike, Readable, StatResult, URIPath
 from megfile.lib.compat import fspath
@@ -28,7 +28,7 @@ __all__ = [
 ]
 
 _logger = get_logger(__name__)
-max_retries = 10
+max_retries = HTTP_MAX_RETRY_TIMES
 
 
 def get_http_session(

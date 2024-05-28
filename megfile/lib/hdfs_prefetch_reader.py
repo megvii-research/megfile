@@ -1,7 +1,7 @@
 from io import BytesIO
 from typing import Optional
 
-from megfile.config import DEFAULT_BLOCK_CAPACITY, DEFAULT_BLOCK_SIZE
+from megfile.config import DEFAULT_BLOCK_CAPACITY, DEFAULT_BLOCK_SIZE, HDFS_MAX_RETRY_TIMES
 from megfile.errors import raise_hdfs_error
 from megfile.lib.base_prefetch_reader import BasePrefetchReader
 
@@ -20,7 +20,7 @@ class HdfsPrefetchReader(BasePrefetchReader):
             block_size: int = DEFAULT_BLOCK_SIZE,
             block_capacity: int = DEFAULT_BLOCK_CAPACITY,
             block_forward: Optional[int] = None,
-            max_retries: int = 10,
+            max_retries: int = HDFS_MAX_RETRY_TIMES,
             max_workers: Optional[int] = None,
             profile_name: Optional[str] = None):
         self._path = hdfs_path

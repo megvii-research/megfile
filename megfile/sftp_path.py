@@ -14,6 +14,7 @@ from urllib.parse import urlsplit, urlunsplit
 
 import paramiko
 
+from megfile.config import SFTP_MAX_RETRY_TIMES
 from megfile.errors import SameFileError, _create_missing_ok_generator, patch_method
 from megfile.interfaces import ContextIterator, FileEntry, PathLike, StatResult
 from megfile.lib.compare import is_same_file
@@ -47,7 +48,7 @@ SFTP_PRIVATE_KEY_PATH = "SFTP_PRIVATE_KEY_PATH"
 SFTP_PRIVATE_KEY_TYPE = "SFTP_PRIVATE_KEY_TYPE"
 SFTP_PRIVATE_KEY_PASSWORD = "SFTP_PRIVATE_KEY_PASSWORD"
 SFTP_MAX_UNAUTH_CONN = "SFTP_MAX_UNAUTH_CONN"
-MAX_RETRIES = 10
+MAX_RETRIES = SFTP_MAX_RETRY_TIMES
 DEFAULT_SSH_CONNECT_TIMEOUT = 5
 DEFAULT_SSH_KEEPALIVE_INTERVAL = 15
 
