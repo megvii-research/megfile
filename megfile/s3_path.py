@@ -12,7 +12,7 @@ import boto3
 import botocore
 from botocore.awsrequest import AWSResponse
 
-from megfile.config import DEFAULT_BLOCK_SIZE, GLOBAL_MAX_WORKERS, S3_CLIENT_CACHE_MODE
+from megfile.config import DEFAULT_BLOCK_SIZE, GLOBAL_MAX_WORKERS, S3_CLIENT_CACHE_MODE, S3_MAX_RETRY_TIMES
 from megfile.errors import S3BucketNotFoundError, S3ConfigError, S3FileExistsError, S3FileNotFoundError, S3IsADirectoryError, S3NameTooLongError, S3NotADirectoryError, S3NotALinkError, S3PermissionError, S3UnknownError, SameFileError, UnsupportedError, _create_missing_ok_generator
 from megfile.errors import _logger as error_logger
 from megfile.errors import patch_method, raise_s3_error, s3_error_code_should_retry, s3_should_retry, translate_fs_error, translate_s3_error
@@ -69,7 +69,7 @@ _logger = get_logger(__name__)
 content_md5_header = 'megfile-content-md5'
 endpoint_url = 'https://s3.amazonaws.com'
 max_pool_connections = GLOBAL_MAX_WORKERS  # for compatibility
-max_retries = 10
+max_retries = S3_MAX_RETRY_TIMES
 max_keys = 1000
 
 

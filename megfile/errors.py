@@ -75,7 +75,8 @@ def full_error_message(error):
 
 
 def client_error_code(error: ClientError) -> str:
-    return error.response.get('Error', {}).get('Code', 'Unknown')  # pytype: disable=attribute-error
+    error_data = error.response.get('Error', {})  # pytype: disable=attribute-error
+    return error_data.get('Code') or error_data.get('code', 'Unknown')
 
 
 def client_error_message(error: ClientError) -> str:
@@ -111,8 +112,15 @@ def s3_should_retry(error: Exception) -> bool:
         return True
     if isinstance(error, botocore.exceptions.ClientError):
         return client_error_code(error) in (
-            '500', '501', '502', '503', 'InternalError', 'ServiceUnavailable',
-            'SlowDown', 'ContextCanceled')
+            '499',  # Some cloud providers may send response with http code 499 if the connection not send data in 1 min.
+            '500',
+            '501',
+            '502',
+            '503',
+            'InternalError',
+            'ServiceUnavailable',
+            'SlowDown',
+            'ContextCanceled')
     return False
 
 

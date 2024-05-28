@@ -16,3 +16,7 @@ Hdfs Configuration
 Sftp Configuration
 ------------------
 .. mdinclude:: ./configuration/sftp.md
+
+HTTP Configuration
+------------------
+.. mdinclude:: ./configuration/http.md

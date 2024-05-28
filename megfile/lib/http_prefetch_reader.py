@@ -4,7 +4,7 @@ from typing import Optional
 
 import requests
 
-from megfile.config import DEFAULT_BLOCK_CAPACITY, DEFAULT_BLOCK_SIZE
+from megfile.config import DEFAULT_BLOCK_CAPACITY, DEFAULT_BLOCK_SIZE, HTTP_MAX_RETRY_TIMES
 from megfile.errors import UnsupportedError, http_should_retry, patch_method
 from megfile.lib.base_prefetch_reader import BasePrefetchReader
 
@@ -25,7 +25,7 @@ class HttpPrefetchReader(BasePrefetchReader):
             block_size: int = DEFAULT_BLOCK_SIZE,
             block_capacity: int = DEFAULT_BLOCK_CAPACITY,
             block_forward: Optional[int] = None,
-            max_retries: int = 10,
+            max_retries: int = HTTP_MAX_RETRY_TIMES,
             max_workers: Optional[int] = None):
 
         self._url = url

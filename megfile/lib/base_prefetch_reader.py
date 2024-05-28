@@ -8,7 +8,7 @@ from math import ceil
 from statistics import mean
 from typing import Optional
 
-from megfile.config import BACKOFF_FACTOR, BACKOFF_INITIAL, DEFAULT_BLOCK_CAPACITY, DEFAULT_BLOCK_SIZE, GLOBAL_MAX_WORKERS, NEWLINE
+from megfile.config import BACKOFF_FACTOR, BACKOFF_INITIAL, DEFAULT_BLOCK_CAPACITY, DEFAULT_BLOCK_SIZE, DEFAULT_MAX_RETRY_TIMES, GLOBAL_MAX_WORKERS, NEWLINE
 from megfile.interfaces import Readable, Seekable
 from megfile.utils import get_human_size, process_local
 
@@ -39,7 +39,7 @@ class BasePrefetchReader(Readable, Seekable, ABC):
             block_size: int = DEFAULT_BLOCK_SIZE,
             block_capacity: int = DEFAULT_BLOCK_CAPACITY,
             block_forward: Optional[int] = None,
-            max_retries: int = 10,
+            max_retries: int = DEFAULT_MAX_RETRY_TIMES,
             max_workers: Optional[int] = None,
             **kwargs):
 
