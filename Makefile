@@ -2,7 +2,7 @@ PACKAGE := megfile
 VERSION := $(shell cat ${PACKAGE}/version.py | sed -n -E 's/.*=//; s/ //g; s/"//g; p')
 
 test:
-	pytest --cov-config=setup.cfg --cov=${PACKAGE} --disable-socket --no-cov-on-fail --cov-report=html:html_cov/ --cov-report term-missing --cov-report=xml tests/test_http_purepath.py tests/test_http.py --durations=10
+	pytest --cov-config=setup.cfg --cov=${PACKAGE} --disable-socket --no-cov-on-fail --cov-report=html:html_cov/ --cov-report term-missing --cov-report=xml tests/ --durations=10
 
 autofile:
 	python3 -m "scripts.generate_file"
