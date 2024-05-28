@@ -83,7 +83,7 @@
 <span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">BytesIO</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
 
-<span class="kn">from</span> <span class="nn">megfile.config</span> <span class="kn">import</span> <span class="n">BACKOFF_FACTOR</span><span class="p">,</span> <span class="n">BACKOFF_INITIAL</span><span class="p">,</span> <span class="n">DEFAULT_BLOCK_CAPACITY</span><span class="p">,</span> <span class="n">DEFAULT_BLOCK_SIZE</span><span class="p">,</span> <span class="n">GLOBAL_MAX_WORKERS</span><span class="p">,</span> <span class="n">NEWLINE</span>
+<span class="kn">from</span> <span class="nn">megfile.config</span> <span class="kn">import</span> <span class="n">BACKOFF_FACTOR</span><span class="p">,</span> <span class="n">BACKOFF_INITIAL</span><span class="p">,</span> <span class="n">DEFAULT_BLOCK_CAPACITY</span><span class="p">,</span> <span class="n">DEFAULT_BLOCK_SIZE</span><span class="p">,</span> <span class="n">GLOBAL_MAX_WORKERS</span><span class="p">,</span> <span class="n">NEWLINE</span><span class="p">,</span> <span class="n">S3_MAX_RETRY_TIMES</span>
 <span class="kn">from</span> <span class="nn">megfile.errors</span> <span class="kn">import</span> <span class="n">S3FileChangedError</span><span class="p">,</span> <span class="n">S3InvalidRangeError</span><span class="p">,</span> <span class="n">patch_method</span><span class="p">,</span> <span class="n">raise_s3_error</span><span class="p">,</span> <span class="n">s3_should_retry</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.base_prefetch_reader</span> <span class="kn">import</span> <span class="n">BasePrefetchReader</span><span class="p">,</span> <span class="n">LRUCacheFutureManager</span>
 
@@ -114,7 +114,7 @@
             <span class="n">block_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_BLOCK_SIZE</span><span class="p">,</span>
             <span class="n">block_capacity</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_BLOCK_CAPACITY</span><span class="p">,</span>
             <span class="n">block_forward</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="n">max_retries</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+            <span class="n">max_retries</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">S3_MAX_RETRY_TIMES</span><span class="p">,</span>
             <span class="n">max_workers</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">profile_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 

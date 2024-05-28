@@ -77,6 +77,10 @@
 <li class="toctree-l3"><a class="reference internal" href="#id5">Use environments</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#http-configuration">HTTP Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#http-environment-configurations">HTTP Environment configurations</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="megfile.html">API Reference</a></li>
@@ -123,6 +127,7 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_MAX_WORKERS</span></code>: max threads will be used, default is <code class="docutils literal notranslate"><span class="pre">32</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_BLOCK_CAPACITY</span></code>: default cache capacity of block and concurrency, default is <code class="docutils literal notranslate"><span class="pre">16</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_S3_CLIENT_CACHE_MODE</span></code>: s3 client cache mode, <code class="docutils literal notranslate"><span class="pre">thread_local</span></code> or <code class="docutils literal notranslate"><span class="pre">process_local</span></code>, default is <code class="docutils literal notranslate"><span class="pre">thread_local</span></code>, <strong>it’s a experimental feature.</strong></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_MAX_RETRY_TIMES</span></code>: default max retry times when catch error which may fix by retry, default is <code class="docutils literal notranslate"><span class="pre">10</span></code></p></li>
 </ul>
 </section>
 </section>
@@ -138,6 +143,7 @@ You can use environments and configuration file for configuration, and priority 
 <li><p><code class="docutils literal notranslate"><span class="pre">AWS_SECRET_ACCESS_KEY</span></code>: secret key</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">OSS_ENDPOINT</span></code> / <code class="docutils literal notranslate"><span class="pre">AWS_ENDPOINT_URL_S3</span></code> / <code class="docutils literal notranslate"><span class="pre">AWS_ENDPOINT_URL</span></code>: endpoint url of s3</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">AWS_S3_ADDRESSING_STYLE</span></code>: addressing style</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_S3_MAX_RETRY_TIMES</span></code>: s3 request max retry times when catch error which may fix by retry, default is <code class="docutils literal notranslate"><span class="pre">10</span></code></p></li>
 </ul>
 </section>
 <section id="use-command">
@@ -218,6 +224,7 @@ You can use environments and configuration file for configuration, and priority 
 <li><p><code class="docutils literal notranslate"><span class="pre">HDFS_TIMEOUT</span></code>: request hdfs server timeout</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">HDFS_TOKEN</span></code>: hdfs token if hdfs server require</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">HDFS_CONFIG_PATH</span></code>: hdfs config file, default is <code class="docutils literal notranslate"><span class="pre">~/.hdfscli.cfg</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_HDFS_MAX_RETRY_TIMES</span></code>: hdfs request max retry times when catch error which may fix by retry, default is <code class="docutils literal notranslate"><span class="pre">10</span></code></p></li>
 </ul>
 </section>
 <section id="id2">
@@ -302,6 +309,16 @@ megfile<span class="w"> </span>config<span class="w"> </span>hdfs<span class="w"
 <li><p><code class="docutils literal notranslate"><span class="pre">SFTP_PRIVATE_KEY_TYPE</span></code>: algorithm of ssh key</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">SFTP_PRIVATE_KEY_PASSWORD</span></code>: if don’t have passwd, not set this environment</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">SFTP_MAX_UNAUTH_CONN</span></code>: this enviroment is about sftp server’s MaxStartups configuration, for connect to sftp server concurrently.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_SFTP_MAX_RETRY_TIMES</span></code>: sftp request max retry times when catch error which may fix by retry, default is <code class="docutils literal notranslate"><span class="pre">10</span></code></p></li>
+</ul>
+</section>
+</section>
+<section id="http-configuration">
+<h2>HTTP Configuration<a class="headerlink" href="#http-configuration" title="Permalink to this heading"></a></h2>
+<section id="http-environment-configurations">
+<h3>HTTP Environment configurations<a class="headerlink" href="#http-environment-configurations" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_HTTP_MAX_RETRY_TIMES</span></code>: http request max retry times when catch error which may fix by retry, default is <code class="docutils literal notranslate"><span class="pre">10</span></code></p></li>
 </ul>
 </section>
 </section>
