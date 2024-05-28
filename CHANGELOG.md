@@ -1,3 +1,10 @@
+## 3.0.5 - 2024.05.28
+- feat
+    - auto decode http content when response with `Content-Encoding` header 
+- perf
+    - add s3 retry code, retry request when catch response code `499`
+    - add environments for setup retry times: `MEGFILE_MAX_RETRY_TIMES`, `MEGFILE_S3_MAX_RETRY_TIMES`, `MEGFILE_HTTP_MAX_RETRY_TIMES`, `MEGFILE_HDFS_MAX_RETRY_TIMES`, `MEGFILE_SFTP_MAX_RETRY_TIMES`. default is `10`
+
 ## 3.0.4 - 2024.05.16
 - feat
     - Support more official S3 configurations. New env: `AWS_ENDPOINT_URL_S3`, `AWS_ENDPOINT_URL`.
