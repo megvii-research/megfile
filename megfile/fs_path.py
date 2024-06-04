@@ -211,7 +211,7 @@ def fs_rename(
 
 
 def fs_move(
-        src_path: PathLike, dst_path: PathLike, overwrite: bool = True) -> bool:
+        src_path: PathLike, dst_path: PathLike, overwrite: bool = True) -> None:
     '''
     rename file on fs
 
