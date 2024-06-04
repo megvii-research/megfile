@@ -3,7 +3,6 @@ import io
 import os
 import pathlib
 import shutil
-from shutil import copytree
 from stat import S_ISDIR as stat_isdir
 from stat import S_ISLNK as stat_islnk
 from typing import IO, AnyStr, BinaryIO, Callable, Iterator, List, Optional, Tuple, Union
@@ -158,24 +157,69 @@ def fs_glob_stat(
             os.path.basename(path), path, _make_stat(os.lstat(path)))
 
 
-def fs_rename(src_path: PathLike, dst_path: PathLike) -> None:
+def _fs_rename_file(
+        src_path: PathLike, dst_path: PathLike, overwrite: bool = True) -> None:
     '''
     rename file on fs
 
     :param src_path: Given path
     :param dst_path: Given destination path
+    :param overwrite: whether or not overwrite file when exists
     '''
+    src_path, dst_path = fspath(src_path), fspath(dst_path)
+
+    if not overwrite and os.path.exists(dst_path):
+        return
+
+    dst_dir = os.path.dirname(dst_path)
+    if dst_dir and dst_dir != ".":
+        os.makedirs(dst_dir, exist_ok=True)
     shutil.move(src_path, dst_path)
 
 
-def fs_move(src_path: PathLike, dst_path: PathLike) -> None:
+def fs_rename(
+        src_path: PathLike, dst_path: PathLike, overwrite: bool = True) -> None:
     '''
     rename file on fs
 
     :param src_path: Given path
     :param dst_path: Given destination path
+    :param overwrite: whether or not overwrite file when exists
     '''
-    fs_rename(src_path, dst_path)
+    src_path, dst_path = fspath(src_path), fspath(dst_path)
+    if os.path.isfile(src_path):
+        return _fs_rename_file(src_path, dst_path, overwrite)
+    else:
+        os.makedirs(dst_path, exist_ok=True)
+
+    with os.scandir(src_path) as entries:
+        for file_entry in entries:
+            src_file_path = file_entry.path
+            dst_file_path = dst_path
+            relative_path = os.path.relpath(src_file_path, start=src_path)
+            if relative_path and relative_path != '.':
+                dst_file_path = os.path.join(dst_file_path, relative_path)
+            if os.path.exists(dst_file_path) and file_entry.is_dir():
+                fs_rename(src_file_path, dst_file_path, overwrite)
+            else:
+                _fs_rename_file(src_file_path, dst_file_path, overwrite)
+
+        if os.path.isdir(src_path):
+            shutil.rmtree(src_path)
+        else:
+            os.remove(src_path)
+
+
+def fs_move(
+        src_path: PathLike, dst_path: PathLike, overwrite: bool = True) -> bool:
+    '''
+    rename file on fs
+
+    :param src_path: Given path
+    :param dst_path: Given destination path
+    :param overwrite: whether or not overwrite file when exists
+    '''
+    return fs_rename(src_path, dst_path, overwrite)
 
 
 def fs_resolve(path: PathLike) -> str:
@@ -491,22 +535,24 @@ class FSPath(URIPath):
         '''
         return fspath(os.path.relpath(self.path_without_protocol, start=start))
 
-    def rename(self, dst_path: PathLike) -> 'FSPath':
+    def rename(self, dst_path: PathLike, overwrite: bool = True) -> 'FSPath':
         '''
         rename file on fs
 
         :param dst_path: Given destination path
+        :param overwrite: whether or not overwrite file when exists
         '''
-        fs_rename(self.path_without_protocol, dst_path)
+        fs_rename(self.path_without_protocol, dst_path, overwrite)
         return self.from_path(dst_path)
 
-    def replace(self, dst_path: PathLike) -> 'FSPath':
+    def replace(self, dst_path: PathLike, overwrite: bool = True) -> 'FSPath':
         '''
         move file on fs
 
         :param dst_path: Given destination path
+        :param overwrite: whether or not overwrite file when exists
         '''
-        return self.rename(dst_path=dst_path)
+        return self.rename(dst_path=dst_path, overwrite=overwrite)
 
     def remove(self, missing_ok: bool = False) -> None:
         '''
@@ -678,7 +724,7 @@ class FSPath(URIPath):
         :rtype: FSPath
         '''
         return self.from_path(
-            str(
+            fspath(
                 pathlib.Path(
                     self.path_without_protocol).resolve(strict=strict)))
 
@@ -718,7 +764,8 @@ class FSPath(URIPath):
             self,
             dst_path: PathLike,
             callback: Optional[Callable[[int], None]] = None,
-            followlinks: bool = False):
+            followlinks: bool = False,
+            overwrite: bool = True):
         ''' File copy on file system
         Copy content (excluding meta date) of file on `src_path` to `dst_path`. `dst_path` must be a complete file name
 
@@ -737,7 +784,11 @@ class FSPath(URIPath):
         :param dst_path: Target file path
         :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
         :param followlinks: False if regard symlink as file, else True
+        :param overwrite: whether or not overwrite file when exists, default is True
         '''
+        if not overwrite and os.path.exists((dst_path)):
+            return
+
         try:
             self._copyfile(dst_path, callback=callback, followlinks=followlinks)
         except FileNotFoundError as error:
@@ -754,12 +805,14 @@ class FSPath(URIPath):
             self,
             dst_path: PathLike,
             followlinks: bool = False,
-            force: bool = False) -> None:
+            force: bool = False,
+            overwrite: bool = True) -> None:
         '''Force write of everything to disk.
 
         :param dst_path: Target file path
         :param followlinks: False if regard symlink as file, else True
-        :param force: Sync file forcely, do not ignore same files
+        :param force: Sync file forcely, do not ignore same files, priority is higher than 'overwrite', default is False
+        :param overwrite: whether or not overwrite file when exists, default is True
         '''
         if self.is_dir(followlinks=followlinks):
 
@@ -767,18 +820,22 @@ class FSPath(URIPath):
                 ignore_files = []
                 for name in names:
                     dst_obj = self.from_path(dst_path).joinpath(name)
-                    if not force and dst_obj.exists() and is_same_file(
+                    if force:
+                        pass
+                    elif not overwrite and dst_obj.exists():
+                        ignore_files.append(name)
+                    elif dst_obj.exists() and is_same_file(
                             self.joinpath(name).stat(), dst_obj.stat(), 'copy'):
                         ignore_files.append(name)
                 return ignore_files
 
-            copytree(
+            shutil.copytree(
                 self.path_without_protocol,
                 dst_path,
                 ignore=ignore_same_file,
                 dirs_exist_ok=True)
         else:
-            self.copy(dst_path, followlinks=followlinks)
+            self.copy(dst_path, followlinks=followlinks, overwrite=overwrite)
 
     def symlink(self, dst_path: PathLike) -> None:
         '''

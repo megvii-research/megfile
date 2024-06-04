@@ -405,25 +405,35 @@ class HdfsPath(URIPath):
         with raise_hdfs_error(self.path_with_protocol):
             self._client.makedirs(self.path_without_protocol, permission=mode)
 
-    def rename(self, dst_path: PathLike) -> 'HdfsPath':
+    def rename(self, dst_path: PathLike, overwrite: bool = True) -> 'HdfsPath':
         '''
         Move hdfs file path from src_path to dst_path
 
         :param dst_path: Given destination path
+        :param overwrite: whether or not overwrite file when exists
         '''
         dst_path = self.from_path(dst_path)
-        with raise_hdfs_error(self.path_with_protocol):
-            self._client.rename(
-                self.path_without_protocol, dst_path.path_without_protocol)
+        if self.is_dir():
+            for filename in self.iterdir():
+                self.joinpath(filename).rename(dst_path.joinpath(filename))  # pytype: disable=attribute-error
+        else:
+            if overwrite:
+                dst_path.remove(missing_ok=True)
+            if overwrite or not dst_path.exists():
+                with raise_hdfs_error(self.path_with_protocol):
+                    self._client.rename(
+                        self.path_without_protocol,
+                        dst_path.path_without_protocol)
+        self.remove(missing_ok=True)
         return dst_path
 
-    def move(self, dst_path: PathLike) -> None:
+    def move(self, dst_path: PathLike, overwrite: bool = True) -> None:
         '''
         Move file/directory path from src_path to dst_path
 
         :param dst_path: Given destination path
         '''
-        self.rename(dst_path=dst_path)
+        self.rename(dst_path=dst_path, overwrite=overwrite)
 
     def remove(self, missing_ok: bool = False) -> None:
         '''

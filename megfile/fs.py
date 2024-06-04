@@ -311,7 +311,8 @@ def fs_copy(
         src_path: PathLike,
         dst_path: PathLike,
         callback: Optional[Callable[[int], None]] = None,
-        followlinks: bool = False):
+        followlinks: bool = False,
+        overwrite: bool = True):
     ''' File copy on file system
     Copy content (excluding meta date) of file on `src_path` to `dst_path`. `dst_path` must be a complete file name
 
@@ -331,23 +332,26 @@ def fs_copy(
     :param dst_path: Target file path
     :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
     :param followlinks: False if regard symlink as file, else True
+    :param overwrite: whether or not overwrite file when exists, default is True
     '''
-    return FSPath(src_path).copy(dst_path, callback, followlinks)
+    return FSPath(src_path).copy(dst_path, callback, followlinks, overwrite)
 
 
 def fs_sync(
         src_path: PathLike,
         dst_path: PathLike,
         followlinks: bool = False,
-        force: bool = False) -> None:
+        force: bool = False,
+        overwrite: bool = True) -> None:
     '''Force write of everything to disk.
 
     :param src_path: Given path
     :param dst_path: Target file path
     :param followlinks: False if regard symlink as file, else True
-    :param force: Sync file forcely, do not ignore same files
+    :param force: Sync file forcely, do not ignore same files, priority is higher than 'overwrite', default is False
+    :param overwrite: whether or not overwrite file when exists, default is True
     '''
-    return FSPath(src_path).sync(dst_path, followlinks, force)
+    return FSPath(src_path).sync(dst_path, followlinks, force, overwrite)
 
 
 def fs_symlink(src_path: PathLike, dst_path: PathLike) -> None:

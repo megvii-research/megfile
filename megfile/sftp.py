@@ -162,24 +162,30 @@ def sftp_realpath(path: PathLike) -> str:
     return SftpPath(path).realpath()
 
 
-def sftp_rename(src_path: PathLike, dst_path: PathLike) -> 'SftpPath':
+def sftp_rename(
+        src_path: PathLike, dst_path: PathLike,
+        overwrite: bool = True) -> 'SftpPath':
     '''
     rename file on sftp
 
     :param src_path: Given path
     :param dst_path: Given destination path
+    :param overwrite: whether or not overwrite file when exists
     '''
-    return SftpPath(src_path).rename(dst_path)
+    return SftpPath(src_path).rename(dst_path, overwrite)
 
 
-def sftp_move(src_path: PathLike, dst_path: PathLike) -> 'SftpPath':
+def sftp_move(
+        src_path: PathLike, dst_path: PathLike,
+        overwrite: bool = True) -> 'SftpPath':
     '''
     move file on sftp
 
     :param src_path: Given path
     :param dst_path: Given destination path
+    :param overwrite: whether or not overwrite file when exists
     '''
-    return SftpPath(src_path).replace(dst_path)
+    return SftpPath(src_path).replace(dst_path, overwrite)
 
 
 def sftp_remove(path: PathLike, missing_ok: bool = False) -> None:
@@ -369,7 +375,8 @@ def sftp_copy(
         src_path: PathLike,
         dst_path: PathLike,
         callback: Optional[Callable[[int], None]] = None,
-        followlinks: bool = False):
+        followlinks: bool = False,
+        overwrite: bool = True):
     """
     Copy the file to the given destination path.
 
@@ -381,19 +388,21 @@ def sftp_copy(
     :raises IsADirectoryError: If the source is a directory.
     :raises OSError: If there is an error copying the file.
     """
-    return SftpPath(src_path).copy(dst_path, callback, followlinks)
+    return SftpPath(src_path).copy(dst_path, callback, followlinks, overwrite)
 
 
 def sftp_sync(
         src_path: PathLike,
         dst_path: PathLike,
         followlinks: bool = False,
-        force: bool = False):
+        force: bool = False,
+        overwrite: bool = True):
     '''Copy file/directory on src_url to dst_url
 
     :param src_path: Given path
     :param dst_url: Given destination path
     :param followlinks: False if regard symlink as file, else True
-    :param force: Sync file forcely, do not ignore same files
+    :param force: Sync file forcely, do not ignore same files, priority is higher than 'overwrite', default is False
+    :param overwrite: whether or not overwrite file when exists, default is True
     '''
-    return SftpPath(src_path).sync(dst_path, followlinks, force)
+    return SftpPath(src_path).sync(dst_path, followlinks, force, overwrite)
