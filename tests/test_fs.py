@@ -1098,39 +1098,44 @@ def test_fs_rename_file_in_diff_dir(filesystem):
     assert not os.path.exists(src)
 
 
-def test_fs_rename_dir(filesystem):
-    src_dir = 'dir'
-    dst_dir = 'dir2'
-    file_name = 'file'
-    os.makedirs(src_dir)
-    src = os.path.join(src_dir, file_name)
-    with open(src, 'w') as f:
-        f.write("test")
-    assert os.path.exists(src)
-    fs.fs_rename(src_dir, dst_dir)
-    assert os.path.exists(dst_dir)
-    assert os.path.exists(os.path.join(dst_dir, file_name))
-    assert not os.path.exists(src_dir)
+def test_fs_rename_dir():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        src_dir = os.path.join(temp_dir, 'dir')
+        dst_dir = os.path.join(temp_dir, 'dir2')
+        file_name = 'file'
+        os.makedirs(src_dir)
+        src = os.path.join(src_dir, file_name)
+        with open(src, 'w') as f:
+            f.write("test")
+        assert os.path.exists(src)
+        fs.fs_rename(src_dir, dst_dir)
+        assert os.path.exists(dst_dir)
+        assert os.path.exists(os.path.join(dst_dir, file_name))
+        assert not os.path.exists(src_dir)
 
 
-def test_fs_move_symlink(filesystem):
+def test_fs_move_symlink():
     '''
     /src/
         -src_file
     /dst/
         -link --> src
     '''
-    os.mkdir('src')
-    os.mkdir('dst')
-    with open('src/src_file', 'w') as f:
-        f.write('')
-    os.symlink('src', 'dst/link')
-    fs.fs_exists('dst/link', followlinks=True) is True
-    assert os.path.exists('src')
-    fs.fs_move('src', 'src_copy')
-    assert os.path.exists('src_copy')
-    assert not os.path.exists('src')
-    assert not os.path.exists('dst/link')
+    with tempfile.TemporaryDirectory() as temp_dir:
+        src_dir = os.path.join(temp_dir, 'src')
+        dst_dir = os.path.join(temp_dir, 'src_copy')
+
+        os.mkdir(src_dir)
+        os.mkdir(dst_dir)
+        with open(os.path.join(src_dir, 'src_file'), 'w') as f:
+            f.write('')
+        os.symlink(src_dir, os.path.join(temp_dir, 'link'))
+        fs.fs_exists(os.path.join(temp_dir, 'link'), followlinks=True) is True
+        assert os.path.exists(src_dir)
+        fs.fs_move(src_dir, dst_dir)
+        assert os.path.exists(dst_dir)
+        assert not os.path.exists(src_dir)
+        assert not os.path.exists(os.path.join(temp_dir, 'link'))
 
 
 def test_fs_move(filesystem):
