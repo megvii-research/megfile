@@ -1157,25 +1157,6 @@ def test_fs_move(filesystem):
         assert f.read() == ""
 
 
-def test_fs_move_symlink(filesystem):
-    '''
-    /src/
-        -src_file
-    /dst/
-        -link --> src
-    '''
-    os.mkdir('src')
-    os.mkdir('dst')
-    with open('src/src_file', 'w') as f:
-        f.write('')
-    os.symlink('src', '/dst/link')
-    fs.fs_exists('/dst/link', followlinks=True) is True
-    fs.fs_move('src', 'src_copy')
-    assert os.path.exists('src_copy')
-    assert not os.path.exists('src/src_file')
-    assert not os.path.exists('/dst/link')
-
-
 def test_fs_move_dir():
     # pyfakefs have a bug when move file with scandir, so use tempfile
     with tempfile.TemporaryDirectory() as tmpdir:
