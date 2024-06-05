@@ -263,9 +263,14 @@ class HttpPath(URIPath):
         :raises: HttpPermissionError, HttpFileNotFoundError
         '''
 
+        request_kwargs = deepcopy(self.request_kwargs)
+        timeout = request_kwargs.pop('timeout', DEFAULT_TIMEOUT)
+        stream = request_kwargs.pop('stream', True)
+
         try:
-            with get_http_session(status_forcelist=()).get(
-                    self.path_with_protocol, stream=True) as response:
+            with get_http_session(timeout=timeout, status_forcelist=()).get(
+                    self.path_with_protocol, stream=stream,
+                    **request_kwargs) as response:
                 response.raise_for_status()
                 headers = response.headers
         except Exception as error:
@@ -316,9 +321,14 @@ class HttpPath(URIPath):
         :return: return True if exists
         :rtype: bool
         """
+        request_kwargs = deepcopy(self.request_kwargs)
+        timeout = request_kwargs.pop('timeout', DEFAULT_TIMEOUT)
+        stream = request_kwargs.pop('stream', True)
+
         try:
-            with get_http_session(status_forcelist=()).get(
-                    self.path_with_protocol, stream=True) as response:
+            with get_http_session(timeout=timeout, status_forcelist=()).get(
+                    self.path_with_protocol, stream=stream,
+                    **request_kwargs) as response:
                 if response.status_code == 404:
                     return False
                 return True
