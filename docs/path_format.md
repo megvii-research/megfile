@@ -9,7 +9,21 @@
 - `s3[+profile_name]://bucket/key`
 
 ### http
-- Http uri, e.g. `https://www.google.com`
+- Http uri, e.g. `https://megvii-research.github.io/megfile/`
+
+##### set cookies, headers and other parameters
+You can set `cookies`, `headers` and other parameters of `requests.request` in `HttpPath`'s property `request_kwargs`, like:
+
+```
+from megfile import HttpPath, smart_copy
+
+url = HttpPath('https://megvii-research.github.io/megfile/')
+url.request_kwargs = {
+    'cookies': {'key': 'value'}, 
+    'headers': {'key': 'value'},
+}
+smart_copy(url, 'index.html')
+```
 
 ### stdio
 - `stdio://-`
