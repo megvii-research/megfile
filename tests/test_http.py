@@ -158,7 +158,7 @@ def test_http_open_range(mocker):
         @property
         def headers(self):
             return {
-                "Content-Length": '4',
+                "Content-Length": str(len(self._content)),
                 'Content-Type': 'test/test',
                 "Last-Modified": "Wed, 24 Nov 2021 07:18:41 GMT",
                 'Accept-Ranges': 'bytes',

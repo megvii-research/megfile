@@ -1,4 +1,3 @@
-import os
 from io import BytesIO
 from typing import Optional
 
@@ -7,6 +6,10 @@ import requests
 from megfile.config import DEFAULT_BLOCK_CAPACITY, DEFAULT_BLOCK_SIZE, HTTP_MAX_RETRY_TIMES
 from megfile.errors import UnsupportedError, http_should_retry, patch_method
 from megfile.lib.base_prefetch_reader import BasePrefetchReader
+from megfile.lib.compat import fspath
+from megfile.pathlike import PathLike
+
+DEFAULT_TIMEOUT = (60, 60 * 60 * 24)
 
 
 class HttpPrefetchReader(BasePrefetchReader):
@@ -19,7 +22,7 @@ class HttpPrefetchReader(BasePrefetchReader):
 
     def __init__(
             self,
-            url: str,
+            url: PathLike,
             *,
             content_size: Optional[int] = None,
             block_size: int = DEFAULT_BLOCK_SIZE,
@@ -46,22 +49,28 @@ class HttpPrefetchReader(BasePrefetchReader):
         if first_index_response['Headers'].get('Accept-Ranges') != 'bytes':
             raise UnsupportedError(
                 f'Unsupported server, server must support Accept-Ranges: {self._url}',
-                path=self._url,
+                path=fspath(self._url),
             )
         return first_index_response['Headers']['Content-Length']
 
     @property
     def name(self) -> str:
-        return self._url
+        return fspath(self._url)
 
     def _fetch_response(
             self, start: Optional[int] = None,
             end: Optional[int] = None) -> dict:
 
         def fetch_response() -> dict:
+            request_kwargs = {}
+            if hasattr(self._url, 'request_kwargs'):
+                request_kwargs = self._url.request_kwargs
+            timeout = request_kwargs.pop('timeout', DEFAULT_TIMEOUT)
+            stream = request_kwargs.pop('stream', True)
+
             if start is None or end is None:
-                with requests.get(self._url, timeout=10,
-                                  stream=True) as response:
+                with requests.get(fspath(self._url), timeout=timeout,
+                                  stream=stream, **request_kwargs) as response:
                     return {
                         'Headers': response.headers,
                         'Cookies': response.cookies,
@@ -71,9 +80,16 @@ class HttpPrefetchReader(BasePrefetchReader):
                 range_end = end
                 if self._content_size is not None:
                     range_end = min(range_end, self._content_size - 1)
-                headers = {"Range": f"bytes={start}-{range_end}"}
-                with requests.get(self._url, timeout=10, headers=headers,
-                                  stream=True) as response:
+                headers = request_kwargs.pop('headers', {})
+                headers["Range"] = f"bytes={start}-{range_end}"
+                with requests.get(fspath(self._url), timeout=timeout,
+                                  headers=headers, stream=stream,
+                                  **request_kwargs) as response:
+                    if len(response.content) != int(
+                            response.headers['Content-Length']):
+                        raise requests.exceptions.HTTPError(
+                            f"The downloaded content is incomplete, expected size: {response.headers['Content-Length']}, actual size: {len(response.content)}",
+                        )
                     return {
                         'Body': BytesIO(response.content),
                         'Headers': response.headers,

@@ -1,4 +1,5 @@
 import time
+from copy import deepcopy
 from functools import partial
 from io import BufferedReader, BytesIO
 from logging import getLogger as get_logger
@@ -12,7 +13,7 @@ from megfile.config import DEFAULT_BLOCK_SIZE, HTTP_MAX_RETRY_TIMES
 from megfile.errors import http_should_retry, patch_method, translate_http_error
 from megfile.interfaces import PathLike, Readable, StatResult, URIPath
 from megfile.lib.compat import fspath
-from megfile.lib.http_prefetch_reader import HttpPrefetchReader
+from megfile.lib.http_prefetch_reader import DEFAULT_TIMEOUT, HttpPrefetchReader
 from megfile.lib.s3_buffered_writer import DEFAULT_MAX_BUFFER_SIZE
 from megfile.lib.url import get_url_scheme
 from megfile.pathlike import PathLike
@@ -32,7 +33,7 @@ max_retries = HTTP_MAX_RETRY_TIMES
 
 
 def get_http_session(
-        timeout: Union[int, Tuple[int, int]] = (9, 60),
+        timeout: Optional[Union[int, Tuple[int, int]]] = DEFAULT_TIMEOUT,
         status_forcelist: Iterable[int] = (500, 502, 503, 504)
 ) -> requests.Session:
     session = requests.Session()
@@ -172,9 +173,11 @@ class HttpPath(URIPath):
     protocol = "http"
 
     def __init__(self, path: PathLike, *other_paths: PathLike):
+        super().__init__(path, *other_paths)
+
         if str(path).startswith('https://'):
             self.protocol = 'https'
-        super().__init__(path, *other_paths)
+        self.request_kwargs = {}
 
     @binary_open
     def open(
@@ -204,9 +207,15 @@ class HttpPath(URIPath):
             raise ValueError('unacceptable mode: %r' % mode)
 
         response = None
+        request_kwargs = deepcopy(self.request_kwargs)
+        timeout = request_kwargs.pop('timeout', DEFAULT_TIMEOUT)
+        stream = request_kwargs.pop('stream', True)
         try:
-            response = get_http_session(status_forcelist=()).get(
-                self.path_with_protocol, stream=True)
+            response = get_http_session(
+                timeout=timeout,
+                status_forcelist=(),
+            ).get(
+                self.path_with_protocol, stream=stream, **request_kwargs)
             response.raise_for_status()
         except Exception as error:
             if response:
@@ -226,7 +235,7 @@ class HttpPath(URIPath):
                 block_forward = max(int(block_capacity * forward_ratio), 1)
 
             reader = HttpPrefetchReader(
-                self.path_with_protocol,
+                self,
                 content_size=content_size,
                 max_retries=max_retries,
                 max_workers=max_concurrency,
