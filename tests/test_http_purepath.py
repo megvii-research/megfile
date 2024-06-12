@@ -409,3 +409,25 @@ def test_response():
 def test_is_http():
     assert is_http('http://foo') is True
     assert is_http('s3://foo') is False
+
+
+def test_open_with_headers(requests_mock):
+    requests_mock.get(
+        'http://test',
+        text='test',
+        status_code=200,
+        headers={
+            'Content-Length': '4',
+        })
+    headers = {
+        'A': 'a',
+        'B': 'b',
+    }
+
+    path = HttpPath('http://test')
+    path.request_kwargs = {'headers': headers}
+    with path.open('rb') as f:
+        assert f.read() == b"test"
+
+    for key, value in headers.items():
+        assert requests_mock.request_history[0].headers[key] == value
