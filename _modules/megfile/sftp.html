@@ -242,24 +242,30 @@
     <span class="k">return</span> <span class="n">SftpPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">realpath</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="sftp_rename"><a class="viewcode-back" href="../../megfile.sftp.html#megfile.sftp.sftp_rename">[docs]</a><span class="k">def</span> <span class="nf">sftp_rename</span><span class="p">(</span><span class="n">src_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;SftpPath&#39;</span><span class="p">:</span>
+<div class="viewcode-block" id="sftp_rename"><a class="viewcode-back" href="../../megfile.sftp.html#megfile.sftp.sftp_rename">[docs]</a><span class="k">def</span> <span class="nf">sftp_rename</span><span class="p">(</span>
+        <span class="n">src_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
+        <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;SftpPath&#39;</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    rename file on sftp</span>
 
 <span class="sd">    :param src_path: Given path</span>
 <span class="sd">    :param dst_path: Given destination path</span>
+<span class="sd">    :param overwrite: whether or not overwrite file when exists</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="k">return</span> <span class="n">SftpPath</span><span class="p">(</span><span class="n">src_path</span><span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">SftpPath</span><span class="p">(</span><span class="n">src_path</span><span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">dst_path</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="sftp_move"><a class="viewcode-back" href="../../megfile.sftp.html#megfile.sftp.sftp_move">[docs]</a><span class="k">def</span> <span class="nf">sftp_move</span><span class="p">(</span><span class="n">src_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;SftpPath&#39;</span><span class="p">:</span>
+<div class="viewcode-block" id="sftp_move"><a class="viewcode-back" href="../../megfile.sftp.html#megfile.sftp.sftp_move">[docs]</a><span class="k">def</span> <span class="nf">sftp_move</span><span class="p">(</span>
+        <span class="n">src_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
+        <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;SftpPath&#39;</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    move file on sftp</span>
 
 <span class="sd">    :param src_path: Given path</span>
 <span class="sd">    :param dst_path: Given destination path</span>
+<span class="sd">    :param overwrite: whether or not overwrite file when exists</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="k">return</span> <span class="n">SftpPath</span><span class="p">(</span><span class="n">src_path</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">SftpPath</span><span class="p">(</span><span class="n">src_path</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">dst_path</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="sftp_remove"><a class="viewcode-back" href="../../megfile.sftp.html#megfile.sftp.sftp_remove">[docs]</a><span class="k">def</span> <span class="nf">sftp_remove</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -449,7 +455,8 @@
         <span class="n">src_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
         <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
         <span class="n">callback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">],</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Copy the file to the given destination path.</span>
 
@@ -461,22 +468,24 @@
 <span class="sd">    :raises IsADirectoryError: If the source is a directory.</span>
 <span class="sd">    :raises OSError: If there is an error copying the file.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">SftpPath</span><span class="p">(</span><span class="n">src_path</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">dst_path</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">SftpPath</span><span class="p">(</span><span class="n">src_path</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">dst_path</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="sftp_sync"><a class="viewcode-back" href="../../megfile.sftp.html#megfile.sftp.sftp_sync">[docs]</a><span class="k">def</span> <span class="nf">sftp_sync</span><span class="p">(</span>
         <span class="n">src_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
         <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
         <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="n">force</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="n">force</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;Copy file/directory on src_url to dst_url</span>
 
 <span class="sd">    :param src_path: Given path</span>
 <span class="sd">    :param dst_url: Given destination path</span>
 <span class="sd">    :param followlinks: False if regard symlink as file, else True</span>
-<span class="sd">    :param force: Sync file forcely, do not ignore same files</span>
+<span class="sd">    :param force: Sync file forcely, do not ignore same files, priority is higher than &#39;overwrite&#39;, default is False</span>
+<span class="sd">    :param overwrite: whether or not overwrite file when exists, default is True</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="k">return</span> <span class="n">SftpPath</span><span class="p">(</span><span class="n">src_path</span><span class="p">)</span><span class="o">.</span><span class="n">sync</span><span class="p">(</span><span class="n">dst_path</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">,</span> <span class="n">force</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">SftpPath</span><span class="p">(</span><span class="n">src_path</span><span class="p">)</span><span class="o">.</span><span class="n">sync</span><span class="p">(</span><span class="n">dst_path</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">,</span> <span class="n">force</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">)</span></div>
 </pre></div>
 
            </div>

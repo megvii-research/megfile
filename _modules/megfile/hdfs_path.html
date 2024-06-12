@@ -485,25 +485,35 @@
         <span class="k">with</span> <span class="n">raise_hdfs_error</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="n">permission</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="HdfsPath.rename"><a class="viewcode-back" href="../../megfile.hdfs_path.html#megfile.hdfs.HdfsPath.rename">[docs]</a>    <span class="k">def</span> <span class="nf">rename</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;HdfsPath&#39;</span><span class="p">:</span>
+<div class="viewcode-block" id="HdfsPath.rename"><a class="viewcode-back" href="../../megfile.hdfs_path.html#megfile.hdfs.HdfsPath.rename">[docs]</a>    <span class="k">def</span> <span class="nf">rename</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;HdfsPath&#39;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Move hdfs file path from src_path to dst_path</span>
 
 <span class="sd">        :param dst_path: Given destination path</span>
+<span class="sd">        :param overwrite: whether or not overwrite file when exists</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">dst_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span>
-        <span class="k">with</span> <span class="n">raise_hdfs_error</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="n">dst_path</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">iterdir</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">dst_path</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">filename</span><span class="p">))</span>  <span class="c1"># pytype: disable=attribute-error</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">overwrite</span><span class="p">:</span>
+                <span class="n">dst_path</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">missing_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">overwrite</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">dst_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                <span class="k">with</span> <span class="n">raise_hdfs_error</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span>
+                        <span class="n">dst_path</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">missing_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">dst_path</span></div>
 
-<div class="viewcode-block" id="HdfsPath.move"><a class="viewcode-back" href="../../megfile.hdfs_path.html#megfile.hdfs.HdfsPath.move">[docs]</a>    <span class="k">def</span> <span class="nf">move</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="HdfsPath.move"><a class="viewcode-back" href="../../megfile.hdfs_path.html#megfile.hdfs.HdfsPath.move">[docs]</a>    <span class="k">def</span> <span class="nf">move</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Move file/directory path from src_path to dst_path</span>
 
 <span class="sd">        :param dst_path: Given destination path</span>
 <span class="sd">        &#39;&#39;&#39;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">dst_path</span><span class="o">=</span><span class="n">dst_path</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">dst_path</span><span class="o">=</span><span class="n">dst_path</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="HdfsPath.remove"><a class="viewcode-back" href="../../megfile.hdfs_path.html#megfile.hdfs.HdfsPath.remove">[docs]</a>    <span class="k">def</span> <span class="nf">remove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>

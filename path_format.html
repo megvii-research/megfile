@@ -50,7 +50,10 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Path Format</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#fs">fs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#s3">s3</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#http">http</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#http">http</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#set-cookies-headers-and-other-parameters">set cookies, headers and other parameters</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#stdio">stdio</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#sftp">sftp</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#hdfs">hdfs</a></li>
@@ -108,8 +111,22 @@
 <section id="http">
 <h2>http<a class="headerlink" href="#http" title="Permalink to this heading"></a></h2>
 <ul class="simple">
-<li><p>Http uri, e.g. <code class="docutils literal notranslate"><span class="pre">https://www.google.com</span></code></p></li>
+<li><p>Http uri, e.g. <code class="docutils literal notranslate"><span class="pre">https://megvii-research.github.io/megfile/</span></code></p></li>
 </ul>
+<section id="set-cookies-headers-and-other-parameters">
+<h3>set cookies, headers and other parameters<a class="headerlink" href="#set-cookies-headers-and-other-parameters" title="Permalink to this heading"></a></h3>
+<p>You can set <code class="docutils literal notranslate"><span class="pre">cookies</span></code>, <code class="docutils literal notranslate"><span class="pre">headers</span></code> and other parameters of <code class="docutils literal notranslate"><span class="pre">requests.request</span></code> in <code class="docutils literal notranslate"><span class="pre">HttpPath</span></code>‘s property <code class="docutils literal notranslate"><span class="pre">request_kwargs</span></code>, like:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">megfile</span> <span class="kn">import</span> <span class="n">HttpPath</span><span class="p">,</span> <span class="n">smart_copy</span>
+
+<span class="n">url</span> <span class="o">=</span> <span class="n">HttpPath</span><span class="p">(</span><span class="s1">&#39;https://megvii-research.github.io/megfile/&#39;</span><span class="p">)</span>
+<span class="n">url</span><span class="o">.</span><span class="n">request_kwargs</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;cookies&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;value&#39;</span><span class="p">},</span>
+    <span class="s1">&#39;headers&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;value&#39;</span><span class="p">},</span>
+<span class="p">}</span>
+<span class="n">smart_copy</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="s1">&#39;index.html&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
 </section>
 <section id="stdio">
 <h2>stdio<a class="headerlink" href="#stdio" title="Permalink to this heading"></a></h2>

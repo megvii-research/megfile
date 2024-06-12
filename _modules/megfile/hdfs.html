@@ -211,14 +211,15 @@
     <span class="k">return</span> <span class="n">HdfsPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">followlinks</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="hdfs_move"><a class="viewcode-back" href="../../megfile.hdfs.html#megfile.hdfs.hdfs_move">[docs]</a><span class="k">def</span> <span class="nf">hdfs_move</span><span class="p">(</span><span class="n">src_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="hdfs_move"><a class="viewcode-back" href="../../megfile.hdfs.html#megfile.hdfs.hdfs_move">[docs]</a><span class="k">def</span> <span class="nf">hdfs_move</span><span class="p">(</span>
+        <span class="n">src_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Move file/directory path from src_path to dst_path</span>
 
 <span class="sd">    :param src_path: Given path</span>
 <span class="sd">    :param dst_path: Given destination path</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="k">return</span> <span class="n">HdfsPath</span><span class="p">(</span><span class="n">src_path</span><span class="p">)</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">HdfsPath</span><span class="p">(</span><span class="n">src_path</span><span class="p">)</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">dst_path</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="hdfs_remove"><a class="viewcode-back" href="../../megfile.hdfs.html#megfile.hdfs.hdfs_remove">[docs]</a><span class="k">def</span> <span class="nf">hdfs_remove</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>

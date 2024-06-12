@@ -249,14 +249,16 @@
     <span class="k">return</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">hasbucket</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="s3_move"><a class="viewcode-back" href="../../megfile.s3.html#megfile.s3.s3_move">[docs]</a><span class="k">def</span> <span class="nf">s3_move</span><span class="p">(</span><span class="n">src_url</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">dst_url</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="s3_move"><a class="viewcode-back" href="../../megfile.s3.html#megfile.s3.s3_move">[docs]</a><span class="k">def</span> <span class="nf">s3_move</span><span class="p">(</span>
+        <span class="n">src_url</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">dst_url</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Move file/directory path from src_url to dst_url</span>
 
 <span class="sd">    :param src_url: Given path</span>
 <span class="sd">    :param dst_url: Given destination path</span>
+<span class="sd">    :param overwrite: whether or not overwrite file when exists</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="k">return</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">src_url</span><span class="p">)</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">dst_url</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">src_url</span><span class="p">)</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">dst_url</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="s3_remove"><a class="viewcode-back" href="../../megfile.s3.html#megfile.s3.s3_remove">[docs]</a><span class="k">def</span> <span class="nf">s3_remove</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -385,8 +387,9 @@
 <div class="viewcode-block" id="s3_copy"><a class="viewcode-back" href="../../megfile.s3.html#megfile.s3.s3_copy">[docs]</a><span class="k">def</span> <span class="nf">s3_copy</span><span class="p">(</span>
         <span class="n">src_url</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
         <span class="n">dst_url</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
+        <span class="n">callback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">],</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="n">callback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">],</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39; File copy on S3</span>
 <span class="sd">    Copy content of file on `src_path` to `dst_path`.</span>
 <span class="sd">    It&#39;s caller&#39;s responsebility to ensure the s3_isfile(src_url) == True</span>
@@ -394,24 +397,28 @@
 <span class="sd">    :param src_url: Given path</span>
 <span class="sd">    :param dst_path: Target file path</span>
 <span class="sd">    :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call</span>
+<span class="sd">    :param followlinks: False if regard symlink as file, else True</span>
+<span class="sd">    :param overwrite: whether or not overwrite file when exists, default is True</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="k">return</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">src_url</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">dst_url</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">src_url</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">dst_url</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="s3_sync"><a class="viewcode-back" href="../../megfile.s3.html#megfile.s3.s3_sync">[docs]</a><span class="k">def</span> <span class="nf">s3_sync</span><span class="p">(</span>
         <span class="n">src_url</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
         <span class="n">dst_url</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
         <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="n">force</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">force</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Copy file/directory on src_url to dst_url</span>
 
 <span class="sd">    :param src_url: Given path</span>
 <span class="sd">    :param dst_url: Given destination path</span>
 <span class="sd">    :param followlinks: False if regard symlink as file, else True</span>
-<span class="sd">    :param force: Sync file forcely, do not ignore same files</span>
+<span class="sd">    :param force: Sync file forcely, do not ignore same files, priority is higher than &#39;overwrite&#39;, default is False</span>
+<span class="sd">    :param overwrite: whether or not overwrite file when exists, default is True</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="k">return</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">src_url</span><span class="p">)</span><span class="o">.</span><span class="n">sync</span><span class="p">(</span><span class="n">dst_url</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">,</span> <span class="n">force</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">src_url</span><span class="p">)</span><span class="o">.</span><span class="n">sync</span><span class="p">(</span><span class="n">dst_url</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">,</span> <span class="n">force</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="s3_symlink"><a class="viewcode-back" href="../../megfile.s3.html#megfile.s3.s3_symlink">[docs]</a><span class="k">def</span> <span class="nf">s3_symlink</span><span class="p">(</span><span class="n">src_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>

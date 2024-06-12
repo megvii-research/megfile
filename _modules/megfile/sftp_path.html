@@ -497,9 +497,15 @@
         <span class="n">src_url</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
         <span class="n">dst_url</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
         <span class="n">callback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">],</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">    File download</span>
+<span class="sd">    Downloads a file from sftp to local filesystem.</span>
+<span class="sd">    :param src_url: source sftp path</span>
+<span class="sd">    :param dst_url: target fs path</span>
+<span class="sd">    :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call</span>
+<span class="sd">    :param followlinks: False if regard symlink as file, else True</span>
+<span class="sd">    :param overwrite: whether or not overwrite file when exists, default is True</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="kn">from</span> <span class="nn">megfile.fs</span> <span class="kn">import</span> <span class="n">is_fs</span>
     <span class="kn">from</span> <span class="nn">megfile.fs_path</span> <span class="kn">import</span> <span class="n">FSPath</span>
@@ -508,6 +514,10 @@
         <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;dst_url is not fs path: </span><span class="si">{</span><span class="n">dst_url</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">is_sftp</span><span class="p">(</span><span class="n">src_url</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">src_url</span><span class="p">,</span> <span class="n">SftpPath</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;src_url is not sftp path: </span><span class="si">{</span><span class="n">src_url</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="n">dst_path</span> <span class="o">=</span> <span class="n">FSPath</span><span class="p">(</span><span class="n">dst_url</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">overwrite</span> <span class="ow">and</span> <span class="n">dst_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">return</span>
 
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">src_url</span><span class="p">,</span> <span class="n">SftpPath</span><span class="p">):</span>
         <span class="n">src_path</span> <span class="o">=</span> <span class="n">src_url</span>
@@ -521,7 +531,6 @@
     <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">dst_url</span><span class="p">)</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">IsADirectoryError</span><span class="p">(</span><span class="s1">&#39;Is a directory: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">dst_url</span><span class="p">)</span>
 
-    <span class="n">dst_path</span> <span class="o">=</span> <span class="n">FSPath</span><span class="p">(</span><span class="n">dst_url</span><span class="p">)</span>
     <span class="n">dst_path</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="n">sftp_callback</span> <span class="o">=</span> <span class="kc">None</span>
@@ -547,9 +556,14 @@
         <span class="n">src_url</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
         <span class="n">dst_url</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
         <span class="n">callback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">],</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">    File upload</span>
+<span class="sd">    Uploads a file from local filesystem to sftp server.</span>
+<span class="sd">    :param src_url: source fs path</span>
+<span class="sd">    :param dst_url: target sftp path</span>
+<span class="sd">    :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call</span>
+<span class="sd">    :param overwrite: whether or not overwrite file when exists, default is True</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="kn">from</span> <span class="nn">megfile.fs</span> <span class="kn">import</span> <span class="n">is_fs</span>
     <span class="kn">from</span> <span class="nn">megfile.fs_path</span> <span class="kn">import</span> <span class="n">FSPath</span>
@@ -571,6 +585,9 @@
         <span class="n">dst_path</span> <span class="o">=</span> <span class="n">dst_url</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">dst_path</span> <span class="o">=</span> <span class="n">SftpPath</span><span class="p">(</span><span class="n">dst_url</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">overwrite</span> <span class="ow">and</span> <span class="n">dst_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">return</span>
+
     <span class="n">dst_path</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="n">sftp_callback</span> <span class="o">=</span> <span class="kc">None</span>
@@ -939,53 +956,57 @@
     <span class="k">def</span> <span class="nf">_is_same_protocol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">is_sftp</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
 
-<div class="viewcode-block" id="SftpPath.rename"><a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.sftp.SftpPath.rename">[docs]</a>    <span class="k">def</span> <span class="nf">rename</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;SftpPath&#39;</span><span class="p">:</span>
+<div class="viewcode-block" id="SftpPath.rename"><a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.sftp.SftpPath.rename">[docs]</a>    <span class="k">def</span> <span class="nf">rename</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;SftpPath&#39;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        rename file on sftp</span>
 
 <span class="sd">        :param dst_path: Given destination path</span>
+<span class="sd">        :param overwrite: whether or not overwrite file when exists</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_same_protocol</span><span class="p">(</span><span class="n">dst_path</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="s1">&#39;Not a </span><span class="si">%s</span><span class="s1"> path: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">))</span>
-        <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">IsADirectoryError</span><span class="p">(</span><span class="s1">&#39;Is a directory: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">dst_path</span><span class="p">)</span>
 
-        <span class="n">dst_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span>
+        <span class="n">dst_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">))</span>
+
         <span class="n">src_stat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_same_backend</span><span class="p">(</span><span class="n">dst_path</span><span class="p">):</span>
-            <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">overwrite</span><span class="p">:</span>
+                <span class="n">dst_path</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">missing_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_real_path</span><span class="p">,</span> <span class="n">dst_path</span><span class="o">.</span><span class="n">_real_path</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">dst_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-                    <span class="k">raise</span> <span class="ne">FileExistsError</span><span class="p">(</span><span class="s1">&#39;File exists: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">dst_path</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">sync</span><span class="p">(</span><span class="n">dst_path</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">missing_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
                 <span class="k">for</span> <span class="n">file_entry</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">scandir</span><span class="p">():</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">file_entry</span><span class="o">.</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
                         <span class="n">dst_path</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">file_entry</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">rmdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_real_path</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fsrc</span><span class="p">:</span>
-                    <span class="k">with</span> <span class="n">dst_path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fdst</span><span class="p">:</span>
-                        <span class="n">length</span> <span class="o">=</span> <span class="mi">16</span> <span class="o">*</span> <span class="mi">1024</span>
-                        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-                            <span class="n">buf</span> <span class="o">=</span> <span class="n">fsrc</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
-                            <span class="k">if</span> <span class="ow">not</span> <span class="n">buf</span><span class="p">:</span>
-                                <span class="k">break</span>
-                            <span class="n">fdst</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">overwrite</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">dst_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                    <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fsrc</span><span class="p">:</span>
+                        <span class="k">with</span> <span class="n">dst_path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fdst</span><span class="p">:</span>
+                            <span class="n">length</span> <span class="o">=</span> <span class="mi">16</span> <span class="o">*</span> <span class="mi">1024</span>
+                            <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                                <span class="n">buf</span> <span class="o">=</span> <span class="n">fsrc</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+                                <span class="k">if</span> <span class="ow">not</span> <span class="n">buf</span><span class="p">:</span>
+                                    <span class="k">break</span>
+                                <span class="n">fdst</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
 
         <span class="n">dst_path</span><span class="o">.</span><span class="n">utime</span><span class="p">(</span><span class="n">src_stat</span><span class="o">.</span><span class="n">st_atime</span><span class="p">,</span> <span class="n">src_stat</span><span class="o">.</span><span class="n">st_mtime</span><span class="p">)</span>
         <span class="n">dst_path</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">src_stat</span><span class="o">.</span><span class="n">st_mode</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">dst_path</span></div>
 
-<div class="viewcode-block" id="SftpPath.replace"><a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.sftp.SftpPath.replace">[docs]</a>    <span class="k">def</span> <span class="nf">replace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;SftpPath&#39;</span><span class="p">:</span>
+<div class="viewcode-block" id="SftpPath.replace"><a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.sftp.SftpPath.replace">[docs]</a>    <span class="k">def</span> <span class="nf">replace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;SftpPath&#39;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        move file on sftp</span>
 
 <span class="sd">        :param dst_path: Given destination path</span>
+<span class="sd">        :param overwrite: whether or not overwrite file when exists</span>
 <span class="sd">        &#39;&#39;&#39;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">dst_path</span><span class="o">=</span><span class="n">dst_path</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">dst_path</span><span class="o">=</span><span class="n">dst_path</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="SftpPath.remove"><a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.sftp.SftpPath.remove">[docs]</a>    <span class="k">def</span> <span class="nf">remove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
@@ -1315,7 +1336,8 @@
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
             <span class="n">callback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">],</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Copy the file to the given destination path.</span>
 
@@ -1337,6 +1359,9 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
             <span class="k">raise</span> <span class="ne">IsADirectoryError</span><span class="p">(</span>
                 <span class="s1">&#39;Is a directory: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">overwrite</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="k">return</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">dst_path</span><span class="p">))</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">dst_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span>
@@ -1372,12 +1397,14 @@
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
             <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-            <span class="n">force</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="n">force</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;Copy file/directory on src_url to dst_url</span>
 
 <span class="sd">        :param dst_url: Given destination path</span>
 <span class="sd">        :param followlinks: False if regard symlink as file, else True</span>
-<span class="sd">        :param force: Sync file forcely, do not ignore same files</span>
+<span class="sd">        :param force: Sync file forcely, do not ignore same files, priority is higher than &#39;overwrite&#39;, default is False</span>
+<span class="sd">        :param overwrite: whether or not overwrite file when exists, default is True</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_same_protocol</span><span class="p">(</span><span class="n">dst_path</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="s1">&#39;Not a </span><span class="si">%s</span><span class="s1"> path: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">))</span>
@@ -1386,11 +1413,15 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">):</span>
             <span class="n">dst_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">dst_file_path</span><span class="p">)</span>
             <span class="n">src_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">src_file_path</span><span class="p">)</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">force</span> <span class="ow">and</span> <span class="n">dst_path</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="n">is_same_file</span><span class="p">(</span>
-                    <span class="n">src_path</span><span class="o">.</span><span class="n">stat</span><span class="p">(),</span> <span class="n">dst_path</span><span class="o">.</span><span class="n">stat</span><span class="p">(),</span> <span class="s1">&#39;copy&#39;</span><span class="p">):</span>
+
+            <span class="k">if</span> <span class="n">force</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="k">elif</span> <span class="ow">not</span> <span class="n">overwrite</span> <span class="ow">and</span> <span class="n">dst_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
                 <span class="k">continue</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">dst_file_path</span><span class="p">))</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span>
-                <span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">dst_path</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="n">is_same_file</span><span class="p">(</span><span class="n">src_path</span><span class="o">.</span><span class="n">stat</span><span class="p">(),</span>
+                                                    <span class="n">dst_path</span><span class="o">.</span><span class="n">stat</span><span class="p">(),</span> <span class="s1">&#39;copy&#39;</span><span class="p">):</span>
+                <span class="k">continue</span>
+
             <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">src_file_path</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span>
                 <span class="n">dst_file_path</span><span class="p">,</span> <span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span></div>
 

@@ -391,7 +391,8 @@
         <span class="n">src_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
         <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
         <span class="n">callback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">],</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39; File copy on file system</span>
 <span class="sd">    Copy content (excluding meta date) of file on `src_path` to `dst_path`. `dst_path` must be a complete file name</span>
 
@@ -411,23 +412,26 @@
 <span class="sd">    :param dst_path: Target file path</span>
 <span class="sd">    :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call</span>
 <span class="sd">    :param followlinks: False if regard symlink as file, else True</span>
+<span class="sd">    :param overwrite: whether or not overwrite file when exists, default is True</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="k">return</span> <span class="n">FSPath</span><span class="p">(</span><span class="n">src_path</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">dst_path</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">FSPath</span><span class="p">(</span><span class="n">src_path</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">dst_path</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="fs_sync"><a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_sync">[docs]</a><span class="k">def</span> <span class="nf">fs_sync</span><span class="p">(</span>
         <span class="n">src_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
         <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
         <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="n">force</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">force</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;Force write of everything to disk.</span>
 
 <span class="sd">    :param src_path: Given path</span>
 <span class="sd">    :param dst_path: Target file path</span>
 <span class="sd">    :param followlinks: False if regard symlink as file, else True</span>
-<span class="sd">    :param force: Sync file forcely, do not ignore same files</span>
+<span class="sd">    :param force: Sync file forcely, do not ignore same files, priority is higher than &#39;overwrite&#39;, default is False</span>
+<span class="sd">    :param overwrite: whether or not overwrite file when exists, default is True</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="k">return</span> <span class="n">FSPath</span><span class="p">(</span><span class="n">src_path</span><span class="p">)</span><span class="o">.</span><span class="n">sync</span><span class="p">(</span><span class="n">dst_path</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">,</span> <span class="n">force</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">FSPath</span><span class="p">(</span><span class="n">src_path</span><span class="p">)</span><span class="o">.</span><span class="n">sync</span><span class="p">(</span><span class="n">dst_path</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">,</span> <span class="n">force</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="fs_symlink"><a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_symlink">[docs]</a><span class="k">def</span> <span class="nf">fs_symlink</span><span class="p">(</span><span class="n">src_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
