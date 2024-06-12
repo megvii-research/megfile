@@ -1,6 +1,6 @@
 ## 3.0.6 - 2024.06.12
 - feat
-    - support more parameters of `requests` like `headers` in `http_open`.
+    - support more parameters of `requests` like `headers` in `HttpPath`.
     - support `overwrite` parameter in `copy`, `sync` and `move` functions, default is `True`.
     - cli command `mv`, `cp`, `sync` support `--skip` option, can skip existed files.
 - perf
