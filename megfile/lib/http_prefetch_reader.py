@@ -4,7 +4,7 @@ from typing import Optional
 import requests
 
 from megfile.config import DEFAULT_BLOCK_CAPACITY, DEFAULT_BLOCK_SIZE, HTTP_MAX_RETRY_TIMES
-from megfile.errors import UnsupportedError, http_should_retry, patch_method
+from megfile.errors import HttpBodyIncompleteError, UnsupportedError, http_should_retry, patch_method
 from megfile.lib.base_prefetch_reader import BasePrefetchReader
 from megfile.lib.compat import fspath
 from megfile.pathlike import PathLike
@@ -87,7 +87,7 @@ class HttpPrefetchReader(BasePrefetchReader):
                                   **request_kwargs) as response:
                     if len(response.content) != int(
                             response.headers['Content-Length']):
-                        raise requests.exceptions.HTTPError(
+                        raise HttpBodyIncompleteError(
                             f"The downloaded content is incomplete, expected size: {response.headers['Content-Length']}, actual size: {len(response.content)}",
                         )
                     return {

@@ -25,6 +25,9 @@ __all__ = [
     'UnsupportedError',
     'HttpPermissionError',
     'HttpFileNotFoundError',
+    'HttpBodyIncompleteError',
+    'HttpUnknownError',
+    'HttpException',
     'ProtocolExistsError',
     'ProtocolNotFoundError',
     'S3UnknownError',
@@ -121,24 +124,6 @@ def s3_should_retry(error: Exception) -> bool:
             'ServiceUnavailable',
             'SlowDown',
             'ContextCanceled')
-    return False
-
-
-http_retry_exceptions = (
-    requests.exceptions.ReadTimeout,
-    requests.exceptions.ConnectTimeout,
-    requests.exceptions.ChunkedEncodingError,
-    requests.exceptions.HTTPError,
-    requests.exceptions.ProxyError,
-    urllib3.exceptions.IncompleteRead,
-    urllib3.exceptions.ProtocolError,
-    urllib3.exceptions.ReadTimeoutError,
-)
-
-
-def http_should_retry(error: Exception) -> bool:
-    if isinstance(error, http_retry_exceptions):
-        return True
     return False
 
 
@@ -299,6 +284,29 @@ class HttpFileNotFoundError(HttpException, FileNotFoundError):
 
 class HttpUnknownError(HttpException, UnknownError):
     pass
+
+
+class HttpBodyIncompleteError(HttpException):
+    pass
+
+
+http_retry_exceptions = (
+    requests.exceptions.ReadTimeout,
+    requests.exceptions.ConnectTimeout,
+    requests.exceptions.ChunkedEncodingError,
+    requests.exceptions.HTTPError,
+    requests.exceptions.ProxyError,
+    urllib3.exceptions.IncompleteRead,
+    urllib3.exceptions.ProtocolError,
+    urllib3.exceptions.ReadTimeoutError,
+    HttpBodyIncompleteError,
+)
+
+
+def http_should_retry(error: Exception) -> bool:
+    if isinstance(error, http_retry_exceptions):
+        return True
+    return False
 
 
 class ProtocolExistsError(Exception):
