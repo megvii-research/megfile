@@ -256,35 +256,57 @@ def test_smart_copy(mocker):
         assert s3_upload.called is False
         assert fs_copy.called is True
         fs_copy.assert_called_once_with(
-            'link', src_path, callback=None, followlinks=True)
+            'link', src_path, callback=None, followlinks=True, overwrite=True)
         fs_copy.reset_mock()
 
         smart.smart_copy('s3://a/b', 's3://a/b')
         s3_copy.assert_called_once_with(
-            's3://a/b', 's3://a/b', callback=None, followlinks=False)
+            's3://a/b',
+            's3://a/b',
+            callback=None,
+            followlinks=False,
+            overwrite=True)
 
         smart.smart_copy('http://a/b', 'fs')
         default_copy_func.assert_called_once_with(
-            'http://a/b', 'fs', callback=None, followlinks=False)
+            'http://a/b',
+            'fs',
+            callback=None,
+            followlinks=False,
+            overwrite=True)
 
         smart.smart_copy('s3://a/b', 'fs')
         s3_download.assert_called_once_with(
-            's3://a/b', 'fs', callback=None, followlinks=False)
+            's3://a/b', 'fs', callback=None, followlinks=False, overwrite=True)
 
         smart.smart_copy('fs', 's3://a/b')
         s3_upload.assert_called_once_with(
-            'fs', 's3://a/b', callback=None, followlinks=False)
+            'fs', 's3://a/b', callback=None, followlinks=False, overwrite=True)
 
         fs_stat = mocker.patch(
             'megfile.fs.fs_stat', return_value=StatResult(islnk=False, size=10))
         smart.smart_copy('fs', 'fs', followlinks=False)
         fs_copy.assert_called_once_with(
-            'fs', 'fs', callback=None, followlinks=False)
+            'fs', 'fs', callback=None, followlinks=False, overwrite=True)
         fs_copy.reset_mock()
         fs_stat.stop()
 
         smart.smart_copy('s3+test1://a/b', 's3+test2://a/b')
         s3path_open.call_count == 2
+
+
+def test_smart_copy_overwrite(fs, mocker):
+    with open('file', 'wb') as f:
+        f.write(b'')
+    with open('file1', 'wb') as f:
+        f.write(b'test')
+
+    smart.smart_copy('/file', '/file1', overwrite=False)
+    with open('/file1', 'rb') as f:
+        assert f.read() == b"test"
+    smart.smart_copy('/file', '/file1', overwrite=True)
+    with open('/file1', 'rb') as f:
+        assert f.read() == b''
 
 
 def test_smart_copy_fs2fs(mocker):
@@ -395,6 +417,26 @@ def test_smart_sync(mocker):
     smart_copy.assert_any_call('a/d', 'dst/d', callback=None, followlinks=True)
 
 
+def test_smart_sync_overwrite(fs):
+    src = '/tmp/refiletest/src/test.txt'
+    dst = '/tmp/refiletest/dst/test.txt'
+    smart.smart_makedirs('/tmp/refiletest/src')
+    with open(src, 'w') as f:
+        f.write('test')
+
+    smart.smart_makedirs('/tmp/refiletest/dst')
+    with open(dst, 'w') as f:
+        f.write('test1')
+
+    smart.smart_sync(src, dst, overwrite=False)
+    with open(dst, 'r') as f:
+        assert f.read() == 'test1'
+
+    smart.smart_sync(src, dst, overwrite=True)
+    with open(dst, 'r') as f:
+        assert f.read() == 'test'
+
+
 def test_smart_sync_file(s3_empty_client, fs):
     smart.smart_makedirs('/A')
     smart.smart_touch('/A/file')
@@ -452,7 +494,7 @@ def test_smart_move(mocker):
     funcA.return_value = None
     res = smart.smart_move('s3://bucket/a', 's3://bucket/b')
     assert res is None
-    funcA.assert_called_once_with('s3://bucket/b')
+    funcA.assert_called_once_with('s3://bucket/b', overwrite=True)
 
     res = smart.smart_move('/bucket/a', '/bucket/b')
     assert res is None
@@ -462,7 +504,7 @@ def test_smart_move(mocker):
     func_smart_remove = mocker.patch('megfile.smart.smart_remove')
     smart.smart_move('/bucket/a', 's3://bucket/b')
     func_smart_sync.assert_called_once_with(
-        '/bucket/a', 's3://bucket/b', followlinks=True)
+        '/bucket/a', 's3://bucket/b', followlinks=True, overwrite=True)
     func_smart_remove.assert_called_once_with('/bucket/a')
 
 
@@ -471,7 +513,7 @@ def test_smart_rename(funcA):
     funcA.return_value = None
     res = smart.smart_move('s3://bucket/a', 's3://bucket/b')
     assert res is None
-    funcA.assert_called_once_with('s3://bucket/b')
+    funcA.assert_called_once_with('s3://bucket/b', overwrite=True)
 
 
 def test_smart_rename_fs(s3_empty_client, filesystem):

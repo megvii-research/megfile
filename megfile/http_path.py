@@ -175,7 +175,7 @@ class HttpPath(URIPath):
     def __init__(self, path: PathLike, *other_paths: PathLike):
         super().__init__(path, *other_paths)
 
-        if str(path).startswith('https://'):
+        if fspath(path).startswith('https://'):
             self.protocol = 'https'
         self.request_kwargs = {}
 

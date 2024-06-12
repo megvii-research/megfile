@@ -270,7 +270,11 @@ def _default_copy_func(
         src_path: PathLike,
         dst_path: PathLike,
         callback: Optional[Callable[[int], None]] = None,
-        followlinks: bool = False) -> None:
+        followlinks: bool = False,
+        overwrite: bool = True) -> None:
+    if not overwrite and smart_exists(dst_path):
+        return
+
     with smart_open(src_path, 'rb', followlinks=followlinks) as fsrc:
         with smart_open(dst_path, 'wb') as fdst:
             # This magic number is copied from  copyfileobj
@@ -295,7 +299,8 @@ def smart_copy(
         src_path: PathLike,
         dst_path: PathLike,
         callback: Optional[Callable[[int], None]] = None,
-        followlinks: bool = False) -> None:
+        followlinks: bool = False,
+        overwrite: bool = True) -> None:
     '''
     Copy file from source path to destination path
 
@@ -319,6 +324,7 @@ def smart_copy(
     :param dst_path: Given destination path
     :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
     :param followlinks: False if regard symlink as file, else True
+    :param overwrite: whether or not overwrite file when exists, default is True
     '''
     # this function contains plenty of manual polymorphism
     if smart_islink(src_path) and is_s3(dst_path) and not followlinks:
@@ -333,13 +339,19 @@ def smart_copy(
         copy_func = _default_copy_func
     try:
         copy_func(
-            src_path, dst_path, callback=callback,
-            followlinks=followlinks)  # type: ignore
+            src_path,
+            dst_path,
+            callback=callback,
+            followlinks=followlinks,
+            overwrite=overwrite)  # type: ignore
     except S3UnknownError as e:
         if 'cannot schedule new futures after interpreter shutdown' in str(e):
             _default_copy_func(
-                src_path, dst_path, callback=callback,
-                followlinks=followlinks)  # type: ignore
+                src_path,
+                dst_path,
+                callback=callback,
+                followlinks=followlinks,
+                overwrite=overwrite)  # type: ignore
         else:
             raise
 
@@ -352,6 +364,7 @@ def _smart_sync_single_file(items: dict):
     followlinks = items['followlinks']
     callback_after_copy_file = items['callback_after_copy_file']
     force = items['force']
+    overwrite = items['overwrite']
 
     content_path = os.path.relpath(src_file_path, start=src_root_path)
     if len(content_path) and content_path != '.':
@@ -365,7 +378,11 @@ def _smart_sync_single_file(items: dict):
     dst_protocol, _ = SmartPath._extract_protocol(dst_abs_file_path)
     should_sync = True
     try:
-        if not force and smart_exists(dst_abs_file_path) and is_same_file(
+        if force:
+            pass
+        elif not overwrite and smart_exists(dst_abs_file_path):
+            should_sync = False
+        elif smart_exists(dst_abs_file_path) and is_same_file(
                 smart_stat(src_file_path, follow_symlinks=followlinks),
                 smart_stat(dst_abs_file_path, follow_symlinks=followlinks),
                 get_sync_type(src_protocol, dst_protocol)):
@@ -382,6 +399,7 @@ def _smart_sync_single_file(items: dict):
             followlinks=followlinks)
     if callback_after_copy_file:
         callback_after_copy_file(src_file_path, dst_abs_file_path)
+    return should_sync
 
 
 def smart_sync(
@@ -392,9 +410,10 @@ def smart_sync(
         callback_after_copy_file: Optional[Callable[[str, str], None]] = None,
         src_file_stats: Optional[Iterable[FileEntry]] = None,
         map_func: Callable[[Callable, Iterable], Any] = map,
-        force: bool = False) -> None:
+        force: bool = False,
+        overwrite: bool = True) -> None:
     '''
-    Sync file or directory on s3 and fs
+    Sync file or directory
 
     .. note ::
 
@@ -437,6 +456,8 @@ def smart_sync(
             This parameter is in order to reduce file traversal times.
     :param map_func: A Callable func like `map`. You can use ThreadPoolExecutor.map, Pool.map and so on if you need concurrent capability.
             default is standard library `map`.
+    :param force: Sync file forcely, do not ignore same files, priority is higher than 'overwrite', default is False
+    :param overwrite: whether or not overwrite file when exists, default is True
     '''
     if not smart_exists(src_path):
         raise FileNotFoundError(f'No match file: {src_path}')
@@ -458,6 +479,7 @@ def smart_sync(
                     followlinks=followlinks,
                     callback_after_copy_file=callback_after_copy_file,
                     force=force,
+                    overwrite=overwrite,
                 )
 
     for _ in map_func(_smart_sync_single_file, create_generator()):
@@ -470,7 +492,24 @@ def smart_sync_with_progress(
         callback: Optional[Callable[[str, int], None]] = None,
         followlinks: bool = False,
         map_func: Callable[[Callable, Iterable], Iterator] = map,
-        force: bool = False):
+        force: bool = False,
+        overwrite: bool = True):
+    '''
+    Sync file or directory with progress bar
+
+    :param src_path: Given source path
+    :param dst_path: Given destination path
+    :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
+    :param followlinks: False if regard symlink as file, else True
+    :param callback_after_copy_file: Called after copy success, and the input parameter is src file path and dst file path
+    :param src_file_stats: If this parameter is not None, only this parameter's files will be synced, 
+            and src_path is the root_path of these files used to calculate the path of the target file. 
+            This parameter is in order to reduce file traversal times.
+    :param map_func: A Callable func like `map`. You can use ThreadPoolExecutor.map, Pool.map and so on if you need concurrent capability.
+            default is standard library `map`.
+    :param force: Sync file forcely, do not ignore same files, priority is higher than 'overwrite', default is False
+    :param overwrite: whether or not overwrite file when exists, default is True
+    '''
     if not smart_exists(src_path):
         raise FileNotFoundError(f'No match file: {src_path}')
 
@@ -497,6 +536,7 @@ def smart_sync_with_progress(
         src_file_stats=file_stats,
         map_func=map_func,
         force=force,
+        overwrite=overwrite,
     )
     tbar.close()
     sbar.close()
@@ -513,37 +553,41 @@ def smart_remove(path: PathLike, missing_ok: bool = False) -> None:
     SmartPath(path).remove(missing_ok=missing_ok)
 
 
-def smart_rename(src_path: PathLike, dst_path: PathLike) -> None:
+def smart_rename(
+        src_path: PathLike, dst_path: PathLike, overwrite: bool = True) -> None:
     '''
     Move file on s3 or fs. `s3://` or `s3://bucket` is not allowed to move
 
     :param src_path: Given source path
     :param dst_path: Given destination path
+    :param overwrite: whether or not overwrite file when exists
     '''
     if smart_isdir(src_path):
         raise IsADirectoryError('%r is a directory' % src_path)
     src_protocol, _ = SmartPath._extract_protocol(src_path)
     dst_protocol, _ = SmartPath._extract_protocol(dst_path)
     if src_protocol == dst_protocol:
-        SmartPath(src_path).rename(dst_path)
+        SmartPath(src_path).rename(dst_path, overwrite=overwrite)
         return
-    smart_copy(src_path, dst_path)
+    smart_copy(src_path, dst_path, overwrite=overwrite)
     smart_unlink(src_path)
 
 
-def smart_move(src_path: PathLike, dst_path: PathLike) -> None:
+def smart_move(
+        src_path: PathLike, dst_path: PathLike, overwrite: bool = True) -> None:
     '''
     Move file/directory on s3 or fs. `s3://` or `s3://bucket` is not allowed to move
 
     :param src_path: Given source path
     :param dst_path: Given destination path
+    :param overwrite: whether or not overwrite file when exists
     '''
     src_protocol, _ = SmartPath._extract_protocol(src_path)
     dst_protocol, _ = SmartPath._extract_protocol(dst_path)
     if src_protocol == dst_protocol:
-        SmartPath(src_path).rename(dst_path)
+        SmartPath(src_path).rename(dst_path, overwrite=overwrite)
         return
-    smart_sync(src_path, dst_path, followlinks=True)
+    smart_sync(src_path, dst_path, followlinks=True, overwrite=overwrite)
     smart_remove(src_path)
 
 

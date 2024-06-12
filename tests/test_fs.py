@@ -1,4 +1,5 @@
 import os
+import tempfile
 from io import BytesIO
 
 import pyfakefs
@@ -1040,6 +1041,16 @@ def test_fs_copy(filesystem, mocker):
     def callback_symlink(count):
         assert count == symlink_src_stat.size
 
+    with open('/file1', 'wb') as f:
+        f.write(b"test")
+
+    fs.fs_copy('/file', '/file1', overwrite=False)
+    with open('/file1', 'rb') as f:
+        assert f.read() == b"test"
+    fs.fs_copy('/file', '/file1', overwrite=True)
+    with open('/file1', 'rb') as f:
+        assert f.read() == b'0' * (16 * 1024 + 1)
+
     fs.fs_copy('/file', '/file1', callback=callback_file)
     fs.fs_copy(dst, '/file2', followlinks=True)
 
@@ -1060,6 +1071,19 @@ def test_fs_rename(filesystem):
     assert os.path.exists(dst)
     assert not os.path.exists(src)
 
+    with open(src, 'w') as f:
+        f.write("test")
+
+    with open(dst, 'w') as f:
+        f.write("test1")
+    fs.fs_rename(src, dst, overwrite=False)
+    with open(dst, 'r') as f:
+        assert f.read() == "test1"
+
+    fs.fs_rename(src, dst, overwrite=True)
+    with open(dst, 'r') as f:
+        assert f.read() == "test"
+
 
 def test_fs_rename_file_in_diff_dir(filesystem):
     os.makedirs('dir')
@@ -1074,39 +1098,44 @@ def test_fs_rename_file_in_diff_dir(filesystem):
     assert not os.path.exists(src)
 
 
-def test_fs_rename_dir(filesystem):
-    src_dir = 'dir'
-    dst_dir = 'dir2'
-    file_name = 'file'
-    os.makedirs(src_dir)
-    src = os.path.join(src_dir, file_name)
-    with open(src, 'w') as f:
-        f.write("test")
-    assert os.path.exists(src)
-    fs.fs_rename(src_dir, dst_dir)
-    assert os.path.exists(dst_dir)
-    assert os.path.exists(os.path.join(dst_dir, file_name))
-    assert not os.path.exists(src_dir)
+def test_fs_rename_dir():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        src_dir = os.path.join(temp_dir, 'dir')
+        dst_dir = os.path.join(temp_dir, 'dir2')
+        file_name = 'file'
+        os.makedirs(src_dir)
+        src = os.path.join(src_dir, file_name)
+        with open(src, 'w') as f:
+            f.write("test")
+        assert os.path.exists(src)
+        fs.fs_rename(src_dir, dst_dir)
+        assert os.path.exists(dst_dir)
+        assert os.path.exists(os.path.join(dst_dir, file_name))
+        assert not os.path.exists(src_dir)
 
 
-def test_fs_rename_symlink(filesystem):
+def test_fs_move_symlink():
     '''
     /src/
         -src_file
     /dst/
         -link --> src
     '''
-    os.mkdir('src')
-    os.mkdir('dst')
-    with open('src/src_file', 'w') as f:
-        f.write('')
-    os.symlink('src', '/dst/link')
-    fs.fs_exists('/dst/link', followlinks=True) is True
-    assert os.path.exists('src')
-    fs.fs_rename('src', 'src_copy')
-    assert os.path.exists('src_copy')
-    assert not os.path.exists('src')
-    assert not os.path.exists('/dst/link')
+    with tempfile.TemporaryDirectory() as temp_dir:
+        src_dir = os.path.join(temp_dir, 'src')
+        dst_dir = os.path.join(temp_dir, 'src_copy')
+
+        os.mkdir(src_dir)
+        os.mkdir(dst_dir)
+        with open(os.path.join(src_dir, 'src_file'), 'w') as f:
+            f.write('')
+        os.symlink(src_dir, os.path.join(temp_dir, 'link'))
+        fs.fs_exists(os.path.join(temp_dir, 'link'), followlinks=True) is True
+        assert os.path.exists(src_dir)
+        fs.fs_move(src_dir, dst_dir)
+        assert os.path.exists(dst_dir)
+        assert not os.path.exists(src_dir)
+        assert not os.path.exists(os.path.join(temp_dir, 'link'))
 
 
 def test_fs_move(filesystem):
@@ -1117,24 +1146,44 @@ def test_fs_move(filesystem):
     assert os.path.exists(dst)
     assert not os.path.exists(src)
 
+    src = '/tmp/refiletest/src.txt'
+    dst = '/tmp/refiletest/dst.txt'
+    with open(src, 'w') as f:
+        f.write("")
+    fs.fs_move(src, dst)
+    assert os.path.exists(dst)
+    assert not os.path.exists(src)
+    with open(dst, 'r') as f:
+        assert f.read() == ""
 
-def test_fs_move_symlink(filesystem):
-    '''
-    /src/
-        -src_file
-    /dst/
-        -link --> src
-    '''
-    os.mkdir('src')
-    os.mkdir('dst')
-    with open('src/src_file', 'w') as f:
-        f.write('')
-    os.symlink('src', '/dst/link')
-    fs.fs_exists('/dst/link', followlinks=True) is True
-    fs.fs_move('src', 'src_copy')
-    assert os.path.exists('src_copy')
-    assert not os.path.exists('src')
-    assert not os.path.exists('/dst/link')
+
+def test_fs_move_dir():
+    # pyfakefs have a bug when move file with scandir, so use tempfile
+    with tempfile.TemporaryDirectory() as tmpdir:
+        os.mkdir(os.path.join(tmpdir, 'src'))
+        with open(os.path.join(tmpdir, 'src/src_file'), 'w') as f:
+            f.write('')
+
+        os.mkdir(os.path.join(tmpdir, 'src_copy'))
+        with open(os.path.join(tmpdir, 'src_copy/src_file'), 'w') as f:
+            f.write('test')
+
+        fs.fs_move(
+            os.path.join(tmpdir, 'src'),
+            os.path.join(tmpdir, 'src_copy'),
+            overwrite=False)
+        with open(os.path.join(tmpdir, 'src_copy/src_file'), 'r') as f:
+            assert f.read() == 'test'
+
+        os.mkdir(os.path.join(tmpdir, 'src'))
+        with open(os.path.join(tmpdir, 'src/src_file'), 'w') as f:
+            f.write('')
+        fs.fs_move(
+            os.path.join(tmpdir, 'src'),
+            os.path.join(tmpdir, 'src_copy'),
+            overwrite=True)
+        with open(os.path.join(tmpdir, 'src_copy/src_file'), 'r') as f:
+            assert f.read() == ''
 
 
 def test_fs_sync(filesystem, mocker):
@@ -1154,6 +1203,17 @@ def test_fs_sync(filesystem, mocker):
     assert os.path.exists(src)
     assert os.stat(src).st_size == os.stat(dst).st_size
     assert os.stat(src).st_mtime == os.stat(dst).st_mtime
+
+    src = '/tmp/refiletest/src/test.txt'
+    dst = '/tmp/refiletest/dst/test.txt'
+    with open(dst, 'w') as f:
+        f.write('test1')
+    fs.fs_sync(src, dst, overwrite=False)
+    with open(dst, 'r') as f:
+        assert f.read() == 'test1'
+    fs.fs_sync(src, dst, overwrite=True)
+    with open(dst, 'r') as f:
+        assert f.read() == 'test'
 
     src = '/tmp/refiletest/src'
     dst = '/tmp/refiletest/dst'
