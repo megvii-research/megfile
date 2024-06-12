@@ -730,16 +730,23 @@ class URIPath(BaseURIPath):
         with self.open(mode='r') as f:
             return f.read()
 
-    def rename(self, dst_path: PathLike) -> 'URIPath':
+    def rename(self, dst_path: PathLike, overwrite: bool = True) -> 'URIPath':
+        '''
+        rename file
+
+        :param dst_path: Given destination path
+        :param overwrite: whether or not overwrite file when exists
+        '''
         raise NotImplementedError(f"'rename' is unsupported on '{type(self)}'")
 
-    def replace(self, dst_path: PathLike) -> 'URIPath':
+    def replace(self, dst_path: PathLike, overwrite: bool = True) -> 'URIPath':
         '''
         move file
 
         :param dst_path: Given destination path
+        :param overwrite: whether or not overwrite file when exists
         '''
-        return self.rename(dst_path=dst_path)
+        return self.rename(dst_path=dst_path, overwrite=overwrite)
 
     def rglob(self, pattern) -> List['URIPath']:
         '''

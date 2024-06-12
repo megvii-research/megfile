@@ -32,7 +32,7 @@ max_retries = HTTP_MAX_RETRY_TIMES
 
 
 def get_http_session(
-        timeout: Union[int, Tuple[int, int]] = (9, 60),
+        timeout: Union[int, Tuple[int, int]] = (30, 60 * 60),
         status_forcelist: Iterable[int] = (500, 502, 503, 504)
 ) -> requests.Session:
     session = requests.Session()
@@ -172,7 +172,7 @@ class HttpPath(URIPath):
     protocol = "http"
 
     def __init__(self, path: PathLike, *other_paths: PathLike):
-        if str(path).startswith('https://'):
+        if fspath(path).startswith('https://'):
             self.protocol = 'https'
         super().__init__(path, *other_paths)
 

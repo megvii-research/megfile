@@ -469,16 +469,9 @@ def test_sftp_rename(sftp_mocker):
 
     with sftp.sftp_open('sftp://username@host//A/test2', 'w') as f:
         f.write('test2')
-    with pytest.raises(FileExistsError):
-        sftp.sftp_rename(
-            'sftp://username@host//A/test2', 'sftp://username@host//A/test')
 
     with pytest.raises(OSError):
         sftp.sftp_rename('sftp://username@host//A/test2', '/A/test')
-
-    with pytest.raises(IsADirectoryError):
-        sftp.sftp_rename(
-            'sftp://username@host//A/test2', 'sftp://username@host//A2/test2/')
 
 
 def test_sftp_move(sftp_mocker):
@@ -494,6 +487,26 @@ def test_sftp_move(sftp_mocker):
     sftp.sftp_move('sftp://username@host//A', 'sftp://username@host//A2')
     assert sftp.sftp_exists('sftp://username@host//A/test2') is False
     assert sftp.sftp_exists('sftp://username@host//A2/test2') is True
+
+    sftp.sftp_makedirs('sftp://username@host//A3')
+    with sftp.sftp_open('sftp://username@host//A3/test2', 'w') as f:
+        f.write('test3')
+    sftp.sftp_move(
+        'sftp://username@host//A3', 'sftp://username@host//A2', overwrite=False)
+    assert sftp.sftp_exists('sftp://username@host//A3/test2') is False
+    assert sftp.sftp_exists('sftp://username@host//A2/test2') is True
+    with sftp.sftp_open('sftp://username@host//A2/test2', 'r') as f:
+        assert f.read() == 'test'
+
+    sftp.sftp_makedirs('sftp://username@host//A3')
+    with sftp.sftp_open('sftp://username@host//A3/test2', 'w') as f:
+        f.write('test3')
+    sftp.sftp_move(
+        'sftp://username@host//A3', 'sftp://username@host//A2', overwrite=True)
+    assert sftp.sftp_exists('sftp://username@host//A3/test2') is False
+    assert sftp.sftp_exists('sftp://username@host//A2/test2') is True
+    with sftp.sftp_open('sftp://username@host//A2/test2', 'r') as f:
+        assert f.read() == 'test3'
 
 
 def test_sftp_open(sftp_mocker):
@@ -711,6 +724,24 @@ def test_sftp_copy(sftp_mocker):
         'sftp://username@host//A/1.json').size == sftp.sftp_stat(
             'sftp://username@host//A2/1.json.bak').size
 
+    with sftp.sftp_open('sftp://username@host//A/2.json', 'w') as f:
+        f.write('2')
+    sftp.sftp_copy(
+        'sftp://username@host//A/2.json',
+        'sftp://username@host//A2/1.json.bak',
+        overwrite=False)
+    assert sftp.sftp_stat(
+        'sftp://username@host//A/1.json').size == sftp.sftp_stat(
+            'sftp://username@host//A2/1.json.bak').size
+
+    sftp.sftp_copy(
+        'sftp://username@host//A/2.json',
+        'sftp://username@host//A2/1.json.bak',
+        overwrite=True)
+    assert sftp.sftp_stat(
+        'sftp://username@host//A/2.json').size == sftp.sftp_stat(
+            'sftp://username@host//A2/1.json.bak').size
+
 
 def test_sftp_copy_with_different_host(sftp_mocker):
     sftp.sftp_makedirs('sftp://username@host//A')
@@ -744,6 +775,15 @@ def test_sftp_sync(sftp_mocker, mocker):
         'sftp://username@host//A/1.json').mtime == sftp.sftp_stat(
             'sftp://username@host//A2/1.json').mtime
 
+    with sftp.sftp_open('sftp://username@host//A/1.json', 'w') as f:
+        f.write('2')
+    sftp.sftp_sync(
+        'sftp://username@host//A', 'sftp://username@host//A2', overwrite=False)
+    assert sftp.sftp_stat('sftp://username@host//A2/1.json').size == 6
+    sftp.sftp_sync(
+        'sftp://username@host//A', 'sftp://username@host//A2', overwrite=True)
+    assert sftp.sftp_stat('sftp://username@host//A2/1.json').size == 1
+
     sftp.sftp_sync(
         'sftp://username@host//A/1.json', 'sftp://username@host//A/1.json.bak')
     assert sftp.sftp_stat(
@@ -767,16 +807,25 @@ def test_sftp_download(sftp_mocker):
         'sftp://username@host//A/1.json', 'sftp://username@host//A/1.json.lnk')
 
     sftp.sftp_download(
-        'sftp://username@host//A/1.json.lnk', '/A/1.json', followlinks=True)
+        'sftp://username@host//A/1.json.lnk', '/A2/1.json', followlinks=True)
     assert sftp.sftp_stat('sftp://username@host//A/1.json').size == os.stat(
-        '/A/1.json').st_size
+        '/A2/1.json').st_size
+
+    with sftp.sftp_open('sftp://username@host//A/1.json', 'w') as f:
+        f.write('2')
+    sftp.sftp_download(
+        'sftp://username@host//A/1.json', '/A2/1.json', overwrite=False)
+    assert 6 == os.stat('/A2/1.json').st_size
+    sftp.sftp_download(
+        'sftp://username@host//A/1.json', '/A2/1.json', overwrite=True)
+    assert 1 == os.stat('/A2/1.json').st_size
 
     sftp.sftp_download(
         'sftp://username@host//A/1.json.lnk',
-        'file:///A/2.json',
+        'file:///A2/2.json',
         followlinks=True)
     assert sftp.sftp_stat('sftp://username@host//A/1.json').size == os.stat(
-        '/A/2.json').st_size
+        '/A2/2.json').st_size
 
     with pytest.raises(OSError):
         sftp.sftp_download(
@@ -801,6 +850,15 @@ def test_sftp_upload(sftp_mocker):
         '/1.json.lnk', 'sftp://username@host//A/1.json', followlinks=True)
     assert sftp.sftp_stat('sftp://username@host//A/1.json').size == os.stat(
         '/1.json').st_size
+
+    with sftp.sftp_open('/1.json', 'w') as f:
+        f.write('2')
+    sftp.sftp_upload(
+        '/1.json.lnk', 'sftp://username@host//A/1.json', overwrite=False)
+    assert sftp.sftp_stat('sftp://username@host//A/1.json').size == 6
+    sftp.sftp_upload(
+        '/1.json.lnk', 'sftp://username@host//A/1.json', overwrite=True)
+    assert sftp.sftp_stat('sftp://username@host//A/1.json').size == 1
 
     sftp.sftp_upload('file:///1.json', 'sftp://username@host//A/2.json')
     assert sftp.sftp_stat('sftp://username@host//A/2.json').size == os.stat(

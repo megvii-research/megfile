@@ -417,9 +417,15 @@ def sftp_download(
         src_url: PathLike,
         dst_url: PathLike,
         callback: Optional[Callable[[int], None]] = None,
-        followlinks: bool = False):
+        followlinks: bool = False,
+        overwrite: bool = True):
     '''
-    File download
+    Downloads a file from sftp to local filesystem.
+    :param src_url: source sftp path
+    :param dst_url: target fs path
+    :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
+    :param followlinks: False if regard symlink as file, else True
+    :param overwrite: whether or not overwrite file when exists, default is True
     '''
     from megfile.fs import is_fs
     from megfile.fs_path import FSPath
@@ -428,6 +434,10 @@ def sftp_download(
         raise OSError(f'dst_url is not fs path: {dst_url}')
     if not is_sftp(src_url) and not isinstance(src_url, SftpPath):
         raise OSError(f'src_url is not sftp path: {src_url}')
+
+    dst_path = FSPath(dst_url)
+    if not overwrite and dst_path.exists():
+        return
 
     if isinstance(src_url, SftpPath):
         src_path = src_url
@@ -441,7 +451,6 @@ def sftp_download(
     if str(dst_url).endswith('/'):
         raise IsADirectoryError('Is a directory: %r' % dst_url)
 
-    dst_path = FSPath(dst_url)
     dst_path.parent.makedirs(exist_ok=True)
 
     sftp_callback = None
@@ -467,9 +476,14 @@ def sftp_upload(
         src_url: PathLike,
         dst_url: PathLike,
         callback: Optional[Callable[[int], None]] = None,
-        followlinks: bool = False):
+        followlinks: bool = False,
+        overwrite: bool = True):
     '''
-    File upload
+    Uploads a file from local filesystem to sftp server.
+    :param src_url: source fs path
+    :param dst_url: target sftp path
+    :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
+    :param overwrite: whether or not overwrite file when exists, default is True
     '''
     from megfile.fs import is_fs
     from megfile.fs_path import FSPath
@@ -491,6 +505,9 @@ def sftp_upload(
         dst_path = dst_url
     else:
         dst_path = SftpPath(dst_url)
+    if not overwrite and dst_path.exists():
+        return
+
     dst_path.parent.makedirs(exist_ok=True)
 
     sftp_callback = None
@@ -859,53 +876,57 @@ class SftpPath(URIPath):
     def _is_same_protocol(self, path):
         return is_sftp(path)
 
-    def rename(self, dst_path: PathLike) -> 'SftpPath':
+    def rename(self, dst_path: PathLike, overwrite: bool = True) -> 'SftpPath':
         '''
         rename file on sftp
 
         :param dst_path: Given destination path
+        :param overwrite: whether or not overwrite file when exists
         '''
         if not self._is_same_protocol(dst_path):
             raise OSError('Not a %s path: %r' % (self.protocol, dst_path))
-        if str(dst_path).endswith('/'):
-            raise IsADirectoryError('Is a directory: %r' % dst_path)
 
-        dst_path = self.from_path(dst_path)
+        dst_path = self.from_path(str(dst_path).rstrip('/'))
+
         src_stat = self.stat()
 
         if self._is_same_backend(dst_path):
-            try:
+            if overwrite:
+                dst_path.remove(missing_ok=True)
                 self._client.rename(self._real_path, dst_path._real_path)
-            except OSError:
-                if dst_path.exists():
-                    raise FileExistsError('File exists: %s' % dst_path)
+            else:
+                self.sync(dst_path, overwrite=overwrite)
+                self.remove(missing_ok=True)
         else:
             if self.is_dir():
                 for file_entry in self.scandir():
                     self.from_path(file_entry.path).rename(
                         dst_path.joinpath(file_entry.name))
+                self._client.rmdir(self._real_path)
             else:
-                with self.open('rb') as fsrc:
-                    with dst_path.open('wb') as fdst:
-                        length = 16 * 1024
-                        while True:
-                            buf = fsrc.read(length)
-                            if not buf:
-                                break
-                            fdst.write(buf)
+                if overwrite or not dst_path.exists():
+                    with self.open('rb') as fsrc:
+                        with dst_path.open('wb') as fdst:
+                            length = 16 * 1024
+                            while True:
+                                buf = fsrc.read(length)
+                                if not buf:
+                                    break
+                                fdst.write(buf)
                 self.unlink()
 
         dst_path.utime(src_stat.st_atime, src_stat.st_mtime)
         dst_path.chmod(src_stat.st_mode)
         return dst_path
 
-    def replace(self, dst_path: PathLike) -> 'SftpPath':
+    def replace(self, dst_path: PathLike, overwrite: bool = True) -> 'SftpPath':
         '''
         move file on sftp
 
         :param dst_path: Given destination path
+        :param overwrite: whether or not overwrite file when exists
         '''
-        return self.rename(dst_path=dst_path)
+        return self.rename(dst_path=dst_path, overwrite=overwrite)
 
     def remove(self, missing_ok: bool = False) -> None:
         '''
@@ -1235,7 +1256,8 @@ class SftpPath(URIPath):
             self,
             dst_path: PathLike,
             callback: Optional[Callable[[int], None]] = None,
-            followlinks: bool = False):
+            followlinks: bool = False,
+            overwrite: bool = True):
         """
         Copy the file to the given destination path.
 
@@ -1257,6 +1279,9 @@ class SftpPath(URIPath):
         if self.is_dir():
             raise IsADirectoryError(
                 'Is a directory: %r' % self.path_with_protocol)
+
+        if not overwrite and self.from_path(dst_path).exists():
+            return
 
         self.from_path(os.path.dirname(dst_path)).makedirs(exist_ok=True)
         dst_path = self.from_path(dst_path)
@@ -1292,12 +1317,14 @@ class SftpPath(URIPath):
             self,
             dst_path: PathLike,
             followlinks: bool = False,
-            force: bool = False):
+            force: bool = False,
+            overwrite: bool = True):
         '''Copy file/directory on src_url to dst_url
 
         :param dst_url: Given destination path
         :param followlinks: False if regard symlink as file, else True
-        :param force: Sync file forcely, do not ignore same files
+        :param force: Sync file forcely, do not ignore same files, priority is higher than 'overwrite', default is False
+        :param overwrite: whether or not overwrite file when exists, default is True
         '''
         if not self._is_same_protocol(dst_path):
             raise OSError('Not a %s path: %r' % (self.protocol, dst_path))
@@ -1306,11 +1333,15 @@ class SftpPath(URIPath):
                 self.path_with_protocol, dst_path):
             dst_path = self.from_path(dst_file_path)
             src_path = self.from_path(src_file_path)
-            if not force and dst_path.exists() and is_same_file(
-                    src_path.stat(), dst_path.stat(), 'copy'):
+
+            if force:
+                pass
+            elif not overwrite and dst_path.exists():
                 continue
-            self.from_path(os.path.dirname(dst_file_path)).mkdir(
-                parents=True, exist_ok=True)
+            elif dst_path.exists() and is_same_file(src_path.stat(),
+                                                    dst_path.stat(), 'copy'):
+                continue
+
             self.from_path(src_file_path).copy(
                 dst_file_path, followlinks=followlinks)
 

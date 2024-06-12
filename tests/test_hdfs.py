@@ -204,11 +204,31 @@ def test_hdfs_load_from(http_mocker):
     assert hdfs.hdfs_load_from('hdfs://root/b/3.txt').read() == b'333'
 
 
-def test_hdfs_move(http_mocker):
+def test_hdfs_move(http_mocker, mocker):
     http_mocker.put(
         'http://127.0.0.1:8000/webhdfs/v1/a?op=RENAME&destination=%2Fb',
         json={"boolean": True})
+    http_mocker.get(
+        f'http://127.0.0.1:8000/webhdfs/v1/a?delegation=token&op=GETFILESTATUS',
+        json={
+            "FileStatus": {
+                "accessTime": 0,
+                "blockSize": 0,
+                "group": "supergroup",
+                "length": 4,
+                "modificationTime": 1320173277227,
+                "owner": "webuser",
+                "pathSuffix": "",
+                "permission": "777",
+                "replication": 0,
+                "type": "FILE"
+            }
+        })
+    remove_func = mocker.patch('megfile.hdfs_path.HdfsPath.remove')
+
     hdfs.hdfs_move('hdfs://a', 'hdfs://b')
+
+    remove_func.call_count == 2
 
 
 def test_hdfs_remove(http_mocker):

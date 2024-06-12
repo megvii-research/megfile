@@ -930,15 +930,28 @@ def s3_download(
         src_url: PathLike,
         dst_url: PathLike,
         followlinks: bool = False,
-        callback: Optional[Callable[[int], None]] = None) -> None:
+        callback: Optional[Callable[[int], None]] = None,
+        overwrite: bool = True) -> None:
     '''
     Downloads a file from s3 to local filesystem.
     :param src_url: source s3 path
     :param dst_url: target fs path
     :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
+    :param followlinks: False if regard symlink as file, else True
+    :param overwrite: whether or not overwrite file when exists, default is True
     '''
     from megfile.fs import is_fs
     from megfile.fs_path import FSPath
+
+    dst_url = fspath(dst_url)
+    if not is_fs(dst_url):
+        raise OSError(f'dst_url is not fs path: {dst_url}')
+    if not dst_url or dst_url.endswith('/'):
+        raise S3IsADirectoryError('Is a directory: %r' % dst_url)
+
+    dst_path = FSPath(dst_url)
+    if not overwrite and dst_path.exists():
+        return
 
     if not isinstance(src_url, S3Path):
         src_url = S3Path(src_url)
@@ -960,13 +973,6 @@ def s3_download(
         raise S3IsADirectoryError(
             'Is a directory: %r' % src_url.path_with_protocol)
 
-    dst_url = fspath(dst_url)
-    if not is_fs(dst_url):
-        raise OSError(f'dst_url is not fs path: {dst_url}')
-    if not dst_url or dst_url.endswith('/'):
-        raise S3IsADirectoryError('Is a directory: %r' % dst_url)
-
-    dst_path = FSPath(dst_url)
     dst_directory = os.path.dirname(dst_path.path_without_protocol)
     if dst_directory != '':
         os.makedirs(dst_directory, exist_ok=True)
@@ -997,12 +1003,14 @@ def s3_upload(
         src_url: PathLike,
         dst_url: PathLike,
         callback: Optional[Callable[[int], None]] = None,
+        overwrite: bool = True,
         **kwargs) -> None:
     '''
     Uploads a file from local filesystem to s3.
     :param src_url: source fs path
     :param dst_url: target s3 path
     :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
+    :param overwrite: whether or not overwrite file when exists, default is True
     '''
     from megfile.fs import is_fs
     from megfile.fs_path import FSPath
@@ -1016,6 +1024,9 @@ def s3_upload(
         raise S3BucketNotFoundError('Empty bucket name: %r' % dst_url)
     if not dst_key or dst_key.endswith('/'):
         raise S3IsADirectoryError('Is a directory: %r' % dst_url)
+
+    if not overwrite and S3Path(dst_url).is_file():
+        return
 
     client = get_s3_client_with_cache(
         profile_name=S3Path(dst_url)._profile_name)
@@ -1086,18 +1097,15 @@ def s3_readlink(path) -> str:
     return S3Path(path).readlink().path_with_protocol
 
 
-def s3_rename(src_url: PathLike, dst_url: PathLike):
+def s3_rename(
+        src_url: PathLike, dst_url: PathLike, overwrite: bool = True) -> None:
     '''
     Move s3 file path from src_url to dst_url
 
     :param dst_url: Given destination path
+    :param overwrite: whether or not overwrite file when exists
     '''
-    src_path_ins = S3Path(src_url)
-    if src_path_ins.is_file():
-        src_path_ins.copy(dst_url)
-    else:
-        src_path_ins.sync(dst_url)
-    src_path_ins.remove()
+    S3Path(src_url).rename(dst_url, overwrite)
 
 
 class S3Cacher(FileCacher):
@@ -1692,15 +1700,16 @@ class S3Path(URIPath):
         if self.exists():
             raise S3FileExistsError('File exists: %r' % self.path_with_protocol)
 
-    def move(self, dst_url: PathLike) -> None:
+    def move(self, dst_url: PathLike, overwrite: bool = True) -> None:
         '''
         Move file/directory path from src_url to dst_url
 
         :param dst_url: Given destination path
+        :param overwrite: whether or not overwrite file when exists
         '''
         for src_file_path, dst_file_path in _s3_scan_pairs(
                 self.path_with_protocol, dst_url):
-            S3Path(src_file_path).rename(dst_file_path)
+            S3Path(src_file_path).rename(dst_file_path, overwrite)
 
     def remove(self, missing_ok: bool = False) -> None:
         '''
@@ -1774,13 +1783,18 @@ class S3Path(URIPath):
                 raise S3UnknownError(
                     Exception(error_msg), self.path_with_protocol)
 
-    def rename(self, dst_path: PathLike) -> 'S3Path':
+    def rename(self, dst_path: PathLike, overwrite: bool = True) -> 'S3Path':
         '''
         Move s3 file path from src_url to dst_url
 
         :param dst_path: Given destination path
+        :param overwrite: whether or not overwrite file when exists
         '''
-        s3_rename(self.path_with_protocol, dst_path)
+        if self.is_file():
+            self.copy(dst_path, overwrite=overwrite)
+        else:
+            self.sync(dst_path, overwrite=overwrite)
+        self.remove(missing_ok=True)
         return self.from_path(dst_path)
 
     def scan(self, missing_ok: bool = True,
@@ -2111,15 +2125,21 @@ class S3Path(URIPath):
     def copy(
             self,
             dst_url: PathLike,
+            callback: Optional[Callable[[int], None]] = None,
             followlinks: bool = False,
-            callback: Optional[Callable[[int], None]] = None) -> None:
+            overwrite: bool = True) -> None:
         ''' File copy on S3
         Copy content of file on `src_path` to `dst_path`.
         It's caller's responsebility to ensure the s3_isfile(src_url) == True
 
         :param dst_path: Target file path
         :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
+        :param followlinks: False if regard symlink as file, else True
+        :param overwrite: whether or not overwrite file when exists, default is True
         '''
+        if not overwrite and self.from_path(dst_url).is_file():
+            return
+
         src_url = self.path_with_protocol
         src_bucket, src_key = parse_s3_url(src_url)
         dst_bucket, dst_key = parse_s3_url(dst_url)
@@ -2156,22 +2176,32 @@ class S3Path(URIPath):
                 Callback=callback)
 
     def sync(
-            self, dst_url: PathLike, followlinks: bool = False,
-            force: bool = False) -> None:
+            self,
+            dst_url: PathLike,
+            followlinks: bool = False,
+            force: bool = False,
+            overwrite: bool = True) -> None:
         '''
         Copy file/directory on src_url to dst_url
 
         :param dst_url: Given destination path
         :param followlinks: False if regard symlink as file, else True
-        :param force: Sync file forcely, do not ignore same files
+        :param force: Sync file forcely, do not ignore same files, priority is higher than 'overwrite', default is False
+        :param overwrite: whether or not overwrite file when exists, default is True
         '''
         for src_file_path, dst_file_path in _s3_scan_pairs(
                 self.path_with_protocol, dst_url):
             src_file_path = self.from_path(src_file_path)
             dst_file_path = self.from_path(dst_file_path)
-            if not force and dst_file_path.exists() and is_same_file(
+
+            if force:
+                pass
+            elif not overwrite and dst_file_path.exists():
+                continue
+            elif dst_file_path.exists() and is_same_file(
                     src_file_path.stat(), dst_file_path.stat(), 'copy'):
                 continue
+
             src_file_path.copy(dst_file_path, followlinks=followlinks)
 
     def symlink(self, dst_path: PathLike) -> None:
@@ -2181,7 +2211,7 @@ class S3Path(URIPath):
         :param dst_path: Desination path
         :raises: S3NameTooLongError, S3BucketNotFoundError, S3IsADirectoryError
         '''
-        if len(str(self._s3_path).encode()) > 1024:
+        if len(fspath(self._s3_path).encode()) > 1024:
             raise S3NameTooLongError('File name too long: %r' % dst_path)
         src_bucket, src_key = parse_s3_url(self.path_with_protocol)
         dst_bucket, dst_key = parse_s3_url(dst_path)

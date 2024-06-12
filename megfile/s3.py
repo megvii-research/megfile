@@ -169,14 +169,16 @@ def s3_hasbucket(path: PathLike) -> bool:
     return S3Path(path).hasbucket()
 
 
-def s3_move(src_url: PathLike, dst_url: PathLike) -> None:
+def s3_move(
+        src_url: PathLike, dst_url: PathLike, overwrite: bool = True) -> None:
     '''
     Move file/directory path from src_url to dst_url
 
     :param src_url: Given path
     :param dst_url: Given destination path
+    :param overwrite: whether or not overwrite file when exists
     '''
-    return S3Path(src_url).move(dst_url)
+    return S3Path(src_url).move(dst_url, overwrite)
 
 
 def s3_remove(path: PathLike, missing_ok: bool = False) -> None:
@@ -305,8 +307,9 @@ def s3_getmd5(
 def s3_copy(
         src_url: PathLike,
         dst_url: PathLike,
+        callback: Optional[Callable[[int], None]] = None,
         followlinks: bool = False,
-        callback: Optional[Callable[[int], None]] = None) -> None:
+        overwrite: bool = True) -> None:
     ''' File copy on S3
     Copy content of file on `src_path` to `dst_path`.
     It's caller's responsebility to ensure the s3_isfile(src_url) == True
@@ -314,24 +317,28 @@ def s3_copy(
     :param src_url: Given path
     :param dst_path: Target file path
     :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
+    :param followlinks: False if regard symlink as file, else True
+    :param overwrite: whether or not overwrite file when exists, default is True
     '''
-    return S3Path(src_url).copy(dst_url, followlinks, callback)
+    return S3Path(src_url).copy(dst_url, callback, followlinks, overwrite)
 
 
 def s3_sync(
         src_url: PathLike,
         dst_url: PathLike,
         followlinks: bool = False,
-        force: bool = False) -> None:
+        force: bool = False,
+        overwrite: bool = True) -> None:
     '''
     Copy file/directory on src_url to dst_url
 
     :param src_url: Given path
     :param dst_url: Given destination path
     :param followlinks: False if regard symlink as file, else True
-    :param force: Sync file forcely, do not ignore same files
+    :param force: Sync file forcely, do not ignore same files, priority is higher than 'overwrite', default is False
+    :param overwrite: whether or not overwrite file when exists, default is True
     '''
-    return S3Path(src_url).sync(dst_url, followlinks, force)
+    return S3Path(src_url).sync(dst_url, followlinks, force, overwrite)
 
 
 def s3_symlink(src_path: PathLike, dst_path: PathLike) -> None:
