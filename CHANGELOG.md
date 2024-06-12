@@ -1,3 +1,11 @@
+## 3.0.6 - 2024.06.12
+- feat
+    - support more parameters of `requests` like `headers` in `HttpPath`.
+    - support `overwrite` parameter in `copy`, `sync` and `move` functions, default is `True`.
+    - cli command `mv`, `cp`, `sync` support `--skip` option, can skip existed files.
+- perf
+    - http request will check body size and retry when body is incomplete.
+
 ## 3.0.5 - 2024.05.28
 - feat
     - auto decode http content when response with `Content-Encoding` header 
