@@ -60,6 +60,7 @@ setup(
     install_requires=requirements,
     extras_require={
         "hdfs": load_requirements("requirements-hdfs.txt"),
+        "cli": load_requirements("requirements-cli.txt"),
     },
     python_requires=">=3.8",
 )
