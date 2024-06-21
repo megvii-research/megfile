@@ -80,6 +80,8 @@ if path.exists():
 
 ### Command Line Interface
 ```bash
+$ pip install 'megfile[cli]'  # install megfile cli requirements
+
 $ megfile --help  # see what you can do
 
 $ megfile ls s3://playground/
