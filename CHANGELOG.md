@@ -1,3 +1,7 @@
+## 3.0.6.post1 - 2024.06.21
+- fix
+    - add cli extras require, run `pip install 'megfile[cli]'` to install cli requirements
+
 ## 3.0.6 - 2024.06.12
 - feat
     - support more parameters of `requests` like `headers` in `HttpPath`.
