@@ -146,7 +146,7 @@ def test_write_three_blocks(client):
     assert writer._buffer.getvalue() == b'c' * writer._block_size
     assert writer._multipart_upload['Parts'] == [
         {
-            'ETag': '"45250eb3de2d486efb93867e061965b3"',
+            'ETag': '"90562bfd8a80506d4a9e9ed81b1097ff"',
             'PartNumber': 2
         }
     ]

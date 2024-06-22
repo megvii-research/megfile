@@ -5,7 +5,7 @@ from logging import getLogger as get_logger
 from threading import Lock
 from typing import NamedTuple, Optional
 
-from megfile.config import BACKOFF_FACTOR, BACKOFF_INITIAL, DEFAULT_MAX_BLOCK_SIZE, DEFAULT_MIN_BLOCK_SIZE, DEFAULT_MAX_BUFFER_SIZE, GLOBAL_MAX_WORKERS
+from megfile.config import BACKOFF_FACTOR, BACKOFF_INITIAL, DEFAULT_MAX_BLOCK_SIZE, DEFAULT_MAX_BUFFER_SIZE, DEFAULT_MIN_BLOCK_SIZE, GLOBAL_MAX_WORKERS
 from megfile.errors import raise_s3_error
 from megfile.interfaces import Writable
 from megfile.utils import get_human_size, process_local
