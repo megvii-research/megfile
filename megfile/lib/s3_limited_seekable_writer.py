@@ -3,7 +3,7 @@ from io import BytesIO
 from logging import getLogger as get_logger
 from typing import Optional
 
-from megfile.config import DEFAULT_BLOCK_SIZE, DEFAULT_MAX_BLOCK_SIZE, DEFAULT_MAX_BUFFER_SIZE
+from megfile.config import DEFAULT_MAX_BLOCK_SIZE, DEFAULT_MIN_BLOCK_SIZE, DEFAULT_MAX_BUFFER_SIZE
 from megfile.errors import raise_s3_error
 from megfile.interfaces import Seekable
 from megfile.lib.s3_buffered_writer import S3BufferedWriter
@@ -25,7 +25,7 @@ class S3LimitedSeekableWriter(Seekable, S3BufferedWriter):
             key: str,
             *,
             s3_client,
-            block_size: int = DEFAULT_BLOCK_SIZE,
+            block_size: int = DEFAULT_MIN_BLOCK_SIZE,
             head_block_size: Optional[int] = None,
             tail_block_size: Optional[int] = None,
             max_block_size: int = DEFAULT_MAX_BLOCK_SIZE,

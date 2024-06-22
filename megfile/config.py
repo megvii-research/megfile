@@ -1,6 +1,8 @@
 import os
 
 DEFAULT_BLOCK_SIZE = int(os.getenv('MEGFILE_BLOCK_SIZE') or 8 * 2**20)  # 8MB
+DEFAULT_MIN_BLOCK_SIZE = int(
+    os.getenv('MEGFILE_MIN_BLOCK_SIZE') or 64 * 2**20)  # 64MB
 DEFAULT_MAX_BLOCK_SIZE = int(
     os.getenv('MEGFILE_MAX_BLOCK_SIZE') or DEFAULT_BLOCK_SIZE * 16)  # 128MB
 DEFAULT_MAX_BUFFER_SIZE = int(

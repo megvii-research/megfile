@@ -5,7 +5,7 @@ from logging import getLogger as get_logger
 from threading import Lock
 from typing import NamedTuple, Optional
 
-from megfile.config import BACKOFF_FACTOR, BACKOFF_INITIAL, DEFAULT_BLOCK_SIZE, DEFAULT_MAX_BLOCK_SIZE, DEFAULT_MAX_BUFFER_SIZE, GLOBAL_MAX_WORKERS
+from megfile.config import BACKOFF_FACTOR, BACKOFF_INITIAL, DEFAULT_MAX_BLOCK_SIZE, DEFAULT_MIN_BLOCK_SIZE, DEFAULT_MAX_BUFFER_SIZE, GLOBAL_MAX_WORKERS
 from megfile.errors import raise_s3_error
 from megfile.interfaces import Writable
 from megfile.utils import get_human_size, process_local
@@ -42,7 +42,7 @@ class S3BufferedWriter(Writable):
             key: str,
             *,
             s3_client,
-            block_size: int = DEFAULT_BLOCK_SIZE,
+            block_size: int = DEFAULT_MIN_BLOCK_SIZE,
             max_block_size: int = DEFAULT_MAX_BLOCK_SIZE,
             max_buffer_size: int = DEFAULT_MAX_BUFFER_SIZE,
             max_workers: Optional[int] = None,
