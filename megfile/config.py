@@ -32,7 +32,7 @@ if os.getenv('MEGFILE_MAX_BLOCK_SIZE'):
             "Env 'MEGFILE_MAX_BLOCK_SIZE' is smaller than block size, will be ignored."
         )
 else:
-    DEFAULT_MAX_BLOCK_SIZE = 128 * 2**20
+    DEFAULT_MAX_BLOCK_SIZE = max(128 * 2**20, DEFAULT_BLOCK_SIZE)
 
 GLOBAL_MAX_WORKERS = int(os.getenv('MEGFILE_MAX_WORKERS') or 32)
 DEFAULT_MAX_RETRY_TIMES = int(os.getenv('MEGFILE_MAX_RETRY_TIMES') or 10)
