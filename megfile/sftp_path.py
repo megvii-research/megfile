@@ -11,6 +11,7 @@ from logging import getLogger as get_logger
 from stat import S_ISDIR, S_ISLNK, S_ISREG
 from typing import IO, AnyStr, BinaryIO, Callable, Iterator, List, Optional, Tuple, Union
 from urllib.parse import urlsplit, urlunsplit
+from functools import cached_property
 
 import paramiko
 
@@ -23,7 +24,7 @@ from megfile.lib.glob import FSFunc, iglob
 from megfile.lib.joinpath import uri_join
 from megfile.pathlike import PathLike, URIPath
 from megfile.smart_path import SmartPath
-from megfile.utils import cachedproperty, calculate_md5, thread_local
+from megfile.utils import calculate_md5, thread_local
 
 _logger = get_logger(__name__)
 
@@ -581,10 +582,10 @@ class SftpPath(URIPath):
     """sftp protocol
 
     uri format: 
-    - absolute path
-        - sftp://[username[:password]@]hostname[:port]//file_path
-    - relative path
-        - - sftp://[username[:password]@]hostname[:port]/file_path
+        - absolute path
+            - sftp://[username[:password]@]hostname[:port]//file_path
+        - relative path
+            - sftp://[username[:password]@]hostname[:port]/file_path
     """
 
     protocol = "sftp"
@@ -600,7 +601,7 @@ class SftpPath(URIPath):
             self._root_dir = self._client.normalize('.')
         self._real_path = os.path.join(self._root_dir, parts.path.lstrip('/'))
 
-    @cachedproperty
+    @cached_property
     def parts(self) -> Tuple[str]:
         '''A tuple giving access to the path’s various components'''
         if self._urlsplit_parts.path.startswith('//'):
@@ -830,14 +831,14 @@ class SftpPath(URIPath):
 
     def mkdir(self, mode=0o777, parents: bool = False, exist_ok: bool = False):
         '''
-        make a directory on sftp, including parent directory
-
+        make a directory on sftp, including parent directory.
         If there exists a file on the path, raise FileExistsError
 
         :param mode: If mode is given, it is combined with the process’ umask value to determine the file mode and access flags.
         :param parents: If parents is true, any missing parents of this path are created as needed;
-        If parents is false (the default), a missing parent raises FileNotFoundError.
+            If parents is false (the default), a missing parent raises FileNotFoundError.
         :param exist_ok: If False and target directory exists, raise FileExistsError
+
         :raises: FileExistsError
         '''
         if self.exists():
@@ -1111,6 +1112,7 @@ class SftpPath(URIPath):
 
         :param recalculate: Ignore this parameter, just for compatibility
         :param followlinks: Ignore this parameter, just for compatibility
+
         returns: md5 of file
         '''
         if self.is_dir():

@@ -1,3 +1,6 @@
+Common Configuration
+====================
+
 ### Environment configurations
 - `MEGFILE_BLOCK_SIZE`: block size in some `open` func, like `http_open`, `s3_open`, default is `8MB`
 - `MEGFILE_MAX_BLOCK_SIZE`: max block size in some `open` func, like `http_open`, `s3_open`, default is `block size * 16`

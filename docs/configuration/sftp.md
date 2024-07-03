@@ -1,3 +1,6 @@
+Sftp Configuration
+==================
+
 Sftp is a little different from other protocols, because you can set some configurations in path(`sftp://[username[:password]@]hostname[:port]/file_path`). **But we suggest you not to use password in path.** You can use environments setting configuration, and priority is that path settings take precedence over environments.
 
 ### Use environments

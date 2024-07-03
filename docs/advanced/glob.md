@@ -1,3 +1,6 @@
+Glob Pattern
+=============
+
 The glob module finds all the pathnames matching a specified pattern according to the rules.
 
 ### Patterns are Unix shell style:

@@ -4,12 +4,13 @@ from collections.abc import Sequence
 from enum import Enum
 from functools import wraps
 from typing import IO, Any, AnyStr, BinaryIO, Callable, Iterator, List, NamedTuple, Optional, Tuple, Union
+from functools import cached_property
 
 from megfile.lib.compat import PathLike as _PathLike
 from megfile.lib.compat import fspath
 from megfile.lib.fnmatch import _compile_pattern
 from megfile.lib.joinpath import uri_join
-from megfile.utils import cachedproperty, classproperty
+from megfile.utils import classproperty
 
 # Python 3.5+ compatible
 '''
@@ -427,7 +428,7 @@ class BaseURIPath(BasePath):
 
     # #####
 
-    @cachedproperty
+    @cached_property
     def path_with_protocol(self) -> str:
         '''Return path with protocol, like file:///root, s3://bucket/key'''
         path = self.path
@@ -436,7 +437,7 @@ class BaseURIPath(BasePath):
             return path
         return protocol_prefix + path.lstrip('/')
 
-    @cachedproperty
+    @cached_property
     def path_without_protocol(self) -> str:
         '''Return path without protocol, example: if path is s3://bucket/key, return bucket/key'''
         path = self.path
@@ -541,7 +542,7 @@ class URIPath(BaseURIPath):
         '''Calling this method is equivalent to combining the path with each of the other arguments in turn'''
         return self.from_path(uri_join(str(self), *map(str, other_paths)))
 
-    @cachedproperty
+    @cached_property
     def parts(self) -> Tuple[str]:
         '''A tuple giving access to the path’s various components'''
         parts = [self.root]
@@ -551,12 +552,12 @@ class URIPath(BaseURIPath):
             parts.extend(path.split('/'))
         return tuple(parts)
 
-    @cachedproperty
+    @cached_property
     def parents(self) -> "URIPathParents":
         '''An immutable sequence providing access to the logical ancestors of the path'''
         return URIPathParents(self)
 
-    @cachedproperty
+    @cached_property
     def parent(self) -> "BaseURIPath":
         '''The logical parent of the path'''
         if self.path_without_protocol == "/":
@@ -565,7 +566,7 @@ class URIPath(BaseURIPath):
             return self.parents[0]
         return self.from_path("")
 
-    @cachedproperty
+    @cached_property
     def name(self) -> str:
         '''A string representing the final path component, excluding the drive and root'''
         parts = self.parts
@@ -573,7 +574,7 @@ class URIPath(BaseURIPath):
             return ''
         return parts[-1]
 
-    @cachedproperty
+    @cached_property
     def suffix(self) -> str:
         '''The file extension of the final component'''
         name = self.name
@@ -582,7 +583,7 @@ class URIPath(BaseURIPath):
             return name[i:]
         return ''
 
-    @cachedproperty
+    @cached_property
     def suffixes(self) -> List[str]:
         '''A list of the path’s file extensions'''
         name = self.name
@@ -591,7 +592,7 @@ class URIPath(BaseURIPath):
         name = name.lstrip('.')
         return ['.' + suffix for suffix in name.split('.')[1:]]
 
-    @cachedproperty
+    @cached_property
     def stem(self) -> str:
         '''The final path component, without its suffix'''
         name = self.name

@@ -6,13 +6,14 @@ import shutil
 from stat import S_ISDIR as stat_isdir
 from stat import S_ISLNK as stat_islnk
 from typing import IO, AnyStr, BinaryIO, Callable, Iterator, List, Optional, Tuple, Union
+from functools import cached_property
 
 from megfile.errors import _create_missing_ok_generator
 from megfile.interfaces import Access, ContextIterator, FileEntry, PathLike, StatResult
 from megfile.lib.compare import is_same_file
 from megfile.lib.glob import iglob
 from megfile.lib.url import get_url_scheme
-from megfile.utils import cachedproperty, calculate_md5
+from megfile.utils import calculate_md5
 
 from .interfaces import PathLike, URIPath
 from .lib.compat import fspath
@@ -272,15 +273,15 @@ class FSPath(URIPath):
     def __fspath__(self) -> str:
         return os.path.normpath(self.path_without_protocol)
 
-    @cachedproperty
+    @cached_property
     def root(self) -> str:
         return pathlib.Path(self.path_without_protocol).root
 
-    @cachedproperty
+    @cached_property
     def anchor(self) -> str:
         return pathlib.Path(self.path_without_protocol).anchor
 
-    @cachedproperty
+    @cached_property
     def drive(self) -> str:
         return pathlib.Path(self.path_without_protocol).drive
 
@@ -505,14 +506,14 @@ class FSPath(URIPath):
 
     def mkdir(self, mode=0o777, parents: bool = False, exist_ok: bool = False):
         '''
-        make a directory on fs, including parent directory
-
+        make a directory on fs, including parent directory.
         If there exists a file on the path, raise FileExistsError
 
         :param mode: If mode is given, it is combined with the process’ umask value to determine the file mode and access flags.
         :param parents: If parents is true, any missing parents of this path are created as needed;
-        If parents is false (the default), a missing parent raises FileNotFoundError.
+            If parents is false (the default), a missing parent raises FileNotFoundError.
         :param exist_ok: If False and target directory exists, raise FileExistsError
+
         :raises: FileExistsError
         '''
         if exist_ok and self.path_without_protocol == '':
@@ -734,6 +735,7 @@ class FSPath(URIPath):
 
         :param recalculate: Ignore this parameter, just for compatibility
         :param followlinks: Ignore this parameter, just for compatibility
+
         returns: md5 of file
         '''
         if os.path.isdir(self.path_without_protocol):
@@ -921,7 +923,7 @@ class FSPath(URIPath):
             newline=newline,
             closefd=closefd)
 
-    @cachedproperty
+    @cached_property
     def parts(self) -> Tuple[str]:
         '''
         A tuple giving access to the path’s various components
