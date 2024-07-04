@@ -555,7 +555,7 @@ class URIPath(BaseURIPath):
         return self.from_path(uri_join(str(self), *map(str, other_paths)))
 
     @cachedproperty
-    def parts(self) -> Tuple[str]:
+    def parts(self) -> Tuple[str, ...]:
         '''A tuple giving access to the path’s various components'''
         parts = [self.root]
         path = self.path_without_protocol

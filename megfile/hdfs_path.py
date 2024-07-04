@@ -197,7 +197,7 @@ class HdfsPath(URIPath):
         return path
 
     @cachedproperty
-    def parts(self) -> Tuple[str]:
+    def parts(self) -> Tuple[str, ...]:
         '''A tuple giving access to the path’s various components'''
         parts = [f"{self._protocol_with_profile}://"]
         path = self.path_without_protocol

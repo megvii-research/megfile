@@ -604,7 +604,7 @@ class SftpPath(URIPath):
         self._real_path = os.path.join(self._root_dir, parts.path.lstrip('/'))
 
     @cachedproperty
-    def parts(self) -> Tuple[str]:
+    def parts(self) -> Tuple[str, ...]:
         '''A tuple giving access to the path’s various components'''
         if self._urlsplit_parts.path.startswith('//'):
             new_parts = self._urlsplit_parts._replace(path='//')
