@@ -1,4 +1,3 @@
-import os
 from concurrent.futures import Future
 from io import BytesIO
 from typing import Optional
@@ -76,7 +75,8 @@ class S3PrefetchReader(BasePrefetchReader):
             self._bucket, self._key)
 
     def _fetch_response(
-            self, start: Optional[int] = None,
+            self,
+            start: Optional[int] = None,
             end: Optional[int] = None) -> dict:
 
         def fetch_response() -> dict:

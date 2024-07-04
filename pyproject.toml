@@ -1,0 +1,98 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "megfile"
+dynamic = ["version", "dependencies", "optional-dependencies", "readme"]
+description = "Megvii file operation library"
+authors = [
+    { name="megvii", email="megfile@megvii.com" }
+]
+urls = { "Homepage" = "https://github.com/megvii-research/megfile" }
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+requires-python = ">=3.8"
+
+[project.scripts]
+refile = "megfile.cli:safe_cli"
+
+[tool.setuptools.packages.find]
+exclude = ["tests", "tests*", "remof"]
+
+[tool.setuptools.dynamic]
+version = {attr = "megfile.version.VERSION"}
+readme = {file = ["README.md"], content-type = "text/markdown"}
+
+[tool.setuptools.dynamic.dependencies]
+file = ["requirements.txt"]
+
+[tool.setuptools.dynamic.optional-dependencies]
+dev = { file = ["requirements-dev.txt"] }
+hdfs = { file = ["requirements-hdfs.txt"] }
+cli = { file = ["requirements-cli.txt"] }
+
+[tool.yapf]
+based_on_style = "google"
+split_before_first_argument = true
+
+[tool.isort]
+# ignore line width limit for import
+line_length = 999
+
+[tool.pytype]
+
+# Space-separated list of files or directories to exclude.
+exclude = [
+    "tests/"
+]
+# Space-separated list of files or directories to process.
+inputs = [
+    "./megfile"
+]
+# Keep going past errors to analyze as many files as possible.
+keep_going = true
+
+# All pytype output goes here.
+output = ".pytype_output"
+
+# Paths to source code directories, separated by ':'.
+pythonpath = "."
+
+# Comma separated list of error names to ignore.
+disable = [
+    "pyi-error"
+]
+# Don't report errors.
+report_errors = true
+
+# Experimental: solve unknown types to label with structural types.
+protocols = false
+
+# Experimental: Only load submodules that are explicitly imported.
+strict_import = false
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover"
+]
+
+[tool.mutmut]
+paths_to_mutate = "megfile/"
+backup = false
+runner = "pytest --cov=megfile --cov-config pyproject.toml tests/"
+tests_dir = "tests/"
+dict_synonyms = "Struct,NamedStruct"

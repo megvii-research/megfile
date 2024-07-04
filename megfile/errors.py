@@ -182,7 +182,9 @@ def _create_missing_ok_generator(generator, missing_ok: bool, error: Exception):
 class UnknownError(Exception):
 
     def __init__(
-            self, error: Exception, path: PathLike,
+            self,
+            error: Exception,
+            path: PathLike,
             extra: Optional[str] = None):
         message = 'Unknown error encountered: %r, error: %s' % (
             path, full_error_message(error))

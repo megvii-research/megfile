@@ -99,9 +99,9 @@ def get_hdfs_client(profile_name: Optional[str] = None):
 
 
 def hdfs_glob(
-        path: PathLike,
-        recursive: bool = True,
-        missing_ok: bool = True,
+    path: PathLike,
+    recursive: bool = True,
+    missing_ok: bool = True,
 ) -> List[str]:
     '''Return hdfs path list in ascending alphabetical order, in which path matches glob pattern
     Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
@@ -115,7 +115,8 @@ def hdfs_glob(
 
 
 def hdfs_glob_stat(
-        path: PathLike, recursive: bool = True,
+        path: PathLike,
+        recursive: bool = True,
         missing_ok: bool = True) -> Iterator[FileEntry]:
     '''Return a generator contains tuples of path and file stat, in ascending alphabetical order, in which path matches glob pattern
     Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
@@ -130,9 +131,9 @@ def hdfs_glob_stat(
 
 
 def hdfs_iglob(
-        path: PathLike,
-        recursive: bool = True,
-        missing_ok: bool = True,
+    path: PathLike,
+    recursive: bool = True,
+    missing_ok: bool = True,
 ) -> Iterator[str]:
     '''Return hdfs path iterator in ascending alphabetical order, in which path matches glob pattern
     Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
@@ -262,10 +263,10 @@ class HdfsPath(URIPath):
         return self.stat(follow_symlinks=follow_symlinks).size
 
     def glob(
-            self,
-            pattern,
-            recursive: bool = True,
-            missing_ok: bool = True,
+        self,
+        pattern,
+        recursive: bool = True,
+        missing_ok: bool = True,
     ) -> List['HdfsPath']:
         '''Return hdfs path list, in which path matches glob pattern
         Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
@@ -281,7 +282,9 @@ class HdfsPath(URIPath):
                 pattern=pattern, recursive=recursive, missing_ok=missing_ok))
 
     def glob_stat(
-            self, pattern, recursive: bool = True,
+            self,
+            pattern,
+            recursive: bool = True,
             missing_ok: bool = True) -> Iterator[FileEntry]:
         '''Return a generator contains tuples of path and file stat, in which path matches glob pattern
         Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
@@ -297,10 +300,10 @@ class HdfsPath(URIPath):
             yield FileEntry(path_obj.name, path_obj.path, path_obj.stat())
 
     def iglob(
-            self,
-            pattern,
-            recursive: bool = True,
-            missing_ok: bool = True,
+        self,
+        pattern,
+        recursive: bool = True,
+        missing_ok: bool = True,
     ) -> Iterator['HdfsPath']:
         '''Return hdfs path iterator, in which path matches glob pattern
         Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
@@ -449,7 +452,8 @@ class HdfsPath(URIPath):
             if not missing_ok or not isinstance(e, FileNotFoundError):
                 raise
 
-    def scan(self, missing_ok: bool = True,
+    def scan(self,
+             missing_ok: bool = True,
              followlinks: bool = False) -> Iterator[str]:
         '''
         Iteratively traverse only files in given hdfs directory.
@@ -469,7 +473,8 @@ class HdfsPath(URIPath):
                                          followlinks=followlinks):
             yield file_entry.path
 
-    def scan_stat(self, missing_ok: bool = True,
+    def scan_stat(self,
+                  missing_ok: bool = True,
                   followlinks: bool = False) -> Iterator[FileEntry]:
         '''
         Iteratively traverse only files in given directory.
@@ -530,8 +535,10 @@ class HdfsPath(URIPath):
             raise IsADirectoryError('Path is a directory: %r' % self.path)
         self.remove(missing_ok=missing_ok)
 
-    def walk(self, followlinks: bool = False
-            ) -> Iterator[Tuple[str, List[str], List[str]]]:
+    def walk(
+        self,
+        followlinks: bool = False
+    ) -> Iterator[Tuple[str, List[str], List[str]]]:
         '''
         Iteratively traverse the given hdfs directory, in top-bottom order. In other words, firstly traverse parent directory, if subdirectories exist, traverse the subdirectories.
         Every iteration on generator yields a 3-tuple: (root, dirs, files)

@@ -4,6 +4,7 @@ import math
 import os
 import uuid
 from copy import copy
+from functools import cached_property as cachedproperty  # noqa
 from functools import wraps
 from io import BufferedIOBase, BufferedRandom, BufferedReader, BufferedWriter, BytesIO, StringIO, TextIOBase, TextIOWrapper
 from typing import IO, Callable, Optional
@@ -276,23 +277,3 @@ class classproperty(property):
         """
         # call this method only on the class, not the instance
         super(classproperty, self).__delete__(_get_class(cls_or_obj))
-
-
-class cachedproperty:
-    """
-    A property that is only computed once per instance and then replaces itself
-    with an ordinary attribute. Deleting the attribute resets the property.
-    Source: https://github.com/bottlepy/bottle/commit/fa7733e075da0d790d809aa3d2f53071897e6f76
-    """  # noqa
-
-    def __init__(self, func):
-        self.__name__ = func.__name__
-        self.__module__ = func.__module__
-        self.__doc__ = func.__doc__
-        self.__wrapped__ = func
-
-    def __get__(self, obj, cls):
-        if obj is None:
-            return self
-        value = obj.__dict__[self.__name__] = self.__wrapped__(obj)
-        return value

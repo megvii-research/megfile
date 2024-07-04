@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from io import UnsupportedOperation
 from typing import Iterable, Iterator, List, Optional
 
-from megfile.pathlike import Access, BasePath, BaseURIPath, FileEntry, PathLike, StatResult, URIPath
+from megfile.pathlike import Access, BasePath, BaseURIPath, FileEntry, PathLike, StatResult, URIPath  # noqa
 
 
 def fullname(o):

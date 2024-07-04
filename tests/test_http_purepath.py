@@ -305,7 +305,9 @@ def test_http_retry(requests_mock, mocker):
             'http://foo',
             files={
                 'foo':
-                ('filename', io.BytesIO(b'bar'), 'application/vnd.ms-excel')
+                    (
+                        'filename', io.BytesIO(b'bar'),
+                        'application/vnd.ms-excel')
             })
     for _ in range(max_retries):
         assert b'name="filename"' in requests_mock.request_history[
@@ -317,11 +319,12 @@ def test_http_retry(requests_mock, mocker):
         session.post(
             'http://foo',
             files={
-                'foo': (
-                    'filename', io.BytesIO(b'bar'), 'application/vnd.ms-excel',
-                    {
-                        'Expires': '0'
-                    })
+                'foo':
+                    (
+                        'filename', io.BytesIO(b'bar'),
+                        'application/vnd.ms-excel', {
+                            'Expires': '0'
+                        })
             })
     for _ in range(max_retries):
         assert b'name="filename"' in requests_mock.request_history[

@@ -1,3 +1,6 @@
+Common Configuration
+====================
+
 ### Environment configurations
 - `MEGFILE_BLOCK_SIZE`: default block size of read and write operate, unit is bytes, default is `8MB`
 - `MEGFILE_MAX_BLOCK_SIZE`: max write block size, unit is bytes, default is `128MB`

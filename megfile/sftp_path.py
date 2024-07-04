@@ -82,10 +82,10 @@ def get_private_key():
 
 
 def provide_connect_info(
-        hostname: str,
-        port: Optional[int] = None,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
+    hostname: str,
+    port: Optional[int] = None,
+    username: Optional[str] = None,
+    password: Optional[str] = None,
 ):
     if not port:
         port = 22
@@ -117,11 +117,11 @@ def sftp_should_retry(error: Exception) -> bool:
 
 
 def _patch_sftp_client_request(
-        client: paramiko.SFTPClient,
-        hostname: str,
-        port: Optional[int] = None,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
+    client: paramiko.SFTPClient,
+    hostname: str,
+    port: Optional[int] = None,
+    username: Optional[str] = None,
+    password: Optional[str] = None,
 ):
 
     def retry_callback(error, *args, **kwargs):
@@ -153,10 +153,10 @@ def _patch_sftp_client_request(
 
 
 def _get_sftp_client(
-        hostname: str,
-        port: Optional[int] = None,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
+    hostname: str,
+    port: Optional[int] = None,
+    username: Optional[str] = None,
+    password: Optional[str] = None,
 ) -> paramiko.SFTPClient:
     '''Get sftp client
 
@@ -175,10 +175,10 @@ def _get_sftp_client(
 
 
 def get_sftp_client(
-        hostname: str,
-        port: Optional[int] = None,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
+    hostname: str,
+    port: Optional[int] = None,
+    username: Optional[str] = None,
+    password: Optional[str] = None,
 ) -> paramiko.SFTPClient:
     '''Get sftp client
 
@@ -190,10 +190,10 @@ def get_sftp_client(
 
 
 def _get_ssh_client(
-        hostname: str,
-        port: Optional[int] = None,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
+    hostname: str,
+    port: Optional[int] = None,
+    username: Optional[str] = None,
+    password: Optional[str] = None,
 ) -> paramiko.SSHClient:
     hostname, port, username, password, private_key = provide_connect_info(
         hostname=hostname,
@@ -236,10 +236,10 @@ def _get_ssh_client(
 
 
 def get_ssh_client(
-        hostname: str,
-        port: Optional[int] = None,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
+    hostname: str,
+    port: Optional[int] = None,
+    username: Optional[str] = None,
+    password: Optional[str] = None,
 ) -> paramiko.SSHClient:
     return thread_local(
         f'ssh_client:{hostname},{port},{username},{password}', _get_ssh_client,
@@ -247,10 +247,10 @@ def get_ssh_client(
 
 
 def get_ssh_session(
-        hostname: str,
-        port: Optional[int] = None,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
+    hostname: str,
+    port: Optional[int] = None,
+    username: Optional[str] = None,
+    password: Optional[str] = None,
 ) -> paramiko.Channel:
 
     def retry_callback(error, *args, **kwargs):
@@ -277,10 +277,10 @@ def get_ssh_session(
 
 
 def _open_session(
-        hostname: str,
-        port: Optional[int] = None,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
+    hostname: str,
+    port: Optional[int] = None,
+    username: Optional[str] = None,
+    password: Optional[str] = None,
 ) -> paramiko.Channel:
     ssh_client = get_ssh_client(hostname, port, username, password)
     transport = ssh_client.get_transport()
@@ -314,7 +314,8 @@ def sftp_readlink(path: PathLike) -> 'str':
     return SftpPath(path).readlink().path_with_protocol
 
 
-def sftp_glob(path: PathLike, recursive: bool = True,
+def sftp_glob(path: PathLike,
+              recursive: bool = True,
               missing_ok: bool = True) -> List[str]:
     '''Return path list in ascending alphabetical order, in which path matches glob pattern
 
@@ -338,7 +339,8 @@ def sftp_glob(path: PathLike, recursive: bool = True,
 
 
 def sftp_glob_stat(
-        path: PathLike, recursive: bool = True,
+        path: PathLike,
+        recursive: bool = True,
         missing_ok: bool = True) -> Iterator[FileEntry]:
     '''Return a list contains tuples of path and file stat, in ascending alphabetical order, in which path matches glob pattern
 
@@ -365,7 +367,8 @@ def sftp_glob_stat(
             path_object.lstat())
 
 
-def sftp_iglob(path: PathLike, recursive: bool = True,
+def sftp_iglob(path: PathLike,
+               recursive: bool = True,
                missing_ok: bool = True) -> Iterator[str]:
     '''Return path iterator in ascending alphabetical order, in which path matches glob pattern
 
@@ -581,10 +584,10 @@ class SftpPath(URIPath):
     """sftp protocol
 
     uri format: 
-    - absolute path
-        - sftp://[username[:password]@]hostname[:port]//file_path
-    - relative path
-        - - sftp://[username[:password]@]hostname[:port]/file_path
+        - absolute path
+            - sftp://[username[:password]@]hostname[:port]//file_path
+        - relative path
+            - sftp://[username[:password]@]hostname[:port]/file_path
     """
 
     protocol = "sftp"
@@ -670,7 +673,9 @@ class SftpPath(URIPath):
         '''
         return self.stat(follow_symlinks=follow_symlinks).size
 
-    def glob(self, pattern, recursive: bool = True,
+    def glob(self,
+             pattern,
+             recursive: bool = True,
              missing_ok: bool = True) -> List['SftpPath']:
         '''Return path list in ascending alphabetical order, in which path matches glob pattern
 
@@ -693,7 +698,9 @@ class SftpPath(URIPath):
                 pattern=pattern, recursive=recursive, missing_ok=missing_ok))
 
     def glob_stat(
-            self, pattern, recursive: bool = True,
+            self,
+            pattern,
+            recursive: bool = True,
             missing_ok: bool = True) -> Iterator[FileEntry]:
         '''Return a list contains tuples of path and file stat, in ascending alphabetical order, in which path matches glob pattern
 
@@ -715,7 +722,9 @@ class SftpPath(URIPath):
                                    missing_ok=missing_ok):
             yield FileEntry(path_obj.name, path_obj.path, path_obj.lstat())
 
-    def iglob(self, pattern, recursive: bool = True,
+    def iglob(self,
+              pattern,
+              recursive: bool = True,
               missing_ok: bool = True) -> Iterator['SftpPath']:
         '''Return path iterator in ascending alphabetical order, in which path matches glob pattern
 
@@ -830,14 +839,14 @@ class SftpPath(URIPath):
 
     def mkdir(self, mode=0o777, parents: bool = False, exist_ok: bool = False):
         '''
-        make a directory on sftp, including parent directory
-
+        make a directory on sftp, including parent directory.
         If there exists a file on the path, raise FileExistsError
 
         :param mode: If mode is given, it is combined with the process’ umask value to determine the file mode and access flags.
         :param parents: If parents is true, any missing parents of this path are created as needed;
-        If parents is false (the default), a missing parent raises FileNotFoundError.
+            If parents is false (the default), a missing parent raises FileNotFoundError.
         :param exist_ok: If False and target directory exists, raise FileExistsError
+
         :raises: FileExistsError
         '''
         if self.exists():
@@ -943,7 +952,8 @@ class SftpPath(URIPath):
         else:
             self._client.unlink(self._real_path)
 
-    def scan(self, missing_ok: bool = True,
+    def scan(self,
+             missing_ok: bool = True,
              followlinks: bool = False) -> Iterator[str]:
         '''
         Iteratively traverse only files in given directory, in alphabetical order.
@@ -962,7 +972,8 @@ class SftpPath(URIPath):
         for file_entry in scan_stat_iter:
             yield file_entry.path
 
-    def scan_stat(self, missing_ok: bool = True,
+    def scan_stat(self,
+                  missing_ok: bool = True,
                   followlinks: bool = False) -> Iterator[FileEntry]:
         '''
         Iteratively traverse only files in given directory, in alphabetical order.
@@ -1048,8 +1059,10 @@ class SftpPath(URIPath):
             return
         self._client.unlink(self._real_path)
 
-    def walk(self, followlinks: bool = False
-            ) -> Iterator[Tuple[str, List[str], List[str]]]:
+    def walk(
+        self,
+        followlinks: bool = False
+    ) -> Iterator[Tuple[str, List[str], List[str]]]:
         '''
         Generate the file names in a directory tree by walking the tree top-down.
         For each directory in the tree rooted at directory path (including path itself),
@@ -1111,6 +1124,7 @@ class SftpPath(URIPath):
 
         :param recalculate: Ignore this parameter, just for compatibility
         :param followlinks: Ignore this parameter, just for compatibility
+
         returns: md5 of file
         '''
         if self.is_dir():
@@ -1228,11 +1242,11 @@ class SftpPath(URIPath):
         return self._client.rmdir(self._real_path)
 
     def _exec_command(
-            self,
-            command: List[str],
-            bufsize: int = -1,
-            timeout: Optional[int] = None,
-            environment: Optional[dict] = None,
+        self,
+        command: List[str],
+        bufsize: int = -1,
+        timeout: Optional[int] = None,
+        environment: Optional[dict] = None,
     ) -> subprocess.CompletedProcess:
         with get_ssh_session(
                 hostname=self._urlsplit_parts.hostname,

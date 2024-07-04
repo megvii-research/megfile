@@ -771,20 +771,20 @@ def s3_cached_open(
 
 @_s3_binary_mode
 def s3_buffered_open(
-        s3_url: PathLike,
-        mode: str,
-        followlinks: bool = False,
-        *,
-        max_concurrency: Optional[int] = None,
-        max_buffer_size: int = DEFAULT_MAX_BUFFER_SIZE,
-        forward_ratio: Optional[float] = None,
-        block_size: int = DEFAULT_BLOCK_SIZE,
-        limited_seekable: bool = False,
-        buffered: bool = False,
-        share_cache_key: Optional[str] = None,
-        cache_path: Optional[str] = None
-) -> Union[S3PrefetchReader, S3BufferedWriter, io.BufferedReader, io.
-           BufferedWriter, S3MemoryHandler]:
+    s3_url: PathLike,
+    mode: str,
+    followlinks: bool = False,
+    *,
+    max_concurrency: Optional[int] = None,
+    max_buffer_size: int = DEFAULT_MAX_BUFFER_SIZE,
+    forward_ratio: Optional[float] = None,
+    block_size: int = DEFAULT_BLOCK_SIZE,
+    limited_seekable: bool = False,
+    buffered: bool = False,
+    share_cache_key: Optional[str] = None,
+    cache_path: Optional[str] = None
+) -> Union[S3PrefetchReader, S3BufferedWriter, io.BufferedReader,
+           io.BufferedWriter, S3MemoryHandler]:
     '''Open an asynchronous prefetch reader, to support fast sequential read
 
     .. note ::
@@ -892,7 +892,8 @@ def s3_buffered_open(
 
 @_s3_binary_mode
 def s3_memory_open(
-        s3_url: PathLike, mode: str,
+        s3_url: PathLike,
+        mode: str,
         followlinks: bool = False) -> S3MemoryHandler:
     '''Open a memory-cache file reader / writer, for frequent random read / write
 
@@ -1132,10 +1133,10 @@ class S3Cacher(FileCacher):
 
 
 def s3_glob(
-        path: PathLike,
-        recursive: bool = True,
-        missing_ok: bool = True,
-        followlinks: bool = False,
+    path: PathLike,
+    recursive: bool = True,
+    missing_ok: bool = True,
+    followlinks: bool = False,
 ) -> List[str]:
     '''Return s3 path list in ascending alphabetical order, in which path matches glob pattern
     Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
@@ -1174,10 +1175,10 @@ def s3_glob_stat(
 
 
 def s3_iglob(
-        path: PathLike,
-        recursive: bool = True,
-        missing_ok: bool = True,
-        followlinks: bool = False,
+    path: PathLike,
+    recursive: bool = True,
+    missing_ok: bool = True,
+    followlinks: bool = False,
 ) -> Iterator[str]:
     '''Return s3 path iterator in ascending alphabetical order, in which path matches glob pattern
     Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
@@ -1207,7 +1208,8 @@ def s3_makedirs(path: PathLike, exist_ok: bool = False):
 
 
 def _group_src_paths_by_block(
-        src_paths: List[PathLike], block_size: int = DEFAULT_BLOCK_SIZE
+    src_paths: List[PathLike],
+    block_size: int = DEFAULT_BLOCK_SIZE
 ) -> List[List[Tuple[PathLike, Optional[str]]]]:
     groups = []
     current_group, current_group_size = [], 0
@@ -1358,7 +1360,8 @@ class S3Path(URIPath):
             return {}
 
     def access(
-            self, mode: Access = Access.READ,
+            self,
+            mode: Access = Access.READ,
             followlinks: bool = False) -> bool:
         '''
         Test if path has access permission described by mode
@@ -1454,11 +1457,11 @@ class S3Path(URIPath):
         return self.stat(follow_symlinks=follow_symlinks).size
 
     def glob(
-            self,
-            pattern,
-            recursive: bool = True,
-            missing_ok: bool = True,
-            followlinks: bool = False,
+        self,
+        pattern,
+        recursive: bool = True,
+        missing_ok: bool = True,
+        followlinks: bool = False,
     ) -> List['S3Path']:
         '''Return s3 path list in ascending alphabetical order, in which path matches glob pattern
         Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
@@ -1517,11 +1520,11 @@ class S3Path(URIPath):
             S3FileNotFoundError('No match any file: %r' % s3_pathname))
 
     def iglob(
-            self,
-            pattern,
-            recursive: bool = True,
-            missing_ok: bool = True,
-            followlinks: bool = False,
+        self,
+        pattern,
+        recursive: bool = True,
+        missing_ok: bool = True,
+        followlinks: bool = False,
     ) -> Iterator['S3Path']:
         '''Return s3 path iterator in ascending alphabetical order, in which path matches glob pattern
         Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
@@ -1797,7 +1800,8 @@ class S3Path(URIPath):
         self.remove(missing_ok=True)
         return self.from_path(dst_path)
 
-    def scan(self, missing_ok: bool = True,
+    def scan(self,
+             missing_ok: bool = True,
              followlinks: bool = False) -> Iterator[str]:
         '''
         Iteratively traverse only files in given s3 directory, in alphabetical order.
@@ -1822,7 +1826,8 @@ class S3Path(URIPath):
 
         return create_generator()
 
-    def scan_stat(self, missing_ok: bool = True,
+    def scan_stat(self,
+                  missing_ok: bool = True,
                   followlinks: bool = False) -> Iterator[FileEntry]:
         '''
         Iteratively traverse only files in given directory, in alphabetical order.
@@ -2040,8 +2045,10 @@ class S3Path(URIPath):
         with raise_s3_error(self.path_with_protocol):
             self._client.delete_object(Bucket=bucket, Key=key)
 
-    def walk(self, followlinks: bool = False
-            ) -> Iterator[Tuple[str, List[str], List[str]]]:
+    def walk(
+        self,
+        followlinks: bool = False
+    ) -> Iterator[Tuple[str, List[str], List[str]]]:
         '''
         Iteratively traverse the given s3 directory, in top-bottom order. In other words, firstly traverse parent directory, if subdirectories exist, traverse the subdirectories in alphabetical order.
         Every iteration on generator yields a 3-tuple: (root, dirs, files)

@@ -240,10 +240,10 @@ _copy_funcs = {
 
 
 def register_copy_func(
-        src_protocol: str,
-        dst_protocol: str,
-        copy_func: Optional[
-            Callable[[str, str, Optional[Callable[[int], None]]], None]] = None,
+    src_protocol: str,
+    dst_protocol: str,
+    copy_func: Optional[Callable[[str, str, Optional[Callable[[int], None]]],
+                                 None]] = None,
 ) -> None:
     '''
     Used to register copy func between protocols, and do not allow duplicate registration
@@ -680,8 +680,10 @@ def smart_path_join(path: PathLike, *other_paths: PathLike) -> str:
     return fspath(SmartPath(path).joinpath(*other_paths))
 
 
-def smart_walk(path: PathLike, followlinks: bool = False
-              ) -> Iterator[Tuple[str, List[str], List[str]]]:
+def smart_walk(
+        path: PathLike,
+        followlinks: bool = False
+) -> Iterator[Tuple[str, List[str], List[str]]]:
     '''
     Generate the file names in a directory tree by walking the tree top-down.
     For each directory in the tree rooted at directory path (including path itself),
@@ -703,7 +705,8 @@ def smart_walk(path: PathLike, followlinks: bool = False
 
 
 def smart_scan(
-        path: PathLike, missing_ok: bool = True,
+        path: PathLike,
+        missing_ok: bool = True,
         followlinks: bool = False) -> Iterator[str]:
     '''
     Iteratively traverse only files in given directory, in alphabetical order.
@@ -722,7 +725,8 @@ def smart_scan(
 
 
 def smart_scan_stat(
-        path: PathLike, missing_ok: bool = True,
+        path: PathLike,
+        missing_ok: bool = True,
         followlinks: bool = False) -> Iterator[FileEntry]:
     '''
     Iteratively traverse only files in given directory, in alphabetical order.
@@ -759,7 +763,8 @@ def _group_glob(globstr: str) -> List[str]:
 
 
 def smart_glob(
-        pathname: PathLike, recursive: bool = True,
+        pathname: PathLike,
+        recursive: bool = True,
         missing_ok: bool = True) -> List[str]:
     '''
     Given pathname may contain shell wildcard characters, return path list in ascending alphabetical order, in which path matches glob pattern
@@ -781,7 +786,8 @@ def smart_glob(
 
 
 def smart_iglob(
-        pathname: PathLike, recursive: bool = True,
+        pathname: PathLike,
+        recursive: bool = True,
         missing_ok: bool = True) -> Iterator[str]:
     '''
     Given pathname may contain shell wildcard characters, return path iterator in ascending alphabetical order, in which path matches glob pattern
@@ -801,7 +807,8 @@ def smart_iglob(
 
 
 def smart_glob_stat(
-        pathname: PathLike, recursive: bool = True,
+        pathname: PathLike,
+        recursive: bool = True,
         missing_ok: bool = True) -> Iterator[FileEntry]:
     '''
     Given pathname may contain shell wildcard characters, return a list contains tuples of path and file stat in ascending alphabetical order, in which path matches glob pattern
@@ -839,7 +846,8 @@ def smart_load_from(path: PathLike) -> BinaryIO:
 
 
 def smart_combine_open(
-        path_glob: str, mode: str = 'rb',
+        path_glob: str,
+        mode: str = 'rb',
         open_func=smart_open) -> CombineReader:
     '''Open a unified reader that supports multi file reading.
 
@@ -899,7 +907,8 @@ def smart_ismount(path: PathLike) -> bool:
 
 
 def smart_load_content(
-        path: PathLike, start: Optional[int] = None,
+        path: PathLike,
+        start: Optional[int] = None,
         stop: Optional[int] = None) -> bytes:
     '''
     Get specified file from [start, stop) in bytes

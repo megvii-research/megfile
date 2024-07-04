@@ -91,7 +91,8 @@ def fs_home():
     return os.path.expanduser('~')
 
 
-def fs_iglob(path: PathLike, recursive: bool = True,
+def fs_iglob(path: PathLike,
+             recursive: bool = True,
              missing_ok: bool = True) -> Iterator[str]:
     '''Return path iterator in ascending alphabetical order, in which path matches glob pattern
 
@@ -114,7 +115,8 @@ def fs_iglob(path: PathLike, recursive: bool = True,
         yield path
 
 
-def fs_glob(path: PathLike, recursive: bool = True,
+def fs_glob(path: PathLike,
+            recursive: bool = True,
             missing_ok: bool = True) -> List[str]:
     '''Return path list in ascending alphabetical order, in which path matches glob pattern
 
@@ -135,7 +137,8 @@ def fs_glob(path: PathLike, recursive: bool = True,
 
 
 def fs_glob_stat(
-        path: PathLike, recursive: bool = True,
+        path: PathLike,
+        recursive: bool = True,
         missing_ok: bool = True) -> Iterator[FileEntry]:
     '''Return a list contains tuples of path and file stat, in ascending alphabetical order, in which path matches glob pattern
 
@@ -365,7 +368,9 @@ class FSPath(URIPath):
         '''
         return self.stat(follow_symlinks=follow_symlinks).size
 
-    def glob(self, pattern, recursive: bool = True,
+    def glob(self,
+             pattern,
+             recursive: bool = True,
              missing_ok: bool = True) -> List['FSPath']:
         '''Return path list in ascending alphabetical order, in which path matches glob pattern
 
@@ -388,7 +393,9 @@ class FSPath(URIPath):
                 pattern=pattern, recursive=recursive, missing_ok=missing_ok))
 
     def glob_stat(
-            self, pattern, recursive: bool = True,
+            self,
+            pattern,
+            recursive: bool = True,
             missing_ok: bool = True) -> Iterator[FileEntry]:
         '''Return a list contains tuples of path and file stat, in ascending alphabetical order, in which path matches glob pattern
 
@@ -418,7 +425,9 @@ class FSPath(URIPath):
         '''
         return os.path.expanduser(self.path_without_protocol)
 
-    def iglob(self, pattern, recursive: bool = True,
+    def iglob(self,
+              pattern,
+              recursive: bool = True,
               missing_ok: bool = True) -> Iterator['FSPath']:
         '''Return path iterator in ascending alphabetical order, in which path matches glob pattern
 
@@ -505,14 +514,14 @@ class FSPath(URIPath):
 
     def mkdir(self, mode=0o777, parents: bool = False, exist_ok: bool = False):
         '''
-        make a directory on fs, including parent directory
-
+        make a directory on fs, including parent directory.
         If there exists a file on the path, raise FileExistsError
 
         :param mode: If mode is given, it is combined with the process’ umask value to determine the file mode and access flags.
         :param parents: If parents is true, any missing parents of this path are created as needed;
-        If parents is false (the default), a missing parent raises FileNotFoundError.
+            If parents is false (the default), a missing parent raises FileNotFoundError.
         :param exist_ok: If False and target directory exists, raise FileExistsError
+
         :raises: FileExistsError
         '''
         if exist_ok and self.path_without_protocol == '':
@@ -567,7 +576,8 @@ class FSPath(URIPath):
         else:
             os.remove(self.path_without_protocol)
 
-    def _scan(self, missing_ok: bool = True,
+    def _scan(self,
+              missing_ok: bool = True,
               followlinks: bool = False) -> Iterator[str]:
         if self.is_file(followlinks=followlinks):
             path = fspath(self.path_without_protocol)
@@ -577,7 +587,8 @@ class FSPath(URIPath):
             for filename in files:
                 yield os.path.join(root, filename)
 
-    def scan(self, missing_ok: bool = True,
+    def scan(self,
+             missing_ok: bool = True,
              followlinks: bool = False) -> Iterator[str]:
         '''
         Iteratively traverse only files in given directory, in alphabetical order.
@@ -594,7 +605,8 @@ class FSPath(URIPath):
             self._scan(followlinks=followlinks), missing_ok,
             FileNotFoundError('No match any file in: %r' % self.path))
 
-    def scan_stat(self, missing_ok: bool = True,
+    def scan_stat(self,
+                  missing_ok: bool = True,
                   followlinks: bool = False) -> Iterator[FileEntry]:
         '''
         Iteratively traverse only files in given directory, in alphabetical order.
@@ -668,8 +680,10 @@ class FSPath(URIPath):
             return
         os.unlink(self.path_without_protocol)
 
-    def walk(self, followlinks: bool = False
-            ) -> Iterator[Tuple[str, List[str], List[str]]]:
+    def walk(
+        self,
+        followlinks: bool = False
+    ) -> Iterator[Tuple[str, List[str], List[str]]]:
         '''
         Generate the file names in a directory tree by walking the tree top-down.
         For each directory in the tree rooted at directory path (including path itself),
@@ -734,6 +748,7 @@ class FSPath(URIPath):
 
         :param recalculate: Ignore this parameter, just for compatibility
         :param followlinks: Ignore this parameter, just for compatibility
+
         returns: md5 of file
         '''
         if os.path.isdir(self.path_without_protocol):

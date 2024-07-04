@@ -58,7 +58,8 @@ class HttpPrefetchReader(BasePrefetchReader):
         return fspath(self._url)
 
     def _fetch_response(
-            self, start: Optional[int] = None,
+            self,
+            start: Optional[int] = None,
             end: Optional[int] = None) -> dict:
 
         def fetch_response() -> dict:
