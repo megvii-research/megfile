@@ -2,7 +2,7 @@ import os
 from io import BytesIO, UnsupportedOperation
 from typing import Iterable, List, Optional
 
-from megfile.errors import S3ConfigError, UnknownError, raise_s3_error, translate_fs_error, translate_s3_error
+from megfile.errors import S3ConfigError, UnknownError, raise_s3_error, translate_s3_error
 from megfile.interfaces import Readable, Seekable, Writable
 
 

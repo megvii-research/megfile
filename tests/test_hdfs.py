@@ -45,16 +45,17 @@ def http_mocker(mocker, requests_mock, config_mocker):
             'token': 'token',
         })
     files = {
-        'root': {
-            '1.txt': '1',
-            'a': {
-                '2.txt': '22',
-            },
-            'b': {
-                '3.txt': '333',
-                '4.json': '4444',
+        'root':
+            {
+                '1.txt': '1',
+                'a': {
+                    '2.txt': '22',
+                },
+                'b': {
+                    '3.txt': '333',
+                    '4.json': '4444',
+                }
             }
-        }
     }
 
     def mock_dir(path):
@@ -65,48 +66,53 @@ def http_mocker(mocker, requests_mock, config_mocker):
         requests_mock.get(
             f'http://127.0.0.1:8000/webhdfs/v1/{path}?op=GETFILESTATUS',
             json={
-                "FileStatus": {
-                    "accessTime": 0,
-                    "blockSize": 0,
-                    "group": "supergroup",
-                    "length": 0,
-                    "modificationTime": 1320173277227,
-                    "owner": "webuser",
-                    "pathSuffix": "",
-                    "permission": "777",
-                    "replication": 0,
-                    "type": "DIRECTORY"
-                }
+                "FileStatus":
+                    {
+                        "accessTime": 0,
+                        "blockSize": 0,
+                        "group": "supergroup",
+                        "length": 0,
+                        "modificationTime": 1320173277227,
+                        "owner": "webuser",
+                        "pathSuffix": "",
+                        "permission": "777",
+                        "replication": 0,
+                        "type": "DIRECTORY"
+                    }
             })
         requests_mock.get(
             f'http://127.0.0.1:8000/webhdfs/v1/{path}?op=LISTSTATUS',
             json={
-                "FileStatuses": {
-                    "FileStatus": [
-                        {
-                            "accessTime":
-                            1320171722771,
-                            "blockSize":
-                            1024,
-                            "group":
-                            "supergroup",
-                            "length":
-                            0 if isinstance(content, dict) else len(content),
-                            "modificationTime":
-                            1320171722771,
-                            "owner":
-                            "webuser",
-                            "pathSuffix":
-                            name,
-                            "permission":
-                            "644",
-                            "replication":
-                            1,
-                            "type":
-                            "DIRECTORY" if isinstance(content, dict) else "FILE"
-                        } for name, content in sub_files.items()
-                    ]
-                }
+                "FileStatuses":
+                    {
+                        "FileStatus":
+                            [
+                                {
+                                    "accessTime":
+                                        1320171722771,
+                                    "blockSize":
+                                        1024,
+                                    "group":
+                                        "supergroup",
+                                    "length":
+                                        0 if isinstance(content, dict) else
+                                        len(content),
+                                    "modificationTime":
+                                        1320171722771,
+                                    "owner":
+                                        "webuser",
+                                    "pathSuffix":
+                                        name,
+                                    "permission":
+                                        "644",
+                                    "replication":
+                                        1,
+                                    "type":
+                                        "DIRECTORY" if isinstance(
+                                            content, dict) else "FILE"
+                                } for name, content in sub_files.items()
+                            ]
+                    }
             })
         requests_mock.delete(
             f'http://127.0.0.1:8000/webhdfs/v1/{path}?op=DELETE&recursive=true',
@@ -125,18 +131,19 @@ def http_mocker(mocker, requests_mock, config_mocker):
         requests_mock.get(
             f'http://127.0.0.1:8000/webhdfs/v1/{path}?op=GETFILESTATUS',
             json={
-                "FileStatus": {
-                    "accessTime": 0,
-                    "blockSize": 0,
-                    "group": "supergroup",
-                    "length": len(content),
-                    "modificationTime": 1320173277227,
-                    "owner": "webuser",
-                    "pathSuffix": "",
-                    "permission": "777",
-                    "replication": 0,
-                    "type": "FILE"
-                }
+                "FileStatus":
+                    {
+                        "accessTime": 0,
+                        "blockSize": 0,
+                        "group": "supergroup",
+                        "length": len(content),
+                        "modificationTime": 1320173277227,
+                        "owner": "webuser",
+                        "pathSuffix": "",
+                        "permission": "777",
+                        "replication": 0,
+                        "type": "FILE"
+                    }
             })
         requests_mock.get(
             f'http://127.0.0.1:8000/webhdfs/v1/{path}?op=OPEN',
@@ -164,11 +171,12 @@ def test_hdfs_exists(http_mocker):
         'http://127.0.0.1:8000/webhdfs/v1/unknown?op=GETFILESTATUS',
         status_code=404,
         json={
-            "RemoteException": {
-                "exception": "FileNotFoundException",
-                "javaClassName": "java.io.FileNotFoundException",
-                "message": "File does not exist: /unknown"
-            }
+            "RemoteException":
+                {
+                    "exception": "FileNotFoundException",
+                    "javaClassName": "java.io.FileNotFoundException",
+                    "message": "File does not exist: /unknown"
+                }
         })
 
     assert hdfs.hdfs_exists('hdfs://root') is True
@@ -211,18 +219,19 @@ def test_hdfs_move(http_mocker, mocker):
     http_mocker.get(
         f'http://127.0.0.1:8000/webhdfs/v1/a?delegation=token&op=GETFILESTATUS',
         json={
-            "FileStatus": {
-                "accessTime": 0,
-                "blockSize": 0,
-                "group": "supergroup",
-                "length": 4,
-                "modificationTime": 1320173277227,
-                "owner": "webuser",
-                "pathSuffix": "",
-                "permission": "777",
-                "replication": 0,
-                "type": "FILE"
-            }
+            "FileStatus":
+                {
+                    "accessTime": 0,
+                    "blockSize": 0,
+                    "group": "supergroup",
+                    "length": 4,
+                    "modificationTime": 1320173277227,
+                    "owner": "webuser",
+                    "pathSuffix": "",
+                    "permission": "777",
+                    "replication": 0,
+                    "type": "FILE"
+                }
         })
     remove_func = mocker.patch('megfile.hdfs_path.HdfsPath.remove')
 
@@ -238,11 +247,12 @@ def test_hdfs_remove(http_mocker):
         'http://127.0.0.1:8000/webhdfs/v1/unknown?op=DELETE&recursive=true',
         status_code=404,
         json={
-            "RemoteException": {
-                "exception": "FileNotFoundException",
-                "javaClassName": "java.io.FileNotFoundException",
-                "message": "File does not exist: /unknown"
-            }
+            "RemoteException":
+                {
+                    "exception": "FileNotFoundException",
+                    "javaClassName": "java.io.FileNotFoundException",
+                    "message": "File does not exist: /unknown"
+                }
         })
 
     with pytest.raises(FileNotFoundError):
@@ -252,11 +262,12 @@ def test_hdfs_remove(http_mocker):
         'http://127.0.0.1:8000/webhdfs/v1/forbidden?op=DELETE&recursive=true',
         status_code=403,
         json={
-            "RemoteException": {
-                "exception": "SecurityException",
-                "javaClassName": "java.lang.SecurityException",
-                "message": "Failed to obtain user group information: ..."
-            }
+            "RemoteException":
+                {
+                    "exception": "SecurityException",
+                    "javaClassName": "java.lang.SecurityException",
+                    "message": "Failed to obtain user group information: ..."
+                }
         })
     with pytest.raises(PermissionError):
         hdfs.hdfs_remove('hdfs://forbidden')
@@ -265,12 +276,15 @@ def test_hdfs_remove(http_mocker):
         'http://127.0.0.1:8000/webhdfs/v1/input_error?op=DELETE&recursive=true',
         status_code=400,
         json={
-            "RemoteException": {
-                "exception": "IllegalArgumentException",
-                "javaClassName": "java.lang.IllegalArgumentException",
-                "message":
-                "Invalid value for webhdfs parameter \"permission\": ..."
-            }
+            "RemoteException":
+                {
+                    "exception":
+                        "IllegalArgumentException",
+                    "javaClassName":
+                        "java.lang.IllegalArgumentException",
+                    "message":
+                        "Invalid value for webhdfs parameter \"permission\": ..."
+                }
         })
     with pytest.raises(ValueError):
         hdfs.hdfs_remove('hdfs://input_error')
@@ -332,11 +346,12 @@ def test_hdfs_getmd5(http_mocker):
     http_mocker.get(
         'http://127.0.0.1:8000/webhdfs/v1/root/1.txt?op=GETFILECHECKSUM',
         json={
-            "FileChecksum": {
-                "algorithm": "MD5-of-1MD5-of-512CRC32",
-                "bytes": "d41d8cd98f00b204e9800998ecf8427e",
-                "length": 28
-            }
+            "FileChecksum":
+                {
+                    "algorithm": "MD5-of-1MD5-of-512CRC32",
+                    "bytes": "d41d8cd98f00b204e9800998ecf8427e",
+                    "length": 28
+                }
         })
     assert hdfs.hdfs_getmd5(
         'hdfs://root/1.txt') == 'd41d8cd98f00b204e9800998ecf8427e'
@@ -346,11 +361,12 @@ def test_hdfs_getmd5_from_dir(http_mocker):
     http_mocker.get(
         'http://127.0.0.1:8000/webhdfs/v1/root/a/2.txt?op=GETFILECHECKSUM',
         json={
-            "FileChecksum": {
-                "algorithm": "MD5-of-1MD5-of-512CRC32",
-                "bytes": "d41d8cd98f00b204e9800998ecf8427e",
-                "length": 28
-            }
+            "FileChecksum":
+                {
+                    "algorithm": "MD5-of-1MD5-of-512CRC32",
+                    "bytes": "d41d8cd98f00b204e9800998ecf8427e",
+                    "length": 28
+                }
         })
     hash_md5 = hashlib.md5()  # nosec
     hash_md5.update(b"d41d8cd98f00b204e9800998ecf8427e")
@@ -418,18 +434,19 @@ def test_hdfs_open_pickle(http_mocker):
     http_mocker.get(
         f'http://127.0.0.1:8000/webhdfs/v1/root/1.pkl?op=GETFILESTATUS',
         json={
-            "FileStatus": {
-                "accessTime": 0,
-                "blockSize": 0,
-                "group": "supergroup",
-                "length": 4,
-                "modificationTime": 1320173277227,
-                "owner": "webuser",
-                "pathSuffix": "",
-                "permission": "777",
-                "replication": 0,
-                "type": "FILE"
-            }
+            "FileStatus":
+                {
+                    "accessTime": 0,
+                    "blockSize": 0,
+                    "group": "supergroup",
+                    "length": 4,
+                    "modificationTime": 1320173277227,
+                    "owner": "webuser",
+                    "pathSuffix": "",
+                    "permission": "777",
+                    "replication": 0,
+                    "type": "FILE"
+                }
         })
     http_mocker.get(
         f'http://127.0.0.1:8000/webhdfs/v1/root/1.pkl?op=OPEN',

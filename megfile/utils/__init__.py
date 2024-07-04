@@ -276,4 +276,3 @@ class classproperty(property):
         """
         # call this method only on the class, not the instance
         super(classproperty, self).__delete__(_get_class(cls_or_obj))
-

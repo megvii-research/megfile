@@ -1,6 +1,5 @@
 import os
-from io import UnsupportedOperation
-from typing import Iterable, List, Optional
+from typing import Optional
 
 from megfile.errors import translate_fs_error, translate_s3_error
 from megfile.lib.s3_memory_handler import S3MemoryHandler

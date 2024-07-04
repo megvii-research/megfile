@@ -33,8 +33,8 @@ max_retries = HTTP_MAX_RETRY_TIMES
 
 
 def get_http_session(
-        timeout: Optional[Union[int, Tuple[int, int]]] = DEFAULT_TIMEOUT,
-        status_forcelist: Iterable[int] = (500, 502, 503, 504)
+    timeout: Optional[Union[int, Tuple[int, int]]] = DEFAULT_TIMEOUT,
+    status_forcelist: Iterable[int] = (500, 502, 503, 504)
 ) -> requests.Session:
     session = requests.Session()
 
@@ -49,24 +49,24 @@ def get_http_session(
             kwargs)
 
     def retry_callback(
-            error,
-            method,
-            url,
-            params=None,
-            data=None,
-            headers=None,
-            cookies=None,
-            files=None,
-            auth=None,
-            timeout=None,
-            allow_redirects=True,
-            proxies=None,
-            hooks=None,
-            stream=None,
-            verify=None,
-            cert=None,
-            json=None,
-            **kwargs,
+        error,
+        method,
+        url,
+        params=None,
+        data=None,
+        headers=None,
+        cookies=None,
+        files=None,
+        auth=None,
+        timeout=None,
+        allow_redirects=True,
+        proxies=None,
+        hooks=None,
+        stream=None,
+        verify=None,
+        cert=None,
+        json=None,
+        **kwargs,
     ):
         if data and hasattr(data, 'seek'):
             data.seek(0)

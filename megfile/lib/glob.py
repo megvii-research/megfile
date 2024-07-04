@@ -5,7 +5,7 @@ import os
 import re
 from collections import OrderedDict
 from collections import namedtuple as NamedTuple
-from typing import Callable, Iterator, List, Tuple
+from typing import Iterator, List, Tuple
 
 from megfile.lib import fnmatch
 

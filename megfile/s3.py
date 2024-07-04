@@ -60,7 +60,8 @@ __all__ = [
 
 
 def s3_access(
-        path: PathLike, mode: Access = Access.READ,
+        path: PathLike,
+        mode: Access = Access.READ,
         followlinks: bool = False) -> bool:
     '''
     Test if path has access permission described by mode
@@ -192,7 +193,8 @@ def s3_remove(path: PathLike, missing_ok: bool = False) -> None:
     return S3Path(path).remove(missing_ok)
 
 
-def s3_scan(path: PathLike, missing_ok: bool = True,
+def s3_scan(path: PathLike,
+            missing_ok: bool = True,
             followlinks: bool = False) -> Iterator[str]:
     '''
     Iteratively traverse only files in given s3 directory, in alphabetical order.
@@ -213,7 +215,8 @@ def s3_scan(path: PathLike, missing_ok: bool = True,
 
 
 def s3_scan_stat(
-        path: PathLike, missing_ok: bool = True,
+        path: PathLike,
+        missing_ok: bool = True,
         followlinks: bool = False) -> Iterator[FileEntry]:
     '''
     Iteratively traverse only files in given directory, in alphabetical order.
@@ -264,8 +267,10 @@ def s3_unlink(path: PathLike, missing_ok: bool = False) -> None:
     return S3Path(path).unlink(missing_ok)
 
 
-def s3_walk(path: PathLike, followlinks: bool = False
-           ) -> Iterator[Tuple[str, List[str], List[str]]]:
+def s3_walk(
+        path: PathLike,
+        followlinks: bool = False
+) -> Iterator[Tuple[str, List[str], List[str]]]:
     '''
     Iteratively traverse the given s3 directory, in top-bottom order. In other words, firstly traverse parent directory, if subdirectories exist, traverse the subdirectories in alphabetical order.
     Every iteration on generator yields a 3-tuple: (root, dirs, files)
@@ -289,7 +294,8 @@ def s3_walk(path: PathLike, followlinks: bool = False
 
 
 def s3_getmd5(
-        path: PathLike, recalculate: bool = False,
+        path: PathLike,
+        recalculate: bool = False,
         followlinks: bool = False) -> str:
     '''
     Get md5 meta info in files that uploaded/copied via megfile

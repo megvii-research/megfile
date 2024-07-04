@@ -28,31 +28,34 @@ def _locations(errors: List[Error]) -> Dict[str, Location]:
     return locations
 
 
-def _to_sarif_result(error: Error,
-                     locations: Dict[str, Location]) -> Dict[str, Any]:
+def _to_sarif_result(error: Error, locations: Dict[str,
+                                                   Location]) -> Dict[str, Any]:
     LOG.info(f"Transforming:\n{error}")
 
     return {
         "ruleId":
-        "type-error",
+            "type-error",
         "ruleIndex":
-        0,
+            0,
         "level":
-        "error",
+            "error",
         "message": {
             "text": error["description"],
         },
-        "locations": [
-            {
-                "physicalLocation": {
-                    "artifactLocation": locations[error["path"]],
-                    "region": {
-                        "startLine": error["line"],
-                        "startColumn": error["column"] + 1,
-                    },
+        "locations":
+            [
+                {
+                    "physicalLocation":
+                        {
+                            "artifactLocation": locations[error["path"]],
+                            "region":
+                                {
+                                    "startLine": error["line"],
+                                    "startColumn": error["column"] + 1,
+                                },
+                        }
                 }
-            }
-        ],
+            ],
     }
 
 
@@ -61,42 +64,55 @@ def _to_sarif(errors: List[Dict[str, Any]]) -> Dict[str, Any]:
     locations = _locations(errors)
     return {
         "version":
-        "2.1.0",
+            "2.1.0",
         "$schema":
-        "http://json.schemastore.org/sarif-2.1.0-rtm.4",
-        "runs": [
-            {
-                "tool": {
-                    "driver": {
-                        "name":
-                        "Pyre",
-                        "informationUri":
-                        "https://www.pyre-check.org",
-                        "rules": [
+            "http://json.schemastore.org/sarif-2.1.0-rtm.4",
+        "runs":
+            [
+                {
+                    "tool":
+                        {
+                            "driver":
+                                {
+                                    "name":
+                                        "Pyre",
+                                    "informationUri":
+                                        "https://www.pyre-check.org",
+                                    "rules":
+                                        [
+                                            {
+                                                "id":
+                                                    "type-error",
+                                                "shortDescription":
+                                                    {
+                                                        "text": "Type Error"
+                                                    },
+                                                "helpUri":
+                                                    "https://www.pyre-check.org",
+                                                "help":
+                                                    {
+                                                        "text":
+                                                            "Pyre is a type checker for Python"
+                                                    },
+                                            },
+                                        ],
+                                }
+                        },
+                    "artifacts":
+                        [
                             {
-                                "id": "type-error",
-                                "shortDescription": {
-                                    "text": "Type Error"
-                                },
-                                "helpUri": "https://www.pyre-check.org",
-                                "help": {
-                                    "text": "Pyre is a type checker for Python"
-                                },
-                            },
+                                "location": location
+                            } for location in sorted(
+                                locations.values(),
+                                key=lambda location: location["index"])
                         ],
-                    }
-                },
-                "artifacts": [
-                    {
-                        "location": location
-                    } for location in sorted(
-                        locations.values(),
-                        key=lambda location: location["index"])
-                ],
-                "results":
-                [_to_sarif_result(error, locations) for error in errors],
-            }
-        ],
+                    "results":
+                        [
+                            _to_sarif_result(error, locations)
+                            for error in errors
+                        ],
+                }
+            ],
     }
 
 

@@ -154,7 +154,8 @@ def hdfs_remove(path: PathLike, missing_ok: bool = False) -> None:
 
 
 def hdfs_scan(
-        path: PathLike, missing_ok: bool = True,
+        path: PathLike,
+        missing_ok: bool = True,
         followlinks: bool = False) -> Iterator[str]:
     '''
     Iteratively traverse only files in given hdfs directory.
@@ -175,7 +176,8 @@ def hdfs_scan(
 
 
 def hdfs_scan_stat(
-        path: PathLike, missing_ok: bool = True,
+        path: PathLike,
+        missing_ok: bool = True,
         followlinks: bool = False) -> Iterator[FileEntry]:
     '''
     Iteratively traverse only files in given directory.
@@ -212,8 +214,10 @@ def hdfs_unlink(path: PathLike, missing_ok: bool = False) -> None:
     return HdfsPath(path).unlink(missing_ok)
 
 
-def hdfs_walk(path: PathLike, followlinks: bool = False
-             ) -> Iterator[Tuple[str, List[str], List[str]]]:
+def hdfs_walk(
+        path: PathLike,
+        followlinks: bool = False
+) -> Iterator[Tuple[str, List[str], List[str]]]:
     '''
     Iteratively traverse the given hdfs directory, in top-bottom order. In other words, firstly traverse parent directory, if subdirectories exist, traverse the subdirectories.
     Every iteration on generator yields a 3-tuple: (root, dirs, files)
@@ -236,7 +240,8 @@ def hdfs_walk(path: PathLike, followlinks: bool = False
 
 
 def hdfs_getmd5(
-        path: PathLike, recalculate: bool = False,
+        path: PathLike,
+        recalculate: bool = False,
         followlinks: bool = False) -> str:
     '''
     Get checksum of the file or dir.

@@ -1,6 +1,6 @@
 import os
-from typing import AnyStr, Callable, Optional
 from functools import cached_property
+from typing import AnyStr, Callable, Optional
 
 from megfile.interfaces import Readable, Seekable, Writable
 from megfile.utils import get_content_size

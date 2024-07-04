@@ -2,9 +2,8 @@ import os
 import stat
 from collections.abc import Sequence
 from enum import Enum
-from functools import wraps
-from typing import IO, Any, AnyStr, BinaryIO, Callable, Iterator, List, NamedTuple, Optional, Tuple, Union
-from functools import cached_property
+from functools import cached_property, wraps
+from typing import IO, Any, AnyStr, BinaryIO, Iterator, List, NamedTuple, Optional, Tuple, Union
 
 from megfile.lib.compat import PathLike as _PathLike
 from megfile.lib.compat import fspath
@@ -309,7 +308,9 @@ class BasePath:
 
     @method_not_implemented
     def mkdir(
-            self, mode=0o777, parents: bool = False,
+            self,
+            mode=0o777,
+            parents: bool = False,
             exist_ok: bool = False) -> None:
         """Create a directory."""
 
@@ -322,33 +323,44 @@ class BasePath:
         """Open the file with mode."""
 
     @method_not_implemented
-    def walk(self, followlinks: bool = False
-            ) -> Iterator[Tuple[str, List[str], List[str]]]:  # type: ignore
+    def walk(
+        self,
+        followlinks: bool = False
+    ) -> Iterator[Tuple[str, List[str], List[str]]]:  # type: ignore
         """Generate the file names in a directory tree by walking the tree."""
 
     @method_not_implemented
-    def scan(self, missing_ok: bool = True,
+    def scan(self,
+             missing_ok: bool = True,
              followlinks: bool = False) -> Iterator[str]:  # type: ignore
         """Iterate through the files in the directory."""
 
     @method_not_implemented
-    def scan_stat(self, missing_ok: bool = True, followlinks: bool = False
-                 ) -> Iterator[FileEntry]:  # type: ignore
+    def scan_stat(
+            self,
+            missing_ok: bool = True,
+            followlinks: bool = False) -> Iterator[FileEntry]:  # type: ignore
         """Iterate through the files in the directory, with file stat."""
 
     @method_not_implemented
-    def glob(self, pattern, recursive: bool = True,
+    def glob(self,
+             pattern,
+             recursive: bool = True,
              missing_ok: bool = True) -> List['BasePath']:  # type: ignore
         """Return files whose paths match the glob pattern."""
 
     @method_not_implemented
-    def iglob(self, pattern, recursive: bool = True,
+    def iglob(self,
+              pattern,
+              recursive: bool = True,
               missing_ok: bool = True) -> Iterator['BasePath']:  # type: ignore
         """Return an iterator of files whose paths match the glob pattern."""
 
     @method_not_implemented
     def glob_stat(
-            self, pattern, recursive: bool = True,
+            self,
+            pattern,
+            recursive: bool = True,
             missing_ok: bool = True) -> Iterator[FileEntry]:  # type: ignore
         """Return an iterator of files with stat whose paths match the glob pattern."""
 

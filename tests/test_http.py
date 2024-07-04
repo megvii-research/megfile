@@ -1,8 +1,8 @@
 import pickle
 import time
+from functools import cached_property
 from io import BufferedReader, BytesIO
 from typing import Optional
-from functools import cached_property
 
 import pytest
 import requests

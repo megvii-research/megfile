@@ -329,7 +329,8 @@ class BasePrefetchReader(Readable, Seekable, ABC):
 
     @abstractmethod
     def _fetch_response(
-            self, start: Optional[int] = None,
+            self,
+            start: Optional[int] = None,
             end: Optional[int] = None) -> dict:
         pass
 

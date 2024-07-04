@@ -14,7 +14,6 @@ corresponding to PATTERN.  (It does not compile it.)
 import functools
 import os
 import re
-import sys
 from typing import Callable, List, Match, Optional
 
 

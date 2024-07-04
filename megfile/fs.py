@@ -209,7 +209,8 @@ def fs_remove(path: PathLike, missing_ok: bool = False) -> None:
     return FSPath(path).remove(missing_ok)
 
 
-def fs_scan(path: PathLike, missing_ok: bool = True,
+def fs_scan(path: PathLike,
+            missing_ok: bool = True,
             followlinks: bool = False) -> Iterator[str]:
     '''
     Iteratively traverse only files in given directory, in alphabetical order.
@@ -227,7 +228,8 @@ def fs_scan(path: PathLike, missing_ok: bool = True,
 
 
 def fs_scan_stat(
-        path: PathLike, missing_ok: bool = True,
+        path: PathLike,
+        missing_ok: bool = True,
         followlinks: bool = False) -> Iterator[FileEntry]:
     '''
     Iteratively traverse only files in given directory, in alphabetical order.
@@ -270,8 +272,10 @@ def fs_unlink(path: PathLike, missing_ok: bool = False) -> None:
     return FSPath(path).unlink(missing_ok)
 
 
-def fs_walk(path: PathLike, followlinks: bool = False
-           ) -> Iterator[Tuple[str, List[str], List[str]]]:
+def fs_walk(
+        path: PathLike,
+        followlinks: bool = False
+) -> Iterator[Tuple[str, List[str], List[str]]]:
     '''
     Generate the file names in a directory tree by walking the tree top-down.
     For each directory in the tree rooted at directory path (including path itself),
@@ -302,6 +306,7 @@ def fs_getmd5(
     :param path: Given path
     :param recalculate: Ignore this parameter, just for compatibility
     :param followlinks: Ignore this parameter, just for compatibility
+
     returns: md5 of file
     '''
     return FSPath(path).md5(recalculate, followlinks)
