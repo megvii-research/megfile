@@ -2,7 +2,7 @@ import hashlib
 import io
 import os
 import sys
-from functools import cached_property, lru_cache
+from functools import lru_cache
 from typing import IO, AnyStr, BinaryIO, Iterator, List, Optional, Tuple
 
 from megfile.errors import _create_missing_ok_generator, raise_hdfs_error
@@ -14,7 +14,7 @@ from megfile.lib.hdfs_tools import hdfs_api
 from megfile.lib.url import get_url_scheme
 from megfile.pathlike import PathLike, URIPath
 from megfile.smart_path import SmartPath
-from megfile.utils import _is_pickle
+from megfile.utils import _is_pickle, cachedproperty
 
 __all__ = [
     'HdfsPath',
@@ -178,7 +178,7 @@ class HdfsPath(URIPath):
     def _client(self):
         return get_hdfs_client(profile_name=self._profile_name)
 
-    @cached_property
+    @cachedproperty
     def path_with_protocol(self) -> str:
         '''Return path with protocol, like hdfs://path'''
         path = self.path
@@ -187,7 +187,7 @@ class HdfsPath(URIPath):
             return path
         return protocol_prefix + path.lstrip('/')
 
-    @cached_property
+    @cachedproperty
     def path_without_protocol(self) -> str:
         '''Return path without protocol, example: if path is hdfs://path, return path'''
         path = self.path
@@ -196,7 +196,7 @@ class HdfsPath(URIPath):
             path = path[len(protocol_prefix):]
         return path
 
-    @cached_property
+    @cachedproperty
     def parts(self) -> Tuple[str]:
         '''A tuple giving access to the path’s various components'''
         parts = [f"{self._protocol_with_profile}://"]

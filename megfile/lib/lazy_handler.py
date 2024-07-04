@@ -1,9 +1,8 @@
 import os
-from functools import cached_property
 from typing import AnyStr, Callable, Optional
 
 from megfile.interfaces import Readable, Seekable, Writable
-from megfile.utils import get_content_size
+from megfile.utils import cachedproperty, get_content_size
 
 
 class LazyHandler(Readable, Seekable, Writable):
@@ -25,7 +24,7 @@ class LazyHandler(Readable, Seekable, Writable):
     def mode(self) -> str:
         return self._mode
 
-    @cached_property
+    @cachedproperty
     def _file_object(self):
         return self._open_func(self._path, self._mode, **self._options)
 

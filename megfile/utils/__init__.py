@@ -4,6 +4,7 @@ import math
 import os
 import uuid
 from copy import copy
+from functools import cached_property as cachedproperty  # noqa
 from functools import wraps
 from io import BufferedIOBase, BufferedRandom, BufferedReader, BufferedWriter, BytesIO, StringIO, TextIOBase, TextIOWrapper
 from typing import IO, Callable, Optional

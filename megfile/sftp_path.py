@@ -7,7 +7,6 @@ import random
 import shlex
 import socket
 import subprocess
-from functools import cached_property
 from logging import getLogger as get_logger
 from stat import S_ISDIR, S_ISLNK, S_ISREG
 from typing import IO, AnyStr, BinaryIO, Callable, Iterator, List, Optional, Tuple, Union
@@ -24,7 +23,7 @@ from megfile.lib.glob import FSFunc, iglob
 from megfile.lib.joinpath import uri_join
 from megfile.pathlike import PathLike, URIPath
 from megfile.smart_path import SmartPath
-from megfile.utils import calculate_md5, thread_local
+from megfile.utils import cachedproperty, calculate_md5, thread_local
 
 _logger = get_logger(__name__)
 
@@ -604,7 +603,7 @@ class SftpPath(URIPath):
             self._root_dir = self._client.normalize('.')
         self._real_path = os.path.join(self._root_dir, parts.path.lstrip('/'))
 
-    @cached_property
+    @cachedproperty
     def parts(self) -> Tuple[str]:
         '''A tuple giving access to the path’s various components'''
         if self._urlsplit_parts.path.startswith('//'):
