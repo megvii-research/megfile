@@ -937,7 +937,7 @@ class FSPath(URIPath):
             closefd=closefd)
 
     @cachedproperty
-    def parts(self) -> Tuple[str]:
+    def parts(self) -> Tuple[str, ...]:
         '''
         A tuple giving access to the path’s various components
         '''

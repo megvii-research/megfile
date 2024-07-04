@@ -3,7 +3,7 @@ import stat
 from collections.abc import Sequence
 from enum import Enum
 from functools import wraps
-from typing import IO, Any, AnyStr, BinaryIO, Iterator, List, NamedTuple, Optional, Tuple, Union
+from typing import IO, Any, AnyStr, BinaryIO, Iterator, List, NamedTuple, Optional, Tuple, Type, TypeVar, Union
 
 from megfile.lib.compat import PathLike as _PathLike
 from megfile.lib.compat import fspath
@@ -233,6 +233,9 @@ def method_not_implemented(func):
     return wrapper
 
 
+T_BasePath = TypeVar('T_BasePath')
+
+
 class BasePath:
 
     def __init__(self, path: "PathLike"):
@@ -343,23 +346,25 @@ class BasePath:
         """Iterate through the files in the directory, with file stat."""
 
     @method_not_implemented
-    def glob(self,
-             pattern,
-             recursive: bool = True,
-             missing_ok: bool = True) -> List['BasePath']:  # type: ignore
+    def glob(
+            self: T_BasePath,
+            pattern: str,
+            recursive: bool = True,
+            missing_ok: bool = True) -> List[T_BasePath]:  # type: ignore
         """Return files whose paths match the glob pattern."""
 
     @method_not_implemented
-    def iglob(self,
-              pattern,
-              recursive: bool = True,
-              missing_ok: bool = True) -> Iterator['BasePath']:  # type: ignore
+    def iglob(
+            self: T_BasePath,
+            pattern: str,
+            recursive: bool = True,
+            missing_ok: bool = True) -> Iterator[T_BasePath]:  # type: ignore
         """Return an iterator of files whose paths match the glob pattern."""
 
     @method_not_implemented
     def glob_stat(
             self,
-            pattern,
+            pattern: str,
             recursive: bool = True,
             missing_ok: bool = True) -> Iterator[FileEntry]:  # type: ignore
         """Return an iterator of files with stat whose paths match the glob pattern."""
@@ -418,6 +423,7 @@ class BasePath:
 
 
 PathLike = Union[str, BasePath, _PathLike]
+T_Path = TypeVar('T_Path')
 
 
 class BaseURIPath(BasePath):
@@ -463,17 +469,19 @@ class BaseURIPath(BasePath):
         return self.path_with_protocol
 
     @classmethod
-    def from_path(cls, path) -> "BaseURIPath":
+    def from_path(cls: Type[T_Path], path: PathLike) -> T_Path:
         """Return new instance of this class
 
         :param path: new path 
+
         :return: new instance of new path
-        :rtype: BaseURIPath
+        :rtype: T_Path
         """
         return cls(path)
 
     @classmethod
-    def from_uri(cls, path: str) -> "BaseURIPath":
+    def from_uri(cls: Type[T_Path], path: PathLike) -> T_Path:
+        path = fspath(path)
         protocol_prefix = cls.protocol + "://"
         if path[:len(protocol_prefix)] != protocol_prefix:
             raise ValueError(
@@ -540,7 +548,7 @@ class URIPath(BaseURIPath):
             path = self.from_path(path).joinpath(*other_paths)
         self.path = str(path)
 
-    def __truediv__(self, other_path: PathLike) -> "BaseURIPath":
+    def __truediv__(self: T_Path, other_path: PathLike) -> T_Path:
         if isinstance(other_path, BaseURIPath):
             if self.protocol != other_path.protocol:
                 raise TypeError(
@@ -550,12 +558,12 @@ class URIPath(BaseURIPath):
             raise TypeError("%r is not 'str' nor 'URIPath'" % other_path)
         return self.joinpath(other_path)
 
-    def joinpath(self, *other_paths: PathLike) -> "BaseURIPath":
+    def joinpath(self: T_Path, *other_paths: PathLike) -> T_Path:
         '''Calling this method is equivalent to combining the path with each of the other arguments in turn'''
         return self.from_path(uri_join(str(self), *map(str, other_paths)))
 
     @cachedproperty
-    def parts(self) -> Tuple[str]:
+    def parts(self) -> Tuple[str, ...]:
         '''A tuple giving access to the path’s various components'''
         parts = [self.root]
         path = self.path_without_protocol
@@ -570,7 +578,7 @@ class URIPath(BaseURIPath):
         return URIPathParents(self)
 
     @cachedproperty
-    def parent(self) -> "BaseURIPath":
+    def parent(self: T_Path) -> T_Path:
         '''The logical parent of the path'''
         if self.path_without_protocol == "/":
             return self
@@ -633,7 +641,7 @@ class URIPath(BaseURIPath):
         except Exception:
             return False
 
-    def relative_to(self, *other) -> "BaseURIPath":
+    def relative_to(self: T_Path, *other: str) -> T_Path:
         '''
         Compute a version of this path relative to the path represented by other.
         If it’s impossible, ValueError is raised.
@@ -654,17 +662,17 @@ class URIPath(BaseURIPath):
         else:
             raise ValueError("%r does not start with %r" % (path, other))
 
-    def with_name(self, name) -> "BaseURIPath":
+    def with_name(self: T_Path, name: str) -> T_Path:
         '''Return a new path with the name changed'''
         path = str(self)
         raw_name = self.name
         return self.from_path(path[:len(path) - len(raw_name)] + name)
 
-    def with_stem(self, stem) -> "BaseURIPath":
+    def with_stem(self: T_Path, stem: str) -> T_Path:
         '''Return a new path with the stem changed'''
         return self.with_name("".join([stem, self.suffix]))
 
-    def with_suffix(self, suffix) -> "BaseURIPath":
+    def with_suffix(self: T_Path, suffix: str) -> T_Path:
         '''Return a new path with the suffix changed'''
         path = str(self)
         raw_suffix = self.suffix
@@ -743,7 +751,8 @@ class URIPath(BaseURIPath):
         with self.open(mode='r') as f:
             return f.read()
 
-    def rename(self, dst_path: PathLike, overwrite: bool = True) -> 'URIPath':
+    def rename(
+            self: T_Path, dst_path: PathLike, overwrite: bool = True) -> T_Path:
         '''
         rename file
 
@@ -752,7 +761,8 @@ class URIPath(BaseURIPath):
         '''
         raise NotImplementedError(f"'rename' is unsupported on '{type(self)}'")
 
-    def replace(self, dst_path: PathLike, overwrite: bool = True) -> 'URIPath':
+    def replace(
+            self: T_Path, dst_path: PathLike, overwrite: bool = True) -> T_Path:
         '''
         move file
 
@@ -761,7 +771,7 @@ class URIPath(BaseURIPath):
         '''
         return self.rename(dst_path=dst_path, overwrite=overwrite)
 
-    def rglob(self, pattern) -> List['URIPath']:
+    def rglob(self: T_Path, pattern) -> List[T_Path]:
         '''
         This is like calling Path.glob() with “**/” added in front of the given relative pattern
         '''
@@ -844,14 +854,14 @@ class URIPath(BaseURIPath):
         raise NotImplementedError(
             f"'expanduser' is unsupported on '{type(self)}'")
 
-    def cwd(self) -> 'URIPath':
+    def cwd(self: T_Path) -> T_Path:
         '''Return current working directory
 
         returns: Current working directory
         '''
         raise NotImplementedError(f"'cwd' is unsupported on '{type(self)}'")
 
-    def iterdir(self) -> Iterator['URIPath']:
+    def iterdir(self: T_Path) -> Iterator[T_Path]:
         '''
         Get all contents of given fs path. The result is in acsending alphabetical order.
 
@@ -865,7 +875,7 @@ class URIPath(BaseURIPath):
         '''
         raise NotImplementedError(f"'owner' is unsupported on '{type(self)}'")
 
-    def absolute(self) -> 'URIPath':
+    def absolute(self: T_Path) -> T_Path:
         '''
         Make the path absolute, without normalization or resolving symlinks. Returns a new path object
         '''
