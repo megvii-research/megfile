@@ -49,7 +49,7 @@ class CombineReader(Readable, Seekable):
     def tell(self) -> int:
         return self._offset
 
-    def _empty_bytes(self) -> AnyStr:  # pytype: disable=signature-mismatch
+    def _empty_bytes(self) -> AnyStr:
         if 'b' in self._mode:
             return b''
         return ''
@@ -59,7 +59,7 @@ class CombineReader(Readable, Seekable):
             return BytesIO()
         return StringIO()
 
-    def read(self, size: Optional[int] = None) -> AnyStr:  # pytype: disable=signature-mismatch
+    def read(self, size: Optional[int] = None) -> AnyStr:
         if self._offset >= self._content_size:
             return self._empty_bytes()
         if size is None or size < 0:
@@ -74,7 +74,7 @@ class CombineReader(Readable, Seekable):
             self._offset += len(data)
         return buffer.getvalue()
 
-    def readline(self, size: Optional[int] = None) -> AnyStr:  # pytype: disable=signature-mismatch
+    def readline(self, size: Optional[int] = None) -> AnyStr:
         if self._offset >= self._content_size:
             return self._empty_bytes()
         if size is None or size < 0:

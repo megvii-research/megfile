@@ -64,7 +64,7 @@ class SmartPath(BasePath):
         return protocol, path_without_protocol
 
     @classmethod
-    def _create_pathlike(cls, path: Union[PathLike, int]) -> BasePath:
+    def _create_pathlike(cls, path: Union[PathLike, int]) -> BaseURIPath:
         protocol, _ = cls._extract_protocol(path)
         if protocol.startswith('s3+'):
             protocol = 's3'
@@ -122,7 +122,7 @@ class SmartPath(BasePath):
 
     @property
     def protocol(self) -> str:
-        return self.pathlike.protocol  # pytype: disable=attribute-error
+        return self.pathlike.protocol
 
     @classmethod
     def from_uri(cls, path: str):

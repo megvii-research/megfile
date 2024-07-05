@@ -14,7 +14,7 @@ def stdio_open(
         mode: str = 'rb',
         encoding: Optional[str] = None,
         errors: Optional[str] = None,
-        **kwargs) -> IO[AnyStr]:  # pytype: disable=signature-mismatch
+        **kwargs) -> IO[AnyStr]:
     '''Used to read or write stdio
 
     .. note ::

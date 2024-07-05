@@ -80,7 +80,7 @@ def s3_exists(path: PathLike, followlinks: bool = False) -> bool:
     If the bucket of s3_url are not permitted to read, return False
 
     :param path: Given path
-    :returns: True if s3_url eixsts, else False
+    :returns: True if s3_url exists, else False
     '''
     return S3Path(path).exists(followlinks)
 
@@ -140,10 +140,10 @@ def s3_isfile(path: PathLike, followlinks: bool = False) -> bool:
 
 def s3_listdir(path: PathLike, followlinks: bool = False) -> List[str]:
     '''
-    Get all contents of given s3_url. The result is in acsending alphabetical order.
+    Get all contents of given s3_url. The result is in ascending alphabetical order.
 
     :param path: Given path
-    :returns: All contents have prefix of s3_url in acsending alphabetical order
+    :returns: All contents have prefix of s3_url in ascending alphabetical order
     :raises: S3FileNotFoundError, S3NotADirectoryError
     '''
     return S3Path(path).listdir(followlinks)
@@ -165,7 +165,7 @@ def s3_hasbucket(path: PathLike) -> bool:
     Test if the bucket of s3_url exists
 
     :param path: Given path
-    :returns: True if bucket of s3_url eixsts, else False
+    :returns: True if bucket of s3_url exists, else False
     '''
     return S3Path(path).hasbucket()
 
@@ -341,7 +341,7 @@ def s3_sync(
     :param src_url: Given path
     :param dst_url: Given destination path
     :param followlinks: False if regard symlink as file, else True
-    :param force: Sync file forcely, do not ignore same files, priority is higher than 'overwrite', default is False
+    :param force: Sync file forcible, do not ignore same files, priority is higher than 'overwrite', default is False
     :param overwrite: whether or not overwrite file when exists, default is True
     '''
     return S3Path(src_url).sync(dst_url, followlinks, force, overwrite)
@@ -352,7 +352,7 @@ def s3_symlink(src_path: PathLike, dst_path: PathLike) -> None:
     Create a symbolic link pointing to src_path named dst_path.
 
     :param src_path: Given path
-    :param dst_path: Desination path
+    :param dst_path: Destination path
     :raises: S3NameTooLongError, S3BucketNotFoundError, S3IsADirectoryError
     '''
     return S3Path(src_path).symlink(dst_path)

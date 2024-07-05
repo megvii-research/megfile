@@ -44,14 +44,14 @@ class S3ShareCacheReader(S3PrefetchReader):
             profile_name=profile_name,
         )
 
-    def _get_futures(self):
+    def _get_futures(self) -> 'ShareCacheFutureManager':
         futures = thread_local(
             'S3ShareCacheReader.' + self._cache_key, ShareCacheFutureManager)
         futures.register(self.name)
         return futures
 
     def _seek_buffer(self, index: int, offset: int = 0):
-        # The corresponding block is probably not downloaded when seeked to a new position
+        # The corresponding block is probably not downloaded when sought to a new position
         # So record the offset first, set it when it is accessed
         self._cached_offset = offset
         self._block_index = index

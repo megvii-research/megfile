@@ -271,7 +271,7 @@ class BasePrefetchReader(Readable, Seekable, ABC):
 
     @property
     def _is_alive(self):
-        return not self._executor._shutdown  # pytype: disable=attribute-error
+        return not self._executor._shutdown
 
     @property
     def _is_downloading(self):
@@ -307,7 +307,7 @@ class BasePrefetchReader(Readable, Seekable, ABC):
         return self._buffer
 
     def _seek_buffer(self, index: int, offset: int = 0):
-        # The corresponding block is probably not downloaded when seeked to a new position
+        # The corresponding block is probably not downloaded when seek to a new position
         # So record the offset first, set it when it is accessed
         if self._is_auto_scaling:  # When user doesn't define forward
             history = []

@@ -321,7 +321,7 @@ def rm(path: str, recursive: bool):
     '-f',
     '--force',
     is_flag=True,
-    help='Copy files forcely, ignore same files.')
+    help='Copy files forcible, ignore same files.')
 @click.option('-q', '--quiet', is_flag=True, help='Not show any progress log.')
 @click.option('--skip', is_flag=True, help='Skip existed files.')
 def sync(

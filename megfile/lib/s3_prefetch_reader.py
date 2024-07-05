@@ -41,6 +41,8 @@ class S3PrefetchReader(BasePrefetchReader):
         self._key = key
         self._client = s3_client
         self._profile_name = profile_name
+        self._content_etag = None
+        self._content_info = None
 
         super().__init__(
             block_size=block_size,
@@ -103,9 +105,9 @@ class S3PrefetchReader(BasePrefetchReader):
             index + 1) * self._block_size - 1
         response = self._fetch_response(start=start, end=end)
         etag = response.get('ETag', None)
-        if etag is not None and etag != self._content_etag:  # pytype: disable=attribute-error
+        if etag is not None and etag != self._content_etag:
             raise S3FileChangedError(
                 'File changed: %r, etag before: %s, after: %s' %
-                (self.name, self._content_info, response))  # pytype: disable=attribute-error
+                (self.name, self._content_info, response))
 
         return response['Body']

@@ -86,7 +86,7 @@ def get_http_session(
                         return BytesIO(f.read())
                 else:
                     _logger.warning(
-                        f'Can not retry http request, because the file object is not seekable and unsupport "name"'
+                        f'Can not retry http request, because the file object is not seekable and not support "name"'
                     )
                     raise
 
@@ -243,7 +243,7 @@ class HttpPath(URIPath):
                 block_forward=block_forward,
                 block_size=block_size,
             )
-            if _is_pickle(reader):  # pytype: disable=wrong-arg-types
+            if _is_pickle(reader):
                 reader = BufferedReader(reader)  # pytype: disable=wrong-arg-types
             return reader
 

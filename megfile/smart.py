@@ -74,7 +74,7 @@ def smart_symlink(src_path: PathLike, dst_path: PathLike) -> None:
     Create a symbolic link pointing to src_path named path.
 
     :param src_path: Source path
-    :param dst_path: Desination path
+    :param dst_path: Destination path
     '''
     return SmartPath(src_path).symlink(dst_path)
 
@@ -128,17 +128,17 @@ def smart_exists(path: PathLike, followlinks: bool = False) -> bool:
     Test if path or s3_url exists
 
     :param path: Path to be tested
-    :returns: True if path eixsts, else False
+    :returns: True if path exists, else False
     '''
     return SmartPath(path).exists(followlinks=followlinks)
 
 
 def smart_listdir(path: Optional[PathLike] = None) -> List[str]:
     '''
-    Get all contents of given s3_url or file path. The result is in acsending alphabetical order.
+    Get all contents of given s3_url or file path. The result is in ascending alphabetical order.
 
     :param path: Given path
-    :returns: All contents of given s3_url or file path in acsending alphabetical order.
+    :returns: All contents of given s3_url or file path in ascending alphabetical order.
     :raises: FileNotFoundError, NotADirectoryError
     '''
     if path is None:
@@ -242,15 +242,15 @@ _copy_funcs = {
 def register_copy_func(
     src_protocol: str,
     dst_protocol: str,
-    copy_func: Optional[Callable[[str, str, Optional[Callable[[int], None]]],
-                                 None]] = None,
+    copy_func: Optional[Callable] = None,
 ) -> None:
     '''
     Used to register copy func between protocols, and do not allow duplicate registration
 
     :param src_protocol: protocol name of source file, e.g. 's3'
     :param dst_protocol: protocol name of destination file, e.g. 's3'
-    :param copy_func: copy func, its type is: Callable[[str, str, Optional[Callable[[int], None]]], None]
+    :param copy_func: copy func, its type is: 
+        Callable[[str, str, Optional[Callable[[int], None]], Optional[bool], Optional[bool]], None]
     '''
     try:
         _copy_funcs[src_protocol][dst_protocol]
@@ -343,7 +343,7 @@ def smart_copy(
             dst_path,
             callback=callback,
             followlinks=followlinks,
-            overwrite=overwrite)  # type: ignore
+            overwrite=overwrite)
     except S3UnknownError as e:
         if 'cannot schedule new futures after interpreter shutdown' in str(e):
             _default_copy_func(
@@ -351,7 +351,7 @@ def smart_copy(
                 dst_path,
                 callback=callback,
                 followlinks=followlinks,
-                overwrite=overwrite)  # type: ignore
+                overwrite=overwrite)
         else:
             raise
 
@@ -456,7 +456,7 @@ def smart_sync(
             This parameter is in order to reduce file traversal times.
     :param map_func: A Callable func like `map`. You can use ThreadPoolExecutor.map, Pool.map and so on if you need concurrent capability.
             default is standard library `map`.
-    :param force: Sync file forcely, do not ignore same files, priority is higher than 'overwrite', default is False
+    :param force: Sync file forcible, do not ignore same files, priority is higher than 'overwrite', default is False
     :param overwrite: whether or not overwrite file when exists, default is True
     '''
     if not smart_exists(src_path):
@@ -507,7 +507,7 @@ def smart_sync_with_progress(
             This parameter is in order to reduce file traversal times.
     :param map_func: A Callable func like `map`. You can use ThreadPoolExecutor.map, Pool.map and so on if you need concurrent capability.
             default is standard library `map`.
-    :param force: Sync file forcely, do not ignore same files, priority is higher than 'overwrite', default is False
+    :param force: Sync file forcible, do not ignore same files, priority is higher than 'overwrite', default is False
     :param overwrite: whether or not overwrite file when exists, default is True
     '''
     if not smart_exists(src_path):
@@ -620,7 +620,7 @@ def smart_open(
         s3_open_func: Callable[[str, str], BinaryIO] = s3_open,
         encoding: Optional[str] = None,
         errors: Optional[str] = None,
-        **options) -> IO[AnyStr]:  # pytype: disable=signature-mismatch
+        **options) -> IO[AnyStr]:
     '''
     Open a file on the path
 

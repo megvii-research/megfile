@@ -77,7 +77,7 @@ class StdioPath(BaseURIPath):
             mode: str = 'rb',
             encoding: Optional[str] = None,
             errors: Optional[str] = None,
-            **kwargs) -> IO[AnyStr]:  # pytype: disable=signature-mismatch
+            **kwargs) -> IO[AnyStr]:
         '''Used to read or write stdio
 
         .. note ::
@@ -91,7 +91,7 @@ class StdioPath(BaseURIPath):
 
         if 'b' not in mode:
             fileobj = io.TextIOWrapper(
-                fileobj, encoding=encoding, errors=errors)  # type: ignore
+                fileobj, encoding=encoding, errors=errors)
             fileobj.mode = mode
 
-        return fileobj  # type: ignore
+        return fileobj

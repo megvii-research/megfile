@@ -165,7 +165,7 @@ def _iterdir(dirname: str, dironly: bool, fs: FSFunc) -> Iterator[str]:
         for name, isdir in fs.scandir(dirname):
             try:
                 if not dironly or isdir:
-                    yield name  # type: ignore
+                    yield name
             except OSError:
                 pass
     except OSError:

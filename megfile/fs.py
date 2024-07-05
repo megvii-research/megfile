@@ -161,10 +161,10 @@ def fs_isfile(path: PathLike, followlinks: bool = False) -> bool:
 
 def fs_listdir(path: PathLike) -> List[str]:
     '''
-    Get all contents of given fs path. The result is in acsending alphabetical order.
+    Get all contents of given fs path. The result is in ascending alphabetical order.
 
     :param path: Given path
-    :returns: All contents have in the path in acsending alphabetical order
+    :returns: All contents have in the path in ascending alphabetical order
     '''
     return FSPath(path).listdir()
 
@@ -353,7 +353,7 @@ def fs_sync(
     :param src_path: Given path
     :param dst_path: Target file path
     :param followlinks: False if regard symlink as file, else True
-    :param force: Sync file forcely, do not ignore same files, priority is higher than 'overwrite', default is False
+    :param force: Sync file forcible, do not ignore same files, priority is higher than 'overwrite', default is False
     :param overwrite: whether or not overwrite file when exists, default is True
     '''
     return FSPath(src_path).sync(dst_path, followlinks, force, overwrite)
@@ -364,7 +364,7 @@ def fs_symlink(src_path: PathLike, dst_path: PathLike) -> None:
     Create a symbolic link pointing to src_path named dst_path.
 
     :param src_path: Given path
-    :param dst_path: Desination path
+    :param dst_path: Destination path
     '''
     return FSPath(src_path).symlink(dst_path)
 

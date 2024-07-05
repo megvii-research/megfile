@@ -115,7 +115,7 @@ def shadow_copy(fileobj: IO, intrusive: bool = True, buffered: bool = False):
     from megfile.lib.shadow_handler import ShadowHandler
     result = ShadowHandler(fileobj, intrusive=intrusive)
     mode = get_mode(fileobj)
-    if "b" in mode and (buffered or _is_pickle(result)):  # pytype: disable=wrong-arg-types
+    if "b" in mode and (buffered or _is_pickle(result)):
         if "+" in mode:
             result = BufferedRandom(result)
         elif "x" in mode or "w" in mode or "a" in mode:
@@ -252,7 +252,7 @@ class classproperty(property):
             return "value"
     """
 
-    def __get__(self, _, cls) -> object:  # type: ignore
+    def __get__(self, _, cls) -> object:
         """
         This method gets called when a property value is requested.
         @param cls: The class type of the above instance.
@@ -261,7 +261,7 @@ class classproperty(property):
         # apply the __get__ on the class
         return super(classproperty, self).__get__(cls)
 
-    def __set__(self, cls_or_obj, value: object) -> None:  # type: ignore
+    def __set__(self, cls_or_obj, value: object) -> None:
         """
         This method gets called when a property value should be set.
         @param cls_or_obj: The class or instance of which the property should be changed.
@@ -270,7 +270,7 @@ class classproperty(property):
         # call this method only on the class, not the instance
         super(classproperty, self).__set__(_get_class(cls_or_obj), value)
 
-    def __delete__(self, cls_or_obj) -> None:  # type: ignore
+    def __delete__(self, cls_or_obj) -> None:
         """
         This method gets called when a property should be deleted.
         @param cls_or_obj: The class or instance of which the property should be deleted.
