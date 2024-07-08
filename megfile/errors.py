@@ -170,12 +170,12 @@ def _create_missing_ok_generator(generator, missing_ok: bool, error: Exception):
         yield from generator
         return
 
-    zero_elum = True
+    zero_elem = True
     for item in generator:
-        zero_elum = False
+        zero_elem = False
         yield item
 
-    if zero_elum:
+    if zero_elem:
         raise error
 
 
@@ -334,12 +334,11 @@ def translate_s3_error(s3_error: Exception, s3_url: PathLike) -> Exception:
     if isinstance(s3_error, S3Exception):
         return s3_error
     elif isinstance(s3_error, ClientError):
-        s3_error: ClientError
         code = client_error_code(s3_error)
         if code in ('NoSuchBucket'):
             return S3BucketNotFoundError(
                 'No such bucket: %r' %
-                s3_error.response.get('Error', {}).get('BucketName') or s3_url)
+                s3_error.response.get('Error', {}).get('BucketName') or s3_url)  # pytype: disable=attribute-error
         if code in ('404', 'NoSuchKey'):
             return S3FileNotFoundError('No such file: %r' % s3_url)
         if code in ('401', '403', 'AccessDenied'):
@@ -411,8 +410,8 @@ def translate_hdfs_error(
         hdfs_error: Exception, hdfs_path: PathLike) -> Exception:
     from megfile.lib.hdfs_tools import hdfs_api
 
+    # pytype: disable=attribute-error
     if hdfs_api and isinstance(hdfs_error, hdfs_api.HdfsError):
-        hdfs_error: hdfs_api.HdfsError
         if hdfs_error.message and 'Path is not a file' in hdfs_error.message:
             return IsADirectoryError('Is a directory: %r' % hdfs_path)
         elif hdfs_error.message and 'Path is not a directory' in hdfs_error.message:
@@ -423,6 +422,7 @@ def translate_hdfs_error(
             return ValueError(f'{hdfs_error.message}, path: {hdfs_path}')
         elif hdfs_error.status_code == 404:
             return FileNotFoundError(f'No match file: {hdfs_path}')
+    # pytype: enable=attribute-error
     return hdfs_error
 
 

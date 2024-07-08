@@ -3,7 +3,7 @@ import io
 import os
 import sys
 from functools import lru_cache
-from typing import IO, AnyStr, BinaryIO, Iterator, List, Optional, Tuple
+from typing import IO, BinaryIO, Iterator, List, Optional, Tuple
 
 from megfile.errors import _create_missing_ok_generator, raise_hdfs_error
 from megfile.interfaces import FileEntry, PathLike, StatResult, URIPath
@@ -55,7 +55,7 @@ def get_hdfs_config(profile_name: Optional[str] = None):
     }
     timeout_env = f"{env_profile}{HDFS_TIMEOUT}"
     if os.getenv(timeout_env):
-        config['timeout'] = int(os.getenv(timeout_env))
+        config['timeout'] = int(os.environ[timeout_env])
 
     config_path = os.getenv(HDFS_CONFIG_PATH) or os.path.expanduser(
         '~/.hdfscli.cfg')
@@ -596,7 +596,7 @@ class HdfsPath(URIPath):
             buffering: Optional[int] = None,
             encoding: Optional[str] = None,
             errors: Optional[str] = None,
-            **kwargs) -> IO[AnyStr]:
+            **kwargs) -> IO:
         if '+' in mode:
             raise ValueError('unacceptable mode: %r' % mode)
 

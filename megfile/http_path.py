@@ -276,7 +276,7 @@ class HttpPath(URIPath):
         except Exception as error:
             raise translate_http_error(error, self.path_with_protocol)
 
-        size = headers.get('Content-Length')
+        size = headers.get('Content-Length', 0)
         if size:
             size = int(size)
 
@@ -284,10 +284,15 @@ class HttpPath(URIPath):
         if last_modified:
             last_modified = time.mktime(
                 time.strptime(last_modified, "%a, %d %b %Y %H:%M:%S %Z"))
+        else:
+            last_modified = 0.0
 
-        return StatResult(  # pyre-ignore[20]
-            size=size, mtime=last_modified, isdir=False,
-            islnk=False, extra=headers)
+        return StatResult(
+            size=size,
+            mtime=last_modified,
+            isdir=False,
+            islnk=False,
+            extra=headers)
 
     def getsize(self, follow_symlinks: bool = False) -> int:
         '''

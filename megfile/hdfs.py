@@ -1,4 +1,4 @@
-from typing import IO, AnyStr, BinaryIO, Iterator, List, Optional, Tuple
+from typing import IO, BinaryIO, Iterator, List, Optional, Tuple
 
 from megfile.hdfs_path import HdfsPath, hdfs_glob, hdfs_glob_stat, hdfs_iglob, hdfs_makedirs, is_hdfs
 from megfile.interfaces import FileEntry, PathLike, StatResult
@@ -270,6 +270,6 @@ def hdfs_open(
         buffering: Optional[int] = None,
         encoding: Optional[str] = None,
         errors: Optional[str] = None,
-        **kwargs) -> IO[AnyStr]:
+        **kwargs) -> IO:
     return HdfsPath(path).open(
         mode, buffering=buffering, encoding=encoding, errors=errors)

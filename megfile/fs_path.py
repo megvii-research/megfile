@@ -5,7 +5,7 @@ import pathlib
 import shutil
 from stat import S_ISDIR as stat_isdir
 from stat import S_ISLNK as stat_islnk
-from typing import IO, AnyStr, BinaryIO, Callable, Iterator, List, Optional, Tuple, Union
+from typing import IO, BinaryIO, Callable, Iterator, List, Optional, Tuple, Union
 
 from megfile.errors import _create_missing_ok_generator
 from megfile.interfaces import Access, ContextIterator, FileEntry, PathLike, StatResult
@@ -265,7 +265,7 @@ class FSPath(URIPath):
 
     protocol = "file"
 
-    def __init__(self, path: Union["PathLike", int], *other_paths: "PathLike"):
+    def __init__(self, path: Union[PathLike, int], *other_paths: PathLike):
         if not isinstance(path, int):
             if len(other_paths) > 0:
                 path = self.from_path(path).joinpath(*other_paths)
@@ -288,7 +288,7 @@ class FSPath(URIPath):
         return pathlib.Path(self.path_without_protocol).drive
 
     @classmethod
-    def from_uri(cls, path: str) -> "FSPath":
+    def from_uri(cls, path: PathLike) -> "FSPath":
         return cls.from_path(path)
 
     @property
@@ -322,14 +322,14 @@ class FSPath(URIPath):
         :param mode: access mode
         :returns: Access: Enum, the read/write access that path has.
         '''
-        if not isinstance(mode, Access):
+        if mode == Access.READ:
+            return os.access(self.path_without_protocol, os.R_OK)
+        elif mode == Access.WRITE:
+            return os.access(self.path_without_protocol, os.W_OK)
+        else:
             raise TypeError(
                 'Unsupported mode: {} -- Mode should use one of the enums belonging to:  {}'
                 .format(mode, ', '.join([str(a) for a in Access])))
-        if mode == Access.READ:
-            return os.access(self.path_without_protocol, os.R_OK)
-        if mode == Access.WRITE:
-            return os.access(self.path_without_protocol, os.W_OK)
 
     def exists(self, followlinks: bool = False) -> bool:
         '''
@@ -769,7 +769,9 @@ class FSPath(URIPath):
             followlinks: bool = False):
 
         shutil.copy2(
-            self.path_without_protocol, dst_path, follow_symlinks=followlinks)
+            self.path_without_protocol,
+            fspath(dst_path),
+            follow_symlinks=followlinks)
 
         # After python3.8, patch `shutil.copyfile` is not a good way, because `shutil.copy2` will not call it in some cases.
         if callback:
@@ -801,6 +803,7 @@ class FSPath(URIPath):
         :param followlinks: False if regard symlink as file, else True
         :param overwrite: whether or not overwrite file when exists, default is True
         '''
+        dst_path = fspath(dst_path)
         if not overwrite and os.path.exists((dst_path)):
             return
 
@@ -921,7 +924,7 @@ class FSPath(URIPath):
             errors=None,
             newline=None,
             closefd=True,
-            **kwargs) -> IO[AnyStr]:
+            **kwargs) -> IO:
         if not isinstance(self.path_without_protocol, int) and ('w' in mode or
                                                                 'x' in mode or
                                                                 'a' in mode):

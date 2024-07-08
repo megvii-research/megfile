@@ -1,7 +1,7 @@
 import os
 from abc import ABC, abstractmethod
 from io import UnsupportedOperation
-from typing import IO, AnyStr, Iterable, Iterator, List, Optional
+from typing import BinaryIO, Iterable, Iterator, List, Optional
 
 from megfile.pathlike import Access, BasePath, BaseURIPath, FileEntry, PathLike, Self, StatResult, URIPath  # noqa
 
@@ -44,7 +44,7 @@ class Closable(ABC):
         self.close()
 
 
-class FileLike(Closable, IO, ABC):  # pytype: disable=signature-mismatch
+class FileLike(Closable, BinaryIO, ABC):  # pytype: disable=signature-mismatch
 
     def fileno(self) -> int:
         raise UnsupportedOperation('not a local file')
@@ -155,10 +155,10 @@ class Readable(FileLike, ABC):
     def truncate(self, size: Optional[int] = None) -> int:
         raise OSError('not writable')
 
-    def write(self, s: AnyStr) -> int:
+    def write(self, data: bytes) -> int:
         raise OSError('not writable')
 
-    def writelines(self, lines: Iterable[AnyStr]) -> None:
+    def writelines(self, lines: Iterable[bytes]) -> None:
         raise OSError('not writable')
 
 
