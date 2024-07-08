@@ -23,7 +23,7 @@ class SeekRecord:
         self.read_count = 0
 
 
-class BasePrefetchReader(Readable, Seekable, ABC):
+class BasePrefetchReader(Readable[bytes], Seekable, ABC):
     '''
     Reader to fast read the remote file content. 
     This will divide the file content into equal parts of block_size size, 

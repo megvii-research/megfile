@@ -6,7 +6,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from functools import lru_cache, wraps
 from logging import getLogger as get_logger
-from typing import IO, Any, AnyStr, BinaryIO, Callable, Dict, Iterator, List, Optional, Tuple
+from typing import IO, Any, BinaryIO, Callable, Dict, Iterator, List, Optional, Tuple
 
 import boto3
 import botocore
@@ -782,7 +782,7 @@ def s3_buffered_open(
         limited_seekable: bool = False,
         buffered: bool = False,
         share_cache_key: Optional[str] = None,
-        cache_path: Optional[str] = None) -> IO[AnyStr]:
+        cache_path: Optional[str] = None) -> IO:
     '''Open an asynchronous prefetch reader, to support fast sequential read
 
     .. note ::
@@ -2300,7 +2300,7 @@ class S3Path(URIPath):
             encoding: Optional[str] = None,
             errors: Optional[str] = None,
             s3_open_func: Callable = s3_open,
-            **kwargs) -> IO[AnyStr]:
+            **kwargs) -> IO:
         return s3_open_func(
             self,
             mode,

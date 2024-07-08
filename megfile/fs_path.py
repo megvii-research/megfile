@@ -296,9 +296,9 @@ class FSPath(URIPath):
         if isinstance(self.path, int):
             return self.path
         protocol_prefix = self.protocol + "://"
-        if self.path.startswith(protocol_prefix):
-            return self.path
-        return protocol_prefix + self.path
+        if self.path.startswith(protocol_prefix):  # pyre-ignore[16]
+            return self.path  # pyre-ignore[7]
+        return protocol_prefix + self.path  # pyre-ignore[58]
 
     def is_absolute(self) -> bool:
         '''Test whether a path is absolute
@@ -416,8 +416,9 @@ class FSPath(URIPath):
         for path_obj in self.iglob(pattern=pattern, recursive=recursive,
                                    missing_ok=missing_ok):
             yield FileEntry(
-                path_obj.name, path_obj.path,
-                _make_stat(os.lstat(path_obj.path)))
+                path_obj.name,
+                path_obj.path,  # pyre-ignore[6]
+                _make_stat(os.lstat(path_obj.path)))  # pyre-ignore[6]
 
     def expanduser(self):
         '''Expand ~ and ~user constructions.  If user or $HOME is unknown,

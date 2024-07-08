@@ -1,3 +1,4 @@
+# pyre-ignore-all-errors[16]
 import time
 from contextlib import contextmanager
 from functools import wraps
@@ -106,12 +107,13 @@ s3_retry_exceptions = [
 ]
 if hasattr(botocore.exceptions,
            'ResponseStreamingError'):  # backport botocore==1.23.24
-    s3_retry_exceptions.append(botocore.exceptions.ResponseStreamingError)
-s3_retry_exceptions = tuple(s3_retry_exceptions)
+    s3_retry_exceptions.append(
+        botocore.exceptions.ResponseStreamingError)  # pyre-ignore[6]
+s3_retry_exceptions = tuple(s3_retry_exceptions)  # pyre-ignore[9]
 
 
 def s3_should_retry(error: Exception) -> bool:
-    if isinstance(error, s3_retry_exceptions):
+    if isinstance(error, s3_retry_exceptions):  # pyre-ignore[6]
         return True
     if isinstance(error, botocore.exceptions.ClientError):
         return client_error_code(error) in (

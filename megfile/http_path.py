@@ -244,7 +244,7 @@ class HttpPath(URIPath):
                 block_size=block_size,
             )
             if _is_pickle(reader):
-                reader = BufferedReader(reader)  # pytype: disable=wrong-arg-types
+                reader = BufferedReader(reader)  # type: ignore
             return reader
 
         response.raw.name = self.path_with_protocol
@@ -252,7 +252,7 @@ class HttpPath(URIPath):
         # response.raw.auto_close = False
         # response.raw.decode_content = True
         # return BufferedReader(response.raw)
-        return BufferedReader(Response(response.raw))  # pytype: disable=wrong-arg-types
+        return BufferedReader(Response(response.raw))  # type: ignore
 
     def stat(self, follow_symlinks=True) -> StatResult:
         '''
@@ -276,9 +276,11 @@ class HttpPath(URIPath):
         except Exception as error:
             raise translate_http_error(error, self.path_with_protocol)
 
-        size = headers.get('Content-Length', 0)
+        size = headers.get('Content-Length')
         if size:
             size = int(size)
+        else:
+            size = 0
 
         last_modified = headers.get('Last-Modified')
         if last_modified:
@@ -347,7 +349,7 @@ class HttpsPath(HttpPath):
     protocol = "https"
 
 
-class Response(Readable):
+class Response(Readable[bytes]):
 
     def __init__(self, raw: HTTPResponse) -> None:
         super().__init__()

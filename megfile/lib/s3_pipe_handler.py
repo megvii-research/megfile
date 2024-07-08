@@ -24,7 +24,7 @@ def _close_s3_pipes():  # pragma: no cover
         try_close_pipe(w)
 
 
-class S3PipeHandler(Readable, Writable):
+class S3PipeHandler(Readable[bytes], Writable[bytes]):
 
     def __init__(
             self,

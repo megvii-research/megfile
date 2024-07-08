@@ -1,5 +1,5 @@
 import io
-from typing import IO, AnyStr, Optional, Union
+from typing import IO, Optional, Union
 
 from megfile.interfaces import BaseURIPath, PathLike
 from megfile.lib.compat import fspath
@@ -77,7 +77,7 @@ class StdioPath(BaseURIPath):
             mode: str = 'rb',
             encoding: Optional[str] = None,
             errors: Optional[str] = None,
-            **kwargs) -> IO[AnyStr]:
+            **kwargs) -> IO:
         '''Used to read or write stdio
 
         .. note ::

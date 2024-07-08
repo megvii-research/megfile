@@ -1,4 +1,4 @@
-from typing import IO, AnyStr, BinaryIO, Callable, Iterator, List, Optional, Tuple
+from typing import IO, BinaryIO, Callable, Iterator, List, Optional, Tuple
 
 from megfile.interfaces import FileEntry, PathLike, StatResult
 from megfile.sftp_path import SftpPath, is_sftp, sftp_concat, sftp_download, sftp_glob, sftp_glob_stat, sftp_iglob, sftp_lstat, sftp_path_join, sftp_readlink, sftp_resolve, sftp_upload
@@ -342,7 +342,7 @@ def sftp_open(
         buffering=-1,
         encoding: Optional[str] = None,
         errors: Optional[str] = None,
-        **kwargs) -> IO[AnyStr]:
+        **kwargs) -> IO:
     '''Open a file on the path.
 
     :param path: Given path

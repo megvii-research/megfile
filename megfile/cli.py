@@ -419,8 +419,8 @@ def touch(path: str):
 @cli.command(short_help='Concatenate any files and send them to stdout.')
 @click.argument('path')
 def cat(path: str):
-    with smart_open(path, 'rb') as file:
-        shutil.copyfileobj(file, sys.stdout.buffer)
+    with smart_open(path, 'rb') as f:
+        shutil.copyfileobj(f, sys.stdout.buffer)  # pytype: disable=wrong-arg-types
 
 
 @cli.command(

@@ -1,3 +1,4 @@
+# pyre-ignore-all-errors[16]
 import hashlib
 import io
 import os
@@ -621,11 +622,11 @@ class HdfsPath(URIPath):
                     profile_name=self._profile_name,
                     **input_kwargs)
                 if _is_pickle(file_obj):
-                    file_obj = io.BufferedReader(file_obj)  # pytype: disable=wrong-arg-types
+                    file_obj = io.BufferedReader(file_obj)  # type: ignore
                 if 'b' not in mode:
                     file_obj = io.TextIOWrapper(
                         file_obj, encoding=encoding, errors=errors)
-                    file_obj.mode = mode
+                    file_obj.mode = mode  # pyre-ignore[41]
                 return file_obj
             elif mode in ('w', 'wb'):
                 return self._client.write(

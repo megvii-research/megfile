@@ -6,7 +6,7 @@ from megfile.errors import S3ConfigError, UnknownError, raise_s3_error, translat
 from megfile.interfaces import Readable, Seekable, Writable
 
 
-class S3MemoryHandler(Readable, Seekable, Writable):
+class S3MemoryHandler(Readable[bytes], Seekable, Writable[bytes]):
 
     def __init__(
             self,

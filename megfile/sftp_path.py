@@ -9,7 +9,7 @@ import socket
 import subprocess
 from logging import getLogger as get_logger
 from stat import S_ISDIR, S_ISLNK, S_ISREG
-from typing import IO, AnyStr, BinaryIO, Callable, Iterator, List, Optional, Tuple, Union
+from typing import IO, BinaryIO, Callable, Iterator, List, Optional, Tuple, Union
 from urllib.parse import urlsplit, urlunsplit
 
 import paramiko
@@ -1192,7 +1192,7 @@ class SftpPath(URIPath):
             buffering=-1,
             encoding: Optional[str] = None,
             errors: Optional[str] = None,
-            **kwargs) -> IO[AnyStr]:
+            **kwargs) -> IO:
         '''Open a file on the path.
 
         :param mode: Mode to open file

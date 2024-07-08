@@ -4,7 +4,7 @@ import math
 import os
 import uuid
 from copy import copy
-from functools import cached_property as cachedproperty  # noqa
+from functools import cached_property as cachedproperty  # noqa # TODO: replace with @cached_property in next version
 from functools import wraps
 from io import BufferedIOBase, BufferedRandom, BufferedReader, BufferedWriter, BytesIO, StringIO, TextIOBase, TextIOWrapper
 from typing import IO, Callable, Optional
@@ -70,13 +70,14 @@ def is_writable(fileobj: IO) -> bool:
     return hasattr(fileobj, 'write')
 
 
-def _is_pickle(fileobj: IO) -> bool:
+def _is_pickle(fileobj) -> bool:
     ''' Test if File Object is pickle'''
     if fileobj.name.endswith('.pkl') or fileobj.name.endswith('.pickle'):
         return True
 
     if 'r' in fileobj.mode and 'b' in fileobj.mode:
         offset = fileobj.tell()
+        fileobj.seek(0)
         data = fileobj.read(2)
         fileobj.seek(offset)
         if len(data) >= 2 and data[0] == 128 and 2 <= data[1] <= 5:

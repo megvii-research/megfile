@@ -1,9 +1,28 @@
 import os
 from abc import ABC, abstractmethod
-from io import UnsupportedOperation
-from typing import BinaryIO, Iterable, Iterator, List, Optional
+from io import IOBase, UnsupportedOperation
+from typing import IO, AnyStr, Iterable, List, Optional
 
-from megfile.pathlike import Access, BasePath, BaseURIPath, FileEntry, PathLike, Self, StatResult, URIPath  # noqa
+from megfile.pathlike import Access, BasePath, BaseURIPath, FileEntry, PathLike, Self, StatResult, URIPath
+
+__all__ = [
+    "Access",
+    "BasePath",
+    "BaseURIPath",
+    "FileEntry",
+    "PathLike",
+    "StatResult",
+    "URIPath",
+    "fullname",
+    "Closable",
+    "FileLike",
+    "Seekable",
+    "Readable",
+    "Writable",
+    "FileCacher",
+    "NullCacher",
+    "ContextIterator",
+]
 
 
 def fullname(o):
@@ -44,7 +63,7 @@ class Closable(ABC):
         self.close()
 
 
-class FileLike(Closable, BinaryIO, ABC):  # pytype: disable=signature-mismatch
+class FileLike(Closable, IOBase, IO[AnyStr], ABC):  # pytype: disable=signature-mismatch
 
     def fileno(self) -> int:
         raise UnsupportedOperation('not a local file')
@@ -86,6 +105,10 @@ class FileLike(Closable, BinaryIO, ABC):  # pytype: disable=signature-mismatch
         This is not implemented for read-only and non-blocking streams.
         '''
 
+    def __del__(self) -> None:
+        # TODO: Next version should turn on __del__ for auto closing, and disable this in child class like CombineReader
+        pass
+
 
 class Seekable(FileLike, ABC):
 
@@ -106,29 +129,29 @@ class Seekable(FileLike, ABC):
         '''
 
 
-class Readable(FileLike, ABC):
+class Readable(FileLike[AnyStr], ABC):
 
     def readable(self) -> bool:
         '''Return True if the file-like object can be read.'''
         return True
 
     @abstractmethod
-    def read(self, size: Optional[int] = None) -> bytes:
-        '''Read at most `size` bytes, returned as a bytes object.
+    def read(self, size: Optional[int] = None) -> AnyStr:
+        '''Read at most `size` bytes or string, returned as a bytes or string object.
 
         If the `size` argument is negative, read until EOF is reached.
-        Return an empty bytes object at EOF.
+        Return an empty bytes or string object at EOF.
         '''
 
     @abstractmethod
-    def readline(self, size: Optional[int] = None) -> bytes:
-        '''Next line from the file, as a bytes object.
+    def readline(self, size: Optional[int] = None) -> AnyStr:
+        '''Next line from the file, as a bytes or string object.
 
-        Retain newline. A non-negative `size` argument limits the maximum number of bytes to return (an incomplete line may be returned then).
+        Retain newline. A non-negative `size` argument limits the maximum number of bytes or string to return (an incomplete line may be returned then).
         Return an empty bytes object at EOF.
         '''
 
-    def readlines(self, hint: Optional[int] = None) -> List[bytes]:
+    def readlines(self, hint: Optional[int] = None) -> List[AnyStr]:
         '''Return a list of lines from the stream.'''
         return self.read(size=hint).splitlines(True)
 
@@ -143,42 +166,44 @@ class Readable(FileLike, ABC):
         buffer[:size] = data
         return size
 
-    def __next__(self) -> bytes:
+    def __next__(self) -> AnyStr:
         line = self.readline()
         if not line:
             raise StopIteration
         return line
 
-    def __iter__(self) -> Iterator[bytes]:
+    def __iter__(self: Self) -> Self:
         return self
 
     def truncate(self, size: Optional[int] = None) -> int:
         raise OSError('not writable')
 
-    def write(self, data: bytes) -> int:
+    def write(self, data: AnyStr) -> int:
         raise OSError('not writable')
 
-    def writelines(self, lines: Iterable[bytes]) -> None:
+    def writelines(self, lines: Iterable[AnyStr]) -> None:
         raise OSError('not writable')
 
 
-class Writable(FileLike, ABC):
+class Writable(FileLike[AnyStr], ABC):
 
     def writable(self) -> bool:
         '''Return True if the file-like object can be written.'''
         return True
 
     @abstractmethod
-    def write(self, data: bytes) -> int:
-        '''Write bytes to file.
+    def write(self, data: AnyStr) -> int:
+        '''Write bytes or string to file.
 
-        Return the number of bytes written.
+        Return the number of bytes or string written.
         '''
 
-    def writelines(self, lines: Iterable[bytes]) -> None:
+    def writelines(self, lines: Iterable[AnyStr]) -> None:
         '''Write `lines` to the file.
 
-        Note that newlines are not added. `lines` can be any iterable object producing bytes-like objects. This is equivalent to calling write() for each element.
+        Note that newlines are not added. 
+        `lines` can be any iterable object producing bytes-like or string-like objects. 
+        This is equivalent to calling write() for each element.
         '''
         for line in lines:
             self.write(line)
@@ -196,16 +221,13 @@ class Writable(FileLike, ABC):
         """
         raise UnsupportedOperation('not support truncate')
 
-    def read(self, size: Optional[int] = None) -> bytes:
+    def read(self, size: Optional[int] = None) -> AnyStr:
         raise OSError('not readable')
 
-    def readline(self, size: Optional[int] = None) -> bytes:
+    def readline(self, size: Optional[int] = None) -> AnyStr:
         raise OSError('not readable')
 
-    def readlines(self, hint: Optional[int] = None) -> List[bytes]:
-        raise OSError('not readable')
-
-    def readinto(self, buffer: bytearray) -> int:
+    def readlines(self, hint: Optional[int] = None) -> List[AnyStr]:
         raise OSError('not readable')
 
 

@@ -3,7 +3,7 @@ from collections import defaultdict
 from functools import partial
 from stat import S_ISDIR as stat_isdir
 from stat import S_ISLNK as stat_islnk
-from typing import IO, Any, AnyStr, BinaryIO, Callable, Iterable, Iterator, List, Optional, Tuple
+from typing import IO, Any, BinaryIO, Callable, Iterable, Iterator, List, Optional, Tuple
 
 from tqdm import tqdm
 
@@ -620,7 +620,7 @@ def smart_open(
         s3_open_func: Callable[[str, str], BinaryIO] = s3_open,
         encoding: Optional[str] = None,
         errors: Optional[str] = None,
-        **options) -> IO[AnyStr]:
+        **options) -> IO:
     '''
     Open a file on the path
 
@@ -927,7 +927,7 @@ def smart_load_content(
         offset = -1
         if start and stop:
             offset = stop - start
-        return fd.read(offset)
+        return fd.read(offset)  # pytype: disable=bad-return-type
 
 
 def smart_save_content(path: PathLike, content: bytes) -> None:
@@ -946,7 +946,7 @@ def smart_load_text(path: PathLike) -> str:
     param path: Path to be read
     '''
     with smart_open(path) as fd:
-        return fd.read()
+        return fd.read()  # pytype: disable=bad-return-type
 
 
 def smart_save_text(path: PathLike, text: str) -> None:
