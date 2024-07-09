@@ -59,7 +59,7 @@ class S3PrefetchReader(BasePrefetchReader):
                 first_index_response['ContentRange'].split('/')[-1])
         except S3InvalidRangeError:
             # usually when read a empty file
-            # TODO: use minio test empty file: https://hub.docker.com/r/minio/minio
+            # can use minio test empty file: https://hub.docker.com/r/minio/minio
             first_index_response = self._fetch_response()
             content_size = int(first_index_response['ContentLength'])
 

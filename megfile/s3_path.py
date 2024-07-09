@@ -926,12 +926,11 @@ def s3_memory_open(
 s3_open = s3_buffered_open
 
 
-# TODO: In next version, adjust the position of the parameters to (callback, followlinks, overwrite)
 def s3_download(
         src_url: PathLike,
         dst_url: PathLike,
-        followlinks: bool = False,
         callback: Optional[Callable[[int], None]] = None,
+        followlinks: bool = False,
         overwrite: bool = True) -> None:
     '''
     Downloads a file from s3 to local filesystem.
@@ -1000,18 +999,18 @@ def s3_download(
         dst_path.path_without_protocol, (src_stat.st_mtime, src_stat.st_mtime))
 
 
-# TODO: In next version, adjust the position of the parameters to (callback, followlinks, overwrite)
 def s3_upload(
         src_url: PathLike,
         dst_url: PathLike,
         callback: Optional[Callable[[int], None]] = None,
-        overwrite: bool = True,
-        **kwargs) -> None:
+        followlinks: bool = False,
+        overwrite: bool = True) -> None:
     '''
     Uploads a file from local filesystem to s3.
     :param src_url: source fs path
     :param dst_url: target s3 path
     :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
+    :param followlinks: False if regard symlink as file, else True
     :param overwrite: whether or not overwrite file when exists, default is True
     '''
     from megfile.fs import is_fs
@@ -1020,6 +1019,8 @@ def s3_upload(
     if not is_fs(src_url):
         raise OSError(f'src_url is not fs path: {src_url}')
     src_path = FSPath(src_url)
+    if followlinks and src_path.is_symlink():
+        src_path = src_path.readlink()
 
     dst_bucket, dst_key = parse_s3_url(dst_url)
     if not dst_bucket:
