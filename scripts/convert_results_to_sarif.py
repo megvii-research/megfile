@@ -120,6 +120,10 @@ if __name__ == "__main__":
     logging.basicConfig(
         format="%(asctime)s [%(levelname)s] %(message)s", level=logging.DEBUG)
 
-    raise ValueError(sys.stdin.read())
-    sarif = _to_sarif(json.load(sys.stdin))
+    data = sys.stdin.read()
+    if data:
+        data = json.loads(data)
+    else:
+        data = []
+    sarif = _to_sarif(data)
     json.dump(sarif, sys.stdout, indent=4)
