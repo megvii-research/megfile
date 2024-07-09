@@ -3,6 +3,7 @@ import io
 import os
 import pathlib
 import shutil
+from functools import cached_property
 from stat import S_ISDIR as stat_isdir
 from stat import S_ISLNK as stat_islnk
 from typing import IO, BinaryIO, Callable, Iterator, List, Optional, Tuple, Union
@@ -12,7 +13,7 @@ from megfile.interfaces import Access, ContextIterator, FileEntry, PathLike, Sta
 from megfile.lib.compare import is_same_file
 from megfile.lib.glob import iglob
 from megfile.lib.url import get_url_scheme
-from megfile.utils import cachedproperty, calculate_md5
+from megfile.utils import calculate_md5
 
 from .interfaces import PathLike, URIPath
 from .lib.compat import fspath
@@ -275,15 +276,15 @@ class FSPath(URIPath):
     def __fspath__(self) -> str:
         return os.path.normpath(self.path_without_protocol)
 
-    @cachedproperty
+    @cached_property
     def root(self) -> str:
         return pathlib.Path(self.path_without_protocol).root
 
-    @cachedproperty
+    @cached_property
     def anchor(self) -> str:
         return pathlib.Path(self.path_without_protocol).anchor
 
-    @cachedproperty
+    @cached_property
     def drive(self) -> str:
         return pathlib.Path(self.path_without_protocol).drive
 
@@ -940,7 +941,7 @@ class FSPath(URIPath):
             newline=newline,
             closefd=closefd)
 
-    @cachedproperty
+    @cached_property
     def parts(self) -> Tuple[str, ...]:
         '''
         A tuple giving access to the path’s various components
