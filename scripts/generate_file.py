@@ -178,13 +178,14 @@ def insert_class_method_lines(
                     insert_log = True
                 func_content_lines.append(annotation_line)
 
-            if current_params:
+            class_name = get_class_name(current_file_type)
+            if class_name == 'StdioPath':
                 func_content_lines.append(
-                    f"    return {get_class_name(current_file_type)}({path_param_name}).{func_name}({', '.join(current_params[1:])})\n\n"
+                    f"    return {class_name}({path_param_name}).{func_name}({', '.join(current_params[1:])})  # pyre-ignore[6]\n\n"
                 )
             else:
                 func_content_lines.append(
-                    f"    return {get_class_name(current_file_type)}.{func_name}({', '.join(current_params[1:])})\n\n"
+                    f"    return {class_name}({path_param_name}).{func_name}({', '.join(current_params[1:])})\n\n"
                 )
     return real_func_name, func_content_lines
 

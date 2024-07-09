@@ -26,7 +26,7 @@ def get_content_size(fileobj: IO, *, intrusive: bool = False) -> int:
         if isinstance(file, BufferedIOBase):
             file = file.raw
         if hasattr(file, '_content_size'):
-            return getattr(file, '_content_size')
+            return getattr(file, '_content_size')  # pyre-ignore[16]
 
     offset = fileobj.tell()
     if not is_seekable(fileobj) and is_writable(fileobj):
@@ -69,13 +69,14 @@ def is_writable(fileobj: IO) -> bool:
     return hasattr(fileobj, 'write')
 
 
-def _is_pickle(fileobj: IO) -> bool:
+def _is_pickle(fileobj) -> bool:
     ''' Test if File Object is pickle'''
     if fileobj.name.endswith('.pkl') or fileobj.name.endswith('.pickle'):
         return True
 
     if 'r' in fileobj.mode and 'b' in fileobj.mode:
         offset = fileobj.tell()
+        fileobj.seek(0)
         data = fileobj.read(2)
         fileobj.seek(offset)
         if len(data) >= 2 and data[0] == 128 and 2 <= data[1] <= 5:
@@ -114,7 +115,7 @@ def shadow_copy(fileobj: IO, intrusive: bool = True, buffered: bool = False):
     from megfile.lib.shadow_handler import ShadowHandler
     result = ShadowHandler(fileobj, intrusive=intrusive)
     mode = get_mode(fileobj)
-    if "b" in mode and (buffered or _is_pickle(result)):  # pytype: disable=wrong-arg-types
+    if "b" in mode and (buffered or _is_pickle(result)):
         if "+" in mode:
             result = BufferedRandom(result)
         elif "x" in mode or "w" in mode or "a" in mode:
@@ -181,7 +182,7 @@ def binary_open(open_func):
         fileobj = open_func(path, get_binary_mode(mode), **kwargs)
         if 'b' not in mode:
             fileobj = TextIOWrapper(fileobj, encoding=encoding, errors=errors)
-            fileobj.mode = mode
+            fileobj.mode = mode  # pyre-ignore[41]
         return fileobj
 
     return wrapper
@@ -251,7 +252,7 @@ class classproperty(property):
             return "value"
     """
 
-    def __get__(self, _, cls) -> object:  # type: ignore
+    def __get__(self, _, cls) -> object:
         """
         This method gets called when a property value is requested.
         @param cls: The class type of the above instance.
@@ -260,7 +261,7 @@ class classproperty(property):
         # apply the __get__ on the class
         return super(classproperty, self).__get__(cls)
 
-    def __set__(self, cls_or_obj, value: object) -> None:  # type: ignore
+    def __set__(self, cls_or_obj, value: object) -> None:
         """
         This method gets called when a property value should be set.
         @param cls_or_obj: The class or instance of which the property should be changed.
@@ -269,30 +270,10 @@ class classproperty(property):
         # call this method only on the class, not the instance
         super(classproperty, self).__set__(_get_class(cls_or_obj), value)
 
-    def __delete__(self, cls_or_obj) -> None:  # type: ignore
+    def __delete__(self, cls_or_obj) -> None:
         """
         This method gets called when a property should be deleted.
         @param cls_or_obj: The class or instance of which the property should be deleted.
         """
         # call this method only on the class, not the instance
         super(classproperty, self).__delete__(_get_class(cls_or_obj))
-
-
-class cachedproperty:
-    """
-    A property that is only computed once per instance and then replaces itself
-    with an ordinary attribute. Deleting the attribute resets the property.
-    Source: https://github.com/bottlepy/bottle/commit/fa7733e075da0d790d809aa3d2f53071897e6f76
-    """  # noqa
-
-    def __init__(self, func):
-        self.__name__ = func.__name__
-        self.__module__ = func.__module__
-        self.__doc__ = func.__doc__
-        self.__wrapped__ = func
-
-    def __get__(self, obj, cls):
-        if obj is None:
-            return self
-        value = obj.__dict__[self.__name__] = self.__wrapped__(obj)
-        return value

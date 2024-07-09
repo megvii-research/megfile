@@ -62,10 +62,10 @@ def test_subclass_only_close_once():
     assert reader.inner_close_call_count == 1
 
 
-class Klass4(Readable):
+class Klass4(Readable[bytes]):
 
     name = 'test'
-    mode = 'r'
+    mode = 'rb'
 
     def __init__(self, data):
         self._buffer = BytesIO(data)
@@ -73,10 +73,10 @@ class Klass4(Readable):
     def tell(self):
         return self._buffer.tell()
 
-    def read(self, size=None):
+    def read(self, size=None) -> bytes:
         return self._buffer.read(size)
 
-    def readline(self):
+    def readline(self) -> bytes:
         return self._buffer.readline()
 
     def _close(self):
@@ -98,7 +98,7 @@ def test_readable(mocker):
     assert r.readinto(bytearray(b'123')) == 3
 
 
-class Klass5(Writable):
+class Klass5(Writable[bytes]):
 
     name = 'test'
     mode = 'w'
@@ -109,10 +109,10 @@ class Klass5(Writable):
     def tell(self):
         return self._buffer.tell()
 
-    def write(self, data):
+    def write(self, data: bytes):
         return self._buffer.write(data)
 
-    def getvalue(self):
+    def getvalue(self) -> bytes:
         return self._buffer.getvalue()
 
     def _close(self):

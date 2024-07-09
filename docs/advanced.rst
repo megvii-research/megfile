@@ -1,11 +1,8 @@
 Advanced User Guide
 ===================
 
-Define Custom Protocol
-----------------------
-.. mdinclude:: ./advanced/custom_protocol.md
+.. toctree::
+   :maxdepth: 2
 
-Glob Pattern
-----------------------
-.. mdinclude:: ./advanced/glob.md
-
+   advanced/custom_protocol
+   advanced/glob

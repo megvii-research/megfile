@@ -44,7 +44,8 @@ class HdfsPrefetchReader(BasePrefetchReader):
             f"+{self._profile_name}" if self._profile_name else "", self._path)
 
     def _fetch_response(
-            self, start: Optional[int] = None,
+            self,
+            start: Optional[int] = None,
             end: Optional[int] = None) -> dict:
         with raise_hdfs_error(self.name):
             with self._client.read(self._path, offset=start or 0, length=end -

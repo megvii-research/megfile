@@ -4,9 +4,9 @@ import os
 import re
 import time
 from concurrent.futures import ThreadPoolExecutor
-from functools import lru_cache, wraps
+from functools import cached_property, lru_cache, wraps
 from logging import getLogger as get_logger
-from typing import IO, Any, AnyStr, BinaryIO, Callable, Dict, Iterator, List, Optional, Tuple, Union
+from typing import IO, Any, BinaryIO, Callable, Dict, Iterator, List, Optional, Tuple
 
 import boto3
 import botocore
@@ -31,7 +31,7 @@ from megfile.lib.s3_prefetch_reader import S3PrefetchReader
 from megfile.lib.s3_share_cache_reader import S3ShareCacheReader
 from megfile.lib.url import get_url_scheme
 from megfile.smart_path import SmartPath
-from megfile.utils import _is_pickle, cachedproperty, calculate_md5, generate_cache_path, get_binary_mode, get_content_offset, is_readable, necessary_params, process_local, thread_local
+from megfile.utils import _is_pickle, calculate_md5, generate_cache_path, get_binary_mode, get_content_offset, is_readable, necessary_params, process_local, thread_local
 
 __all__ = [
     'S3Path',
@@ -112,14 +112,14 @@ def parse_s3_url(s3_url: PathLike) -> Tuple[str, str]:
     s3_url = fspath(s3_url)
     if not is_s3(s3_url):
         raise ValueError('Not a s3 url: %r' % s3_url)
-    rightpart = s3_url.split('://', maxsplit=1)[1]
-    bucketmatch = re.match('(.*?)/', rightpart)
-    if bucketmatch is None:
-        bucket = rightpart
+    right_part = s3_url.split('://', maxsplit=1)[1]
+    bucket_pattern = re.match('(.*?)/', right_part)
+    if bucket_pattern is None:
+        bucket = right_part
         path = ''
     else:
-        bucket = bucketmatch.group(1)
-        path = rightpart[len(bucket) + 1:]
+        bucket = bucket_pattern.group(1)
+        path = right_part[len(bucket) + 1:]
     return bucket, path
 
 
@@ -276,18 +276,18 @@ def _list_all_buckets(profile_name: Optional[str] = None) -> List[str]:
 
 def _parse_s3_url_ignore_brace(s3_url: str) -> Tuple[str, str]:
     s3_url = fspath(s3_url)
-    s3_scheme, rightpart = s3_url[:5], s3_url[5:]
+    s3_scheme, right_part = s3_url[:5], s3_url[5:]
     if s3_scheme != 's3://':
         raise ValueError('Not a s3 url: %r' % s3_url)
     left_brace = False
-    for current_index, current_character in enumerate(rightpart):
+    for current_index, current_character in enumerate(right_part):
         if current_character == "/" and left_brace is False:
-            return rightpart[:current_index], rightpart[current_index + 1:]
+            return right_part[:current_index], right_part[current_index + 1:]
         elif current_character == "{":
             left_brace = True
         elif current_character == "}":
             left_brace = False
-    return rightpart, ""
+    return right_part, ""
 
 
 def _group_s3path_by_bucket(
@@ -306,13 +306,13 @@ def _group_s3path_by_bucket(
         return "s3://%s%s" % (bucket, "/" if s3_pathname.endswith("/") else "")
 
     all_bucket = lru_cache(maxsize=1)(_list_all_buckets)
-    for bucketname in ungloblize(bucket):
-        if has_magic(bucketname):
-            split_bucketname = bucketname.split("/", 1)
+    for bucket_name in ungloblize(bucket):
+        if has_magic(bucket_name):
+            split_bucket_name = bucket_name.split("/", 1)
             path_part = None
-            if len(split_bucketname) == 2:
-                bucketname, path_part = split_bucketname
-            pattern = re.compile(translate(re.sub(r'\*{2,}', '*', bucketname)))
+            if len(split_bucket_name) == 2:
+                bucket_name, path_part = split_bucket_name
+            pattern = re.compile(translate(re.sub(r'\*{2,}', '*', bucket_name)))
 
             for bucket in all_bucket(profile_name):
                 if pattern.fullmatch(bucket) is not None:
@@ -320,7 +320,7 @@ def _group_s3path_by_bucket(
                         bucket = "%s/%s" % (bucket, path_part)
                     grouped_path.append(generate_s3_path(bucket, key))
         else:
-            grouped_path.append(generate_s3_path(bucketname, key))
+            grouped_path.append(generate_s3_path(bucket_name, key))
 
     return grouped_path
 
@@ -450,6 +450,7 @@ def _s3_glob_stat_single_path(
         missing_ok: bool = True,
         followlinks: bool = False,
         profile_name: Optional[str] = None) -> Iterator[FileEntry]:
+    s3_pathname = fspath(s3_pathname)
     if not recursive:
         # If not recursive, replace ** with *
         s3_pathname = re.sub(r'\*{2,}', '*', s3_pathname)
@@ -571,8 +572,8 @@ def _s3_binary_mode(s3_open_func):
         fileobj = s3_open_func(s3_url, get_binary_mode(mode), **kwargs)
         if 'b' not in mode:
             fileobj = io.TextIOWrapper(
-                fileobj, encoding=encoding, errors=errors)  # pytype: disable=wrong-arg-types
-            fileobj.mode = mode
+                fileobj, encoding=encoding, errors=errors)  # type: ignore
+            fileobj.mode = mode  # pyre-ignore[41]
         return fileobj
 
     return wrapper
@@ -692,7 +693,7 @@ def s3_pipe_open(
 
         When join_thread is False, while the file handle are closing, this function will not wait until the asynchronous writing finishes;
         False doesn't affect read-handle, but this can speed up write-handle because file will be written asynchronously.
-        But asynchronous behaviour can guarantee the file are successfully written, and frequent execution may cause thread and file handle exhaustion
+        But asynchronous behavior can guarantee the file are successfully written, and frequent execution may cause thread and file handle exhaustion
 
     :param mode: Mode to open file, either "rb" or "wb"
     :param join_thread: If wait after function execution until s3 finishes writing
@@ -784,9 +785,7 @@ def s3_buffered_open(
         limited_seekable: bool = False,
         buffered: bool = False,
         share_cache_key: Optional[str] = None,
-        cache_path: Optional[str] = None
-) -> Union[S3PrefetchReader, S3BufferedWriter, io.BufferedReader, io.
-           BufferedWriter, S3MemoryHandler]:
+        cache_path: Optional[str] = None) -> IO:
     '''Open an asynchronous prefetch reader, to support fast sequential read
 
     .. note ::
@@ -867,8 +866,8 @@ def s3_buffered_open(
                 block_forward=block_forward,
                 block_size=block_size,
                 profile_name=s3_url._profile_name)
-        if buffered or _is_pickle(reader):  # pytype: disable=wrong-arg-types
-            reader = io.BufferedReader(reader)  # pytype: disable=wrong-arg-types
+        if buffered or _is_pickle(reader):
+            reader = io.BufferedReader(reader)  # type: ignore
         return reader
 
     if limited_seekable:
@@ -891,14 +890,15 @@ def s3_buffered_open(
             max_block_size=max_block_size,
             max_buffer_size=max_buffer_size,
             profile_name=s3_url._profile_name)
-    if buffered or _is_pickle(writer):  # pytype: disable=wrong-arg-types
-        writer = io.BufferedWriter(writer)  # pytype: disable=wrong-arg-types
+    if buffered or _is_pickle(writer):
+        writer = io.BufferedWriter(writer)  # type: ignore
     return writer
 
 
 @_s3_binary_mode
 def s3_memory_open(
-        s3_url: PathLike, mode: str,
+        s3_url: PathLike,
+        mode: str,
         followlinks: bool = False) -> S3MemoryHandler:
     '''Open a memory-cache file reader / writer, for frequent random read / write
 
@@ -935,8 +935,8 @@ s3_open = s3_buffered_open
 def s3_download(
         src_url: PathLike,
         dst_url: PathLike,
-        followlinks: bool = False,
         callback: Optional[Callable[[int], None]] = None,
+        followlinks: bool = False,
         overwrite: bool = True) -> None:
     '''
     Downloads a file from s3 to local filesystem.
@@ -1009,13 +1009,14 @@ def s3_upload(
         src_url: PathLike,
         dst_url: PathLike,
         callback: Optional[Callable[[int], None]] = None,
-        overwrite: bool = True,
-        **kwargs) -> None:
+        followlinks: bool = False,
+        overwrite: bool = True) -> None:
     '''
     Uploads a file from local filesystem to s3.
     :param src_url: source fs path
     :param dst_url: target s3 path
     :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
+    :param followlinks: False if regard symlink as file, else True
     :param overwrite: whether or not overwrite file when exists, default is True
     '''
     from megfile.fs import is_fs
@@ -1024,6 +1025,8 @@ def s3_upload(
     if not is_fs(src_url):
         raise OSError(f'src_url is not fs path: {src_url}')
     src_path = FSPath(src_url)
+    if followlinks and src_path.is_symlink():
+        src_path = src_path.readlink()
 
     dst_bucket, dst_key = parse_s3_url(dst_url)
     if not dst_bucket:
@@ -1138,10 +1141,10 @@ class S3Cacher(FileCacher):
 
 
 def s3_glob(
-        path: PathLike,
-        recursive: bool = True,
-        missing_ok: bool = True,
-        followlinks: bool = False,
+    path: PathLike,
+    recursive: bool = True,
+    missing_ok: bool = True,
+    followlinks: bool = False,
 ) -> List[str]:
     '''Return s3 path list in ascending alphabetical order, in which path matches glob pattern
     Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
@@ -1180,10 +1183,10 @@ def s3_glob_stat(
 
 
 def s3_iglob(
-        path: PathLike,
-        recursive: bool = True,
-        missing_ok: bool = True,
-        followlinks: bool = False,
+    path: PathLike,
+    recursive: bool = True,
+    missing_ok: bool = True,
+    followlinks: bool = False,
 ) -> Iterator[str]:
     '''Return s3 path iterator in ascending alphabetical order, in which path matches glob pattern
     Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
@@ -1213,7 +1216,8 @@ def s3_makedirs(path: PathLike, exist_ok: bool = False):
 
 
 def _group_src_paths_by_block(
-        src_paths: List[PathLike], block_size: int = DEFAULT_BLOCK_SIZE
+    src_paths: List[PathLike],
+    block_size: int = DEFAULT_BLOCK_SIZE
 ) -> List[List[Tuple[PathLike, Optional[str]]]]:
     groups = []
     current_group, current_group_size = [], 0
@@ -1308,7 +1312,7 @@ class S3Path(URIPath):
         else:
             self._s3_path = self.path
 
-    @cachedproperty
+    @cached_property
     def path_with_protocol(self) -> str:
         '''Return path with protocol, like file:///root, s3://bucket/key'''
         path = self.path
@@ -1317,7 +1321,7 @@ class S3Path(URIPath):
             return path
         return protocol_prefix + path.lstrip('/')
 
-    @cachedproperty
+    @cached_property
     def path_without_protocol(self) -> str:
         '''Return path without protocol, example: if path is s3://bucket/key, return bucket/key'''
         path = self.path
@@ -1326,8 +1330,8 @@ class S3Path(URIPath):
             path = path[len(protocol_prefix):]
         return path
 
-    @cachedproperty
-    def parts(self) -> Tuple[str]:
+    @cached_property
+    def parts(self) -> Tuple[str, ...]:
         '''A tuple giving access to the path’s various components'''
         parts = [f"{self._protocol_with_profile}://"]
         path = self.path_without_protocol
@@ -1336,7 +1340,7 @@ class S3Path(URIPath):
             parts.extend(path.split('/'))
         return tuple(parts)
 
-    @cachedproperty
+    @cached_property
     def _client(self):
         return get_s3_client_with_cache(profile_name=self._profile_name)
 
@@ -1364,7 +1368,8 @@ class S3Path(URIPath):
             return {}
 
     def access(
-            self, mode: Access = Access.READ,
+            self,
+            mode: Access = Access.READ,
             followlinks: bool = False) -> bool:
         '''
         Test if path has access permission described by mode
@@ -1426,7 +1431,7 @@ class S3Path(URIPath):
 
         If the bucket of s3_url are not permitted to read, return False
 
-        :returns: True if s3_url eixsts, else False
+        :returns: True if s3_url exists, else False
         '''
         bucket, key = parse_s3_url(self.path_with_protocol)
         if not bucket:  # s3:// => True, s3:///key => False
@@ -1460,11 +1465,11 @@ class S3Path(URIPath):
         return self.stat(follow_symlinks=follow_symlinks).size
 
     def glob(
-            self,
-            pattern,
-            recursive: bool = True,
-            missing_ok: bool = True,
-            followlinks: bool = False,
+        self,
+        pattern,
+        recursive: bool = True,
+        missing_ok: bool = True,
+        followlinks: bool = False,
     ) -> List['S3Path']:
         '''Return s3 path list in ascending alphabetical order, in which path matches glob pattern
         Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
@@ -1499,7 +1504,7 @@ class S3Path(URIPath):
         '''
         glob_path = self._s3_path
         if pattern:
-            glob_path = self.joinpath(pattern)._s3_path  # pytype: disable=attribute-error
+            glob_path = self.joinpath(pattern)._s3_path
         s3_pathname = fspath(glob_path)
 
         def create_generator():
@@ -1523,11 +1528,11 @@ class S3Path(URIPath):
             S3FileNotFoundError('No match any file: %r' % s3_pathname))
 
     def iglob(
-            self,
-            pattern,
-            recursive: bool = True,
-            missing_ok: bool = True,
-            followlinks: bool = False,
+        self,
+        pattern,
+        recursive: bool = True,
+        missing_ok: bool = True,
+        followlinks: bool = False,
     ) -> Iterator['S3Path']:
         '''Return s3 path iterator in ascending alphabetical order, in which path matches glob pattern
         Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
@@ -1604,9 +1609,9 @@ class S3Path(URIPath):
 
     def listdir(self, followlinks: bool = False) -> List[str]:
         '''
-        Get all contents of given s3_url. The result is in acsending alphabetical order.
+        Get all contents of given s3_url. The result is in ascending alphabetical order.
 
-        :returns: All contents have prefix of s3_url in acsending alphabetical order
+        :returns: All contents have prefix of s3_url in ascending alphabetical order
         :raises: S3FileNotFoundError, S3NotADirectoryError
         '''
         entries = list(self.scandir(followlinks=followlinks))
@@ -1614,13 +1619,13 @@ class S3Path(URIPath):
 
     def iterdir(self, followlinks: bool = False) -> Iterator['S3Path']:
         '''
-        Get all contents of given s3_url. The result is in acsending alphabetical order.
+        Get all contents of given s3_url. The result is in ascending alphabetical order.
 
-        :returns: All contents have prefix of s3_url in acsending alphabetical order
+        :returns: All contents have prefix of s3_url in ascending alphabetical order
         :raises: S3FileNotFoundError, S3NotADirectoryError
         '''
         for path in self.listdir(followlinks=followlinks):
-            yield self.joinpath(path)  # type: ignore
+            yield self.joinpath(path)
 
     def load(self, followlinks: bool = False) -> BinaryIO:
         '''Read all content in binary on specified path and write into memory
@@ -1651,7 +1656,7 @@ class S3Path(URIPath):
         '''
         Test if the bucket of s3_url exists
 
-        :returns: True if bucket of s3_url eixsts, else False
+        :returns: True if bucket of s3_url exists, else False
         '''
         bucket, _ = parse_s3_url(self.path_with_protocol)
         if not bucket:
@@ -1803,7 +1808,8 @@ class S3Path(URIPath):
         self.remove(missing_ok=True)
         return self.from_path(dst_path)
 
-    def scan(self, missing_ok: bool = True,
+    def scan(self,
+             missing_ok: bool = True,
              followlinks: bool = False) -> Iterator[str]:
         '''
         Iteratively traverse only files in given s3 directory, in alphabetical order.
@@ -1828,7 +1834,8 @@ class S3Path(URIPath):
 
         return create_generator()
 
-    def scan_stat(self, missing_ok: bool = True,
+    def scan_stat(self,
+                  missing_ok: bool = True,
                   followlinks: bool = False) -> Iterator[FileEntry]:
         '''
         Iteratively traverse only files in given directory, in alphabetical order.
@@ -1958,7 +1965,7 @@ class S3Path(URIPath):
 
         return ContextIterator(create_generator())
 
-    def _getdirstat(self) -> StatResult:
+    def _get_dir_stat(self) -> StatResult:
         '''
         Return StatResult of given s3_url directory, including: 
 
@@ -2004,7 +2011,7 @@ class S3Path(URIPath):
                 'Empty bucket name: %r' % self.path_with_protocol)
 
         if not self.is_file():
-            return self._getdirstat()
+            return self._get_dir_stat()
 
         client = self._client
         with raise_s3_error(self.path_with_protocol):
@@ -2046,8 +2053,10 @@ class S3Path(URIPath):
         with raise_s3_error(self.path_with_protocol):
             self._client.delete_object(Bucket=bucket, Key=key)
 
-    def walk(self, followlinks: bool = False
-            ) -> Iterator[Tuple[str, List[str], List[str]]]:
+    def walk(
+        self,
+        followlinks: bool = False
+    ) -> Iterator[Tuple[str, List[str], List[str]]]:
         '''
         Iteratively traverse the given s3 directory, in top-bottom order. In other words, firstly traverse parent directory, if subdirectories exist, traverse the subdirectories in alphabetical order.
         Every iteration on generator yields a 3-tuple: (root, dirs, files)
@@ -2136,7 +2145,7 @@ class S3Path(URIPath):
             overwrite: bool = True) -> None:
         ''' File copy on S3
         Copy content of file on `src_path` to `dst_path`.
-        It's caller's responsebility to ensure the s3_isfile(src_url) == True
+        It's caller's responsibility to ensure the s3_isfile(src_url) == True
 
         :param dst_path: Target file path
         :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
@@ -2192,7 +2201,7 @@ class S3Path(URIPath):
 
         :param dst_url: Given destination path
         :param followlinks: False if regard symlink as file, else True
-        :param force: Sync file forcely, do not ignore same files, priority is higher than 'overwrite', default is False
+        :param force: Sync file forcible, do not ignore same files, priority is higher than 'overwrite', default is False
         :param overwrite: whether or not overwrite file when exists, default is True
         '''
         for src_file_path, dst_file_path in _s3_scan_pairs(
@@ -2214,7 +2223,7 @@ class S3Path(URIPath):
         '''
         Create a symbolic link pointing to src_path named dst_path.
 
-        :param dst_path: Desination path
+        :param dst_path: Destination path
         :raises: S3NameTooLongError, S3BucketNotFoundError, S3IsADirectoryError
         '''
         if len(fspath(self._s3_path).encode()) > 1024:
@@ -2298,9 +2307,9 @@ class S3Path(URIPath):
             *,
             encoding: Optional[str] = None,
             errors: Optional[str] = None,
-            s3_open_func: Callable[[str, str], BinaryIO] = s3_open,
-            **kwargs) -> IO[AnyStr]:  # pytype: disable=signature-mismatch
-        return s3_open_func(  # pytype: disable=wrong-keyword-args
+            s3_open_func: Callable = s3_open,
+            **kwargs) -> IO:
+        return s3_open_func(
             self,
             mode,
             encoding=encoding,

@@ -1,9 +1,10 @@
+# pyre-ignore-all-errors[16]
 import hashlib
 import io
 import os
 import sys
-from functools import lru_cache
-from typing import IO, AnyStr, BinaryIO, Iterator, List, Optional, Tuple
+from functools import cached_property, lru_cache
+from typing import IO, BinaryIO, Iterator, List, Optional, Tuple
 
 from megfile.errors import _create_missing_ok_generator, raise_hdfs_error
 from megfile.interfaces import FileEntry, PathLike, StatResult, URIPath
@@ -14,7 +15,7 @@ from megfile.lib.hdfs_tools import hdfs_api
 from megfile.lib.url import get_url_scheme
 from megfile.pathlike import PathLike, URIPath
 from megfile.smart_path import SmartPath
-from megfile.utils import _is_pickle, cachedproperty
+from megfile.utils import _is_pickle
 
 __all__ = [
     'HdfsPath',
@@ -35,7 +36,7 @@ MAX_RETRIES = 10
 DEFAULT_HDFS_TIMEOUT = 10
 
 
-def is_hdfs(path: PathLike) -> bool:  # pytype: disable=invalid-annotation
+def is_hdfs(path: PathLike) -> bool:
     '''Test if a path is sftp path
 
     :param path: Path to be tested
@@ -55,7 +56,7 @@ def get_hdfs_config(profile_name: Optional[str] = None):
     }
     timeout_env = f"{env_profile}{HDFS_TIMEOUT}"
     if os.getenv(timeout_env):
-        config['timeout'] = int(os.getenv(timeout_env))
+        config['timeout'] = int(os.environ[timeout_env])
 
     config_path = os.getenv(HDFS_CONFIG_PATH) or os.path.expanduser(
         '~/.hdfscli.cfg')
@@ -99,9 +100,9 @@ def get_hdfs_client(profile_name: Optional[str] = None):
 
 
 def hdfs_glob(
-        path: PathLike,
-        recursive: bool = True,
-        missing_ok: bool = True,
+    path: PathLike,
+    recursive: bool = True,
+    missing_ok: bool = True,
 ) -> List[str]:
     '''Return hdfs path list in ascending alphabetical order, in which path matches glob pattern
     Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
@@ -115,7 +116,8 @@ def hdfs_glob(
 
 
 def hdfs_glob_stat(
-        path: PathLike, recursive: bool = True,
+        path: PathLike,
+        recursive: bool = True,
         missing_ok: bool = True) -> Iterator[FileEntry]:
     '''Return a generator contains tuples of path and file stat, in ascending alphabetical order, in which path matches glob pattern
     Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
@@ -130,9 +132,9 @@ def hdfs_glob_stat(
 
 
 def hdfs_iglob(
-        path: PathLike,
-        recursive: bool = True,
-        missing_ok: bool = True,
+    path: PathLike,
+    recursive: bool = True,
+    missing_ok: bool = True,
 ) -> Iterator[str]:
     '''Return hdfs path iterator in ascending alphabetical order, in which path matches glob pattern
     Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
@@ -177,7 +179,7 @@ class HdfsPath(URIPath):
     def _client(self):
         return get_hdfs_client(profile_name=self._profile_name)
 
-    @cachedproperty
+    @cached_property
     def path_with_protocol(self) -> str:
         '''Return path with protocol, like hdfs://path'''
         path = self.path
@@ -186,7 +188,7 @@ class HdfsPath(URIPath):
             return path
         return protocol_prefix + path.lstrip('/')
 
-    @cachedproperty
+    @cached_property
     def path_without_protocol(self) -> str:
         '''Return path without protocol, example: if path is hdfs://path, return path'''
         path = self.path
@@ -195,8 +197,8 @@ class HdfsPath(URIPath):
             path = path[len(protocol_prefix):]
         return path
 
-    @cachedproperty
-    def parts(self) -> Tuple[str]:
+    @cached_property
+    def parts(self) -> Tuple[str, ...]:
         '''A tuple giving access to the path’s various components'''
         parts = [f"{self._protocol_with_profile}://"]
         path = self.path_without_protocol
@@ -211,7 +213,7 @@ class HdfsPath(URIPath):
 
         If the bucket of path are not permitted to read, return False
 
-        :returns: True if path eixsts, else False
+        :returns: True if path exists, else False
         '''
         return bool(
             self._client.status(self.path_without_protocol, strict=False))
@@ -262,10 +264,10 @@ class HdfsPath(URIPath):
         return self.stat(follow_symlinks=follow_symlinks).size
 
     def glob(
-            self,
-            pattern,
-            recursive: bool = True,
-            missing_ok: bool = True,
+        self,
+        pattern,
+        recursive: bool = True,
+        missing_ok: bool = True,
     ) -> List['HdfsPath']:
         '''Return hdfs path list, in which path matches glob pattern
         Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
@@ -281,7 +283,9 @@ class HdfsPath(URIPath):
                 pattern=pattern, recursive=recursive, missing_ok=missing_ok))
 
     def glob_stat(
-            self, pattern, recursive: bool = True,
+            self,
+            pattern,
+            recursive: bool = True,
             missing_ok: bool = True) -> Iterator[FileEntry]:
         '''Return a generator contains tuples of path and file stat, in which path matches glob pattern
         Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
@@ -297,10 +301,10 @@ class HdfsPath(URIPath):
             yield FileEntry(path_obj.name, path_obj.path, path_obj.stat())
 
     def iglob(
-            self,
-            pattern,
-            recursive: bool = True,
-            missing_ok: bool = True,
+        self,
+        pattern,
+        recursive: bool = True,
+        missing_ok: bool = True,
     ) -> Iterator['HdfsPath']:
         '''Return hdfs path iterator, in which path matches glob pattern
         Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
@@ -372,7 +376,7 @@ class HdfsPath(URIPath):
         :raises: FileNotFoundError, NotADirectoryError
         '''
         for filename in self.listdir(followlinks=followlinks):
-            yield self.joinpath(filename)  # pytype: disable=bad-return-type
+            yield self.joinpath(filename)
 
     def load(self, followlinks: bool = False) -> BinaryIO:
         '''Read all content in binary on specified path and write into memory
@@ -415,7 +419,7 @@ class HdfsPath(URIPath):
         dst_path = self.from_path(dst_path)
         if self.is_dir():
             for filename in self.iterdir():
-                self.joinpath(filename).rename(dst_path.joinpath(filename))  # pytype: disable=attribute-error
+                self.joinpath(filename).rename(dst_path.joinpath(filename))
         else:
             if overwrite:
                 dst_path.remove(missing_ok=True)
@@ -449,7 +453,8 @@ class HdfsPath(URIPath):
             if not missing_ok or not isinstance(e, FileNotFoundError):
                 raise
 
-    def scan(self, missing_ok: bool = True,
+    def scan(self,
+             missing_ok: bool = True,
              followlinks: bool = False) -> Iterator[str]:
         '''
         Iteratively traverse only files in given hdfs directory.
@@ -469,7 +474,8 @@ class HdfsPath(URIPath):
                                          followlinks=followlinks):
             yield file_entry.path
 
-    def scan_stat(self, missing_ok: bool = True,
+    def scan_stat(self,
+                  missing_ok: bool = True,
                   followlinks: bool = False) -> Iterator[FileEntry]:
         '''
         Iteratively traverse only files in given directory.
@@ -530,8 +536,10 @@ class HdfsPath(URIPath):
             raise IsADirectoryError('Path is a directory: %r' % self.path)
         self.remove(missing_ok=missing_ok)
 
-    def walk(self, followlinks: bool = False
-            ) -> Iterator[Tuple[str, List[str], List[str]]]:
+    def walk(
+        self,
+        followlinks: bool = False
+    ) -> Iterator[Tuple[str, List[str], List[str]]]:
         '''
         Iteratively traverse the given hdfs directory, in top-bottom order. In other words, firstly traverse parent directory, if subdirectories exist, traverse the subdirectories.
         Every iteration on generator yields a 3-tuple: (root, dirs, files)
@@ -566,7 +574,7 @@ class HdfsPath(URIPath):
         if self.is_dir(followlinks=followlinks):
             hash_md5 = hashlib.md5()  # nosec
             for file_name in self.listdir():
-                chunk = self.joinpath(file_name).md5(  # pytype: disable=attribute-error
+                chunk = self.joinpath(file_name).md5(
                     recalculate=recalculate).encode()
                 hash_md5.update(chunk)
             return hash_md5.hexdigest()
@@ -589,7 +597,7 @@ class HdfsPath(URIPath):
             buffering: Optional[int] = None,
             encoding: Optional[str] = None,
             errors: Optional[str] = None,
-            **kwargs) -> IO[AnyStr]:  # pytype: disable=signature-mismatch
+            **kwargs) -> IO:
         if '+' in mode:
             raise ValueError('unacceptable mode: %r' % mode)
 
@@ -613,21 +621,21 @@ class HdfsPath(URIPath):
                     client=self._client,
                     profile_name=self._profile_name,
                     **input_kwargs)
-                if _is_pickle(file_obj):  # pytype: disable=wrong-arg-types
-                    file_obj = io.BufferedReader(file_obj)  # pytype: disable=wrong-arg-types
+                if _is_pickle(file_obj):
+                    file_obj = io.BufferedReader(file_obj)  # type: ignore
                 if 'b' not in mode:
                     file_obj = io.TextIOWrapper(
-                        file_obj, encoding=encoding, errors=errors)  # pytype: disable=wrong-arg-types
-                    file_obj.mode = mode
-                return file_obj  # pytype: disable=bad-return-type
+                        file_obj, encoding=encoding, errors=errors)
+                    file_obj.mode = mode  # pyre-ignore[41]
+                return file_obj
             elif mode in ('w', 'wb'):
-                return self._client.write(  # pytype: disable=bad-return-type
+                return self._client.write(
                     self.path_without_protocol,
                     overwrite=True,
                     buffersize=buffering,
                     encoding=encoding)
             elif mode in ('a', 'ab'):
-                return self._client.write(  # pytype: disable=bad-return-type
+                return self._client.write(
                     self.path_without_protocol,
                     append=True,
                     buffersize=buffering,

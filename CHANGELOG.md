@@ -153,7 +153,7 @@
 
 ## 2.2.3 - 2023.08.25
 - feat
-    - add `force` param in sync methods for copy file forcely
+    - add `force` param in sync methods for copy file forcible
     - add `-f` / `--force` in `refile sync`
     - check same file in copy, and raise `SameFileError`
 - perf

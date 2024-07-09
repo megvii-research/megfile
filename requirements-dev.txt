@@ -1,4 +1,5 @@
 setuptools
+build
 
 # test
 pytest
@@ -15,16 +16,17 @@ junit-xml ~= 1.9
 requests_mock
 
 # doc
-Sphinx ~= 5.0.0
+Sphinx ~= 7.0
 m2r2
 sphinx-rtd-theme
 sphinxcontrib-jquery
 sphinx_click
 
 # format & static check
-yapf == 0.27.0
+autoflake
+yapf == 0.31.0
 isort
 pytype
-pyre-check
+pyre-check ~= 0.9.22
 bandit
 bandit_sarif_formatter

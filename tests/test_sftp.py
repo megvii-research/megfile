@@ -140,10 +140,10 @@ class FakeSFTPClient:
 
 
 def _fake_exec_command(
-        command: List[str],
-        bufsize: int = -1,
-        timeout: Optional[int] = None,
-        environment: Optional[int] = None,
+    command: List[str],
+    bufsize: int = -1,
+    timeout: Optional[int] = None,
+    environment: Optional[int] = None,
 ) -> subprocess.CompletedProcess:
     if command[0] == 'cp':
         shutil.copy(command[1], command[2])
@@ -902,10 +902,10 @@ def test_sftp_concat(sftp_mocker, mocker):
         assert f.read() == '123'
 
     def _error_exec_command(
-            command: List[str],
-            bufsize: int = -1,
-            timeout: Optional[int] = None,
-            environment: Optional[int] = None,
+        command: List[str],
+        bufsize: int = -1,
+        timeout: Optional[int] = None,
+        environment: Optional[int] = None,
     ):
         return subprocess.CompletedProcess(args=command, returncode=1)
 

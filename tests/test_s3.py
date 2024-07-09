@@ -550,8 +550,8 @@ def test_get_access_token():
 def test_s3_scandir_internal(truncating_client, mocker):
     mocker.patch('megfile.s3.s3_islink', return_value=False)
 
-    def dir_entrys_to_tuples(entries: Iterable[FileEntry]
-                            ) -> List[Tuple[str, bool]]:
+    def dir_entrys_to_tuples(
+            entries: Iterable[FileEntry]) -> List[Tuple[str, bool]]:
         return sorted([(entry.name, entry.is_dir()) for entry in entries])
 
     assert dir_entrys_to_tuples(s3.s3_scandir('s3://')) == [
@@ -619,15 +619,13 @@ def test_s3_scandir(truncating_client, mocker):
         list(map(lambda x: x.name,
                  s3.s3_scandir('s3://bucketA/folderAA')))) == ['folderAAA']
     assert sorted(
-        list(map(lambda x: x.name,
-                 s3.s3_scandir('s3://bucketA/folderAB')))) == [
-                     'fileAB', 'fileAC'
-                 ]
+        list(map(
+            lambda x: x.name,
+            s3.s3_scandir('s3://bucketA/folderAB')))) == ['fileAB', 'fileAC']
     assert sorted(
-        list(map(lambda x: x.name,
-                 s3.s3_scandir('s3://bucketA/folderAB/')))) == [
-                     'fileAB', 'fileAC'
-                 ]
+        list(map(
+            lambda x: x.name,
+            s3.s3_scandir('s3://bucketA/folderAB/')))) == ['fileAB', 'fileAC']
     with s3.s3_scandir('s3://bucketA/folderAB/') as file_entries:
         assert sorted(list(map(lambda x: x.name,
                                file_entries))) == ['fileAB', 'fileAC']
@@ -1094,30 +1092,32 @@ def test_s3_remove_slashes(s3_empty_client):
 
 def test_s3_remove_with_error(s3_empty_client, caplog):
     response = {
-        'Deleted': [
-            {
-                'Key': 'string',
-                'VersionId': 'string',
-                'DeleteMarker': True,
-                'DeleteMarkerVersionId': 'string'
-            },
-        ],
+        'Deleted':
+            [
+                {
+                    'Key': 'string',
+                    'VersionId': 'string',
+                    'DeleteMarker': True,
+                    'DeleteMarkerVersionId': 'string'
+                },
+            ],
         'RequestCharged':
-        'requester',
-        'Errors': [
-            {
-                'Key': 'error1',
-                'VersionId': 'test1',
-                'Code': 'InternalError',
-                'Message': 'test InternalError'
-            },
-            {
-                'Key': 'error2',
-                'VersionId': 'test2',
-                'Code': 'TestError',
-                'Message': 'test InternalError'
-            },
-        ]
+            'requester',
+        'Errors':
+            [
+                {
+                    'Key': 'error1',
+                    'VersionId': 'test1',
+                    'Code': 'InternalError',
+                    'Message': 'test InternalError'
+                },
+                {
+                    'Key': 'error2',
+                    'VersionId': 'test2',
+                    'Code': 'TestError',
+                    'Message': 'test InternalError'
+                },
+            ]
     }
     s3_empty_client.delete_objects = lambda *args, **kwargs: response
     s3_empty_client.create_bucket(Bucket='bucket')

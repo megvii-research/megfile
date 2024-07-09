@@ -36,13 +36,13 @@ class SmartPath(BasePath):
         if not isinstance(pathlike, BaseURIPath):
             pathlike = self._create_pathlike(path)
         if len(other_paths) > 0:
-            pathlike = pathlike.joinpath(*other_paths)
+            pathlike = pathlike.joinpath(*other_paths)  # pyre-ignore[6]
             self.path = str(pathlike)
         self.pathlike = pathlike
 
     @staticmethod
-    def _extract_protocol(path: Union[PathLike, int]
-                         ) -> Tuple[str, Union[str, int]]:
+    def _extract_protocol(
+            path: Union[PathLike, int]) -> Tuple[str, Union[str, int]]:
         if isinstance(path, int):
             protocol = "file"
             path_without_protocol = path
@@ -64,7 +64,7 @@ class SmartPath(BasePath):
         return protocol, path_without_protocol
 
     @classmethod
-    def _create_pathlike(cls, path: Union[PathLike, int]) -> BasePath:
+    def _create_pathlike(cls, path: Union[PathLike, int]) -> BaseURIPath:
         protocol, _ = cls._extract_protocol(path)
         if protocol.startswith('s3+'):
             protocol = 's3'
@@ -122,7 +122,7 @@ class SmartPath(BasePath):
 
     @property
     def protocol(self) -> str:
-        return self.pathlike.protocol  # pytype: disable=attribute-error
+        return self.pathlike.protocol
 
     @classmethod
     def from_uri(cls, path: str):
@@ -185,5 +185,5 @@ class SmartPath(BasePath):
     stem = _bind_property('stem')
 
 
-def get_traditional_path(path: str):
+def get_traditional_path(path: PathLike) -> str:
     return fspath(SmartPath(path).path)

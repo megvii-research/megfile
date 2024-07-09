@@ -7,9 +7,10 @@ import random
 import shlex
 import socket
 import subprocess
+from functools import cached_property
 from logging import getLogger as get_logger
 from stat import S_ISDIR, S_ISLNK, S_ISREG
-from typing import IO, AnyStr, BinaryIO, Callable, Iterator, List, Optional, Tuple, Union
+from typing import IO, BinaryIO, Callable, Iterator, List, Optional, Tuple, Union
 from urllib.parse import urlsplit, urlunsplit
 
 import paramiko
@@ -23,7 +24,7 @@ from megfile.lib.glob import FSFunc, iglob
 from megfile.lib.joinpath import uri_join
 from megfile.pathlike import PathLike, URIPath
 from megfile.smart_path import SmartPath
-from megfile.utils import cachedproperty, calculate_md5, thread_local
+from megfile.utils import calculate_md5, thread_local
 
 _logger = get_logger(__name__)
 
@@ -55,10 +56,10 @@ DEFAULT_SSH_KEEPALIVE_INTERVAL = 15
 
 def _make_stat(stat: paramiko.SFTPAttributes) -> StatResult:
     return StatResult(
-        size=stat.st_size,
-        mtime=stat.st_mtime,
-        isdir=S_ISDIR(stat.st_mode),
-        islnk=S_ISLNK(stat.st_mode),
+        size=stat.st_size or 0,
+        mtime=stat.st_mtime or 0.0,
+        isdir=S_ISDIR(stat.st_mode) if stat.st_mode is not None else False,
+        islnk=S_ISLNK(stat.st_mode) if stat.st_mode is not None else False,
         extra=stat,
     )
 
@@ -82,10 +83,10 @@ def get_private_key():
 
 
 def provide_connect_info(
-        hostname: str,
-        port: Optional[int] = None,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
+    hostname: str,
+    port: Optional[int] = None,
+    username: Optional[str] = None,
+    password: Optional[str] = None,
 ):
     if not port:
         port = 22
@@ -117,11 +118,11 @@ def sftp_should_retry(error: Exception) -> bool:
 
 
 def _patch_sftp_client_request(
-        client: paramiko.SFTPClient,
-        hostname: str,
-        port: Optional[int] = None,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
+    client: paramiko.SFTPClient,
+    hostname: str,
+    port: Optional[int] = None,
+    username: Optional[str] = None,
+    password: Optional[str] = None,
 ):
 
     def retry_callback(error, *args, **kwargs):
@@ -144,7 +145,7 @@ def _patch_sftp_client_request(
         )
         client.sock = new_sftp_client.sock
 
-    client._request = patch_method(
+    client._request = patch_method(  # pyre-ignore[16]
         client._request,  # pytype: disable=attribute-error
         max_retries=MAX_RETRIES,
         should_retry=sftp_should_retry,
@@ -153,10 +154,10 @@ def _patch_sftp_client_request(
 
 
 def _get_sftp_client(
-        hostname: str,
-        port: Optional[int] = None,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
+    hostname: str,
+    port: Optional[int] = None,
+    username: Optional[str] = None,
+    password: Optional[str] = None,
 ) -> paramiko.SFTPClient:
     '''Get sftp client
 
@@ -175,10 +176,10 @@ def _get_sftp_client(
 
 
 def get_sftp_client(
-        hostname: str,
-        port: Optional[int] = None,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
+    hostname: str,
+    port: Optional[int] = None,
+    username: Optional[str] = None,
+    password: Optional[str] = None,
 ) -> paramiko.SFTPClient:
     '''Get sftp client
 
@@ -190,10 +191,10 @@ def get_sftp_client(
 
 
 def _get_ssh_client(
-        hostname: str,
-        port: Optional[int] = None,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
+    hostname: str,
+    port: Optional[int] = None,
+    username: Optional[str] = None,
+    password: Optional[str] = None,
 ) -> paramiko.SSHClient:
     hostname, port, username, password, private_key = provide_connect_info(
         hostname=hostname,
@@ -236,10 +237,10 @@ def _get_ssh_client(
 
 
 def get_ssh_client(
-        hostname: str,
-        port: Optional[int] = None,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
+    hostname: str,
+    port: Optional[int] = None,
+    username: Optional[str] = None,
+    password: Optional[str] = None,
 ) -> paramiko.SSHClient:
     return thread_local(
         f'ssh_client:{hostname},{port},{username},{password}', _get_ssh_client,
@@ -247,10 +248,10 @@ def get_ssh_client(
 
 
 def get_ssh_session(
-        hostname: str,
-        port: Optional[int] = None,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
+    hostname: str,
+    port: Optional[int] = None,
+    username: Optional[str] = None,
+    password: Optional[str] = None,
 ) -> paramiko.Channel:
 
     def retry_callback(error, *args, **kwargs):
@@ -265,7 +266,7 @@ def get_ssh_session(
             del thread_local[sftp_key]
 
     return patch_method(
-        _open_session,  # pytype: disable=attribute-error
+        _open_session,
         max_retries=MAX_RETRIES,
         should_retry=sftp_should_retry,
         retry_callback=retry_callback)(
@@ -277,10 +278,10 @@ def get_ssh_session(
 
 
 def _open_session(
-        hostname: str,
-        port: Optional[int] = None,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
+    hostname: str,
+    port: Optional[int] = None,
+    username: Optional[str] = None,
+    password: Optional[str] = None,
 ) -> paramiko.Channel:
     ssh_client = get_ssh_client(hostname, port, username, password)
     transport = ssh_client.get_transport()
@@ -314,7 +315,8 @@ def sftp_readlink(path: PathLike) -> 'str':
     return SftpPath(path).readlink().path_with_protocol
 
 
-def sftp_glob(path: PathLike, recursive: bool = True,
+def sftp_glob(path: PathLike,
+              recursive: bool = True,
               missing_ok: bool = True) -> List[str]:
     '''Return path list in ascending alphabetical order, in which path matches glob pattern
 
@@ -324,7 +326,7 @@ def sftp_glob(path: PathLike, recursive: bool = True,
         Assume there exists a path `/a/b/c/b/d.txt`
         use path pattern like `/**/b/**/*.txt` to glob, the path above will be returned twice
     3. `**` will match any matched file, directory, symlink and '' by default, when recursive is `True`
-    4. fs_glob returns same as glob.glob(pathname, recursive=True) in acsending alphabetical order.
+    4. fs_glob returns same as glob.glob(pathname, recursive=True) in ascending alphabetical order.
     5. Hidden files (filename stars with '.') will not be found in the result
 
     :param path: Given path
@@ -338,7 +340,8 @@ def sftp_glob(path: PathLike, recursive: bool = True,
 
 
 def sftp_glob_stat(
-        path: PathLike, recursive: bool = True,
+        path: PathLike,
+        recursive: bool = True,
         missing_ok: bool = True) -> Iterator[FileEntry]:
     '''Return a list contains tuples of path and file stat, in ascending alphabetical order, in which path matches glob pattern
 
@@ -348,7 +351,7 @@ def sftp_glob_stat(
         Assume there exists a path `/a/b/c/b/d.txt`
         use path pattern like `/**/b/**/*.txt` to glob, the path above will be returned twice
     3. `**` will match any matched file, directory, symlink and '' by default, when recursive is `True`
-    4. fs_glob returns same as glob.glob(pathname, recursive=True) in acsending alphabetical order.
+    4. fs_glob returns same as glob.glob(pathname, recursive=True) in ascending alphabetical order.
     5. Hidden files (filename stars with '.') will not be found in the result
 
     :param path: Given path
@@ -365,7 +368,8 @@ def sftp_glob_stat(
             path_object.lstat())
 
 
-def sftp_iglob(path: PathLike, recursive: bool = True,
+def sftp_iglob(path: PathLike,
+               recursive: bool = True,
                missing_ok: bool = True) -> Iterator[str]:
     '''Return path iterator in ascending alphabetical order, in which path matches glob pattern
 
@@ -375,7 +379,7 @@ def sftp_iglob(path: PathLike, recursive: bool = True,
         Assume there exists a path `/a/b/c/b/d.txt`
         use path pattern like `/**/b/**/*.txt` to glob, the path above will be returned twice
     3. `**` will match any matched file, directory, symlink and '' by default, when recursive is `True`
-    4. fs_glob returns same as glob.glob(pathname, recursive=True) in acsending alphabetical order.
+    4. fs_glob returns same as glob.glob(pathname, recursive=True) in ascending alphabetical order.
     5. Hidden files (filename stars with '.') will not be found in the result
 
     :param path: Given path
@@ -459,7 +463,8 @@ def sftp_download(
 
         def sftp_callback(bytes_transferred: int, _total_bytes: int):
             nonlocal bytes_transferred_before
-            callback(bytes_transferred - bytes_transferred_before)
+            callback(  # pyre-ignore[29]
+                bytes_transferred - bytes_transferred_before)
             bytes_transferred_before = bytes_transferred
 
     src_path._client.get(
@@ -516,7 +521,8 @@ def sftp_upload(
 
         def sftp_callback(bytes_transferred: int, _total_bytes: int):
             nonlocal bytes_transferred_before
-            callback(bytes_transferred - bytes_transferred_before)
+            callback(  # pyre-ignore[29]
+                bytes_transferred - bytes_transferred_before)
             bytes_transferred_before = bytes_transferred
 
     dst_path._client.put(
@@ -581,10 +587,10 @@ class SftpPath(URIPath):
     """sftp protocol
 
     uri format: 
-    - absolute path
-        - sftp://[username[:password]@]hostname[:port]//file_path
-    - relative path
-        - - sftp://[username[:password]@]hostname[:port]/file_path
+        - absolute path
+            - sftp://[username[:password]@]hostname[:port]//file_path
+        - relative path
+            - sftp://[username[:password]@]hostname[:port]/file_path
     """
 
     protocol = "sftp"
@@ -600,8 +606,8 @@ class SftpPath(URIPath):
             self._root_dir = self._client.normalize('.')
         self._real_path = os.path.join(self._root_dir, parts.path.lstrip('/'))
 
-    @cachedproperty
-    def parts(self) -> Tuple[str]:
+    @cached_property
+    def parts(self) -> Tuple[str, ...]:
         '''A tuple giving access to the path’s various components'''
         if self._urlsplit_parts.path.startswith('//'):
             new_parts = self._urlsplit_parts._replace(path='//')
@@ -611,7 +617,7 @@ class SftpPath(URIPath):
         path = self._urlsplit_parts.path.lstrip('/')
         if path != '':
             parts.extend(path.split('/'))
-        return tuple(parts)
+        return tuple(parts)  # pyre-ignore[7]
 
     @property
     def _client(self):
@@ -631,7 +637,7 @@ class SftpPath(URIPath):
             if sftp_local_path == ".":
                 sftp_local_path = "/"
         new_parts = self._urlsplit_parts._replace(path=sftp_local_path)
-        return self.from_path(urlunsplit(new_parts))
+        return self.from_path(urlunsplit(new_parts))  # pyre-ignore[6]
 
     def exists(self, followlinks: bool = False) -> bool:
         '''
@@ -670,7 +676,9 @@ class SftpPath(URIPath):
         '''
         return self.stat(follow_symlinks=follow_symlinks).size
 
-    def glob(self, pattern, recursive: bool = True,
+    def glob(self,
+             pattern,
+             recursive: bool = True,
              missing_ok: bool = True) -> List['SftpPath']:
         '''Return path list in ascending alphabetical order, in which path matches glob pattern
 
@@ -680,7 +688,7 @@ class SftpPath(URIPath):
             Assume there exists a path `/a/b/c/b/d.txt`
             use path pattern like `/**/b/**/*.txt` to glob, the path above will be returned twice
         3. `**` will match any matched file, directory, symlink and '' by default, when recursive is `True`
-        4. fs_glob returns same as glob.glob(pathname, recursive=True) in acsending alphabetical order.
+        4. fs_glob returns same as glob.glob(pathname, recursive=True) in ascending alphabetical order.
         5. Hidden files (filename stars with '.') will not be found in the result
 
         :param pattern: Glob the given relative pattern in the directory represented by this path
@@ -693,7 +701,9 @@ class SftpPath(URIPath):
                 pattern=pattern, recursive=recursive, missing_ok=missing_ok))
 
     def glob_stat(
-            self, pattern, recursive: bool = True,
+            self,
+            pattern,
+            recursive: bool = True,
             missing_ok: bool = True) -> Iterator[FileEntry]:
         '''Return a list contains tuples of path and file stat, in ascending alphabetical order, in which path matches glob pattern
 
@@ -703,7 +713,7 @@ class SftpPath(URIPath):
             Assume there exists a path `/a/b/c/b/d.txt`
             use path pattern like `/**/b/**/*.txt` to glob, the path above will be returned twice
         3. `**` will match any matched file, directory, symlink and '' by default, when recursive is `True`
-        4. fs_glob returns same as glob.glob(pathname, recursive=True) in acsending alphabetical order.
+        4. fs_glob returns same as glob.glob(pathname, recursive=True) in ascending alphabetical order.
         5. Hidden files (filename stars with '.') will not be found in the result
 
         :param pattern: Glob the given relative pattern in the directory represented by this path
@@ -715,7 +725,9 @@ class SftpPath(URIPath):
                                    missing_ok=missing_ok):
             yield FileEntry(path_obj.name, path_obj.path, path_obj.lstat())
 
-    def iglob(self, pattern, recursive: bool = True,
+    def iglob(self,
+              pattern,
+              recursive: bool = True,
               missing_ok: bool = True) -> Iterator['SftpPath']:
         '''Return path iterator in ascending alphabetical order, in which path matches glob pattern
 
@@ -725,7 +737,7 @@ class SftpPath(URIPath):
             Assume there exists a path `/a/b/c/b/d.txt`
             use path pattern like `/**/b/**/*.txt` to glob, the path above will be returned twice
         3. `**` will match any matched file, directory, symlink and '' by default, when recursive is `True`
-        4. fs_glob returns same as glob.glob(pathname, recursive=True) in acsending alphabetical order.
+        4. fs_glob returns same as glob.glob(pathname, recursive=True) in ascending alphabetical order.
         5. Hidden files (filename stars with '.') will not be found in the result
 
         :param pattern: Glob the given relative pattern in the directory represented by this path
@@ -796,9 +808,9 @@ class SftpPath(URIPath):
 
     def listdir(self) -> List[str]:
         '''
-        Get all contents of given sftp path. The result is in acsending alphabetical order.
+        Get all contents of given sftp path. The result is in ascending alphabetical order.
 
-        :returns: All contents have in the path in acsending alphabetical order
+        :returns: All contents have in the path in ascending alphabetical order
         '''
         if not self.is_dir():
             raise NotADirectoryError(
@@ -807,15 +819,15 @@ class SftpPath(URIPath):
 
     def iterdir(self) -> Iterator['SftpPath']:
         '''
-        Get all contents of given sftp path. The result is in acsending alphabetical order.
+        Get all contents of given sftp path. The result is in ascending alphabetical order.
 
-        :returns: All contents have in the path in acsending alphabetical order
+        :returns: All contents have in the path in ascending alphabetical order
         '''
         if not self.is_dir():
             raise NotADirectoryError(
                 f"Not a directory: '{self.path_with_protocol}'")
         for path in self.listdir():
-            yield self.joinpath(path)  # type: ignore
+            yield self.joinpath(path)
 
     def load(self) -> BinaryIO:
         '''Read all content on specified path and write into memory
@@ -830,14 +842,14 @@ class SftpPath(URIPath):
 
     def mkdir(self, mode=0o777, parents: bool = False, exist_ok: bool = False):
         '''
-        make a directory on sftp, including parent directory
-
+        make a directory on sftp, including parent directory.
         If there exists a file on the path, raise FileExistsError
 
         :param mode: If mode is given, it is combined with the process’ umask value to determine the file mode and access flags.
         :param parents: If parents is true, any missing parents of this path are created as needed;
-        If parents is false (the default), a missing parent raises FileNotFoundError.
+            If parents is false (the default), a missing parent raises FileNotFoundError.
         :param exist_ok: If False and target directory exists, raise FileExistsError
+
         :raises: FileExistsError
         '''
         if self.exists():
@@ -943,7 +955,8 @@ class SftpPath(URIPath):
         else:
             self._client.unlink(self._real_path)
 
-    def scan(self, missing_ok: bool = True,
+    def scan(self,
+             missing_ok: bool = True,
              followlinks: bool = False) -> Iterator[str]:
         '''
         Iteratively traverse only files in given directory, in alphabetical order.
@@ -962,7 +975,8 @@ class SftpPath(URIPath):
         for file_entry in scan_stat_iter:
             yield file_entry.path
 
-    def scan_stat(self, missing_ok: bool = True,
+    def scan_stat(self,
+                  missing_ok: bool = True,
                   followlinks: bool = False) -> Iterator[FileEntry]:
         '''
         Iteratively traverse only files in given directory, in alphabetical order.
@@ -993,8 +1007,7 @@ class SftpPath(URIPath):
                     )
                 else:
                     yield FileEntry(
-                        current_path.name,  # type: ignore
-                        current_path.path_with_protocol,
+                        current_path.name, current_path.path_with_protocol,
                         current_path.stat(follow_symlinks=followlinks))
 
         return _create_missing_ok_generator(
@@ -1020,9 +1033,8 @@ class SftpPath(URIPath):
             for name in self.listdir():
                 current_path = self.joinpath(name)
                 yield FileEntry(
-                    current_path.name,  # type: ignore
-                    current_path.path_with_protocol,
-                    current_path.lstat())  # type: ignore
+                    current_path.name, current_path.path_with_protocol,
+                    current_path.lstat())
 
         return ContextIterator(create_generator())
 
@@ -1048,8 +1060,10 @@ class SftpPath(URIPath):
             return
         self._client.unlink(self._real_path)
 
-    def walk(self, followlinks: bool = False
-            ) -> Iterator[Tuple[str, List[str], List[str]]]:
+    def walk(
+        self,
+        followlinks: bool = False
+    ) -> Iterator[Tuple[str, List[str], List[str]]]:
         '''
         Generate the file names in a directory tree by walking the tree top-down.
         For each directory in the tree rooted at directory path (including path itself),
@@ -1111,16 +1125,17 @@ class SftpPath(URIPath):
 
         :param recalculate: Ignore this parameter, just for compatibility
         :param followlinks: Ignore this parameter, just for compatibility
+
         returns: md5 of file
         '''
         if self.is_dir():
             hash_md5 = hashlib.md5()  # nosec
             for file_name in self.listdir():
-                chunk = self.joinpath(file_name).md5(  # type: ignore
+                chunk = self.joinpath(file_name).md5(
                     recalculate=recalculate, followlinks=followlinks).encode()
                 hash_md5.update(chunk)
             return hash_md5.hexdigest()
-        with self.open('rb') as src:  # type: ignore
+        with self.open('rb') as src:
             md5 = calculate_md5(src)
         return md5
 
@@ -1128,7 +1143,7 @@ class SftpPath(URIPath):
         '''
         Create a symbolic link pointing to src_path named dst_path.
 
-        :param dst_path: Desination path
+        :param dst_path: Destination path
         '''
         dst_path = self.from_path(dst_path)
         if dst_path.exists(followlinks=False):
@@ -1180,7 +1195,7 @@ class SftpPath(URIPath):
             buffering=-1,
             encoding: Optional[str] = None,
             errors: Optional[str] = None,
-            **kwargs) -> IO[AnyStr]:  # pytype: disable=signature-mismatch
+            **kwargs) -> IO:
         '''Open a file on the path.
 
         :param mode: Mode to open file
@@ -1200,9 +1215,8 @@ class SftpPath(URIPath):
         fileobj = self._client.open(self._real_path, mode, bufsize=buffering)
         fileobj.name = self.path
         if 'r' in mode and 'b' not in mode:
-            return io.TextIOWrapper(
-                fileobj, encoding=encoding, errors=errors)  # type: ignore
-        return fileobj  # type: ignore
+            return io.TextIOWrapper(fileobj, encoding=encoding, errors=errors)  # pytype: disable=wrong-arg-types
+        return fileobj  # pytype: disable=bad-return-type
 
     def chmod(self, mode: int, follow_symlinks: bool = True):
         '''
@@ -1228,11 +1242,11 @@ class SftpPath(URIPath):
         return self._client.rmdir(self._real_path)
 
     def _exec_command(
-            self,
-            command: List[str],
-            bufsize: int = -1,
-            timeout: Optional[int] = None,
-            environment: Optional[dict] = None,
+        self,
+        command: List[str],
+        bufsize: int = -1,
+        timeout: Optional[int] = None,
+        environment: Optional[dict] = None,
     ) -> subprocess.CompletedProcess:
         with get_ssh_session(
                 hostname=self._urlsplit_parts.hostname,
@@ -1283,7 +1297,8 @@ class SftpPath(URIPath):
         if not overwrite and self.from_path(dst_path).exists():
             return
 
-        self.from_path(os.path.dirname(dst_path)).makedirs(exist_ok=True)
+        self.from_path(os.path.dirname(
+            fspath(dst_path))).makedirs(exist_ok=True)
         dst_path = self.from_path(dst_path)
         if self._is_same_backend(dst_path):
             if self._real_path == dst_path._real_path:
@@ -1323,7 +1338,7 @@ class SftpPath(URIPath):
 
         :param dst_url: Given destination path
         :param followlinks: False if regard symlink as file, else True
-        :param force: Sync file forcely, do not ignore same files, priority is higher than 'overwrite', default is False
+        :param force: Sync file forcible, do not ignore same files, priority is higher than 'overwrite', default is False
         :param overwrite: whether or not overwrite file when exists, default is True
         '''
         if not self._is_same_protocol(dst_path):

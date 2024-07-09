@@ -1,8 +1,9 @@
 import os
+from functools import cached_property
 from typing import AnyStr, Callable, Optional
 
 from megfile.interfaces import Readable, Seekable, Writable
-from megfile.utils import cachedproperty, get_content_size
+from megfile.utils import get_content_size
 
 
 class LazyHandler(Readable, Seekable, Writable):
@@ -24,7 +25,7 @@ class LazyHandler(Readable, Seekable, Writable):
     def mode(self) -> str:
         return self._mode
 
-    @cachedproperty
+    @cached_property
     def _file_object(self):
         return self._open_func(self._path, self._mode, **self._options)
 
@@ -41,16 +42,16 @@ class LazyHandler(Readable, Seekable, Writable):
     def readable(self) -> bool:
         return self._file_object.readable()
 
-    def read(self, size: Optional[int] = None) -> AnyStr:  # pytype: disable=signature-mismatch
+    def read(self, size: Optional[int] = None) -> AnyStr:  # pyre-ignore[34]
         return self._file_object.read(size)
 
-    def readline(self, size: Optional[int] = None) -> AnyStr:  # pytype: disable=signature-mismatch
+    def readline(self, size: Optional[int] = None) -> AnyStr:  # pyre-ignore[34]
         return self._file_object.readline(size)
 
     def writable(self) -> bool:
         return self._file_object.writable()
 
-    def write(self, data: AnyStr):  # pytype: disable=signature-mismatch
+    def write(self, data: AnyStr):
         return self._file_object.write(data)
 
     def _close(self):

@@ -1,36 +1,18 @@
+# pyre-ignore-all-errors[16]
 import os
 import stat
 from collections.abc import Sequence
 from enum import Enum
-from functools import wraps
-from typing import IO, Any, AnyStr, BinaryIO, Callable, Iterator, List, NamedTuple, Optional, Tuple, Union
+from functools import cached_property
+from typing import IO, Any, BinaryIO, Iterator, List, NamedTuple, Optional, Tuple, Type, TypeVar, Union
 
 from megfile.lib.compat import PathLike as _PathLike
 from megfile.lib.compat import fspath
 from megfile.lib.fnmatch import _compile_pattern
 from megfile.lib.joinpath import uri_join
-from megfile.utils import cachedproperty, classproperty
+from megfile.utils import classproperty
 
-# Python 3.5+ compatible
-'''
-class StatResult(NamedTuple):
-
-    size: int = 0
-    ctime: float = 0.0
-    mtime: float = 0.0
-    isdir: bool = False
-    islnk: bool = False
-    extra: Any = None  # raw stat info
-
-in Python 3.6+
-'''
-
-_StatResult = NamedTuple(
-    'StatResult', [
-        ('size', int), ('ctime', float), ('mtime', float), ('isdir', bool),
-        ('islnk', bool), ('extra', Any)
-    ])
-_StatResult.__new__.__defaults__ = (0, 0.0, 0.0, False, False, None)
+Self = TypeVar('Self')
 
 
 class Access(Enum):
@@ -38,7 +20,13 @@ class Access(Enum):
     WRITE = 2
 
 
-class StatResult(_StatResult):
+class StatResult(NamedTuple):
+    size: int = 0
+    ctime: float = 0.0
+    mtime: float = 0.0
+    isdir: bool = False
+    islnk: bool = False
+    extra: Any = None
 
     def is_file(self) -> bool:
         return not self.isdir or self.islnk
@@ -195,20 +183,11 @@ class StatResult(_StatResult):
         return 0
 
 
-'''
 class FileEntry(NamedTuple):
 
     name: str
+    path: str
     stat: StatResult
-
-in Python 3.6+
-'''
-
-_FileEntry = NamedTuple(
-    'FileEntry', [('name', str), ('path', str), ('stat', StatResult)])
-
-
-class FileEntry(_FileEntry):
 
     def inode(self) -> Optional[Union[int, str]]:
         return self.stat.st_ino
@@ -221,16 +200,6 @@ class FileEntry(_FileEntry):
 
     def is_symlink(self) -> bool:
         return self.stat.is_symlink()
-
-
-def method_not_implemented(func):
-
-    @wraps(func)
-    def wrapper(self, *args, **kwargs):
-        raise NotImplementedError(
-            'method %r not implemented: %r' % (func.__name__, self))
-
-    return wrapper
 
 
 class BasePath:
@@ -256,142 +225,160 @@ class BasePath:
     def __eq__(self, other_path: "BasePath") -> bool:
         return fspath(self) == fspath(other_path)
 
-    # pytype: disable=bad-return-type
-
-    @method_not_implemented
-    def is_dir(self, followlinks: bool = False) -> bool:  # type: ignore
+    def is_dir(self, followlinks: bool = False) -> bool:
         """Return True if the path points to a directory."""
+        raise NotImplementedError('method "is_dir" not implemented: %r' % self)
 
-    @method_not_implemented
-    def is_file(self, followlinks: bool = False) -> bool:  # type: ignore
+    def is_file(self, followlinks: bool = False) -> bool:
         """Return True if the path points to a regular file."""
+        raise NotImplementedError('method "is_file" not implemented: %r' % self)
 
     def is_symlink(self) -> bool:
         return False
 
-    @method_not_implemented
-    def access(self, mode: Access) -> bool:  # type: ignore
+    def access(self, mode: Access) -> bool:
         """Return True if the path has access permission described by mode."""
+        raise NotImplementedError('method "access" not implemented: %r' % self)
 
-    @method_not_implemented
-    def exists(self, followlinks: bool = False) -> bool:  # type: ignore
+    def exists(self, followlinks: bool = False) -> bool:
         """Whether the path points to an existing file or directory."""
+        raise NotImplementedError('method "exists" not implemented: %r' % self)
 
-    # listdir or iterdir?
-    @method_not_implemented
-    def listdir(self) -> List[str]:  # type: ignore
+    def listdir(self) -> List[str]:
         """Return the names of the entries in the directory the path points to."""
+        raise NotImplementedError('method "listdir" not implemented: %r' % self)
 
-    @method_not_implemented
-    def scandir(self) -> Iterator[FileEntry]:  # type: ignore
+    def scandir(self) -> Iterator[FileEntry]:
         """Return an iterator of FileEntry objects corresponding to the entries in the directory."""
+        raise NotImplementedError('method "scandir" not implemented: %r' % self)
 
-    @method_not_implemented
-    def getsize(self, follow_symlinks: bool = True) -> int:  # type: ignore
+    def getsize(self, follow_symlinks: bool = True) -> int:
         """Return the size, in bytes."""
+        raise NotImplementedError('method "getsize" not implemented: %r' % self)
 
-    @method_not_implemented
-    def getmtime(self, follow_symlinks: bool = True) -> float:  # type: ignore
+    def getmtime(self, follow_symlinks: bool = True) -> float:
         """Return the time of last modification."""
+        raise NotImplementedError(
+            'method "getmtime" not implemented: %r' % self)
 
-    @method_not_implemented
-    def stat(self, follow_symlinks=True) -> StatResult:  # type: ignore
+    def stat(self, follow_symlinks=True) -> StatResult:
         """Get the status of the path."""
+        raise NotImplementedError('method "stat" not implemented: %r' % self)
 
-    @method_not_implemented
     def remove(self, missing_ok: bool = False) -> None:
         """Remove (delete) the file."""
+        raise NotImplementedError('method "remove" not implemented: %r' % self)
 
-    @method_not_implemented
     def unlink(self, missing_ok: bool = False) -> None:
         """Remove (delete) the file."""
+        raise NotImplementedError('method "unlink" not implemented: %r' % self)
 
-    @method_not_implemented
     def mkdir(
-            self, mode=0o777, parents: bool = False,
+            self,
+            mode=0o777,
+            parents: bool = False,
             exist_ok: bool = False) -> None:
         """Create a directory."""
+        raise NotImplementedError('method "mkdir" not implemented: %r' % self)
 
-    @method_not_implemented
     def rmdir(self) -> None:
         """Remove (delete) the directory."""
+        raise NotImplementedError('method "rmdir" not implemented: %r' % self)
 
-    @method_not_implemented
-    def open(self, mode: str = 'r', **kwargs) -> IO[AnyStr]:  # type: ignore
+    def open(self, mode: str = 'r', **kwargs) -> IO:
         """Open the file with mode."""
+        raise NotImplementedError('method "open" not implemented: %r' % self)
 
-    @method_not_implemented
-    def walk(self, followlinks: bool = False
-            ) -> Iterator[Tuple[str, List[str], List[str]]]:  # type: ignore
+    def walk(
+        self,
+        followlinks: bool = False
+    ) -> Iterator[Tuple[str, List[str], List[str]]]:
         """Generate the file names in a directory tree by walking the tree."""
+        raise NotImplementedError('method "walk" not implemented: %r' % self)
 
-    @method_not_implemented
-    def scan(self, missing_ok: bool = True,
-             followlinks: bool = False) -> Iterator[str]:  # type: ignore
+    def scan(self,
+             missing_ok: bool = True,
+             followlinks: bool = False) -> Iterator[str]:
         """Iterate through the files in the directory."""
+        raise NotImplementedError('method "scan" not implemented: %r' % self)
 
-    @method_not_implemented
-    def scan_stat(self, missing_ok: bool = True, followlinks: bool = False
-                 ) -> Iterator[FileEntry]:  # type: ignore
+    def scan_stat(self,
+                  missing_ok: bool = True,
+                  followlinks: bool = False) -> Iterator[FileEntry]:
         """Iterate through the files in the directory, with file stat."""
+        raise NotImplementedError(
+            'method "scan_stat" not implemented: %r' % self)
 
-    @method_not_implemented
-    def glob(self, pattern, recursive: bool = True,
-             missing_ok: bool = True) -> List['BasePath']:  # type: ignore
+    def glob(
+            self: Self,
+            pattern: str,
+            recursive: bool = True,
+            missing_ok: bool = True) -> List[Self]:
         """Return files whose paths match the glob pattern."""
+        raise NotImplementedError('method "glob" not implemented: %r' % self)
 
-    @method_not_implemented
-    def iglob(self, pattern, recursive: bool = True,
-              missing_ok: bool = True) -> Iterator['BasePath']:  # type: ignore
+    def iglob(
+            self: Self,
+            pattern: str,
+            recursive: bool = True,
+            missing_ok: bool = True) -> Iterator[Self]:
         """Return an iterator of files whose paths match the glob pattern."""
+        raise NotImplementedError('method "iglob" not implemented: %r' % self)
 
-    @method_not_implemented
     def glob_stat(
-            self, pattern, recursive: bool = True,
-            missing_ok: bool = True) -> Iterator[FileEntry]:  # type: ignore
+            self,
+            pattern: str,
+            recursive: bool = True,
+            missing_ok: bool = True) -> Iterator[FileEntry]:
         """Return an iterator of files with stat whose paths match the glob pattern."""
+        raise NotImplementedError(
+            'method "glob_stat" not implemented: %r' % self)
 
-    @method_not_implemented
-    def load(self) -> BinaryIO:  # type: ignore
+    def load(self) -> BinaryIO:
         """Read all content in binary."""
+        raise NotImplementedError('method "load" not implemented: %r' % self)
 
-    @method_not_implemented
     def save(self, file_object: BinaryIO):
         """Write the opened binary stream to the path."""
+        raise NotImplementedError('method "save" not implemented: %r' % self)
 
-    @method_not_implemented
-    def joinpath(self, *other_paths: "PathLike") -> 'BasePath':  # type: ignore
+    def joinpath(self: Self, *other_paths: "PathLike") -> Self:
         """Join or or more path."""
+        raise NotImplementedError(
+            'method "joinpath" not implemented: %r' % self)
 
-    @method_not_implemented
-    def abspath(self):  # type: ignore
-        """Return a normalized absolutized version of the path."""
+    def abspath(self):
+        """Return a normalized absolute version of the path."""
+        raise NotImplementedError('method "abspath" not implemented: %r' % self)
 
-    @method_not_implemented
-    def realpath(self):  # type: ignore
+    def realpath(self):
         """Return the canonical path of the path."""
+        raise NotImplementedError(
+            'method "realpath" not implemented: %r' % self)
 
-    @method_not_implemented
-    def relpath(self, start=None):  # type: ignore
+    def relpath(self, start=None):
         """Return the relative path."""
+        raise NotImplementedError('method "relpath" not implemented: %r' % self)
 
-    @method_not_implemented
-    def is_absolute(self) -> bool:  # type: ignore
+    def is_absolute(self) -> bool:
         """Return True if the path is an absolute pathname."""
+        raise NotImplementedError(
+            'method "is_absolute" not implemented: %r' % self)
 
-    @method_not_implemented
-    def is_mount(self) -> bool:  # type: ignore
+    def is_mount(self) -> bool:
         """Return True if the path is a mount point."""
+        raise NotImplementedError(
+            'method "is_mount" not implemented: %r' % self)
 
-    @method_not_implemented
-    def resolve(self):  # type: ignore
+    def resolve(self):
         """Alias of realpath."""
+        raise NotImplementedError('method "resolve" not implemented: %r' % self)
 
     def touch(self):
         with self.open('w'):
             pass
 
-    # will be deleted in next version
+    # TODO: will be deleted in next version
     def is_link(self) -> bool:
         return self.is_symlink()
 
@@ -401,8 +388,6 @@ class BasePath:
         '''
         self.mkdir(parents=True, exist_ok=exist_ok)
 
-    # pytype: enable=bad-return-type
-
 
 PathLike = Union[str, BasePath, _PathLike]
 
@@ -410,14 +395,14 @@ PathLike = Union[str, BasePath, _PathLike]
 class BaseURIPath(BasePath):
 
     # #####
-    # Backwards compatible API, will be removed in megfile 1.0
+    # TODO: Backwards compatible API, will be removed in megfile 1.0
     @classmethod
     def get_protocol(self) -> Optional[str]:
         pass  # pragma: no cover
 
     @classproperty
     def protocol(cls) -> str:
-        return cls.get_protocol()
+        return cls.get_protocol() or ""
 
     def make_uri(self) -> str:
         return self.path_with_protocol
@@ -427,20 +412,20 @@ class BaseURIPath(BasePath):
 
     # #####
 
-    @cachedproperty
+    @cached_property
     def path_with_protocol(self) -> str:
         '''Return path with protocol, like file:///root, s3://bucket/key'''
         path = self.path
-        protocol_prefix = self.protocol + "://"
+        protocol_prefix = self.protocol + "://"  # pyre-ignore[58]
         if path.startswith(protocol_prefix):
             return path
         return protocol_prefix + path.lstrip('/')
 
-    @cachedproperty
+    @cached_property
     def path_without_protocol(self) -> str:
         '''Return path without protocol, example: if path is s3://bucket/key, return bucket/key'''
         path = self.path
-        protocol_prefix = self.protocol + "://"
+        protocol_prefix = self.protocol + "://"  # pyre-ignore[58]
         if path.startswith(protocol_prefix):
             path = path[len(protocol_prefix):]
         return path
@@ -448,25 +433,6 @@ class BaseURIPath(BasePath):
     def as_posix(self) -> str:
         '''Return a string representation of the path with forward slashes (/)'''
         return self.path_with_protocol
-
-    @classmethod
-    def from_path(cls, path) -> "BaseURIPath":
-        """Return new instance of this class
-
-        :param path: new path 
-        :return: new instance of new path
-        :rtype: BaseURIPath
-        """
-        return cls(path)
-
-    @classmethod
-    def from_uri(cls, path: str) -> "BaseURIPath":
-        protocol_prefix = cls.protocol + "://"
-        if path[:len(protocol_prefix)] != protocol_prefix:
-            raise ValueError(
-                "protocol not match, expected: %r, got: %r" %
-                (cls.protocol, path))
-        return cls.from_path(path[len(protocol_prefix):])
 
     def __fspath__(self) -> str:
         return self.as_uri()
@@ -513,11 +479,11 @@ class BaseURIPath(BasePath):
 
     @classproperty
     def root(self) -> str:
-        return self.protocol + '://'
+        return self.protocol + '://'  # pyre-ignore[58]
 
     @classproperty
     def anchor(self) -> str:
-        return self.root
+        return self.root  # pyre-ignore[7]
 
 
 class URIPath(BaseURIPath):
@@ -527,7 +493,28 @@ class URIPath(BaseURIPath):
             path = self.from_path(path).joinpath(*other_paths)
         self.path = str(path)
 
-    def __truediv__(self, other_path: PathLike) -> "BaseURIPath":
+    @classmethod
+    def from_path(cls: Type[Self], path: PathLike) -> Self:
+        """Return new instance of this class
+
+        :param path: new path 
+
+        :return: new instance of new path
+        :rtype: Self
+        """
+        return cls(path)  # pyre-ignore[19]
+
+    @classmethod
+    def from_uri(cls: Type[Self], path: PathLike) -> Self:
+        path = fspath(path)
+        protocol_prefix = cls.protocol + "://"
+        if path[:len(protocol_prefix)] != protocol_prefix:
+            raise ValueError(
+                "protocol not match, expected: %r, got: %r" %
+                (cls.protocol, path))
+        return cls.from_path(path[len(protocol_prefix):])
+
+    def __truediv__(self: Self, other_path: PathLike) -> Self:
         if isinstance(other_path, BaseURIPath):
             if self.protocol != other_path.protocol:
                 raise TypeError(
@@ -537,27 +524,27 @@ class URIPath(BaseURIPath):
             raise TypeError("%r is not 'str' nor 'URIPath'" % other_path)
         return self.joinpath(other_path)
 
-    def joinpath(self, *other_paths: PathLike) -> "BaseURIPath":
+    def joinpath(self: Self, *other_paths: PathLike) -> Self:
         '''Calling this method is equivalent to combining the path with each of the other arguments in turn'''
         return self.from_path(uri_join(str(self), *map(str, other_paths)))
 
-    @cachedproperty
-    def parts(self) -> Tuple[str]:
+    @cached_property
+    def parts(self) -> Tuple[str, ...]:
         '''A tuple giving access to the path’s various components'''
         parts = [self.root]
         path = self.path_without_protocol
         path = path.lstrip('/')
         if path != '':
             parts.extend(path.split('/'))
-        return tuple(parts)
+        return tuple(parts)  # pyre-ignore[7]
 
-    @cachedproperty
+    @cached_property
     def parents(self) -> "URIPathParents":
         '''An immutable sequence providing access to the logical ancestors of the path'''
         return URIPathParents(self)
 
-    @cachedproperty
-    def parent(self) -> "BaseURIPath":
+    @cached_property
+    def parent(self: Self) -> Self:
         '''The logical parent of the path'''
         if self.path_without_protocol == "/":
             return self
@@ -565,15 +552,16 @@ class URIPath(BaseURIPath):
             return self.parents[0]
         return self.from_path("")
 
-    @cachedproperty
+    @cached_property
     def name(self) -> str:
         '''A string representing the final path component, excluding the drive and root'''
         parts = self.parts
-        if len(parts) == 1 and parts[0] == self.protocol + "://":
+        if len(parts
+              ) == 1 and parts[0] == self.protocol + "://":  # pyre-ignore[58]
             return ''
         return parts[-1]
 
-    @cachedproperty
+    @cached_property
     def suffix(self) -> str:
         '''The file extension of the final component'''
         name = self.name
@@ -582,7 +570,7 @@ class URIPath(BaseURIPath):
             return name[i:]
         return ''
 
-    @cachedproperty
+    @cached_property
     def suffixes(self) -> List[str]:
         '''A list of the path’s file extensions'''
         name = self.name
@@ -591,7 +579,7 @@ class URIPath(BaseURIPath):
         name = name.lstrip('.')
         return ['.' + suffix for suffix in name.split('.')[1:]]
 
-    @cachedproperty
+    @cached_property
     def stem(self) -> str:
         '''The final path component, without its suffix'''
         name = self.name
@@ -620,7 +608,7 @@ class URIPath(BaseURIPath):
         except Exception:
             return False
 
-    def relative_to(self, *other) -> "BaseURIPath":
+    def relative_to(self: Self, *other: str) -> Self:
         '''
         Compute a version of this path relative to the path represented by other.
         If it’s impossible, ValueError is raised.
@@ -637,21 +625,21 @@ class URIPath(BaseURIPath):
         if path.startswith(other_path):
             relative = path[len(other_path):]
             relative = relative.lstrip('/')
-            return type(self)(relative)
+            return type(self)(relative)  # pyre-ignore[19]
         else:
             raise ValueError("%r does not start with %r" % (path, other))
 
-    def with_name(self, name) -> "BaseURIPath":
+    def with_name(self: Self, name: str) -> Self:
         '''Return a new path with the name changed'''
         path = str(self)
         raw_name = self.name
         return self.from_path(path[:len(path) - len(raw_name)] + name)
 
-    def with_stem(self, stem) -> "BaseURIPath":
+    def with_stem(self: Self, stem: str) -> Self:
         '''Return a new path with the stem changed'''
         return self.with_name("".join([stem, self.suffix]))
 
-    def with_suffix(self, suffix) -> "BaseURIPath":
+    def with_suffix(self: Self, suffix: str) -> Self:
         '''Return a new path with the suffix changed'''
         path = str(self)
         raw_suffix = self.suffix
@@ -700,7 +688,7 @@ class URIPath(BaseURIPath):
         return False
 
     def abspath(self) -> str:
-        """Return a normalized absolutized version of the path."""
+        """Return a normalized absolute version of the path."""
         return self.path_with_protocol
 
     def realpath(self) -> str:
@@ -723,14 +711,14 @@ class URIPath(BaseURIPath):
     def read_bytes(self) -> bytes:
         '''Return the binary contents of the pointed-to file as a bytes object'''
         with self.open(mode='rb') as f:
-            return f.read()
+            return f.read()  # pytype: disable=bad-return-type
 
     def read_text(self) -> str:
         '''Return the decoded contents of the pointed-to file as a string'''
         with self.open(mode='r') as f:
-            return f.read()
+            return f.read()  # pytype: disable=bad-return-type
 
-    def rename(self, dst_path: PathLike, overwrite: bool = True) -> 'URIPath':
+    def rename(self: Self, dst_path: PathLike, overwrite: bool = True) -> Self:
         '''
         rename file
 
@@ -739,7 +727,7 @@ class URIPath(BaseURIPath):
         '''
         raise NotImplementedError(f"'rename' is unsupported on '{type(self)}'")
 
-    def replace(self, dst_path: PathLike, overwrite: bool = True) -> 'URIPath':
+    def replace(self: Self, dst_path: PathLike, overwrite: bool = True) -> Self:
         '''
         move file
 
@@ -748,7 +736,7 @@ class URIPath(BaseURIPath):
         '''
         return self.rename(dst_path=dst_path, overwrite=overwrite)
 
-    def rglob(self, pattern) -> List['URIPath']:
+    def rglob(self: Self, pattern) -> List[Self]:
         '''
         This is like calling Path.glob() with “**/” added in front of the given relative pattern
         '''
@@ -785,9 +773,7 @@ class URIPath(BaseURIPath):
         symlink_to's arguments is the reverse of symlink's.
         Target_is_directory’s value is ignored, only be compatible with pathlib.Path
         '''
-        return self.from_path(
-            target).symlink(  # type: ignore
-                dst_path=self.path)
+        return self.from_path(target).symlink(dst_path=self.path)
 
     def hardlink_to(self, target):
         '''
@@ -831,18 +817,18 @@ class URIPath(BaseURIPath):
         raise NotImplementedError(
             f"'expanduser' is unsupported on '{type(self)}'")
 
-    def cwd(self) -> 'URIPath':
+    def cwd(self: Self) -> Self:
         '''Return current working directory
 
         returns: Current working directory
         '''
         raise NotImplementedError(f"'cwd' is unsupported on '{type(self)}'")
 
-    def iterdir(self) -> Iterator['URIPath']:
+    def iterdir(self: Self) -> Iterator[Self]:
         '''
-        Get all contents of given fs path. The result is in acsending alphabetical order.
+        Get all contents of given fs path. The result is in ascending alphabetical order.
 
-        :returns: All contents have in the path in acsending alphabetical order
+        :returns: All contents have in the path in ascending alphabetical order
         '''
         raise NotImplementedError(f"'iterdir' is unsupported on '{type(self)}'")
 
@@ -852,7 +838,7 @@ class URIPath(BaseURIPath):
         '''
         raise NotImplementedError(f"'owner' is unsupported on '{type(self)}'")
 
-    def absolute(self) -> 'URIPath':
+    def absolute(self: Self) -> Self:
         '''
         Make the path absolute, without normalization or resolving symlinks. Returns a new path object
         '''

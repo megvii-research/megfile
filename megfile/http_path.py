@@ -33,8 +33,8 @@ max_retries = HTTP_MAX_RETRY_TIMES
 
 
 def get_http_session(
-        timeout: Optional[Union[int, Tuple[int, int]]] = DEFAULT_TIMEOUT,
-        status_forcelist: Iterable[int] = (500, 502, 503, 504)
+    timeout: Optional[Union[int, Tuple[int, int]]] = DEFAULT_TIMEOUT,
+    status_forcelist: Iterable[int] = (500, 502, 503, 504)
 ) -> requests.Session:
     session = requests.Session()
 
@@ -49,24 +49,24 @@ def get_http_session(
             kwargs)
 
     def retry_callback(
-            error,
-            method,
-            url,
-            params=None,
-            data=None,
-            headers=None,
-            cookies=None,
-            files=None,
-            auth=None,
-            timeout=None,
-            allow_redirects=True,
-            proxies=None,
-            hooks=None,
-            stream=None,
-            verify=None,
-            cert=None,
-            json=None,
-            **kwargs,
+        error,
+        method,
+        url,
+        params=None,
+        data=None,
+        headers=None,
+        cookies=None,
+        files=None,
+        auth=None,
+        timeout=None,
+        allow_redirects=True,
+        proxies=None,
+        hooks=None,
+        stream=None,
+        verify=None,
+        cert=None,
+        json=None,
+        **kwargs,
     ):
         if data and hasattr(data, 'seek'):
             data.seek(0)
@@ -86,7 +86,7 @@ def get_http_session(
                         return BytesIO(f.read())
                 else:
                     _logger.warning(
-                        f'Can not retry http request, because the file object is not seekable and unsupport "name"'
+                        f'Can not retry http request, because the file object is not seekable and not support "name"'
                     )
                     raise
 
@@ -243,8 +243,8 @@ class HttpPath(URIPath):
                 block_forward=block_forward,
                 block_size=block_size,
             )
-            if _is_pickle(reader):  # pytype: disable=wrong-arg-types
-                reader = BufferedReader(reader)  # pytype: disable=wrong-arg-types
+            if _is_pickle(reader):
+                reader = BufferedReader(reader)  # type: ignore
             return reader
 
         response.raw.name = self.path_with_protocol
@@ -252,7 +252,7 @@ class HttpPath(URIPath):
         # response.raw.auto_close = False
         # response.raw.decode_content = True
         # return BufferedReader(response.raw)
-        return BufferedReader(Response(response.raw))  # pytype: disable=wrong-arg-types
+        return BufferedReader(Response(response.raw))  # type: ignore
 
     def stat(self, follow_symlinks=True) -> StatResult:
         '''
@@ -279,15 +279,22 @@ class HttpPath(URIPath):
         size = headers.get('Content-Length')
         if size:
             size = int(size)
+        else:
+            size = 0
 
         last_modified = headers.get('Last-Modified')
         if last_modified:
             last_modified = time.mktime(
                 time.strptime(last_modified, "%a, %d %b %Y %H:%M:%S %Z"))
+        else:
+            last_modified = 0.0
 
-        return StatResult(  # pyre-ignore[20]
-            size=size, mtime=last_modified, isdir=False,
-            islnk=False, extra=headers)
+        return StatResult(
+            size=size,
+            mtime=last_modified,
+            isdir=False,
+            islnk=False,
+            extra=headers)
 
     def getsize(self, follow_symlinks: bool = False) -> int:
         '''
@@ -342,7 +349,7 @@ class HttpsPath(HttpPath):
     protocol = "https"
 
 
-class Response(Readable):
+class Response(Readable[bytes]):
 
     def __init__(self, raw: HTTPResponse) -> None:
         super().__init__()

@@ -58,18 +58,18 @@ class ShadowHandler(Readable, Seekable, Writable, BaseShadowHandler):
     def readable(self) -> bool:
         return is_readable(self._file_object)
 
-    def read(self, size: Optional[int] = None) -> AnyStr:  # pytype: disable=signature-mismatch
+    def read(self, size: Optional[int] = None) -> AnyStr:  # pyre-ignore[34]
         with self._ensure_offset():
-            return self._file_object.read(size)
+            return self._file_object.read(size)  # pyre-ignore[6]
 
-    def readline(self, size: Optional[int] = None) -> AnyStr:  # pytype: disable=signature-mismatch
+    def readline(self, size: Optional[int] = None) -> AnyStr:  # pyre-ignore[34]
         with self._ensure_offset():
-            return self._file_object.readline(size)
+            return self._file_object.readline(size)  # pyre-ignore[6]
 
     def writable(self) -> bool:
         return is_writable(self._file_object)
 
-    def write(self, data: AnyStr):  # pytype: disable=signature-mismatch
+    def write(self, data: AnyStr):
         with self._ensure_offset():
             return self._file_object.write(data)
 

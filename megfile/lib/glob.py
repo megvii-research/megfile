@@ -5,7 +5,7 @@ import os
 import re
 from collections import OrderedDict
 from collections import namedtuple as NamedTuple
-from typing import Callable, Iterator, List, Tuple
+from typing import Iterator, List, Tuple
 
 from megfile.lib import fnmatch
 
@@ -131,7 +131,7 @@ def _glob1(dirname: str, pattern: str, dironly: bool, fs: FSFunc) -> List[str]:
     names = list(_iterdir(dirname, dironly, fs))
     if not _ishidden(pattern):
         names = (x for x in names if not _ishidden(x))
-    return fnmatch.filter(names, pattern)
+    return fnmatch.filter(names, pattern)  # pyre-ignore[6]
 
 
 def _glob0(dirname: str, basename: str, dironly: bool, fs: FSFunc) -> List[str]:
@@ -165,7 +165,7 @@ def _iterdir(dirname: str, dironly: bool, fs: FSFunc) -> Iterator[str]:
         for name, isdir in fs.scandir(dirname):
             try:
                 if not dironly or isdir:
-                    yield name  # type: ignore
+                    yield name
             except OSError:
                 pass
     except OSError:

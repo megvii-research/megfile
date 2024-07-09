@@ -49,17 +49,17 @@ class CombineReader(Readable, Seekable):
     def tell(self) -> int:
         return self._offset
 
-    def _empty_bytes(self) -> AnyStr:  # pytype: disable=signature-mismatch
+    def _empty_bytes(self) -> AnyStr:  # pyre-ignore[34]
         if 'b' in self._mode:
-            return b''
-        return ''
+            return b''  # pyre-ignore[7]
+        return ''  # pyre-ignore[7]
 
     def _empty_buffer(self) -> Union[BytesIO, StringIO]:
         if 'b' in self._mode:
             return BytesIO()
         return StringIO()
 
-    def read(self, size: Optional[int] = None) -> AnyStr:  # pytype: disable=signature-mismatch
+    def read(self, size: Optional[int] = None) -> AnyStr:  # pyre-ignore[34]
         if self._offset >= self._content_size:
             return self._empty_bytes()
         if size is None or size < 0:
@@ -72,9 +72,9 @@ class CombineReader(Readable, Seekable):
             buffer.write(data)
             size -= len(data)
             self._offset += len(data)
-        return buffer.getvalue()
+        return buffer.getvalue()  # pyre-ignore[7]
 
-    def readline(self, size: Optional[int] = None) -> AnyStr:  # pytype: disable=signature-mismatch
+    def readline(self, size: Optional[int] = None) -> AnyStr:  # pyre-ignore[34]
         if self._offset >= self._content_size:
             return self._empty_bytes()
         if size is None or size < 0:
@@ -96,7 +96,7 @@ class CombineReader(Readable, Seekable):
             self._offset += len(data)
             if buffer.tell() == size or data[-1] == NEWLINE:
                 break
-        return buffer.getvalue()
+        return buffer.getvalue()  # pyre-ignore[7]
 
     def seek(self, offset: int, whence: int = os.SEEK_SET) -> int:
         if whence == os.SEEK_SET:

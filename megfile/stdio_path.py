@@ -1,5 +1,5 @@
 import io
-from typing import IO, AnyStr, Optional, Union
+from typing import IO, Optional, Union
 
 from megfile.interfaces import BaseURIPath, PathLike
 from megfile.lib.compat import fspath
@@ -77,7 +77,7 @@ class StdioPath(BaseURIPath):
             mode: str = 'rb',
             encoding: Optional[str] = None,
             errors: Optional[str] = None,
-            **kwargs) -> IO[AnyStr]:  # pytype: disable=signature-mismatch
+            **kwargs) -> IO:
         '''Used to read or write stdio
 
         .. note ::
@@ -91,7 +91,7 @@ class StdioPath(BaseURIPath):
 
         if 'b' not in mode:
             fileobj = io.TextIOWrapper(
-                fileobj, encoding=encoding, errors=errors)  # type: ignore
-            fileobj.mode = mode
+                fileobj, encoding=encoding, errors=errors)
+            fileobj.mode = mode  # pyre-ignore[41]
 
-        return fileobj  # type: ignore
+        return fileobj

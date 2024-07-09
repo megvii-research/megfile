@@ -14,7 +14,7 @@ from megfile.config import DEFAULT_BLOCK_SIZE
 from megfile.hdfs_path import DEFAULT_HDFS_TIMEOUT
 from megfile.interfaces import FileEntry
 from megfile.lib.glob import get_non_glob_dir, has_magic
-from megfile.smart import _smart_sync_single_file, smart_copy, smart_exists, smart_getmd5, smart_getmtime, smart_getsize, smart_glob_stat, smart_isdir, smart_isfile, smart_makedirs, smart_move, smart_open, smart_path_join, smart_readlink, smart_realpath, smart_remove, smart_rename, smart_scan_stat, smart_scandir, smart_stat, smart_sync, smart_sync_with_progress, smart_touch, smart_unlink
+from megfile.smart import _smart_sync_single_file, smart_copy, smart_exists, smart_getmd5, smart_getmtime, smart_getsize, smart_glob_stat, smart_isdir, smart_isfile, smart_makedirs, smart_move, smart_open, smart_path_join, smart_readlink, smart_remove, smart_rename, smart_scan_stat, smart_scandir, smart_stat, smart_sync, smart_sync_with_progress, smart_touch, smart_unlink
 from megfile.smart_path import SmartPath
 from megfile.utils import get_human_size
 from megfile.version import VERSION
@@ -176,12 +176,12 @@ def ll(path: str, recursive: bool):
 @click.option('-g', '--progress-bar', is_flag=True, help='Show progress bar.')
 @click.option('--skip', is_flag=True, help='Skip existed files.')
 def cp(
-        src_path: str,
-        dst_path: str,
-        recursive: bool,
-        no_target_directory: bool,
-        progress_bar: bool,
-        skip: bool,
+    src_path: str,
+    dst_path: str,
+    recursive: bool,
+    no_target_directory: bool,
+    progress_bar: bool,
+    skip: bool,
 ):
     if not no_target_directory and (dst_path.endswith('/') or
                                     smart_isdir(dst_path)):
@@ -243,12 +243,12 @@ def cp(
 @click.option('-g', '--progress-bar', is_flag=True, help='Show progress bar.')
 @click.option('--skip', is_flag=True, help='Skip existed files.')
 def mv(
-        src_path: str,
-        dst_path: str,
-        recursive: bool,
-        no_target_directory: bool,
-        progress_bar: bool,
-        skip: bool,
+    src_path: str,
+    dst_path: str,
+    recursive: bool,
+    no_target_directory: bool,
+    progress_bar: bool,
+    skip: bool,
 ):
     if not no_target_directory and (dst_path.endswith('/') or
                                     smart_isdir(dst_path)):
@@ -321,7 +321,7 @@ def rm(path: str, recursive: bool):
     '-f',
     '--force',
     is_flag=True,
-    help='Copy files forcely, ignore same files.')
+    help='Copy files forcible, ignore same files.')
 @click.option('-q', '--quiet', is_flag=True, help='Not show any progress log.')
 @click.option('--skip', is_flag=True, help='Skip existed files.')
 def sync(
@@ -419,8 +419,8 @@ def touch(path: str):
 @cli.command(short_help='Concatenate any files and send them to stdout.')
 @click.argument('path')
 def cat(path: str):
-    with smart_open(path, 'rb') as file:
-        shutil.copyfileobj(file, sys.stdout.buffer)
+    with smart_open(path, 'rb') as f:
+        shutil.copyfileobj(f, sys.stdout.buffer)  # pytype: disable=wrong-arg-types
 
 
 @cli.command(

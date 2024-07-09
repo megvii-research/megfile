@@ -1,4 +1,4 @@
-from megfile.http_path import HttpPath, HttpsPath, get_http_session, http_open, is_http
+from megfile.http_path import HttpPath, get_http_session, http_open, is_http
 from megfile.interfaces import PathLike, StatResult
 
 __all__ = [

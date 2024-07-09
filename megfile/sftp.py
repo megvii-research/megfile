@@ -1,4 +1,4 @@
-from typing import IO, AnyStr, BinaryIO, Callable, Iterator, List, Optional, Tuple
+from typing import IO, BinaryIO, Callable, Iterator, List, Optional, Tuple
 
 from megfile.interfaces import FileEntry, PathLike, StatResult
 from megfile.sftp_path import SftpPath, is_sftp, sftp_concat, sftp_download, sftp_glob, sftp_glob_stat, sftp_iglob, sftp_lstat, sftp_path_join, sftp_readlink, sftp_resolve, sftp_upload
@@ -116,10 +116,10 @@ def sftp_isfile(path: PathLike, followlinks: bool = False) -> bool:
 
 def sftp_listdir(path: PathLike) -> List[str]:
     '''
-    Get all contents of given sftp path. The result is in acsending alphabetical order.
+    Get all contents of given sftp path. The result is in ascending alphabetical order.
 
     :param path: Given path
-    :returns: All contents have in the path in acsending alphabetical order
+    :returns: All contents have in the path in ascending alphabetical order
     '''
     return SftpPath(path).listdir()
 
@@ -136,18 +136,20 @@ def sftp_load_from(path: PathLike) -> BinaryIO:
 
 
 def sftp_makedirs(
-        path: PathLike, mode=0o777, parents: bool = False,
+        path: PathLike,
+        mode=0o777,
+        parents: bool = False,
         exist_ok: bool = False):
     '''
-    make a directory on sftp, including parent directory
-
+    make a directory on sftp, including parent directory.
     If there exists a file on the path, raise FileExistsError
 
     :param path: Given path
     :param mode: If mode is given, it is combined with the process’ umask value to determine the file mode and access flags.
     :param parents: If parents is true, any missing parents of this path are created as needed;
-    If parents is false (the default), a missing parent raises FileNotFoundError.
+        If parents is false (the default), a missing parent raises FileNotFoundError.
     :param exist_ok: If False and target directory exists, raise FileExistsError
+
     :raises: FileExistsError
     '''
     return SftpPath(path).mkdir(mode, parents, exist_ok)
@@ -163,7 +165,8 @@ def sftp_realpath(path: PathLike) -> str:
 
 
 def sftp_rename(
-        src_path: PathLike, dst_path: PathLike,
+        src_path: PathLike,
+        dst_path: PathLike,
         overwrite: bool = True) -> 'SftpPath':
     '''
     rename file on sftp
@@ -176,7 +179,8 @@ def sftp_rename(
 
 
 def sftp_move(
-        src_path: PathLike, dst_path: PathLike,
+        src_path: PathLike,
+        dst_path: PathLike,
         overwrite: bool = True) -> 'SftpPath':
     '''
     move file on sftp
@@ -199,7 +203,8 @@ def sftp_remove(path: PathLike, missing_ok: bool = False) -> None:
 
 
 def sftp_scan(
-        path: PathLike, missing_ok: bool = True,
+        path: PathLike,
+        missing_ok: bool = True,
         followlinks: bool = False) -> Iterator[str]:
     '''
     Iteratively traverse only files in given directory, in alphabetical order.
@@ -217,7 +222,8 @@ def sftp_scan(
 
 
 def sftp_scan_stat(
-        path: PathLike, missing_ok: bool = True,
+        path: PathLike,
+        missing_ok: bool = True,
         followlinks: bool = False) -> Iterator[FileEntry]:
     '''
     Iteratively traverse only files in given directory, in alphabetical order.
@@ -260,8 +266,10 @@ def sftp_unlink(path: PathLike, missing_ok: bool = False) -> None:
     return SftpPath(path).unlink(missing_ok)
 
 
-def sftp_walk(path: PathLike, followlinks: bool = False
-             ) -> Iterator[Tuple[str, List[str], List[str]]]:
+def sftp_walk(
+        path: PathLike,
+        followlinks: bool = False
+) -> Iterator[Tuple[str, List[str], List[str]]]:
     '''
     Generate the file names in a directory tree by walking the tree top-down.
     For each directory in the tree rooted at directory path (including path itself),
@@ -292,6 +300,7 @@ def sftp_getmd5(
     :param path: Given path
     :param recalculate: Ignore this parameter, just for compatibility
     :param followlinks: Ignore this parameter, just for compatibility
+
     returns: md5 of file
     '''
     return SftpPath(path).md5(recalculate, followlinks)
@@ -302,7 +311,7 @@ def sftp_symlink(src_path: PathLike, dst_path: PathLike) -> None:
     Create a symbolic link pointing to src_path named dst_path.
 
     :param src_path: Given path
-    :param dst_path: Desination path
+    :param dst_path: Destination path
     '''
     return SftpPath(src_path).symlink(dst_path)
 
@@ -333,7 +342,7 @@ def sftp_open(
         buffering=-1,
         encoding: Optional[str] = None,
         errors: Optional[str] = None,
-        **kwargs) -> IO[AnyStr]:  # pytype: disable=signature-mismatch
+        **kwargs) -> IO:
     '''Open a file on the path.
 
     :param path: Given path
@@ -402,7 +411,7 @@ def sftp_sync(
     :param src_path: Given path
     :param dst_url: Given destination path
     :param followlinks: False if regard symlink as file, else True
-    :param force: Sync file forcely, do not ignore same files, priority is higher than 'overwrite', default is False
+    :param force: Sync file forcible, do not ignore same files, priority is higher than 'overwrite', default is False
     :param overwrite: whether or not overwrite file when exists, default is True
     '''
     return SftpPath(src_path).sync(dst_path, followlinks, force, overwrite)

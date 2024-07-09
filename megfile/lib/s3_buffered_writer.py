@@ -34,7 +34,7 @@ class PartResult(_PartResult):
         }
 
 
-class S3BufferedWriter(Writable):
+class S3BufferedWriter(Writable[bytes]):
 
     def __init__(
             self,
@@ -137,10 +137,11 @@ class S3BufferedWriter(Writable):
     @property
     def _multipart_upload(self):
         return {
-            'Parts': [
-                future.result().asdict()
-                for _, future in sorted(self._futures.items())
-            ],
+            'Parts':
+                [
+                    future.result().asdict()
+                    for _, future in sorted(self._futures.items())
+                ],
         }
 
     def _upload_buffer(self, part_number, content):

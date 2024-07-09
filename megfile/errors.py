@@ -1,3 +1,4 @@
+# pyre-ignore-all-errors[16]
 import time
 from contextlib import contextmanager
 from functools import wraps
@@ -78,16 +79,16 @@ def full_error_message(error):
 
 
 def client_error_code(error: ClientError) -> str:
-    error_data = error.response.get('Error', {})  # pytype: disable=attribute-error
+    error_data = error.response.get('Error', {})
     return error_data.get('Code') or error_data.get('code', 'Unknown')
 
 
 def client_error_message(error: ClientError) -> str:
-    return error.response.get('Error', {}).get('Message', 'Unknown')  # pytype: disable=attribute-error
+    return error.response.get('Error', {}).get('Message', 'Unknown')
 
 
 def param_validation_error_report(error: ParamValidationError) -> str:
-    return error.kwargs.get('report', 'Unknown')  # pytype: disable=attribute-error
+    return error.kwargs.get('report', 'Unknown')
 
 
 s3_retry_exceptions = [
@@ -106,12 +107,13 @@ s3_retry_exceptions = [
 ]
 if hasattr(botocore.exceptions,
            'ResponseStreamingError'):  # backport botocore==1.23.24
-    s3_retry_exceptions.append(botocore.exceptions.ResponseStreamingError)
-s3_retry_exceptions = tuple(s3_retry_exceptions)
+    s3_retry_exceptions.append(
+        botocore.exceptions.ResponseStreamingError)  # pyre-ignore[6]
+s3_retry_exceptions = tuple(s3_retry_exceptions)  # pyre-ignore[9]
 
 
 def s3_should_retry(error: Exception) -> bool:
-    if isinstance(error, s3_retry_exceptions):
+    if isinstance(error, s3_retry_exceptions):  # pyre-ignore[6]
         return True
     if isinstance(error, botocore.exceptions.ClientError):
         return client_error_code(error) in (
@@ -170,19 +172,21 @@ def _create_missing_ok_generator(generator, missing_ok: bool, error: Exception):
         yield from generator
         return
 
-    zero_elum = True
+    zero_elem = True
     for item in generator:
-        zero_elum = False
+        zero_elem = False
         yield item
 
-    if zero_elum:
+    if zero_elem:
         raise error
 
 
 class UnknownError(Exception):
 
     def __init__(
-            self, error: Exception, path: PathLike,
+            self,
+            error: Exception,
+            path: PathLike,
             extra: Optional[str] = None):
         message = 'Unknown error encountered: %r, error: %s' % (
             path, full_error_message(error))
@@ -317,7 +321,7 @@ class ProtocolNotFoundError(Exception):
     pass
 
 
-def translate_fs_error(fs_error: Exception, fs_path: PathLike):
+def translate_fs_error(fs_error: Exception, fs_path: PathLike) -> Exception:
     if isinstance(fs_error, OSError):
         if fs_error.filename is None:
             fs_error.filename = fs_path
@@ -369,8 +373,7 @@ def translate_s3_error(s3_error: Exception, s3_url: PathLike) -> Exception:
     return S3UnknownError(s3_error, s3_url)
 
 
-def translate_http_error(
-        http_error: Optional[Exception], http_url: str) -> Exception:
+def translate_http_error(http_error: Exception, http_url: str) -> Exception:
     '''Generate exception according to http_error and status_code
 
     .. note ::
@@ -405,20 +408,23 @@ def s3_error_code_should_retry(error: str) -> bool:
     return False
 
 
-def translate_hdfs_error(hdfs_error: Exception, hdfs_path: PathLike):
+def translate_hdfs_error(
+        hdfs_error: Exception, hdfs_path: PathLike) -> Exception:
     from megfile.lib.hdfs_tools import hdfs_api
 
+    # pytype: disable=attribute-error
     if hdfs_api and isinstance(hdfs_error, hdfs_api.HdfsError):
-        if hdfs_error.message and 'Path is not a file' in hdfs_error.message:  # pytype: disable=attribute-error
+        if hdfs_error.message and 'Path is not a file' in hdfs_error.message:
             return IsADirectoryError('Is a directory: %r' % hdfs_path)
-        elif hdfs_error.message and 'Path is not a directory' in hdfs_error.message:  # pytype: disable=attribute-error
+        elif hdfs_error.message and 'Path is not a directory' in hdfs_error.message:
             return NotADirectoryError('Not a directory: %r' % hdfs_path)
-        elif hdfs_error.status_code in (401, 403):  # pytype: disable=attribute-error
+        elif hdfs_error.status_code in (401, 403):
             return PermissionError('Permission denied: %r' % hdfs_path)
-        elif hdfs_error.status_code == 400:  # pytype: disable=attribute-error
-            return ValueError(f'{hdfs_error.message}, path: {hdfs_path}')  # pytype: disable=attribute-error
-        elif hdfs_error.status_code == 404:  # pytype: disable=attribute-error
+        elif hdfs_error.status_code == 400:
+            return ValueError(f'{hdfs_error.message}, path: {hdfs_path}')
+        elif hdfs_error.status_code == 404:
             return FileNotFoundError(f'No match file: {hdfs_path}')
+    # pytype: enable=attribute-error
     return hdfs_error
 
 

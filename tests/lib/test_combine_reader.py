@@ -58,7 +58,7 @@ def test_combine_reader_read():
         assert reader.read() == b'block0 block1 block2 block3 block4 '
 
 
-def test_combine_reader_read_stringio():
+def test_combine_reader_read_stringIO():
     block0 = StringIO('block0 ')
     block1 = StringIO('block1 ')
     block2 = StringIO('block2 ')
