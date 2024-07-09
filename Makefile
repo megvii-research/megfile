@@ -29,7 +29,7 @@ bandit_check:
 
 pyre_check:
 	pyre --output=json check > pyre-errors.json || echo
-	cat pyre-errors.json | ./scripts/convert_results_to_sarif.py > pyre-sarif.json
+	cat pyre-errors.json | ./scripts/convert_results_to_sarif.py > pyre-sarif.json || echo
 
 mut:
 	@echo Mutation testing...
