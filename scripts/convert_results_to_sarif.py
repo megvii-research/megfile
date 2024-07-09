@@ -121,7 +121,7 @@ if __name__ == "__main__":
         format="%(asctime)s [%(levelname)s] %(message)s", level=logging.DEBUG)
 
     data = sys.stdin
-    print(f"results: {data}")
+    raise ValueError(data)
     if data:
         data = json.load(data)
     else:
