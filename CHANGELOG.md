@@ -1,3 +1,14 @@
+## 3.1.0 - 2024.07.09
+- breaking change
+    - remove `megfile.utils.cachedproperty`
+    - modify the parameter order of `s3_download` and `s3_upload`
+    - change param `cookie` to `offset` in some `seek` functions
+- perf
+    - optimize the type annotations
+    - `FileLike` is subclass of `io.IOBase` and `typing.IO`
+- chore
+    - use `pyproject.toml` instead of `setup.py`
+
 ## 3.0.6.post1 - 2024.06.21
 - fix
     - add cli extras require, run `pip install 'megfile[cli]'` to install cli requirements
@@ -46,7 +57,7 @@
     - fix symlink paths in command `ls` and `ll`
 
 ## 3.0.0 - 2024.01.22
-- Incompatible updates
+- Breaking change
     - python3.6 and python3.7 is no longer supported
 - chore
     - support python3.12
