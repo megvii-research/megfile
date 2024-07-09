@@ -4,7 +4,7 @@ import os
 import re
 import time
 from concurrent.futures import ThreadPoolExecutor
-from functools import lru_cache, wraps
+from functools import cached_property, lru_cache, wraps
 from logging import getLogger as get_logger
 from typing import IO, Any, BinaryIO, Callable, Dict, Iterator, List, Optional, Tuple
 
@@ -31,7 +31,7 @@ from megfile.lib.s3_prefetch_reader import S3PrefetchReader
 from megfile.lib.s3_share_cache_reader import S3ShareCacheReader
 from megfile.lib.url import get_url_scheme
 from megfile.smart_path import SmartPath
-from megfile.utils import _is_pickle, cachedproperty, calculate_md5, generate_cache_path, get_binary_mode, get_content_offset, is_readable, necessary_params, process_local, thread_local
+from megfile.utils import _is_pickle, calculate_md5, generate_cache_path, get_binary_mode, get_content_offset, is_readable, necessary_params, process_local, thread_local
 
 __all__ = [
     'S3Path',
@@ -1306,7 +1306,7 @@ class S3Path(URIPath):
         else:
             self._s3_path = self.path
 
-    @cachedproperty
+    @cached_property
     def path_with_protocol(self) -> str:
         '''Return path with protocol, like file:///root, s3://bucket/key'''
         path = self.path
@@ -1315,7 +1315,7 @@ class S3Path(URIPath):
             return path
         return protocol_prefix + path.lstrip('/')
 
-    @cachedproperty
+    @cached_property
     def path_without_protocol(self) -> str:
         '''Return path without protocol, example: if path is s3://bucket/key, return bucket/key'''
         path = self.path
@@ -1324,7 +1324,7 @@ class S3Path(URIPath):
             path = path[len(protocol_prefix):]
         return path
 
-    @cachedproperty
+    @cached_property
     def parts(self) -> Tuple[str, ...]:
         '''A tuple giving access to the path’s various components'''
         parts = [f"{self._protocol_with_profile}://"]
@@ -1334,7 +1334,7 @@ class S3Path(URIPath):
             parts.extend(path.split('/'))
         return tuple(parts)
 
-    @cachedproperty
+    @cached_property
     def _client(self):
         return get_s3_client_with_cache(profile_name=self._profile_name)
 

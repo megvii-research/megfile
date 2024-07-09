@@ -1,5 +1,6 @@
 import pickle
 import time
+from functools import cached_property
 from io import BufferedReader, BytesIO
 from typing import Optional
 
@@ -8,7 +9,6 @@ import requests
 
 from megfile.errors import HttpFileNotFoundError, HttpPermissionError, UnknownError
 from megfile.http import get_http_session, http_exists, http_getmtime, http_getsize, http_open, http_stat, is_http
-from megfile.utils import cachedproperty
 
 
 def test_is_http():
@@ -26,7 +26,7 @@ class PatchedBytesIO(BytesIO):
 class FakeResponse:
     status_code = 0
 
-    @cachedproperty
+    @cached_property
     def raw(self):
         return PatchedBytesIO(b'test')
 
@@ -108,15 +108,15 @@ def test_http_open_pickle(mocker):
     class PickleResponse(FakeResponse):
         status_code = 200
 
-        @cachedproperty
+        @cached_property
         def raw(self):
             return BytesIO(pickle.dumps(b'test'))
 
-        @cachedproperty
+        @cached_property
         def content(self):
             return pickle.dumps(b'test')
 
-        @cachedproperty
+        @cached_property
         def cookies(self):
             return {}
 
