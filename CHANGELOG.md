@@ -57,7 +57,7 @@
     - fix symlink paths in command `ls` and `ll`
 
 ## 3.0.0 - 2024.01.22
-- Breaking change
+- breaking change
     - python3.6 and python3.7 is no longer supported
 - chore
     - support python3.12
