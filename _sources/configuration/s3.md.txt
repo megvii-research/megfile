@@ -1,0 +1,74 @@
+Before using `megfile` to access files on s3, you need to set up authentication credentials for your s3 account. In addition to [boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html), `megfile` also supports some additional configuration items, and the following describes some common configurations.
+You can use environments and configuration file for configuration, and priority is that environment variables take precedence over configuration file.
+
+### Use environments
+You can use environments to setup authentication credentials for your s3 account:
+- `AWS_ACCESS_KEY_ID`: access key
+- `AWS_SECRET_ACCESS_KEY`: secret key
+- `OSS_ENDPOINT` / `AWS_ENDPOINT_URL_S3` / `AWS_ENDPOINT_URL`: endpoint url of s3
+- `AWS_S3_ADDRESSING_STYLE`: addressing style
+- `MEGFILE_S3_MAX_RETRY_TIMES`: s3 request max retry times when catch error which may fix by retry, default is `10`
+
+### Use command
+You can update config file with `megfile` command easyly:
+[megfile config s3 [OPTIONS] AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY](https://megvii-research.github.io/megfile/cli.html#megfile-config-s3) 
+
+```bash
+$ megfile config s3 access_key secret_key
+
+# for aliyun
+$ megfile config s3 access_key secret_key \
+--addressing-style virtual \
+--endpoint-url http://oss-cn-hangzhou.aliyuncs.com \
+```
+
+You can get the configuration from `~/.aws/credentials`, like:
+```ini
+[default]
+aws_secret_access_key = access_key
+aws_access_key_id = secret_key
+
+s3 =
+    addressing_style = virtual
+    endpoint_url = http://oss-cn-hangzhou.aliyuncs.com
+```
+
+Megfile also support a custom global endpoint url, if you not configure a endpoint url for S3 in the file. Example:
+
+```ini
+[default]
+aws_secret_access_key = access_key
+aws_access_key_id = secret_key
+
+endpoint_url = http://oss-cn-hangzhou.aliyuncs.com
+```
+
+### Config for different s3 server or authentications
+You can operate s3 files with different endpoint urls, access keys and secret keys. 
+For example, you have two s3 server with different endpoint_url, access_key and secret key. With configuration, you can use path with profile name like `s3+profile_name://bucket/key` to operate different s3 server:
+```python
+from megfile import smart_sync
+
+smart_sync('s3+profile1://bucket/key', 's3+profile2://bucket/key')
+```
+
+#### Using environment
+You need use `PROFILE_NAME__` prefix, like: 
+
+- `PROFILE1__AWS_ACCESS_KEY_ID`
+- `PROFILE1__AWS_SECRET_ACCESS_KEY`
+- `PROFILE1__OSS_ENDPOINT`
+- `PROFILE1__AWS_S3_ADDRESSING_STYLE`
+
+#### Using command:
+```bash
+megfile config s3 access_key secret_key --profile-name profile1
+```
+
+Then the config file's content will be:
+
+```ini
+[profile1]
+aws_access_key_id = access_key
+aws_secret_access_key = secret_key
+```

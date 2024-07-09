@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Configuration &mdash; megfile  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API Reference" href="megfile.html" />
+    <link rel="prev" title="Path Format" href="path_format.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            megfile
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="readme.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="path_format.html">Path Format</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#common-configuration">Common Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#environment-configurations">Environment configurations</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#s3-configuration">S3 Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#use-environments">Use environments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#use-command">Use command</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config-for-different-s3-server-or-authentications">Config for different s3 server or authentications</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#using-environment">Using environment</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#using-command">Using command:</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#hdfs-configuration">Hdfs Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id1">Use environments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id2">Use command</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config-for-different-hdfs-server">Config for different hdfs server</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id3">Using environment</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id4">Using command:</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#sftp-configuration">Sftp Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id5">Use environments</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#http-configuration">HTTP Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#http-environment-configurations">HTTP Environment configurations</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="megfile.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="advanced.html">Advanced User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">CHANGELOG</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/megvii-research/megfile">GitHub</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">megfile</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Configuration</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/configuration.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="configuration">
+<h1>Configuration<a class="headerlink" href="#configuration" title="Permalink to this heading"></a></h1>
+<section id="common-configuration">
+<h2>Common Configuration<a class="headerlink" href="#common-configuration" title="Permalink to this heading"></a></h2>
+<section id="environment-configurations">
+<h3>Environment configurations<a class="headerlink" href="#environment-configurations" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_BLOCK_SIZE</span></code>: block size in some <code class="docutils literal notranslate"><span class="pre">open</span></code> func, like <code class="docutils literal notranslate"><span class="pre">http_open</span></code>, <code class="docutils literal notranslate"><span class="pre">s3_open</span></code>, default is <code class="docutils literal notranslate"><span class="pre">8MB</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_MAX_BLOCK_SIZE</span></code>: max block size in some <code class="docutils literal notranslate"><span class="pre">open</span></code> func, like <code class="docutils literal notranslate"><span class="pre">http_open</span></code>, <code class="docutils literal notranslate"><span class="pre">s3_open</span></code>, default is <code class="docutils literal notranslate"><span class="pre">block</span> <span class="pre">size</span> <span class="pre">*</span> <span class="pre">16</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_MAX_BUFFER_SIZE</span></code>: max buffer size in some <code class="docutils literal notranslate"><span class="pre">open</span></code> func, like <code class="docutils literal notranslate"><span class="pre">http_open</span></code>, <code class="docutils literal notranslate"><span class="pre">s3_open</span></code>, default is <code class="docutils literal notranslate"><span class="pre">block</span> <span class="pre">size</span> <span class="pre">*</span> <span class="pre">16</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_MAX_WORKERS</span></code>: max threads will be used, default is <code class="docutils literal notranslate"><span class="pre">32</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_BLOCK_CAPACITY</span></code>: default cache capacity of block and concurrency, default is <code class="docutils literal notranslate"><span class="pre">16</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_S3_CLIENT_CACHE_MODE</span></code>: s3 client cache mode, <code class="docutils literal notranslate"><span class="pre">thread_local</span></code> or <code class="docutils literal notranslate"><span class="pre">process_local</span></code>, default is <code class="docutils literal notranslate"><span class="pre">thread_local</span></code>, <strong>it’s a experimental feature.</strong></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_MAX_RETRY_TIMES</span></code>: default max retry times when catch error which may fix by retry, default is <code class="docutils literal notranslate"><span class="pre">10</span></code></p></li>
+</ul>
+</section>
+</section>
+<section id="s3-configuration">
+<h2>S3 Configuration<a class="headerlink" href="#s3-configuration" title="Permalink to this heading"></a></h2>
+<p>Before using <code class="docutils literal notranslate"><span class="pre">megfile</span></code> to access files on s3, you need to set up authentication credentials for your s3 account. In addition to <a class="reference external" href="https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html">boto3</a>, <code class="docutils literal notranslate"><span class="pre">megfile</span></code> also supports some additional configuration items, and the following describes some common configurations.
+You can use environments and configuration file for configuration, and priority is that environment variables take precedence over configuration file.</p>
+<section id="use-environments">
+<h3>Use environments<a class="headerlink" href="#use-environments" title="Permalink to this heading"></a></h3>
+<p>You can use environments to setup authentication credentials for your s3 account:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">AWS_ACCESS_KEY_ID</span></code>: access key</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">AWS_SECRET_ACCESS_KEY</span></code>: secret key</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">OSS_ENDPOINT</span></code> / <code class="docutils literal notranslate"><span class="pre">AWS_ENDPOINT_URL_S3</span></code> / <code class="docutils literal notranslate"><span class="pre">AWS_ENDPOINT_URL</span></code>: endpoint url of s3</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">AWS_S3_ADDRESSING_STYLE</span></code>: addressing style</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_S3_MAX_RETRY_TIMES</span></code>: s3 request max retry times when catch error which may fix by retry, default is <code class="docutils literal notranslate"><span class="pre">10</span></code></p></li>
+</ul>
+</section>
+<section id="use-command">
+<h3>Use command<a class="headerlink" href="#use-command" title="Permalink to this heading"></a></h3>
+<p>You can update config file with <code class="docutils literal notranslate"><span class="pre">megfile</span></code> command easyly:
+<a class="reference external" href="https://megvii-research.github.io/megfile/cli.html#megfile-config-s3">megfile config s3 [OPTIONS] AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY</a></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>megfile<span class="w"> </span>config<span class="w"> </span>s3<span class="w"> </span>access_key<span class="w"> </span>secret_key
+
+<span class="c1"># for aliyun</span>
+$<span class="w"> </span>megfile<span class="w"> </span>config<span class="w"> </span>s3<span class="w"> </span>access_key<span class="w"> </span>secret_key<span class="w"> </span><span class="se">\</span>
+--addressing-style<span class="w"> </span>virtual<span class="w"> </span><span class="se">\</span>
+--endpoint-url<span class="w"> </span>http://oss-cn-hangzhou.aliyuncs.com<span class="w"> </span><span class="se">\</span>
+</pre></div>
+</div>
+<p>You can get the configuration from <code class="docutils literal notranslate"><span class="pre">~/.aws/credentials</span></code>, like:</p>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="k">[default]</span>
+<span class="na">aws_secret_access_key</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">access_key</span>
+<span class="na">aws_access_key_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">secret_key</span>
+
+<span class="na">s3</span><span class="w"> </span><span class="o">=</span>
+<span class="w">    </span><span class="na">addressing_style</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">virtual</span>
+<span class="w">    </span><span class="na">endpoint_url</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">http://oss-cn-hangzhou.aliyuncs.com</span>
+</pre></div>
+</div>
+<p>Megfile also support a custom global endpoint url, if you not configure a endpoint url for S3 in the file. Example:</p>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="k">[default]</span>
+<span class="na">aws_secret_access_key</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">access_key</span>
+<span class="na">aws_access_key_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">secret_key</span>
+
+<span class="na">endpoint_url</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">http://oss-cn-hangzhou.aliyuncs.com</span>
+</pre></div>
+</div>
+</section>
+<section id="config-for-different-s3-server-or-authentications">
+<h3>Config for different s3 server or authentications<a class="headerlink" href="#config-for-different-s3-server-or-authentications" title="Permalink to this heading"></a></h3>
+<p>You can operate s3 files with different endpoint urls, access keys and secret keys.
+For example, you have two s3 server with different endpoint_url, access_key and secret key. With configuration, you can use path with profile name like <code class="docutils literal notranslate"><span class="pre">s3+profile_name://bucket/key</span></code> to operate different s3 server:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">megfile</span> <span class="kn">import</span> <span class="n">smart_sync</span>
+
+<span class="n">smart_sync</span><span class="p">(</span><span class="s1">&#39;s3+profile1://bucket/key&#39;</span><span class="p">,</span> <span class="s1">&#39;s3+profile2://bucket/key&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="using-environment">
+<h4>Using environment<a class="headerlink" href="#using-environment" title="Permalink to this heading"></a></h4>
+<p>You need use <code class="docutils literal notranslate"><span class="pre">PROFILE_NAME__</span></code> prefix, like:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">PROFILE1__AWS_ACCESS_KEY_ID</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">PROFILE1__AWS_SECRET_ACCESS_KEY</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">PROFILE1__OSS_ENDPOINT</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">PROFILE1__AWS_S3_ADDRESSING_STYLE</span></code></p></li>
+</ul>
+</section>
+<section id="using-command">
+<h4>Using command:<a class="headerlink" href="#using-command" title="Permalink to this heading"></a></h4>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>megfile<span class="w"> </span>config<span class="w"> </span>s3<span class="w"> </span>access_key<span class="w"> </span>secret_key<span class="w"> </span>--profile-name<span class="w"> </span>profile1
+</pre></div>
+</div>
+<p>Then the config file’s content will be:</p>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="k">[profile1]</span>
+<span class="na">aws_access_key_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">access_key</span>
+<span class="na">aws_secret_access_key</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">secret_key</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+<section id="hdfs-configuration">
+<h2>Hdfs Configuration<a class="headerlink" href="#hdfs-configuration" title="Permalink to this heading"></a></h2>
+<p>Please use command <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">'megfile[hdfs]'</span></code> to install hdfs requirements.
+You can use environments and configuration file for configuration, and priority is that environment variables take precedence over configuration file.</p>
+<section id="id1">
+<h3>Use environments<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h3>
+<p>You can use environments to setup authentication credentials and other configuration items:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">HDFS_USER</span></code>: hdfs user</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">HDFS_URL</span></code>: The url can be configured to support High Availability namenodes of <strong>WebHDFS</strong>, simply add more URLs by delimiting with a semicolon (<code class="docutils literal notranslate"><span class="pre">;</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">HDFS_ROOT</span></code>: hdfs root directory when using relative path</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">HDFS_TIMEOUT</span></code>: request hdfs server timeout</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">HDFS_TOKEN</span></code>: hdfs token if hdfs server require</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">HDFS_CONFIG_PATH</span></code>: hdfs config file, default is <code class="docutils literal notranslate"><span class="pre">~/.hdfscli.cfg</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_HDFS_MAX_RETRY_TIMES</span></code>: hdfs request max retry times when catch error which may fix by retry, default is <code class="docutils literal notranslate"><span class="pre">10</span></code></p></li>
+</ul>
+</section>
+<section id="id2">
+<h3>Use command<a class="headerlink" href="#id2" title="Permalink to this heading"></a></h3>
+<p>You can update config file with <code class="docutils literal notranslate"><span class="pre">megfile</span></code> command easyly:
+<a class="reference external" href="https://megvii-research.github.io/megfile/cli.html#megfile-config-hdfs">megfile config hdfs [OPTIONS] URL</a></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>megfile<span class="w"> </span>config<span class="w"> </span>hdfs<span class="w"> </span>http://127.0.0.1:50070<span class="w"> </span>--user<span class="w"> </span>admin<span class="w"> </span>--root<span class="w"> </span><span class="s1">&#39;/&#39;</span><span class="w"> </span>--token<span class="w"> </span>xxx
+</pre></div>
+</div>
+<p>You can get the configuration from <code class="docutils literal notranslate"><span class="pre">~/.hdfscli.cfg</span></code>, like:</p>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="k">[global]</span>
+<span class="na">default.alias</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">default</span>
+
+<span class="k">[default.alias]</span>
+<span class="na">url</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">http://127.0.0.1:50070</span>
+<span class="na">user</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">admin</span>
+<span class="na">root</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">/</span>
+<span class="na">token</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">xxx</span>
+</pre></div>
+</div>
+<p>Most information about configuration file: <a class="reference external" href="https://hdfscli.readthedocs.io/en/latest/quickstart.html#configuration">https://hdfscli.readthedocs.io/en/latest/quickstart.html#configuration</a></p>
+</section>
+<section id="config-for-different-hdfs-server">
+<h3>Config for different hdfs server<a class="headerlink" href="#config-for-different-hdfs-server" title="Permalink to this heading"></a></h3>
+<p>You can operate hdfs files in different hdfs server.
+For example, you have two hdfs server with different url. With configuration, you can use path with profile name like <code class="docutils literal notranslate"><span class="pre">hdfs+profile_name://bucket/key</span></code> to operate different hdfs server:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">megfile</span> <span class="kn">import</span> <span class="n">smart_sync</span>
+
+<span class="n">smart_sync</span><span class="p">(</span><span class="s1">&#39;hdfs+profile1://path/to/file&#39;</span><span class="p">,</span> <span class="s1">&#39;hdfs+profile2://path/to/file&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="id3">
+<h4>Using environment<a class="headerlink" href="#id3" title="Permalink to this heading"></a></h4>
+<p>You need use <code class="docutils literal notranslate"><span class="pre">PROFILE_NAME__</span></code> prefix, like:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">PROFILE1__HDFS_USER</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">PROFILE1__HDFS_URL</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">PROFILE1__HDFS_ROOT</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">PROFILE1__HDFS_TIMEOUT</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">PROFILE1__HDFS_TOKEN</span></code></p></li>
+</ul>
+</section>
+<section id="id4">
+<h4>Using command:<a class="headerlink" href="#id4" title="Permalink to this heading"></a></h4>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>megfile<span class="w"> </span>config<span class="w"> </span>hdfs<span class="w"> </span>http://127.0.0.1:8000<span class="w"> </span>--user<span class="w"> </span>admin<span class="w"> </span><span class="se">\</span>
+--root<span class="w"> </span>/b<span class="w"> </span>--token<span class="w"> </span>aaa<span class="w"> </span>--profile-name<span class="w"> </span>profile1
+
+megfile<span class="w"> </span>config<span class="w"> </span>hdfs<span class="w"> </span>http://127.0.0.1:8001<span class="w"> </span>--user<span class="w"> </span>admin<span class="w"> </span><span class="se">\</span>
+--root<span class="w"> </span>/a<span class="w"> </span>--token<span class="w"> </span>bbb<span class="w"> </span>--profile-name<span class="w"> </span>profile2
+</pre></div>
+</div>
+<p>Then the configuration file’s content will be:</p>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="k">[global]</span>
+<span class="na">default.alias</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">default</span>
+
+<span class="k">[default.alias]</span>
+<span class="na">url</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">http://127.0.0.1:8000</span>
+<span class="na">user</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">admin</span>
+<span class="na">root</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">/a</span>
+<span class="na">token</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">aaa</span>
+
+<span class="k">[test.alias]</span>
+<span class="na">url</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">http://127.0.0.1:8001</span>
+<span class="na">user</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">admin</span>
+<span class="na">root</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">/b</span>
+<span class="na">token</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">bbb</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+<section id="sftp-configuration">
+<h2>Sftp Configuration<a class="headerlink" href="#sftp-configuration" title="Permalink to this heading"></a></h2>
+<p>Sftp is a little different from other protocols, because you can set some configurations in path(<code class="docutils literal notranslate"><span class="pre">sftp://[username[:password]&#64;]hostname[:port]/file_path</span></code>). <strong>But we suggest you not to use password in path.</strong> You can use environments setting configuration, and priority is that path settings take precedence over environments.</p>
+<section id="id5">
+<h3>Use environments<a class="headerlink" href="#id5" title="Permalink to this heading"></a></h3>
+<p>You can use environments to setup authentication credentials:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">SFTP_USERNAME</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SFTP_PASSWORD</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SFTP_PRIVATE_KEY_PATH</span></code>: ssh private key path</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SFTP_PRIVATE_KEY_TYPE</span></code>: algorithm of ssh key</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SFTP_PRIVATE_KEY_PASSWORD</span></code>: if don’t have passwd, not set this environment</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SFTP_MAX_UNAUTH_CONN</span></code>: this enviroment is about sftp server’s MaxStartups configuration, for connect to sftp server concurrently.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_SFTP_MAX_RETRY_TIMES</span></code>: sftp request max retry times when catch error which may fix by retry, default is <code class="docutils literal notranslate"><span class="pre">10</span></code></p></li>
+</ul>
+</section>
+</section>
+<section id="http-configuration">
+<h2>HTTP Configuration<a class="headerlink" href="#http-configuration" title="Permalink to this heading"></a></h2>
+<section id="http-environment-configurations">
+<h3>HTTP Environment configurations<a class="headerlink" href="#http-environment-configurations" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_HTTP_MAX_RETRY_TIMES</span></code>: http request max retry times when catch error which may fix by retry, default is <code class="docutils literal notranslate"><span class="pre">10</span></code></p></li>
+</ul>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="path_format.html" class="btn btn-neutral float-left" title="Path Format" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="megfile.html" class="btn btn-neutral float-right" title="API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, r-eng.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
