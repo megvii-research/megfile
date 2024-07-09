@@ -778,14 +778,14 @@ def s3_buffered_open(
         *,
         max_concurrency: Optional[int] = None,
         max_buffer_size: int = DEFAULT_MAX_BUFFER_SIZE,
-        min_block_size: int = DEFAULT_MIN_BLOCK_SIZE,
-        max_block_size: int = DEFAULT_MAX_BLOCK_SIZE,
-        block_size: int = DEFAULT_BLOCK_SIZE,
         forward_ratio: Optional[float] = None,
+        block_size: int = DEFAULT_BLOCK_SIZE,
         limited_seekable: bool = False,
         buffered: bool = False,
         share_cache_key: Optional[str] = None,
-        cache_path: Optional[str] = None) -> IO:
+        cache_path: Optional[str] = None,
+        min_block_size: int = DEFAULT_MIN_BLOCK_SIZE,
+        max_block_size: int = DEFAULT_MAX_BLOCK_SIZE) -> IO:
     '''Open an asynchronous prefetch reader, to support fast sequential read
 
     .. note ::
@@ -798,7 +798,7 @@ def s3_buffered_open(
 
     :param max_concurrency: Max download thread number, None by default
     :param max_buffer_size: Max cached buffer size in memory, 128MB by default
-    :param min_block_size: Min size of single block, 64MB by default. Each block will be downloaded by single thread.
+    :param min_block_size: Min size of single block, default is same as block_size. Each block will be downloaded by single thread.
     :param max_block_size: Max size of single block, 128MB by default. Each block will be downloaded by single thread.
     :param block_size: Size of single block, 8MB by default. Each block will be uploaded by single thread.
     :param limited_seekable: If write-handle supports limited seek (both file head part and tail part can seek block_size). Notes: This parameter are valid only for write-handle. Read-handle support arbitrary seek
