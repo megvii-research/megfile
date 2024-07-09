@@ -450,6 +450,7 @@ def _s3_glob_stat_single_path(
         missing_ok: bool = True,
         followlinks: bool = False,
         profile_name: Optional[str] = None) -> Iterator[FileEntry]:
+    s3_pathname = fspath(s3_pathname)
     if not recursive:
         # If not recursive, replace ** with *
         s3_pathname = re.sub(r'\*{2,}', '*', s3_pathname)
@@ -571,8 +572,8 @@ def _s3_binary_mode(s3_open_func):
         fileobj = s3_open_func(s3_url, get_binary_mode(mode), **kwargs)
         if 'b' not in mode:
             fileobj = io.TextIOWrapper(
-                fileobj, encoding=encoding, errors=errors)  # pytype: disable=wrong-arg-types
-            fileobj.mode = mode
+                fileobj, encoding=encoding, errors=errors)  # type: ignore
+            fileobj.mode = mode  # pyre-ignore[41]
         return fileobj
 
     return wrapper
@@ -862,7 +863,7 @@ def s3_buffered_open(
                 block_size=block_size,
                 profile_name=s3_url._profile_name)
         if buffered or _is_pickle(reader):
-            reader = io.BufferedReader(reader)  # pytype: disable=wrong-arg-types
+            reader = io.BufferedReader(reader)  # type: ignore
         return reader
 
     if limited_seekable:
@@ -884,7 +885,7 @@ def s3_buffered_open(
             block_size=block_size,
             profile_name=s3_url._profile_name)
     if buffered or _is_pickle(writer):
-        writer = io.BufferedWriter(writer)  # pytype: disable=wrong-arg-types
+        writer = io.BufferedWriter(writer)  # type: ignore
     return writer
 
 

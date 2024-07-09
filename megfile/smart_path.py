@@ -36,7 +36,7 @@ class SmartPath(BasePath):
         if not isinstance(pathlike, BaseURIPath):
             pathlike = self._create_pathlike(path)
         if len(other_paths) > 0:
-            pathlike = pathlike.joinpath(*other_paths)
+            pathlike = pathlike.joinpath(*other_paths)  # pyre-ignore[6]
             self.path = str(pathlike)
         self.pathlike = pathlike
 
@@ -185,5 +185,5 @@ class SmartPath(BasePath):
     stem = _bind_property('stem')
 
 
-def get_traditional_path(path: str):
+def get_traditional_path(path: PathLike) -> str:
     return fspath(SmartPath(path).path)

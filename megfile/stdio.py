@@ -1,4 +1,4 @@
-from typing import IO, AnyStr, Optional
+from typing import IO, Optional
 
 from megfile.interfaces import PathLike
 from megfile.stdio_path import StdioPath, is_stdio
@@ -14,7 +14,7 @@ def stdio_open(
         mode: str = 'rb',
         encoding: Optional[str] = None,
         errors: Optional[str] = None,
-        **kwargs) -> IO[AnyStr]:
+        **kwargs) -> IO:
     '''Used to read or write stdio
 
     .. note ::

@@ -112,7 +112,7 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
             self._backoff_size *= BACKOFF_FACTOR
         self.__offset = value
 
-    def seek(self, cookie: int, whence: int = os.SEEK_SET) -> int:
+    def seek(self, offset: int, whence: int = os.SEEK_SET) -> int:
         '''Change stream position.
 
         Seek to byte offset pos relative to position indicated by whence:
@@ -127,11 +127,11 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
             raise IOError('file already closed: %r' % self.name)
 
         if whence == os.SEEK_CUR:
-            target_offset = self._offset + cookie
+            target_offset = self._offset + offset
         elif whence == os.SEEK_END:
-            target_offset = self._content_size + cookie
+            target_offset = self._content_size + offset
         elif whence == os.SEEK_SET:
-            target_offset = cookie
+            target_offset = offset
         else:
             raise ValueError('invalid whence: %r' % whence)
 

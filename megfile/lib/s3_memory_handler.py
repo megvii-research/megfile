@@ -41,8 +41,8 @@ class S3MemoryHandler(Readable[bytes], Seekable, Writable[bytes]):
     def tell(self) -> int:
         return self._fileobj.tell()
 
-    def seek(self, cookie: int, whence: int = os.SEEK_SET) -> int:
-        return self._fileobj.seek(cookie, whence)
+    def seek(self, offset: int, whence: int = os.SEEK_SET) -> int:
+        return self._fileobj.seek(offset, whence)
 
     def readable(self) -> bool:
         return self._mode[0] == 'r' or self._mode[-1] == '+'
@@ -55,11 +55,15 @@ class S3MemoryHandler(Readable[bytes], Seekable, Writable[bytes]):
     def readline(self, size: Optional[int] = None) -> bytes:
         if not self.readable():
             raise UnsupportedOperation('not readable')
+        if size is None:
+            size = -1
         return self._fileobj.readline(size)
 
     def readlines(self, hint: Optional[int] = None) -> List[bytes]:
         if not self.readable():
             raise UnsupportedOperation('not readable')
+        if hint is None:
+            hint = -1
         return self._fileobj.readlines(hint)
 
     def writable(self) -> bool:

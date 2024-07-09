@@ -131,7 +131,7 @@ def _glob1(dirname: str, pattern: str, dironly: bool, fs: FSFunc) -> List[str]:
     names = list(_iterdir(dirname, dironly, fs))
     if not _ishidden(pattern):
         names = (x for x in names if not _ishidden(x))
-    return fnmatch.filter(names, pattern)
+    return fnmatch.filter(names, pattern)  # pyre-ignore[6]
 
 
 def _glob0(dirname: str, basename: str, dironly: bool, fs: FSFunc) -> List[str]:

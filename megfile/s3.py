@@ -318,7 +318,7 @@ def s3_copy(
         overwrite: bool = True) -> None:
     ''' File copy on S3
     Copy content of file on `src_path` to `dst_path`.
-    It's caller's responsebility to ensure the s3_isfile(src_url) == True
+    It's caller's responsibility to ensure the s3_isfile(src_url) == True
 
     :param src_url: Given path
     :param dst_path: Target file path

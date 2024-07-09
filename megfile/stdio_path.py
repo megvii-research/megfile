@@ -92,6 +92,6 @@ class StdioPath(BaseURIPath):
         if 'b' not in mode:
             fileobj = io.TextIOWrapper(
                 fileobj, encoding=encoding, errors=errors)
-            fileobj.mode = mode
+            fileobj.mode = mode  # pyre-ignore[41]
 
         return fileobj

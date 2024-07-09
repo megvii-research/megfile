@@ -27,7 +27,7 @@ def get_content_size(fileobj: IO, *, intrusive: bool = False) -> int:
         if isinstance(file, BufferedIOBase):
             file = file.raw
         if hasattr(file, '_content_size'):
-            return getattr(file, '_content_size')
+            return getattr(file, '_content_size')  # pyre-ignore[16]
 
     offset = fileobj.tell()
     if not is_seekable(fileobj) and is_writable(fileobj):
@@ -183,7 +183,7 @@ def binary_open(open_func):
         fileobj = open_func(path, get_binary_mode(mode), **kwargs)
         if 'b' not in mode:
             fileobj = TextIOWrapper(fileobj, encoding=encoding, errors=errors)
-            fileobj.mode = mode
+            fileobj.mode = mode  # pyre-ignore[41]
         return fileobj
 
     return wrapper

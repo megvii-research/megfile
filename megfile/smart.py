@@ -741,13 +741,14 @@ def smart_scan_stat(
         missing_ok=missing_ok, followlinks=followlinks)
 
 
-def _group_glob(globstr: str) -> List[str]:
+def _group_glob(globstr: PathLike) -> List[str]:
     '''
     Split pathname, and group them by protocol, return the glob list of same group.
 
     :param globstr: A glob string
     :returns: A glob list after being grouped by protocol
     '''
+    globstr = fspath(globstr)
     glob_dict = defaultdict(list)
     expanded_glob = ungloblize(globstr)
 
@@ -1047,4 +1048,4 @@ def smart_concat(src_paths: List[PathLike], dst_path: PathLike) -> None:
             break
     else:
         concat_func = _concat_funcs.get(dst_protocol, _default_concat_func)
-    concat_func(src_paths, dst_path)
+    concat_func(src_paths, dst_path)  # pyre-ignore[61]

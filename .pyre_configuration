@@ -12,6 +12,9 @@
     },
     {
       "site-package": "urllib3"
+    },
+    {
+      "site-package": "hdfs"
     }
   ],
   "source_directories": [

@@ -79,13 +79,13 @@ class FileLike(Closable, IOBase, IO[AnyStr], ABC):  # pytype: disable=signature-
         '''Return True if the file-like object can be sought.'''
         return False
 
-    def seek(self, cookie: int, whence: int = os.SEEK_SET) -> int:
+    def seek(self, offset: int, whence: int = os.SEEK_SET) -> int:
         '''Change stream position.
 
-        Seek to byte offset `cookie` relative to position indicated by `whence`:
-            0  Start of stream (the default).  `cookie` should be >= 0;
-            1  Current position - `cookie` may be negative;
-            2  End of stream - `cookie` usually negative.
+        Seek to byte `offset` relative to position indicated by `whence`:
+            0  Start of stream (the default).  `offset` should be >= 0;
+            1  Current position - `offset` may be negative;
+            2  End of stream - `offset` usually negative.
 
         Return the new absolute position.
         '''
@@ -117,7 +117,7 @@ class Seekable(FileLike, ABC):
         return True
 
     @abstractmethod
-    def seek(self, cookie: int, whence: int = os.SEEK_SET) -> int:
+    def seek(self, offset: int, whence: int = os.SEEK_SET) -> int:
         '''Change stream position.
 
         Seek to byte offset `cookie` relative to position indicated by `whence`:
@@ -144,16 +144,17 @@ class Readable(FileLike[AnyStr], ABC):
         '''
 
     @abstractmethod
-    def readline(self, size: Optional[int] = None) -> AnyStr:
+    def readline(self, size: Optional[int] = None) -> AnyStr:  # pyre-ignore[15]
         '''Next line from the file, as a bytes or string object.
 
         Retain newline. A non-negative `size` argument limits the maximum number of bytes or string to return (an incomplete line may be returned then).
         Return an empty bytes object at EOF.
         '''
 
-    def readlines(self, hint: Optional[int] = None) -> List[AnyStr]:
+    def readlines(  # pyre-ignore[15]
+            self, hint: Optional[int] = None) -> List[AnyStr]:
         '''Return a list of lines from the stream.'''
-        return self.read(size=hint).splitlines(True)
+        return self.read(size=hint).splitlines(True)  # pyre-ignore[7]
 
     def readinto(self, buffer: bytearray) -> int:
         '''Read bytes into buffer.
@@ -161,18 +162,21 @@ class Readable(FileLike[AnyStr], ABC):
         Returns number of bytes read (0 for EOF), or None if the object
         is set not to block and has no data to read.
         '''
+        if "b" not in self.mode:
+            raise OSError("'readinto' only works on binary files")
+
         data = self.read(len(buffer))
         size = len(data)
-        buffer[:size] = data
+        buffer[:size] = data  # pyre-ignore[6]
         return size
 
-    def __next__(self) -> AnyStr:
+    def __next__(self) -> AnyStr:  # pyre-ignore[15]
         line = self.readline()
         if not line:
             raise StopIteration
         return line
 
-    def __iter__(self: Self) -> Self:
+    def __iter__(self: Self) -> Self:  # pyre-ignore[15]
         return self
 
     def truncate(self, size: Optional[int] = None) -> int:
@@ -181,7 +185,7 @@ class Readable(FileLike[AnyStr], ABC):
     def write(self, data: AnyStr) -> int:
         raise OSError('not writable')
 
-    def writelines(self, lines: Iterable[AnyStr]) -> None:
+    def writelines(self, lines: Iterable[AnyStr]) -> None:  # pyre-ignore[14]
         raise OSError('not writable')
 
 
@@ -198,7 +202,7 @@ class Writable(FileLike[AnyStr], ABC):
         Return the number of bytes or string written.
         '''
 
-    def writelines(self, lines: Iterable[AnyStr]) -> None:
+    def writelines(self, lines: Iterable[AnyStr]) -> None:  # pyre-ignore[14]
         '''Write `lines` to the file.
 
         Note that newlines are not added. 
@@ -224,10 +228,11 @@ class Writable(FileLike[AnyStr], ABC):
     def read(self, size: Optional[int] = None) -> AnyStr:
         raise OSError('not readable')
 
-    def readline(self, size: Optional[int] = None) -> AnyStr:
+    def readline(self, size: Optional[int] = None) -> AnyStr:  # pyre-ignore[15]
         raise OSError('not readable')
 
-    def readlines(self, hint: Optional[int] = None) -> List[AnyStr]:
+    def readlines(  # pyre-ignore[15]
+            self, hint: Optional[int] = None) -> List[AnyStr]:
         raise OSError('not readable')
 
 

@@ -183,6 +183,7 @@ def insert_class_method_lines(
                     f"    return {get_class_name(current_file_type)}({path_param_name}).{func_name}({', '.join(current_params[1:])})\n\n"
                 )
             else:
+                print(f"    return {get_class_name(current_file_type)}.{func_name}({', '.join(current_params[1:])})")
                 func_content_lines.append(
                     f"    return {get_class_name(current_file_type)}.{func_name}({', '.join(current_params[1:])})\n\n"
                 )

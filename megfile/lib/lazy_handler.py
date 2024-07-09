@@ -41,10 +41,10 @@ class LazyHandler(Readable, Seekable, Writable):
     def readable(self) -> bool:
         return self._file_object.readable()
 
-    def read(self, size: Optional[int] = None) -> AnyStr:
+    def read(self, size: Optional[int] = None) -> AnyStr:  # pyre-ignore[34]
         return self._file_object.read(size)
 
-    def readline(self, size: Optional[int] = None) -> AnyStr:
+    def readline(self, size: Optional[int] = None) -> AnyStr:  # pyre-ignore[34]
         return self._file_object.readline(size)
 
     def writable(self) -> bool:

@@ -35,13 +35,13 @@ class S3CachedHandler(S3MemoryHandler):
         self._download_fileobj()
 
         if remove_cache_when_open:
-            os.unlink(self._cache_path)
+            os.unlink(self._cache_path)  # pyre-ignore[6]
 
     def fileno(self) -> int:
         # allow numpy.array to create a memmaped ndarray
         return self._fileobj.fileno()
 
     def _translate_error(self, error: Exception):
-        error = translate_fs_error(error, self._cache_path)
+        error = translate_fs_error(error, self._cache_path)  # pyre-ignore[6]
         error = translate_s3_error(error, self.name)
         return error

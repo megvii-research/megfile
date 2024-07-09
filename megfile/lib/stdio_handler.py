@@ -40,10 +40,10 @@ class STDReader(STDHandler, Readable):
     def name(self) -> str:
         return "stdin"
 
-    def read(self, size: Optional[int] = None) -> AnyStr:
+    def read(self, size: Optional[int] = None) -> AnyStr:  # pyre-ignore[34]
         return self._handler.read(size)
 
-    def readline(self, size: Optional[int] = None) -> AnyStr:
+    def readline(self, size: Optional[int] = None) -> AnyStr:  # pyre-ignore[34]
         return self._handler.readline()
 
 

@@ -65,7 +65,7 @@ def test_subclass_only_close_once():
 class Klass4(Readable[bytes]):
 
     name = 'test'
-    mode = 'r'
+    mode = 'rb'
 
     def __init__(self, data):
         self._buffer = BytesIO(data)

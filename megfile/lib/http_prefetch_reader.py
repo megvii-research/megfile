@@ -65,7 +65,7 @@ class HttpPrefetchReader(BasePrefetchReader):
         def fetch_response() -> dict:
             request_kwargs = {}
             if hasattr(self._url, 'request_kwargs'):
-                request_kwargs = self._url.request_kwargs
+                request_kwargs = self._url.request_kwargs  # pyre-ignore[16]
             timeout = request_kwargs.pop('timeout', DEFAULT_TIMEOUT)
             stream = request_kwargs.pop('stream', True)
 

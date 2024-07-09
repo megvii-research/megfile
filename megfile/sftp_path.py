@@ -55,10 +55,10 @@ DEFAULT_SSH_KEEPALIVE_INTERVAL = 15
 
 def _make_stat(stat: paramiko.SFTPAttributes) -> StatResult:
     return StatResult(
-        size=stat.st_size,
-        mtime=stat.st_mtime,
-        isdir=S_ISDIR(stat.st_mode),
-        islnk=S_ISLNK(stat.st_mode),
+        size=stat.st_size or 0,
+        mtime=stat.st_mtime or 0.0,
+        isdir=S_ISDIR(stat.st_mode) if stat.st_mode is not None else False,
+        islnk=S_ISLNK(stat.st_mode) if stat.st_mode is not None else False,
         extra=stat,
     )
 
@@ -144,7 +144,7 @@ def _patch_sftp_client_request(
         )
         client.sock = new_sftp_client.sock
 
-    client._request = patch_method(
+    client._request = patch_method(  # pyre-ignore[16]
         client._request,  # pytype: disable=attribute-error
         max_retries=MAX_RETRIES,
         should_retry=sftp_should_retry,
@@ -462,7 +462,8 @@ def sftp_download(
 
         def sftp_callback(bytes_transferred: int, _total_bytes: int):
             nonlocal bytes_transferred_before
-            callback(bytes_transferred - bytes_transferred_before)
+            callback(  # pyre-ignore[29]
+                bytes_transferred - bytes_transferred_before)
             bytes_transferred_before = bytes_transferred
 
     src_path._client.get(
@@ -519,7 +520,8 @@ def sftp_upload(
 
         def sftp_callback(bytes_transferred: int, _total_bytes: int):
             nonlocal bytes_transferred_before
-            callback(bytes_transferred - bytes_transferred_before)
+            callback(  # pyre-ignore[29]
+                bytes_transferred - bytes_transferred_before)
             bytes_transferred_before = bytes_transferred
 
     dst_path._client.put(
@@ -614,7 +616,7 @@ class SftpPath(URIPath):
         path = self._urlsplit_parts.path.lstrip('/')
         if path != '':
             parts.extend(path.split('/'))
-        return tuple(parts)
+        return tuple(parts)  # pyre-ignore[7]
 
     @property
     def _client(self):
@@ -634,7 +636,7 @@ class SftpPath(URIPath):
             if sftp_local_path == ".":
                 sftp_local_path = "/"
         new_parts = self._urlsplit_parts._replace(path=sftp_local_path)
-        return self.from_path(urlunsplit(new_parts))
+        return self.from_path(urlunsplit(new_parts))  # pyre-ignore[6]
 
     def exists(self, followlinks: bool = False) -> bool:
         '''
@@ -1294,7 +1296,8 @@ class SftpPath(URIPath):
         if not overwrite and self.from_path(dst_path).exists():
             return
 
-        self.from_path(os.path.dirname(dst_path)).makedirs(exist_ok=True)
+        self.from_path(os.path.dirname(
+            fspath(dst_path))).makedirs(exist_ok=True)
         dst_path = self.from_path(dst_path)
         if self._is_same_backend(dst_path):
             if self._real_path == dst_path._real_path:

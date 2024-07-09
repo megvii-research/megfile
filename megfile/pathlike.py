@@ -1,8 +1,9 @@
+# pyre-ignore-all-errors[16]
 import os
 import stat
 from collections.abc import Sequence
 from enum import Enum
-from typing import IO, Any, AnyStr, BinaryIO, Iterator, List, NamedTuple, Optional, Tuple, Type, TypeVar, Union
+from typing import IO, Any, BinaryIO, Iterator, List, NamedTuple, Optional, Tuple, Type, TypeVar, Union
 
 from megfile.lib.compat import PathLike as _PathLike
 from megfile.lib.compat import fspath
@@ -283,7 +284,7 @@ class BasePath:
         """Remove (delete) the directory."""
         raise NotImplementedError('method "rmdir" not implemented: %r' % self)
 
-    def open(self, mode: str = 'r', **kwargs) -> IO[AnyStr]:
+    def open(self, mode: str = 'r', **kwargs) -> IO:
         """Open the file with mode."""
         raise NotImplementedError('method "open" not implemented: %r' % self)
 
@@ -340,7 +341,7 @@ class BasePath:
         """Write the opened binary stream to the path."""
         raise NotImplementedError('method "save" not implemented: %r' % self)
 
-    def joinpath(self, *other_paths: "PathLike") -> 'BasePath':
+    def joinpath(self: Self, *other_paths: "PathLike") -> Self:
         """Join or or more path."""
         raise NotImplementedError(
             'method "joinpath" not implemented: %r' % self)
@@ -393,14 +394,14 @@ PathLike = Union[str, BasePath, _PathLike]
 class BaseURIPath(BasePath):
 
     # #####
-    # Backwards compatible API, will be removed in megfile 1.0
+    # TODO: Backwards compatible API, will be removed in megfile 1.0
     @classmethod
     def get_protocol(self) -> Optional[str]:
         pass  # pragma: no cover
 
     @classproperty
     def protocol(cls) -> str:
-        return cls.get_protocol()
+        return cls.get_protocol() or ""
 
     def make_uri(self) -> str:
         return self.path_with_protocol
@@ -414,7 +415,7 @@ class BaseURIPath(BasePath):
     def path_with_protocol(self) -> str:
         '''Return path with protocol, like file:///root, s3://bucket/key'''
         path = self.path
-        protocol_prefix = self.protocol + "://"
+        protocol_prefix = self.protocol + "://"  # pyre-ignore[58]
         if path.startswith(protocol_prefix):
             return path
         return protocol_prefix + path.lstrip('/')
@@ -423,7 +424,7 @@ class BaseURIPath(BasePath):
     def path_without_protocol(self) -> str:
         '''Return path without protocol, example: if path is s3://bucket/key, return bucket/key'''
         path = self.path
-        protocol_prefix = self.protocol + "://"
+        protocol_prefix = self.protocol + "://"  # pyre-ignore[58]
         if path.startswith(protocol_prefix):
             path = path[len(protocol_prefix):]
         return path
@@ -431,27 +432,6 @@ class BaseURIPath(BasePath):
     def as_posix(self) -> str:
         '''Return a string representation of the path with forward slashes (/)'''
         return self.path_with_protocol
-
-    @classmethod
-    def from_path(cls: Type[Self], path: PathLike) -> Self:
-        """Return new instance of this class
-
-        :param path: new path 
-
-        :return: new instance of new path
-        :rtype: Self
-        """
-        return cls(path)
-
-    @classmethod
-    def from_uri(cls: Type[Self], path: PathLike) -> Self:
-        path = fspath(path)
-        protocol_prefix = cls.protocol + "://"
-        if path[:len(protocol_prefix)] != protocol_prefix:
-            raise ValueError(
-                "protocol not match, expected: %r, got: %r" %
-                (cls.protocol, path))
-        return cls.from_path(path[len(protocol_prefix):])
 
     def __fspath__(self) -> str:
         return self.as_uri()
@@ -498,11 +478,11 @@ class BaseURIPath(BasePath):
 
     @classproperty
     def root(self) -> str:
-        return self.protocol + '://'
+        return self.protocol + '://'  # pyre-ignore[58]
 
     @classproperty
     def anchor(self) -> str:
-        return self.root
+        return self.root  # pyre-ignore[7]
 
 
 class URIPath(BaseURIPath):
@@ -511,6 +491,27 @@ class URIPath(BaseURIPath):
         if len(other_paths) > 0:
             path = self.from_path(path).joinpath(*other_paths)
         self.path = str(path)
+
+    @classmethod
+    def from_path(cls: Type[Self], path: PathLike) -> Self:
+        """Return new instance of this class
+
+        :param path: new path 
+
+        :return: new instance of new path
+        :rtype: Self
+        """
+        return cls(path)  # pyre-ignore[19]
+
+    @classmethod
+    def from_uri(cls: Type[Self], path: PathLike) -> Self:
+        path = fspath(path)
+        protocol_prefix = cls.protocol + "://"
+        if path[:len(protocol_prefix)] != protocol_prefix:
+            raise ValueError(
+                "protocol not match, expected: %r, got: %r" %
+                (cls.protocol, path))
+        return cls.from_path(path[len(protocol_prefix):])
 
     def __truediv__(self: Self, other_path: PathLike) -> Self:
         if isinstance(other_path, BaseURIPath):
@@ -534,7 +535,7 @@ class URIPath(BaseURIPath):
         path = path.lstrip('/')
         if path != '':
             parts.extend(path.split('/'))
-        return tuple(parts)
+        return tuple(parts)  # pyre-ignore[7]
 
     @cachedproperty
     def parents(self) -> "URIPathParents":
@@ -554,7 +555,8 @@ class URIPath(BaseURIPath):
     def name(self) -> str:
         '''A string representing the final path component, excluding the drive and root'''
         parts = self.parts
-        if len(parts) == 1 and parts[0] == self.protocol + "://":
+        if len(parts
+              ) == 1 and parts[0] == self.protocol + "://":  # pyre-ignore[58]
             return ''
         return parts[-1]
 
@@ -622,7 +624,7 @@ class URIPath(BaseURIPath):
         if path.startswith(other_path):
             relative = path[len(other_path):]
             relative = relative.lstrip('/')
-            return type(self)(relative)
+            return type(self)(relative)  # pyre-ignore[19]
         else:
             raise ValueError("%r does not start with %r" % (path, other))
 
@@ -708,12 +710,12 @@ class URIPath(BaseURIPath):
     def read_bytes(self) -> bytes:
         '''Return the binary contents of the pointed-to file as a bytes object'''
         with self.open(mode='rb') as f:
-            return f.read()
+            return f.read()  # pytype: disable=bad-return-type
 
     def read_text(self) -> str:
         '''Return the decoded contents of the pointed-to file as a string'''
         with self.open(mode='r') as f:
-            return f.read()
+            return f.read()  # pytype: disable=bad-return-type
 
     def rename(self: Self, dst_path: PathLike, overwrite: bool = True) -> Self:
         '''
