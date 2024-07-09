@@ -212,7 +212,6 @@ jobs:
       - name: Run pyre-check
         continue-on-error: true
         run: |
-          pip install --upgrade "pyre-check~=0.9.22"
           make pyre_check
 
       - name: Expose SARIF Results
