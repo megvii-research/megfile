@@ -12,7 +12,7 @@ import boto3
 import botocore
 from botocore.awsrequest import AWSResponse
 
-from megfile.config import DEFAULT_BLOCK_SIZE, GLOBAL_MAX_WORKERS, S3_CLIENT_CACHE_MODE, S3_MAX_RETRY_TIMES
+from megfile.config import DEFAULT_BLOCK_SIZE, DEFAULT_MAX_BLOCK_SIZE, DEFAULT_MIN_BLOCK_SIZE, GLOBAL_MAX_WORKERS, S3_CLIENT_CACHE_MODE, S3_MAX_RETRY_TIMES
 from megfile.errors import S3BucketNotFoundError, S3ConfigError, S3FileExistsError, S3FileNotFoundError, S3IsADirectoryError, S3NameTooLongError, S3NotADirectoryError, S3NotALinkError, S3PermissionError, S3UnknownError, SameFileError, UnsupportedError, _create_missing_ok_generator
 from megfile.errors import _logger as error_logger
 from megfile.errors import patch_method, raise_s3_error, s3_error_code_should_retry, s3_should_retry, translate_fs_error, translate_s3_error
@@ -783,7 +783,9 @@ def s3_buffered_open(
         limited_seekable: bool = False,
         buffered: bool = False,
         share_cache_key: Optional[str] = None,
-        cache_path: Optional[str] = None) -> IO:
+        cache_path: Optional[str] = None,
+        min_block_size: int = DEFAULT_MIN_BLOCK_SIZE,
+        max_block_size: int = DEFAULT_MAX_BLOCK_SIZE) -> IO:
     '''Open an asynchronous prefetch reader, to support fast sequential read
 
     .. note ::
@@ -796,7 +798,9 @@ def s3_buffered_open(
 
     :param max_concurrency: Max download thread number, None by default
     :param max_buffer_size: Max cached buffer size in memory, 128MB by default
-    :param block_size: Size of single block, 8MB by default. Each block will be uploaded or downloaded by single thread.
+    :param min_block_size: Min size of single block, default is same as block_size. Each block will be downloaded by single thread.
+    :param max_block_size: Max size of single block, 128MB by default. Each block will be downloaded by single thread.
+    :param block_size: Size of single block, 8MB by default. Each block will be uploaded by single thread.
     :param limited_seekable: If write-handle supports limited seek (both file head part and tail part can seek block_size). Notes: This parameter are valid only for write-handle. Read-handle support arbitrary seek
     :returns: An opened S3PrefetchReader object
     :raises: S3FileNotFoundError
@@ -872,8 +876,9 @@ def s3_buffered_open(
             key,
             s3_client=client,
             max_workers=max_concurrency,
+            block_size=min_block_size,
+            max_block_size=max_block_size,
             max_buffer_size=max_buffer_size,
-            block_size=block_size,
             profile_name=s3_url._profile_name)
     else:
         writer = S3BufferedWriter(
@@ -881,8 +886,9 @@ def s3_buffered_open(
             key,
             s3_client=client,
             max_workers=max_concurrency,
+            block_size=min_block_size,
+            max_block_size=max_block_size,
             max_buffer_size=max_buffer_size,
-            block_size=block_size,
             profile_name=s3_url._profile_name)
     if buffered or _is_pickle(writer):
         writer = io.BufferedWriter(writer)  # type: ignore
