@@ -25,4 +25,4 @@ def stdio_open(
     :param mode: Only supports 'rb' and 'wb' now
     :return: STDReader, STDWriter
     '''
-    return StdioPath(path).open(mode, encoding, errors)  # pyre-ignore[6]
+    return StdioPath(path).open(mode, encoding, errors)
