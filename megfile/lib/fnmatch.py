@@ -126,7 +126,8 @@ def translate(pat: str) -> str:
                 res = res + r'\{'
             else:
                 stuff = pat[i:j].replace('\\', r'\\')
-                stuff = r'|'.join(map(re.escape, stuff.split(',')))
+                stuff = r'|'.join(
+                    map(re.escape, stuff.split(',')))  # pyre-ignore[6]
                 res = r'%s(%s)' % (res, stuff)
                 i = j + 1
         else:

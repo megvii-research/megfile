@@ -1,9 +1,10 @@
+# pyre-ignore-all-errors[16]
 import hashlib
 import io
 import os
 import sys
 from functools import lru_cache
-from typing import IO, AnyStr, BinaryIO, Iterator, List, Optional, Tuple
+from typing import IO, BinaryIO, Iterator, List, Optional, Tuple
 
 from megfile.errors import _create_missing_ok_generator, raise_hdfs_error
 from megfile.interfaces import FileEntry, PathLike, StatResult, URIPath
@@ -35,7 +36,7 @@ MAX_RETRIES = 10
 DEFAULT_HDFS_TIMEOUT = 10
 
 
-def is_hdfs(path: PathLike) -> bool:  # pytype: disable=invalid-annotation
+def is_hdfs(path: PathLike) -> bool:
     '''Test if a path is sftp path
 
     :param path: Path to be tested
@@ -55,7 +56,7 @@ def get_hdfs_config(profile_name: Optional[str] = None):
     }
     timeout_env = f"{env_profile}{HDFS_TIMEOUT}"
     if os.getenv(timeout_env):
-        config['timeout'] = int(os.getenv(timeout_env))
+        config['timeout'] = int(os.environ[timeout_env])
 
     config_path = os.getenv(HDFS_CONFIG_PATH) or os.path.expanduser(
         '~/.hdfscli.cfg')
@@ -212,7 +213,7 @@ class HdfsPath(URIPath):
 
         If the bucket of path are not permitted to read, return False
 
-        :returns: True if path eixsts, else False
+        :returns: True if path exists, else False
         '''
         return bool(
             self._client.status(self.path_without_protocol, strict=False))
@@ -375,7 +376,7 @@ class HdfsPath(URIPath):
         :raises: FileNotFoundError, NotADirectoryError
         '''
         for filename in self.listdir(followlinks=followlinks):
-            yield self.joinpath(filename)  # pytype: disable=bad-return-type
+            yield self.joinpath(filename)
 
     def load(self, followlinks: bool = False) -> BinaryIO:
         '''Read all content in binary on specified path and write into memory
@@ -418,7 +419,7 @@ class HdfsPath(URIPath):
         dst_path = self.from_path(dst_path)
         if self.is_dir():
             for filename in self.iterdir():
-                self.joinpath(filename).rename(dst_path.joinpath(filename))  # pytype: disable=attribute-error
+                self.joinpath(filename).rename(dst_path.joinpath(filename))
         else:
             if overwrite:
                 dst_path.remove(missing_ok=True)
@@ -573,7 +574,7 @@ class HdfsPath(URIPath):
         if self.is_dir(followlinks=followlinks):
             hash_md5 = hashlib.md5()  # nosec
             for file_name in self.listdir():
-                chunk = self.joinpath(file_name).md5(  # pytype: disable=attribute-error
+                chunk = self.joinpath(file_name).md5(
                     recalculate=recalculate).encode()
                 hash_md5.update(chunk)
             return hash_md5.hexdigest()
@@ -596,7 +597,7 @@ class HdfsPath(URIPath):
             buffering: Optional[int] = None,
             encoding: Optional[str] = None,
             errors: Optional[str] = None,
-            **kwargs) -> IO[AnyStr]:  # pytype: disable=signature-mismatch
+            **kwargs) -> IO:
         if '+' in mode:
             raise ValueError('unacceptable mode: %r' % mode)
 
@@ -620,21 +621,21 @@ class HdfsPath(URIPath):
                     client=self._client,
                     profile_name=self._profile_name,
                     **input_kwargs)
-                if _is_pickle(file_obj):  # pytype: disable=wrong-arg-types
-                    file_obj = io.BufferedReader(file_obj)  # pytype: disable=wrong-arg-types
+                if _is_pickle(file_obj):
+                    file_obj = io.BufferedReader(file_obj)  # type: ignore
                 if 'b' not in mode:
                     file_obj = io.TextIOWrapper(
-                        file_obj, encoding=encoding, errors=errors)  # pytype: disable=wrong-arg-types
-                    file_obj.mode = mode
-                return file_obj  # pytype: disable=bad-return-type
+                        file_obj, encoding=encoding, errors=errors)
+                    file_obj.mode = mode  # pyre-ignore[41]
+                return file_obj
             elif mode in ('w', 'wb'):
-                return self._client.write(  # pytype: disable=bad-return-type
+                return self._client.write(
                     self.path_without_protocol,
                     overwrite=True,
                     buffersize=buffering,
                     encoding=encoding)
             elif mode in ('a', 'ab'):
-                return self._client.write(  # pytype: disable=bad-return-type
+                return self._client.write(
                     self.path_without_protocol,
                     append=True,
                     buffersize=buffering,

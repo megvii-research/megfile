@@ -41,16 +41,16 @@ class LazyHandler(Readable, Seekable, Writable):
     def readable(self) -> bool:
         return self._file_object.readable()
 
-    def read(self, size: Optional[int] = None) -> AnyStr:  # pytype: disable=signature-mismatch
+    def read(self, size: Optional[int] = None) -> AnyStr:  # pyre-ignore[34]
         return self._file_object.read(size)
 
-    def readline(self, size: Optional[int] = None) -> AnyStr:  # pytype: disable=signature-mismatch
+    def readline(self, size: Optional[int] = None) -> AnyStr:  # pyre-ignore[34]
         return self._file_object.readline(size)
 
     def writable(self) -> bool:
         return self._file_object.writable()
 
-    def write(self, data: AnyStr):  # pytype: disable=signature-mismatch
+    def write(self, data: AnyStr):
         return self._file_object.write(data)
 
     def _close(self):

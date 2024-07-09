@@ -1,4 +1,4 @@
-from typing import IO, AnyStr, BinaryIO, Iterator, List, Optional, Tuple
+from typing import IO, BinaryIO, Iterator, List, Optional, Tuple
 
 from megfile.hdfs_path import HdfsPath, hdfs_glob, hdfs_glob_stat, hdfs_iglob, hdfs_makedirs, is_hdfs
 from megfile.interfaces import FileEntry, PathLike, StatResult
@@ -37,7 +37,7 @@ def hdfs_exists(path: PathLike, followlinks: bool = False) -> bool:
     If the bucket of path are not permitted to read, return False
 
     :param path: Given path
-    :returns: True if path eixsts, else False
+    :returns: True if path exists, else False
     '''
     return HdfsPath(path).exists(followlinks)
 
@@ -270,6 +270,6 @@ def hdfs_open(
         buffering: Optional[int] = None,
         encoding: Optional[str] = None,
         errors: Optional[str] = None,
-        **kwargs) -> IO[AnyStr]:  # pytype: disable=signature-mismatch
+        **kwargs) -> IO:
     return HdfsPath(path).open(
         mode, buffering=buffering, encoding=encoding, errors=errors)

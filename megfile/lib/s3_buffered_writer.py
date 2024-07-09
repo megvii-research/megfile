@@ -34,7 +34,7 @@ class PartResult(_PartResult):
         }
 
 
-class S3BufferedWriter(Writable):
+class S3BufferedWriter(Writable[bytes]):
 
     def __init__(
             self,

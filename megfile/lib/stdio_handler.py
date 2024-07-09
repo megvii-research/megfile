@@ -40,10 +40,10 @@ class STDReader(STDHandler, Readable):
     def name(self) -> str:
         return "stdin"
 
-    def read(self, size: Optional[int] = None) -> AnyStr:  # pytype: disable=signature-mismatch
+    def read(self, size: Optional[int] = None) -> AnyStr:  # pyre-ignore[34]
         return self._handler.read(size)
 
-    def readline(self, size: Optional[int] = None) -> AnyStr:  # pytype: disable=signature-mismatch
+    def readline(self, size: Optional[int] = None) -> AnyStr:  # pyre-ignore[34]
         return self._handler.readline()
 
 
@@ -79,5 +79,5 @@ class STDWriter(STDHandler, Writable):
     def name(self) -> str:
         return self._name
 
-    def write(self, data: AnyStr) -> int:  # pytype: disable=signature-mismatch
+    def write(self, data: AnyStr) -> int:
         return self._handler.write(data)

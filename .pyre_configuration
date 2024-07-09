@@ -1,4 +1,5 @@
 {
+  "site_package_search_strategy": "pep561",
   "search_path": [
     {
       "site-package": "boto3"
@@ -10,7 +11,10 @@
       "site-package": "requests"
     },
     {
-      "site-package": "smart_open"
+      "site-package": "urllib3"
+    },
+    {
+      "site-package": "hdfs"
     }
   ],
   "source_directories": [

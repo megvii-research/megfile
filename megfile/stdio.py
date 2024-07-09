@@ -1,4 +1,4 @@
-from typing import IO, AnyStr, Optional
+from typing import IO, Optional
 
 from megfile.interfaces import PathLike
 from megfile.stdio_path import StdioPath, is_stdio
@@ -14,7 +14,7 @@ def stdio_open(
         mode: str = 'rb',
         encoding: Optional[str] = None,
         errors: Optional[str] = None,
-        **kwargs) -> IO[AnyStr]:  # pytype: disable=signature-mismatch
+        **kwargs) -> IO:
     '''Used to read or write stdio
 
     .. note ::
@@ -25,4 +25,4 @@ def stdio_open(
     :param mode: Only supports 'rb' and 'wb' now
     :return: STDReader, STDWriter
     '''
-    return StdioPath(path).open(mode, encoding, errors)
+    return StdioPath(path).open(mode, encoding, errors)  # pyre-ignore[6]
