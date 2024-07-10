@@ -1,28 +1,28 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>API Reference &mdash; megfile  documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
   
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="_static/doctools.js"></script>
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="megfile.smart module" href="megfile.smart.html" />
-    <link rel="prev" title="Configuration" href="configuration.html" /> 
+    <link rel="prev" title="HTTP Configuration" href="configuration/http.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -100,29 +100,587 @@
            <div itemprop="articleBody">
              
   <section id="api-reference">
-<h1>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this heading"></a></h1>
+<h1>API Reference<a class="headerlink" href="#api-reference" title="Link to this heading"></a></h1>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="megfile.smart.html">megfile.smart module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="megfile.smart_path.html">megfile.smart_path module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="megfile.smart.html">megfile.smart module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.SmartCacher"><code class="docutils literal notranslate"><span class="pre">SmartCacher</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart.html#megfile.smart.SmartCacher.cache_path"><code class="docutils literal notranslate"><span class="pre">SmartCacher.cache_path</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.register_copy_func"><code class="docutils literal notranslate"><span class="pre">register_copy_func()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.smart_abspath"><code class="docutils literal notranslate"><span class="pre">smart_abspath()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.smart_access"><code class="docutils literal notranslate"><span class="pre">smart_access()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.smart_cache"><code class="docutils literal notranslate"><span class="pre">smart_cache()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.smart_combine_open"><code class="docutils literal notranslate"><span class="pre">smart_combine_open()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.smart_concat"><code class="docutils literal notranslate"><span class="pre">smart_concat()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.smart_copy"><code class="docutils literal notranslate"><span class="pre">smart_copy()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.smart_exists"><code class="docutils literal notranslate"><span class="pre">smart_exists()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.smart_getmd5"><code class="docutils literal notranslate"><span class="pre">smart_getmd5()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.smart_getmtime"><code class="docutils literal notranslate"><span class="pre">smart_getmtime()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.smart_getsize"><code class="docutils literal notranslate"><span class="pre">smart_getsize()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.smart_glob"><code class="docutils literal notranslate"><span class="pre">smart_glob()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.smart_glob_stat"><code class="docutils literal notranslate"><span class="pre">smart_glob_stat()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.smart_iglob"><code class="docutils literal notranslate"><span class="pre">smart_iglob()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.smart_isabs"><code class="docutils literal notranslate"><span class="pre">smart_isabs()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.smart_isdir"><code class="docutils literal notranslate"><span class="pre">smart_isdir()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.smart_isfile"><code class="docutils literal notranslate"><span class="pre">smart_isfile()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.smart_islink"><code class="docutils literal notranslate"><span class="pre">smart_islink()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.smart_ismount"><code class="docutils literal notranslate"><span class="pre">smart_ismount()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.smart_listdir"><code class="docutils literal notranslate"><span class="pre">smart_listdir()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.smart_load_content"><code class="docutils literal notranslate"><span class="pre">smart_load_content()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.smart_load_from"><code class="docutils literal notranslate"><span class="pre">smart_load_from()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.smart_load_text"><code class="docutils literal notranslate"><span class="pre">smart_load_text()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.smart_makedirs"><code class="docutils literal notranslate"><span class="pre">smart_makedirs()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.smart_move"><code class="docutils literal notranslate"><span class="pre">smart_move()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.smart_open"><code class="docutils literal notranslate"><span class="pre">smart_open()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.smart_path_join"><code class="docutils literal notranslate"><span class="pre">smart_path_join()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.smart_readlink"><code class="docutils literal notranslate"><span class="pre">smart_readlink()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.smart_realpath"><code class="docutils literal notranslate"><span class="pre">smart_realpath()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.smart_relpath"><code class="docutils literal notranslate"><span class="pre">smart_relpath()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.smart_remove"><code class="docutils literal notranslate"><span class="pre">smart_remove()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.smart_rename"><code class="docutils literal notranslate"><span class="pre">smart_rename()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.smart_save_as"><code class="docutils literal notranslate"><span class="pre">smart_save_as()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.smart_save_content"><code class="docutils literal notranslate"><span class="pre">smart_save_content()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.smart_save_text"><code class="docutils literal notranslate"><span class="pre">smart_save_text()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.smart_scan"><code class="docutils literal notranslate"><span class="pre">smart_scan()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.smart_scan_stat"><code class="docutils literal notranslate"><span class="pre">smart_scan_stat()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.smart_scandir"><code class="docutils literal notranslate"><span class="pre">smart_scandir()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.smart_stat"><code class="docutils literal notranslate"><span class="pre">smart_stat()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.smart_symlink"><code class="docutils literal notranslate"><span class="pre">smart_symlink()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.smart_sync"><code class="docutils literal notranslate"><span class="pre">smart_sync()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.smart_sync_with_progress"><code class="docutils literal notranslate"><span class="pre">smart_sync_with_progress()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.smart_touch"><code class="docutils literal notranslate"><span class="pre">smart_touch()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.smart_unlink"><code class="docutils literal notranslate"><span class="pre">smart_unlink()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart.html#megfile.smart.smart_walk"><code class="docutils literal notranslate"><span class="pre">smart_walk()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="megfile.smart_path.html">megfile.smart_path module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath"><code class="docutils literal notranslate"><span class="pre">SmartPath</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.absolute"><code class="docutils literal notranslate"><span class="pre">SmartPath.absolute()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.abspath"><code class="docutils literal notranslate"><span class="pre">SmartPath.abspath()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.access"><code class="docutils literal notranslate"><span class="pre">SmartPath.access()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.anchor"><code class="docutils literal notranslate"><span class="pre">SmartPath.anchor</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.as_posix"><code class="docutils literal notranslate"><span class="pre">SmartPath.as_posix()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.as_uri"><code class="docutils literal notranslate"><span class="pre">SmartPath.as_uri()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.chmod"><code class="docutils literal notranslate"><span class="pre">SmartPath.chmod()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.cwd"><code class="docutils literal notranslate"><span class="pre">SmartPath.cwd()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.drive"><code class="docutils literal notranslate"><span class="pre">SmartPath.drive</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.exists"><code class="docutils literal notranslate"><span class="pre">SmartPath.exists()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.expanduser"><code class="docutils literal notranslate"><span class="pre">SmartPath.expanduser()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.from_uri"><code class="docutils literal notranslate"><span class="pre">SmartPath.from_uri()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.getmtime"><code class="docutils literal notranslate"><span class="pre">SmartPath.getmtime()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.getsize"><code class="docutils literal notranslate"><span class="pre">SmartPath.getsize()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.glob"><code class="docutils literal notranslate"><span class="pre">SmartPath.glob()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.glob_stat"><code class="docutils literal notranslate"><span class="pre">SmartPath.glob_stat()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.group"><code class="docutils literal notranslate"><span class="pre">SmartPath.group()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.hardlink_to"><code class="docutils literal notranslate"><span class="pre">SmartPath.hardlink_to()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.home"><code class="docutils literal notranslate"><span class="pre">SmartPath.home()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.iglob"><code class="docutils literal notranslate"><span class="pre">SmartPath.iglob()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.is_absolute"><code class="docutils literal notranslate"><span class="pre">SmartPath.is_absolute()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.is_block_device"><code class="docutils literal notranslate"><span class="pre">SmartPath.is_block_device()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.is_char_device"><code class="docutils literal notranslate"><span class="pre">SmartPath.is_char_device()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.is_dir"><code class="docutils literal notranslate"><span class="pre">SmartPath.is_dir()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.is_fifo"><code class="docutils literal notranslate"><span class="pre">SmartPath.is_fifo()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.is_file"><code class="docutils literal notranslate"><span class="pre">SmartPath.is_file()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.is_mount"><code class="docutils literal notranslate"><span class="pre">SmartPath.is_mount()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.is_relative_to"><code class="docutils literal notranslate"><span class="pre">SmartPath.is_relative_to()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.is_reserved"><code class="docutils literal notranslate"><span class="pre">SmartPath.is_reserved()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.is_socket"><code class="docutils literal notranslate"><span class="pre">SmartPath.is_socket()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.is_symlink"><code class="docutils literal notranslate"><span class="pre">SmartPath.is_symlink()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.iterdir"><code class="docutils literal notranslate"><span class="pre">SmartPath.iterdir()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.joinpath"><code class="docutils literal notranslate"><span class="pre">SmartPath.joinpath()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.lchmod"><code class="docutils literal notranslate"><span class="pre">SmartPath.lchmod()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.listdir"><code class="docutils literal notranslate"><span class="pre">SmartPath.listdir()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.load"><code class="docutils literal notranslate"><span class="pre">SmartPath.load()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.lstat"><code class="docutils literal notranslate"><span class="pre">SmartPath.lstat()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.match"><code class="docutils literal notranslate"><span class="pre">SmartPath.match()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.md5"><code class="docutils literal notranslate"><span class="pre">SmartPath.md5()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.mkdir"><code class="docutils literal notranslate"><span class="pre">SmartPath.mkdir()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.name"><code class="docutils literal notranslate"><span class="pre">SmartPath.name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.open"><code class="docutils literal notranslate"><span class="pre">SmartPath.open()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.owner"><code class="docutils literal notranslate"><span class="pre">SmartPath.owner()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.parent"><code class="docutils literal notranslate"><span class="pre">SmartPath.parent</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.parents"><code class="docutils literal notranslate"><span class="pre">SmartPath.parents</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.parts"><code class="docutils literal notranslate"><span class="pre">SmartPath.parts</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.protocol"><code class="docutils literal notranslate"><span class="pre">SmartPath.protocol</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.read_bytes"><code class="docutils literal notranslate"><span class="pre">SmartPath.read_bytes()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.read_text"><code class="docutils literal notranslate"><span class="pre">SmartPath.read_text()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.readlink"><code class="docutils literal notranslate"><span class="pre">SmartPath.readlink()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.realpath"><code class="docutils literal notranslate"><span class="pre">SmartPath.realpath()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.register"><code class="docutils literal notranslate"><span class="pre">SmartPath.register()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.relative_to"><code class="docutils literal notranslate"><span class="pre">SmartPath.relative_to()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.relpath"><code class="docutils literal notranslate"><span class="pre">SmartPath.relpath()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.remove"><code class="docutils literal notranslate"><span class="pre">SmartPath.remove()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.rename"><code class="docutils literal notranslate"><span class="pre">SmartPath.rename()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.replace"><code class="docutils literal notranslate"><span class="pre">SmartPath.replace()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.resolve"><code class="docutils literal notranslate"><span class="pre">SmartPath.resolve()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.rglob"><code class="docutils literal notranslate"><span class="pre">SmartPath.rglob()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.rmdir"><code class="docutils literal notranslate"><span class="pre">SmartPath.rmdir()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.root"><code class="docutils literal notranslate"><span class="pre">SmartPath.root</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.samefile"><code class="docutils literal notranslate"><span class="pre">SmartPath.samefile()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.save"><code class="docutils literal notranslate"><span class="pre">SmartPath.save()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.scan"><code class="docutils literal notranslate"><span class="pre">SmartPath.scan()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.scan_stat"><code class="docutils literal notranslate"><span class="pre">SmartPath.scan_stat()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.scandir"><code class="docutils literal notranslate"><span class="pre">SmartPath.scandir()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.stat"><code class="docutils literal notranslate"><span class="pre">SmartPath.stat()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.stem"><code class="docutils literal notranslate"><span class="pre">SmartPath.stem</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.suffix"><code class="docutils literal notranslate"><span class="pre">SmartPath.suffix</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.suffixes"><code class="docutils literal notranslate"><span class="pre">SmartPath.suffixes</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.symlink"><code class="docutils literal notranslate"><span class="pre">SmartPath.symlink()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.symlink_to"><code class="docutils literal notranslate"><span class="pre">SmartPath.symlink_to()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.touch"><code class="docutils literal notranslate"><span class="pre">SmartPath.touch()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.unlink"><code class="docutils literal notranslate"><span class="pre">SmartPath.unlink()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.utime"><code class="docutils literal notranslate"><span class="pre">SmartPath.utime()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.walk"><code class="docutils literal notranslate"><span class="pre">SmartPath.walk()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.with_name"><code class="docutils literal notranslate"><span class="pre">SmartPath.with_name()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.with_stem"><code class="docutils literal notranslate"><span class="pre">SmartPath.with_stem()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.with_suffix"><code class="docutils literal notranslate"><span class="pre">SmartPath.with_suffix()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.write_bytes"><code class="docutils literal notranslate"><span class="pre">SmartPath.write_bytes()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.SmartPath.write_text"><code class="docutils literal notranslate"><span class="pre">SmartPath.write_text()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.smart_path.html#megfile.smart_path.get_traditional_path"><code class="docutils literal notranslate"><span class="pre">get_traditional_path()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </div>
 <section id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="megfile.fs.html">megfile.fs module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="megfile.fs_path.html">megfile.fs_path module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="megfile.s3.html">megfile.s3 module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="megfile.s3_path.html">megfile.s3_path module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="megfile.http.html">megfile.http module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="megfile.http_path.html">megfile.http_path module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="megfile.stdio.html">megfile.stdio module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="megfile.stdio_path.html">megfile.stdio_path module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="megfile.sftp.html">megfile.sftp module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="megfile.sftp_path.html">megfile.sftp_path module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="megfile.hdfs.html">megfile.hdfs module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="megfile.hdfs_path.html">megfile.hdfs_path module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="megfile.fs.html">megfile.fs module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.StatResult"><code class="docutils literal notranslate"><span class="pre">StatResult</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs.html#megfile.fs.StatResult.ctime"><code class="docutils literal notranslate"><span class="pre">StatResult.ctime</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs.html#megfile.fs.StatResult.extra"><code class="docutils literal notranslate"><span class="pre">StatResult.extra</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs.html#megfile.fs.StatResult.is_dir"><code class="docutils literal notranslate"><span class="pre">StatResult.is_dir()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs.html#megfile.fs.StatResult.is_file"><code class="docutils literal notranslate"><span class="pre">StatResult.is_file()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs.html#megfile.fs.StatResult.is_symlink"><code class="docutils literal notranslate"><span class="pre">StatResult.is_symlink()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs.html#megfile.fs.StatResult.isdir"><code class="docutils literal notranslate"><span class="pre">StatResult.isdir</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs.html#megfile.fs.StatResult.islnk"><code class="docutils literal notranslate"><span class="pre">StatResult.islnk</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs.html#megfile.fs.StatResult.mtime"><code class="docutils literal notranslate"><span class="pre">StatResult.mtime</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs.html#megfile.fs.StatResult.size"><code class="docutils literal notranslate"><span class="pre">StatResult.size</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs.html#megfile.fs.StatResult.st_atime"><code class="docutils literal notranslate"><span class="pre">StatResult.st_atime</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs.html#megfile.fs.StatResult.st_atime_ns"><code class="docutils literal notranslate"><span class="pre">StatResult.st_atime_ns</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs.html#megfile.fs.StatResult.st_ctime"><code class="docutils literal notranslate"><span class="pre">StatResult.st_ctime</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs.html#megfile.fs.StatResult.st_ctime_ns"><code class="docutils literal notranslate"><span class="pre">StatResult.st_ctime_ns</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs.html#megfile.fs.StatResult.st_dev"><code class="docutils literal notranslate"><span class="pre">StatResult.st_dev</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs.html#megfile.fs.StatResult.st_gid"><code class="docutils literal notranslate"><span class="pre">StatResult.st_gid</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs.html#megfile.fs.StatResult.st_ino"><code class="docutils literal notranslate"><span class="pre">StatResult.st_ino</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs.html#megfile.fs.StatResult.st_mode"><code class="docutils literal notranslate"><span class="pre">StatResult.st_mode</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs.html#megfile.fs.StatResult.st_mtime"><code class="docutils literal notranslate"><span class="pre">StatResult.st_mtime</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs.html#megfile.fs.StatResult.st_mtime_ns"><code class="docutils literal notranslate"><span class="pre">StatResult.st_mtime_ns</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs.html#megfile.fs.StatResult.st_nlink"><code class="docutils literal notranslate"><span class="pre">StatResult.st_nlink</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs.html#megfile.fs.StatResult.st_size"><code class="docutils literal notranslate"><span class="pre">StatResult.st_size</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs.html#megfile.fs.StatResult.st_uid"><code class="docutils literal notranslate"><span class="pre">StatResult.st_uid</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_abspath"><code class="docutils literal notranslate"><span class="pre">fs_abspath()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_access"><code class="docutils literal notranslate"><span class="pre">fs_access()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_copy"><code class="docutils literal notranslate"><span class="pre">fs_copy()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_cwd"><code class="docutils literal notranslate"><span class="pre">fs_cwd()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_exists"><code class="docutils literal notranslate"><span class="pre">fs_exists()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_expanduser"><code class="docutils literal notranslate"><span class="pre">fs_expanduser()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_getmd5"><code class="docutils literal notranslate"><span class="pre">fs_getmd5()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_getmtime"><code class="docutils literal notranslate"><span class="pre">fs_getmtime()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_getsize"><code class="docutils literal notranslate"><span class="pre">fs_getsize()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_glob"><code class="docutils literal notranslate"><span class="pre">fs_glob()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_glob_stat"><code class="docutils literal notranslate"><span class="pre">fs_glob_stat()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_home"><code class="docutils literal notranslate"><span class="pre">fs_home()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_iglob"><code class="docutils literal notranslate"><span class="pre">fs_iglob()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_isabs"><code class="docutils literal notranslate"><span class="pre">fs_isabs()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_isdir"><code class="docutils literal notranslate"><span class="pre">fs_isdir()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_isfile"><code class="docutils literal notranslate"><span class="pre">fs_isfile()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_islink"><code class="docutils literal notranslate"><span class="pre">fs_islink()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_ismount"><code class="docutils literal notranslate"><span class="pre">fs_ismount()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_listdir"><code class="docutils literal notranslate"><span class="pre">fs_listdir()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_load_from"><code class="docutils literal notranslate"><span class="pre">fs_load_from()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_lstat"><code class="docutils literal notranslate"><span class="pre">fs_lstat()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_makedirs"><code class="docutils literal notranslate"><span class="pre">fs_makedirs()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_move"><code class="docutils literal notranslate"><span class="pre">fs_move()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_path_join"><code class="docutils literal notranslate"><span class="pre">fs_path_join()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_readlink"><code class="docutils literal notranslate"><span class="pre">fs_readlink()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_realpath"><code class="docutils literal notranslate"><span class="pre">fs_realpath()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_relpath"><code class="docutils literal notranslate"><span class="pre">fs_relpath()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_remove"><code class="docutils literal notranslate"><span class="pre">fs_remove()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_rename"><code class="docutils literal notranslate"><span class="pre">fs_rename()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_resolve"><code class="docutils literal notranslate"><span class="pre">fs_resolve()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_save_as"><code class="docutils literal notranslate"><span class="pre">fs_save_as()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_scan"><code class="docutils literal notranslate"><span class="pre">fs_scan()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_scan_stat"><code class="docutils literal notranslate"><span class="pre">fs_scan_stat()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_scandir"><code class="docutils literal notranslate"><span class="pre">fs_scandir()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_stat"><code class="docutils literal notranslate"><span class="pre">fs_stat()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_symlink"><code class="docutils literal notranslate"><span class="pre">fs_symlink()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_sync"><code class="docutils literal notranslate"><span class="pre">fs_sync()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_unlink"><code class="docutils literal notranslate"><span class="pre">fs_unlink()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.fs_walk"><code class="docutils literal notranslate"><span class="pre">fs_walk()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.fs.html#megfile.fs.is_fs"><code class="docutils literal notranslate"><span class="pre">is_fs()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="megfile.fs_path.html">megfile.fs_path module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath"><code class="docutils literal notranslate"><span class="pre">FSPath</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.absolute"><code class="docutils literal notranslate"><span class="pre">FSPath.absolute()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.abspath"><code class="docutils literal notranslate"><span class="pre">FSPath.abspath()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.access"><code class="docutils literal notranslate"><span class="pre">FSPath.access()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.anchor"><code class="docutils literal notranslate"><span class="pre">FSPath.anchor</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.chmod"><code class="docutils literal notranslate"><span class="pre">FSPath.chmod()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.copy"><code class="docutils literal notranslate"><span class="pre">FSPath.copy()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.cwd"><code class="docutils literal notranslate"><span class="pre">FSPath.cwd()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.drive"><code class="docutils literal notranslate"><span class="pre">FSPath.drive</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.exists"><code class="docutils literal notranslate"><span class="pre">FSPath.exists()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.expanduser"><code class="docutils literal notranslate"><span class="pre">FSPath.expanduser()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.from_uri"><code class="docutils literal notranslate"><span class="pre">FSPath.from_uri()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.getmtime"><code class="docutils literal notranslate"><span class="pre">FSPath.getmtime()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.getsize"><code class="docutils literal notranslate"><span class="pre">FSPath.getsize()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.glob"><code class="docutils literal notranslate"><span class="pre">FSPath.glob()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.glob_stat"><code class="docutils literal notranslate"><span class="pre">FSPath.glob_stat()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.group"><code class="docutils literal notranslate"><span class="pre">FSPath.group()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.hardlink_to"><code class="docutils literal notranslate"><span class="pre">FSPath.hardlink_to()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.home"><code class="docutils literal notranslate"><span class="pre">FSPath.home()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.iglob"><code class="docutils literal notranslate"><span class="pre">FSPath.iglob()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.is_absolute"><code class="docutils literal notranslate"><span class="pre">FSPath.is_absolute()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.is_block_device"><code class="docutils literal notranslate"><span class="pre">FSPath.is_block_device()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.is_char_device"><code class="docutils literal notranslate"><span class="pre">FSPath.is_char_device()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.is_dir"><code class="docutils literal notranslate"><span class="pre">FSPath.is_dir()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.is_fifo"><code class="docutils literal notranslate"><span class="pre">FSPath.is_fifo()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.is_file"><code class="docutils literal notranslate"><span class="pre">FSPath.is_file()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.is_mount"><code class="docutils literal notranslate"><span class="pre">FSPath.is_mount()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.is_socket"><code class="docutils literal notranslate"><span class="pre">FSPath.is_socket()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.is_symlink"><code class="docutils literal notranslate"><span class="pre">FSPath.is_symlink()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.iterdir"><code class="docutils literal notranslate"><span class="pre">FSPath.iterdir()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.joinpath"><code class="docutils literal notranslate"><span class="pre">FSPath.joinpath()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.listdir"><code class="docutils literal notranslate"><span class="pre">FSPath.listdir()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.load"><code class="docutils literal notranslate"><span class="pre">FSPath.load()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.md5"><code class="docutils literal notranslate"><span class="pre">FSPath.md5()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.mkdir"><code class="docutils literal notranslate"><span class="pre">FSPath.mkdir()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.open"><code class="docutils literal notranslate"><span class="pre">FSPath.open()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.owner"><code class="docutils literal notranslate"><span class="pre">FSPath.owner()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.parts"><code class="docutils literal notranslate"><span class="pre">FSPath.parts</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.path_with_protocol"><code class="docutils literal notranslate"><span class="pre">FSPath.path_with_protocol</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.protocol"><code class="docutils literal notranslate"><span class="pre">FSPath.protocol</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.readlink"><code class="docutils literal notranslate"><span class="pre">FSPath.readlink()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.realpath"><code class="docutils literal notranslate"><span class="pre">FSPath.realpath()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.relpath"><code class="docutils literal notranslate"><span class="pre">FSPath.relpath()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.remove"><code class="docutils literal notranslate"><span class="pre">FSPath.remove()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.rename"><code class="docutils literal notranslate"><span class="pre">FSPath.rename()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.replace"><code class="docutils literal notranslate"><span class="pre">FSPath.replace()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.resolve"><code class="docutils literal notranslate"><span class="pre">FSPath.resolve()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.rmdir"><code class="docutils literal notranslate"><span class="pre">FSPath.rmdir()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.root"><code class="docutils literal notranslate"><span class="pre">FSPath.root</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.save"><code class="docutils literal notranslate"><span class="pre">FSPath.save()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.scan"><code class="docutils literal notranslate"><span class="pre">FSPath.scan()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.scan_stat"><code class="docutils literal notranslate"><span class="pre">FSPath.scan_stat()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.scandir"><code class="docutils literal notranslate"><span class="pre">FSPath.scandir()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.stat"><code class="docutils literal notranslate"><span class="pre">FSPath.stat()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.symlink"><code class="docutils literal notranslate"><span class="pre">FSPath.symlink()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.sync"><code class="docutils literal notranslate"><span class="pre">FSPath.sync()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.unlink"><code class="docutils literal notranslate"><span class="pre">FSPath.unlink()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.utime"><code class="docutils literal notranslate"><span class="pre">FSPath.utime()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.walk"><code class="docutils literal notranslate"><span class="pre">FSPath.walk()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="megfile.s3.html">megfile.s3 module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.S3BufferedWriter"><code class="docutils literal notranslate"><span class="pre">S3BufferedWriter</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3.html#megfile.s3.S3BufferedWriter.mode"><code class="docutils literal notranslate"><span class="pre">S3BufferedWriter.mode</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3.html#megfile.s3.S3BufferedWriter.name"><code class="docutils literal notranslate"><span class="pre">S3BufferedWriter.name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3.html#megfile.s3.S3BufferedWriter.tell"><code class="docutils literal notranslate"><span class="pre">S3BufferedWriter.tell()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3.html#megfile.s3.S3BufferedWriter.write"><code class="docutils literal notranslate"><span class="pre">S3BufferedWriter.write()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.S3Cacher"><code class="docutils literal notranslate"><span class="pre">S3Cacher</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3.html#megfile.s3.S3Cacher.cache_path"><code class="docutils literal notranslate"><span class="pre">S3Cacher.cache_path</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.S3LimitedSeekableWriter"><code class="docutils literal notranslate"><span class="pre">S3LimitedSeekableWriter</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3.html#megfile.s3.S3LimitedSeekableWriter.seek"><code class="docutils literal notranslate"><span class="pre">S3LimitedSeekableWriter.seek()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3.html#megfile.s3.S3LimitedSeekableWriter.write"><code class="docutils literal notranslate"><span class="pre">S3LimitedSeekableWriter.write()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.S3PrefetchReader"><code class="docutils literal notranslate"><span class="pre">S3PrefetchReader</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3.html#megfile.s3.S3PrefetchReader.name"><code class="docutils literal notranslate"><span class="pre">S3PrefetchReader.name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.S3ShareCacheReader"><code class="docutils literal notranslate"><span class="pre">S3ShareCacheReader</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.get_endpoint_url"><code class="docutils literal notranslate"><span class="pre">get_endpoint_url()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.get_s3_client"><code class="docutils literal notranslate"><span class="pre">get_s3_client()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.get_s3_session"><code class="docutils literal notranslate"><span class="pre">get_s3_session()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.is_s3"><code class="docutils literal notranslate"><span class="pre">is_s3()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.parse_s3_url"><code class="docutils literal notranslate"><span class="pre">parse_s3_url()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_access"><code class="docutils literal notranslate"><span class="pre">s3_access()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_buffered_open"><code class="docutils literal notranslate"><span class="pre">s3_buffered_open()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_cached_open"><code class="docutils literal notranslate"><span class="pre">s3_cached_open()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_concat"><code class="docutils literal notranslate"><span class="pre">s3_concat()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_copy"><code class="docutils literal notranslate"><span class="pre">s3_copy()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_download"><code class="docutils literal notranslate"><span class="pre">s3_download()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_exists"><code class="docutils literal notranslate"><span class="pre">s3_exists()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_getmd5"><code class="docutils literal notranslate"><span class="pre">s3_getmd5()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_getmtime"><code class="docutils literal notranslate"><span class="pre">s3_getmtime()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_getsize"><code class="docutils literal notranslate"><span class="pre">s3_getsize()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_glob"><code class="docutils literal notranslate"><span class="pre">s3_glob()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_glob_stat"><code class="docutils literal notranslate"><span class="pre">s3_glob_stat()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_hasbucket"><code class="docutils literal notranslate"><span class="pre">s3_hasbucket()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_iglob"><code class="docutils literal notranslate"><span class="pre">s3_iglob()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_isdir"><code class="docutils literal notranslate"><span class="pre">s3_isdir()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_isfile"><code class="docutils literal notranslate"><span class="pre">s3_isfile()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_islink"><code class="docutils literal notranslate"><span class="pre">s3_islink()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_listdir"><code class="docutils literal notranslate"><span class="pre">s3_listdir()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_load_content"><code class="docutils literal notranslate"><span class="pre">s3_load_content()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_load_from"><code class="docutils literal notranslate"><span class="pre">s3_load_from()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_lstat"><code class="docutils literal notranslate"><span class="pre">s3_lstat()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_makedirs"><code class="docutils literal notranslate"><span class="pre">s3_makedirs()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_memory_open"><code class="docutils literal notranslate"><span class="pre">s3_memory_open()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_move"><code class="docutils literal notranslate"><span class="pre">s3_move()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_open"><code class="docutils literal notranslate"><span class="pre">s3_open()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_path_join"><code class="docutils literal notranslate"><span class="pre">s3_path_join()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_pipe_open"><code class="docutils literal notranslate"><span class="pre">s3_pipe_open()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_prefetch_open"><code class="docutils literal notranslate"><span class="pre">s3_prefetch_open()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_readlink"><code class="docutils literal notranslate"><span class="pre">s3_readlink()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_remove"><code class="docutils literal notranslate"><span class="pre">s3_remove()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_rename"><code class="docutils literal notranslate"><span class="pre">s3_rename()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_save_as"><code class="docutils literal notranslate"><span class="pre">s3_save_as()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_scan"><code class="docutils literal notranslate"><span class="pre">s3_scan()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_scan_stat"><code class="docutils literal notranslate"><span class="pre">s3_scan_stat()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_scandir"><code class="docutils literal notranslate"><span class="pre">s3_scandir()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_share_cache_open"><code class="docutils literal notranslate"><span class="pre">s3_share_cache_open()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_stat"><code class="docutils literal notranslate"><span class="pre">s3_stat()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_symlink"><code class="docutils literal notranslate"><span class="pre">s3_symlink()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_sync"><code class="docutils literal notranslate"><span class="pre">s3_sync()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_unlink"><code class="docutils literal notranslate"><span class="pre">s3_unlink()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_upload"><code class="docutils literal notranslate"><span class="pre">s3_upload()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.s3_walk"><code class="docutils literal notranslate"><span class="pre">s3_walk()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="megfile.s3_path.html">megfile.s3_path module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path"><code class="docutils literal notranslate"><span class="pre">S3Path</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.absolute"><code class="docutils literal notranslate"><span class="pre">S3Path.absolute()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.access"><code class="docutils literal notranslate"><span class="pre">S3Path.access()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.copy"><code class="docutils literal notranslate"><span class="pre">S3Path.copy()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.cwd"><code class="docutils literal notranslate"><span class="pre">S3Path.cwd()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.exists"><code class="docutils literal notranslate"><span class="pre">S3Path.exists()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.getmtime"><code class="docutils literal notranslate"><span class="pre">S3Path.getmtime()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.getsize"><code class="docutils literal notranslate"><span class="pre">S3Path.getsize()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.glob"><code class="docutils literal notranslate"><span class="pre">S3Path.glob()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.glob_stat"><code class="docutils literal notranslate"><span class="pre">S3Path.glob_stat()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.hasbucket"><code class="docutils literal notranslate"><span class="pre">S3Path.hasbucket()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.iglob"><code class="docutils literal notranslate"><span class="pre">S3Path.iglob()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.is_dir"><code class="docutils literal notranslate"><span class="pre">S3Path.is_dir()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.is_file"><code class="docutils literal notranslate"><span class="pre">S3Path.is_file()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.is_symlink"><code class="docutils literal notranslate"><span class="pre">S3Path.is_symlink()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.iterdir"><code class="docutils literal notranslate"><span class="pre">S3Path.iterdir()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.listdir"><code class="docutils literal notranslate"><span class="pre">S3Path.listdir()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.load"><code class="docutils literal notranslate"><span class="pre">S3Path.load()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.md5"><code class="docutils literal notranslate"><span class="pre">S3Path.md5()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.mkdir"><code class="docutils literal notranslate"><span class="pre">S3Path.mkdir()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.move"><code class="docutils literal notranslate"><span class="pre">S3Path.move()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.open"><code class="docutils literal notranslate"><span class="pre">S3Path.open()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.parts"><code class="docutils literal notranslate"><span class="pre">S3Path.parts</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.path_with_protocol"><code class="docutils literal notranslate"><span class="pre">S3Path.path_with_protocol</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.path_without_protocol"><code class="docutils literal notranslate"><span class="pre">S3Path.path_without_protocol</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.protocol"><code class="docutils literal notranslate"><span class="pre">S3Path.protocol</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.readlink"><code class="docutils literal notranslate"><span class="pre">S3Path.readlink()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.remove"><code class="docutils literal notranslate"><span class="pre">S3Path.remove()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.rename"><code class="docutils literal notranslate"><span class="pre">S3Path.rename()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.save"><code class="docutils literal notranslate"><span class="pre">S3Path.save()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.scan"><code class="docutils literal notranslate"><span class="pre">S3Path.scan()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.scan_stat"><code class="docutils literal notranslate"><span class="pre">S3Path.scan_stat()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.scandir"><code class="docutils literal notranslate"><span class="pre">S3Path.scandir()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.stat"><code class="docutils literal notranslate"><span class="pre">S3Path.stat()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.symlink"><code class="docutils literal notranslate"><span class="pre">S3Path.symlink()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.sync"><code class="docutils literal notranslate"><span class="pre">S3Path.sync()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.unlink"><code class="docutils literal notranslate"><span class="pre">S3Path.unlink()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html#megfile.s3_path.S3Path.walk"><code class="docutils literal notranslate"><span class="pre">S3Path.walk()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="megfile.http.html">megfile.http module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="megfile.http.html#megfile.http.get_http_session"><code class="docutils literal notranslate"><span class="pre">get_http_session()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.http.html#megfile.http.http_exists"><code class="docutils literal notranslate"><span class="pre">http_exists()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.http.html#megfile.http.http_getmtime"><code class="docutils literal notranslate"><span class="pre">http_getmtime()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.http.html#megfile.http.http_getsize"><code class="docutils literal notranslate"><span class="pre">http_getsize()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.http.html#megfile.http.http_open"><code class="docutils literal notranslate"><span class="pre">http_open()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.http.html#megfile.http.http_stat"><code class="docutils literal notranslate"><span class="pre">http_stat()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.http.html#megfile.http.is_http"><code class="docutils literal notranslate"><span class="pre">is_http()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="megfile.http_path.html">megfile.http_path module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="megfile.http_path.html#megfile.http_path.HttpPath"><code class="docutils literal notranslate"><span class="pre">HttpPath</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="megfile.http_path.html#megfile.http_path.HttpPath.exists"><code class="docutils literal notranslate"><span class="pre">HttpPath.exists()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.http_path.html#megfile.http_path.HttpPath.getmtime"><code class="docutils literal notranslate"><span class="pre">HttpPath.getmtime()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.http_path.html#megfile.http_path.HttpPath.getsize"><code class="docutils literal notranslate"><span class="pre">HttpPath.getsize()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.http_path.html#megfile.http_path.HttpPath.open"><code class="docutils literal notranslate"><span class="pre">HttpPath.open()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.http_path.html#megfile.http_path.HttpPath.protocol"><code class="docutils literal notranslate"><span class="pre">HttpPath.protocol</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.http_path.html#megfile.http_path.HttpPath.stat"><code class="docutils literal notranslate"><span class="pre">HttpPath.stat()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.http_path.html#megfile.http_path.HttpsPath"><code class="docutils literal notranslate"><span class="pre">HttpsPath</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="megfile.http_path.html#megfile.http_path.HttpsPath.protocol"><code class="docutils literal notranslate"><span class="pre">HttpsPath.protocol</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="megfile.stdio.html">megfile.stdio module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="megfile.stdio.html#megfile.stdio.is_stdio"><code class="docutils literal notranslate"><span class="pre">is_stdio()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.stdio.html#megfile.stdio.stdio_open"><code class="docutils literal notranslate"><span class="pre">stdio_open()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="megfile.stdio_path.html">megfile.stdio_path module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="megfile.stdio_path.html#megfile.stdio_path.StdioPath"><code class="docutils literal notranslate"><span class="pre">StdioPath</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="megfile.stdio_path.html#megfile.stdio_path.StdioPath.open"><code class="docutils literal notranslate"><span class="pre">StdioPath.open()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.stdio_path.html#megfile.stdio_path.StdioPath.protocol"><code class="docutils literal notranslate"><span class="pre">StdioPath.protocol</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="megfile.sftp.html">megfile.sftp module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.is_sftp"><code class="docutils literal notranslate"><span class="pre">is_sftp()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.sftp_absolute"><code class="docutils literal notranslate"><span class="pre">sftp_absolute()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.sftp_chmod"><code class="docutils literal notranslate"><span class="pre">sftp_chmod()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.sftp_concat"><code class="docutils literal notranslate"><span class="pre">sftp_concat()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.sftp_copy"><code class="docutils literal notranslate"><span class="pre">sftp_copy()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.sftp_download"><code class="docutils literal notranslate"><span class="pre">sftp_download()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.sftp_exists"><code class="docutils literal notranslate"><span class="pre">sftp_exists()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.sftp_getmd5"><code class="docutils literal notranslate"><span class="pre">sftp_getmd5()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.sftp_getmtime"><code class="docutils literal notranslate"><span class="pre">sftp_getmtime()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.sftp_getsize"><code class="docutils literal notranslate"><span class="pre">sftp_getsize()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.sftp_glob"><code class="docutils literal notranslate"><span class="pre">sftp_glob()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.sftp_glob_stat"><code class="docutils literal notranslate"><span class="pre">sftp_glob_stat()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.sftp_iglob"><code class="docutils literal notranslate"><span class="pre">sftp_iglob()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.sftp_isdir"><code class="docutils literal notranslate"><span class="pre">sftp_isdir()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.sftp_isfile"><code class="docutils literal notranslate"><span class="pre">sftp_isfile()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.sftp_islink"><code class="docutils literal notranslate"><span class="pre">sftp_islink()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.sftp_listdir"><code class="docutils literal notranslate"><span class="pre">sftp_listdir()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.sftp_load_from"><code class="docutils literal notranslate"><span class="pre">sftp_load_from()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.sftp_lstat"><code class="docutils literal notranslate"><span class="pre">sftp_lstat()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.sftp_makedirs"><code class="docutils literal notranslate"><span class="pre">sftp_makedirs()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.sftp_move"><code class="docutils literal notranslate"><span class="pre">sftp_move()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.sftp_open"><code class="docutils literal notranslate"><span class="pre">sftp_open()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.sftp_path_join"><code class="docutils literal notranslate"><span class="pre">sftp_path_join()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.sftp_readlink"><code class="docutils literal notranslate"><span class="pre">sftp_readlink()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.sftp_realpath"><code class="docutils literal notranslate"><span class="pre">sftp_realpath()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.sftp_remove"><code class="docutils literal notranslate"><span class="pre">sftp_remove()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.sftp_rename"><code class="docutils literal notranslate"><span class="pre">sftp_rename()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.sftp_resolve"><code class="docutils literal notranslate"><span class="pre">sftp_resolve()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.sftp_rmdir"><code class="docutils literal notranslate"><span class="pre">sftp_rmdir()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.sftp_save_as"><code class="docutils literal notranslate"><span class="pre">sftp_save_as()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.sftp_scan"><code class="docutils literal notranslate"><span class="pre">sftp_scan()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.sftp_scan_stat"><code class="docutils literal notranslate"><span class="pre">sftp_scan_stat()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.sftp_scandir"><code class="docutils literal notranslate"><span class="pre">sftp_scandir()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.sftp_stat"><code class="docutils literal notranslate"><span class="pre">sftp_stat()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.sftp_symlink"><code class="docutils literal notranslate"><span class="pre">sftp_symlink()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.sftp_sync"><code class="docutils literal notranslate"><span class="pre">sftp_sync()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.sftp_unlink"><code class="docutils literal notranslate"><span class="pre">sftp_unlink()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.sftp_upload"><code class="docutils literal notranslate"><span class="pre">sftp_upload()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.sftp.html#megfile.sftp.sftp_walk"><code class="docutils literal notranslate"><span class="pre">sftp_walk()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="megfile.sftp_path.html">megfile.sftp_path module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath"><code class="docutils literal notranslate"><span class="pre">SftpPath</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.absolute"><code class="docutils literal notranslate"><span class="pre">SftpPath.absolute()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.chmod"><code class="docutils literal notranslate"><span class="pre">SftpPath.chmod()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.copy"><code class="docutils literal notranslate"><span class="pre">SftpPath.copy()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.cwd"><code class="docutils literal notranslate"><span class="pre">SftpPath.cwd()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.exists"><code class="docutils literal notranslate"><span class="pre">SftpPath.exists()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.getmtime"><code class="docutils literal notranslate"><span class="pre">SftpPath.getmtime()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.getsize"><code class="docutils literal notranslate"><span class="pre">SftpPath.getsize()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.glob"><code class="docutils literal notranslate"><span class="pre">SftpPath.glob()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.glob_stat"><code class="docutils literal notranslate"><span class="pre">SftpPath.glob_stat()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.iglob"><code class="docutils literal notranslate"><span class="pre">SftpPath.iglob()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.is_dir"><code class="docutils literal notranslate"><span class="pre">SftpPath.is_dir()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.is_file"><code class="docutils literal notranslate"><span class="pre">SftpPath.is_file()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.is_symlink"><code class="docutils literal notranslate"><span class="pre">SftpPath.is_symlink()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.iterdir"><code class="docutils literal notranslate"><span class="pre">SftpPath.iterdir()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.listdir"><code class="docutils literal notranslate"><span class="pre">SftpPath.listdir()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.load"><code class="docutils literal notranslate"><span class="pre">SftpPath.load()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.md5"><code class="docutils literal notranslate"><span class="pre">SftpPath.md5()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.mkdir"><code class="docutils literal notranslate"><span class="pre">SftpPath.mkdir()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.open"><code class="docutils literal notranslate"><span class="pre">SftpPath.open()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.parts"><code class="docutils literal notranslate"><span class="pre">SftpPath.parts</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.protocol"><code class="docutils literal notranslate"><span class="pre">SftpPath.protocol</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.readlink"><code class="docutils literal notranslate"><span class="pre">SftpPath.readlink()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.realpath"><code class="docutils literal notranslate"><span class="pre">SftpPath.realpath()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.remove"><code class="docutils literal notranslate"><span class="pre">SftpPath.remove()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.rename"><code class="docutils literal notranslate"><span class="pre">SftpPath.rename()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.replace"><code class="docutils literal notranslate"><span class="pre">SftpPath.replace()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.resolve"><code class="docutils literal notranslate"><span class="pre">SftpPath.resolve()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.rmdir"><code class="docutils literal notranslate"><span class="pre">SftpPath.rmdir()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.save"><code class="docutils literal notranslate"><span class="pre">SftpPath.save()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.scan"><code class="docutils literal notranslate"><span class="pre">SftpPath.scan()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.scan_stat"><code class="docutils literal notranslate"><span class="pre">SftpPath.scan_stat()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.scandir"><code class="docutils literal notranslate"><span class="pre">SftpPath.scandir()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.stat"><code class="docutils literal notranslate"><span class="pre">SftpPath.stat()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.symlink"><code class="docutils literal notranslate"><span class="pre">SftpPath.symlink()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.sync"><code class="docutils literal notranslate"><span class="pre">SftpPath.sync()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.unlink"><code class="docutils literal notranslate"><span class="pre">SftpPath.unlink()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.utime"><code class="docutils literal notranslate"><span class="pre">SftpPath.utime()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.walk"><code class="docutils literal notranslate"><span class="pre">SftpPath.walk()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="megfile.hdfs.html">megfile.hdfs module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="megfile.hdfs.html#megfile.hdfs.hdfs_exists"><code class="docutils literal notranslate"><span class="pre">hdfs_exists()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.hdfs.html#megfile.hdfs.hdfs_getmd5"><code class="docutils literal notranslate"><span class="pre">hdfs_getmd5()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.hdfs.html#megfile.hdfs.hdfs_getmtime"><code class="docutils literal notranslate"><span class="pre">hdfs_getmtime()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.hdfs.html#megfile.hdfs.hdfs_getsize"><code class="docutils literal notranslate"><span class="pre">hdfs_getsize()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.hdfs.html#megfile.hdfs.hdfs_glob"><code class="docutils literal notranslate"><span class="pre">hdfs_glob()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.hdfs.html#megfile.hdfs.hdfs_glob_stat"><code class="docutils literal notranslate"><span class="pre">hdfs_glob_stat()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.hdfs.html#megfile.hdfs.hdfs_iglob"><code class="docutils literal notranslate"><span class="pre">hdfs_iglob()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.hdfs.html#megfile.hdfs.hdfs_isdir"><code class="docutils literal notranslate"><span class="pre">hdfs_isdir()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.hdfs.html#megfile.hdfs.hdfs_isfile"><code class="docutils literal notranslate"><span class="pre">hdfs_isfile()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.hdfs.html#megfile.hdfs.hdfs_listdir"><code class="docutils literal notranslate"><span class="pre">hdfs_listdir()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.hdfs.html#megfile.hdfs.hdfs_load_from"><code class="docutils literal notranslate"><span class="pre">hdfs_load_from()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.hdfs.html#megfile.hdfs.hdfs_makedirs"><code class="docutils literal notranslate"><span class="pre">hdfs_makedirs()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.hdfs.html#megfile.hdfs.hdfs_move"><code class="docutils literal notranslate"><span class="pre">hdfs_move()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.hdfs.html#megfile.hdfs.hdfs_open"><code class="docutils literal notranslate"><span class="pre">hdfs_open()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.hdfs.html#megfile.hdfs.hdfs_remove"><code class="docutils literal notranslate"><span class="pre">hdfs_remove()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.hdfs.html#megfile.hdfs.hdfs_save_as"><code class="docutils literal notranslate"><span class="pre">hdfs_save_as()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.hdfs.html#megfile.hdfs.hdfs_scan"><code class="docutils literal notranslate"><span class="pre">hdfs_scan()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.hdfs.html#megfile.hdfs.hdfs_scan_stat"><code class="docutils literal notranslate"><span class="pre">hdfs_scan_stat()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.hdfs.html#megfile.hdfs.hdfs_scandir"><code class="docutils literal notranslate"><span class="pre">hdfs_scandir()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.hdfs.html#megfile.hdfs.hdfs_stat"><code class="docutils literal notranslate"><span class="pre">hdfs_stat()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.hdfs.html#megfile.hdfs.hdfs_unlink"><code class="docutils literal notranslate"><span class="pre">hdfs_unlink()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.hdfs.html#megfile.hdfs.hdfs_walk"><code class="docutils literal notranslate"><span class="pre">hdfs_walk()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.hdfs.html#megfile.hdfs.is_hdfs"><code class="docutils literal notranslate"><span class="pre">is_hdfs()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="megfile.hdfs_path.html">megfile.hdfs_path module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath"><code class="docutils literal notranslate"><span class="pre">HdfsPath</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.absolute"><code class="docutils literal notranslate"><span class="pre">HdfsPath.absolute()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.exists"><code class="docutils literal notranslate"><span class="pre">HdfsPath.exists()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.getmtime"><code class="docutils literal notranslate"><span class="pre">HdfsPath.getmtime()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.getsize"><code class="docutils literal notranslate"><span class="pre">HdfsPath.getsize()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.glob"><code class="docutils literal notranslate"><span class="pre">HdfsPath.glob()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.glob_stat"><code class="docutils literal notranslate"><span class="pre">HdfsPath.glob_stat()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.iglob"><code class="docutils literal notranslate"><span class="pre">HdfsPath.iglob()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.is_dir"><code class="docutils literal notranslate"><span class="pre">HdfsPath.is_dir()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.is_file"><code class="docutils literal notranslate"><span class="pre">HdfsPath.is_file()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.iterdir"><code class="docutils literal notranslate"><span class="pre">HdfsPath.iterdir()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.listdir"><code class="docutils literal notranslate"><span class="pre">HdfsPath.listdir()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.load"><code class="docutils literal notranslate"><span class="pre">HdfsPath.load()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.md5"><code class="docutils literal notranslate"><span class="pre">HdfsPath.md5()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.mkdir"><code class="docutils literal notranslate"><span class="pre">HdfsPath.mkdir()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.move"><code class="docutils literal notranslate"><span class="pre">HdfsPath.move()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.open"><code class="docutils literal notranslate"><span class="pre">HdfsPath.open()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.parts"><code class="docutils literal notranslate"><span class="pre">HdfsPath.parts</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.path_with_protocol"><code class="docutils literal notranslate"><span class="pre">HdfsPath.path_with_protocol</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.path_without_protocol"><code class="docutils literal notranslate"><span class="pre">HdfsPath.path_without_protocol</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.protocol"><code class="docutils literal notranslate"><span class="pre">HdfsPath.protocol</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.remove"><code class="docutils literal notranslate"><span class="pre">HdfsPath.remove()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.rename"><code class="docutils literal notranslate"><span class="pre">HdfsPath.rename()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.save"><code class="docutils literal notranslate"><span class="pre">HdfsPath.save()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.scan"><code class="docutils literal notranslate"><span class="pre">HdfsPath.scan()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.scan_stat"><code class="docutils literal notranslate"><span class="pre">HdfsPath.scan_stat()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.scandir"><code class="docutils literal notranslate"><span class="pre">HdfsPath.scandir()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.stat"><code class="docutils literal notranslate"><span class="pre">HdfsPath.stat()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.unlink"><code class="docutils literal notranslate"><span class="pre">HdfsPath.unlink()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.hdfs_path.html#megfile.hdfs_path.HdfsPath.walk"><code class="docutils literal notranslate"><span class="pre">HdfsPath.walk()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </div>
 </section>
@@ -132,7 +690,7 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="configuration.html" class="btn btn-neutral float-left" title="Configuration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="configuration/http.html" class="btn btn-neutral float-left" title="HTTP Configuration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="megfile.smart.html" class="btn btn-neutral float-right" title="megfile.smart module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

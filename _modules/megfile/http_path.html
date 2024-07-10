@@ -1,22 +1,22 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>megfile.http_path &mdash; megfile  documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
 
   
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -112,9 +112,11 @@
 <span class="n">max_retries</span> <span class="o">=</span> <span class="n">HTTP_MAX_RETRY_TIMES</span>
 
 
-<div class="viewcode-block" id="get_http_session"><a class="viewcode-back" href="../../megfile.http.html#megfile.http.get_http_session">[docs]</a><span class="k">def</span> <span class="nf">get_http_session</span><span class="p">(</span>
-        <span class="n">timeout</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]]</span> <span class="o">=</span> <span class="n">DEFAULT_TIMEOUT</span><span class="p">,</span>
-        <span class="n">status_forcelist</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="mi">502</span><span class="p">,</span> <span class="mi">503</span><span class="p">,</span> <span class="mi">504</span><span class="p">)</span>
+<div class="viewcode-block" id="get_http_session">
+<a class="viewcode-back" href="../../megfile.http.html#megfile.http.get_http_session">[docs]</a>
+<span class="k">def</span> <span class="nf">get_http_session</span><span class="p">(</span>
+    <span class="n">timeout</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]]</span> <span class="o">=</span> <span class="n">DEFAULT_TIMEOUT</span><span class="p">,</span>
+    <span class="n">status_forcelist</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="mi">502</span><span class="p">,</span> <span class="mi">503</span><span class="p">,</span> <span class="mi">504</span><span class="p">)</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">:</span>
     <span class="n">session</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
 
@@ -129,24 +131,24 @@
             <span class="n">kwargs</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">retry_callback</span><span class="p">(</span>
-            <span class="n">error</span><span class="p">,</span>
-            <span class="n">method</span><span class="p">,</span>
-            <span class="n">url</span><span class="p">,</span>
-            <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">headers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">cookies</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">files</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">auth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">allow_redirects</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="n">proxies</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">hooks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">stream</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">verify</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">cert</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">json</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+        <span class="n">error</span><span class="p">,</span>
+        <span class="n">method</span><span class="p">,</span>
+        <span class="n">url</span><span class="p">,</span>
+        <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">headers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">cookies</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">files</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">auth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">allow_redirects</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">proxies</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">hooks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">stream</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">verify</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">cert</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">json</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="k">if</span> <span class="n">data</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s1">&#39;seek&#39;</span><span class="p">):</span>
             <span class="n">data</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
@@ -166,7 +168,7 @@
                         <span class="k">return</span> <span class="n">BytesIO</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">_logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                        <span class="sa">f</span><span class="s1">&#39;Can not retry http request, because the file object is not seekable and unsupport &quot;name&quot;&#39;</span>
+                        <span class="sa">f</span><span class="s1">&#39;Can not retry http request, because the file object is not seekable and not support &quot;name&quot;&#39;</span>
                     <span class="p">)</span>
                     <span class="k">raise</span>
 
@@ -195,7 +197,10 @@
     <span class="k">return</span> <span class="n">session</span></div>
 
 
-<div class="viewcode-block" id="is_http"><a class="viewcode-back" href="../../megfile.http.html#megfile.http.is_http">[docs]</a><span class="k">def</span> <span class="nf">is_http</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+
+<div class="viewcode-block" id="is_http">
+<a class="viewcode-back" href="../../megfile.http.html#megfile.http.is_http">[docs]</a>
+<span class="k">def</span> <span class="nf">is_http</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;http scheme definition: http(s)://domain/path</span>
 
 <span class="sd">    :param path: Path to be tested</span>
@@ -211,7 +216,10 @@
     <span class="k">return</span> <span class="n">scheme</span> <span class="o">==</span> <span class="s1">&#39;http&#39;</span> <span class="ow">or</span> <span class="n">scheme</span> <span class="o">==</span> <span class="s1">&#39;https&#39;</span></div>
 
 
-<div class="viewcode-block" id="http_open"><a class="viewcode-back" href="../../megfile.http.html#megfile.http.http_open">[docs]</a><span class="k">def</span> <span class="nf">http_open</span><span class="p">(</span>
+
+<div class="viewcode-block" id="http_open">
+<a class="viewcode-back" href="../../megfile.http.html#megfile.http.http_open">[docs]</a>
+<span class="k">def</span> <span class="nf">http_open</span><span class="p">(</span>
         <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
         <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;rb&#39;</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
@@ -247,7 +255,10 @@
         <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="HttpPath"><a class="viewcode-back" href="../../megfile.http_path.html#megfile.http.HttpPath">[docs]</a><span class="nd">@SmartPath</span><span class="o">.</span><span class="n">register</span>
+
+<div class="viewcode-block" id="HttpPath">
+<a class="viewcode-back" href="../../megfile.http_path.html#megfile.http.HttpPath">[docs]</a>
+<span class="nd">@SmartPath</span><span class="o">.</span><span class="n">register</span>
 <span class="k">class</span> <span class="nc">HttpPath</span><span class="p">(</span><span class="n">URIPath</span><span class="p">):</span>
 
     <span class="n">protocol</span> <span class="o">=</span> <span class="s2">&quot;http&quot;</span>
@@ -259,7 +270,9 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span> <span class="o">=</span> <span class="s1">&#39;https&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">request_kwargs</span> <span class="o">=</span> <span class="p">{}</span>
 
-<div class="viewcode-block" id="HttpPath.open"><a class="viewcode-back" href="../../megfile.http_path.html#megfile.http.HttpPath.open">[docs]</a>    <span class="nd">@binary_open</span>
+<div class="viewcode-block" id="HttpPath.open">
+<a class="viewcode-back" href="../../megfile.http_path.html#megfile.http.HttpPath.open">[docs]</a>
+    <span class="nd">@binary_open</span>
     <span class="k">def</span> <span class="nf">open</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;rb&#39;</span><span class="p">,</span>
@@ -323,8 +336,8 @@
                 <span class="n">block_forward</span><span class="o">=</span><span class="n">block_forward</span><span class="p">,</span>
                 <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span><span class="p">,</span>
             <span class="p">)</span>
-            <span class="k">if</span> <span class="n">_is_pickle</span><span class="p">(</span><span class="n">reader</span><span class="p">):</span>  <span class="c1"># pytype: disable=wrong-arg-types</span>
-                <span class="n">reader</span> <span class="o">=</span> <span class="n">BufferedReader</span><span class="p">(</span><span class="n">reader</span><span class="p">)</span>  <span class="c1"># pytype: disable=wrong-arg-types</span>
+            <span class="k">if</span> <span class="n">_is_pickle</span><span class="p">(</span><span class="n">reader</span><span class="p">):</span>
+                <span class="n">reader</span> <span class="o">=</span> <span class="n">BufferedReader</span><span class="p">(</span><span class="n">reader</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
             <span class="k">return</span> <span class="n">reader</span>
 
         <span class="n">response</span><span class="o">.</span><span class="n">raw</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span>
@@ -332,9 +345,12 @@
         <span class="c1"># response.raw.auto_close = False</span>
         <span class="c1"># response.raw.decode_content = True</span>
         <span class="c1"># return BufferedReader(response.raw)</span>
-        <span class="k">return</span> <span class="n">BufferedReader</span><span class="p">(</span><span class="n">Response</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">raw</span><span class="p">))</span>  <span class="c1"># pytype: disable=wrong-arg-types</span></div>
+        <span class="k">return</span> <span class="n">BufferedReader</span><span class="p">(</span><span class="n">Response</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">raw</span><span class="p">))</span>  <span class="c1"># type: ignore</span></div>
 
-<div class="viewcode-block" id="HttpPath.stat"><a class="viewcode-back" href="../../megfile.http_path.html#megfile.http.HttpPath.stat">[docs]</a>    <span class="k">def</span> <span class="nf">stat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StatResult</span><span class="p">:</span>
+
+<div class="viewcode-block" id="HttpPath.stat">
+<a class="viewcode-back" href="../../megfile.http_path.html#megfile.http.HttpPath.stat">[docs]</a>
+    <span class="k">def</span> <span class="nf">stat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StatResult</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Get StatResult of http_url response, including size and mtime, referring to http_getsize and http_getmtime</span>
 
@@ -359,17 +375,27 @@
         <span class="n">size</span> <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Content-Length&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">size</span><span class="p">:</span>
             <span class="n">size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">size</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">size</span> <span class="o">=</span> <span class="mi">0</span>
 
         <span class="n">last_modified</span> <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Last-Modified&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">last_modified</span><span class="p">:</span>
             <span class="n">last_modified</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">mktime</span><span class="p">(</span>
                 <span class="n">time</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">last_modified</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%a</span><span class="s2">, </span><span class="si">%d</span><span class="s2"> %b %Y %H:%M:%S %Z&quot;</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">last_modified</span> <span class="o">=</span> <span class="mf">0.0</span>
 
-        <span class="k">return</span> <span class="n">StatResult</span><span class="p">(</span>  <span class="c1"># pyre-ignore[20]</span>
-            <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span> <span class="n">mtime</span><span class="o">=</span><span class="n">last_modified</span><span class="p">,</span> <span class="n">isdir</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-            <span class="n">islnk</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">StatResult</span><span class="p">(</span>
+            <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span>
+            <span class="n">mtime</span><span class="o">=</span><span class="n">last_modified</span><span class="p">,</span>
+            <span class="n">isdir</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">islnk</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">extra</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="HttpPath.getsize"><a class="viewcode-back" href="../../megfile.http_path.html#megfile.http.HttpPath.getsize">[docs]</a>    <span class="k">def</span> <span class="nf">getsize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+
+<div class="viewcode-block" id="HttpPath.getsize">
+<a class="viewcode-back" href="../../megfile.http_path.html#megfile.http.HttpPath.getsize">[docs]</a>
+    <span class="k">def</span> <span class="nf">getsize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Get file size on the given http_url path.</span>
 
@@ -381,7 +407,10 @@
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span><span class="o">.</span><span class="n">size</span></div>
 
-<div class="viewcode-block" id="HttpPath.getmtime"><a class="viewcode-back" href="../../megfile.http_path.html#megfile.http.HttpPath.getmtime">[docs]</a>    <span class="k">def</span> <span class="nf">getmtime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+
+<div class="viewcode-block" id="HttpPath.getmtime">
+<a class="viewcode-back" href="../../megfile.http_path.html#megfile.http.HttpPath.getmtime">[docs]</a>
+    <span class="k">def</span> <span class="nf">getmtime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Get Last-Modified time of the http request on the given http_url path.</span>
 <span class="sd">        </span>
@@ -393,7 +422,10 @@
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span><span class="o">.</span><span class="n">mtime</span></div>
 
-<div class="viewcode-block" id="HttpPath.exists"><a class="viewcode-back" href="../../megfile.http_path.html#megfile.http.HttpPath.exists">[docs]</a>    <span class="k">def</span> <span class="nf">exists</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+
+<div class="viewcode-block" id="HttpPath.exists">
+<a class="viewcode-back" href="../../megfile.http_path.html#megfile.http.HttpPath.exists">[docs]</a>
+    <span class="k">def</span> <span class="nf">exists</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Test if http path exists</span>
 
 <span class="sd">        :param followlinks: ignore this parameter, just for compatibility</span>
@@ -413,16 +445,21 @@
                     <span class="k">return</span> <span class="kc">False</span>
                 <span class="k">return</span> <span class="kc">True</span>
         <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">ConnectionError</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">False</span></div></div>
+            <span class="k">return</span> <span class="kc">False</span></div>
+</div>
 
 
-<div class="viewcode-block" id="HttpsPath"><a class="viewcode-back" href="../../megfile.http_path.html#megfile.http.HttpsPath">[docs]</a><span class="nd">@SmartPath</span><span class="o">.</span><span class="n">register</span>
+
+<div class="viewcode-block" id="HttpsPath">
+<a class="viewcode-back" href="../../megfile.http_path.html#megfile.http.HttpsPath">[docs]</a>
+<span class="nd">@SmartPath</span><span class="o">.</span><span class="n">register</span>
 <span class="k">class</span> <span class="nc">HttpsPath</span><span class="p">(</span><span class="n">HttpPath</span><span class="p">):</span>
 
     <span class="n">protocol</span> <span class="o">=</span> <span class="s2">&quot;https&quot;</span></div>
 
 
-<span class="k">class</span> <span class="nc">Response</span><span class="p">(</span><span class="n">Readable</span><span class="p">):</span>
+
+<span class="k">class</span> <span class="nc">Response</span><span class="p">(</span><span class="n">Readable</span><span class="p">[</span><span class="nb">bytes</span><span class="p">]):</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="n">HTTPResponse</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>

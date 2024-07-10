@@ -1,22 +1,22 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>megfile.lib.s3_share_cache_reader &mdash; megfile  documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
 
   
   <!--[if lt IE 9]>
     <script src="../../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -90,7 +90,9 @@
 <span class="n">_logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="S3ShareCacheReader"><a class="viewcode-back" href="../../../megfile.s3.html#megfile.s3.S3ShareCacheReader">[docs]</a><span class="k">class</span> <span class="nc">S3ShareCacheReader</span><span class="p">(</span><span class="n">S3PrefetchReader</span><span class="p">):</span>
+<div class="viewcode-block" id="S3ShareCacheReader">
+<a class="viewcode-back" href="../../../megfile.s3.html#megfile.s3.S3ShareCacheReader">[docs]</a>
+<span class="k">class</span> <span class="nc">S3ShareCacheReader</span><span class="p">(</span><span class="n">S3PrefetchReader</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Reader to fast read the s3 content. This will divide the file content into equal parts of block_size size, and will use LRU to cache at most block_capacity blocks in memory.</span>
 <span class="sd">    open(), seek() and read() will trigger prefetch read. The prefetch will cached block_forward blocks of data from offset position (the position after reading if the called function is read).</span>
@@ -124,14 +126,14 @@
             <span class="n">profile_name</span><span class="o">=</span><span class="n">profile_name</span><span class="p">,</span>
         <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_get_futures</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_get_futures</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;ShareCacheFutureManager&#39;</span><span class="p">:</span>
         <span class="n">futures</span> <span class="o">=</span> <span class="n">thread_local</span><span class="p">(</span>
             <span class="s1">&#39;S3ShareCacheReader.&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache_key</span><span class="p">,</span> <span class="n">ShareCacheFutureManager</span><span class="p">)</span>
         <span class="n">futures</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">futures</span>
 
     <span class="k">def</span> <span class="nf">_seek_buffer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">offset</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
-        <span class="c1"># The corresponding block is probably not downloaded when seeked to a new position</span>
+        <span class="c1"># The corresponding block is probably not downloaded when sought to a new position</span>
         <span class="c1"># So record the offset first, set it when it is accessed</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cached_offset</span> <span class="o">=</span> <span class="n">offset</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_block_index</span> <span class="o">=</span> <span class="n">index</span>
@@ -157,6 +159,7 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_global_executor</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_executor</span><span class="o">.</span><span class="n">shutdown</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_futures</span><span class="o">.</span><span class="n">unregister</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>  <span class="c1"># pytype: disable=attribute-error</span></div>
+
 
 
 <span class="k">class</span> <span class="nc">ShareCacheFutureManager</span><span class="p">(</span><span class="n">LRUCacheFutureManager</span><span class="p">):</span>
