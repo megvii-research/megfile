@@ -1,11 +1,22 @@
 Configuration
 =============
 
-.. toctree::
-   :maxdepth: 2
+Common Configuration
+----------------
+.. mdinclude:: ./configuration/common.md
 
-   configuration/common
-   configuration/s3
-   configuration/hdfs
-   configuration/sftp
-   configuration/http
+S3 Configuration
+----------------
+.. mdinclude:: ./configuration/s3.md
+
+Hdfs Configuration
+------------------
+.. mdinclude:: ./configuration/hdfs.md
+
+Sftp Configuration
+------------------
+.. mdinclude:: ./configuration/sftp.md
+
+HTTP Configuration
+------------------
+.. mdinclude:: ./configuration/http.md

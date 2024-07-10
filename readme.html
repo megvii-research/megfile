@@ -1,23 +1,23 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" data-content_root="./">
+<html class="writer-html5" lang="en">
 <head>
-  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Getting Started &mdash; megfile  documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css" />
 
   
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="_static/jquery.js?v=5d32c60e"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=5929fcd5"></script>
-        <script src="_static/doctools.js?v=9a2dae69"></script>
-        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -103,9 +103,9 @@
            <div itemprop="articleBody">
              
   <section id="getting-started">
-<h1>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading"></a></h1>
+<h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this heading"></a></h1>
 <section id="megfile-megvii-file-library">
-<h2>megfile - Megvii FILE library<a class="headerlink" href="#megfile-megvii-file-library" title="Link to this heading"></a></h2>
+<h2>megfile - Megvii FILE library<a class="headerlink" href="#megfile-megvii-file-library" title="Permalink to this heading"></a></h2>
 <a class="reference external image-reference" href="https://github.com/megvii-research/megfile/actions/workflows/run-tests.yml"><img alt="Build" src="https://github.com/megvii-research/megfile/actions/workflows/run-tests.yml/badge.svg?branch=main" /></a>
 <a class="reference external image-reference" href="https://github.com/megvii-research/megfile/actions/workflows/publish-docs.yml"><img alt="Documents" src="https://github.com/megvii-research/megfile/actions/workflows/publish-docs.yml/badge.svg" /></a>
 <a class="reference external image-reference" href="https://app.codecov.io/gh/megvii-research/megfile/"><img alt="Codecov" src="https://img.shields.io/codecov/c/gh/megvii-research/megfile" /></a>
@@ -133,7 +133,7 @@
 </ul>
 </section>
 <section id="support-protocols">
-<h2>Support Protocols<a class="headerlink" href="#support-protocols" title="Link to this heading"></a></h2>
+<h2>Support Protocols<a class="headerlink" href="#support-protocols" title="Permalink to this heading"></a></h2>
 <ul class="simple">
 <li><p>fs(local filesystem)</p></li>
 <li><p>s3</p></li>
@@ -144,11 +144,11 @@
 </ul>
 </section>
 <section id="quick-start">
-<h2>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading"></a></h2>
+<h2>Quick Start<a class="headerlink" href="#quick-start" title="Permalink to this heading"></a></h2>
 <p>Path string in <code class="docutils literal notranslate"><span class="pre">megfile</span></code> almost is <code class="docutils literal notranslate"><span class="pre">protocol://path/to/file</span></code>, for example <code class="docutils literal notranslate"><span class="pre">s3://bucketA/key</span></code>. But sftp path is a little different, format is <code class="docutils literal notranslate"><span class="pre">sftp://[username[:password]&#64;]hostname[:port]//file_path</span></code>, and relative path is replace <code class="docutils literal notranslate"><span class="pre">//file_path</span></code> to <code class="docutils literal notranslate"><span class="pre">/file_path</span></code>.
 Here’s an example of writing a file to s3 / fs, syncing to local, reading and finally deleting it.</p>
 <section id="functional-interface">
-<h3>Functional Interface<a class="headerlink" href="#functional-interface" title="Link to this heading"></a></h3>
+<h3>Functional Interface<a class="headerlink" href="#functional-interface" title="Permalink to this heading"></a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">megfile</span> <span class="kn">import</span> <span class="n">smart_open</span><span class="p">,</span> <span class="n">smart_exists</span><span class="p">,</span> <span class="n">smart_sync</span><span class="p">,</span> <span class="n">smart_remove</span><span class="p">,</span> <span class="n">smart_glob</span>
 
 <span class="c1"># open a file in s3 bucket</span>
@@ -173,7 +173,7 @@ Here’s an example of writing a file to s3 / fs, syncing to local, reading and 
 </div>
 </section>
 <section id="smartpath-interface">
-<h3>SmartPath Interface<a class="headerlink" href="#smartpath-interface" title="Link to this heading"></a></h3>
+<h3>SmartPath Interface<a class="headerlink" href="#smartpath-interface" title="Permalink to this heading"></a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">SmartPath</span></code> has a similar interface with pathlib.Path.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">megfile.smart_path</span> <span class="kn">import</span> <span class="n">SmartPath</span>
 
@@ -186,7 +186,7 @@ Here’s an example of writing a file to s3 / fs, syncing to local, reading and 
 </div>
 </section>
 <section id="command-line-interface">
-<h3>Command Line Interface<a class="headerlink" href="#command-line-interface" title="Link to this heading"></a></h3>
+<h3>Command Line Interface<a class="headerlink" href="#command-line-interface" title="Permalink to this heading"></a></h3>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="s1">&#39;megfile[cli]&#39;</span><span class="w">  </span><span class="c1"># install megfile cli requirements</span>
 
 $<span class="w"> </span>megfile<span class="w"> </span>--help<span class="w">  </span><span class="c1"># see what you can do</span>
@@ -202,9 +202,9 @@ $<span class="w"> </span>megfile<span class="w"> </span>cp<span class="w"> </spa
 </section>
 </section>
 <section id="installation">
-<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this heading"></a></h2>
 <section id="pypi">
-<h3>PyPI<a class="headerlink" href="#pypi" title="Link to this heading"></a></h3>
+<h3>PyPI<a class="headerlink" href="#pypi" title="Permalink to this heading"></a></h3>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip3<span class="w"> </span>install<span class="w"> </span>megfile
 </pre></div>
 </div>
@@ -214,7 +214,7 @@ $<span class="w"> </span>megfile<span class="w"> </span>cp<span class="w"> </spa
 </div>
 </section>
 <section id="build-from-source">
-<h3>Build from Source<a class="headerlink" href="#build-from-source" title="Link to this heading"></a></h3>
+<h3>Build from Source<a class="headerlink" href="#build-from-source" title="Permalink to this heading"></a></h3>
 <p>megfile can be installed from source</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>git@github.com:megvii-research/megfile.git
 <span class="nb">cd</span><span class="w"> </span>megfile
@@ -223,7 +223,7 @@ pip3<span class="w"> </span>install<span class="w"> </span>-U<span class="w"> </
 </div>
 </section>
 <section id="development-environment">
-<h3>Development Environment<a class="headerlink" href="#development-environment" title="Link to this heading"></a></h3>
+<h3>Development Environment<a class="headerlink" href="#development-environment" title="Permalink to this heading"></a></h3>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>git@github.com:megvii-research/megfile.git
 <span class="nb">cd</span><span class="w"> </span>megfile
 pip3<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt<span class="w"> </span>-r<span class="w"> </span>requirements-dev.txt
@@ -232,11 +232,11 @@ pip3<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </
 </section>
 </section>
 <section id="configuration">
-<h2>Configuration<a class="headerlink" href="#configuration" title="Link to this heading"></a></h2>
+<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this heading"></a></h2>
 <p>Using <code class="docutils literal notranslate"><span class="pre">s3</span></code> as an example, the following describes the configuration methods. For more details, please refer to <a class="reference external" href="https://megvii-research.github.io/megfile/configuration.html">Configuration</a>.</p>
 <p>You can use environments and configuration file for configuration, and priority is that environment variables take precedence over configuration file.</p>
 <section id="use-environments">
-<h3>Use environments<a class="headerlink" href="#use-environments" title="Link to this heading"></a></h3>
+<h3>Use environments<a class="headerlink" href="#use-environments" title="Permalink to this heading"></a></h3>
 <p>You can use environments to setup authentication credentials for your <code class="docutils literal notranslate"><span class="pre">s3</span></code> account:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">AWS_ACCESS_KEY_ID</span></code>: access key</p></li>
@@ -246,7 +246,7 @@ pip3<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </
 </ul>
 </section>
 <section id="use-command">
-<h3>Use command<a class="headerlink" href="#use-command" title="Link to this heading"></a></h3>
+<h3>Use command<a class="headerlink" href="#use-command" title="Permalink to this heading"></a></h3>
 <p>You can update config file with <code class="docutils literal notranslate"><span class="pre">megfile</span></code> command easyly:
 <a class="reference external" href="https://megvii-research.github.io/megfile/cli.html#megfile-config-s3">megfile config s3 [OPTIONS] AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY</a></p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ megfile config s3 accesskey secretkey
@@ -270,7 +270,7 @@ $ megfile config s3 accesskey secretkey \
 </section>
 </section>
 <section id="how-to-contribute">
-<h2>How to Contribute<a class="headerlink" href="#how-to-contribute" title="Link to this heading"></a></h2>
+<h2>How to Contribute<a class="headerlink" href="#how-to-contribute" title="Permalink to this heading"></a></h2>
 <ul>
 <li><p>We welcome everyone to contribute code to the <code class="docutils literal notranslate"><span class="pre">megfile</span></code> project, but the contributed code needs to meet the following conditions as much as possible:</p>
 <blockquote>
