@@ -28,7 +28,7 @@ classifiers = [
 requires-python = ">=3.8"
 
 [project.scripts]
-refile = "megfile.cli:safe_cli"
+megfile = "megfile.cli:safe_cli"
 
 [tool.setuptools.packages.find]
 exclude = ["tests", "tests*", "remof"]

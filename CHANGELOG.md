@@ -1,3 +1,7 @@
+## 3.1.0.post1 - 2024.07.15
+- fix
+    - fix wrong name of cli
+
 ## 3.1.0 - 2024.07.09
 - breaking change
     - remove `megfile.utils.cachedproperty`
