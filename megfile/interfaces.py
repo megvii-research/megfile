@@ -272,7 +272,6 @@ class FileCacher(ABC):
 
 
 class NullCacher(FileCacher):
-    cache_path = None
 
     def __init__(self, path):
         self.cache_path = path

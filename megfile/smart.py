@@ -960,15 +960,14 @@ def smart_save_text(path: PathLike, text: str) -> None:
 
 
 class SmartCacher(FileCacher):
-    cache_path = None
 
     def __init__(
             self, path: str, cache_path: Optional[str] = None, mode: str = 'r'):
         if mode not in ('r', 'w', 'a'):
             raise ValueError('unacceptable mode: %r' % mode)
+        if cache_path is None:
+            cache_path = generate_cache_path(path)
         if mode in ('r', 'a'):
-            if cache_path is None:
-                cache_path = generate_cache_path(path)
             smart_copy(path, cache_path)
         self.name = path
         self.mode = mode
