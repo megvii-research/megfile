@@ -1124,9 +1124,9 @@ class S3Cacher(FileCacher):
             self, path: str, cache_path: Optional[str] = None, mode: str = 'r'):
         if mode not in ('r', 'w', 'a'):
             raise ValueError('unacceptable mode: %r' % mode)
+        if cache_path is None:
+            cache_path = generate_cache_path(path)
         if mode in ('r', 'a'):
-            if cache_path is None:
-                cache_path = generate_cache_path(path)
             s3_download(path, cache_path)
         self.name = path
         self.mode = mode
