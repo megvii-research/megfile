@@ -1118,6 +1118,7 @@ def s3_rename(
 
 
 class S3Cacher(FileCacher):
+    cache_path = None
 
     def __init__(
             self, path: str, cache_path: Optional[str] = None, mode: str = 'r'):

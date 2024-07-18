@@ -960,6 +960,7 @@ def smart_save_text(path: PathLike, text: str) -> None:
 
 
 class SmartCacher(FileCacher):
+    cache_path = None
 
     def __init__(
             self, path: str, cache_path: Optional[str] = None, mode: str = 'r'):
