@@ -49,7 +49,7 @@ class SmartPath(BasePath):
                 protocol = "file"
                 path_without_protocol = path
             else:
-                path_without_protocol = path[len(protocol) + 3 :]
+                path_without_protocol = path[len(protocol) + 3:]
         elif isinstance(path, (BaseURIPath, SmartPath)):
             protocol = path.protocol
             path_without_protocol = str(path)

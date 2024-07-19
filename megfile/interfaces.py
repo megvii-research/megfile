@@ -116,7 +116,8 @@ class FileLike(Closable, IOBase, IO[AnyStr], ABC):  # pytype: disable=signature-
         """
 
     def __del__(self) -> None:
-        # TODO: Next version should turn on __del__ for auto closing, and disable this in child class like CombineReader
+        # TODO: Next version should turn on __del__ for auto closing,
+        # and disable this in child class like CombineReader
         pass
 
 
@@ -159,9 +160,7 @@ class Readable(FileLike[AnyStr], ABC):
         Return an empty bytes object at EOF.
         """
 
-    def readlines(  # pyre-ignore[15]
-        self, hint: Optional[int] = None
-    ) -> List[AnyStr]:
+    def readlines(self, hint: Optional[int] = None) -> List[AnyStr]:  # pyre-ignore[15]
         """Return a list of lines from the stream."""
         return self.read(size=hint).splitlines(True)  # pyre-ignore[7]
 
@@ -239,9 +238,7 @@ class Writable(FileLike[AnyStr], ABC):
     def readline(self, size: Optional[int] = None) -> AnyStr:  # pyre-ignore[15]
         raise OSError("not readable")
 
-    def readlines(  # pyre-ignore[15]
-        self, hint: Optional[int] = None
-    ) -> List[AnyStr]:
+    def readlines(self, hint: Optional[int] = None) -> List[AnyStr]:  # pyre-ignore[15]
         raise OSError("not readable")
 
 

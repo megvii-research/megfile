@@ -402,7 +402,7 @@ def _sftp_scan_pairs(
     src_url: PathLike, dst_url: PathLike
 ) -> Iterator[Tuple[PathLike, PathLike]]:
     for src_file_path in SftpPath(src_url).scan():
-        content_path = src_file_path[len(src_url) :]
+        content_path = src_file_path[len(src_url):]
         if len(content_path) > 0:
             dst_file_path = SftpPath(dst_url).joinpath(content_path).path_with_protocol
         else:
@@ -457,9 +457,7 @@ def sftp_download(
 
         def sftp_callback(bytes_transferred: int, _total_bytes: int):
             nonlocal bytes_transferred_before
-            callback(  # pyre-ignore[29]
-                bytes_transferred - bytes_transferred_before
-            )
+            callback(bytes_transferred - bytes_transferred_before)  # pyre-ignore[29]
             bytes_transferred_before = bytes_transferred
 
     src_path._client.get(
@@ -516,9 +514,7 @@ def sftp_upload(
 
         def sftp_callback(bytes_transferred: int, _total_bytes: int):
             nonlocal bytes_transferred_before
-            callback(  # pyre-ignore[29]
-                bytes_transferred - bytes_transferred_before
-            )
+            callback(bytes_transferred - bytes_transferred_before)  # pyre-ignore[29]
             bytes_transferred_before = bytes_transferred
 
     dst_path._client.put(

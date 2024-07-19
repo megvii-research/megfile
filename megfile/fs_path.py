@@ -782,7 +782,8 @@ class FSPath(URIPath):
             self.path_without_protocol, fspath(dst_path), follow_symlinks=followlinks
         )
 
-        # After python3.8, patch `shutil.copyfile` is not a good way, because `shutil.copy2` will not call it in some cases.
+        # After python3.8, patch `shutil.copyfile` is not a good way,
+        # because `shutil.copy2` will not call it in some cases.
         if callback:
             callback(self.stat(follow_symlinks=followlinks).size)
 
@@ -820,7 +821,8 @@ class FSPath(URIPath):
         try:
             self._copyfile(dst_path, callback=callback, followlinks=followlinks)
         except FileNotFoundError as error:
-            # Prevent the dst_path directory from being created when src_path does not exist
+            # Prevent the dst_path directory from being created when src_path does not
+            # exist
             if dst_path == error.filename:
                 FSPath(os.path.dirname(dst_path)).mkdir(parents=True, exist_ok=True)
                 self._copyfile(dst_path, callback=callback, followlinks=followlinks)

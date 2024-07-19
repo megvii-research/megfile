@@ -393,7 +393,8 @@ def _smart_sync_single_file(items: dict):
         content_path = content_path.lstrip("/")
         dst_abs_file_path = smart_path_join(dst_root_path, content_path)
     else:
-        # if content_path is empty, which means smart_isfile(src_path) is True, this function is equal to smart_copy
+        # if content_path is empty, which means smart_isfile(src_path) is True,
+        # this function is equal to smart_copy
         dst_abs_file_path = dst_root_path
 
     src_protocol, _ = SmartPath._extract_protocol(src_file_path)

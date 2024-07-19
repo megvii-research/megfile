@@ -416,7 +416,7 @@ class BaseURIPath(BasePath):
         path = self.path
         protocol_prefix = self.protocol + "://"  # pyre-ignore[58]
         if path.startswith(protocol_prefix):
-            path = path[len(protocol_prefix) :]
+            path = path[len(protocol_prefix):]
         return path
 
     def as_posix(self) -> str:
@@ -504,7 +504,7 @@ class URIPath(BaseURIPath):
             raise ValueError(
                 "protocol not match, expected: %r, got: %r" % (cls.protocol, path)
             )
-        return cls.from_path(path[len(protocol_prefix) :])
+        return cls.from_path(path[len(protocol_prefix):])
 
     def __truediv__(self: Self, other_path: PathLike) -> Self:
         if isinstance(other_path, BaseURIPath):
@@ -614,7 +614,7 @@ class URIPath(BaseURIPath):
         path = self.path_with_protocol
 
         if path.startswith(other_path):
-            relative = path[len(other_path) :]
+            relative = path[len(other_path):]
             relative = relative.lstrip("/")
             return type(self)(relative)  # pyre-ignore[19]
         else:

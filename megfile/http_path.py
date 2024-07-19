@@ -404,7 +404,7 @@ class Response(Readable[bytes]):
                 content = buffer[: buffer.index(b"\n") + 1]
                 if size:
                     content = content[:size]
-                self._buffer.write(buffer[len(content) :])
+                self._buffer.write(buffer[len(content):])
             elif size and len(buffer) >= size:
                 content = buffer[:size]
                 self._buffer.write(buffer[size:])

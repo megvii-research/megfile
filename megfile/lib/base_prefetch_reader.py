@@ -62,7 +62,9 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
         self._max_retries = max_retries
         self._block_size = block_size
         self._block_capacity = block_capacity  # Max number of blocks
-        self._block_forward = block_forward  # Number of blocks every prefetch, which should be smaller than block_capacity
+
+        # Number of blocks every prefetch, which should be smaller than block_capacity
+        self._block_forward = block_forward
 
         self._futures = self._get_futures()
         self._content_size = self._get_content_size()
@@ -182,7 +184,8 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
             else:
                 mean_read_count = 0
             if block_index not in self._futures and mean_read_count < 3:
-                # No using LRP will be better if read() are always called less than 3 times after seek()
+                # No using LRP will be better if read() are always called less than 3
+                # times after seek()
                 return self._read(size)
 
         data = self._buffer.read(size)
@@ -273,7 +276,7 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
         while offset < size:
             remain_size = size - offset
             data = self._next_buffer.read(remain_size)
-            buffer[offset : offset + len(data)] = data
+            buffer[offset: offset + len(data)] = data
             offset += len(data)
 
         self._offset += offset
@@ -311,7 +314,8 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
     @property
     def _next_buffer(self) -> BytesIO:
         # Get next buffer by this function when finished reading current buffer (self._buffer)
-        # Make sure that _buffer is used before using _next_buffer(), or will make _cached_offset invalid
+        # Make sure that _buffer is used before using _next_buffer(), or will make
+        # _cached_offset invalid
         self._block_index += 1
         self._cached_offset = 0
         return self._buffer
@@ -323,7 +327,8 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
             history = []
             for item in self._seek_history:
                 if item.seek_count > self._block_capacity * 2:
-                    # seek interval is bigger than self._block_capacity * 2, drop it from self._seek_history
+                    # seek interval is bigger than self._block_capacity * 2, drop it
+                    # from self._seek_history
                     continue
                 if index - 1 < item.seek_index < index + 2:
                     continue
