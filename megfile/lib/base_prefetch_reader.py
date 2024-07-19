@@ -8,7 +8,15 @@ from math import ceil
 from statistics import mean
 from typing import Optional
 
-from megfile.config import BACKOFF_FACTOR, BACKOFF_INITIAL, DEFAULT_BLOCK_CAPACITY, DEFAULT_BLOCK_SIZE, DEFAULT_MAX_RETRY_TIMES, GLOBAL_MAX_WORKERS, NEWLINE
+from megfile.config import (
+    BACKOFF_FACTOR,
+    BACKOFF_INITIAL,
+    DEFAULT_BLOCK_CAPACITY,
+    DEFAULT_BLOCK_SIZE,
+    DEFAULT_MAX_RETRY_TIMES,
+    GLOBAL_MAX_WORKERS,
+    NEWLINE,
+)
 from megfile.interfaces import Readable, Seekable
 from megfile.utils import get_human_size, process_local
 
@@ -16,7 +24,6 @@ _logger = get_logger(__name__)
 
 
 class SeekRecord:
-
     def __init__(self, seek_index: int):
         self.seek_index = seek_index
         self.seek_count = 0
@@ -24,31 +31,33 @@ class SeekRecord:
 
 
 class BasePrefetchReader(Readable[bytes], Seekable, ABC):
-    '''
-    Reader to fast read the remote file content. 
-    This will divide the file content into equal parts of block_size size, 
+    """
+    Reader to fast read the remote file content.
+    This will divide the file content into equal parts of block_size size,
     and will use LRU to cache at most block_capacity blocks in memory.
-    open(), seek() and read() will trigger prefetch read. 
-    The prefetch will cached block_forward blocks of data from offset position 
+    open(), seek() and read() will trigger prefetch read.
+    The prefetch will cached block_forward blocks of data from offset position
     (the position after reading if the called function is read).
-    '''
+    """
 
     def __init__(
-            self,
-            *,
-            block_size: int = DEFAULT_BLOCK_SIZE,
-            block_capacity: int = DEFAULT_BLOCK_CAPACITY,
-            block_forward: Optional[int] = None,
-            max_retries: int = DEFAULT_MAX_RETRY_TIMES,
-            max_workers: Optional[int] = None,
-            **kwargs):
-
+        self,
+        *,
+        block_size: int = DEFAULT_BLOCK_SIZE,
+        block_capacity: int = DEFAULT_BLOCK_CAPACITY,
+        block_forward: Optional[int] = None,
+        max_retries: int = DEFAULT_MAX_RETRY_TIMES,
+        max_workers: Optional[int] = None,
+        **kwargs,
+    ):
         self._is_auto_scaling = block_forward is None
         if block_forward is None:
             block_forward = max(block_capacity - 1, 1)
 
-        assert block_capacity > block_forward, 'block_capacity should greater than block_forward, got: block_capacity=%s, block_forward=%s' % (
-            block_capacity, block_forward)
+        assert block_capacity > block_forward, (
+            "block_capacity should greater than block_forward, got: block_capacity=%s, block_forward=%s"
+            % (block_capacity, block_forward)
+        )
 
         self._max_retries = max_retries
         self._block_size = block_size
@@ -68,15 +77,16 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
         self._is_global_executor = False
         if max_workers is None:
             self._executor = process_local(
-                f'{self.__class__.__name__}.executor',
+                f"{self.__class__.__name__}.executor",
                 ThreadPoolExecutor,
-                max_workers=GLOBAL_MAX_WORKERS)
+                max_workers=GLOBAL_MAX_WORKERS,
+            )
             self._is_global_executor = True
         else:
             self._executor = ThreadPoolExecutor(max_workers=max_workers)
         self._seek_buffer(0)
 
-        _logger.debug('open file: %r, mode: %s' % (self.name, self.mode))
+        _logger.debug("open file: %r, mode: %s" % (self.name, self.mode))
 
     @abstractmethod
     def _get_content_size(self):
@@ -92,7 +102,7 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
 
     @property
     def mode(self) -> str:
-        return 'rb'
+        return "rb"
 
     def tell(self) -> int:
         return self._offset
@@ -105,15 +115,15 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
     def _offset(self, value: int):
         if value > self._backoff_size:
             _logger.debug(
-                'reading file: %r, current offset / total size: %s / %s' % (
-                    self.name, get_human_size(value),
-                    get_human_size(self._content_size)))
+                "reading file: %r, current offset / total size: %s / %s"
+                % (self.name, get_human_size(value), get_human_size(self._content_size))
+            )
         while value > self._backoff_size:
             self._backoff_size *= BACKOFF_FACTOR
         self.__offset = value
 
     def seek(self, offset: int, whence: int = os.SEEK_SET) -> int:
-        '''Change stream position.
+        """Change stream position.
 
         Seek to byte offset pos relative to position indicated by whence:
 
@@ -122,9 +132,9 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
             2  End of stream - pos usually negative.
 
         Returns the new absolute position.
-        '''
+        """
         if self.closed:
-            raise IOError('file already closed: %r' % self.name)
+            raise IOError("file already closed: %r" % self.name)
 
         if whence == os.SEEK_CUR:
             target_offset = self._offset + offset
@@ -133,7 +143,7 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
         elif whence == os.SEEK_SET:
             target_offset = offset
         else:
-            raise ValueError('invalid whence: %r' % whence)
+            raise ValueError("invalid whence: %r" % whence)
 
         if target_offset == self._offset:
             return target_offset
@@ -145,31 +155,30 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
         return self._offset
 
     def read(self, size: Optional[int] = None) -> bytes:
-        '''Read at most size bytes, returned as a bytes object.
+        """Read at most size bytes, returned as a bytes object.
 
         If the size argument is negative, read until EOF is reached.
         Return an empty bytes object at EOF.
-        '''
+        """
         if self.closed:
-            raise IOError('file already closed: %r' % self.name)
+            raise IOError("file already closed: %r" % self.name)
 
         if len(self._seek_history) > 0:
             self._seek_history[-1].read_count += 1
 
         if self._offset >= self._content_size:
-            return b''
+            return b""
 
         if size is None:
             size = self._content_size - self._offset
         else:
-            assert size >= 0, 'size should greater than 0, got: %r' % size
+            assert size >= 0, "size should greater than 0, got: %r" % size
             size = min(size, self._content_size - self._offset)
 
         if self._block_forward == 1:
             block_index = self._offset // self._block_size
             if len(self._seek_history) > 0:
-                mean_read_count = mean(
-                    item.read_count for item in self._seek_history)
+                mean_read_count = mean(item.read_count for item in self._seek_history)
             else:
                 mean_read_count = 0
             if block_index not in self._futures and mean_read_count < 3:
@@ -192,24 +201,24 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
         return buffer.getvalue()
 
     def readline(self, size: Optional[int] = None) -> bytes:
-        '''Next line from the file, as a bytes object.
+        """Next line from the file, as a bytes object.
 
         Retain newline.  A non-negative size argument limits the maximum
         number of bytes to return (an incomplete line may be returned then).
         Return an empty bytes object at EOF.
-        '''
+        """
         if self.closed:
-            raise IOError('file already closed: %r' % self.name)
+            raise IOError("file already closed: %r" % self.name)
 
         if len(self._seek_history) > 0:
             self._seek_history[-1].read_count += 1
         if self._offset >= self._content_size:
-            return b''
+            return b""
 
         if size is None:
             size = self._content_size - self._offset
         else:
-            assert size >= 0, 'size should greater than 0, got: %r' % size
+            assert size >= 0, "size should greater than 0, got: %r" % size
             size = min(size, self._content_size - self._offset)
 
         data = self._buffer.readline(size)
@@ -231,21 +240,22 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
 
     def _read(self, size: int) -> bytes:
         if size == 0 or self._offset >= self._content_size:
-            return b''
+            return b""
 
-        data = self._fetch_response(
-            start=self._offset, end=self._offset + size - 1)['Body'].read()
+        data = self._fetch_response(start=self._offset, end=self._offset + size - 1)[
+            "Body"
+        ].read()
         self.seek(size, os.SEEK_CUR)
         return data
 
     def readinto(self, buffer: bytearray) -> int:
-        '''Read bytes into buffer.
+        """Read bytes into buffer.
 
         Returns number of bytes read (0 for EOF), or None if the object
         is set not to block and has no data to read.
-        '''
+        """
         if self.closed:
-            raise IOError('file already closed: %r' % self.name)
+            raise IOError("file already closed: %r" % self.name)
 
         if self._offset >= self._content_size:
             return 0
@@ -254,7 +264,7 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
         size = min(size, self._content_size - self._offset)
 
         data = self._buffer.read(size)
-        buffer[:len(data)] = data
+        buffer[: len(data)] = data
         if len(data) == size:
             self._offset += len(data)
             return size
@@ -263,7 +273,7 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
         while offset < size:
             remain_size = size - offset
             data = self._next_buffer.read(remain_size)
-            buffer[offset:offset + len(data)] = data
+            buffer[offset : offset + len(data)] = data
             offset += len(data)
 
         self._offset += offset
@@ -322,23 +332,22 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
             history.append(SeekRecord(index))
             self._seek_history = history
             self._block_forward = max(
-                (self._block_capacity - 1) // len(self._seek_history), 1)
+                (self._block_capacity - 1) // len(self._seek_history), 1
+            )
 
         self._cached_offset = offset
         self._block_index = index
 
     @abstractmethod
     def _fetch_response(
-            self,
-            start: Optional[int] = None,
-            end: Optional[int] = None) -> dict:
+        self, start: Optional[int] = None, end: Optional[int] = None
+    ) -> dict:
         pass
 
     def _fetch_buffer(self, index: int) -> BytesIO:
-        start, end = index * self._block_size, (
-            index + 1) * self._block_size - 1
+        start, end = index * self._block_size, (index + 1) * self._block_size - 1
         response = self._fetch_response(start=start, end=end)
-        return response['Body']
+        return response["Body"]
 
     def _submit_future(self, index: int):
         if index < 0 or index >= self._block_stop:
@@ -355,7 +364,7 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
         self._futures.cleanup(self._block_capacity)
 
     def _close(self):
-        _logger.debug('close file: %r' % self.name)
+        _logger.debug("close file: %r" % self.name)
 
         if not self._is_global_executor:
             self._executor.shutdown()
@@ -363,7 +372,6 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
 
 
 class LRUCacheFutureManager(OrderedDict):
-
     def __init__(self):
         super().__init__()
 

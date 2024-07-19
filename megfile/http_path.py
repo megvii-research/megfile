@@ -20,13 +20,7 @@ from megfile.pathlike import PathLike
 from megfile.smart_path import SmartPath
 from megfile.utils import _is_pickle, binary_open
 
-__all__ = [
-    'HttpPath',
-    'HttpsPath',
-    'get_http_session',
-    'is_http',
-    'http_open',
-]
+__all__ = ["HttpPath", "HttpsPath", "get_http_session", "is_http", "http_open"]
 
 _logger = get_logger(__name__)
 max_retries = HTTP_MAX_RETRY_TIMES
@@ -34,7 +28,7 @@ max_retries = HTTP_MAX_RETRY_TIMES
 
 def get_http_session(
     timeout: Optional[Union[int, Tuple[int, int]]] = DEFAULT_TIMEOUT,
-    status_forcelist: Iterable[int] = (500, 502, 503, 504)
+    status_forcelist: Iterable[int] = (500, 502, 503, 504),
 ) -> requests.Session:
     session = requests.Session()
 
@@ -45,8 +39,8 @@ def get_http_session(
 
     def before_callback(method, url, **kwargs):
         _logger.debug(
-            'send http request: %s %r, with parameters: %s', method, url,
-            kwargs)
+            "send http request: %s %r, with parameters: %s", method, url, kwargs
+        )
 
     def retry_callback(
         error,
@@ -68,21 +62,21 @@ def get_http_session(
         json=None,
         **kwargs,
     ):
-        if data and hasattr(data, 'seek'):
+        if data and hasattr(data, "seek"):
             data.seek(0)
         elif isinstance(data, Iterator):
-            _logger.warning(f'Can not retry http request with iterator data')
+            _logger.warning(f"Can not retry http request with iterator data")
             raise
         if files:
 
             def seek_or_reopen(file_object):
                 if isinstance(file_object, (str, bytes)):
                     return file_object
-                elif hasattr(file_object, 'seek'):
+                elif hasattr(file_object, "seek"):
                     file_object.seek(0)
                     return file_object
-                elif hasattr(file_object, 'name'):
-                    with SmartPath(file_object.name).open('rb') as f:
+                elif hasattr(file_object, "name"):
+                    with SmartPath(file_object.name).open("rb") as f:
                         return BytesIO(f.read())
                 else:
                     _logger.warning(
@@ -91,13 +85,14 @@ def get_http_session(
                     raise
 
             for key, file_info in files.items():
-                if hasattr(file_info, 'seek'):
+                if hasattr(file_info, "seek"):
                     file_info.seek(0)
-                elif isinstance(file_info,
-                                (tuple, list)) and len(file_info) >= 2:
+                elif isinstance(file_info, (tuple, list)) and len(file_info) >= 2:
                     file_info = list(file_info)
-                    if isinstance(file_info[1],
-                                  (tuple, list)) and len(file_info[1]) >= 2:
+                    if (
+                        isinstance(file_info[1], (tuple, list))
+                        and len(file_info[1]) >= 2
+                    ):
                         file_info[1] = list(file_info[1])
                         file_info[1] = seek_or_reopen(file_info[1])
                     else:
@@ -116,33 +111,35 @@ def get_http_session(
 
 
 def is_http(path: PathLike) -> bool:
-    '''http scheme definition: http(s)://domain/path
+    """http scheme definition: http(s)://domain/path
 
     :param path: Path to be tested
     :returns: True if path is http url, else False
-    '''
+    """
 
     path = fspath(path)
-    if not isinstance(path, str) or not (path.startswith('http://') or
-                                         path.startswith('https://')):
+    if not isinstance(path, str) or not (
+        path.startswith("http://") or path.startswith("https://")
+    ):
         return False
 
     scheme = get_url_scheme(path)
-    return scheme == 'http' or scheme == 'https'
+    return scheme == "http" or scheme == "https"
 
 
 def http_open(
-        path: PathLike,
-        mode: str = 'rb',
-        *,
-        encoding: Optional[str] = None,
-        errors: Optional[str] = None,
-        max_concurrency: Optional[int] = None,
-        max_buffer_size: int = DEFAULT_MAX_BUFFER_SIZE,
-        forward_ratio: Optional[float] = None,
-        block_size: int = DEFAULT_BLOCK_SIZE,
-        **kwargs) -> Union[BufferedReader, HttpPrefetchReader]:
-    '''Open a BytesIO to read binary data of given http(s) url
+    path: PathLike,
+    mode: str = "rb",
+    *,
+    encoding: Optional[str] = None,
+    errors: Optional[str] = None,
+    max_concurrency: Optional[int] = None,
+    max_buffer_size: int = DEFAULT_MAX_BUFFER_SIZE,
+    forward_ratio: Optional[float] = None,
+    block_size: int = DEFAULT_BLOCK_SIZE,
+    **kwargs,
+) -> Union[BufferedReader, HttpPrefetchReader]:
+    """Open a BytesIO to read binary data of given http(s) url
 
     .. note ::
 
@@ -156,7 +153,7 @@ def http_open(
     :param max_buffer_size: Max cached buffer size in memory, 128MB by default
     :param block_size: Size of single block, 8MB by default. Each block will be uploaded or downloaded by single thread.
     :return: BytesIO initialized with http(s) data
-    '''
+    """
     return HttpPath(path).open(
         mode,
         encoding=encoding,
@@ -164,32 +161,33 @@ def http_open(
         max_concurrency=max_concurrency,
         max_buffer_size=max_buffer_size,
         forward_ratio=forward_ratio,
-        block_size=block_size)
+        block_size=block_size,
+    )
 
 
 @SmartPath.register
 class HttpPath(URIPath):
-
     protocol = "http"
 
     def __init__(self, path: PathLike, *other_paths: PathLike):
         super().__init__(path, *other_paths)
 
-        if fspath(path).startswith('https://'):
-            self.protocol = 'https'
+        if fspath(path).startswith("https://"):
+            self.protocol = "https"
         self.request_kwargs = {}
 
     @binary_open
     def open(
-            self,
-            mode: str = 'rb',
-            *,
-            max_concurrency: Optional[int] = None,
-            max_buffer_size: int = DEFAULT_MAX_BUFFER_SIZE,
-            forward_ratio: Optional[float] = None,
-            block_size: int = DEFAULT_BLOCK_SIZE,
-            **kwargs) -> Union[BufferedReader, HttpPrefetchReader]:
-        '''Open a BytesIO to read binary data of given http(s) url
+        self,
+        mode: str = "rb",
+        *,
+        max_concurrency: Optional[int] = None,
+        max_buffer_size: int = DEFAULT_MAX_BUFFER_SIZE,
+        forward_ratio: Optional[float] = None,
+        block_size: int = DEFAULT_BLOCK_SIZE,
+        **kwargs,
+    ) -> Union[BufferedReader, HttpPrefetchReader]:
+        """Open a BytesIO to read binary data of given http(s) url
 
         .. note ::
 
@@ -202,30 +200,30 @@ class HttpPath(URIPath):
         :param max_buffer_size: Max cached buffer size in memory, 128MB by default
         :param block_size: Size of single block, 8MB by default. Each block will be uploaded or downloaded by single thread.
         :return: BytesIO initialized with http(s) data
-        '''
-        if mode not in ('rb',):
-            raise ValueError('unacceptable mode: %r' % mode)
+        """
+        if mode not in ("rb",):
+            raise ValueError("unacceptable mode: %r" % mode)
 
         response = None
         request_kwargs = deepcopy(self.request_kwargs)
-        timeout = request_kwargs.pop('timeout', DEFAULT_TIMEOUT)
-        stream = request_kwargs.pop('stream', True)
+        timeout = request_kwargs.pop("timeout", DEFAULT_TIMEOUT)
+        stream = request_kwargs.pop("stream", True)
         try:
-            response = get_http_session(
-                timeout=timeout,
-                status_forcelist=(),
-            ).get(
-                self.path_with_protocol, stream=stream, **request_kwargs)
+            response = get_http_session(timeout=timeout, status_forcelist=()).get(
+                self.path_with_protocol, stream=stream, **request_kwargs
+            )
             response.raise_for_status()
         except Exception as error:
             if response:
                 response.close()
             raise translate_http_error(error, self.path_with_protocol)
 
-        content_size = int(response.headers['Content-Length'])
-        if (response.headers.get('Accept-Ranges') == 'bytes' and
-                content_size >= block_size * 2 and
-                not response.headers.get('Content-Encoding')):
+        content_size = int(response.headers["Content-Length"])
+        if (
+            response.headers.get("Accept-Ranges") == "bytes"
+            and content_size >= block_size * 2
+            and not response.headers.get("Content-Encoding")
+        ):
             response.close()
 
             block_capacity = max_buffer_size // block_size
@@ -255,49 +253,47 @@ class HttpPath(URIPath):
         return BufferedReader(Response(response.raw))  # type: ignore
 
     def stat(self, follow_symlinks=True) -> StatResult:
-        '''
+        """
         Get StatResult of http_url response, including size and mtime, referring to http_getsize and http_getmtime
 
         :param follow_symlinks: Ignore this parameter, just for compatibility
         :returns: StatResult
         :raises: HttpPermissionError, HttpFileNotFoundError
-        '''
+        """
 
         request_kwargs = deepcopy(self.request_kwargs)
-        timeout = request_kwargs.pop('timeout', DEFAULT_TIMEOUT)
-        stream = request_kwargs.pop('stream', True)
+        timeout = request_kwargs.pop("timeout", DEFAULT_TIMEOUT)
+        stream = request_kwargs.pop("stream", True)
 
         try:
             with get_http_session(timeout=timeout, status_forcelist=()).get(
-                    self.path_with_protocol, stream=stream,
-                    **request_kwargs) as response:
+                self.path_with_protocol, stream=stream, **request_kwargs
+            ) as response:
                 response.raise_for_status()
                 headers = response.headers
         except Exception as error:
             raise translate_http_error(error, self.path_with_protocol)
 
-        size = headers.get('Content-Length')
+        size = headers.get("Content-Length")
         if size:
             size = int(size)
         else:
             size = 0
 
-        last_modified = headers.get('Last-Modified')
+        last_modified = headers.get("Last-Modified")
         if last_modified:
             last_modified = time.mktime(
-                time.strptime(last_modified, "%a, %d %b %Y %H:%M:%S %Z"))
+                time.strptime(last_modified, "%a, %d %b %Y %H:%M:%S %Z")
+            )
         else:
             last_modified = 0.0
 
         return StatResult(
-            size=size,
-            mtime=last_modified,
-            isdir=False,
-            islnk=False,
-            extra=headers)
+            size=size, mtime=last_modified, isdir=False, islnk=False, extra=headers
+        )
 
     def getsize(self, follow_symlinks: bool = False) -> int:
-        '''
+        """
         Get file size on the given http_url path.
 
         If http response header don't support Content-Length, will return None
@@ -305,19 +301,19 @@ class HttpPath(URIPath):
         :param follow_symlinks: Ignore this parameter, just for compatibility
         :returns: File size (in bytes)
         :raises: HttpPermissionError, HttpFileNotFoundError
-        '''
+        """
         return self.stat().size
 
     def getmtime(self, follow_symlinks: bool = False) -> float:
-        '''
+        """
         Get Last-Modified time of the http request on the given http_url path.
-        
+
         If http response header don't support Last-Modified, will return None
 
         :param follow_symlinks: Ignore this parameter, just for compatibility
         :returns: Last-Modified time (in Unix timestamp format)
         :raises: HttpPermissionError, HttpFileNotFoundError
-        '''
+        """
         return self.stat().mtime
 
     def exists(self, followlinks: bool = False) -> bool:
@@ -329,13 +325,13 @@ class HttpPath(URIPath):
         :rtype: bool
         """
         request_kwargs = deepcopy(self.request_kwargs)
-        timeout = request_kwargs.pop('timeout', DEFAULT_TIMEOUT)
-        stream = request_kwargs.pop('stream', True)
+        timeout = request_kwargs.pop("timeout", DEFAULT_TIMEOUT)
+        stream = request_kwargs.pop("stream", True)
 
         try:
             with get_http_session(timeout=timeout, status_forcelist=()).get(
-                    self.path_with_protocol, stream=stream,
-                    **request_kwargs) as response:
+                self.path_with_protocol, stream=stream, **request_kwargs
+            ) as response:
                 if response.status_code == 404:
                     return False
                 return True
@@ -345,12 +341,10 @@ class HttpPath(URIPath):
 
 @SmartPath.register
 class HttpsPath(HttpPath):
-
     protocol = "https"
 
 
 class Response(Readable[bytes]):
-
     def __init__(self, raw: HTTPResponse) -> None:
         super().__init__()
 
@@ -367,7 +361,7 @@ class Response(Readable[bytes]):
 
     @property
     def mode(self):
-        return 'rb'
+        return "rb"
 
     def tell(self) -> int:
         return self._offset
@@ -378,7 +372,7 @@ class Response(Readable[bytes]):
 
     def read(self, size: Optional[int] = None) -> bytes:
         if size == 0:
-            return b''
+            return b""
         if size is not None and size < 0:
             size = None
 
@@ -399,7 +393,7 @@ class Response(Readable[bytes]):
 
     def readline(self, size: Optional[int] = None) -> bytes:
         if size == 0:
-            return b''
+            return b""
         if size is not None and size < 0:
             size = None
 
@@ -407,11 +401,11 @@ class Response(Readable[bytes]):
             self._buffer.seek(0)
             buffer = self._buffer.read()
             self._clear_buffer()
-            if b'\n' in buffer:
-                content = buffer[:buffer.index(b'\n') + 1]
+            if b"\n" in buffer:
+                content = buffer[: buffer.index(b"\n") + 1]
                 if size:
                     content = content[:size]
-                self._buffer.write(buffer[len(content):])
+                self._buffer.write(buffer[len(content) :])
             elif size and len(buffer) >= size:
                 content = buffer[:size]
                 self._buffer.write(buffer[size:])

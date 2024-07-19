@@ -5,14 +5,10 @@ from threading import RLock
 from threading import local as _ThreadLocal
 from typing import Any, Callable, Iterator
 
-__all__ = [
-    'ThreadLocal',
-    'ProcessLocal',
-]
+__all__ = ["ThreadLocal", "ProcessLocal"]
 
 
 class ForkAware(ABC):
-
     def __init__(self):
         self._process_id = os.getpid()
         self._reset()
@@ -26,7 +22,6 @@ class ForkAware(ABC):
 
 
 def fork_aware(func):
-
     @wraps(func)
     def wrapper(self, *args, **kwargs):
         current_pid = os.getpid()
@@ -39,7 +34,6 @@ def fork_aware(func):
 
 
 class BaseLocal(ABC):  # pragma: no cover
-
     @property
     @abstractmethod
     def _data(self) -> dict:
@@ -68,7 +62,6 @@ class BaseLocal(ABC):  # pragma: no cover
 
 
 class ThreadLocal(ForkAware, BaseLocal):
-
     def _reset(self):
         self._local = _ThreadLocal()
 
@@ -89,6 +82,7 @@ class ProcessLocal(ForkAware, BaseLocal):
     Provides a basic per-process mapping container that wipes itself if the current PID changed since the last get/set.
     Aka `threading.local()`, but for processes instead of threads.
     """
+
     _lock = None
 
     def _reset(self):

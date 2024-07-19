@@ -7,8 +7,8 @@ import requests
 
 from megfile.lib.http_prefetch_reader import HttpPrefetchReader
 
-URL = 'http://test'
-CONTENT = b'block0 block1 block2 block3 block4 '
+URL = "http://test"
+CONTENT = b"block0 block1 block2 block3 block4 "
 CONTENT_SIZE = len(CONTENT)
 
 
@@ -31,9 +31,9 @@ class FakeResponse:
     def headers(self):
         return {
             "Content-Length": len(self._content),
-            'Content-Type': 'text/html',
+            "Content-Type": "text/html",
             "Last-Modified": "Wed, 24 Nov 2021 07:18:41 GMT",
-            'Accept-Ranges': 'bytes',
+            "Accept-Ranges": "bytes",
         }
 
     @property
@@ -66,16 +66,17 @@ class FakeResponse400(FakeResponse):
 
 
 def _fake_get(*args, headers=None, **kwargs):
-    if headers and headers.get('Range'):
-        start, end = list(map(int, headers['Range'][6:].split('-')))
-        return FakeResponse200(CONTENT[start:end + 1])
+    if headers and headers.get("Range"):
+        start, end = list(map(int, headers["Range"][6:].split("-")))
+        return FakeResponse200(CONTENT[start : end + 1])
     return FakeResponse200()
 
 
 @pytest.fixture
 def http_patch(mocker):
     requests_get_func = mocker.patch(
-        'megfile.http_path.requests.get', side_effect=_fake_get)
+        "megfile.http_path.requests.get", side_effect=_fake_get
+    )
 
 
 def sleep_until_downloaded(reader, timeout: int = 5):
@@ -87,60 +88,63 @@ def sleep_until_downloaded(reader, timeout: int = 5):
 
 
 def test_http_prefetch_reader(http_patch):
-    with HttpPrefetchReader(URL, content_size=CONTENT_SIZE, max_workers=2,
-                            block_size=7) as reader:
+    with HttpPrefetchReader(
+        URL, content_size=CONTENT_SIZE, max_workers=2, block_size=7
+    ) as reader:
         assert reader.name == URL
-        assert reader.mode == 'rb'
+        assert reader.mode == "rb"
 
         # size < 0
         with pytest.raises(AssertionError):
             reader.read(-1)
 
         # size = 0
-        assert reader.read(0) == b''
-        assert reader._read(0) == b''
+        assert reader.read(0) == b""
+        assert reader._read(0) == b""
 
         # block 内读
-        assert reader.read(2) == b'bl'
-        assert reader._read(2) == b'oc'
+        assert reader.read(2) == b"bl"
+        assert reader._read(2) == b"oc"
 
         # 跨 block 读
-        assert reader.read(4) == b'k0 b'
-        assert reader.read(6) == b'lock1 '
+        assert reader.read(4) == b"k0 b"
+        assert reader.read(6) == b"lock1 "
 
         # 连续读多个 block, 且 size 超过剩余数据大小
-        assert reader.read(21 + 1) == b'block2 block3 block4 '
-        assert reader._read(1) == b''
+        assert reader.read(21 + 1) == b"block2 block3 block4 "
+        assert reader._read(1) == b""
 
         # 从头再读
         reader.seek(0)
         assert reader.read() == CONTENT
 
-    with HttpPrefetchReader(URL, content_size=CONTENT_SIZE, max_workers=2,
-                            block_size=7) as reader:
+    with HttpPrefetchReader(
+        URL, content_size=CONTENT_SIZE, max_workers=2, block_size=7
+    ) as reader:
         assert reader.read() == CONTENT
 
 
 def test_http_prefetch_reader_readline(mocker):
-    content = b'1\n2\n3\n\n4444\n5'
+    content = b"1\n2\n3\n\n4444\n5"
     mocker.patch(
-        'megfile.http_path.requests.get', return_value=FakeResponse200(content))
+        "megfile.http_path.requests.get", return_value=FakeResponse200(content)
+    )
     with HttpPrefetchReader(URL, max_workers=2, block_size=3) as reader:
         # within block
-        assert reader.readline() == b'1\n'
+        assert reader.readline() == b"1\n"
         # cross block
-        assert reader.readline() == b'2\n'
+        assert reader.readline() == b"2\n"
         # remaining is enough
-        assert reader.readline() == b'3\n'
+        assert reader.readline() == b"3\n"
         # single line break
-        assert reader.readline() == b'\n'
+        assert reader.readline() == b"\n"
         # more than one block
-        assert reader.readline() == b'4444\n'
+        assert reader.readline() == b"4444\n"
         # tailing bytes
-        assert reader.readline() == b'5'
+        assert reader.readline() == b"5"
 
         reader.seek(0)
-        assert reader.readline(1) == b'1'
+        assert reader.readline(1) == b"1"
 
         with pytest.raises(AssertionError):
             reader.readline(-1)
@@ -151,54 +155,56 @@ def test_http_prefetch_reader_readline(mocker):
 
 def test_http_prefetch_reader_readline_without_line_break_at_all(http_patch):
     with HttpPrefetchReader(
-            URL, content_size=CONTENT_SIZE, max_workers=2,
-            block_size=40) as reader:  # block_size > content_length
+        URL, content_size=CONTENT_SIZE, max_workers=2, block_size=40
+    ) as reader:  # block_size > content_length
         reader.read(1)
-        assert reader.readline() == b'lock0 block1 block2 block3 block4 '
+        assert reader.readline() == b"lock0 block1 block2 block3 block4 "
 
 
 def test_http_prefetch_reader_readline_tailing_block(mocker):
     mocker.patch(
-        'megfile.http_path.requests.get',
-        return_value=FakeResponse200(b'123456'))
-    with HttpPrefetchReader(URL, content_size=6, max_workers=2,
-                            block_size=3) as reader:
+        "megfile.http_path.requests.get", return_value=FakeResponse200(b"123456")
+    )
+    with HttpPrefetchReader(URL, content_size=6, max_workers=2, block_size=3) as reader:
         # next block is empty
-        assert reader.readline() == b'123456'
+        assert reader.readline() == b"123456"
 
 
 def test_http_prefetch_reader_read_readline_mix(mocker):
-    content = b'1\n2\n3\n4\n'
+    content = b"1\n2\n3\n4\n"
     mocker.patch(
-        'megfile.http_path.requests.get', return_value=FakeResponse200(content))
-    with HttpPrefetchReader(URL, content_size=len(content), max_workers=2,
-                            block_size=3) as reader:
-        assert reader.readline() == b'1\n'
-        assert reader.read(2) == b'2\n'
-        assert reader.readline() == b'3\n'
-        assert reader.read(1) == b'4'
-        assert reader.readline() == b'\n'
-        assert reader.readline() == b''
+        "megfile.http_path.requests.get", return_value=FakeResponse200(content)
+    )
+    with HttpPrefetchReader(
+        URL, content_size=len(content), max_workers=2, block_size=3
+    ) as reader:
+        assert reader.readline() == b"1\n"
+        assert reader.read(2) == b"2\n"
+        assert reader.readline() == b"3\n"
+        assert reader.read(1) == b"4"
+        assert reader.readline() == b"\n"
+        assert reader.readline() == b""
 
 
 def test_http_prefetch_reader_seek_out_of_range(mocker):
-    content = b'1\n2\n3\n4\n'
-    mocker.patch('megfile.lib.base_prefetch_reader.BACKOFF_INITIAL', 4)
+    content = b"1\n2\n3\n4\n"
+    mocker.patch("megfile.lib.base_prefetch_reader.BACKOFF_INITIAL", 4)
     mocker.patch(
-        'megfile.http_path.requests.get',
-        return_value=FakeResponse200(b'1\n2\n3\n4\n'))
-    with HttpPrefetchReader(URL, content_size=len(content), max_workers=2,
-                            block_size=3) as reader:
+        "megfile.http_path.requests.get", return_value=FakeResponse200(b"1\n2\n3\n4\n")
+    )
+    with HttpPrefetchReader(
+        URL, content_size=len(content), max_workers=2, block_size=3
+    ) as reader:
         reader.seek(-2)
         assert reader.tell() == 0
-        assert reader.read(2) == b'1\n'
+        assert reader.read(2) == b"1\n"
         reader.seek(100)
         assert reader.tell() == 8
-        assert reader.read(2) == b''
+        assert reader.read(2) == b""
         assert reader._backoff_size == 16
 
         with pytest.raises(ValueError):
-            reader.seek(0, 'error_whence')
+            reader.seek(0, "error_whence")
 
     with pytest.raises(IOError):
         reader.seek(0)
@@ -213,8 +219,9 @@ def test_http_prefetch_reader_close(http_patch):
         pass
     assert reader.closed
 
-    with HttpPrefetchReader(URL, content_size=CONTENT_SIZE, max_workers=1,
-                            block_size=1) as reader:
+    with HttpPrefetchReader(
+        URL, content_size=CONTENT_SIZE, max_workers=1, block_size=1
+    ) as reader:
         # 主线程休眠, 等待 reader.fetcher 线程阻塞在 _donwloading 事件上
         sleep_until_downloaded(reader)
     assert reader.closed
@@ -225,7 +232,6 @@ def test_http_prefetch_reader_close(http_patch):
 
 def test_http_prefetch_reader_seek(http_patch):
     with HttpPrefetchReader(URL, content_size=CONTENT_SIZE) as reader:
-
         reader.seek(0)
 
         reader.read(7)
@@ -243,11 +249,17 @@ def test_http_prefetch_reader_seek(http_patch):
 
 
 def test_http_prefetch_reader_backward_seek_and_the_target_in_remains(
-        http_patch, mocker):
-    '''目标 offset 在 remains 中 重置 remains 位置'''
-    with HttpPrefetchReader(URL, content_size=CONTENT_SIZE, max_workers=2,
-                            block_size=3, block_capacity=3,
-                            block_forward=2) as reader:
+    http_patch, mocker
+):
+    """目标 offset 在 remains 中 重置 remains 位置"""
+    with HttpPrefetchReader(
+        URL,
+        content_size=CONTENT_SIZE,
+        max_workers=2,
+        block_size=3,
+        block_capacity=3,
+        block_forward=2,
+    ) as reader:
         assert reader._cached_blocks == []
 
         reader._buffer
@@ -266,30 +278,38 @@ def test_http_prefetch_reader_backward_seek_and_the_target_in_remains(
 
 
 def test_http_prefetch_reader_backward_block_forward_eq_1(http_patch, mocker):
-
     class FakeHistory:
         read_count = 1
 
-    with HttpPrefetchReader(URL, content_size=CONTENT_SIZE, max_workers=2,
-                            block_size=3, block_capacity=3,
-                            block_forward=1) as reader:
-        assert reader.read(6) == b'block0'
+    with HttpPrefetchReader(
+        URL,
+        content_size=CONTENT_SIZE,
+        max_workers=2,
+        block_size=3,
+        block_capacity=3,
+        block_forward=1,
+    ) as reader:
+        assert reader.read(6) == b"block0"
         assert reader._cached_blocks == []
 
         reader._seek_history = [FakeHistory()]
-        assert reader.read(7) == b' block1'
+        assert reader.read(7) == b" block1"
         assert reader._cached_blocks == []
 
-        assert reader.read(7) == b' block2'
+        assert reader.read(7) == b" block2"
         assert reader._cached_blocks == [4, 5, 6]
 
 
-def test_http_prefetch_reader_backward_seek_and_the_target_out_of_remains(
-        http_patch):
-    '''目标 offset 在 buffer 外, 停止现有 future, 丢弃当前 buffer, 以目标 offset 作为新的起点启动新的 future'''
-    with HttpPrefetchReader(URL, content_size=CONTENT_SIZE, max_workers=2,
-                            block_size=3, block_capacity=3,
-                            block_forward=2) as reader:  # buffer 最大为 6B
+def test_http_prefetch_reader_backward_seek_and_the_target_out_of_remains(http_patch):
+    """目标 offset 在 buffer 外, 停止现有 future, 丢弃当前 buffer, 以目标 offset 作为新的起点启动新的 future"""
+    with HttpPrefetchReader(
+        URL,
+        content_size=CONTENT_SIZE,
+        max_workers=2,
+        block_size=3,
+        block_capacity=3,
+        block_forward=2,
+    ) as reader:  # buffer 最大为 6B
         assert reader._cached_blocks == []
 
         reader._buffer
@@ -308,12 +328,17 @@ def test_http_prefetch_reader_backward_seek_and_the_target_out_of_remains(
 
 
 def test_http_prefetch_reader_seek_and_the_target_in_buffer(http_patch, mocker):
-    '''
-        目标 offset 在 buffer 中, 丢弃目标 block 之前的全部 block, 必要时截断目标 block 的前半部分
-    '''
-    with HttpPrefetchReader(URL, content_size=CONTENT_SIZE, max_workers=3,
-                            block_size=3, block_capacity=3,
-                            block_forward=2) as reader:  # buffer 最长为 9B
+    """
+    目标 offset 在 buffer 中, 丢弃目标 block 之前的全部 block, 必要时截断目标 block 的前半部分
+    """
+    with HttpPrefetchReader(
+        URL,
+        content_size=CONTENT_SIZE,
+        max_workers=3,
+        block_size=3,
+        block_capacity=3,
+        block_forward=2,
+    ) as reader:  # buffer 最长为 9B
         assert reader._cached_blocks == []
 
         reader._buffer
@@ -337,10 +362,15 @@ def test_http_prefetch_reader_seek_and_the_target_in_buffer(http_patch, mocker):
 
 
 def test_http_prefetch_reader_seek_and_the_target_out_of_buffer(http_patch):
-    '''目标 offset 在 buffer 外, 停止现有 future, 丢弃当前 buffer, 以目标 offset 作为新的起点启动新的 future'''
-    with HttpPrefetchReader(URL, content_size=CONTENT_SIZE, max_workers=2,
-                            block_size=3, block_capacity=3,
-                            block_forward=2) as reader:  # buffer 最大为 6B
+    """目标 offset 在 buffer 外, 停止现有 future, 丢弃当前 buffer, 以目标 offset 作为新的起点启动新的 future"""
+    with HttpPrefetchReader(
+        URL,
+        content_size=CONTENT_SIZE,
+        max_workers=2,
+        block_size=3,
+        block_capacity=3,
+        block_forward=2,
+    ) as reader:  # buffer 最大为 6B
         assert reader._cached_blocks == []
 
         reader._buffer
@@ -354,35 +384,41 @@ def test_http_prefetch_reader_seek_and_the_target_out_of_buffer(http_patch):
 
 
 def test_http_prefetch_reader_read_with_forward_seek(http_patch):
-    '''向后 seek 后, 测试 read 结果的正确性'''
-    with HttpPrefetchReader(URL, content_size=CONTENT_SIZE, max_workers=2,
-                            block_size=7) as reader:
+    """向后 seek 后, 测试 read 结果的正确性"""
+    with HttpPrefetchReader(
+        URL, content_size=CONTENT_SIZE, max_workers=2, block_size=7
+    ) as reader:
         reader.seek(2)
-        assert reader.read(4) == b'ock0'
-    with HttpPrefetchReader(URL, content_size=CONTENT_SIZE, max_workers=2,
-                            block_size=7) as reader:
+        assert reader.read(4) == b"ock0"
+    with HttpPrefetchReader(
+        URL, content_size=CONTENT_SIZE, max_workers=2, block_size=7
+    ) as reader:
         reader.read(1)
         reader.seek(3)
-        assert reader.read(4) == b'ck0 '
-    with HttpPrefetchReader(URL, content_size=CONTENT_SIZE, max_workers=2,
-                            block_size=7) as reader:
+        assert reader.read(4) == b"ck0 "
+    with HttpPrefetchReader(
+        URL, content_size=CONTENT_SIZE, max_workers=2, block_size=7
+    ) as reader:
         sleep_until_downloaded(reader)  # 休眠以确保 buffer 被填充满
-        reader.seek(7)  #目标 offset 距当前位置正好为一个 block 大小
-        assert reader.read(7) == b'block1 '
-    with HttpPrefetchReader(URL, content_size=CONTENT_SIZE, max_workers=2,
-                            block_size=7) as reader:
+        reader.seek(7)  # 目标 offset 距当前位置正好为一个 block 大小
+        assert reader.read(7) == b"block1 "
+    with HttpPrefetchReader(
+        URL, content_size=CONTENT_SIZE, max_workers=2, block_size=7
+    ) as reader:
         reader.read(1)
         reader.seek(7)
-        assert reader.read(7) == b'block1 '
+        assert reader.read(7) == b"block1 "
 
-    with HttpPrefetchReader(URL, content_size=CONTENT_SIZE, max_workers=2,
-                            block_size=7) as reader:
+    with HttpPrefetchReader(
+        URL, content_size=CONTENT_SIZE, max_workers=2, block_size=7
+    ) as reader:
         reader.seek(21)
-        assert reader.read(7) == b'block3 '
-    with HttpPrefetchReader(URL, content_size=CONTENT_SIZE, max_workers=2,
-                            block_size=7) as reader:
+        assert reader.read(7) == b"block3 "
+    with HttpPrefetchReader(
+        URL, content_size=CONTENT_SIZE, max_workers=2, block_size=7
+    ) as reader:
         reader.seek(-1, os.SEEK_END)
-        assert reader.read(2) == b' '
+        assert reader.read(2) == b" "
 
 
 def test_http_prefetch_reader_tell(http_patch):
@@ -399,8 +435,9 @@ def test_http_prefetch_reader_tell(http_patch):
 
 
 def test_http_prefetch_reader_tell_after_seek(http_patch):
-    with HttpPrefetchReader(URL, content_size=CONTENT_SIZE, max_workers=2,
-                            block_size=7) as reader:
+    with HttpPrefetchReader(
+        URL, content_size=CONTENT_SIZE, max_workers=2, block_size=7
+    ) as reader:
         reader.seek(2)
         assert reader.tell() == 2
         reader.seek(3)
@@ -412,20 +449,22 @@ def test_http_prefetch_reader_tell_after_seek(http_patch):
 
 
 def test_http_prefetch_reader_readinto(http_patch):
-
-    with HttpPrefetchReader(URL, content_size=CONTENT_SIZE, max_workers=2,
-                            block_size=3, block_capacity=3,
-                            block_forward=2) as reader:
-        assert reader.readinto(bytearray(b'test')) == 4
+    with HttpPrefetchReader(
+        URL,
+        content_size=CONTENT_SIZE,
+        max_workers=2,
+        block_size=3,
+        block_capacity=3,
+        block_forward=2,
+    ) as reader:
+        assert reader.readinto(bytearray(b"test")) == 4
 
     with pytest.raises(IOError):
-        reader.readinto(bytearray(b'test'))
+        reader.readinto(bytearray(b"test"))
 
 
 def test_http_prefetch_reader_seek_history(http_patch):
-
-    with HttpPrefetchReader(URL, content_size=CONTENT_SIZE,
-                            block_capacity=3) as reader:
+    with HttpPrefetchReader(URL, content_size=CONTENT_SIZE, block_capacity=3) as reader:
         reader._seek_buffer(2)
         history = reader._seek_history[0]
         assert history.seek_count == 1

@@ -51,6 +51,7 @@ indent-width = 4
 [tool.ruff.lint]
 ignore = [
   "E402", # imports not on top of file
+  "F811", # redefinition of unused name
 ]
 select = ["E", "F", "W", "PGH004"]
 extend-select = ["I"]
@@ -60,10 +61,6 @@ ignore-init-module-imports = true
 [tool.ruff.format]
 # Like Black, use double quotes for strings.
 quote-style = "double"
-
-# Like Black, respect magic trailing commas.
-skip-magic-trailing-comma = true
-
 
 [tool.pytype]
 

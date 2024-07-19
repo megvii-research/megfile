@@ -12,7 +12,6 @@ _s3_opened_pipes = []
 
 @atexit.register
 def _close_s3_pipes():  # pragma: no cover
-
     def try_close_pipe(fd):
         try:
             os.close(fd)
@@ -25,18 +24,17 @@ def _close_s3_pipes():  # pragma: no cover
 
 
 class S3PipeHandler(Readable[bytes], Writable[bytes]):
-
     def __init__(
-            self,
-            bucket: str,
-            key: str,
-            mode: str,
-            *,
-            s3_client,
-            join_thread: bool = True,
-            profile_name: Optional[str] = None):
-
-        assert mode in ('rb', 'wb')
+        self,
+        bucket: str,
+        key: str,
+        mode: str,
+        *,
+        s3_client,
+        join_thread: bool = True,
+        profile_name: Optional[str] = None,
+    ):
+        assert mode in ("rb", "wb")
 
         self._bucket = bucket
         self._key = key
@@ -50,20 +48,21 @@ class S3PipeHandler(Readable[bytes], Writable[bytes]):
         self._pipe = os.pipe()
         _s3_opened_pipes.append(self._pipe)
 
-        if self._mode == 'rb':
-            self._fileobj = os.fdopen(self._pipe[0], 'rb')
-            self._async_task = Thread(
-                target=self._download_fileobj, daemon=True)
+        if self._mode == "rb":
+            self._fileobj = os.fdopen(self._pipe[0], "rb")
+            self._async_task = Thread(target=self._download_fileobj, daemon=True)
         else:
-            self._fileobj = os.fdopen(self._pipe[1], 'wb')
+            self._fileobj = os.fdopen(self._pipe[1], "wb")
             self._async_task = Thread(target=self._upload_fileobj, daemon=True)
         self._async_task.start()
 
     @property
     def name(self) -> str:
-        return 's3%s://%s/%s' % (
+        return "s3%s://%s/%s" % (
             f"+{self._profile_name}" if self._profile_name else "",
-            self._bucket, self._key)
+            self._bucket,
+            self._key,
+        )
 
     @property
     def mode(self) -> str:
@@ -74,7 +73,7 @@ class S3PipeHandler(Readable[bytes], Writable[bytes]):
 
     def _download_fileobj(self):
         try:
-            with os.fdopen(self._pipe[1], 'wb') as buffer:
+            with os.fdopen(self._pipe[1], "wb") as buffer:
                 self._client.download_fileobj(self._bucket, self._key, buffer)
         except BrokenPipeError:
             if self._fileobj.closed:
@@ -85,7 +84,7 @@ class S3PipeHandler(Readable[bytes], Writable[bytes]):
 
     def _upload_fileobj(self):
         try:
-            with os.fdopen(self._pipe[0], 'rb') as buffer:
+            with os.fdopen(self._pipe[0], "rb") as buffer:
                 self._client.upload_fileobj(buffer, self._bucket, self._key)
         except Exception as error:
             self._exc = error
@@ -95,7 +94,7 @@ class S3PipeHandler(Readable[bytes], Writable[bytes]):
             raise translate_s3_error(self._exc, self.name)
 
     def readable(self) -> bool:
-        return self._mode == 'rb'
+        return self._mode == "rb"
 
     def read(self, size: Optional[int] = None) -> bytes:
         self._raise_exception()
@@ -110,7 +109,7 @@ class S3PipeHandler(Readable[bytes], Writable[bytes]):
         return data
 
     def writable(self) -> bool:
-        return self._mode == 'wb'
+        return self._mode == "wb"
 
     def flush(self):
         self._fileobj.flush()

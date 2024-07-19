@@ -6,12 +6,10 @@ from megfile.interfaces import BasePath, Closable, Readable, URIPath, Writable, 
 
 
 class Klass1(Closable):
-
     pass
 
 
 class Klass2(Closable):
-
     def __init__(self):
         self.outer_close_call_count = 0
 
@@ -20,7 +18,6 @@ class Klass2(Closable):
 
 
 class Klass3(Klass2):
-
     def __init__(self):
         self.inner_close_call_count = 0
         super().__init__()
@@ -31,8 +28,8 @@ class Klass3(Klass2):
 
 
 def test_fullname():
-    assert fullname(Klass3) == 'abc.ABCMeta'
-    assert fullname(str) == 'type'
+    assert fullname(Klass3) == "abc.ABCMeta"
+    assert fullname(str) == "type"
 
 
 def test_not_provide_close():
@@ -63,9 +60,8 @@ def test_subclass_only_close_once():
 
 
 class Klass4(Readable[bytes]):
-
-    name = 'test'
-    mode = 'rb'
+    name = "test"
+    mode = "rb"
 
     def __init__(self, data):
         self._buffer = BytesIO(data)
@@ -84,24 +80,23 @@ class Klass4(Readable[bytes]):
 
 
 def test_readable(mocker):
-    r = Klass4(b'')
+    r = Klass4(b"")
     assert r.readlines() == []
 
-    r = Klass4(b'1\n2\n')
-    assert r.readlines() == [b'1\n', b'2\n']
+    r = Klass4(b"1\n2\n")
+    assert r.readlines() == [b"1\n", b"2\n"]
 
-    r = Klass4(b'1\n2\n')
-    assert next(r) == b'1\n'
-    assert list(r) == [b'2\n']
+    r = Klass4(b"1\n2\n")
+    assert next(r) == b"1\n"
+    assert list(r) == [b"2\n"]
 
-    r = Klass4(b'1\n2\n')
-    assert r.readinto(bytearray(b'123')) == 3
+    r = Klass4(b"1\n2\n")
+    assert r.readinto(bytearray(b"123")) == 3
 
 
 class Klass5(Writable[bytes]):
-
-    name = 'test'
-    mode = 'w'
+    name = "test"
+    mode = "w"
 
     def __init__(self):
         self._buffer = BytesIO()
@@ -121,8 +116,8 @@ class Klass5(Writable[bytes]):
 
 def test_writable(mocker):
     w = Klass5()
-    w.writelines([b'1', b'2'])
-    assert w.getvalue() == b'12'
+    w.writelines([b"1", b"2"])
+    assert w.getvalue() == b"12"
 
 
 TEST_PATH = "test/file"
@@ -130,7 +125,6 @@ TEST_URI = "test://test/file"
 
 
 class Klass6(BasePath):
-
     def __init__(self, path):
         self.path = path
 
@@ -162,17 +156,14 @@ def test_uripath_from_uri(mocker):
 
 
 class Klass8(URIPath):
-
     protocol = "s3"
 
 
 class Klass9(URIPath):
-
     protocol = "s4"
 
 
 class Klass10(BasePath):
-
     protocol = "s3"
 
 
