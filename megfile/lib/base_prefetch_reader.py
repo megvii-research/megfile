@@ -276,7 +276,7 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
         while offset < size:
             remain_size = size - offset
             data = self._next_buffer.read(remain_size)
-            buffer[offset: offset + len(data)] = data
+            buffer[offset : offset + len(data)] = data
             offset += len(data)
 
         self._offset += offset

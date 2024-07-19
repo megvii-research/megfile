@@ -402,7 +402,7 @@ def _sftp_scan_pairs(
     src_url: PathLike, dst_url: PathLike
 ) -> Iterator[Tuple[PathLike, PathLike]]:
     for src_file_path in SftpPath(src_url).scan():
-        content_path = src_file_path[len(src_url):]
+        content_path = src_file_path[len(src_url) :]
         if len(content_path) > 0:
             dst_file_path = SftpPath(dst_url).joinpath(content_path).path_with_protocol
         else:

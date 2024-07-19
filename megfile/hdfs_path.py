@@ -189,7 +189,7 @@ class HdfsPath(URIPath):
         path = self.path
         protocol_prefix = self._protocol_with_profile + "://"
         if path.startswith(protocol_prefix):
-            path = path[len(protocol_prefix):]
+            path = path[len(protocol_prefix) :]
         return path
 
     @cached_property

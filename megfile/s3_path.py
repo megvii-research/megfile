@@ -175,7 +175,7 @@ def parse_s3_url(s3_url: PathLike) -> Tuple[str, str]:
         path = ""
     else:
         bucket = bucket_pattern.group(1)
-        path = right_part[len(bucket) + 1:]
+        path = right_part[len(bucket) + 1 :]
     return bucket, path
 
 
@@ -344,7 +344,7 @@ def _parse_s3_url_ignore_brace(s3_url: str) -> Tuple[str, str]:
     left_brace = False
     for current_index, current_character in enumerate(right_part):
         if current_character == "/" and left_brace is False:
-            return right_part[:current_index], right_part[current_index + 1:]
+            return right_part[:current_index], right_part[current_index + 1 :]
         elif current_character == "{":
             left_brace = True
         elif current_character == "}":
@@ -410,8 +410,8 @@ def _s3_split_magic_ignore_brace(s3_pathname: str) -> Tuple[str, str]:
         if current_character == "/" and left_brace is False:
             if has_magic_ignore_brace(s3_pathname[left_index:current_index]):
                 magic_parts.append(s3_pathname[left_index:current_index])
-                if s3_pathname[current_index + 1:]:
-                    magic_parts.append(s3_pathname[current_index + 1:])
+                if s3_pathname[current_index + 1 :]:
+                    magic_parts.append(s3_pathname[current_index + 1 :])
                     left_index = len(s3_pathname)
                 break
             normal_parts.append(s3_pathname[left_index:current_index])
@@ -588,7 +588,7 @@ def _s3_scan_pairs(
     src_url: PathLike, dst_url: PathLike
 ) -> Iterator[Tuple[PathLike, PathLike]]:
     for src_file_path in S3Path(src_url).scan():
-        content_path = src_file_path[len(src_url):]
+        content_path = src_file_path[len(src_url) :]
         if len(content_path) > 0:
             dst_file_path = s3_path_join(dst_url, content_path)
         else:
@@ -633,8 +633,7 @@ def _s3_binary_mode(s3_open_func):
 
         fileobj = s3_open_func(s3_url, get_binary_mode(mode), **kwargs)
         if "b" not in mode:
-            fileobj = io.TextIOWrapper(
-                fileobj, encoding=encoding, errors=errors)  # type: ignore
+            fileobj = io.TextIOWrapper(fileobj, encoding=encoding, errors=errors)  # type: ignore
             fileobj.mode = mode  # pyre-ignore[41]
         return fileobj
 
@@ -1377,7 +1376,7 @@ class S3Path(URIPath):
         path = self.path
         protocol_prefix = self._protocol_with_profile + "://"
         if path.startswith(protocol_prefix):
-            path = path[len(protocol_prefix):]
+            path = path[len(protocol_prefix) :]
         return path
 
     @cached_property
@@ -2002,7 +2001,7 @@ class S3Path(URIPath):
                 for resp in _list_objects_recursive(client, bucket, prefix, "/"):
                     for common_prefix in resp.get("CommonPrefixes", []):
                         yield FileEntry(
-                            common_prefix["Prefix"][len(prefix): -1],
+                            common_prefix["Prefix"][len(prefix) : -1],
                             generate_s3_path(
                                 self._protocol_with_profile,
                                 bucket,
@@ -2028,7 +2027,7 @@ class S3Path(URIPath):
                                 pass
 
                         yield FileEntry(
-                            content["Key"][len(prefix):], src_url, _make_stat(content)
+                            content["Key"][len(prefix) :], src_url, _make_stat(content)
                         )
 
         return ContextIterator(create_generator())
@@ -2167,8 +2166,8 @@ class S3Path(URIPath):
             root = s3_path_join(f"{self._protocol_with_profile}://", bucket, current)[
                 :-1
             ]
-            dirs = [path[len(current):] for path in dirs]
-            files = sorted(path[len(current):] for path in files)
+            dirs = [path[len(current) :] for path in dirs]
+            files = sorted(path[len(current) :] for path in files)
             yield root, dirs, files
 
     def md5(self, recalculate: bool = False, followlinks: bool = False) -> str:

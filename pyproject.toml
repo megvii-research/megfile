@@ -60,7 +60,7 @@ extend-select = ["I"]
 [tool.ruff.lint.extend-per-file-ignores]
 "tests/**/*.py" = [
     "F811",  # redefinition of unused name
-    "E501", # line too long
+    "E501",  # line too long
 ]
 
 [tool.ruff.format]
