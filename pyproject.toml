@@ -52,14 +52,15 @@ indent-width = 4
 ignore = [
   "E402", # imports not on top of file
   "PGH004", # Useless import alias
-#   "F811", # redefinition of unused name
-  "E501", # line too long
 ]
 select = ["E", "F", "W"]
 extend-select = ["I"]
 
 [tool.ruff.lint.extend-per-file-ignores]
-"tests/**/*.py" = ["F811"]  # redefinition of unused name
+"tests/**/*.py" = [
+    "F811",  # redefinition of unused name
+    "E501", # line too long
+]
 
 [tool.ruff.format]
 # Like Black, use double quotes for strings.
