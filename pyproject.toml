@@ -50,8 +50,9 @@ indent-width = 4
 
 [tool.ruff.lint]
 ignore = [
-  "E402", # imports not on top of file
-  "PGH004", # Useless import alias
+    "E402", # imports not on top of file
+    "PGH004", # Use specific rule codes when using noqa
+    "E501", # line too long
 ]
 select = ["E", "F", "W"]
 extend-select = ["I"]
