@@ -77,6 +77,7 @@ def http_patch(mocker):
     requests_get_func = mocker.patch(
         "megfile.http_path.requests.get", side_effect=_fake_get
     )
+    return requests_get_func
 
 
 def sleep_until_downloaded(reader, timeout: int = 5):

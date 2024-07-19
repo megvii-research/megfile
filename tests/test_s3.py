@@ -612,13 +612,13 @@ def test_s3_scandir_internal(truncating_client, mocker):
         ("fileAC", False),
     ]
 
-    with pytest.raises(NotADirectoryError) as error:
+    with pytest.raises(NotADirectoryError):
         s3.s3_scandir("s3://bucketA/fileAA")
-    with pytest.raises(FileNotFoundError) as error:
+    with pytest.raises(FileNotFoundError):
         s3.s3_scandir("s3://notExistBucket")
-    with pytest.raises(FileNotFoundError) as error:
+    with pytest.raises(FileNotFoundError):
         s3.s3_scandir("s3://bucketA/notExistFolder")
-    with pytest.raises(S3BucketNotFoundError) as error:
+    with pytest.raises(S3BucketNotFoundError):
         s3.s3_scandir("s3:///notExistFolder")
 
 
@@ -654,11 +654,11 @@ def test_s3_scandir(truncating_client, mocker):
     with s3.s3_scandir("s3://bucketA/folderAB/") as file_entries:
         assert sorted(list(map(lambda x: x.name, file_entries))) == ["fileAB", "fileAC"]
 
-    with pytest.raises(NotADirectoryError) as error:
+    with pytest.raises(NotADirectoryError):
         s3.s3_scandir("s3://bucketA/fileAA")
-    with pytest.raises(FileNotFoundError) as error:
+    with pytest.raises(FileNotFoundError):
         s3.s3_scandir("s3://notExistBucket")
-    with pytest.raises(FileNotFoundError) as error:
+    with pytest.raises(FileNotFoundError):
         s3.s3_scandir("s3://bucketA/notExistFolder")
 
 
@@ -684,11 +684,11 @@ def test_s3_listdir(truncating_client, mocker):
     assert s3.s3_listdir("s3://bucketA/folderAA") == ["folderAAA"]
     assert s3.s3_listdir("s3://bucketA/folderAB") == ["fileAB", "fileAC"]
     assert s3.s3_listdir("s3://bucketA/folderAB/") == ["fileAB", "fileAC"]
-    with pytest.raises(NotADirectoryError) as error:
+    with pytest.raises(NotADirectoryError):
         s3.s3_listdir("s3://bucketA/fileAA")
-    with pytest.raises(FileNotFoundError) as error:
+    with pytest.raises(FileNotFoundError):
         s3.s3_listdir("s3://notExistBucket")
-    with pytest.raises(FileNotFoundError) as error:
+    with pytest.raises(FileNotFoundError):
         s3.s3_listdir("s3://bucketA/notExistFolder")
 
 
@@ -717,7 +717,7 @@ def test_s3_isdir(s3_setup):
 def test_s3_access(s3_setup, mocker):
     assert s3.s3_access("s3://bucketA/fileAA", Access.READ) is True
     assert s3.s3_access("s3://bucketA/fileAA", Access.WRITE) is True
-    with pytest.raises(TypeError) as error:
+    with pytest.raises(TypeError):
         s3.s3_access("s3://bucketA/fileAA", "w")
     assert s3.s3_access("s3://thisdoesnotexists", Access.READ) is False
     assert s3.s3_access("s3://thisdoesnotexists", Access.WRITE) is False
@@ -2327,7 +2327,7 @@ def test_s3_glob_cross_bucket(truncating_client):
 
 
 def test_s3_iglob(truncating_client):
-    with pytest.raises(UnsupportedError) as error:
+    with pytest.raises(UnsupportedError):
         list(s3.s3_iglob("s3://"))
 
 
@@ -2433,13 +2433,13 @@ def test_s3_glob_stat(truncating_client, mocker):
 
     assert original_calls == (os.path.lexists, os.path.isdir, os.scandir)
 
-    with pytest.raises(UnsupportedError) as error:
+    with pytest.raises(UnsupportedError):
         list(s3.s3_glob_stat("s3://"))
 
-    with pytest.raises(S3BucketNotFoundError) as error:
+    with pytest.raises(S3BucketNotFoundError):
         list(s3.s3_glob_stat("s3:///key"))
 
-    with pytest.raises(UnsupportedError) as error:
+    with pytest.raises(UnsupportedError):
         list(s3.s3_glob_stat("/"))
 
     with pytest.raises(FileNotFoundError):
@@ -2550,7 +2550,7 @@ def test_s3_glob_stat_cross_bucket(truncating_client, mocker):
 
     assert original_calls == (os.path.lexists, os.path.isdir, os.scandir)
 
-    with pytest.raises(UnsupportedError) as error:
+    with pytest.raises(UnsupportedError):
         list(s3.s3_glob_stat("s3://"))
 
     with pytest.raises(FileNotFoundError):
@@ -3121,7 +3121,7 @@ def test_s3_load_content(s3_empty_client):
     with pytest.raises(S3IsADirectoryError):
         s3.s3_load_content("s3://bucket/", 5, 2)
 
-    with pytest.raises(ValueError) as error:
+    with pytest.raises(ValueError):
         s3.s3_load_content("s3://bucket/key", 5, 2)
 
 
@@ -3642,7 +3642,7 @@ def test_s3_concat_case4(s3_empty_client):
     one_mb_block = b"0" * 1024 * 1024
     s3_empty_client.create_bucket(Bucket="bucket")
 
-    with s3.s3_open(f"s3://bucket/0", "wb") as f:
+    with s3.s3_open("s3://bucket/0", "wb") as f:
         f.write(one_mb_block)
 
     with s3.s3_open("s3://bucket/1", "wb") as f:

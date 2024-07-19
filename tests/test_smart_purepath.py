@@ -806,7 +806,6 @@ def test_samefile(s3_empty_client, fs, mocker):
     from pathlib import Path
 
     from megfile.fs_path import FSPath
-    from megfile.http_path import HttpPath
     from megfile.s3_path import S3Path
     from megfile.smart import smart_copy
 

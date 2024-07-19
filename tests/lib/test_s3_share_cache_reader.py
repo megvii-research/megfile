@@ -1,17 +1,14 @@
 import os
 import time
 
-import boto3
 import pytest
-from moto import mock_aws
 
 from megfile.lib import s3_share_cache_reader
 from megfile.lib.s3_share_cache_reader import (
     S3ShareCacheReader,
-    ShareCacheFutureManager,
 )
 from megfile.utils import thread_local
-from tests.test_s3 import s3_empty_client
+from tests.test_s3 import s3_empty_client  # noqa: F401
 
 BUCKET = "bucket"
 KEY = "key"

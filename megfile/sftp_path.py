@@ -22,7 +22,7 @@ from megfile.lib.compare import is_same_file
 from megfile.lib.compat import fspath
 from megfile.lib.glob import FSFunc, iglob
 from megfile.lib.joinpath import uri_join
-from megfile.pathlike import PathLike, URIPath
+from megfile.pathlike import URIPath
 from megfile.smart_path import SmartPath
 from megfile.utils import calculate_md5, thread_local
 

@@ -16,7 +16,6 @@ from megfile.lib.compat import fspath
 from megfile.lib.http_prefetch_reader import DEFAULT_TIMEOUT, HttpPrefetchReader
 from megfile.lib.s3_buffered_writer import DEFAULT_MAX_BUFFER_SIZE
 from megfile.lib.url import get_url_scheme
-from megfile.pathlike import PathLike
 from megfile.smart_path import SmartPath
 from megfile.utils import _is_pickle, binary_open
 
@@ -65,7 +64,7 @@ def get_http_session(
         if data and hasattr(data, "seek"):
             data.seek(0)
         elif isinstance(data, Iterator):
-            _logger.warning(f"Can not retry http request with iterator data")
+            _logger.warning("Can not retry http request with iterator data")
             raise
         if files:
 
@@ -80,7 +79,7 @@ def get_http_session(
                         return BytesIO(f.read())
                 else:
                     _logger.warning(
-                        f'Can not retry http request, because the file object is not seekable and not support "name"'
+                        'Can not retry http request, because the file object is not seekable and not support "name"'
                     )
                     raise
 

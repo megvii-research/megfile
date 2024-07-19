@@ -1,10 +1,9 @@
 import io
 from copy import deepcopy
-from typing import Optional
 
 import pytest
 import requests
-import requests_mock  # noqa
+import requests_mock  # noqa: F401
 
 from megfile.http_path import HttpPath, Response, get_http_session, is_http
 from megfile.lib.compat import fspath

@@ -1,14 +1,12 @@
 import random
 from string import ascii_letters
 
-import boto3
 import moto
 import moto.s3
 import pytest
-from moto import mock_aws
 
 from megfile.lib.s3_limited_seekable_writer import S3LimitedSeekableWriter
-from tests.test_s3 import s3_empty_client
+from tests.test_s3 import s3_empty_client  # noqa: F401
 
 BUCKET = "bucket"
 KEY = "key"
@@ -26,11 +24,11 @@ def client(s3_empty_client):
 
 def test_seekable(client):
     writer = S3LimitedSeekableWriter(BUCKET, KEY, s3_client=client)
-    assert writer.seekable() == True
+    assert writer.seekable() is True
 
 
 def test_commit_on_exit(client):
-    with S3LimitedSeekableWriter(BUCKET, KEY, s3_client=client) as writer:
+    with S3LimitedSeekableWriter(BUCKET, KEY, s3_client=client):
         pass
 
     body = client.get_object(Bucket=BUCKET, Key=KEY)["Body"]

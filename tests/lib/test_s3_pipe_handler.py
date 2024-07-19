@@ -1,14 +1,12 @@
 import os
 import sys
-from subprocess import TimeoutExpired, check_call
+from subprocess import check_call
 
-import boto3
 import pytest
-from moto import mock_aws
 
 from megfile.errors import S3Exception
 from megfile.lib.s3_pipe_handler import S3PipeHandler
-from tests.test_s3 import s3_empty_client
+from tests.test_s3 import s3_empty_client  # noqa: F401
 
 BUCKET = "bucket"
 KEY = "key"

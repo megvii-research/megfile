@@ -1,5 +1,3 @@
-import os
-
 from megfile.utils.mutex import ForkAware, fork_aware
 
 

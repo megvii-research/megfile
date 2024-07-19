@@ -2,13 +2,12 @@ import configparser
 import os
 
 import pytest
-import requests_mock
 from mock import patch
 
 from megfile.hdfs_path import HdfsPath, get_hdfs_client, get_hdfs_config
 from megfile.lib.hdfs_tools import hdfs_api
 
-from .test_hdfs import config_mocker, http_mocker
+from .test_hdfs import config_mocker, http_mocker  # noqa: F401
 
 
 @patch.dict(

@@ -9,10 +9,12 @@ autofile:
 	make format
 
 format:
-	ruff format ${PACKAGE} tests scripts pyproject.toml
+	ruff check --fix ${PACKAGE} tests scripts
+	ruff format ${PACKAGE} tests scripts
 
 style_check:
-	ruff format --check ${PACKAGE} tests scripts pyproject.toml
+	ruff check ${PACKAGE} tests scripts
+	ruff format --check ${PACKAGE} tests scripts
 
 static_check:
 	make pytype_check

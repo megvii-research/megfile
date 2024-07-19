@@ -1,6 +1,5 @@
 import os
 import stat
-from io import BufferedReader, BytesIO
 
 import boto3
 import pytest
@@ -10,7 +9,6 @@ from moto import mock_aws
 from megfile.errors import (
     ProtocolExistsError,
     ProtocolNotFoundError,
-    S3FileNotFoundError,
 )
 from megfile.fs_path import FSPath
 from megfile.hdfs_path import HdfsPath

@@ -3,7 +3,6 @@ import io
 import os
 
 import pytest
-import requests_mock
 
 from megfile import hdfs
 from megfile.lib.hdfs_tools import hdfs_api
@@ -207,7 +206,7 @@ def test_hdfs_move(http_mocker, mocker):
         json={"boolean": True},
     )
     http_mocker.get(
-        f"http://127.0.0.1:8000/webhdfs/v1/a?delegation=token&op=GETFILESTATUS",
+        "http://127.0.0.1:8000/webhdfs/v1/a?delegation=token&op=GETFILESTATUS",
         json={
             "FileStatus": {
                 "accessTime": 0,
@@ -425,7 +424,7 @@ def test_hdfs_open(http_mocker):
 
 def test_hdfs_open_pickle(http_mocker):
     http_mocker.get(
-        f"http://127.0.0.1:8000/webhdfs/v1/root/1.pkl?op=GETFILESTATUS",
+        "http://127.0.0.1:8000/webhdfs/v1/root/1.pkl?op=GETFILESTATUS",
         json={
             "FileStatus": {
                 "accessTime": 0,
@@ -442,7 +441,7 @@ def test_hdfs_open_pickle(http_mocker):
         },
     )
     http_mocker.get(
-        f"http://127.0.0.1:8000/webhdfs/v1/root/1.pkl?op=OPEN",
+        "http://127.0.0.1:8000/webhdfs/v1/root/1.pkl?op=OPEN",
         text="test",
         status_code=200,
         headers={"Content-Length": "4", "Content-Type": "application/octet-stream"},

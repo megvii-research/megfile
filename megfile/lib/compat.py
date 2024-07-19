@@ -1,7 +1,7 @@
 import os
 from os import PathLike
 
-__all__ = ["PathLike", "fspath", "copytree"]
+__all__ = ["PathLike", "fspath"]
 
 
 def fspath(path) -> str:

@@ -646,7 +646,7 @@ def smart_open(
     errors: Optional[str] = None,
     **options,
 ) -> IO:
-    """
+    r"""
     Open a file on the path
 
     .. note ::

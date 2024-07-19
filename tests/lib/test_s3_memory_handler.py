@@ -1,13 +1,8 @@
-import os
-from io import BytesIO
-
-import boto3
 import pytest
-from moto import mock_aws
 
 from megfile.errors import S3ConfigError
 from megfile.lib.s3_memory_handler import S3MemoryHandler
-from tests.test_s3 import s3_empty_client
+from tests.test_s3 import s3_empty_client  # noqa: F401
 
 BUCKET = "bucket"
 KEY = "key"
@@ -255,5 +250,5 @@ def test_s3_memory_handler_error(error_client):
         writer.write(CONTENT)
 
     with pytest.raises(S3ConfigError):
-        with S3MemoryHandler(BUCKET, KEY, "ab", s3_client=error_client) as fp:
+        with S3MemoryHandler(BUCKET, KEY, "ab", s3_client=error_client):
             pass

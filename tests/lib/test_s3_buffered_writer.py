@@ -1,16 +1,12 @@
-import os
 from concurrent.futures import wait
 from threading import Event
 
-import boto3
 import moto
 import moto.s3
 import pytest
-from moto import mock_aws
 
-from megfile.errors import S3UnknownError
 from megfile.lib.s3_buffered_writer import S3BufferedWriter
-from tests.test_s3 import s3_empty_client
+from tests.test_s3 import s3_empty_client  # noqa: F401
 
 BUCKET = "bucket"
 KEY = "key"

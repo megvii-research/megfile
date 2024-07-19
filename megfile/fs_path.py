@@ -9,16 +9,21 @@ from stat import S_ISLNK as stat_islnk
 from typing import IO, BinaryIO, Callable, Iterator, List, Optional, Tuple, Union
 
 from megfile.errors import _create_missing_ok_generator
-from megfile.interfaces import Access, ContextIterator, FileEntry, PathLike, StatResult
+from megfile.interfaces import (
+    Access,
+    ContextIterator,
+    FileEntry,
+    PathLike,
+    StatResult,
+    URIPath,
+)
 from megfile.lib.compare import is_same_file
+from megfile.lib.compat import fspath
 from megfile.lib.glob import iglob
+from megfile.lib.joinpath import path_join
 from megfile.lib.url import get_url_scheme
+from megfile.smart_path import SmartPath
 from megfile.utils import calculate_md5
-
-from .interfaces import PathLike, URIPath
-from .lib.compat import fspath
-from .lib.joinpath import path_join
-from .smart_path import SmartPath
 
 __all__ = [
     "FSPath",

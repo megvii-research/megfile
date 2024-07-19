@@ -18,7 +18,7 @@ from megfile.utils import (
     shadow_copy,
     thread_local,
 )
-from tests.test_s3 import s3_empty_client
+from tests.test_s3 import s3_empty_client  # noqa: F401
 
 BUCKET = "bucket"
 KEY = "key"

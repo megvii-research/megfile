@@ -2,7 +2,6 @@ import os
 import tempfile
 from io import BytesIO
 
-import pyfakefs
 import pytest
 from mock import patch
 
@@ -448,17 +447,17 @@ def test_fs_access(filesystem):
     os.mkdir("folder")
     with open("file", "w") as f:
         f.write("file")
-    with pytest.raises(TypeError) as error:
+    with pytest.raises(TypeError):
         fs.fs_access("folder", "r")
-    assert fs.fs_access("folder", Access.READ) == True
-    assert fs.fs_access("folder", Access.WRITE) == True
-    assert fs.fs_access("file", Access.READ) == True
-    assert fs.fs_access("file", Access.WRITE) == True
+    assert fs.fs_access("folder", Access.READ) is True
+    assert fs.fs_access("folder", Access.WRITE) is True
+    assert fs.fs_access("file", Access.READ) is True
+    assert fs.fs_access("file", Access.WRITE) is True
     os.chmod("./file", 0o000)
-    assert fs.fs_access("file", Access.READ) == False
-    assert fs.fs_access("file", Access.WRITE) == False
+    assert fs.fs_access("file", Access.READ) is False
+    assert fs.fs_access("file", Access.WRITE) is False
 
-    with pytest.raises(TypeError) as error:
+    with pytest.raises(TypeError):
         fs.fs_access("folder", "r")
 
 
@@ -925,7 +924,7 @@ def test_fs_glob_ascending_alphabetical_order(filesystem):
     for i in range(0, 4001, 500):
         files.append(f"range_{str(i).zfill(4)}_{str(i+500).zfill(4)}.meta.json")
     for filename in files:
-        with open(filename, "w") as f:
+        with open(filename, "w"):
             pass
     assert fs.fs_glob("*.json") == files
     assert list(fs.fs_iglob("*.json")) == files

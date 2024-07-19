@@ -203,7 +203,7 @@ from megfile.smart import (
 from megfile.smart_path import SmartPath
 from megfile.stdio import is_stdio, stdio_open
 from megfile.stdio_path import StdioPath
-from megfile.version import VERSION as __version__
+from megfile.version import VERSION as __version__  # noqa: F401
 
 __all__ = [
     "smart_access",

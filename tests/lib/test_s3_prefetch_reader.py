@@ -6,7 +6,7 @@ import pytest
 
 from megfile.errors import S3FileChangedError, S3InvalidRangeError
 from megfile.lib.s3_prefetch_reader import S3PrefetchReader
-from tests.test_s3 import s3_empty_client
+from tests.test_s3 import s3_empty_client  # noqa: F401
 
 BUCKET = "bucket"
 KEY = "key"

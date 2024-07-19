@@ -2,7 +2,6 @@ from typing import BinaryIO, Callable, Iterator, List, Optional, Tuple
 
 from megfile.fs_path import (
     FSPath,
-    StatResult,
     _make_stat,
     fs_cwd,
     fs_glob,

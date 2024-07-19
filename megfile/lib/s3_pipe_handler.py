@@ -1,5 +1,5 @@
 import atexit
-import concurrent.futures  # don't delete this import, to ensure the _close_s3_pipes registration is earlier than concurrent.futures._python_exit
+import concurrent.futures  # noqa: F401 # don't delete this import, to ensure the _close_s3_pipes registration is earlier than concurrent.futures._python_exit
 import os
 from threading import Thread
 from typing import Optional

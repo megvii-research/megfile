@@ -1,12 +1,9 @@
 import os
-from io import BytesIO
 
-import boto3
 import pytest
-from moto import mock_aws
 
 from megfile.lib.s3_cached_handler import S3CachedHandler
-from tests.test_s3 import s3_empty_client
+from tests.test_s3 import s3_empty_client  # noqa: F401
 
 BUCKET = "bucket"
 KEY = "key"

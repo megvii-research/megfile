@@ -26,7 +26,7 @@ from megfile.cli import (
     version,
 )
 
-from .test_smart import s3_empty_client
+from .test_smart import s3_empty_client  # noqa: F401
 
 
 @pytest.fixture
@@ -392,7 +392,7 @@ def test_config_s3(tmpdir, runner):
             ["-p", str(tmpdir / "oss_config"), "-n", "new_test", "-c", "7656", "3645"],
         )
         assert False
-    except:
+    except Exception:
         assert True
 
     result = runner.invoke(

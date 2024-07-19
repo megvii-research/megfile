@@ -13,7 +13,6 @@ from megfile.lib.glob import FSFunc, iglob
 from megfile.lib.hdfs_prefetch_reader import HdfsPrefetchReader
 from megfile.lib.hdfs_tools import hdfs_api
 from megfile.lib.url import get_url_scheme
-from megfile.pathlike import PathLike, URIPath
 from megfile.smart_path import SmartPath
 from megfile.utils import _is_pickle
 

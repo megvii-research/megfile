@@ -14,7 +14,7 @@ from megfile.sftp_path import (
     sftp_should_retry,
 )
 
-from .test_sftp import FakeSFTPClient, sftp_mocker
+from .test_sftp import FakeSFTPClient, sftp_mocker  # noqa: F401
 
 
 def test_provide_connect_info(fs, mocker):

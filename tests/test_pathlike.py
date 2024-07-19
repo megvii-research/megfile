@@ -1,6 +1,13 @@
 import pytest
 
-from megfile.pathlike import BasePath, BaseURIPath, FileEntry, StatResult, URIPath
+from megfile.pathlike import (
+    BasePath,
+    BaseURIPath,
+    FileEntry,
+    PathLike,
+    StatResult,
+    URIPath,
+)
 
 
 def test_file_entry():
@@ -54,7 +61,7 @@ def test_base_uri_path(mocker):
         base_uri_path <= other_path_a
 
     class BaseURIPathB(BaseURIPath):
-        def __init__(self, path: "PathLike"):
+        def __init__(self, path: PathLike):
             super().__init__(path)
 
         @classproperty

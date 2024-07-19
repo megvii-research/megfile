@@ -34,15 +34,15 @@ from megfile.errors import (
     SameFileError,
     UnsupportedError,
     _create_missing_ok_generator,
-)
-from megfile.errors import _logger as error_logger
-from megfile.errors import (
     patch_method,
     raise_s3_error,
     s3_error_code_should_retry,
     s3_should_retry,
     translate_fs_error,
     translate_s3_error,
+)
+from megfile.errors import (
+    _logger as error_logger,
 )
 from megfile.interfaces import (
     Access,
@@ -60,7 +60,6 @@ from megfile.lib.glob import has_magic, has_magic_ignore_brace, ungloblize
 from megfile.lib.joinpath import uri_join
 from megfile.lib.s3_buffered_writer import (
     DEFAULT_MAX_BUFFER_SIZE,
-    GLOBAL_MAX_WORKERS,
     S3BufferedWriter,
 )
 from megfile.lib.s3_cached_handler import S3CachedHandler
@@ -2214,7 +2213,7 @@ class S3Path(URIPath):
     ) -> None:
         """File copy on S3
         Copy content of file on `src_path` to `dst_path`.
-        It's caller's responsibility to ensure the s3_isfile(src_url) == True
+        It's caller's responsibility to ensure the s3_isfile(src_url) is True
 
         :param dst_path: Target file path
         :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
@@ -2332,7 +2331,7 @@ class S3Path(URIPath):
             raise S3IsADirectoryError("Is a directory: %r" % self.path_with_protocol)
         metadata = self._s3_get_metadata()
 
-        if not "symlink_to" in metadata:
+        if "symlink_to" not in metadata:
             raise S3NotALinkError("Not a link: %r" % self.path_with_protocol)
         else:
             return self.from_path(metadata["symlink_to"])
