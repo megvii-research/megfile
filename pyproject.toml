@@ -44,13 +44,26 @@ file = ["requirements.txt"]
 hdfs = { file = ["requirements-hdfs.txt"] }
 cli = { file = ["requirements-cli.txt"] }
 
-[tool.yapf]
-based_on_style = "google"
-split_before_first_argument = true
+[tool.ruff]
+line-length = 88
+indent-width = 4
 
-[tool.isort]
-# ignore line width limit for import
-line_length = 999
+[tool.ruff.lint]
+ignore = [
+  "E402", # imports not on top of file
+]
+select = ["E", "F", "W", "PGH004"]
+extend-select = ["I"]
+dummy-variable-rgx = "^.*$"
+ignore-init-module-imports = true
+
+[tool.ruff.format]
+# Like Black, use double quotes for strings.
+quote-style = "double"
+
+# Like Black, respect magic trailing commas.
+skip-magic-trailing-comma = true
+
 
 [tool.pytype]
 

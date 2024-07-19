@@ -9,14 +9,10 @@ autofile:
 	make format
 
 format:
-	autoflake --ignore-init-module-imports --remove-all-unused-imports --in-place --recursive ${PACKAGE}
-	isort ${PACKAGE} tests
-	yapf --in-place --recursive ${PACKAGE} tests scripts
+	ruff format ${PACKAGE} tests scripts pyproject.toml
 
 style_check:
-	autoflake --check-diff --ignore-init-module-imports --remove-all-unused-imports --recursive ${PACKAGE}
-	isort --diff --check ${PACKAGE} tests
-	yapf --diff --recursive ${PACKAGE} tests
+	ruff format --check ${PACKAGE} tests scripts pyproject.toml
 
 static_check:
 	make pytype_check
