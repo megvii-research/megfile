@@ -423,8 +423,8 @@ class FSPath(URIPath):
             yield FileEntry(
                 path_obj.name,
                 path_obj.path,  # pyre-ignore[6]
-                _make_stat(os.lstat(path_obj.path)),
-            )  # pyre-ignore[6]
+                _make_stat(os.lstat(path_obj.path)),  # pyre-ignore[6]
+            )
 
     def expanduser(self):
         """Expand ~ and ~user constructions.  If user or $HOME is unknown,

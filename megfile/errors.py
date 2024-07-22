@@ -106,8 +106,8 @@ s3_retry_exceptions = [
 ]
 if hasattr(botocore.exceptions, "ResponseStreamingError"):  # backport botocore==1.23.24
     s3_retry_exceptions.append(
-        botocore.exceptions.ResponseStreamingError
-    )  # pyre-ignore[6]
+        botocore.exceptions.ResponseStreamingError  # pyre-ignore[6]
+    )
 s3_retry_exceptions = tuple(s3_retry_exceptions)  # pyre-ignore[9]
 
 

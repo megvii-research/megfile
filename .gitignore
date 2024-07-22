@@ -17,3 +17,4 @@ pyre-errors.json
 pyre-sarif.json
 bandit-sarif.json
 .vscode
+.ruff_cache
