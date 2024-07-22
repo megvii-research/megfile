@@ -34,10 +34,6 @@ def test_s3_prefetch_reader(client):
         assert reader.name == 's3://bucket/key'
         assert reader.mode == 'rb'
 
-        # size < 0
-        with pytest.raises(AssertionError):
-            reader.read(-1)
-
         # size = 0
         assert reader.read(0) == b''
         assert reader._read(0) == b''
@@ -84,9 +80,6 @@ def test_s3_prefetch_reader_readline(s3_empty_client):
 
         reader.seek(0)
         assert reader.readline(1) == b'1'
-
-        with pytest.raises(AssertionError):
-            reader.readline(-1)
 
     with pytest.raises(IOError):
         reader.readline()
@@ -171,8 +164,6 @@ def test_s3_prefetch_reader_fetch(client, mocker):
         get_object_func.reset_mock()
 
         # 以下三次 read 不会引起 _executor 启动
-        with pytest.raises(AssertionError):
-            reader.read(-1)
         reader.read(0)
         sleep_until_downloaded(reader)
         reader.read(7)

@@ -190,7 +190,9 @@ def binary_open(open_func):
 
 def get_human_size(size_bytes: float) -> str:
     '''Get human-readable size, e.g. `100MB`'''
-    assert size_bytes >= 0, 'negative size: %r' % size_bytes
+    if size_bytes < 0:
+        # TODO: replace AssertionError with ValueError in 4.0.0
+        raise AssertionError('negative size: %r' % size_bytes)
     if size_bytes == 0:
         return '0 B'
     size_name = ('B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB')
