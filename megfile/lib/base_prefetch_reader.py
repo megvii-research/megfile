@@ -144,7 +144,7 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
 
         self._offset = max(min(target_offset, self._content_size), 0)
         block_index = self._offset // self._block_size
-        block_offset = self._offset % self._block_size
+        block_offset = int(self._offset % self._block_size)
         self._seek_buffer(block_index, block_offset)
         return self._offset
 
