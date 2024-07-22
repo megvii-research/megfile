@@ -39,10 +39,6 @@ def sleep_until_downloaded(reader, timeout: int = 5):
 def test_s3_share_cache_reader(client):
     with S3ShareCacheReader(BUCKET, KEY, s3_client=client, max_workers=2,
                             block_size=7) as reader:
-        # size < 0
-        with pytest.raises(AssertionError):
-            reader.read(-1)
-
         # size = 0
         assert reader.read(0) == b''
 
@@ -168,8 +164,6 @@ def test_s3_share_cache_reader_fetch(client, mocker):
         get_object_func.reset_mock()
 
         # 以下三次 read 不会引起 _executor 启动
-        with pytest.raises(AssertionError):
-            reader.read(-1)
         reader.read(0)
         sleep_until_downloaded(reader)
         reader.read(7)

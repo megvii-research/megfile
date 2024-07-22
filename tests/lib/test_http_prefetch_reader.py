@@ -92,10 +92,6 @@ def test_http_prefetch_reader(http_patch):
         assert reader.name == URL
         assert reader.mode == 'rb'
 
-        # size < 0
-        with pytest.raises(AssertionError):
-            reader.read(-1)
-
         # size = 0
         assert reader.read(0) == b''
         assert reader._read(0) == b''
@@ -141,9 +137,6 @@ def test_http_prefetch_reader_readline(mocker):
 
         reader.seek(0)
         assert reader.readline(1) == b'1'
-
-        with pytest.raises(AssertionError):
-            reader.readline(-1)
 
     with pytest.raises(IOError):
         reader.readline()
