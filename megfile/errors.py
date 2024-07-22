@@ -336,9 +336,11 @@ def translate_s3_error(s3_error: Exception, s3_url: PathLike) -> Exception:
         if code in ("NoSuchBucket"):
             return S3BucketNotFoundError(
                 "No such bucket: %r"
-                % s3_error.response.get("Error", {}).get("BucketName")
+                % s3_error.response.get(  # pytype: disable=attribute-error
+                    "Error", {}
+                ).get("BucketName")
                 or s3_url
-            )  # pytype: disable=attribute-error
+            )
         if code in ("404", "NoSuchKey"):
             return S3FileNotFoundError("No such file: %r" % s3_url)
         if code in ("401", "403", "AccessDenied"):
