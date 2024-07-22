@@ -17,7 +17,8 @@ class S3MemoryHandler(Readable[bytes], Seekable, Writable[bytes]):
             s3_client,
             profile_name: Optional[str] = None):
 
-        assert mode in ('rb', 'wb', 'ab', 'rb+', 'wb+', 'ab+')
+        if mode not in ('rb', 'wb', 'ab', 'rb+', 'wb+', 'ab+'):
+            raise ValueError('unacceptable mode: %r' % mode)
 
         self._bucket = bucket
         self._key = key

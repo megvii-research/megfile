@@ -36,7 +36,8 @@ class S3PipeHandler(Readable[bytes], Writable[bytes]):
             join_thread: bool = True,
             profile_name: Optional[str] = None):
 
-        assert mode in ('rb', 'wb')
+        if mode not in ('rb', 'wb'):
+            raise ValueError('unacceptable mode: %r' % mode)
 
         self._bucket = bucket
         self._key = key
