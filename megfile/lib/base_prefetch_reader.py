@@ -54,10 +54,13 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
         if block_forward is None:
             block_forward = max(block_capacity - 1, 1)
 
-        assert block_capacity > block_forward, (
-            "block_capacity should greater than block_forward, got: block_capacity=%s, block_forward=%s"
-            % (block_capacity, block_forward)
-        )
+        if block_capacity <= block_forward:
+            # TODO: replace AssertionError with ValueError in 4.0.0
+            raise AssertionError(
+                "block_capacity should greater than block_forward, "
+                "got: block_capacity=%s, block_forward=%s"
+                % (block_capacity, block_forward)
+            )
 
         self._max_retries = max_retries
         self._block_size = block_size
@@ -171,10 +174,9 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
         if self._offset >= self._content_size:
             return b""
 
-        if size is None:
+        if size is None or size < 0:
             size = self._content_size - self._offset
         else:
-            assert size >= 0, "size should greater than 0, got: %r" % size
             size = min(size, self._content_size - self._offset)
 
         if self._block_forward == 1:
@@ -208,6 +210,7 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
 
         Retain newline.  A non-negative size argument limits the maximum
         number of bytes to return (an incomplete line may be returned then).
+        If the size argument is negative, read until EOF is reached.
         Return an empty bytes object at EOF.
         """
         if self.closed:
@@ -218,10 +221,9 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
         if self._offset >= self._content_size:
             return b""
 
-        if size is None:
+        if size is None or size < 0:
             size = self._content_size - self._offset
         else:
-            assert size >= 0, "size should greater than 0, got: %r" % size
             size = min(size, self._content_size - self._offset)
 
         data = self._buffer.readline(size)

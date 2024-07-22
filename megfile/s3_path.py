@@ -840,12 +840,12 @@ def s3_buffered_open(
     max_concurrency: Optional[int] = None,
     max_buffer_size: int = DEFAULT_MAX_BUFFER_SIZE,
     forward_ratio: Optional[float] = None,
-    block_size: int = DEFAULT_BLOCK_SIZE,
+    block_size: Optional[int] = None,
     limited_seekable: bool = False,
     buffered: bool = False,
     share_cache_key: Optional[str] = None,
     cache_path: Optional[str] = None,
-    min_block_size: int = DEFAULT_MIN_BLOCK_SIZE,
+    min_block_size: Optional[int] = None,
     max_block_size: int = DEFAULT_MAX_BLOCK_SIZE,
 ) -> IO:
     """Open an asynchronous prefetch reader, to support fast sequential read
@@ -876,6 +876,8 @@ def s3_buffered_open(
             s3_url = s3_url.readlink()
         except S3NotALinkError:
             pass
+    min_block_size = min_block_size or block_size or DEFAULT_MIN_BLOCK_SIZE
+    block_size = block_size or DEFAULT_BLOCK_SIZE
 
     bucket, key = parse_s3_url(s3_url.path_with_protocol)
     config = botocore.config.Config(max_pool_connections=max_pool_connections)

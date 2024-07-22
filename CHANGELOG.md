@@ -1,3 +1,7 @@
+## 3.1.0.post2 - 2024.07.22
+- fix
+    - fix `block_size` overwritten by default `min_block_size` in `s3_open`
+
 ## 3.1.0.post1 - 2024.07.15
 - fix
     - fix wrong name of cli
