@@ -55,7 +55,7 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
                 (block_capacity, block_forward))
 
         self._max_retries = max_retries
-        self._block_size = block_size
+        self._block_size = int(block_size)
         self._block_capacity = block_capacity  # Max number of blocks
         self._block_forward = block_forward  # Number of blocks every prefetch, which should be smaller than block_capacity
 
@@ -114,7 +114,7 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
                     get_human_size(self._content_size)))
         while value > self._backoff_size:
             self._backoff_size *= BACKOFF_FACTOR
-        self.__offset = value
+        self.__offset = int(value)
 
     def seek(self, offset: int, whence: int = os.SEEK_SET) -> int:
         '''Change stream position.
@@ -129,7 +129,6 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
         '''
         if self.closed:
             raise IOError('file already closed: %r' % self.name)
-
         if whence == os.SEEK_CUR:
             target_offset = self._offset + offset
         elif whence == os.SEEK_END:
@@ -142,9 +141,9 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
         if target_offset == self._offset:
             return target_offset
 
-        self._offset = max(min(target_offset, self._content_size), 0)
+        self._offset = int(max(min(target_offset, self._content_size), 0))
         block_index = self._offset // self._block_size
-        block_offset = int(self._offset % self._block_size)
+        block_offset = self._offset % self._block_size
         self._seek_buffer(block_index, block_offset)
         return self._offset
 

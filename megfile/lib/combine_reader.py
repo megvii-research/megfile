@@ -111,7 +111,7 @@ class CombineReader(Readable, Seekable):
         if target_offset < 0:
             raise ValueError('negative seek value %r' % target_offset)
 
-        self._offset = target_offset
+        self._offset = int(target_offset)
         return self._offset
 
     def _close(self):

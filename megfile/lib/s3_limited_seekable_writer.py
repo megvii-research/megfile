@@ -81,7 +81,7 @@ class S3LimitedSeekableWriter(S3BufferedWriter, Seekable):
                 'Can only seek inside of head, or seek to tail, target offset: %d'
                 % target_offset)
 
-        self._offset = target_offset
+        self._offset = int(target_offset)
         return self._offset
 
     def write(self, data: bytes) -> int:
