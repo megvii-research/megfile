@@ -63,6 +63,7 @@ class S3LimitedSeekableWriter(S3BufferedWriter, Seekable):
         if self.closed:
             raise IOError('file already closed: %r' % self.name)
 
+        offset = int(offset)
         if whence == os.SEEK_SET:
             target_offset = offset
         elif whence == os.SEEK_CUR:

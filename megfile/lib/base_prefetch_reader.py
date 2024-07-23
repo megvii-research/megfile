@@ -54,6 +54,7 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
                 'got: block_capacity=%s, block_forward=%s' %
                 (block_capacity, block_forward))
 
+        block_size = int(block_size)
         self._max_retries = max_retries
         self._block_size = block_size
         self._block_capacity = block_capacity  # Max number of blocks
@@ -107,6 +108,7 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
 
     @_offset.setter
     def _offset(self, value: int):
+        value = int(value)
         if value > self._backoff_size:
             _logger.debug(
                 'reading file: %r, current offset / total size: %s / %s' % (
@@ -127,9 +129,9 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
 
         Returns the new absolute position.
         '''
+        offset = int(offset)
         if self.closed:
             raise IOError('file already closed: %r' % self.name)
-
         if whence == os.SEEK_CUR:
             target_offset = self._offset + offset
         elif whence == os.SEEK_END:
