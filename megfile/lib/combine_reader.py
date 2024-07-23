@@ -99,6 +99,7 @@ class CombineReader(Readable, Seekable):
         return buffer.getvalue()  # pyre-ignore[7]
 
     def seek(self, offset: int, whence: int = os.SEEK_SET) -> int:
+        offset = int(offset)
         if whence == os.SEEK_SET:
             target_offset = offset
         elif whence == os.SEEK_CUR:
@@ -111,7 +112,7 @@ class CombineReader(Readable, Seekable):
         if target_offset < 0:
             raise ValueError('negative seek value %r' % target_offset)
 
-        self._offset = int(target_offset)
+        self._offset = target_offset
         return self._offset
 
     def _close(self):

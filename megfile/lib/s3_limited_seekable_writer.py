@@ -63,6 +63,7 @@ class S3LimitedSeekableWriter(S3BufferedWriter, Seekable):
         if self.closed:
             raise IOError('file already closed: %r' % self.name)
 
+        offset = int(offset)
         if whence == os.SEEK_SET:
             target_offset = offset
         elif whence == os.SEEK_CUR:
@@ -81,7 +82,7 @@ class S3LimitedSeekableWriter(S3BufferedWriter, Seekable):
                 'Can only seek inside of head, or seek to tail, target offset: %d'
                 % target_offset)
 
-        self._offset = int(target_offset)
+        self._offset = target_offset
         return self._offset
 
     def write(self, data: bytes) -> int:
