@@ -135,7 +135,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_client</span> <span class="o">=</span> <span class="n">s3_client</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_profile_name</span> <span class="o">=</span> <span class="n">profile_name</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_block_size</span> <span class="o">=</span> <span class="n">block_size</span>
+        <span class="c1"># user maybe put block_size with &#39;numpy.uint64&#39; type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_block_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">block_size</span><span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_max_block_size</span> <span class="o">=</span> <span class="n">max_block_size</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_max_buffer_size</span> <span class="o">=</span> <span class="n">max_buffer_size</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_total_buffer_size</span> <span class="o">=</span> <span class="mi">0</span>
