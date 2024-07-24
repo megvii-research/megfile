@@ -44,7 +44,7 @@ class ShadowHandler(Readable, Seekable, Writable, BaseShadowHandler):
         return get_content_size(self._file_object, intrusive=self._intrusive)
 
     def seek(self, offset: int, whence: int = os.SEEK_SET) -> int:
-        offset = int(offset)
+        offset = int(offset)  # user maybe put offset with 'numpy.uint64' type
         if whence == os.SEEK_SET:
             self._offset = offset
         elif whence == os.SEEK_CUR:
