@@ -51,11 +51,12 @@ def is_same_file(
     sync_type: str,
 ):
     """
-    Determines whether or not the source and destination files should be synced based on a comparison of their size and last modified time.
+    Determines whether or not the source and destination files should be synced based on
+    a comparison of their size and last modified time.
 
-    :param src_stat: A Union[StatResult, stat_result] object representing the source file to be compared.
+    :param src_stat: A object representing the source file to be compared.
     :type src_stat: Union[StatResult, stat_result]
-    :param dest_stat: A Union[StatResult, stat_result] object representing the destination file to be compared.
+    :param dest_stat: A object representing the destination file to be compared.
     :type dest_stat: Union[StatResult, stat_result]
 
     :return: A boolean value indicating whether or not the files should be synced.

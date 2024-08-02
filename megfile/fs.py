@@ -21,7 +21,6 @@ from megfile.interfaces import Access, FileEntry, PathLike, StatResult
 
 __all__ = [
     "is_fs",
-    "StatResult",
     "fs_path_join",
     "_make_stat",
     "fs_readlink",
@@ -101,7 +100,8 @@ def fs_exists(path: PathLike, followlinks: bool = False) -> bool:
 
     .. note::
 
-        The difference between this function and ``os.path.exists`` is that this function regard symlink as file.
+        The difference between this function and ``os.path.exists`` is that
+        this function regard symlink as file.
         In other words, this function is equal to ``os.path.lexists``
 
     :param path: Given path
@@ -115,7 +115,8 @@ def fs_exists(path: PathLike, followlinks: bool = False) -> bool:
 def fs_getmtime(path: PathLike, follow_symlinks: bool = False) -> float:
     """
     Get last-modified time of the file on the given path (in Unix timestamp format).
-    If the path is an existent directory, return the latest modified time of all file in it.
+    If the path is an existent directory,
+    return the latest modified time of all file in it.
 
     :param path: Given path
     :returns: last-modified time
@@ -126,8 +127,10 @@ def fs_getmtime(path: PathLike, follow_symlinks: bool = False) -> float:
 def fs_getsize(path: PathLike, follow_symlinks: bool = False) -> int:
     """
     Get file size on the given file path (in bytes).
-    If the path in a directory, return the sum of all file size in it, including file in subdirectories (if exist).
-    The result excludes the size of directory itself. In other words, return 0 Byte on an empty directory path.
+    If the path in a directory, return the sum of all file size in it,
+    including file in subdirectories (if exist).
+    The result excludes the size of directory itself.
+    In other words, return 0 Byte on an empty directory path.
 
     :param path: Given path
     :returns: File size
@@ -149,7 +152,8 @@ def fs_isdir(path: PathLike, followlinks: bool = False) -> bool:
 
     .. note::
 
-        The difference between this function and ``os.path.isdir`` is that this function regard symlink as file
+        The difference between this function and ``os.path.isdir`` is that
+        this function regard symlink as file
 
     :param path: Given path
     :param followlinks: False if regard symlink as file, else True
@@ -165,7 +169,8 @@ def fs_isfile(path: PathLike, followlinks: bool = False) -> bool:
 
     .. note::
 
-        The difference between this function and ``os.path.isfile`` is that this function regard symlink as file
+        The difference between this function and ``os.path.isfile`` is that
+        this function regard symlink as file
 
     :param path: Given path
     :param followlinks: False if regard symlink as file, else True
@@ -177,7 +182,8 @@ def fs_isfile(path: PathLike, followlinks: bool = False) -> bool:
 
 def fs_listdir(path: PathLike) -> List[str]:
     """
-    Get all contents of given fs path. The result is in ascending alphabetical order.
+    Get all contents of given fs path.
+    The result is in ascending alphabetical order.
 
     :param path: Given path
     :returns: All contents have in the path in ascending alphabetical order
@@ -220,7 +226,8 @@ def fs_remove(path: PathLike, missing_ok: bool = False) -> None:
     Remove the file or directory on fs
 
     :param path: Given path
-    :param missing_ok: if False and target file/directory not exists, raise FileNotFoundError
+    :param missing_ok: if False and target file/directory not exists,
+        raise FileNotFoundError
     """
     return FSPath(path).remove(missing_ok)
 
@@ -237,7 +244,8 @@ def fs_scan(
     If path is a bucket path, return all file paths in the bucket
 
     :param path: Given path
-    :param missing_ok: If False and there's no file in the directory, raise FileNotFoundError
+    :param missing_ok: If False and there's no file in the directory,
+        raise FileNotFoundError
     :returns: A file path generator
     """
     return FSPath(path).scan(missing_ok, followlinks)
@@ -251,7 +259,8 @@ def fs_scan_stat(
     Every iteration on generator yields a tuple of path string and file stat
 
     :param path: Given path
-    :param missing_ok: If False and there's no file in the directory, raise FileNotFoundError
+    :param missing_ok: If False and there's no file in the directory,
+        raise FileNotFoundError
     :returns: A file path generator
     """
     return FSPath(path).scan_stat(missing_ok, followlinks)
@@ -269,7 +278,8 @@ def fs_scandir(path: PathLike) -> Iterator[FileEntry]:
 
 def fs_stat(path: PathLike, follow_symlinks=True) -> StatResult:
     """
-    Get StatResult of file on fs, including file size and mtime, referring to fs_getsize and fs_getmtime
+    Get StatResult of file on fs, including file size and mtime,
+    referring to fs_getsize and fs_getmtime
 
     :param path: Given path
     :returns: StatResult
@@ -295,18 +305,24 @@ def fs_walk(
     For each directory in the tree rooted at directory path (including path itself),
     it yields a 3-tuple (root, dirs, files).
 
-    root: a string of current path
-    dirs: name list of subdirectories (excluding '.' and '..' if they exist) in 'root'. The list is sorted by ascending alphabetical order
-    files: name list of non-directory files (link is regarded as file) in 'root'. The list is sorted by ascending alphabetical order
+    - root: a string of current path
+    - dirs: name list of subdirectories (excluding '.' and '..' if they exist)
+      in 'root'. The list is sorted by ascending alphabetical order
+    - files: name list of non-directory files (link is regarded as file) in 'root'.
+      The list is sorted by ascending alphabetical order
 
-    If path not exists, or path is a file (link is regarded as file), return an empty generator
+    If path not exists, or path is a file (link is regarded as file),
+    return an empty generator
 
     .. note::
 
-        Be aware that setting ``followlinks`` to True can lead to infinite recursion if a link points to a parent directory of itself. fs_walk() does not keep track of the directories it visited already.
+        Be aware that setting ``followlinks`` to True can lead to infinite recursion
+        if a link points to a parent directory of itself. fs_walk() does not keep
+        track of the directories it visited already.
 
     :param path: Given path
     :param followlinks: False if regard symlink as file, else True
+
     :returns: A 3-tuple generator
     """
     return FSPath(path).walk(followlinks)
@@ -333,7 +349,8 @@ def fs_copy(
     overwrite: bool = True,
 ):
     """File copy on file system
-    Copy content (excluding meta date) of file on `src_path` to `dst_path`. `dst_path` must be a complete file name
+    Copy content (excluding meta date) of file on `src_path` to `dst_path`.
+    `dst_path` must be a complete file name
 
     .. note ::
 
@@ -341,15 +358,16 @@ def fs_copy(
 
             1. If parent directory of dst_path doesn't exist, create it
 
-            2. Allow callback function, None by default. callback: Optional[Callable[[int], None]],
-
-        the int data is means the size (in bytes) of the written data that is passed periodically
+            2. Allow callback function, None by default.
+                callback: Optional[Callable[[int], None]], the int data is means
+                the size (in bytes) of the written data that is passed periodically
 
             3. This function is thread-unsafe
 
     :param src_path: Given path
     :param dst_path: Target file path
-    :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
+    :param callback: Called periodically during copy, and the input parameter is
+        the data size (in bytes) of copy since the last call
     :param followlinks: False if regard symlink as file, else True
     :param overwrite: whether or not overwrite file when exists, default is True
     """
@@ -368,7 +386,8 @@ def fs_sync(
     :param src_path: Given path
     :param dst_path: Target file path
     :param followlinks: False if regard symlink as file, else True
-    :param force: Sync file forcible, do not ignore same files, priority is higher than 'overwrite', default is False
+    :param force: Sync file forcible, do not ignore same files,
+        priority is higher than 'overwrite', default is False
     :param overwrite: whether or not overwrite file when exists, default is True
     """
     return FSPath(src_path).sync(dst_path, followlinks, force, overwrite)

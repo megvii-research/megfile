@@ -323,7 +323,9 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
 
     @property
     def _next_buffer(self) -> BytesIO:
-        # Get next buffer by this function when finished reading current buffer (self._buffer)
+        # Get next buffer by this function when finished reading current buffer
+        # (self._buffer)
+        #
         # Make sure that _buffer is used before using _next_buffer(), or will make
         # _cached_offset invalid
         self._block_index += 1

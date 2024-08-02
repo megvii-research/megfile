@@ -143,7 +143,8 @@ def smart_access(path: PathLike, mode: Access) -> bool:
     Test if path has access permission described by mode
 
     :param path: Path to be tested
-    :param mode: Access mode(Access.READ, Access.WRITE, Access.BUCKETREAD, Access.BUCKETWRITE)
+    :param mode: Access mode(Access.READ, Access.WRITE, Access.BUCKETREAD,
+        Access.BUCKETWRITE)
     :returns: bool, if the path has read/write access.
     """
     return SmartPath(path).access(mode)
@@ -161,7 +162,8 @@ def smart_exists(path: PathLike, followlinks: bool = False) -> bool:
 
 def smart_listdir(path: Optional[PathLike] = None) -> List[str]:
     """
-    Get all contents of given s3_url or file path. The result is in ascending alphabetical order.
+    Get all contents of given s3_url or file path. The result is in
+    ascending alphabetical order.
 
     :param path: Given path
     :returns: All contents of given s3_url or file path in ascending alphabetical order.
@@ -206,8 +208,12 @@ def smart_scandir(path: Optional[PathLike] = None) -> Iterator[FileEntry]:
 def smart_getsize(path: PathLike) -> int:
     """
     Get file size on the given s3_url or file path (in bytes).
-    If the path in a directory, return the sum of all file size in it, including file in subdirectories (if exist).
-    The result excludes the size of directory itself. In other words, return 0 Byte on an empty directory path.
+
+    If the path in a directory, return the sum of all file size in it, including file
+    in subdirectories (if exist).
+
+    The result excludes the size of directory itself. In other words, return 0 Byte on
+    an empty directory path.
 
     :param path: Given path
     :returns: File size
@@ -218,8 +224,11 @@ def smart_getsize(path: PathLike) -> int:
 
 def smart_getmtime(path: PathLike) -> float:
     """
-    Get last-modified time of the file on the given s3_url or file path (in Unix timestamp format).
-    If the path is an existent directory, return the latest modified time of all file in it. The mtime of empty directory is 1970-01-01 00:00:00
+    Get last-modified time of the file on the given s3_url or file path (in Unix
+    timestamp format).
+
+    If the path is an existent directory, return the latest modified time of
+    all file in it. The mtime of empty directory is 1970-01-01 00:00:00
 
     :param path: Given path
     :returns: Last-modified time
@@ -261,12 +270,14 @@ def register_copy_func(
     src_protocol: str, dst_protocol: str, copy_func: Optional[Callable] = None
 ) -> None:
     """
-    Used to register copy func between protocols, and do not allow duplicate registration
+    Used to register copy func between protocols,
+    and do not allow duplicate registration
 
     :param src_protocol: protocol name of source file, e.g. 's3'
     :param dst_protocol: protocol name of destination file, e.g. 's3'
     :param copy_func: copy func, its type is:
-        Callable[[str, str, Optional[Callable[[int], None]], Optional[bool], Optional[bool]], None]
+        Callable[[str, str, Optional[Callable[[int], None]], Optional[bool],
+        Optional[bool]], None]
     """
     try:
         _copy_funcs[src_protocol][dst_protocol]
@@ -337,12 +348,17 @@ def smart_copy(
         ...
         >>> src_path = 'test.png'
         >>> dst_path = 'test1.png'
-        >>> smart_copy(src_path, dst_path, callback=Bar(total=smart_stat(src_path).size), followlinks=False)
+        >>> smart_copy(
+        ...     src_path,
+        ...     dst_path,
+        ...     callback=Bar(total=smart_stat(src_path).size), followlinks=False
+        ... )
         856960it [00:00, 260592384.24it/s]
 
     :param src_path: Given source path
     :param dst_path: Given destination path
-    :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
+    :param callback: Called periodically during copy, and the input parameter is the
+        data size (in bytes) of copy since the last call
     :param followlinks: False if regard symlink as file, else True
     :param overwrite: whether or not overwrite file when exists, default is True
     """
@@ -445,7 +461,7 @@ def smart_sync(
 
         When the parameter is file, this function bahaves like ``smart_copy``.
 
-        If file and directory of same name and same level, sync consider it's file first.
+        If file and directory of same name and same level, sync consider it's file first
 
     Here are a few examples: ::
 
@@ -463,7 +479,8 @@ def smart_sync(
         ...         with self._lock:
         ...             if path != self._now:
         ...                 self._file_index += 1
-        ...                 print("copy file {}/{}:".format(self._file_index, self._total_file))
+        ...                 print("copy file {}/{}:".format(self._file_index,
+        ...                                                 self._total_file))
         ...                 if self._bar:
         ...                     self._bar.close()
         ...                 self._bar = tqdm(total=smart_stat(path).size)
@@ -474,15 +491,20 @@ def smart_sync(
 
     :param src_path: Given source path
     :param dst_path: Given destination path
-    :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
+    :param callback: Called periodically during copy, and the input parameter is
+        the data size (in bytes) of copy since the last call
     :param followlinks: False if regard symlink as file, else True
-    :param callback_after_copy_file: Called after copy success, and the input parameter is src file path and dst file path
-    :param src_file_stats: If this parameter is not None, only this parameter's files will be synced,
-            and src_path is the root_path of these files used to calculate the path of the target file.
-            This parameter is in order to reduce file traversal times.
-    :param map_func: A Callable func like `map`. You can use ThreadPoolExecutor.map, Pool.map and so on if you need concurrent capability.
-            default is standard library `map`.
-    :param force: Sync file forcible, do not ignore same files, priority is higher than 'overwrite', default is False
+    :param callback_after_copy_file: Called after copy success, and the input parameter
+        is src file path and dst file path
+    :param src_file_stats: If this parameter is not None, only this parameter's files
+        will be synced,and src_path is the root_path of these files used to calculate
+        the path of the target file. This parameter is in order to reduce file traversal
+        times.
+    :param map_func: A Callable func like `map`. You can use ThreadPoolExecutor.map,
+        Pool.map and so on if you need concurrent capability. default is standard
+        library `map`.
+    :param force: Sync file forcible, do not ignore same files, priority is higher than
+        'overwrite', default is False
     :param overwrite: whether or not overwrite file when exists, default is True
     """
     if not smart_exists(src_path):
@@ -525,15 +547,20 @@ def smart_sync_with_progress(
 
     :param src_path: Given source path
     :param dst_path: Given destination path
-    :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
+    :param callback: Called periodically during copy, and the input parameter is
+        the data size (in bytes) of copy since the last call
     :param followlinks: False if regard symlink as file, else True
-    :param callback_after_copy_file: Called after copy success, and the input parameter is src file path and dst file path
-    :param src_file_stats: If this parameter is not None, only this parameter's files will be synced,
-            and src_path is the root_path of these files used to calculate the path of the target file.
-            This parameter is in order to reduce file traversal times.
-    :param map_func: A Callable func like `map`. You can use ThreadPoolExecutor.map, Pool.map and so on if you need concurrent capability.
-            default is standard library `map`.
-    :param force: Sync file forcible, do not ignore same files, priority is higher than 'overwrite', default is False
+    :param callback_after_copy_file: Called after copy success, and the input parameter
+        is src file path and dst file path
+    :param src_file_stats: If this parameter is not None, only this parameter's files
+        will be synced, and src_path is the root_path of these files used to calculate
+        the path of the target file. This parameter is in order to reduce file traversal
+        times.
+    :param map_func: A Callable func like `map`. You can use ThreadPoolExecutor.map,
+        Pool.map and so on if you need concurrent capability. default is standard
+        library `map`.
+    :param force: Sync file forcible, do not ignore same files, priority is higher than
+        'overwrite', default is False
     :param overwrite: whether or not overwrite file when exists, default is True
     """
     if not smart_exists(src_path):
@@ -569,10 +596,12 @@ def smart_sync_with_progress(
 
 def smart_remove(path: PathLike, missing_ok: bool = False) -> None:
     """
-    Remove the file or directory on s3 or fs, `s3://` and `s3://bucket` are not permitted to remove
+    Remove the file or directory on s3 or fs, `s3://` and `s3://bucket` are
+    not permitted to remove
 
     :param path: Given path
-    :param missing_ok: if False and target file/directory not exists, raise FileNotFoundError
+    :param missing_ok: if False and target file/directory not exists,
+        raise FileNotFoundError
     :raises: PermissionError, FileNotFoundError
     """
     SmartPath(path).remove(missing_ok=missing_ok)
@@ -652,7 +681,9 @@ def smart_open(
 
     .. note ::
 
-        On fs, the difference between this function and ``io.open`` is that this function create directories automatically, instead of raising FileNotFoundError
+        On fs, the difference between this function and ``io.open`` is that
+        this function create directories automatically, instead of
+        raising FileNotFoundError
 
     Currently, supported protocols are:
 
@@ -668,14 +699,21 @@ def smart_open(
 
         >>> import cv2
         >>> import numpy as np
-        >>> raw = smart_open('https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=2275743969,3715493841&fm=26&gp=0.jpg').read()
-        >>> img = cv2.imdecode(np.frombuffer(raw, np.uint8), cv2.IMREAD_ANYDEPTH | cv2.IMREAD_COLOR)
+        >>> raw = smart_open(
+        ...     'https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy'
+        ...     '/it/u=2275743969,3715493841&fm=26&gp=0.jpg'
+        ... ).read()
+        >>> img = cv2.imdecode(np.frombuffer(raw, np.uint8),
+        ...                    cv2.IMREAD_ANYDEPTH | cv2.IMREAD_COLOR)
 
     :param path: Given path
     :param mode: Mode to open file, supports r'[rwa][tb]?\+?'
-    :param s3_open_func: Function used to open s3_url. Require the function includes 2 necessary parameters, file path and mode
-    :param encoding: encoding is the name of the encoding used to decode or encode the file. This should only be used in text mode.
-    :param errors: errors is an optional string that specifies how encoding and decoding errors are to be handled—this cannot be used in binary mode.
+    :param s3_open_func: Function used to open s3_url. Require the function includes 2
+        necessary parameters, file path and mode
+    :param encoding: encoding is the name of the encoding used to decode or encode
+        the file. This should only be used in text mode.
+    :param errors: errors is an optional string that specifies how encoding and decoding
+        errors are to be handled—this cannot be used in binary mode.
     :returns: File-Like object
     :raises: FileNotFoundError, IsADirectoryError, ValueError
     """
@@ -698,9 +736,15 @@ def smart_path_join(path: PathLike, *other_paths: PathLike) -> str:
 
     .. note ::
 
-        For URI, the difference between this function and ``os.path.join`` is that this function ignores left side slash (which indicates absolute path) in ``other_paths`` and will directly concat.
-        e.g. os.path.join('s3://path', 'to', '/file') => '/file', and smart_path_join('s3://path', 'to', '/file') => '/path/to/file'
+        For URI, the difference between this function and ``os.path.join`` is that this
+        function ignores left side slash (which indicates absolute path) in
+        ``other_paths`` and will directly concat.
+
+        e.g. os.path.join('s3://path', 'to', '/file') => '/file', and
+        smart_path_join('s3://path', 'to', '/file') => '/path/to/file'
+
         But for fs path, this function behaves exactly like ``os.path.join``
+
         e.g. smart_path_join('/path', 'to', '/file') => '/file'
     """
     return fspath(SmartPath(path).joinpath(*other_paths))
@@ -714,9 +758,11 @@ def smart_walk(
     For each directory in the tree rooted at directory path (including path itself),
     it yields a 3-tuple (root, dirs, files).
 
-    root: a string of current path
-    dirs: name list of subdirectories (excluding '.' and '..' if they exist) in 'root'. The list is sorted by ascending alphabetical order
-    files: name list of non-directory files (link is regarded as file) in 'root'. The list is sorted by ascending alphabetical order
+    - root: a string of current path
+    - dirs: name list of subdirectories (excluding '.' and '..' if they exist) in 'root'
+      The list is sorted by ascending alphabetical order
+    - files: name list of non-directory files (link is regarded as file) in 'root'.
+      The list is sorted by ascending alphabetical order
 
     If path not exists, return an empty generator
     If path is a file, return an empty generator
@@ -741,7 +787,8 @@ def smart_scan(
     If path is a bucket path, return all file paths in the bucket
 
     :param path: Given path
-    :param missing_ok: If False and there's no file in the directory, raise FileNotFoundError
+    :param missing_ok: If False and there's no file in the directory,
+        raise FileNotFoundError
     :raises: UnsupportedError
     :returns: A file path generator
     """
@@ -756,7 +803,8 @@ def smart_scan_stat(
     Every iteration on generator yields a tuple of path string and file stat
 
     :param path: Given path
-    :param missing_ok: If False and there's no file in the directory, raise FileNotFoundError
+    :param missing_ok: If False and there's no file in the directory,
+        raise FileNotFoundError
     :raises: UnsupportedError
     :returns: A file path generator
     """
@@ -789,11 +837,13 @@ def smart_glob(
     pathname: PathLike, recursive: bool = True, missing_ok: bool = True
 ) -> List[str]:
     """
-    Given pathname may contain shell wildcard characters, return path list in ascending alphabetical order, in which path matches glob pattern
+    Given pathname may contain shell wildcard characters, return path list in ascending
+    alphabetical order, in which path matches glob pattern
 
     :param pathname: A path pattern may contain shell wildcard characters
     :param recursive: If False, this function will not glob recursively
-    :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
+    :param missing_ok: If False and target path doesn't match any file,
+        raise FileNotFoundError
     """
     # Split pathname, group by protocol, call glob respectively
     # SmartPath(pathname).glob(recursive, missing_ok)
@@ -811,11 +861,13 @@ def smart_iglob(
     pathname: PathLike, recursive: bool = True, missing_ok: bool = True
 ) -> Iterator[str]:
     """
-    Given pathname may contain shell wildcard characters, return path iterator in ascending alphabetical order, in which path matches glob pattern
+    Given pathname may contain shell wildcard characters, return path iterator in
+    ascending alphabetical order, in which path matches glob pattern
 
     :param pathname: A path pattern may contain shell wildcard characters
     :param recursive: If False, this function will not glob recursively
-    :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
+    :param missing_ok: If False and target path doesn't match any file,
+        raise FileNotFoundError
     """
     # Split pathname, group by protocol, call glob respectively
     # SmartPath(pathname).glob(recursive, missing_ok)
@@ -831,11 +883,14 @@ def smart_glob_stat(
     pathname: PathLike, recursive: bool = True, missing_ok: bool = True
 ) -> Iterator[FileEntry]:
     """
-    Given pathname may contain shell wildcard characters, return a list contains tuples of path and file stat in ascending alphabetical order, in which path matches glob pattern
+    Given pathname may contain shell wildcard characters, return a list contains tuples
+    of path and file stat in ascending alphabetical order,
+    in which path matches glob pattern
 
     :param pathname: A path pattern may contain shell wildcard characters
     :param recursive: If False, this function will not glob recursively
-    :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
+    :param missing_ok: If False and target path doesn't match any file,
+        raise FileNotFoundError
     """
     # Split pathname, group by protocol, call glob respectively
     # SmartPath(pathname).glob(recursive, missing_ok)

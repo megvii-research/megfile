@@ -20,7 +20,8 @@ class STDReader(STDHandler, Readable):
 
         1. For convenience, use buffer by default
 
-        2. There is currently no demand and no design for seek, so seek is not allowed now
+        2. There is currently no demand and no design for seek,
+           so seek is not allowed now
     """
 
     def __init__(self, mode: str):
@@ -53,7 +54,8 @@ class STDWriter(STDHandler, Writable):
 
         1. For convenience, use buffer by default
 
-        2. There is currently no demand and no design for seek, so seek is not allowed now
+        2. There is currently no demand and no design for seek,
+           so seek is not allowed now
     """
 
     def __init__(self, path: str, mode: str):

@@ -74,7 +74,9 @@ def sftp_exists(path: PathLike, followlinks: bool = False) -> bool:
 def sftp_getmtime(path: PathLike, follow_symlinks: bool = False) -> float:
     """
     Get last-modified time of the file on the given path (in Unix timestamp format).
-    If the path is an existent directory, return the latest modified time of all file in it.
+
+    If the path is an existent directory,
+    return the latest modified time of all file in it.
 
     :param path: Given path
     :returns: last-modified time
@@ -85,8 +87,12 @@ def sftp_getmtime(path: PathLike, follow_symlinks: bool = False) -> float:
 def sftp_getsize(path: PathLike, follow_symlinks: bool = False) -> int:
     """
     Get file size on the given file path (in bytes).
-    If the path in a directory, return the sum of all file size in it, including file in subdirectories (if exist).
-    The result excludes the size of directory itself. In other words, return 0 Byte on an empty directory path.
+
+    If the path in a directory, return the sum of all file size in it,
+    including file in subdirectories (if exist).
+
+    The result excludes the size of directory itself. In other words,
+    return 0 Byte on an empty directory path.
 
     :param path: Given path
     :returns: File size
@@ -101,7 +107,8 @@ def sftp_isdir(path: PathLike, followlinks: bool = False) -> bool:
 
     .. note::
 
-        The difference between this function and ``os.path.isdir`` is that this function regard symlink as file
+        The difference between this function and ``os.path.isdir`` is that
+        this function regard symlink as file
 
     :param path: Given path
     :param followlinks: False if regard symlink as file, else True
@@ -117,7 +124,8 @@ def sftp_isfile(path: PathLike, followlinks: bool = False) -> bool:
 
     .. note::
 
-        The difference between this function and ``os.path.isfile`` is that this function regard symlink as file
+        The difference between this function and ``os.path.isfile`` is that
+        this function regard symlink as file
 
     :param path: Given path
     :param followlinks: False if regard symlink as file, else True
@@ -129,7 +137,8 @@ def sftp_isfile(path: PathLike, followlinks: bool = False) -> bool:
 
 def sftp_listdir(path: PathLike) -> List[str]:
     """
-    Get all contents of given sftp path. The result is in ascending alphabetical order.
+    Get all contents of given sftp path.
+    The result is in ascending alphabetical order.
 
     :param path: Given path
     :returns: All contents have in the path in ascending alphabetical order
@@ -156,9 +165,11 @@ def sftp_makedirs(
     If there exists a file on the path, raise FileExistsError
 
     :param path: Given path
-    :param mode: If mode is given, it is combined with the process’ umask value to determine the file mode and access flags.
-    :param parents: If parents is true, any missing parents of this path are created as needed;
-        If parents is false (the default), a missing parent raises FileNotFoundError.
+    :param mode: If mode is given, it is combined with the process’ umask value to
+        determine the file mode and access flags.
+    :param parents: If parents is true, any missing parents of this path
+        are created as needed; If parents is false (the default),
+        a missing parent raises FileNotFoundError.
     :param exist_ok: If False and target directory exists, raise FileExistsError
 
     :raises: FileExistsError
@@ -206,7 +217,8 @@ def sftp_remove(path: PathLike, missing_ok: bool = False) -> None:
     Remove the file or directory on sftp
 
     :param path: Given path
-    :param missing_ok: if False and target file/directory not exists, raise FileNotFoundError
+    :param missing_ok: if False and target file/directory not exists,
+        raise FileNotFoundError
     """
     return SftpPath(path).remove(missing_ok)
 
@@ -223,7 +235,8 @@ def sftp_scan(
     If path is a bucket path, return all file paths in the bucket
 
     :param path: Given path
-    :param missing_ok: If False and there's no file in the directory, raise FileNotFoundError
+    :param missing_ok: If False and there's no file in the directory,
+        raise FileNotFoundError
     :returns: A file path generator
     """
     return SftpPath(path).scan(missing_ok, followlinks)
@@ -237,7 +250,8 @@ def sftp_scan_stat(
     Every iteration on generator yields a tuple of path string and file stat
 
     :param path: Given path
-    :param missing_ok: If False and there's no file in the directory, raise FileNotFoundError
+    :param missing_ok: If False and there's no file in the directory,
+        raise FileNotFoundError
     :returns: A file path generator
     """
     return SftpPath(path).scan_stat(missing_ok, followlinks)
@@ -255,7 +269,8 @@ def sftp_scandir(path: PathLike) -> Iterator[FileEntry]:
 
 def sftp_stat(path: PathLike, follow_symlinks=True) -> StatResult:
     """
-    Get StatResult of file on sftp, including file size and mtime, referring to fs_getsize and fs_getmtime
+    Get StatResult of file on sftp, including file size and mtime,
+    referring to fs_getsize and fs_getmtime
 
     :param path: Given path
     :returns: StatResult
@@ -281,15 +296,20 @@ def sftp_walk(
     For each directory in the tree rooted at directory path (including path itself),
     it yields a 3-tuple (root, dirs, files).
 
-    root: a string of current path
-    dirs: name list of subdirectories (excluding '.' and '..' if they exist) in 'root'. The list is sorted by ascending alphabetical order
-    files: name list of non-directory files (link is regarded as file) in 'root'. The list is sorted by ascending alphabetical order
+    - root: a string of current path
+    - dirs: name list of subdirectories (excluding '.' and '..' if they exist)
+      in 'root'. The list is sorted by ascending alphabetical order
+    - files: name list of non-directory files (link is regarded as file) in 'root'.
+      The list is sorted by ascending alphabetical order
 
-    If path not exists, or path is a file (link is regarded as file), return an empty generator
+    If path not exists, or path is a file (link is regarded as file),
+    return an empty generator
 
     .. note::
 
-        Be aware that setting ``followlinks`` to True can lead to infinite recursion if a link points to a parent directory of itself. fs_walk() does not keep track of the directories it visited already.
+        Be aware that setting ``followlinks`` to True can lead to infinite recursion
+        if a link points to a parent directory of itself. fs_walk() does not keep
+        track of the directories it visited already.
 
     :param path: Given path
     :param followlinks: False if regard symlink as file, else True
@@ -353,9 +373,12 @@ def sftp_open(
 
     :param path: Given path
     :param mode: Mode to open file
-    :param buffering: buffering is an optional integer used to set the buffering policy.
-    :param encoding: encoding is the name of the encoding used to decode or encode the file. This should only be used in text mode.
-    :param errors: errors is an optional string that specifies how encoding and decoding errors are to be handled—this cannot be used in binary mode.
+    :param buffering: buffering is an optional integer used to
+        set the buffering policy.
+    :param encoding: encoding is the name of the encoding used to decode or encode
+        the file. This should only be used in text mode.
+    :param errors: errors is an optional string that specifies how encoding and
+        decoding errors are to be handled—this cannot be used in binary mode.
     :returns: File-Like object
     """
     return SftpPath(path).open(mode, buffering, encoding, errors)
@@ -374,7 +397,8 @@ def sftp_chmod(path: PathLike, mode: int, follow_symlinks: bool = True):
 
 def sftp_absolute(path: PathLike) -> "SftpPath":
     """
-    Make the path absolute, without normalization or resolving symlinks. Returns a new path object
+    Make the path absolute, without normalization or resolving symlinks.
+    Returns a new path object
     """
     return SftpPath(path).absolute()
 
@@ -398,8 +422,9 @@ def sftp_copy(
 
     :param src_path: Given path
     :param dst_path: The destination path to copy the file to.
-    :param callback: An optional callback function that takes an integer parameter and is called
-                    periodically during the copy operation to report the number of bytes copied.
+    :param callback: An optional callback function that takes an integer parameter
+        and is called periodically during the copy operation to report the number
+        of bytes copied.
     :param followlinks: Whether to follow symbolic links when copying directories.
     :raises IsADirectoryError: If the source is a directory.
     :raises OSError: If there is an error copying the file.
@@ -419,7 +444,8 @@ def sftp_sync(
     :param src_path: Given path
     :param dst_url: Given destination path
     :param followlinks: False if regard symlink as file, else True
-    :param force: Sync file forcible, do not ignore same files, priority is higher than 'overwrite', default is False
+    :param force: Sync file forcible, do not ignore same files,
+        priority is higher than 'overwrite', default is False
     :param overwrite: whether or not overwrite file when exists, default is True
     """
     return SftpPath(src_path).sync(dst_path, followlinks, force, overwrite)

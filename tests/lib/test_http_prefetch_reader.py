@@ -295,7 +295,10 @@ def test_http_prefetch_reader_backward_block_forward_eq_1(http_patch, mocker):
 
 
 def test_http_prefetch_reader_backward_seek_and_the_target_out_of_remains(http_patch):
-    """目标 offset 在 buffer 外, 停止现有 future, 丢弃当前 buffer, 以目标 offset 作为新的起点启动新的 future"""
+    """
+    目标 offset 在 buffer 外, 停止现有 future, 丢弃当前 buffer,
+    以目标 offset 作为新的起点启动新的 future
+    """
     with HttpPrefetchReader(
         URL,
         content_size=CONTENT_SIZE,
@@ -323,7 +326,8 @@ def test_http_prefetch_reader_backward_seek_and_the_target_out_of_remains(http_p
 
 def test_http_prefetch_reader_seek_and_the_target_in_buffer(http_patch, mocker):
     """
-    目标 offset 在 buffer 中, 丢弃目标 block 之前的全部 block, 必要时截断目标 block 的前半部分
+    目标 offset 在 buffer 中, 丢弃目标 block 之前的全部 block,
+    必要时截断目标 block 的前半部分
     """
     with HttpPrefetchReader(
         URL,
@@ -356,7 +360,10 @@ def test_http_prefetch_reader_seek_and_the_target_in_buffer(http_patch, mocker):
 
 
 def test_http_prefetch_reader_seek_and_the_target_out_of_buffer(http_patch):
-    """目标 offset 在 buffer 外, 停止现有 future, 丢弃当前 buffer, 以目标 offset 作为新的起点启动新的 future"""
+    """
+    目标 offset 在 buffer 外, 停止现有 future, 丢弃当前 buffer,
+    以目标 offset 作为新的起点启动新的 future
+    """
     with HttpPrefetchReader(
         URL,
         content_size=CONTENT_SIZE,

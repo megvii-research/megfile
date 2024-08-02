@@ -24,6 +24,7 @@ sphinx_click
 
 # format
 ruff
+black  # for E501
 
 # static check
 pytype

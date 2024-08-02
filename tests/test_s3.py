@@ -817,9 +817,7 @@ def test_s3_copy_invalid(s3_empty_client):
 
 def test_s3_getsize(truncating_client):
     bucket_A_size = s3.s3_getsize("s3://bucketA")
-    assert (
-        bucket_A_size == 8 + 6 + 6 + 6 + 6 + 8
-    )  # folderAA/folderAAA/fileAAAA + folderAB/fileAB + folderAB/fileAC + folderAB-C/fileAB-C + fileAA + fileAB
+    assert bucket_A_size == 8 + 6 + 6 + 6 + 6 + 8  # noqa: E501 # folderAA/folderAAA/fileAAAA + folderAB/fileAB + folderAB/fileAC + folderAB-C/fileAB-C + fileAA + fileAB
     assert s3.s3_getsize("s3://bucketA/fileAA") == 6
     assert s3.s3_getsize("s3://bucketA/folderAB") == 6 + 6
 
@@ -857,18 +855,10 @@ def test_s3_stat(truncating_client, mocker):
     mocker.patch("megfile.s3_path.StatResult", side_effect=FakeStatResult)
 
     bucket_A_stat = s3.s3_stat("s3://bucketA")
-    assert (
-        bucket_A_stat
-        == make_stat(
-            size=8
-            + 6
-            + 6
-            + 6
-            + 6
-            + 8,  # folderAA/folderAAA/fileAAAA + folderAB/fileAB + folderAB/fileAC + folderAB-C/fileAB-C + fileAA + fileAB
-            mtime=Now(),
-            isdir=True,
-        )
+    assert bucket_A_stat == make_stat(
+        size=8 + 6 + 6 + 6 + 6 + 8,  # noqa: E501 # folderAA/folderAAA/fileAAAA + folderAB/fileAB + folderAB/fileAC + folderAB-C/fileAB-C + fileAA + fileAB
+        mtime=Now(),
+        isdir=True,
     )
     assert s3.s3_stat("s3://bucketA/fileAA") == make_stat(size=6)
     assert s3.s3_stat("s3://bucketA/folderAB") == make_stat(
@@ -896,18 +886,10 @@ def test_s3_lstat(truncating_client, mocker):
     mocker.patch("megfile.s3_path.StatResult", side_effect=FakeStatResult)
 
     bucket_A_stat = s3.s3_lstat("s3://bucketA")
-    assert (
-        bucket_A_stat
-        == make_stat(
-            size=8
-            + 6
-            + 6
-            + 6
-            + 6
-            + 8,  # folderAA/folderAAA/fileAAAA + folderAB/fileAB + folderAB/fileAC + folderAB-C/fileAB-C + fileAA + fileAB
-            mtime=Now(),
-            isdir=True,
-        )
+    assert bucket_A_stat == make_stat(
+        size=8 + 6 + 6 + 6 + 6 + 8,  # noqa: E501 # folderAA/folderAAA/fileAAAA + folderAB/fileAB + folderAB/fileAC + folderAB-C/fileAB-C + fileAA + fileAB
+        mtime=Now(),
+        isdir=True,
     )
     assert s3.s3_lstat("s3://bucketA/fileAA") == make_stat(size=6)
     assert s3.s3_lstat("s3://bucketA/folderAB") == make_stat(
@@ -1368,7 +1350,9 @@ def test_smart_open_read_s3_file_not_found(mocker, s3_empty_client):
 
 def test_smart_open_url_is_of_credentials_format(mocker, s3_empty_client):
     """
-    测试 s3_url 中包含 ':' 和 '@' 字符的 url, 该 url 将被 smart_open 误认为是包含 credential info 的 url
+    测试 s3_url 中包含 ':' 和 '@' 字符的 url,
+    该 url 将被 smart_open 误认为是包含 credential info 的 url
+
     详情见: https://github.com/RaRe-Technologies/smart_open/issues/378
     """
     bucket = "bucket"
@@ -1757,7 +1741,8 @@ def _s3_glob_with_common_wildcard():
 def _s3_glob_with_recursive_pathname():
     """
     scenario: recursively search target folder
-    expectation: returns all subdirectory and files, without check of lexicographical order
+    expectation: returns all subdirectory and files,
+        without check of lexicographical order
     """
     # recursive all files and folders
     assert_glob(
@@ -1816,7 +1801,8 @@ def _s3_glob_with_recursive_pathname():
 def _s3_glob_with_recursive_pathname_and_custom_protocol():
     """
     scenario: recursively search target folder
-    expectation: returns all subdirectory and files, without check of lexicographical order
+    expectation: returns all subdirectory and files,
+        without check of lexicographical order
     """
     # recursive all files and folders
     assert_glob(
@@ -1903,7 +1889,8 @@ def _s3_glob_with_nested_pathname():
 
     # recursive
     # s3://bucketForGlobTest/2/a/b/a/1.json is returned 2 times
-    # without set, otherwise, 's3://bucketForGlobTest/2/a/b/a/1.json' would be duplicated
+    # without set, otherwise,
+    # 's3://bucketForGlobTest/2/a/b/a/1.json' would be duplicated
     assert_glob(
         "s3://bucketForGlobTest/**/a/**/*.jso?",
         [
@@ -1921,8 +1908,8 @@ def _s3_glob_with_nested_pathname():
 def _s3_glob_with_not_exists_dir():
     """
     scenario: glob on a directory that is not exists
-    expectation: if recursive is True, return the directory with postfix of slash('/'), otherwise, an empty list.
-    keep identical result with standard glob module
+    expectation: if recursive is True, return the directory with postfix of slash('/'),
+        otherwise, an empty list. keep identical result with standard glob module
     """
 
     assert_glob("s3://bucketForGlobTest/notExistFolder/notExistFile", [])
@@ -1941,7 +1928,8 @@ def _s3_glob_with_not_exists_dir():
 def _s3_glob_with_dironly():
     """
     scenario: pathname with the postfix of slash('/')
-    expectation: returns only contains pathname of directory, each of them is end with '/'
+    expectation: returns only contains pathname of directory,
+        each of them is end with '/'
     """
     assert_glob(
         "s3://bucketForGlobTest/*/",
@@ -2085,7 +2073,8 @@ def _s3_glob_with_common_wildcard_cross_bucket():
 def _s3_glob_with_recursive_pathname_cross_bucket():
     """
     scenario: recursively search target folder
-    expectation: returns all subdirectory and files, without check of lexicographical order
+    expectation: returns all subdirectory and files,
+        without check of lexicographical order
     """
     # recursive all files and folders
     assert_glob(
@@ -2203,7 +2192,8 @@ def _s3_glob_with_nested_pathname_cross_bucket():
 
     # recursive
     # s3://bucketForGlobTest/2/a/b/a/1.json is returned 2 times
-    # without set, otherwise, 's3://bucketForGlobTest/2/a/b/a/1.json' would be duplicated
+    # without set, otherwise,
+    # 's3://bucketForGlobTest/2/a/b/a/1.json' would be duplicated
     assert_glob(
         r"s3://{bucketForGlobTest,bucketForGlobTest2,bucketForGlobTest3}/**/a/**/*.jso?",
         [
@@ -2228,8 +2218,8 @@ def _s3_glob_with_nested_pathname_cross_bucket():
 def _s3_glob_with_not_exists_dir_cross_bucket():
     """
     scenario: glob on a directory that is not exists
-    expectation: if recursive is True, return the directory with postfix of slash('/'), otherwise, an empty list.
-    keep identical result with standard glob module
+    expectation: if recursive is True, return the directory with postfix of slash('/'),
+        otherwise, an empty list. keep identical result with standard glob module
     """
 
     assert_glob(
@@ -2254,7 +2244,8 @@ def _s3_glob_with_not_exists_dir_cross_bucket():
 def _s3_glob_with_dironly_cross_bucket():
     """
     scenario: pathname with the postfix of slash('/')
-    expectation: returns only contains pathname of directory, each of them is end with '/'
+    expectation: returns only contains pathname of directory,
+        each of them is end with '/'
     """
     assert_glob(
         r"s3://{bucketForGlobTest,bucketForGlobTest2}/*/",

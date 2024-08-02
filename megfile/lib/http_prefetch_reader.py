@@ -24,9 +24,14 @@ DEFAULT_TIMEOUT = (60, 60 * 60 * 24)
 class HttpPrefetchReader(BasePrefetchReader):
     """
     Reader to fast read the http content, service must support Accept-Ranges.
-    This will divide the file content into equal parts of block_size size, and will use LRU to cache at most block_capacity blocks in memory.
+
+    This will divide the file content into equal parts of block_size size, and will use
+    LRU to cache at most block_capacity blocks in memory.
+
     open(), seek() and read() will trigger prefetch read.
-    The prefetch will cached block_forward blocks of data from offset position (the position after reading if the called function is read).
+
+    The prefetch will cached block_forward blocks of data from offset position
+    (the position after reading if the called function is read).
     """
 
     def __init__(
@@ -101,7 +106,12 @@ class HttpPrefetchReader(BasePrefetchReader):
                 ) as response:
                     if len(response.content) != int(response.headers["Content-Length"]):
                         raise HttpBodyIncompleteError(
-                            f"The downloaded content is incomplete, expected size: {response.headers['Content-Length']}, actual size: {len(response.content)}"
+                            "The downloaded content is incomplete, "
+                            "expected size: %s, actual size: %d"
+                            % (
+                                response.headers["Content-Length"],
+                                len(response.content),
+                            )
                         )
                     return {
                         "Body": BytesIO(response.content),

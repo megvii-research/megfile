@@ -209,7 +209,8 @@ def _get_ssh_client(
         )
     except Exception:
         _logger.warning(
-            "Can't create file lock in '/tmp', please control the SFTP concurrency count by yourself."
+            "Can't create file lock in '/tmp', "
+            "please control the SFTP concurrency count by yourself."
         )
         fd = None
     if fd:
@@ -304,8 +305,10 @@ def is_sftp(path: PathLike) -> bool:
 def sftp_readlink(path: PathLike) -> "str":
     """
     Return a SftpPath instance representing the path to which the symbolic link points.
+
     :param path: Given path
-    :returns: Return a SftpPath instance representing the path to which the symbolic link points.
+    :returns: Return a SftpPath instance representing the path to
+        which the symbolic link points.
     """
     return SftpPath(path).readlink().path_with_protocol
 
@@ -313,21 +316,29 @@ def sftp_readlink(path: PathLike) -> "str":
 def sftp_glob(
     path: PathLike, recursive: bool = True, missing_ok: bool = True
 ) -> List[str]:
-    """Return path list in ascending alphabetical order, in which path matches glob pattern
+    """Return path list in ascending alphabetical order,
+    in which path matches glob pattern
 
     1. If doesn't match any path, return empty list
-        Notice:  ``glob.glob`` in standard library returns ['a/'] instead of empty list when pathname is like `a/**`, recursive is True and directory 'a' doesn't exist. fs_glob behaves like ``glob.glob`` in standard library under such circumstance.
+       Notice:  ``glob.glob`` in standard library returns ['a/'] instead of empty list
+       when pathname is like `a/**`, recursive is True and directory 'a' doesn't exist.
+       fs_glob behaves like ``glob.glob`` in standard library under such circumstance.
     2. No guarantee that each path in result is different, which means:
-        Assume there exists a path `/a/b/c/b/d.txt`
-        use path pattern like `/**/b/**/*.txt` to glob, the path above will be returned twice
-    3. `**` will match any matched file, directory, symlink and '' by default, when recursive is `True`
-    4. fs_glob returns same as glob.glob(pathname, recursive=True) in ascending alphabetical order.
+       Assume there exists a path `/a/b/c/b/d.txt`
+       use path pattern like `/**/b/**/*.txt` to glob,
+       the path above will be returned twice
+    3. `**` will match any matched file, directory, symlink and '' by default,
+       when recursive is `True`
+    4. fs_glob returns same as glob.glob(pathname, recursive=True)
+       in ascending alphabetical order.
     5. Hidden files (filename stars with '.') will not be found in the result
 
     :param path: Given path
-    :param pattern: Glob the given relative pattern in the directory represented by this path
+    :param pattern: Glob the given relative pattern in the directory represented
+        by this path
     :param recursive: If False, `**` will not search directory recursively
-    :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
+    :param missing_ok: If False and target path doesn't match any file,
+        raise FileNotFoundError
     :returns: A list contains paths match `pathname`
     """
     return list(sftp_iglob(path=path, recursive=recursive, missing_ok=missing_ok))
@@ -336,22 +347,31 @@ def sftp_glob(
 def sftp_glob_stat(
     path: PathLike, recursive: bool = True, missing_ok: bool = True
 ) -> Iterator[FileEntry]:
-    """Return a list contains tuples of path and file stat, in ascending alphabetical order, in which path matches glob pattern
+    """Return a list contains tuples of path and file stat, in ascending alphabetical
+    order, in which path matches glob pattern
 
     1. If doesn't match any path, return empty list
-        Notice:  ``glob.glob`` in standard library returns ['a/'] instead of empty list when pathname is like `a/**`, recursive is True and directory 'a' doesn't exist. sftp_glob behaves like ``glob.glob`` in standard library under such circumstance.
+       Notice:  ``glob.glob`` in standard library returns ['a/'] instead of empty list
+       when pathname is like `a/**`, recursive is True and directory 'a' doesn't exist.
+       sftp_glob behaves like ``glob.glob`` in standard library under such circumstance.
     2. No guarantee that each path in result is different, which means:
-        Assume there exists a path `/a/b/c/b/d.txt`
-        use path pattern like `/**/b/**/*.txt` to glob, the path above will be returned twice
-    3. `**` will match any matched file, directory, symlink and '' by default, when recursive is `True`
-    4. fs_glob returns same as glob.glob(pathname, recursive=True) in ascending alphabetical order.
+       Assume there exists a path `/a/b/c/b/d.txt`
+       use path pattern like `/**/b/**/*.txt` to glob,
+       the path above will be returned twice
+    3. `**` will match any matched file, directory, symlink and '' by default,
+       when recursive is `True`
+    4. fs_glob returns same as glob.glob(pathname, recursive=True) in
+       ascending alphabetical order.
     5. Hidden files (filename stars with '.') will not be found in the result
 
     :param path: Given path
-    :param pattern: Glob the given relative pattern in the directory represented by this path
+    :param pattern: Glob the given relative pattern in the directory represented
+        by this path
     :param recursive: If False, `**` will not search directory recursively
-    :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
-    :returns: A list contains tuples of path and file stat, in which paths match `pathname`
+    :param missing_ok: If False and target path doesn't match any file,
+        raise FileNotFoundError
+    :returns: A list contains tuples of path and file stat,
+        in which paths match `pathname`
     """
     for path in sftp_iglob(path=path, recursive=recursive, missing_ok=missing_ok):
         path_object = SftpPath(path)
@@ -363,21 +383,29 @@ def sftp_glob_stat(
 def sftp_iglob(
     path: PathLike, recursive: bool = True, missing_ok: bool = True
 ) -> Iterator[str]:
-    """Return path iterator in ascending alphabetical order, in which path matches glob pattern
+    """Return path iterator in ascending alphabetical order,
+    in which path matches glob pattern
 
     1. If doesn't match any path, return empty list
-        Notice:  ``glob.glob`` in standard library returns ['a/'] instead of empty list when pathname is like `a/**`, recursive is True and directory 'a' doesn't exist. fs_glob behaves like ``glob.glob`` in standard library under such circumstance.
+       Notice:  ``glob.glob`` in standard library returns ['a/'] instead of empty list
+       when pathname is like `a/**`, recursive is True and directory 'a' doesn't exist.
+       fs_glob behaves like ``glob.glob`` in standard library under such circumstance.
     2. No guarantee that each path in result is different, which means:
-        Assume there exists a path `/a/b/c/b/d.txt`
-        use path pattern like `/**/b/**/*.txt` to glob, the path above will be returned twice
-    3. `**` will match any matched file, directory, symlink and '' by default, when recursive is `True`
-    4. fs_glob returns same as glob.glob(pathname, recursive=True) in ascending alphabetical order.
+       Assume there exists a path `/a/b/c/b/d.txt`
+       use path pattern like `/**/b/**/*.txt` to glob,
+       the path above will be returned twice
+    3. `**` will match any matched file, directory, symlink and '' by default,
+       when recursive is `True`
+    4. fs_glob returns same as glob.glob(pathname, recursive=True) in
+       ascending alphabetical order.
     5. Hidden files (filename stars with '.') will not be found in the result
 
     :param path: Given path
-    :param pattern: Glob the given relative pattern in the directory represented by this path
+    :param pattern: Glob the given relative pattern in the directory represented
+        by this path
     :param recursive: If False, `**` will not search directory recursively
-    :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
+    :param missing_ok: If False and target path doesn't match any file,
+        raise FileNotFoundError
     :returns: An iterator contains paths match `pathname`
     """
 
@@ -392,7 +420,8 @@ def sftp_resolve(path: PathLike, strict=False) -> "str":
 
     :param path: Given path
     :param strict: Ignore this parameter, just for compatibility
-    :return: Return the canonical path of the specified filename, eliminating any symbolic links encountered in the path.
+    :return: Return the canonical path of the specified filename,
+        eliminating any symbolic links encountered in the path.
     :rtype: SftpPath
     """
     return SftpPath(path).resolve(strict).path_with_protocol
@@ -419,9 +448,11 @@ def sftp_download(
 ):
     """
     Downloads a file from sftp to local filesystem.
+
     :param src_url: source sftp path
     :param dst_url: target fs path
-    :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
+    :param callback: Called periodically during copy, and the input parameter is
+        the data size (in bytes) of copy since the last call
     :param followlinks: False if regard symlink as file, else True
     :param overwrite: whether or not overwrite file when exists, default is True
     """
@@ -478,9 +509,11 @@ def sftp_upload(
 ):
     """
     Uploads a file from local filesystem to sftp server.
+
     :param src_url: source fs path
     :param dst_url: target sftp path
-    :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
+    :param callback: Called periodically during copy, and the input parameter is
+        the data size (in bytes) of copy since the last call
     :param overwrite: whether or not overwrite file when exists, default is True
     """
     from megfile.fs import is_fs
@@ -536,8 +569,12 @@ def sftp_path_join(path: PathLike, *other_paths: PathLike) -> str:
 
     .. note ::
 
-        The difference between this function and ``os.path.join`` is that this function ignores left side slash (which indicates absolute path) in ``other_paths`` and will directly concat.
-        e.g. os.path.join('/path', 'to', '/file') => '/file', but sftp_path_join('/path', 'to', '/file') => '/path/to/file'
+        The difference between this function and ``os.path.join`` is that this function
+        ignores left side slash (which indicates absolute path) in ``other_paths``
+        and will directly concat.
+
+        e.g. os.path.join('/path', 'to', '/file') => '/file',
+        but sftp_path_join('/path', 'to', '/file') => '/path/to/file'
     """
     return uri_join(fspath(path), *map(fspath, other_paths))
 
@@ -562,7 +599,8 @@ def sftp_concat(src_paths: List[PathLike], dst_path: PathLike) -> None:
 
 def sftp_lstat(path: PathLike) -> StatResult:
     """
-    Get StatResult of file on sftp, including file size and mtime, referring to fs_getsize and fs_getmtime
+    Get StatResult of file on sftp, including file size and mtime,
+    referring to fs_getsize and fs_getmtime
 
     :param path: Given path
     :returns: StatResult
@@ -646,7 +684,9 @@ class SftpPath(URIPath):
     def getmtime(self, follow_symlinks: bool = False) -> float:
         """
         Get last-modified time of the file on the given path (in Unix timestamp format).
-        If the path is an existent directory, return the latest modified time of all file in it.
+
+        If the path is an existent directory,
+        return the latest modified time of all file in it.
 
         :returns: last-modified time
         """
@@ -655,8 +695,12 @@ class SftpPath(URIPath):
     def getsize(self, follow_symlinks: bool = False) -> int:
         """
         Get file size on the given file path (in bytes).
-        If the path in a directory, return the sum of all file size in it, including file in subdirectories (if exist).
-        The result excludes the size of directory itself. In other words, return 0 Byte on an empty directory path.
+
+        If the path in a directory, return the sum of all file size in it,
+        including file in subdirectories (if exist).
+
+        The result excludes the size of directory itself. In other words,
+        return 0 Byte on an empty directory path.
 
         :returns: File size
 
@@ -666,20 +710,29 @@ class SftpPath(URIPath):
     def glob(
         self, pattern, recursive: bool = True, missing_ok: bool = True
     ) -> List["SftpPath"]:
-        """Return path list in ascending alphabetical order, in which path matches glob pattern
+        """Return path list in ascending alphabetical order,
+        in which path matches glob pattern
 
         1. If doesn't match any path, return empty list
-            Notice:  ``glob.glob`` in standard library returns ['a/'] instead of empty list when pathname is like `a/**`, recursive is True and directory 'a' doesn't exist. fs_glob behaves like ``glob.glob`` in standard library under such circumstance.
+           Notice:  ``glob.glob`` in standard library returns ['a/'] instead of
+           empty list when pathname is like `a/**`, recursive is True and directory 'a'
+           doesn't exist. fs_glob behaves like ``glob.glob`` in standard library under
+           such circumstance.
         2. No guarantee that each path in result is different, which means:
-            Assume there exists a path `/a/b/c/b/d.txt`
-            use path pattern like `/**/b/**/*.txt` to glob, the path above will be returned twice
-        3. `**` will match any matched file, directory, symlink and '' by default, when recursive is `True`
-        4. fs_glob returns same as glob.glob(pathname, recursive=True) in ascending alphabetical order.
+           Assume there exists a path `/a/b/c/b/d.txt`
+           use path pattern like `/**/b/**/*.txt` to glob,
+           the path above will be returned twice
+        3. `**` will match any matched file, directory, symlink and '' by default,
+           when recursive is `True`
+        4. fs_glob returns same as glob.glob(pathname, recursive=True) in
+           ascending alphabetical order.
         5. Hidden files (filename stars with '.') will not be found in the result
 
-        :param pattern: Glob the given relative pattern in the directory represented by this path
+        :param pattern: Glob the given relative pattern in the directory represented
+            by this path
         :param recursive: If False, `**` will not search directory recursively
-        :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
+        :param missing_ok: If False and target path doesn't match any file,
+            raise FileNotFoundError
         :returns: A list contains paths match `pathname`
         """
         return list(
@@ -689,21 +742,31 @@ class SftpPath(URIPath):
     def glob_stat(
         self, pattern, recursive: bool = True, missing_ok: bool = True
     ) -> Iterator[FileEntry]:
-        """Return a list contains tuples of path and file stat, in ascending alphabetical order, in which path matches glob pattern
+        """Return a list contains tuples of path and file stat,
+        in ascending alphabetical order, in which path matches glob pattern
 
         1. If doesn't match any path, return empty list
-            Notice:  ``glob.glob`` in standard library returns ['a/'] instead of empty list when pathname is like `a/**`, recursive is True and directory 'a' doesn't exist. sftp_glob behaves like ``glob.glob`` in standard library under such circumstance.
+           Notice:  ``glob.glob`` in standard library returns ['a/'] instead of
+           empty list when pathname is like `a/**`, recursive is True and
+           directory 'a' doesn't exist. sftp_glob behaves like ``glob.glob`` in
+           standard library under such circumstance.
         2. No guarantee that each path in result is different, which means:
-            Assume there exists a path `/a/b/c/b/d.txt`
-            use path pattern like `/**/b/**/*.txt` to glob, the path above will be returned twice
-        3. `**` will match any matched file, directory, symlink and '' by default, when recursive is `True`
-        4. fs_glob returns same as glob.glob(pathname, recursive=True) in ascending alphabetical order.
+           Assume there exists a path `/a/b/c/b/d.txt`
+           use path pattern like `/**/b/**/*.txt` to glob,
+           the path above will be returned twice
+        3. `**` will match any matched file, directory, symlink and '' by default,
+           when recursive is `True`
+        4. fs_glob returns same as glob.glob(pathname, recursive=True) in
+           ascending alphabetical order.
         5. Hidden files (filename stars with '.') will not be found in the result
 
-        :param pattern: Glob the given relative pattern in the directory represented by this path
+        :param pattern: Glob the given relative pattern in the directory represented
+            by this path
         :param recursive: If False, `**` will not search directory recursively
-        :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
-        :returns: A list contains tuples of path and file stat, in which paths match `pathname`
+        :param missing_ok: If False and target path doesn't match any file,
+            raise FileNotFoundError
+        :returns: A list contains tuples of path and file stat,
+            in which paths match `pathname`
         """
         for path_obj in self.iglob(
             pattern=pattern, recursive=recursive, missing_ok=missing_ok
@@ -713,20 +776,29 @@ class SftpPath(URIPath):
     def iglob(
         self, pattern, recursive: bool = True, missing_ok: bool = True
     ) -> Iterator["SftpPath"]:
-        """Return path iterator in ascending alphabetical order, in which path matches glob pattern
+        """Return path iterator in ascending alphabetical order,
+        in which path matches glob pattern
 
         1. If doesn't match any path, return empty list
-            Notice:  ``glob.glob`` in standard library returns ['a/'] instead of empty list when pathname is like `a/**`, recursive is True and directory 'a' doesn't exist. fs_glob behaves like ``glob.glob`` in standard library under such circumstance.
+           Notice:  ``glob.glob`` in standard library returns ['a/'] instead of
+           empty list when pathname is like `a/**`, recursive is True and
+           directory 'a' doesn't exist. fs_glob behaves like ``glob.glob`` in
+           standard library under such circumstance.
         2. No guarantee that each path in result is different, which means:
-            Assume there exists a path `/a/b/c/b/d.txt`
-            use path pattern like `/**/b/**/*.txt` to glob, the path above will be returned twice
-        3. `**` will match any matched file, directory, symlink and '' by default, when recursive is `True`
-        4. fs_glob returns same as glob.glob(pathname, recursive=True) in ascending alphabetical order.
+           Assume there exists a path `/a/b/c/b/d.txt`
+           use path pattern like `/**/b/**/*.txt` to glob,
+           the path above will be returned twice
+        3. `**` will match any matched file, directory, symlink and '' by default,
+           when recursive is `True`
+        4. fs_glob returns same as glob.glob(pathname, recursive=True) in
+           ascending alphabetical order.
         5. Hidden files (filename stars with '.') will not be found in the result
 
-        :param pattern: Glob the given relative pattern in the directory represented by this path
+        :param pattern: Glob the given relative pattern in the directory represented
+            by this path
         :param recursive: If False, `**` will not search directory recursively
-        :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
+        :param missing_ok: If False and target path doesn't match any file,
+            raise FileNotFoundError
         :returns: An iterator contains paths match `pathname`
         """
         glob_path = self.path_with_protocol
@@ -757,7 +829,8 @@ class SftpPath(URIPath):
 
         .. note::
 
-            The difference between this function and ``os.path.isdir`` is that this function regard symlink as file
+            The difference between this function and ``os.path.isdir`` is that
+            this function regard symlink as file
 
         :param followlinks: False if regard symlink as file, else True
         :returns: True if the path is a directory, else False
@@ -777,7 +850,8 @@ class SftpPath(URIPath):
 
         .. note::
 
-            The difference between this function and ``os.path.isfile`` is that this function regard symlink as file
+            The difference between this function and ``os.path.isfile`` is that
+            this function regard symlink as file
 
         :param followlinks: False if regard symlink as file, else True
         :returns: True if the path is a file, else False
@@ -793,7 +867,8 @@ class SftpPath(URIPath):
 
     def listdir(self) -> List[str]:
         """
-        Get all contents of given sftp path. The result is in ascending alphabetical order.
+        Get all contents of given sftp path.
+        The result is in ascending alphabetical order.
 
         :returns: All contents have in the path in ascending alphabetical order
         """
@@ -803,7 +878,8 @@ class SftpPath(URIPath):
 
     def iterdir(self) -> Iterator["SftpPath"]:
         """
-        Get all contents of given sftp path. The result is in ascending alphabetical order.
+        Get all contents of given sftp path.
+        The result is in ascending alphabetical order.
 
         :returns: All contents have in the path in ascending alphabetical order
         """
@@ -828,9 +904,11 @@ class SftpPath(URIPath):
         make a directory on sftp, including parent directory.
         If there exists a file on the path, raise FileExistsError
 
-        :param mode: If mode is given, it is combined with the process’ umask value to determine the file mode and access flags.
-        :param parents: If parents is true, any missing parents of this path are created as needed;
-            If parents is false (the default), a missing parent raises FileNotFoundError.
+        :param mode: If mode is given, it is combined with the process’ umask value to
+            determine the file mode and access flags.
+        :param parents: If parents is true, any missing parents of this path
+            are created as needed; If parents is false (the default),
+            a missing parent raises FileNotFoundError.
         :param exist_ok: If False and target directory exists, raise FileExistsError
 
         :raises: FileExistsError
@@ -931,7 +1009,8 @@ class SftpPath(URIPath):
         """
         Remove the file or directory on sftp
 
-        :param missing_ok: if False and target file/directory not exists, raise FileNotFoundError
+        :param missing_ok: if False and target file/directory not exists,
+            raise FileNotFoundError
         """
         if missing_ok and not self.exists():
             return
@@ -951,7 +1030,8 @@ class SftpPath(URIPath):
         If path is a non-existent path, return an empty generator
         If path is a bucket path, return all file paths in the bucket
 
-        :param missing_ok: If False and there's no file in the directory, raise FileNotFoundError
+        :param missing_ok: If False and there's no file in the directory,
+            raise FileNotFoundError
         :returns: A file path generator
         """
         scan_stat_iter = self.scan_stat(missing_ok=missing_ok, followlinks=followlinks)
@@ -966,7 +1046,8 @@ class SftpPath(URIPath):
         Iteratively traverse only files in given directory, in alphabetical order.
         Every iteration on generator yields a tuple of path string and file stat
 
-        :param missing_ok: If False and there's no file in the directory, raise FileNotFoundError
+        :param missing_ok: If False and there's no file in the directory,
+            raise FileNotFoundError
         :returns: A file path generator
         """
 
@@ -1027,7 +1108,8 @@ class SftpPath(URIPath):
 
     def stat(self, follow_symlinks=True) -> StatResult:
         """
-        Get StatResult of file on sftp, including file size and mtime, referring to fs_getsize and fs_getmtime
+        Get StatResult of file on sftp, including file size and mtime,
+        referring to fs_getsize and fs_getmtime
 
         :returns: StatResult
         """
@@ -1055,15 +1137,20 @@ class SftpPath(URIPath):
         For each directory in the tree rooted at directory path (including path itself),
         it yields a 3-tuple (root, dirs, files).
 
-        root: a string of current path
-        dirs: name list of subdirectories (excluding '.' and '..' if they exist) in 'root'. The list is sorted by ascending alphabetical order
-        files: name list of non-directory files (link is regarded as file) in 'root'. The list is sorted by ascending alphabetical order
+        - root: a string of current path
+        - dirs: name list of subdirectories (excluding '.' and '..' if they exist)
+          in 'root'. The list is sorted by ascending alphabetical order
+        - files: name list of non-directory files (link is regarded as file) in 'root'.
+          The list is sorted by ascending alphabetical order
 
-        If path not exists, or path is a file (link is regarded as file), return an empty generator
+        If path not exists, or path is a file (link is regarded as file),
+        return an empty generator
 
         .. note::
 
-            Be aware that setting ``followlinks`` to True can lead to infinite recursion if a link points to a parent directory of itself. fs_walk() does not keep track of the directories it visited already.
+            Be aware that setting ``followlinks`` to True can lead to infinite recursion
+            if a link points to a parent directory of itself. fs_walk() does not keep
+            track of the directories it visited already.
 
         :param followlinks: False if regard symlink as file, else True
         :returns: A 3-tuple generator
@@ -1099,7 +1186,8 @@ class SftpPath(URIPath):
         """Equal to sftp_realpath
 
         :param strict: Ignore this parameter, just for compatibility
-        :return: Return the canonical path of the specified filename, eliminating any symbolic links encountered in the path.
+        :return: Return the canonical path of the specified filename,
+            eliminating any symbolic links encountered in the path.
         :rtype: SftpPath
         """
         path = self._client.normalize(self._real_path)
@@ -1141,8 +1229,8 @@ class SftpPath(URIPath):
 
     def readlink(self) -> "SftpPath":
         """
-        Return a SftpPath instance representing the path to which the symbolic link points.
-        :returns: Return a SftpPath instance representing the path to which the symbolic link points.
+        Return a SftpPath instance representing the path to
+        which the symbolic link points.
         """
         if not self.is_symlink():
             raise OSError("Not a symlink: %s" % self.path_with_protocol)
@@ -1188,9 +1276,12 @@ class SftpPath(URIPath):
         """Open a file on the path.
 
         :param mode: Mode to open file
-        :param buffering: buffering is an optional integer used to set the buffering policy.
-        :param encoding: encoding is the name of the encoding used to decode or encode the file. This should only be used in text mode.
-        :param errors: errors is an optional string that specifies how encoding and decoding errors are to be handled—this cannot be used in binary mode.
+        :param buffering: buffering is an optional integer used to
+            set the buffering policy.
+        :param encoding: encoding is the name of the encoding used to decode or encode
+            the file. This should only be used in text mode.
+        :param errors: errors is an optional string that specifies how encoding and
+            decoding errors are to be handled—this cannot be used in binary mode.
         :returns: File-Like object
         """
         if "w" in mode or "x" in mode or "a" in mode:
@@ -1218,7 +1309,8 @@ class SftpPath(URIPath):
 
     def absolute(self) -> "SftpPath":
         """
-        Make the path absolute, without normalization or resolving symlinks. Returns a new path object
+        Make the path absolute, without normalization or resolving symlinks.
+        Returns a new path object
         """
         return self.resolve()
 
@@ -1271,8 +1363,9 @@ class SftpPath(URIPath):
         Copy the file to the given destination path.
 
         :param dst_path: The destination path to copy the file to.
-        :param callback: An optional callback function that takes an integer parameter and is called
-                        periodically during the copy operation to report the number of bytes copied.
+        :param callback: An optional callback function that takes an integer parameter
+            and is called periodically during the copy operation to report the number
+            of bytes copied.
         :param followlinks: Whether to follow symbolic links when copying directories.
         :raises IsADirectoryError: If the source is a directory.
         :raises OSError: If there is an error copying the file.
@@ -1333,7 +1426,8 @@ class SftpPath(URIPath):
 
         :param dst_url: Given destination path
         :param followlinks: False if regard symlink as file, else True
-        :param force: Sync file forcible, do not ignore same files, priority is higher than 'overwrite', default is False
+        :param force: Sync file forcible, do not ignore same files,
+            priority is higher than 'overwrite', default is False
         :param overwrite: whether or not overwrite file when exists, default is True
         """
         if not self._is_same_protocol(dst_path):

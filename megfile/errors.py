@@ -115,19 +115,16 @@ def s3_should_retry(error: Exception) -> bool:
     if isinstance(error, s3_retry_exceptions):  # pyre-ignore[6]
         return True
     if isinstance(error, botocore.exceptions.ClientError):
-        return (
-            client_error_code(error)
-            in (
-                "499",  # Some cloud providers may send response with http code 499 if the connection not send data in 1 min.
-                "500",
-                "501",
-                "502",
-                "503",
-                "InternalError",
-                "ServiceUnavailable",
-                "SlowDown",
-                "ContextCanceled",
-            )
+        return client_error_code(error) in (
+            "499",  # noqa: E501 # Some cloud providers may send response with http code 499 if the connection not send data in 1 min.
+            "500",
+            "501",
+            "502",
+            "503",
+            "InternalError",
+            "ServiceUnavailable",
+            "SlowDown",
+            "ContextCanceled",
         )
     return False
 
@@ -162,7 +159,8 @@ def patch_method(
                     raise
                 retry_interval = min(0.1 * 2**retries, 30)
                 _logger.info(
-                    "unknown error encountered: %s, retry in %0.1f seconds after %d tries"
+                    "unknown error encountered: %s, retry in %0.1f seconds "
+                    "after %d tries"
                     % (full_error_message(error), retry_interval, retries)
                 )
                 time.sleep(retry_interval)
@@ -247,7 +245,10 @@ class S3PermissionError(S3Exception, PermissionError):
 
 
 class S3ConfigError(S3Exception, EnvironmentError):
-    """Error raised by wrong S3 config, including wrong config file format, wrong aws_secret_access_key / aws_access_key_id, and etc."""
+    """
+    Error raised by wrong S3 config, including wrong config file format,
+    wrong aws_secret_access_key / aws_access_key_id, and etc.
+    """
 
 
 class S3NotALinkError(S3FileNotFoundError, PermissionError):

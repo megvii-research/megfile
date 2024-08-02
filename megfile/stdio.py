@@ -3,7 +3,10 @@ from typing import IO, Optional
 from megfile.interfaces import PathLike
 from megfile.stdio_path import StdioPath, is_stdio
 
-__all__ = ["is_stdio", "stdio_open"]
+__all__ = [
+    "is_stdio",
+    "stdio_open",
+]
 
 
 def stdio_open(

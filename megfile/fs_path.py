@@ -28,7 +28,6 @@ from megfile.utils import calculate_md5
 __all__ = [
     "FSPath",
     "is_fs",
-    "StatResult",
     "fs_path_join",
     "_make_stat",
     "fs_readlink",
@@ -100,19 +99,26 @@ def fs_home():
 def fs_iglob(
     path: PathLike, recursive: bool = True, missing_ok: bool = True
 ) -> Iterator[str]:
-    """Return path iterator in ascending alphabetical order, in which path matches glob pattern
+    """Return path iterator in ascending alphabetical order,
+    in which path matches glob pattern
 
     1. If doesn't match any path, return empty list
-        Notice:  ``glob.glob`` in standard library returns ['a/'] instead of empty list when pathname is like `a/**`, recursive is True and directory 'a' doesn't exist. fs_glob behaves like ``glob.glob`` in standard library under such circumstance.
+        Notice:  ``glob.glob`` in standard library returns ['a/'] instead of empty list
+        when pathname is like `a/**`, recursive is True and directory 'a' doesn't exist.
+        fs_glob behaves like ``glob.glob`` in standard library under such circumstance.
     2. No guarantee that each path in result is different, which means:
         Assume there exists a path `/a/b/c/b/d.txt`
-        use path pattern like `/**/b/**/*.txt` to glob, the path above will be returned twice
-    3. `**` will match any matched file, directory, symlink and '' by default, when recursive is `True`
-    4. fs_glob returns same as glob.glob(pathname, recursive=True) in ascending alphabetical order.
+        use path pattern like `/**/b/**/*.txt` to glob,
+        the path above will be returned twice
+    3. `**` will match any matched file, directory, symlink and '' by default,
+        when recursive is `True`
+    4. fs_glob returns same as glob.glob(pathname, recursive=True)
+        in ascending alphabetical order.
     5. Hidden files (filename stars with '.') will not be found in the result
 
     :param recursive: If False, `**` will not search directory recursively
-    :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
+    :param missing_ok: If False and target path doesn't match any file,
+        raise FileNotFoundError
     :returns: An iterator contains paths match `pathname`
     """
     for path in _create_missing_ok_generator(
@@ -126,19 +132,26 @@ def fs_iglob(
 def fs_glob(
     path: PathLike, recursive: bool = True, missing_ok: bool = True
 ) -> List[str]:
-    """Return path list in ascending alphabetical order, in which path matches glob pattern
+    """Return path list in ascending alphabetical order,
+    in which path matches glob pattern
 
     1. If doesn't match any path, return empty list
-        Notice:  ``glob.glob`` in standard library returns ['a/'] instead of empty list when pathname is like `a/**`, recursive is True and directory 'a' doesn't exist. fs_glob behaves like ``glob.glob`` in standard library under such circumstance.
+        Notice:  ``glob.glob`` in standard library returns ['a/'] instead of empty list
+        when pathname is like `a/**`, recursive is True and directory 'a' doesn't exist.
+        fs_glob behaves like ``glob.glob`` in standard library under such circumstance.
     2. No guarantee that each path in result is different, which means:
         Assume there exists a path `/a/b/c/b/d.txt`
-        use path pattern like `/**/b/**/*.txt` to glob, the path above will be returned twice
-    3. `**` will match any matched file, directory, symlink and '' by default, when recursive is `True`
-    4. fs_glob returns same as glob.glob(pathname, recursive=True) in ascending alphabetical order.
+        use path pattern like `/**/b/**/*.txt` to glob,
+        the path above will be returned twice
+    3. `**` will match any matched file, directory, symlink and '' by default,
+        when recursive is `True`
+    4. fs_glob returns same as glob.glob(pathname, recursive=True)
+        in ascending alphabetical order.
     5. Hidden files (filename stars with '.') will not be found in the result
 
     :param recursive: If False, `**` will not search directory recursively
-    :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
+    :param missing_ok: If False and target path doesn't match any file,
+        raise FileNotFoundError
     :returns: A list contains paths match `pathname`
     """
     return list(fs_iglob(path=path, recursive=recursive, missing_ok=missing_ok))
@@ -147,20 +160,28 @@ def fs_glob(
 def fs_glob_stat(
     path: PathLike, recursive: bool = True, missing_ok: bool = True
 ) -> Iterator[FileEntry]:
-    """Return a list contains tuples of path and file stat, in ascending alphabetical order, in which path matches glob pattern
+    """Return a list contains tuples of path and file stat,
+    in ascending alphabetical order, in which path matches glob pattern
 
     1. If doesn't match any path, return empty list
-        Notice:  ``glob.glob`` in standard library returns ['a/'] instead of empty list when pathname is like `a/**`, recursive is True and directory 'a' doesn't exist. fs_glob behaves like ``glob.glob`` in standard library under such circumstance.
+        Notice:  ``glob.glob`` in standard library returns ['a/'] instead of empty list
+        when pathname is like `a/**`, recursive is True and directory 'a' doesn't exist.
+        fs_glob behaves like ``glob.glob`` in standard library under such circumstance.
     2. No guarantee that each path in result is different, which means:
         Assume there exists a path `/a/b/c/b/d.txt`
-        use path pattern like `/**/b/**/*.txt` to glob, the path above will be returned twice
-    3. `**` will match any matched file, directory, symlink and '' by default, when recursive is `True`
-    4. fs_glob returns same as glob.glob(pathname, recursive=True) in ascending alphabetical order.
+        use path pattern like `/**/b/**/*.txt` to glob,
+        the path above will be returned twice.
+    3. `**` will match any matched file, directory, symlink and '' by default,
+        when recursive is `True`
+    4. fs_glob returns same as glob.glob(pathname, recursive=True)
+        in ascending alphabetical order.
     5. Hidden files (filename stars with '.') will not be found in the result
 
     :param recursive: If False, `**` will not search directory recursively
-    :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
-    :returns: A list contains tuples of path and file stat, in which paths match `pathname`
+    :param missing_ok: If False and target path doesn't match any file,
+        raise FileNotFoundError
+    :returns: A list contains tuples of path and file stat,
+        in which paths match `pathname`
     """
     for path in fs_iglob(path=path, recursive=recursive, missing_ok=missing_ok):
         yield FileEntry(os.path.basename(path), path, _make_stat(os.lstat(path)))
@@ -254,7 +275,8 @@ def fs_makedirs(path: PathLike, exist_ok: bool = False):
 
 def fs_lstat(path: PathLike) -> StatResult:
     """
-    Like Path.stat() but, if the path points to a symbolic link, return the symbolic link’s information rather than its target’s.
+    Like Path.stat() but, if the path points to a symbolic link,
+    return the symbolic link’s information rather than its target’s.
 
     :param path: Given path
     :returns: StatResult
@@ -333,7 +355,8 @@ class FSPath(URIPath):
             return os.access(self.path_without_protocol, os.W_OK)
         else:
             raise TypeError(
-                "Unsupported mode: {} -- Mode should use one of the enums belonging to:  {}".format(
+                "Unsupported mode: {} -- Mode should use one of "
+                "the enums belonging to:  {}".format(
                     mode, ", ".join([str(a) for a in Access])
                 )
             )
@@ -344,7 +367,8 @@ class FSPath(URIPath):
 
         .. note::
 
-            The difference between this function and ``os.path.exists`` is that this function regard symlink as file.
+            The difference between this function and ``os.path.exists`` is that
+            this function regard symlink as file.
             In other words, this function is equal to ``os.path.lexists``
 
         :param followlinks: False if regard symlink as file, else True
@@ -358,7 +382,8 @@ class FSPath(URIPath):
     def getmtime(self, follow_symlinks: bool = False) -> float:
         """
         Get last-modified time of the file on the given path (in Unix timestamp format).
-        If the path is an existent directory, return the latest modified time of all file in it.
+        If the path is an existent directory,
+        return the latest modified time of all file in it.
 
         :returns: last-modified time
         """
@@ -367,8 +392,10 @@ class FSPath(URIPath):
     def getsize(self, follow_symlinks: bool = False) -> int:
         """
         Get file size on the given file path (in bytes).
-        If the path in a directory, return the sum of all file size in it, including file in subdirectories (if exist).
-        The result excludes the size of directory itself. In other words, return 0 Byte on an empty directory path.
+        If the path in a directory, return the sum of all file size in it,
+        including file in subdirectories (if exist).
+        The result excludes the size of directory itself.
+        In other words, return 0 Byte on an empty directory path.
 
         :returns: File size
 
@@ -378,20 +405,30 @@ class FSPath(URIPath):
     def glob(
         self, pattern, recursive: bool = True, missing_ok: bool = True
     ) -> List["FSPath"]:
-        """Return path list in ascending alphabetical order, in which path matches glob pattern
+        """Return path list in ascending alphabetical order,
+        in which path matches glob pattern
 
         1. If doesn't match any path, return empty list
-            Notice:  ``glob.glob`` in standard library returns ['a/'] instead of empty list when pathname is like `a/**`, recursive is True and directory 'a' doesn't exist. fs_glob behaves like ``glob.glob`` in standard library under such circumstance.
+            Notice:  ``glob.glob`` in standard library returns ['a/'] instead of
+            empty list when pathname is like `a/**`,
+            recursive is True and directory 'a' doesn't exist.
+            fs_glob behaves like ``glob.glob`` in standard library
+            under such circumstance.
         2. No guarantee that each path in result is different, which means:
             Assume there exists a path `/a/b/c/b/d.txt`
-            use path pattern like `/**/b/**/*.txt` to glob, the path above will be returned twice
-        3. `**` will match any matched file, directory, symlink and '' by default, when recursive is `True`
-        4. fs_glob returns same as glob.glob(pathname, recursive=True) in ascending alphabetical order.
+            use path pattern like `/**/b/**/*.txt` to glob,
+            the path above will be returned twice
+        3. `**` will match any matched file, directory, symlink and '' by default,
+            when recursive is `True`
+        4. fs_glob returns same as glob.glob(pathname, recursive=True)
+            in ascending alphabetical order.
         5. Hidden files (filename stars with '.') will not be found in the result
 
-        :param pattern: Glob the given relative pattern in the directory represented by this path
+        :param pattern: Glob the given relative pattern in the directory represented
+            by this path
         :param recursive: If False, `**` will not search directory recursively
-        :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
+        :param missing_ok: If False and target path doesn't match any file,
+            raise FileNotFoundError
         :returns: A list contains paths match `pathname`
         """
         return list(
@@ -401,21 +438,32 @@ class FSPath(URIPath):
     def glob_stat(
         self, pattern, recursive: bool = True, missing_ok: bool = True
     ) -> Iterator[FileEntry]:
-        """Return a list contains tuples of path and file stat, in ascending alphabetical order, in which path matches glob pattern
+        """Return a list contains tuples of path and file stat,
+        in ascending alphabetical order, in which path matches glob pattern
 
         1. If doesn't match any path, return empty list
-            Notice:  ``glob.glob`` in standard library returns ['a/'] instead of empty list when pathname is like `a/**`, recursive is True and directory 'a' doesn't exist. fs_glob behaves like ``glob.glob`` in standard library under such circumstance.
+            Notice:  ``glob.glob`` in standard library returns ['a/'] instead of
+            empty list when pathname is like `a/**`,
+            recursive is True and directory 'a' doesn't exist.
+            fs_glob behaves like ``glob.glob`` in standard library
+            under such circumstance.
         2. No guarantee that each path in result is different, which means:
             Assume there exists a path `/a/b/c/b/d.txt`
-            use path pattern like `/**/b/**/*.txt` to glob, the path above will be returned twice
-        3. `**` will match any matched file, directory, symlink and '' by default, when recursive is `True`
-        4. fs_glob returns same as glob.glob(pathname, recursive=True) in ascending alphabetical order.
+            use path pattern like `/**/b/**/*.txt` to glob,
+            the path above will be returned twice
+        3. `**` will match any matched file, directory, symlink and '' by default,
+            when recursive is `True`
+        4. fs_glob returns same as glob.glob(pathname, recursive=True)
+            in ascending alphabetical order.
         5. Hidden files (filename stars with '.') will not be found in the result
 
-        :param pattern: Glob the given relative pattern in the directory represented by this path
+        :param pattern: Glob the given relative pattern in the directory represented
+            by this path
         :param recursive: If False, `**` will not search directory recursively
-        :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
-        :returns: A list contains tuples of path and file stat, in which paths match `pathname`
+        :param missing_ok: If False and target path doesn't match any file,
+            raise FileNotFoundError
+        :returns: A list contains tuples of path and file stat,
+            in which paths match `pathname`
         """
         for path_obj in self.iglob(
             pattern=pattern, recursive=recursive, missing_ok=missing_ok
@@ -435,20 +483,30 @@ class FSPath(URIPath):
     def iglob(
         self, pattern, recursive: bool = True, missing_ok: bool = True
     ) -> Iterator["FSPath"]:
-        """Return path iterator in ascending alphabetical order, in which path matches glob pattern
+        """Return path iterator in ascending alphabetical order,
+        in which path matches glob pattern
 
         1. If doesn't match any path, return empty list
-            Notice:  ``glob.glob`` in standard library returns ['a/'] instead of empty list when pathname is like `a/**`, recursive is True and directory 'a' doesn't exist. fs_glob behaves like ``glob.glob`` in standard library under such circumstance.
+            Notice:  ``glob.glob`` in standard library returns ['a/'] instead of
+            empty list when pathname is like `a/**`,
+            recursive is True and directory 'a' doesn't exist.
+            fs_glob behaves like ``glob.glob`` in standard library
+            under such circumstance.
         2. No guarantee that each path in result is different, which means:
             Assume there exists a path `/a/b/c/b/d.txt`
-            use path pattern like `/**/b/**/*.txt` to glob, the path above will be returned twice
-        3. `**` will match any matched file, directory, symlink and '' by default, when recursive is `True`
-        4. fs_glob returns same as glob.glob(pathname, recursive=True) in ascending alphabetical order.
+            use path pattern like `/**/b/**/*.txt` to glob,
+            the path above will be returned twice
+        3. `**` will match any matched file, directory, symlink and '' by default,
+            when recursive is `True`
+        4. fs_glob returns same as glob.glob(pathname, recursive=True)
+            in ascending alphabetical order.
         5. Hidden files (filename stars with '.') will not be found in the result
 
-        :param pattern: Glob the given relative pattern in the directory represented by this path
+        :param pattern: Glob the given relative pattern in the directory represented
+            by this path
         :param recursive: If False, `**` will not search directory recursively
-        :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
+        :param missing_ok: If False and target path doesn't match any file,
+            raise FileNotFoundError
         :returns: An iterator contains paths match `pathname`
         """
         glob_path = self.path_without_protocol
@@ -463,7 +521,8 @@ class FSPath(URIPath):
 
         .. note::
 
-            The difference between this function and ``os.path.isdir`` is that this function regard symlink as file
+            The difference between this function and ``os.path.isdir`` is that
+            this function regard symlink as file
 
         :param followlinks: False if regard symlink as file, else True
         :returns: True if the path is a directory, else False
@@ -479,7 +538,8 @@ class FSPath(URIPath):
 
         .. note::
 
-            The difference between this function and ``os.path.isfile`` is that this function regard symlink as file
+            The difference between this function and ``os.path.isfile`` is that
+            this function regard symlink as file
 
         :param followlinks: False if regard symlink as file, else True
         :returns: True if the path is a file, else False
@@ -491,7 +551,8 @@ class FSPath(URIPath):
 
     def listdir(self) -> List[str]:
         """
-        Get all contents of given fs path. The result is in ascending alphabetical order.
+        Get all contents of given fs path.
+        The result is in ascending alphabetical order.
 
         :returns: All contents have in the path in ascending alphabetical order
         """
@@ -499,7 +560,8 @@ class FSPath(URIPath):
 
     def iterdir(self) -> Iterator["FSPath"]:
         """
-        Get all contents of given fs path. The result is in ascending alphabetical order.
+        Get all contents of given fs path.
+        The result is in ascending alphabetical order.
 
         :returns: All contents have in the path in ascending alphabetical order
         """
@@ -522,9 +584,11 @@ class FSPath(URIPath):
         make a directory on fs, including parent directory.
         If there exists a file on the path, raise FileExistsError
 
-        :param mode: If mode is given, it is combined with the process’ umask value to determine the file mode and access flags.
-        :param parents: If parents is true, any missing parents of this path are created as needed;
-            If parents is false (the default), a missing parent raises FileNotFoundError.
+        :param mode: If mode is given, it is combined with the process’ umask value to
+            determine the file mode and access flags.
+        :param parents: If parents is true, any missing parents of this path
+            are created as needed; If parents is false (the default),
+            a missing parent raises FileNotFoundError.
         :param exist_ok: If False and target directory exists, raise FileExistsError
 
         :raises: FileExistsError
@@ -573,7 +637,8 @@ class FSPath(URIPath):
         """
         Remove the file or directory on fs
 
-        :param missing_ok: if False and target file/directory not exists, raise FileNotFoundError
+        :param missing_ok: if False and target file/directory not exists,
+            raise FileNotFoundError
         """
         if missing_ok and not self.exists():
             return
@@ -602,7 +667,8 @@ class FSPath(URIPath):
         If path is a non-existent path, return an empty generator
         If path is a bucket path, return all file paths in the bucket
 
-        :param missing_ok: If False and there's no file in the directory, raise FileNotFoundError
+        :param missing_ok: If False and there's no file in the directory,
+            raise FileNotFoundError
         :returns: A file path generator
         """
         return _create_missing_ok_generator(
@@ -618,7 +684,8 @@ class FSPath(URIPath):
         Iteratively traverse only files in given directory, in alphabetical order.
         Every iteration on generator yields a tuple of path string and file stat
 
-        :param missing_ok: If False and there's no file in the directory, raise FileNotFoundError
+        :param missing_ok: If False and there's no file in the directory,
+            raise FileNotFoundError
         :returns: A file path generator
         """
         file_not_found = True
@@ -652,7 +719,8 @@ class FSPath(URIPath):
 
     def stat(self, follow_symlinks=True) -> StatResult:
         """
-        Get StatResult of file on fs, including file size and mtime, referring to fs_getsize and fs_getmtime
+        Get StatResult of file on fs, including file size and mtime,
+        referring to fs_getsize and fs_getmtime
 
         :returns: StatResult
         """
@@ -696,17 +764,23 @@ class FSPath(URIPath):
         For each directory in the tree rooted at directory path (including path itself),
         it yields a 3-tuple (root, dirs, files).
 
-        root: a string of current path
-        dirs: name list of subdirectories (excluding '.' and '..' if they exist) in 'root'. The list is sorted by ascending alphabetical order
-        files: name list of non-directory files (link is regarded as file) in 'root'. The list is sorted by ascending alphabetical order
+        - root: a string of current path
+        - dirs: name list of subdirectories (excluding '.' and '..' if they exist)
+          in 'root'. The list is sorted by ascending alphabetical order
+        - files: name list of non-directory files (link is regarded as file) in 'root'.
+          The list is sorted by ascending alphabetical order
 
-        If path not exists, or path is a file (link is regarded as file), return an empty generator
+        If path not exists, or path is a file (link is regarded as file),
+        return an empty generator
 
         .. note::
 
-            Be aware that setting ``followlinks`` to True can lead to infinite recursion if a link points to a parent directory of itself. fs_walk() does not keep track of the directories it visited already.
+            Be aware that setting ``followlinks`` to True can lead to infinite recursion
+            if a link points to a parent directory of itself. fs_walk() does not keep
+            track of the directories it visited already.
 
         :param followlinks: False if regard symlink as file, else True
+
         :returns: A 3-tuple generator
         """
         if not self.exists(followlinks=followlinks):
@@ -742,7 +816,8 @@ class FSPath(URIPath):
     def resolve(self, strict=False) -> "FSPath":
         """Equal to fs_realpath
 
-        :return: Return the canonical path of the specified filename, eliminating any symbolic links encountered in the path.
+        :return: Return the canonical path of the specified filename,
+            eliminating any symbolic links encountered in the path.
         :rtype: FSPath
         """
         return self.from_path(
@@ -795,7 +870,8 @@ class FSPath(URIPath):
         overwrite: bool = True,
     ):
         """File copy on file system
-        Copy content (excluding meta date) of file on `src_path` to `dst_path`. `dst_path` must be a complete file name
+        Copy content (excluding meta date) of file on `src_path` to `dst_path`.
+        `dst_path` must be a complete file name
 
         .. note ::
 
@@ -803,14 +879,15 @@ class FSPath(URIPath):
 
                 1. If parent directory of dst_path doesn't exist, create it
 
-                2. Allow callback function, None by default. callback: Optional[Callable[[int], None]],
-
-            the int data is means the size (in bytes) of the written data that is passed periodically
+                2. Allow callback function, None by default.
+                    callback: Optional[Callable[[int], None]], the int data is means
+                    the size (in bytes) of the written data that is passed periodically
 
                 3. This function is thread-unsafe
 
         :param dst_path: Target file path
-        :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
+        :param callback: Called periodically during copy, and the input parameter is
+            the data size (in bytes) of copy since the last call
         :param followlinks: False if regard symlink as file, else True
         :param overwrite: whether or not overwrite file when exists, default is True
         """
@@ -840,7 +917,8 @@ class FSPath(URIPath):
 
         :param dst_path: Target file path
         :param followlinks: False if regard symlink as file, else True
-        :param force: Sync file forcible, do not ignore same files, priority is higher than 'overwrite', default is False
+        :param force: Sync file forcible, do not ignore same files,
+            priority is higher than 'overwrite', default is False
         :param overwrite: whether or not overwrite file when exists, default is True
         """
         if self.is_dir(followlinks=followlinks):
@@ -878,8 +956,11 @@ class FSPath(URIPath):
 
     def readlink(self) -> "FSPath":
         """
-        Return a FSPath instance representing the path to which the symbolic link points.
-        :returns: Return a FSPath instance representing the path to which the symbolic link points.
+        Return a FSPath instance representing the path to which
+        the symbolic link points.
+
+        :returns: Return a FSPath instance representing the path to which
+            the symbolic link points.
         """
         return self.from_path(fs_readlink(self.path_without_protocol))
 
@@ -969,7 +1050,8 @@ class FSPath(URIPath):
 
         This method normally follows symlinks.
         Some Unix flavours support changing permissions on the symlink itself;
-        on these platforms you may add the argument follow_symlinks=False, or use lchmod().
+        on these platforms you may add the argument follow_symlinks=False,
+        or use lchmod().
         """
         return os.chmod(
             path=self.path_without_protocol, mode=mode, follow_symlinks=follow_symlinks
@@ -977,51 +1059,62 @@ class FSPath(URIPath):
 
     def group(self) -> str:
         """
-        Return the name of the group owning the file. KeyError is raised if the file’s gid isn’t found in the system database.
+        Return the name of the group owning the file. KeyError is raised if
+        the file’s gid isn’t found in the system database.
         """
         return pathlib.Path(self.path_without_protocol).group()
 
     def is_socket(self) -> bool:
         """
-        Return True if the path points to a Unix socket (or a symbolic link pointing to a Unix socket), False if it points to another kind of file.
+        Return True if the path points to a Unix socket (or a symbolic link pointing to
+        a Unix socket), False if it points to another kind of file.
 
-        False is also returned if the path doesn’t exist or is a broken symlink; other errors (such as permission errors) are propagated.
+        False is also returned if the path doesn’t exist or is a broken symlink;
+        other errors (such as permission errors) are propagated.
         """
         return pathlib.Path(self.path_without_protocol).is_socket()
 
     def is_fifo(self) -> bool:
         """
-        Return True if the path points to a FIFO (or a symbolic link pointing to a FIFO), False if it points to another kind of file.
+        Return True if the path points to a FIFO (or a symbolic link pointing to a FIFO)
+        Return False if it points to another kind of file.
 
-        False is also returned if the path doesn’t exist or is a broken symlink; other errors (such as permission errors) are propagated.
+        False is also returned if the path doesn’t exist or is a broken symlink;
+        other errors (such as permission errors) are propagated.
         """
         return pathlib.Path(self.path_without_protocol).is_fifo()
 
     def is_block_device(self) -> bool:
         """
-        Return True if the path points to a block device (or a symbolic link pointing to a block device), False if it points to another kind of file.
+        Return True if the path points to a block device (or a symbolic link pointing to
+        a block device), False if it points to another kind of file.
 
-        False is also returned if the path doesn’t exist or is a broken symlink; other errors (such as permission errors) are propagated.
+        False is also returned if the path doesn’t exist or is a broken symlink;
+        other errors (such as permission errors) are propagated.
         """
         return pathlib.Path(self.path_without_protocol).is_block_device()
 
     def is_char_device(self) -> bool:
         """
-        Return True if the path points to a character device (or a symbolic link pointing to a character device), False if it points to another kind of file.
+        Return True if the path points to a character device (or a symbolic link
+        pointing to a character device), False if it points to another kind of file.
 
-        False is also returned if the path doesn’t exist or is a broken symlink; other errors (such as permission errors) are propagated.
+        False is also returned if the path doesn’t exist or is a broken symlink;
+        other errors (such as permission errors) are propagated.
         """
         return pathlib.Path(self.path_without_protocol).is_char_device()
 
     def owner(self) -> str:
         """
-        Return the name of the user owning the file. KeyError is raised if the file’s uid isn’t found in the system database.
+        Return the name of the user owning the file. KeyError is raised if the file’s
+        uid isn’t found in the system database.
         """
         return pathlib.Path(self.path_without_protocol).owner()
 
     def absolute(self) -> "FSPath":
         """
-        Make the path absolute, without normalization or resolving symlinks. Returns a new path object
+        Make the path absolute, without normalization or resolving symlinks.
+        Returns a new path object
         """
         return self.from_path(os.path.abspath(self.path_without_protocol))
 
@@ -1041,10 +1134,11 @@ class FSPath(URIPath):
         """
         Set the access and modified times of the file specified by path.
 
-        :param atime: a float or int representing the access time to be set. If it is set to None, the
-                      access time is set to the current time.
-        :param mtime: a float or int representing the modified time to be set. If it is set to None, the
-                      modified time is set to the current time.
+        :param atime: a float or int representing the access time to be set.
+                      If it is set to None, the access time is set to the current time.
+        :param mtime: a float or int representing the modified time to be set.
+                      If it is set to None, the modified time is set
+                      to the current time.
         :return: None
         """
         return os.utime(self.path_without_protocol, times=(atime, mtime))

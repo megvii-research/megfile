@@ -156,7 +156,8 @@ class Readable(FileLike[AnyStr], ABC):
     def readline(self, size: Optional[int] = None) -> AnyStr:  # pyre-ignore[15]
         """Next line from the file, as a bytes or string object.
 
-        Retain newline. A non-negative `size` argument limits the maximum number of bytes or string to return (an incomplete line may be returned then).
+        Retain newline. A non-negative `size` argument limits the maximum number of
+        bytes or string to return (an incomplete line may be returned then).
         Return an empty bytes object at EOF.
         """
 

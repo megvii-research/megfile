@@ -324,8 +324,12 @@ def s3_path_join(path: PathLike, *other_paths: PathLike) -> str:
 
     .. note ::
 
-        The difference between this function and ``os.path.join`` is that this function ignores left side slash (which indicates absolute path) in ``other_paths`` and will directly concat.
-        e.g. os.path.join('/path', 'to', '/file') => '/file', but s3_path_join('/path', 'to', '/file') => '/path/to/file'
+        The difference between this function and ``os.path.join`` is that this function
+        ignores left side slash (which indicates absolute path) in ``other_paths``
+        and will directly concat.
+
+        e.g. os.path.join('/path', 'to', '/file') => '/file',
+        but s3_path_join('/path', 'to', '/file') => '/path/to/file'
     """
     return uri_join(fspath(path), *map(fspath, other_paths))
 
@@ -598,7 +602,9 @@ def _s3_scan_pairs(
 
 def is_s3(path: PathLike) -> bool:
     """
-    1. According to `aws-cli <https://docs.aws.amazon.com/cli/latest/reference/s3/index.html>`_ , test if a path is s3 path.
+    1. According to
+       `aws-cli <https://docs.aws.amazon.com/cli/latest/reference/s3/index.html>`_ ,
+       test if a path is s3 path.
     2. megfile also support the path like `s3[+profile_name]://bucket/key`
 
     :param path: Path to be tested
@@ -649,7 +655,8 @@ def s3_prefetch_open(
     max_concurrency: Optional[int] = None,
     max_block_size: int = DEFAULT_BLOCK_SIZE,
 ) -> S3PrefetchReader:
-    """Open a asynchronous prefetch reader, to support fast sequential read and random read
+    """Open a asynchronous prefetch reader, to support fast sequential
+    read and random read
 
     .. note ::
 
@@ -657,10 +664,12 @@ def s3_prefetch_open(
 
         Supports context manager
 
-        Some parameter setting may perform well: max_concurrency=10 or 20, max_block_size=8 or 16 MB, default value None means using global thread pool
+        Some parameter setting may perform well: max_concurrency=10 or 20,
+        max_block_size=8 or 16 MB, default value None means using global thread pool
 
     :param max_concurrency: Max download thread number, None by default
-    :param max_block_size: Max data size downloaded by each thread, in bytes, 8MB by default
+    :param max_block_size: Max data size downloaded by each thread, in bytes,
+        8MB by default
     :returns: An opened S3PrefetchReader object
     :raises: S3FileNotFoundError
     """
@@ -698,7 +707,8 @@ def s3_share_cache_open(
     max_concurrency: Optional[int] = None,
     max_block_size: int = DEFAULT_BLOCK_SIZE,
 ) -> S3ShareCacheReader:
-    """Open a asynchronous prefetch reader, to support fast sequential read and random read
+    """Open a asynchronous prefetch reader, to support fast sequential read and
+    random read
 
     .. note ::
 
@@ -706,10 +716,12 @@ def s3_share_cache_open(
 
         Supports context manager
 
-        Some parameter setting may perform well: max_concurrency=10 or 20, max_block_size=8 or 16 MB, default value None means using global thread pool
+        Some parameter setting may perform well: max_concurrency=10 or 20,
+        max_block_size=8 or 16 MB, default value None means using global thread pool
 
     :param max_concurrency: Max download thread number, None by default
-    :param max_block_size: Max data size downloaded by each thread, in bytes, 8MB by default
+    :param max_block_size: Max data size downloaded by each thread, in bytes,
+        8MB by default
     :returns: An opened S3ShareCacheReader object
     :raises: S3FileNotFoundError
     """
@@ -743,7 +755,8 @@ def s3_share_cache_open(
 def s3_pipe_open(
     s3_url: PathLike, mode: str, followlinks: bool = False, *, join_thread: bool = True
 ) -> S3PipeHandler:
-    """Open a asynchronous read-write reader / writer, to support fast sequential read / write
+    """Open a asynchronous read-write reader / writer, to support fast sequential
+    read / write
 
     .. note ::
 
@@ -751,9 +764,14 @@ def s3_pipe_open(
 
         Supports context manager
 
-        When join_thread is False, while the file handle are closing, this function will not wait until the asynchronous writing finishes;
-        False doesn't affect read-handle, but this can speed up write-handle because file will be written asynchronously.
-        But asynchronous behavior can guarantee the file are successfully written, and frequent execution may cause thread and file handle exhaustion
+        When join_thread is False, while the file handle are closing,
+        this function will not wait until the asynchronous writing finishes;
+
+        False doesn't affect read-handle, but this can speed up write-handle because
+        file will be written asynchronously.
+
+        But asynchronous behavior can guarantee the file are successfully written,
+        and frequent execution may cause thread and file handle exhaustion
 
     :param mode: Mode to open file, either "rb" or "wb"
     :param join_thread: If wait after function execution until s3 finishes writing
@@ -802,7 +820,8 @@ def s3_cached_open(
 
         Supports context manager
 
-        cache_path can specify the path of cache file. Performance could be better if cache file path is on ssd or tmpfs
+        cache_path can specify the path of cache file. Performance could be better
+        if cache file path is on ssd or tmpfs
 
     :param mode: Mode to open file, could be one of "rb", "wb" or "ab"
     :param cache_path: cache file path
@@ -856,14 +875,21 @@ def s3_buffered_open(
 
         Supports context manager
 
-        Some parameter setting may perform well: max_concurrency=10 or 20, max_block_size=8 or 16 MB, default value None means using global thread pool
+        Some parameter setting may perform well: max_concurrency=10 or 20,
+        max_block_size=8 or 16 MB, default value None means using global thread pool
 
     :param max_concurrency: Max download thread number, None by default
     :param max_buffer_size: Max cached buffer size in memory, 128MB by default
-    :param min_block_size: Min size of single block, default is same as block_size. Each block will be downloaded by single thread.
-    :param max_block_size: Max size of single block, 128MB by default. Each block will be downloaded by single thread.
-    :param block_size: Size of single block, 8MB by default. Each block will be uploaded by single thread.
-    :param limited_seekable: If write-handle supports limited seek (both file head part and tail part can seek block_size). Notes: This parameter are valid only for write-handle. Read-handle support arbitrary seek
+    :param min_block_size: Min size of single block, default is same as block_size.
+        Each block will be downloaded by single thread.
+    :param max_block_size: Max size of single block, 128MB by default.
+        Each block will be downloaded by single thread.
+    :param block_size: Size of single block, 8MB by default.
+        Each block will be uploaded by single thread.
+    :param limited_seekable: If write-handle supports limited seek
+        (both file head part and tail part can seek block_size).
+        Notes: This parameter are valid only for write-handle.
+        Read-handle support arbitrary seek
     :returns: An opened S3PrefetchReader object
     :raises: S3FileNotFoundError
     """
@@ -972,7 +998,8 @@ def s3_memory_open(
 
         Supports context manager
 
-    :param mode: Mode to open file, could be one of "rb", "wb", "ab", "rb+", "wb+" or "ab+"
+    :param mode: Mode to open file, could be one of "rb", "wb", "ab", "rb+",
+        "wb+" or "ab+"
     :returns: An opened BufferedReader / BufferedWriter object
     """
     if mode not in ("rb", "wb", "ab", "rb+", "wb+", "ab+"):
@@ -1005,9 +1032,11 @@ def s3_download(
 ) -> None:
     """
     Downloads a file from s3 to local filesystem.
+
     :param src_url: source s3 path
     :param dst_url: target fs path
-    :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
+    :param callback: Called periodically during copy, and the input parameter is
+        the data size (in bytes) of copy since the last call
     :param followlinks: False if regard symlink as file, else True
     :param overwrite: whether or not overwrite file when exists, default is True
     """
@@ -1073,9 +1102,11 @@ def s3_upload(
 ) -> None:
     """
     Uploads a file from local filesystem to s3.
+
     :param src_url: source fs path
     :param dst_url: target s3 path
-    :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
+    :param callback: Called periodically during copy, and the input parameter is
+        the data size (in bytes) of copy since the last call
     :param followlinks: False if regard symlink as file, else True
     :param overwrite: whether or not overwrite file when exists, default is True
     """
@@ -1154,7 +1185,8 @@ def s3_readlink(path) -> str:
     Return a string representing the path to which the symbolic link points.
 
     :returns: Return a string representing the path to which the symbolic link points.
-    :raises: S3NameTooLongError, S3BucketNotFoundError, S3IsADirectoryError, S3NotALinkError
+    :raises: S3NameTooLongError, S3BucketNotFoundError, S3IsADirectoryError,
+        S3NotALinkError
     """
     return S3Path(path).readlink().path_with_protocol
 
@@ -1196,11 +1228,15 @@ def s3_glob(
     missing_ok: bool = True,
     followlinks: bool = False,
 ) -> List[str]:
-    """Return s3 path list in ascending alphabetical order, in which path matches glob pattern
-    Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
+    """Return s3 path list in ascending alphabetical order,
+    in which path matches glob pattern
+
+    Notes: Only glob in bucket. If trying to match bucket with wildcard characters,
+    raise UnsupportedError
 
     :param recursive: If False, `**` will not search directory recursively
-    :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
+    :param missing_ok: If False and target path doesn't match any file,
+        raise FileNotFoundError
     :raises: UnsupportedError, when bucket part contains wildcard characters
     :returns: A list contains paths match `s3_pathname`
     """
@@ -1220,13 +1256,18 @@ def s3_glob_stat(
     missing_ok: bool = True,
     followlinks: bool = False,
 ) -> Iterator[FileEntry]:
-    """Return a generator contains tuples of path and file stat, in ascending alphabetical order, in which path matches glob pattern
-    Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
+    """Return a generator contains tuples of path and file stat,
+    in ascending alphabetical order, in which path matches glob pattern
+
+    Notes: Only glob in bucket. If trying to match bucket with wildcard characters,
+    raise UnsupportedError
 
     :param recursive: If False, `**` will not search directory recursively
-    :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
+    :param missing_ok: If False and target path doesn't match any file,
+        raise FileNotFoundError
     :raises: UnsupportedError, when bucket part contains wildcard characters
-    :returns: A generator contains tuples of path and file stat, in which paths match `s3_pathname`
+    :returns: A generator contains tuples of path and file stat,
+        in which paths match `s3_pathname`
     """
     return S3Path(path).glob_stat(
         pattern="", recursive=recursive, missing_ok=missing_ok, followlinks=followlinks
@@ -1239,11 +1280,15 @@ def s3_iglob(
     missing_ok: bool = True,
     followlinks: bool = False,
 ) -> Iterator[str]:
-    """Return s3 path iterator in ascending alphabetical order, in which path matches glob pattern
-    Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
+    """Return s3 path iterator in ascending alphabetical order,
+    in which path matches glob pattern
+
+    Notes: Only glob in bucket. If trying to match bucket with wildcard characters,
+    raise UnsupportedError
 
     :param recursive: If False, `**` will not search directory recursively
-    :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
+    :param missing_ok: If False and target path doesn't match any file,
+        raise FileNotFoundError
     :raises: UnsupportedError, when bucket part contains wildcard characters
     :returns: An iterator contains paths match `s3_pathname`
     """
@@ -1341,7 +1386,10 @@ def s3_concat(
 
 
 def s3_lstat(path: PathLike) -> StatResult:
-    """Like Path.stat() but, if the path points to a symbolic link, return the symbolic link’s information rather than its target’s."""
+    """
+    Like Path.stat() but, if the path points to a symbolic link,
+    return the symbolic link’s information rather than its target’s.
+    """
     return S3Path(path).lstat()
 
 
@@ -1374,7 +1422,10 @@ class S3Path(URIPath):
 
     @cached_property
     def path_without_protocol(self) -> str:
-        """Return path without protocol, example: if path is s3://bucket/key, return bucket/key"""
+        """
+        Return path without protocol, example: if path is s3://bucket/key,
+        return bucket/key
+        """
         path = self.path
         protocol_prefix = self._protocol_with_profile + "://"
         if path.startswith(protocol_prefix):
@@ -1434,12 +1485,11 @@ class S3Path(URIPath):
             raise Exception("No available bucket")
         if not isinstance(mode, Access):
             raise TypeError(
-                "Unsupported mode: {} -- Mode should use one of the enums belonging to:  {}".format(
+                "Unsupported mode: {} -- Mode should use one of "
+                "the enums belonging to:  {}".format(
                     mode, ", ".join([str(a) for a in Access])
                 )
             )
-        if mode not in (Access.READ, Access.WRITE):
-            raise TypeError("Unsupported mode: {}".format(mode))
 
         try:
             if not self.exists():
@@ -1486,10 +1536,14 @@ class S3Path(URIPath):
 
     def getmtime(self, follow_symlinks: bool = False) -> float:
         """
-        Get last-modified time of the file on the given s3_url path (in Unix timestamp format).
-        If the path is an existent directory, return the latest modified time of all file in it. The mtime of empty directory is 1970-01-01 00:00:00
+        Get last-modified time of the file on the given s3_url path
+        (in Unix timestamp format).
 
-        If s3_url is not an existent path, which means s3_exist(s3_url) returns False, then raise S3FileNotFoundError
+        If the path is an existent directory, return the latest modified time of
+        all file in it. The mtime of empty directory is 1970-01-01 00:00:00
+
+        If s3_url is not an existent path, which means s3_exist(s3_url) returns False,
+        then raise S3FileNotFoundError
 
         :returns: Last-modified time
         :raises: S3FileNotFoundError, UnsupportedError
@@ -1499,10 +1553,15 @@ class S3Path(URIPath):
     def getsize(self, follow_symlinks: bool = False) -> int:
         """
         Get file size on the given s3_url path (in bytes).
-        If the path in a directory, return the sum of all file size in it, including file in subdirectories (if exist).
-        The result excludes the size of directory itself. In other words, return 0 Byte on an empty directory path.
 
-        If s3_url is not an existent path, which means s3_exist(s3_url) returns False, then raise S3FileNotFoundError
+        If the path in a directory, return the sum of all file size in it,
+        including file in subdirectories (if exist).
+
+        The result excludes the size of directory itself.
+        In other words, return 0 Byte on an empty directory path.
+
+        If s3_url is not an existent path, which means s3_exist(s3_url) returns False,
+        then raise S3FileNotFoundError
 
         :returns: File size
         :raises: S3FileNotFoundError, UnsupportedError
@@ -1516,12 +1575,17 @@ class S3Path(URIPath):
         missing_ok: bool = True,
         followlinks: bool = False,
     ) -> List["S3Path"]:
-        """Return s3 path list in ascending alphabetical order, in which path matches glob pattern
-        Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
+        """Return s3 path list in ascending alphabetical order,
+        in which path matches glob pattern
 
-        :param pattern: Glob the given relative pattern in the directory represented by this path
+        Notes: Only glob in bucket. If trying to match bucket with wildcard characters,
+        raise UnsupportedError
+
+        :param pattern: Glob the given relative pattern in the directory represented
+            by this path
         :param recursive: If False, `**` will not search directory recursively
-        :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
+        :param missing_ok: If False and target path doesn't match any file,
+            raise FileNotFoundError
         :raises: UnsupportedError, when bucket part contains wildcard characters
         :returns: A list contains paths match `s3_pathname`
         """
@@ -1541,14 +1605,20 @@ class S3Path(URIPath):
         missing_ok: bool = True,
         followlinks: bool = False,
     ) -> Iterator[FileEntry]:
-        """Return a generator contains tuples of path and file stat, in ascending alphabetical order, in which path matches glob pattern
-        Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
+        """Return a generator contains tuples of path and file stat,
+        in ascending alphabetical order, in which path matches glob pattern
 
-        :param pattern: Glob the given relative pattern in the directory represented by this path
+        Notes: Only glob in bucket. If trying to match bucket with wildcard characters,
+        raise UnsupportedError
+
+        :param pattern: Glob the given relative pattern in the directory represented
+            by this path
         :param recursive: If False, `**` will not search directory recursively
-        :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
+        :param missing_ok: If False and target path doesn't match any file,
+            raise FileNotFoundError
         :raises: UnsupportedError, when bucket part contains wildcard characters
-        :returns: A generator contains tuples of path and file stat, in which paths match `s3_pathname`
+        :returns: A generator contains tuples of path and file stat,
+            in which paths match `s3_pathname`
         """
         glob_path = self._s3_path
         if pattern:
@@ -1586,12 +1656,17 @@ class S3Path(URIPath):
         missing_ok: bool = True,
         followlinks: bool = False,
     ) -> Iterator["S3Path"]:
-        """Return s3 path iterator in ascending alphabetical order, in which path matches glob pattern
-        Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
+        """Return s3 path iterator in ascending alphabetical order,
+        in which path matches glob pattern
 
-        :param pattern: Glob the given relative pattern in the directory represented by this path
+        Notes: Only glob in bucket. If trying to match bucket with wildcard characters,
+        raise UnsupportedError
+
+        :param pattern: Glob the given relative pattern in the directory represented
+            by this path
         :param recursive: If False, `**` will not search directory recursively
-        :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
+        :param missing_ok: If False and target path doesn't match any file,
+            raise FileNotFoundError
         :raises: UnsupportedError, when bucket part contains wildcard characters
         :returns: An iterator contains paths match `s3_pathname`
         """
@@ -1610,7 +1685,8 @@ class S3Path(URIPath):
         If there exists a suffix, of which ``os.path.join(s3_url, suffix)`` is a file
         If the url is empty bucket or s3://
 
-        :param followlinks: whether followlinks is True or False, result is the same. Because s3 symlink not support dir.
+        :param followlinks: whether followlinks is True or False, result is the same.
+            Because s3 symlink not support dir.
         :returns: True if path is s3 directory, else False
         """
         bucket, key = parse_s3_url(self.path_with_protocol)
@@ -1780,9 +1856,11 @@ class S3Path(URIPath):
 
     def remove(self, missing_ok: bool = False) -> None:
         """
-        Remove the file or directory on s3, `s3://` and `s3://bucket` are not permitted to remove
+        Remove the file or directory on s3, `s3://` and `s3://bucket`
+        are not permitted to remove
 
-        :param missing_ok: if False and target file/directory not exists, raise S3FileNotFoundError
+        :param missing_ok: if False and target file/directory not exists,
+            raise S3FileNotFoundError
         :raises: S3PermissionError, S3FileNotFoundError, UnsupportedError
         """
         bucket, key = parse_s3_url(self.path_with_protocol)
@@ -1827,7 +1905,8 @@ class S3Path(URIPath):
                         for error_info in response.get("Errors", []):
                             if s3_error_code_should_retry(error_info.get("Code")):
                                 error_logger.warning(
-                                    "retry %s times, removing file: %s, with error %s: %s"
+                                    "retry %s times, removing file: %s, "
+                                    "with error %s: %s"
                                     % (
                                         i + 1,
                                         error_info["Key"],
@@ -1876,12 +1955,18 @@ class S3Path(URIPath):
         Every iteration on generator yields a path string.
 
         If s3_url is a file path, yields the file only
-        If s3_url is a non-existent path, return an empty generator
-        If s3_url is a bucket path, return all file paths in the bucket
-        If s3_url is an empty bucket, return an empty generator
-        If s3_url doesn't contain any bucket, which is s3_url == 's3://', raise UnsupportedError. walk() on complete s3 is not supported in megfile
 
-        :param missing_ok: If False and there's no file in the directory, raise FileNotFoundError
+        If s3_url is a non-existent path, return an empty generator
+
+        If s3_url is a bucket path, return all file paths in the bucket
+
+        If s3_url is an empty bucket, return an empty generator
+
+        If s3_url doesn't contain any bucket, which is s3_url == 's3://',
+        raise UnsupportedError. walk() on complete s3 is not supported in megfile
+
+        :param missing_ok: If False and there's no file in the directory,
+            raise FileNotFoundError
         :raises: UnsupportedError
         :returns: A file path generator
         """
@@ -1900,7 +1985,8 @@ class S3Path(URIPath):
         Iteratively traverse only files in given directory, in alphabetical order.
         Every iteration on generator yields a tuple of path string and file stat
 
-        :param missing_ok: If False and there's no file in the directory, raise FileNotFoundError
+        :param missing_ok: If False and there's no file in the directory,
+            raise FileNotFoundError
         :raises: UnsupportedError
         :returns: A file path generator
         """
@@ -2038,9 +2124,12 @@ class S3Path(URIPath):
         """
         Return StatResult of given s3_url directory, including:
 
-        1. Directory size: the sum of all file size in it, including file in subdirectories (if exist).
-        The result excludes the size of directory itself. In other words, return 0 Byte on an empty directory path
-        2. Last-modified time of directory: return the latest modified time of all file in it. The mtime of empty directory is 1970-01-01 00:00:00
+        1. Directory size: the sum of all file size in it,
+           including file in subdirectories (if exist).
+           The result excludes the size of directory itself.
+           In other words, return 0 Byte on an empty directory path
+        2. Last-modified time of directory: return the latest modified time
+           of all file in it. The mtime of empty directory is 1970-01-01 00:00:00
 
         :returns: An int indicates size in Bytes
         """
@@ -2066,10 +2155,14 @@ class S3Path(URIPath):
 
     def stat(self, follow_symlinks=True) -> StatResult:
         """
-        Get StatResult of s3_url file, including file size and mtime, referring to s3_getsize and s3_getmtime
+        Get StatResult of s3_url file, including file size and mtime,
+        referring to s3_getsize and s3_getmtime
 
-        If s3_url is not an existent path, which means s3_exist(s3_url) returns False, then raise S3FileNotFoundError
-        If attempt to get StatResult of complete s3, such as s3_dir_url == 's3://', raise S3BucketNotFoundError
+        If s3_url is not an existent path, which means s3_exist(s3_url) returns False,
+        then raise S3FileNotFoundError
+
+        If attempt to get StatResult of complete s3, such as s3_dir_url == 's3://',
+        raise S3BucketNotFoundError
 
         :returns: StatResult
         :raises: S3FileNotFoundError, S3BucketNotFoundError
@@ -2109,7 +2202,8 @@ class S3Path(URIPath):
         """
         Remove the file on s3
 
-        :param missing_ok: if False and target file not exists, raise S3FileNotFoundError
+        :param missing_ok: if False and target file not exists,
+            raise S3FileNotFoundError
         :raises: S3PermissionError, S3FileNotFoundError, S3IsADirectoryError
         """
         bucket, key = parse_s3_url(self.path_with_protocol)
@@ -2127,20 +2221,33 @@ class S3Path(URIPath):
         self, followlinks: bool = False
     ) -> Iterator[Tuple[str, List[str], List[str]]]:
         """
-        Iteratively traverse the given s3 directory, in top-bottom order. In other words, firstly traverse parent directory, if subdirectories exist, traverse the subdirectories in alphabetical order.
+        Iteratively traverse the given s3 directory, in top-bottom order.
+        In other words, firstly traverse parent directory, if subdirectories exist,
+        traverse the subdirectories in alphabetical order.
+
         Every iteration on generator yields a 3-tuple: (root, dirs, files)
 
         - root: Current s3 path;
-        - dirs: Name list of subdirectories in current directory. The list is sorted by name in ascending alphabetical order;
-        - files: Name list of files in current directory. The list is sorted by name in ascending alphabetical order;
+        - dirs: Name list of subdirectories in current directory.
+          The list is sorted by name in ascending alphabetical order;
+        - files: Name list of files in current directory.
+          The list is sorted by name in ascending alphabetical order;
 
         If s3_url is a file path, return an empty generator
-        If s3_url is a non-existent path, return an empty generator
-        If s3_url is a bucket path, bucket will be the top directory, and will be returned at first iteration of generator
-        If s3_url is an empty bucket, only yield one 3-tuple (notes: s3 doesn't have empty directory)
-        If s3_url doesn't contain any bucket, which is s3_url == 's3://', raise UnsupportedError. walk() on complete s3 is not supported in megfile
 
-        :param followlinks: whether followlinks is True or False, result is the same. Because s3 symlink not support dir.
+        If s3_url is a non-existent path, return an empty generator
+
+        If s3_url is a bucket path, bucket will be the top directory,
+        and will be returned at first iteration of generator
+
+        If s3_url is an empty bucket, only yield one 3-tuple
+        (notes: s3 doesn't have empty directory)
+
+        If s3_url doesn't contain any bucket, which is s3_url == 's3://',
+        raise UnsupportedError. walk() on complete s3 is not supported in megfile
+
+        :param followlinks: whether followlinks is True or False, result is the same.
+            Because s3 symlink not support dir.
         :raises: UnsupportedError
         :returns: A 3-tuple generator
         """
@@ -2221,7 +2328,8 @@ class S3Path(URIPath):
         It's caller's responsibility to ensure the s3_isfile(src_url) is True
 
         :param dst_path: Target file path
-        :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
+        :param callback: Called periodically during copy, and the input parameter is
+            the data size (in bytes) of copy since the last call
         :param followlinks: False if regard symlink as file, else True
         :param overwrite: whether or not overwrite file when exists, default is True
         """
@@ -2271,7 +2379,8 @@ class S3Path(URIPath):
 
         :param dst_url: Given destination path
         :param followlinks: False if regard symlink as file, else True
-        :param force: Sync file forcible, do not ignore same files, priority is higher than 'overwrite', default is False
+        :param force: Sync file forcible, do not ignore same files,
+            priority is higher than 'overwrite', default is False
         :param overwrite: whether or not overwrite file when exists, default is True
         """
         for src_file_path, dst_file_path in _s3_scan_pairs(
@@ -2322,10 +2431,12 @@ class S3Path(URIPath):
 
     def readlink(self) -> "S3Path":
         """
-        Return a S3Path instance representing the path to which the symbolic link points.
+        Return a S3Path instance representing the path to which the symbolic link points
 
-        :returns: Return a S3Path instance representing the path to which the symbolic link points.
-        :raises: S3NameTooLongError, S3BucketNotFoundError, S3IsADirectoryError, S3NotALinkError
+        :returns: Return a S3Path instance representing the path to
+            which the symbolic link points.
+        :raises: S3NameTooLongError, S3BucketNotFoundError, S3IsADirectoryError,
+            S3NotALinkError
         """
         bucket, key = parse_s3_url(self.path_with_protocol)
         if not bucket:
@@ -2357,7 +2468,8 @@ class S3Path(URIPath):
         return "symlink_to" in metadata
 
     def save(self, file_object: BinaryIO):
-        """Write the opened binary stream to specified path, but the stream won't be closed
+        """Write the opened binary stream to specified path,
+        but the stream won't be closed
 
         :param file_object: Stream to be read
         """
@@ -2391,7 +2503,8 @@ class S3Path(URIPath):
 
     def absolute(self) -> "S3Path":
         """
-        Make the path absolute, without normalization or resolving symlinks. Returns a new path object
+        Make the path absolute, without normalization or resolving symlinks.
+        Returns a new path object
         """
         return self
 

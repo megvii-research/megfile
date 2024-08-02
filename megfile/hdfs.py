@@ -51,10 +51,14 @@ def hdfs_exists(path: PathLike, followlinks: bool = False) -> bool:
 
 def hdfs_stat(path: PathLike, follow_symlinks=True) -> StatResult:
     """
-    Get StatResult of path file, including file size and mtime, referring to hdfs_getsize and hdfs_getmtime
+    Get StatResult of path file, including file size and mtime,
+    referring to hdfs_getsize and hdfs_getmtime
 
-    If path is not an existent path, which means hdfs_exist(path) returns False, then raise FileNotFoundError
-    If attempt to get StatResult of complete hdfs, such as hdfs_dir_url == 'hdfs://', raise BucketNotFoundError
+    If path is not an existent path, which means hdfs_exist(path) returns False,
+    then raise FileNotFoundError
+
+    If attempt to get StatResult of complete hdfs, such as hdfs_dir_url == 'hdfs://',
+    raise BucketNotFoundError
 
     :param path: Given path
     :returns: StatResult
@@ -65,10 +69,13 @@ def hdfs_stat(path: PathLike, follow_symlinks=True) -> StatResult:
 
 def hdfs_getmtime(path: PathLike, follow_symlinks: bool = False) -> float:
     """
-    Get last-modified time of the file on the given path path (in Unix timestamp format).
-    If the path is an existent directory, return the latest modified time of all file in it. The mtime of empty directory is 1970-01-01 00:00:00
+    Get last-modified time of the file on the given path path (in Unix timestamp
+    format).
+    If the path is an existent directory, return the latest modified time of all
+    file in it. The mtime of empty directory is 1970-01-01 00:00:00
 
-    If path is not an existent path, which means hdfs_exist(path) returns False, then raise FileNotFoundError
+    If path is not an existent path, which means hdfs_exist(path) returns False,
+    then raise FileNotFoundError
 
     :param path: Given path
     :returns: Last-modified time
@@ -80,10 +87,14 @@ def hdfs_getmtime(path: PathLike, follow_symlinks: bool = False) -> float:
 def hdfs_getsize(path: PathLike, follow_symlinks: bool = False) -> int:
     """
     Get file size on the given path path (in bytes).
-    If the path in a directory, return the sum of all file size in it, including file in subdirectories (if exist).
-    The result excludes the size of directory itself. In other words, return 0 Byte on an empty directory path.
+    If the path in a directory, return the sum of all file size in it,
+    including file in subdirectories (if exist).
 
-    If path is not an existent path, which means hdfs_exist(path) returns False, then raise FileNotFoundError
+    The result excludes the size of directory itself. In other words,
+    return 0 Byte on an empty directory path.
+
+    If path is not an existent path, which means hdfs_exist(path) returns False,
+    then raise FileNotFoundError
 
     :param path: Given path
     :returns: File size
@@ -100,7 +111,8 @@ def hdfs_isdir(path: PathLike, followlinks: bool = False) -> bool:
     If the url is empty bucket or hdfs://
 
     :param path: Given path
-    :param followlinks: whether followlinks is True or False, result is the same. Because hdfs symlink not support dir.
+    :param followlinks: whether followlinks is True or False, result is the same.
+        Because hdfs symlink not support dir.
     :returns: True if path is hdfs directory, else False
     """
     return HdfsPath(path).is_dir(followlinks)
@@ -150,10 +162,12 @@ def hdfs_move(src_path: PathLike, dst_path: PathLike, overwrite: bool = True) ->
 
 def hdfs_remove(path: PathLike, missing_ok: bool = False) -> None:
     """
-    Remove the file or directory on hdfs, `hdfs://` and `hdfs://bucket` are not permitted to remove
+    Remove the file or directory on hdfs, `hdfs://` and `hdfs://bucket` are not
+    permitted to remove
 
     :param path: Given path
-    :param missing_ok: if False and target file/directory not exists, raise FileNotFoundError
+    :param missing_ok: if False and target file/directory not exists,
+        raise FileNotFoundError
     :raises: FileNotFoundError, UnsupportedError
     """
     return HdfsPath(path).remove(missing_ok)
@@ -170,10 +184,12 @@ def hdfs_scan(
     If path is a non-existent path, return an empty generator
     If path is a bucket path, return all file paths in the bucket
     If path is an empty bucket, return an empty generator
-    If path doesn't contain any bucket, which is path == 'hdfs://', raise UnsupportedError. walk() on complete hdfs is not supported in megfile
+    If path doesn't contain any bucket, which is path == 'hdfs://',
+    raise UnsupportedError. walk() on complete hdfs is not supported in megfile
 
     :param path: Given path
-    :param missing_ok: If False and there's no file in the directory, raise FileNotFoundError
+    :param missing_ok: If False and there's no file in the directory,
+        raise FileNotFoundError
     :raises: UnsupportedError
     :returns: A file path generator
     """
@@ -188,7 +204,8 @@ def hdfs_scan_stat(
     Every iteration on generator yields a tuple of path string and file stat
 
     :param path: Given path
-    :param missing_ok: If False and there's no file in the directory, raise FileNotFoundError
+    :param missing_ok: If False and there's no file in the directory,
+        raise FileNotFoundError
     :raises: UnsupportedError
     :returns: A file path generator
     """
@@ -221,7 +238,10 @@ def hdfs_walk(
     path: PathLike, followlinks: bool = False
 ) -> Iterator[Tuple[str, List[str], List[str]]]:
     """
-    Iteratively traverse the given hdfs directory, in top-bottom order. In other words, firstly traverse parent directory, if subdirectories exist, traverse the subdirectories.
+    Iteratively traverse the given hdfs directory, in top-bottom order.
+    In other words, firstly traverse parent directory, if subdirectories exist,
+    traverse the subdirectories.
+
     Every iteration on generator yields a 3-tuple: (root, dirs, files)
 
     - root: Current hdfs path;
@@ -229,13 +249,21 @@ def hdfs_walk(
     - files: Name list of files in current directory.
 
     If path is a file path, return an empty generator
+
     If path is a non-existent path, return an empty generator
-    If path is a bucket path, bucket will be the top directory, and will be returned at first iteration of generator
-    If path is an empty bucket, only yield one 3-tuple (notes: hdfs doesn't have empty directory)
-    If path doesn't contain any bucket, which is path == 'hdfs://', raise UnsupportedError. walk() on complete hdfs is not supported in megfile
+
+    If path is a bucket path, bucket will be the top directory,
+    and will be returned at first iteration of generator
+
+    If path is an empty bucket, only yield one 3-tuple
+    (notes: hdfs doesn't have empty directory)
+
+    If path doesn't contain any bucket, which is path == 'hdfs://',
+    raise UnsupportedError. walk() on complete hdfs is not supported in megfile
 
     :param path: Given path
-    :param followlinks: whether followlinks is True or False, result is the same. Because hdfs not support symlink.
+    :param followlinks: whether followlinks is True or False, result is the same.
+        Because hdfs not support symlink.
     :returns: A 3-tuple generator
     """
     return HdfsPath(path).walk(followlinks)
@@ -256,7 +284,8 @@ def hdfs_getmd5(
 
 
 def hdfs_save_as(file_object: BinaryIO, path: PathLike):
-    """Write the opened binary stream to specified path, but the stream won't be closed
+    """Write the opened binary stream to specified path,
+    but the stream won't be closed
 
     :param path: Given path
     :param file_object: Stream to be read

@@ -101,7 +101,8 @@ ALL_IMPORT_LINES = dict(
         "from megfile.interfaces import PathLike",
     ],
     sftp=[
-        "from typing import IO, AnyStr, BinaryIO, Iterator, List, Tuple, Callable, Optional",
+        "from typing import IO, AnyStr, BinaryIO, Iterator, List, Tuple, "
+        "Callable, Optional",
         "from megfile.interfaces import FileEntry, PathLike, StatResult",
     ],
     hdfs=[
@@ -255,11 +256,11 @@ def insert_class_method_lines(
             class_name = get_class_name(current_file_type)
             if class_name == "StdioPath":
                 func_content_lines.append(
-                    f"    return {class_name}({path_param_name}).{func_name}({', '.join(current_params[1:])})  # pyre-ignore[6]\n\n"
+                    f"    return {class_name}({path_param_name}).{func_name}({', '.join(current_params[1:])})  # pyre-ignore[6]\n\n"  # noqa: E501
                 )
             else:
                 func_content_lines.append(
-                    f"    return {class_name}({path_param_name}).{func_name}({', '.join(current_params[1:])})\n\n"
+                    f"    return {class_name}({path_param_name}).{func_name}({', '.join(current_params[1:])})\n\n"  # noqa: E501
                 )
     return real_func_name, func_content_lines
 

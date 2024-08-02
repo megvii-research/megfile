@@ -117,10 +117,14 @@ def s3_exists(path: PathLike, followlinks: bool = False) -> bool:
 
 def s3_getmtime(path: PathLike, follow_symlinks: bool = False) -> float:
     """
-    Get last-modified time of the file on the given s3_url path (in Unix timestamp format).
-    If the path is an existent directory, return the latest modified time of all file in it. The mtime of empty directory is 1970-01-01 00:00:00
+    Get last-modified time of the file on the given s3_url path
+    (in Unix timestamp format).
 
-    If s3_url is not an existent path, which means s3_exist(s3_url) returns False, then raise S3FileNotFoundError
+    If the path is an existent directory, return the latest modified time of
+    all file in it. The mtime of empty directory is 1970-01-01 00:00:00
+
+    If s3_url is not an existent path, which means s3_exist(s3_url) returns False,
+    then raise S3FileNotFoundError
 
     :param path: Given path
     :returns: Last-modified time
@@ -132,10 +136,15 @@ def s3_getmtime(path: PathLike, follow_symlinks: bool = False) -> float:
 def s3_getsize(path: PathLike, follow_symlinks: bool = False) -> int:
     """
     Get file size on the given s3_url path (in bytes).
-    If the path in a directory, return the sum of all file size in it, including file in subdirectories (if exist).
-    The result excludes the size of directory itself. In other words, return 0 Byte on an empty directory path.
 
-    If s3_url is not an existent path, which means s3_exist(s3_url) returns False, then raise S3FileNotFoundError
+    If the path in a directory, return the sum of all file size in it,
+    including file in subdirectories (if exist).
+
+    The result excludes the size of directory itself.
+    In other words, return 0 Byte on an empty directory path.
+
+    If s3_url is not an existent path, which means s3_exist(s3_url) returns False,
+    then raise S3FileNotFoundError
 
     :param path: Given path
     :returns: File size
@@ -152,7 +161,8 @@ def s3_isdir(path: PathLike, followlinks: bool = False) -> bool:
     If the url is empty bucket or s3://
 
     :param path: Given path
-    :param followlinks: whether followlinks is True or False, result is the same. Because s3 symlink not support dir.
+    :param followlinks: whether followlinks is True or False, result is the same.
+        Because s3 symlink not support dir.
     :returns: True if path is s3 directory, else False
     """
     return S3Path(path).is_dir(followlinks)
@@ -213,10 +223,12 @@ def s3_move(src_url: PathLike, dst_url: PathLike, overwrite: bool = True) -> Non
 
 def s3_remove(path: PathLike, missing_ok: bool = False) -> None:
     """
-    Remove the file or directory on s3, `s3://` and `s3://bucket` are not permitted to remove
+    Remove the file or directory on s3, `s3://` and `s3://bucket`
+    are not permitted to remove
 
     :param path: Given path
-    :param missing_ok: if False and target file/directory not exists, raise S3FileNotFoundError
+    :param missing_ok: if False and target file/directory not exists,
+        raise S3FileNotFoundError
     :raises: S3PermissionError, S3FileNotFoundError, UnsupportedError
     """
     return S3Path(path).remove(missing_ok)
@@ -230,13 +242,19 @@ def s3_scan(
     Every iteration on generator yields a path string.
 
     If s3_url is a file path, yields the file only
+
     If s3_url is a non-existent path, return an empty generator
+
     If s3_url is a bucket path, return all file paths in the bucket
+
     If s3_url is an empty bucket, return an empty generator
-    If s3_url doesn't contain any bucket, which is s3_url == 's3://', raise UnsupportedError. walk() on complete s3 is not supported in megfile
+
+    If s3_url doesn't contain any bucket, which is s3_url == 's3://',
+    raise UnsupportedError. walk() on complete s3 is not supported in megfile
 
     :param path: Given path
-    :param missing_ok: If False and there's no file in the directory, raise FileNotFoundError
+    :param missing_ok: If False and there's no file in the directory,
+        raise FileNotFoundError
     :raises: UnsupportedError
     :returns: A file path generator
     """
@@ -251,7 +269,8 @@ def s3_scan_stat(
     Every iteration on generator yields a tuple of path string and file stat
 
     :param path: Given path
-    :param missing_ok: If False and there's no file in the directory, raise FileNotFoundError
+    :param missing_ok: If False and there's no file in the directory,
+        raise FileNotFoundError
     :raises: UnsupportedError
     :returns: A file path generator
     """
@@ -271,10 +290,14 @@ def s3_scandir(path: PathLike, followlinks: bool = False) -> Iterator[FileEntry]
 
 def s3_stat(path: PathLike, follow_symlinks=True) -> StatResult:
     """
-    Get StatResult of s3_url file, including file size and mtime, referring to s3_getsize and s3_getmtime
+    Get StatResult of s3_url file, including file size and mtime,
+    referring to s3_getsize and s3_getmtime
 
-    If s3_url is not an existent path, which means s3_exist(s3_url) returns False, then raise S3FileNotFoundError
-    If attempt to get StatResult of complete s3, such as s3_dir_url == 's3://', raise S3BucketNotFoundError
+    If s3_url is not an existent path, which means s3_exist(s3_url) returns False,
+    then raise S3FileNotFoundError
+
+    If attempt to get StatResult of complete s3, such as s3_dir_url == 's3://',
+    raise S3BucketNotFoundError
 
     :param path: Given path
     :returns: StatResult
@@ -288,7 +311,8 @@ def s3_unlink(path: PathLike, missing_ok: bool = False) -> None:
     Remove the file on s3
 
     :param path: Given path
-    :param missing_ok: if False and target file not exists, raise S3FileNotFoundError
+    :param missing_ok: if False and target file not exists,
+        raise S3FileNotFoundError
     :raises: S3PermissionError, S3FileNotFoundError, S3IsADirectoryError
     """
     return S3Path(path).unlink(missing_ok)
@@ -298,21 +322,34 @@ def s3_walk(
     path: PathLike, followlinks: bool = False
 ) -> Iterator[Tuple[str, List[str], List[str]]]:
     """
-    Iteratively traverse the given s3 directory, in top-bottom order. In other words, firstly traverse parent directory, if subdirectories exist, traverse the subdirectories in alphabetical order.
+    Iteratively traverse the given s3 directory, in top-bottom order.
+    In other words, firstly traverse parent directory, if subdirectories exist,
+    traverse the subdirectories in alphabetical order.
+
     Every iteration on generator yields a 3-tuple: (root, dirs, files)
 
     - root: Current s3 path;
-    - dirs: Name list of subdirectories in current directory. The list is sorted by name in ascending alphabetical order;
-    - files: Name list of files in current directory. The list is sorted by name in ascending alphabetical order;
+    - dirs: Name list of subdirectories in current directory.
+      The list is sorted by name in ascending alphabetical order;
+    - files: Name list of files in current directory.
+      The list is sorted by name in ascending alphabetical order;
 
     If s3_url is a file path, return an empty generator
+
     If s3_url is a non-existent path, return an empty generator
-    If s3_url is a bucket path, bucket will be the top directory, and will be returned at first iteration of generator
-    If s3_url is an empty bucket, only yield one 3-tuple (notes: s3 doesn't have empty directory)
-    If s3_url doesn't contain any bucket, which is s3_url == 's3://', raise UnsupportedError. walk() on complete s3 is not supported in megfile
+
+    If s3_url is a bucket path, bucket will be the top directory,
+    and will be returned at first iteration of generator
+
+    If s3_url is an empty bucket, only yield one 3-tuple
+    (notes: s3 doesn't have empty directory)
+
+    If s3_url doesn't contain any bucket, which is s3_url == 's3://',
+    raise UnsupportedError. walk() on complete s3 is not supported in megfile
 
     :param path: Given path
-    :param followlinks: whether followlinks is True or False, result is the same. Because s3 symlink not support dir.
+    :param followlinks: whether followlinks is True or False, result is the same.
+        Because s3 symlink not support dir.
     :raises: UnsupportedError
     :returns: A 3-tuple generator
     """
@@ -348,7 +385,8 @@ def s3_copy(
 
     :param src_url: Given path
     :param dst_path: Target file path
-    :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
+    :param callback: Called periodically during copy, and the input parameter is
+        the data size (in bytes) of copy since the last call
     :param followlinks: False if regard symlink as file, else True
     :param overwrite: whether or not overwrite file when exists, default is True
     """
@@ -368,7 +406,8 @@ def s3_sync(
     :param src_url: Given path
     :param dst_url: Given destination path
     :param followlinks: False if regard symlink as file, else True
-    :param force: Sync file forcible, do not ignore same files, priority is higher than 'overwrite', default is False
+    :param force: Sync file forcible, do not ignore same files,
+        priority is higher than 'overwrite', default is False
     :param overwrite: whether or not overwrite file when exists, default is True
     """
     return S3Path(src_url).sync(dst_url, followlinks, force, overwrite)
@@ -397,7 +436,8 @@ def s3_islink(path: PathLike) -> bool:
 
 
 def s3_save_as(file_object: BinaryIO, path: PathLike):
-    """Write the opened binary stream to specified path, but the stream won't be closed
+    """Write the opened binary stream to specified path,
+    but the stream won't be closed
 
     :param path: Given path
     :param file_object: Stream to be read

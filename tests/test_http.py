@@ -104,9 +104,9 @@ def test_http_open(mocker):
     with pytest.raises(UnknownError) as error:
         http_open("http://test", "rb")
 
-    assert (
-        str(error.value)
-        == "Unknown error encountered: 'http://test', error: requests.exceptions.ReadTimeout('test')"
+    assert str(error.value) == (
+        "Unknown error encountered: 'http://test', "
+        "error: requests.exceptions.ReadTimeout('test')"
     )
 
 

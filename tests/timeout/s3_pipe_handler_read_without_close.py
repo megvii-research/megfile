@@ -1,5 +1,7 @@
 # This file is for `tests/lib/test_s3_pipe_handler.py`
-# To test if it will cause deadlock that exiting Python process without calling close on S3PipeHandler
+
+# To test if it will cause deadlock that
+# exiting Python process without calling close on S3PipeHandler
 
 import boto3
 from moto import mock_aws

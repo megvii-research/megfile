@@ -10,12 +10,14 @@ if os.getenv("MEGFILE_MAX_BUFFER_SIZE"):
     if DEFAULT_MAX_BUFFER_SIZE < DEFAULT_BLOCK_SIZE:
         DEFAULT_MAX_BUFFER_SIZE = DEFAULT_BLOCK_SIZE
         _logger.warning(
-            "Env 'MEGFILE_MAX_BUFFER_SIZE' is smaller than block size, will not use buffer."
+            "Env 'MEGFILE_MAX_BUFFER_SIZE' is smaller than block size, "
+            "will not use buffer."
         )
     DEFAULT_BLOCK_CAPACITY = DEFAULT_MAX_BUFFER_SIZE // DEFAULT_BLOCK_SIZE
     if os.getenv("MEGFILE_BLOCK_CAPACITY"):
         _logger.warning(
-            "Env 'MEGFILE_MAX_BUFFER_SIZE' and 'MEGFILE_BLOCK_CAPACITY' are both set, 'MEGFILE_BLOCK_CAPACITY' will be ignored."
+            "Env 'MEGFILE_MAX_BUFFER_SIZE' and 'MEGFILE_BLOCK_CAPACITY' are both set, "
+            "'MEGFILE_BLOCK_CAPACITY' will be ignored."
         )
 elif os.getenv("MEGFILE_BLOCK_CAPACITY"):
     DEFAULT_BLOCK_CAPACITY = int(os.environ["MEGFILE_BLOCK_CAPACITY"])

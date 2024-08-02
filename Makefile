@@ -6,6 +6,7 @@ test:
 
 autofile:
 	python3 -m "scripts.generate_file"
+	black megfile
 	make format
 
 format:

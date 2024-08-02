@@ -100,11 +100,15 @@ def get_hdfs_client(profile_name: Optional[str] = None):
 def hdfs_glob(
     path: PathLike, recursive: bool = True, missing_ok: bool = True
 ) -> List[str]:
-    """Return hdfs path list in ascending alphabetical order, in which path matches glob pattern
-    Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
+    """Return hdfs path list in ascending alphabetical order,
+    in which path matches glob pattern
+
+    Notes: Only glob in bucket. If trying to match bucket with wildcard characters,
+    raise UnsupportedError
 
     :param recursive: If False, `**` will not search directory recursively
-    :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
+    :param missing_ok: If False and target path doesn't match any file,
+        raise FileNotFoundError
     :raises: UnsupportedError, when bucket part contains wildcard characters
     :returns: A list contains paths match `path`
     """
@@ -114,13 +118,18 @@ def hdfs_glob(
 def hdfs_glob_stat(
     path: PathLike, recursive: bool = True, missing_ok: bool = True
 ) -> Iterator[FileEntry]:
-    """Return a generator contains tuples of path and file stat, in ascending alphabetical order, in which path matches glob pattern
-    Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
+    """Return a generator contains tuples of path and file stat,
+    in ascending alphabetical order, in which path matches glob pattern
+
+    Notes: Only glob in bucket. If trying to match bucket with wildcard characters,
+    raise UnsupportedError
 
     :param recursive: If False, `**` will not search directory recursively
-    :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
+    :param missing_ok: If False and target path doesn't match any file,
+        raise FileNotFoundError
     :raises: UnsupportedError, when bucket part contains wildcard characters
-    :returns: A generator contains tuples of path and file stat, in which paths match `path`
+    :returns: A generator contains tuples of path and file stat,
+        in which paths match `path`
     """
     return HdfsPath(path).glob_stat(
         pattern="", recursive=recursive, missing_ok=missing_ok
@@ -130,11 +139,15 @@ def hdfs_glob_stat(
 def hdfs_iglob(
     path: PathLike, recursive: bool = True, missing_ok: bool = True
 ) -> Iterator[str]:
-    """Return hdfs path iterator in ascending alphabetical order, in which path matches glob pattern
-    Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
+    """Return hdfs path iterator in ascending alphabetical order,
+    in which path matches glob pattern
+
+    Notes: Only glob in bucket. If trying to match bucket with wildcard characters,
+    raise UnsupportedError
 
     :param recursive: If False, `**` will not search directory recursively
-    :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
+    :param missing_ok: If False and target path doesn't match any file,
+        raise FileNotFoundError
     :raises: UnsupportedError, when bucket part contains wildcard characters
     :returns: An iterator contains paths match `path`
     """
@@ -214,10 +227,14 @@ class HdfsPath(URIPath):
 
     def stat(self, follow_symlinks=True) -> StatResult:
         """
-        Get StatResult of path file, including file size and mtime, referring to hdfs_getsize and hdfs_getmtime
+        Get StatResult of path file, including file size and mtime,
+        referring to hdfs_getsize and hdfs_getmtime
 
-        If path is not an existent path, which means hdfs_exist(path) returns False, then raise FileNotFoundError
-        If attempt to get StatResult of complete hdfs, such as hdfs_dir_url == 'hdfs://', raise BucketNotFoundError
+        If path is not an existent path, which means hdfs_exist(path) returns False,
+        then raise FileNotFoundError
+
+        If attempt to get StatResult of complete hdfs, such as hdfs_dir_url == 'hdfs://',
+        raise BucketNotFoundError
 
         :returns: StatResult
         :raises: FileNotFoundError
@@ -234,10 +251,13 @@ class HdfsPath(URIPath):
 
     def getmtime(self, follow_symlinks: bool = False) -> float:
         """
-        Get last-modified time of the file on the given path path (in Unix timestamp format).
-        If the path is an existent directory, return the latest modified time of all file in it. The mtime of empty directory is 1970-01-01 00:00:00
+        Get last-modified time of the file on the given path path (in Unix timestamp
+        format).
+        If the path is an existent directory, return the latest modified time of all
+        file in it. The mtime of empty directory is 1970-01-01 00:00:00
 
-        If path is not an existent path, which means hdfs_exist(path) returns False, then raise FileNotFoundError
+        If path is not an existent path, which means hdfs_exist(path) returns False,
+        then raise FileNotFoundError
 
         :returns: Last-modified time
         :raises: FileNotFoundError
@@ -247,10 +267,14 @@ class HdfsPath(URIPath):
     def getsize(self, follow_symlinks: bool = False) -> int:
         """
         Get file size on the given path path (in bytes).
-        If the path in a directory, return the sum of all file size in it, including file in subdirectories (if exist).
-        The result excludes the size of directory itself. In other words, return 0 Byte on an empty directory path.
+        If the path in a directory, return the sum of all file size in it,
+        including file in subdirectories (if exist).
 
-        If path is not an existent path, which means hdfs_exist(path) returns False, then raise FileNotFoundError
+        The result excludes the size of directory itself. In other words,
+        return 0 Byte on an empty directory path.
+
+        If path is not an existent path, which means hdfs_exist(path) returns False,
+        then raise FileNotFoundError
 
         :returns: File size
         :raises: FileNotFoundError
@@ -261,11 +285,14 @@ class HdfsPath(URIPath):
         self, pattern, recursive: bool = True, missing_ok: bool = True
     ) -> List["HdfsPath"]:
         """Return hdfs path list, in which path matches glob pattern
-        Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
+        Notes: Only glob in bucket. If trying to match bucket with wildcard characters,
+        raise UnsupportedError
 
-        :param pattern: Glob the given relative pattern in the directory represented by this path
+        :param pattern: Glob the given relative pattern in the directory represented
+            by this path
         :param recursive: If False, `**` will not search directory recursively
-        :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
+        :param missing_ok: If False and target path doesn't match any file,
+            raise FileNotFoundError
         :raises: UnsupportedError, when bucket part contains wildcard characters
         :returns: A list contains paths match `hdfs_pathname`
         """
@@ -276,14 +303,20 @@ class HdfsPath(URIPath):
     def glob_stat(
         self, pattern, recursive: bool = True, missing_ok: bool = True
     ) -> Iterator[FileEntry]:
-        """Return a generator contains tuples of path and file stat, in which path matches glob pattern
-        Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
+        """Return a generator contains tuples of path and file stat,
+        in which path matches glob pattern
 
-        :param pattern: Glob the given relative pattern in the directory represented by this path
+        Notes: Only glob in bucket. If trying to match bucket with wildcard characters,
+        raise UnsupportedError
+
+        :param pattern: Glob the given relative pattern in the directory represented
+            by this path
         :param recursive: If False, `**` will not search directory recursively
-        :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
+        :param missing_ok: If False and target path doesn't match any file,
+            raise FileNotFoundError
         :raises: UnsupportedError, when bucket part contains wildcard characters
-        :returns: A generator contains tuples of path and file stat, in which paths match `hdfs_pathname`
+        :returns: A generator contains tuples of path and file stat,
+            in which paths match `hdfs_pathname`
         """
         for path_obj in self.iglob(
             pattern=pattern, recursive=recursive, missing_ok=missing_ok
@@ -294,11 +327,14 @@ class HdfsPath(URIPath):
         self, pattern, recursive: bool = True, missing_ok: bool = True
     ) -> Iterator["HdfsPath"]:
         """Return hdfs path iterator, in which path matches glob pattern
-        Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError
+        Notes: Only glob in bucket. If trying to match bucket with wildcard characters,
+        raise UnsupportedError
 
-        :param pattern: Glob the given relative pattern in the directory represented by this path
+        :param pattern: Glob the given relative pattern in the directory represented
+            by this path
         :param recursive: If False, `**` will not search directory recursively
-        :param missing_ok: If False and target path doesn't match any file, raise FileNotFoundError
+        :param missing_ok: If False and target path doesn't match any file,
+            raise FileNotFoundError
         :raises: UnsupportedError, when bucket part contains wildcard characters
         :returns: An iterator contains paths match `hdfs_pathname`
         """
@@ -331,7 +367,8 @@ class HdfsPath(URIPath):
         If there exists a suffix, of which ``os.path.join(path, suffix)`` is a file
         If the url is empty bucket or hdfs://
 
-        :param followlinks: whether followlinks is True or False, result is the same. Because hdfs symlink not support dir.
+        :param followlinks: whether followlinks is True or False, result is the same.
+            Because hdfs symlink not support dir.
         :returns: True if path is hdfs directory, else False
         """
         return self.stat().is_dir()
@@ -429,9 +466,11 @@ class HdfsPath(URIPath):
 
     def remove(self, missing_ok: bool = False) -> None:
         """
-        Remove the file or directory on hdfs, `hdfs://` and `hdfs://bucket` are not permitted to remove
+        Remove the file or directory on hdfs, `hdfs://` and `hdfs://bucket` are not
+        permitted to remove
 
-        :param missing_ok: if False and target file/directory not exists, raise FileNotFoundError
+        :param missing_ok: if False and target file/directory not exists,
+            raise FileNotFoundError
         :raises: FileNotFoundError, UnsupportedError
         """
         try:
@@ -450,9 +489,11 @@ class HdfsPath(URIPath):
         If path is a non-existent path, return an empty generator
         If path is a bucket path, return all file paths in the bucket
         If path is an empty bucket, return an empty generator
-        If path doesn't contain any bucket, which is path == 'hdfs://', raise UnsupportedError. walk() on complete hdfs is not supported in megfile
+        If path doesn't contain any bucket, which is path == 'hdfs://',
+        raise UnsupportedError. walk() on complete hdfs is not supported in megfile
 
-        :param missing_ok: If False and there's no file in the directory, raise FileNotFoundError
+        :param missing_ok: If False and there's no file in the directory,
+            raise FileNotFoundError
         :raises: UnsupportedError
         :returns: A file path generator
         """
@@ -468,7 +509,8 @@ class HdfsPath(URIPath):
         Iteratively traverse only files in given directory.
         Every iteration on generator yields a tuple of path string and file stat
 
-        :param missing_ok: If False and there's no file in the directory, raise FileNotFoundError
+        :param missing_ok: If False and there's no file in the directory,
+            raise FileNotFoundError
         :raises: UnsupportedError
         :returns: A file path generator
         """
@@ -531,7 +573,10 @@ class HdfsPath(URIPath):
         self, followlinks: bool = False
     ) -> Iterator[Tuple[str, List[str], List[str]]]:
         """
-        Iteratively traverse the given hdfs directory, in top-bottom order. In other words, firstly traverse parent directory, if subdirectories exist, traverse the subdirectories.
+        Iteratively traverse the given hdfs directory, in top-bottom order.
+        In other words, firstly traverse parent directory, if subdirectories exist,
+        traverse the subdirectories.
+
         Every iteration on generator yields a 3-tuple: (root, dirs, files)
 
         - root: Current hdfs path;
@@ -539,12 +584,20 @@ class HdfsPath(URIPath):
         - files: Name list of files in current directory.
 
         If path is a file path, return an empty generator
-        If path is a non-existent path, return an empty generator
-        If path is a bucket path, bucket will be the top directory, and will be returned at first iteration of generator
-        If path is an empty bucket, only yield one 3-tuple (notes: hdfs doesn't have empty directory)
-        If path doesn't contain any bucket, which is path == 'hdfs://', raise UnsupportedError. walk() on complete hdfs is not supported in megfile
 
-        :param followlinks: whether followlinks is True or False, result is the same. Because hdfs not support symlink.
+        If path is a non-existent path, return an empty generator
+
+        If path is a bucket path, bucket will be the top directory,
+        and will be returned at first iteration of generator
+
+        If path is an empty bucket, only yield one 3-tuple
+        (notes: hdfs doesn't have empty directory)
+
+        If path doesn't contain any bucket, which is path == 'hdfs://',
+        raise UnsupportedError. walk() on complete hdfs is not supported in megfile
+
+        :param followlinks: whether followlinks is True or False, result is the same.
+            Because hdfs not support symlink.
         :returns: A 3-tuple generator
         """
         with raise_hdfs_error(self.path_with_protocol):
@@ -571,7 +624,8 @@ class HdfsPath(URIPath):
             return self._client.checksum(self.path_without_protocol)["bytes"]
 
     def save(self, file_object: BinaryIO):
-        """Write the opened binary stream to specified path, but the stream won't be closed
+        """Write the opened binary stream to specified path,
+        but the stream won't be closed
 
         :param file_object: Stream to be read
         """
@@ -642,7 +696,8 @@ class HdfsPath(URIPath):
 
     def absolute(self) -> "HdfsPath":
         """
-        Make the path absolute, without normalization or resolving symlinks. Returns a new path object
+        Make the path absolute, without normalization or resolving symlinks.
+        Returns a new path object
         """
         with raise_hdfs_error(self.path_with_protocol):
             real_path = self._client.resolve(self.path_without_protocol)

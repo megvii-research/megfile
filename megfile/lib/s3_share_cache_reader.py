@@ -16,8 +16,14 @@ _logger = get_logger(__name__)
 
 class S3ShareCacheReader(S3PrefetchReader):
     """
-    Reader to fast read the s3 content. This will divide the file content into equal parts of block_size size, and will use LRU to cache at most block_capacity blocks in memory.
-    open(), seek() and read() will trigger prefetch read. The prefetch will cached block_forward blocks of data from offset position (the position after reading if the called function is read).
+    Reader to fast read the s3 content.
+
+    This will divide the file content into equal parts of block_size size,
+    and will use LRU to cache at most block_capacity blocks in memory.
+
+    open(), seek() and read() will trigger prefetch read.
+    The prefetch will cached block_forward blocks of data from offset position
+    (the position after reading if the called function is read).
     """
 
     def __init__(
@@ -56,7 +62,9 @@ class S3ShareCacheReader(S3PrefetchReader):
         return futures
 
     def _seek_buffer(self, index: int, offset: int = 0):
-        # The corresponding block is probably not downloaded when sought to a new position
+        # The corresponding block is probably not downloaded
+        # when sought to a new position
+        #
         # So record the offset first, set it when it is accessed
         self._cached_offset = offset
         self._block_index = index

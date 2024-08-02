@@ -172,7 +172,9 @@ class S3BufferedWriter(Writable[bytes]):
             wait(self._uploading_futures, return_when=FIRST_COMPLETED)
 
     def _submit_upload_content(self, content: bytes):
-        # s3 part needs at least 5MB, so we need to divide content into equal-size parts, and give last part more size
+        # s3 part needs at least 5MB,
+        # so we need to divide content into equal-size parts,
+        # and give last part more size.
         # e.g. 257MB can be divided into 2 parts, 128MB and 129MB
         offset = 0
         while len(content) - offset - self._max_block_size > self._block_size:

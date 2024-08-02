@@ -79,7 +79,9 @@ class ThreadLocal(ForkAware, BaseLocal):
 
 class ProcessLocal(ForkAware, BaseLocal):
     """
-    Provides a basic per-process mapping container that wipes itself if the current PID changed since the last get/set.
+    Provides a basic per-process mapping container that wipes itself if the current PID
+    changed since the last get/set.
+
     Aka `threading.local()`, but for processes instead of threads.
     """
 

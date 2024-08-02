@@ -63,7 +63,8 @@ def test_s3_pipe_handler_write(client):
 
 def assert_no_timeout(filename, timeout=60):
     # TODO: 改为使用 multiprocessing.Process 方式实现
-    # Process 与普通 Python 进程不同的是, 退出时不会进 atexit 注册的 callback, 导致目前已知的死锁问题并不会发生, 因此这里使用了 subprocess 的实现作为 workaround
+    # Process 与普通 Python 进程不同的是, 退出时不会进 atexit 注册的 callback,
+    # 导致目前已知的死锁问题并不会发生, 因此这里使用了 subprocess 的实现作为 workaround
     path = os.path.join("tests", "timeout", filename)
     check_call([sys.executable, path], env={"PYTHONPATH": "."}, timeout=timeout)
 

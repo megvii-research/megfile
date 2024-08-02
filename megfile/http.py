@@ -14,7 +14,8 @@ __all__ = [
 
 def http_stat(path: PathLike, follow_symlinks=True) -> StatResult:
     """
-    Get StatResult of http_url response, including size and mtime, referring to http_getsize and http_getmtime
+    Get StatResult of http_url response, including size and mtime,
+    referring to http_getsize and http_getmtime
 
     :param path: Given path
     :param follow_symlinks: Ignore this parameter, just for compatibility

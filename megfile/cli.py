@@ -54,7 +54,8 @@ def cli(debug):
     """
     Client for megfile.
 
-    If you install megfile with ``--user``, you also need configure ``$HOME/.local/bin`` into ``$PATH``.
+    If you install megfile with ``--user``,
+    you also need configure ``$HOME/.local/bin`` into ``$PATH``.
     """
     global DEBUG
     DEBUG = debug
@@ -156,7 +157,8 @@ def _ls(path: str, long: bool, recursive: bool, human_readable: bool):
     "-r",
     "--recursive",
     is_flag=True,
-    help="Command is performed on all files or objects under the specified directory or prefix.",
+    help="Command is performed on all files or objects "
+    "under the specified directory or prefix.",
 )
 @click.option(
     "-h",
@@ -174,7 +176,8 @@ def ls(path: str, long: bool, recursive: bool, human_readable: bool):
     "-r",
     "--recursive",
     is_flag=True,
-    help="Command is performed on all files or objects under the specified directory or prefix.",
+    help="Command is performed on all files or objects under "
+    "the specified directory or prefix.",
 )
 def ll(path: str, recursive: bool):
     _ls(path, long=True, recursive=recursive, human_readable=True)
@@ -187,7 +190,8 @@ def ll(path: str, recursive: bool):
     "-r",
     "--recursive",
     is_flag=True,
-    help="Command is performed on all files or objects under the specified directory or prefix.",
+    help="Command is performed on all files or objects "
+    "under the specified directory or prefix.",
 )
 @click.option(
     "-T", "--no-target-directory", is_flag=True, help="treat dst_path as a normal file."
@@ -251,7 +255,8 @@ def cp(
     "-r",
     "--recursive",
     is_flag=True,
-    help="Command is performed on all files or objects under the specified directory or prefix.",
+    help="Command is performed on all files or objects "
+    "under the specified directory or prefix.",
 )
 @click.option(
     "-T", "--no-target-directory", is_flag=True, help="treat dst_path as a normal file."
@@ -314,7 +319,8 @@ def mv(
     "-r",
     "--recursive",
     is_flag=True,
-    help="Command is performed on all files or objects under the specified directory or prefix.",
+    help="Command is performed on all files or objects "
+    "under the specified directory or prefix.",
 )
 def rm(path: str, recursive: bool):
     remove_func = smart_remove if recursive else smart_unlink
@@ -357,6 +363,7 @@ def sync(
                             glob_file_entry.path, followlinks=True
                         ):
                             yield file_entry
+
         else:
             if not smart_exists(src_path):
                 raise FileNotFoundError(f"No match file: {src_path}")

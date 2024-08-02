@@ -66,7 +66,8 @@ class StatResult(NamedTuple):
     @property
     def st_ino(self) -> int:
         """
-        Platform dependent, but if non-zero, uniquely identifies the file for a given value of st_dev. Typically:
+        Platform dependent, but if non-zero, uniquely identifies the file for
+        a given value of st_dev. Typically:
 
         the inode number on Unix,
         the file index on Windows,
@@ -154,7 +155,8 @@ class StatResult(NamedTuple):
 
             the time of most recent metadata change on Unix,
             the time of creation on Windows, expressed in seconds,
-            the time of file created on oss; if is dir, return the latest ctime of the files in dir.
+            the time of file created on oss;
+            if is dir, return the latest ctime of the files in dir.
         """
         if self.extra and hasattr(self.extra, "st_ctime"):
             return self.extra.st_ctime
@@ -259,7 +261,10 @@ class BasePath:
         raise NotImplementedError('method "listdir" not implemented: %r' % self)
 
     def scandir(self) -> Iterator[FileEntry]:
-        """Return an iterator of FileEntry objects corresponding to the entries in the directory."""
+        """
+        Return an iterator of FileEntry objects corresponding to the entries
+        in the directory.
+        """
         raise NotImplementedError('method "scandir" not implemented: %r' % self)
 
     def getsize(self, follow_symlinks: bool = True) -> int:
@@ -374,7 +379,8 @@ class BasePath:
 
     def makedirs(self, exist_ok: bool = False) -> None:
         """
-        Recursive directory creation function. Like mkdir(), but makes all intermediate-level directories needed to contain the leaf directory.
+        Recursive directory creation function. Like mkdir(), but makes all
+        intermediate-level directories needed to contain the leaf directory.
         """
         self.mkdir(parents=True, exist_ok=exist_ok)
 
@@ -412,7 +418,10 @@ class BaseURIPath(BasePath):
 
     @cached_property
     def path_without_protocol(self) -> str:
-        """Return path without protocol, example: if path is s3://bucket/key, return bucket/key"""
+        """
+        Return path without protocol, example: if path is s3://bucket/key,
+        return bucket/key
+        """
         path = self.path
         protocol_prefix = self.protocol + "://"  # pyre-ignore[58]
         if path.startswith(protocol_prefix):
@@ -518,7 +527,10 @@ class URIPath(BaseURIPath):
         return self.joinpath(other_path)
 
     def joinpath(self: Self, *other_paths: PathLike) -> Self:
-        """Calling this method is equivalent to combining the path with each of the other arguments in turn"""
+        """
+        Calling this method is equivalent to combining the path
+        with each of the other arguments in turn
+        """
         return self.from_path(uri_join(str(self), *map(str, other_paths)))
 
     @cached_property
@@ -533,7 +545,9 @@ class URIPath(BaseURIPath):
 
     @cached_property
     def parents(self) -> "URIPathParents":
-        """An immutable sequence providing access to the logical ancestors of the path"""
+        """
+        An immutable sequence providing access to the logical ancestors of the path
+        """
         return URIPathParents(self)
 
     @cached_property
@@ -547,7 +561,9 @@ class URIPath(BaseURIPath):
 
     @cached_property
     def name(self) -> str:
-        """A string representing the final path component, excluding the drive and root"""
+        """
+        A string representing the final path component, excluding the drive and root
+        """
         parts = self.parts
         if len(parts) == 1 and parts[0] == self.protocol + "://":  # pyre-ignore[58]
             return ""
@@ -584,7 +600,10 @@ class URIPath(BaseURIPath):
         return False
 
     def match(self, pattern) -> bool:
-        """Match this path against the provided glob-style pattern. Return True if matching is successful, False otherwise"""
+        """
+        Match this path against the provided glob-style pattern.
+        Return True if matching is successful, False otherwise
+        """
         match = _compile_pattern(pattern)
         for index in range(len(self.parts), 0, -1):
             path = "/".join(self.parts[index:])
@@ -648,33 +667,41 @@ class URIPath(BaseURIPath):
 
     def is_socket(self) -> bool:
         """
-        Return True if the path points to a Unix socket (or a symbolic link pointing to a Unix socket), False if it points to another kind of file.
+        Return True if the path points to a Unix socket (or a symbolic link pointing
+        to a Unix socket), False if it points to another kind of file.
 
-        False is also returned if the path doesn’t exist or is a broken symlink; other errors (such as permission errors) are propagated.
+        False is also returned if the path doesn’t exist or is a broken symlink;
+        other errors (such as permission errors) are propagated.
         """
         return False
 
     def is_fifo(self) -> bool:
         """
-        Return True if the path points to a FIFO (or a symbolic link pointing to a FIFO), False if it points to another kind of file.
+        Return True if the path points to a FIFO (or a symbolic link pointing to a
+        FIFO), False if it points to another kind of file.
 
-        False is also returned if the path doesn’t exist or is a broken symlink; other errors (such as permission errors) are propagated.
+        False is also returned if the path doesn’t exist or is a broken symlink;
+        other errors (such as permission errors) are propagated.
         """
         return False
 
     def is_block_device(self) -> bool:
         """
-        Return True if the path points to a block device (or a symbolic link pointing to a block device), False if it points to another kind of file.
+        Return True if the path points to a block device (or a symbolic link pointing
+        to a block device), False if it points to another kind of file.
 
-        False is also returned if the path doesn’t exist or is a broken symlink; other errors (such as permission errors) are propagated.
+        False is also returned if the path doesn’t exist or is a broken symlink;
+        other errors (such as permission errors) are propagated.
         """
         return False
 
     def is_char_device(self) -> bool:
         """
-        Return True if the path points to a character device (or a symbolic link pointing to a character device), False if it points to another kind of file.
+        Return True if the path points to a character device (or a symbolic link
+        pointing to a character device), False if it points to another kind of file.
 
-        False is also returned if the path doesn’t exist or is a broken symlink; other errors (such as permission errors) are propagated.
+        False is also returned if the path doesn’t exist or is a broken symlink;
+        other errors (such as permission errors) are propagated.
         """
         return False
 
@@ -695,7 +722,8 @@ class URIPath(BaseURIPath):
 
     def lchmod(self, mode: int):
         """
-        Like chmod() but, if the path points to a symbolic link, the symbolic link’s mode is changed rather than its target’s.
+        Like chmod() but, if the path points to a symbolic link, the symbolic
+        link’s mode is changed rather than its target’s.
         """
         return self.chmod(mode=mode, follow_symlinks=False)
 
@@ -729,7 +757,8 @@ class URIPath(BaseURIPath):
 
     def rglob(self: Self, pattern) -> List[Self]:
         """
-        This is like calling Path.glob() with “**/” added in front of the given relative pattern
+        This is like calling Path.glob() with “**/” added in front of
+        the given relative pattern
         """
         if not pattern:
             pattern = ""
@@ -776,7 +805,9 @@ class URIPath(BaseURIPath):
         raise NotImplementedError(f"'hardlink_to' is unsupported on '{type(self)}'")
 
     def write_bytes(self, data: bytes):
-        """Open the file pointed to in bytes mode, write data to it, and close the file"""
+        """
+        Open the file pointed to in bytes mode, write data to it, and close the file
+        """
         with self.open(mode="wb") as f:
             return f.write(data)
 
@@ -805,7 +836,9 @@ class URIPath(BaseURIPath):
 
     def expanduser(self):
         """
-        Return a new path with expanded ~ and ~user constructs, as returned by os.path.expanduser().
+        Return a new path with expanded ~ and ~user constructs, as returned by
+        os.path.expanduser().
+
         Only fs path support this method.
         """
         raise NotImplementedError(f"'expanduser' is unsupported on '{type(self)}'")
@@ -819,7 +852,8 @@ class URIPath(BaseURIPath):
 
     def iterdir(self: Self) -> Iterator[Self]:
         """
-        Get all contents of given fs path. The result is in ascending alphabetical order.
+        Get all contents of given fs path.
+        The result is in ascending alphabetical order.
 
         :returns: All contents have in the path in ascending alphabetical order
         """
@@ -833,24 +867,30 @@ class URIPath(BaseURIPath):
 
     def absolute(self: Self) -> Self:
         """
-        Make the path absolute, without normalization or resolving symlinks. Returns a new path object
+        Make the path absolute, without normalization or resolving symlinks.
+        Returns a new path object
         """
         raise NotImplementedError(f"'absolute' is unsupported on '{type(self)}'")
 
     def utime(self, atime: Union[float, int], mtime: Union[float, int]):
         """
-        Sets the access and modified times of the file specified by path to the specified values.
+        Sets the access and modified times of the file specified by path to
+        the specified values.
 
         :param atime: The access time to be set.
         :type atime: Union[float, int]
         :param mtime: The modification time to be set.
         :type mtime: Union[float, int]
-        :raises NotImplementedError: Always raised, since the functionality is unsupported.
+        :raises NotImplementedError: Always raised,
+            since the functionality is unsupported.
         """
         raise NotImplementedError(f"'utime' is unsupported on '{type(self)}'")
 
     def lstat(self) -> StatResult:
-        """Like stat() but, if the path points to a symbolic link, return the symbolic link’s information rather than its target’s."""
+        """
+        Like stat() but, if the path points to a symbolic link,
+        return the symbolic link’s information rather than its target’s.
+        """
         return self.stat(follow_symlinks=False)
 
 

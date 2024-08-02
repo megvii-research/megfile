@@ -79,7 +79,8 @@ def get_http_session(
                         return BytesIO(f.read())
                 else:
                     _logger.warning(
-                        'Can not retry http request, because the file object is not seekable and not support "name"'
+                        "Can not retry http request, because the file object "
+                        'is not seekable and not support "name"'
                     )
                     raise
 
@@ -142,15 +143,19 @@ def http_open(
 
     .. note ::
 
-        Essentially, it reads data of http(s) url to memory by requests, and then return BytesIO to user.
+        Essentially, it reads data of http(s) url to memory by requests,
+        and then return BytesIO to user.
 
     :param path: Given path
     :param mode: Only supports 'rb' mode now
-    :param encoding: encoding is the name of the encoding used to decode or encode the file. This should only be used in text mode.
-    :param errors: errors is an optional string that specifies how encoding and decoding errors are to be handled—this cannot be used in binary mode.
+    :param encoding: encoding is the name of the encoding used to decode or encode
+        the file. This should only be used in text mode.
+    :param errors: errors is an optional string that specifies how encoding and decoding
+        errors are to be handled—this cannot be used in binary mode.
     :param max_concurrency: Max download thread number, None by default
     :param max_buffer_size: Max cached buffer size in memory, 128MB by default
-    :param block_size: Size of single block, 8MB by default. Each block will be uploaded or downloaded by single thread.
+    :param block_size: Size of single block, 8MB by default. Each block will be uploaded
+        or downloaded by single thread.
     :return: BytesIO initialized with http(s) data
     """
     return HttpPath(path).open(
@@ -190,14 +195,18 @@ class HttpPath(URIPath):
 
         .. note ::
 
-            Essentially, it reads data of http(s) url to memory by requests, and then return BytesIO to user.
+            Essentially, it reads data of http(s) url to memory by requests,
+            and then return BytesIO to user.
 
         :param mode: Only supports 'rb' mode now
-        :param encoding: encoding is the name of the encoding used to decode or encode the file. This should only be used in text mode.
-        :param errors: errors is an optional string that specifies how encoding and decoding errors are to be handled—this cannot be used in binary mode.
+        :param encoding: encoding is the name of the encoding used to decode or encode
+            the file. This should only be used in text mode.
+        :param errors: errors is an optional string that specifies how encoding and
+            decoding errors are to be handled—this cannot be used in binary mode.
         :param max_concurrency: Max download thread number, None by default
         :param max_buffer_size: Max cached buffer size in memory, 128MB by default
-        :param block_size: Size of single block, 8MB by default. Each block will be uploaded or downloaded by single thread.
+        :param block_size: Size of single block, 8MB by default. Each block will
+            be uploaded or downloaded by single thread.
         :return: BytesIO initialized with http(s) data
         """
         if mode not in ("rb",):
@@ -245,7 +254,8 @@ class HttpPath(URIPath):
             return reader
 
         response.raw.name = self.path_with_protocol
-        # TODO: When python version must bigger than 3.10, use urllib3>=2.0.0 instead of 'Response'
+        # TODO: When python version must bigger than 3.10,
+        # use urllib3>=2.0.0 instead of 'Response'
         # response.raw.auto_close = False
         # response.raw.decode_content = True
         # return BufferedReader(response.raw)
@@ -253,7 +263,8 @@ class HttpPath(URIPath):
 
     def stat(self, follow_symlinks=True) -> StatResult:
         """
-        Get StatResult of http_url response, including size and mtime, referring to http_getsize and http_getmtime
+        Get StatResult of http_url response, including size and mtime,
+        referring to http_getsize and http_getmtime
 
         :param follow_symlinks: Ignore this parameter, just for compatibility
         :returns: StatResult

@@ -131,7 +131,8 @@ def _glob_with_common_wildcard():
 def _glob_with_recursive_pathname():
     """
     scenario: recursively search target folder
-    expectation: returns all subdirectory and files, without check of lexicographical order
+    expectation: returns all subdirectory and files,
+    without check of lexicographical order
     """
     # recursive all files and folders
     assert_glob(
@@ -279,7 +280,8 @@ def _glob_with_nested_pathname():
 def _glob_with_not_exists_dir():
     """
     scenario: glob on a directory that is not exists
-    expectation: if recursive is True, return the directory with postfix of slash('/'), otherwise, an empty list.
+    expectation: if recursive is True,
+        return the directory with postfix of slash('/'), otherwise, an empty list.
     keep identical result with standard glob module
     """
 
@@ -299,7 +301,8 @@ def _glob_with_not_exists_dir():
 def _glob_with_dironly():
     """
     scenario: pathname with the postfix of slash('/')
-    expectation: returns only contains pathname of directory, each of them is end with '/'
+    expectation: returns only contains pathname of directory,
+        each of them is end with '/'
     """
     assert_glob(
         "/bucketForGlobTest/*/", ["/bucketForGlobTest/1/", "/bucketForGlobTest/2/"]
@@ -408,8 +411,8 @@ def test_globlize():
     ]
     new_path_list = list(fnmatch.filter(path_list, glob.globlize(path_list)))
     assert (
-        "{https://bucketForGlobTest/1/a/1,s3://bucketForGlobTest/1/1,s3://bucketForGlobTest1/b1}.json"
-        == glob.globlize(path_list)
+        "{https://bucketForGlobTest/1/a/1,s3://bucketForGlobTest/1/1,"
+        "s3://bucketForGlobTest1/b1}.json" == glob.globlize(path_list)
     )
     assert path_list == new_path_list
 
@@ -458,7 +461,11 @@ def test_globlize():
 
 
 def test_ungloblize():
-    test_glob = "{s3://facerec-raw-data-oss/v3/test-structure/20201207/1,s3://facerec-raw-data-oss/v3/test-structure/20201207/meta.msg,s3://facerec-raw-data-oss/v3/test-structure/20201207/meta.msg.idx}"
+    test_glob = (
+        "{s3://facerec-raw-data-oss/v3/test-structure/20201207/1,"
+        "s3://facerec-raw-data-oss/v3/test-structure/20201207/meta.msg,"
+        "s3://facerec-raw-data-oss/v3/test-structure/20201207/meta.msg.idx}"
+    )
     path_list = [
         "s3://facerec-raw-data-oss/v3/test-structure/20201207/1",
         "s3://facerec-raw-data-oss/v3/test-structure/20201207/meta.msg",

@@ -116,9 +116,11 @@ def get_mode(fileobj, default="r"):
 
 
 def shadow_copy(fileobj: IO, intrusive: bool = True, buffered: bool = False):
-    """Create a File-Like Object, maintaining file pointer, to avoid misunderstanding the position when read / write / seek
+    """Create a File-Like Object, maintaining file pointer,
+    to avoid misunderstanding the position when read / write / seek.
 
-    :param intrusive: If is intrusive. If True, move file pointer to the original position after every read / write / seek. If False, then not.
+    :param intrusive: If is intrusive. If True, move file pointer to the original
+        position after every read / write / seek. If False, then not.
     :param verbose: If True, print log when read / write / seek
     """
     from megfile.lib.shadow_handler import ShadowHandler
@@ -138,7 +140,8 @@ def shadow_copy(fileobj: IO, intrusive: bool = True, buffered: bool = False):
 def lazy_open(path: str, mode: str, open_func: Optional[Callable] = None, **options):
     """Create a File-Like Object, maintaining file pointer, to open a file in lazy mode
 
-    :param intrusive: If is intrusive. If True, move file pointer to the original position after every read / write / seek. If False, then not.
+    :param intrusive: If is intrusive. If True, move file pointer to the original
+        position after every read / write / seek. If False, then not.
     :param verbose: If True, print log when read / write / seek
     """
     from megfile.lib.lazy_handler import LazyHandler
@@ -280,7 +283,8 @@ class classproperty(property):
     def __set__(self, cls_or_obj, value: object) -> None:
         """
         This method gets called when a property value should be set.
-        @param cls_or_obj: The class or instance of which the property should be changed.
+        @param cls_or_obj: The class or instance of which the property should be
+            changed.
         @param value: The new value.
         """
         # call this method only on the class, not the instance
@@ -289,7 +293,8 @@ class classproperty(property):
     def __delete__(self, cls_or_obj) -> None:
         """
         This method gets called when a property should be deleted.
-        @param cls_or_obj: The class or instance of which the property should be deleted.
+        @param cls_or_obj: The class or instance of which the property should be
+            deleted.
         """
         # call this method only on the class, not the instance
         super(classproperty, self).__delete__(_get_class(cls_or_obj))
