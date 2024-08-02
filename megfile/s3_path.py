@@ -1490,7 +1490,8 @@ class S3Path(URIPath):
                     mode, ", ".join([str(a) for a in Access])
                 )
             )
-
+        if mode not in (Access.READ, Access.WRITE):
+            raise TypeError("Unsupported mode: {}".format(mode))
         try:
             if not self.exists():
                 return False

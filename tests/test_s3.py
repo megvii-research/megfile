@@ -3191,7 +3191,7 @@ def s3_empty_client_with_patch(mocker):
         }
 
     def error_method(*args, **kwargs):
-        raise S3UnknownError()
+        raise S3UnknownError(Exception(), "")
 
     with mock_aws():
         client = boto3.client("s3")
