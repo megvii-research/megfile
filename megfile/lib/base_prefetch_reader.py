@@ -18,7 +18,7 @@ from megfile.config import (
     NEWLINE,
 )
 from megfile.interfaces import Readable, Seekable
-from megfile.utils import get_human_size, process_local
+from megfile.utils import ProcessLocal, get_human_size, process_local
 
 _logger = get_logger(__name__)
 
@@ -62,6 +62,9 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
                 % (block_capacity, block_forward)
             )
 
+        # user maybe put block_size with 'numpy.uint64' type
+        block_size = int(block_size)
+
         self._max_retries = max_retries
         self._block_size = block_size
         self._block_capacity = block_capacity  # Max number of blocks
@@ -69,7 +72,8 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
         # Number of blocks every prefetch, which should be smaller than block_capacity
         self._block_forward = block_forward
 
-        self._futures = self._get_futures()
+        self._process_local = ProcessLocal()
+
         self._content_size = self._get_content_size()
         self._block_stop = ceil(self._content_size / block_size)
 
@@ -96,6 +100,10 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
     @abstractmethod
     def _get_content_size(self):
         pass
+
+    @property
+    def _futures(self):
+        return self._process_local("futures", self._get_futures)
 
     def _get_futures(self):
         return LRUCacheFutureManager()
@@ -138,9 +146,9 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
 
         Returns the new absolute position.
         """
+        offset = int(offset)  # user maybe put offset with 'numpy.uint64' type
         if self.closed:
-            raise IOError("file already closed: %r" % self.name)
-
+            raise IOError('file already closed: %r' % self.name)
         if whence == os.SEEK_CUR:
             target_offset = self._offset + offset
         elif whence == os.SEEK_END:

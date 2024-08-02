@@ -95,8 +95,9 @@ class ProcessLocal(ForkAware, BaseLocal):
         return self._local
 
     def __call__(self, key: str, func: Callable, *args, **kwargs) -> Any:
-        with self._lock:
-            data = self._data
-            if key not in data:
-                data[key] = func(*args, **kwargs)
-            return data[key]
+        data = self._data
+        if key not in data:
+            with self._lock:
+                if key not in data:
+                    data[key] = func(*args, **kwargs)
+        return data[key]

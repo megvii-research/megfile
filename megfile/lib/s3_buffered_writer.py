@@ -56,7 +56,9 @@ class S3BufferedWriter(Writable[bytes]):
         self._client = s3_client
         self._profile_name = profile_name
 
-        self._block_size = block_size
+        # user maybe put block_size with 'numpy.uint64' type
+        self._block_size = int(block_size)
+
         self._max_block_size = max_block_size
         self._max_buffer_size = max_buffer_size
         self._total_buffer_size = 0

@@ -1,3 +1,8 @@
+## 3.1.1 - 2024.07.24
+- perf
+    - `smart_cache` in `w` mode can generate cache path when param `cache_path` is None
+    - reader and writer support more types like `numpy.uint64` for some params, e.g. `offset` param in `seek` support `numpy.uint64` type
+
 ## 3.1.0.post2 - 2024.07.22
 - fix
     - fix `block_size` overwritten by default `min_block_size` in `s3_open`
