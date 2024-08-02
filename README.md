@@ -164,11 +164,8 @@ s3 =
 
     *You can submit code even if the code doesn't meet conditions. The project members will evaluate and assist you in making code changes*
 
-    * **Code format**: Your code needs to pass **code format check**. `megfile` uses `yapf` as lint tool and the version is locked at 0.27.0. The version lock may be removed in the future
+    * **Code format**: Your code needs to pass **code format check**. `megfile` uses `ruff` as lint tool
     * **Static check**: Your code needs complete **type hint**. `megfile` uses `pytype` as static check tool. If `pytype` failed in static check, use `# pytype: disable=XXX` to disable the error and please tell us why you disable it.
-
-        *Note* : Because `pytype` doesn't support variable type annation, the variable type hint format introduced by py36 cannot be used.
-        > i.e. `variable: int` is invalid, replace it with `variable  # type: int`
 
     * **Test**: Your code needs complete **unit test** coverage. `megfile` uses `pyfakefs` and `moto` as local file system and s3 virtual environment in unit tests. The newly added code should have a complete unit test to ensure the correctness
 
