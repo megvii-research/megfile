@@ -6,17 +6,16 @@ test:
 
 autofile:
 	python3 -m "scripts.generate_file"
+	black megfile
 	make format
 
 format:
-	autoflake --ignore-init-module-imports --remove-all-unused-imports --in-place --recursive ${PACKAGE}
-	isort ${PACKAGE} tests
-	yapf --in-place --recursive ${PACKAGE} tests scripts
+	ruff check --fix ${PACKAGE} tests scripts pyproject.toml
+	ruff format ${PACKAGE} tests scripts pyproject.toml
 
 style_check:
-	autoflake --check-diff --ignore-init-module-imports --remove-all-unused-imports --recursive ${PACKAGE}
-	isort --diff --check ${PACKAGE} tests
-	yapf --diff --recursive ${PACKAGE} tests
+	ruff check ${PACKAGE} tests scripts pyproject.toml
+	ruff format --check ${PACKAGE} tests scripts pyproject.toml
 
 static_check:
 	make pytype_check

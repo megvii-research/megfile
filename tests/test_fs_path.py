@@ -7,8 +7,7 @@ TEST_PATH_WITH_PROTOCOL = FS_PROTOCOL_PREFIX + TEST_PATH
 
 def test_from_uri():
     assert FSPath.from_uri(TEST_PATH).path == TEST_PATH
-    assert FSPath.from_uri(
-        TEST_PATH_WITH_PROTOCOL).path == TEST_PATH_WITH_PROTOCOL
+    assert FSPath.from_uri(TEST_PATH_WITH_PROTOCOL).path == TEST_PATH_WITH_PROTOCOL
 
 
 def test_path_with_protocol():

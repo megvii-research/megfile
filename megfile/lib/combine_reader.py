@@ -5,11 +5,10 @@ from typing import IO, AnyStr, List, Optional, Union
 from megfile.interfaces import Readable, Seekable
 from megfile.utils import get_content_size, get_mode, get_name, is_readable
 
-NEWLINE = ord('\n')
+NEWLINE = ord("\n")
 
 
 class CombineReader(Readable, Seekable):
-
     def __init__(self, file_objects: List[IO], name: str):
         self._file_objects = file_objects
         self._blocks_sizes = []
@@ -19,14 +18,15 @@ class CombineReader(Readable, Seekable):
         self._mode = None
         for file_object in self._file_objects:
             if not is_readable(file_object):
-                raise IOError('not readable: %r' % get_name(file_object))
+                raise IOError("not readable: %r" % get_name(file_object))
             mode = get_mode(file_object)
             if self._mode is None:
                 self._mode = mode
             if self._mode != mode:
                 raise IOError(
-                    'inconsistent mode: %r, expected: %r, got: %r' %
-                    (get_name(file_object), self._mode, mode))
+                    "inconsistent mode: %r, expected: %r, got: %r"
+                    % (get_name(file_object), self._mode, mode)
+                )
             self._blocks_sizes.append(self._content_size)
             self._content_size += get_content_size(file_object)
         self._blocks_sizes.append(self._content_size)
@@ -36,7 +36,7 @@ class CombineReader(Readable, Seekable):
         for index, size in enumerate(self._blocks_sizes):
             if self._offset < size:
                 return index - 1, self._offset - self._blocks_sizes[index - 1]
-        raise IOError('offset out of range: %d' % self._offset)
+        raise IOError("offset out of range: %d" % self._offset)
 
     @property
     def name(self) -> str:
@@ -50,12 +50,12 @@ class CombineReader(Readable, Seekable):
         return self._offset
 
     def _empty_bytes(self) -> AnyStr:  # pyre-ignore[34]
-        if 'b' in self._mode:
-            return b''  # pyre-ignore[7]
-        return ''  # pyre-ignore[7]
+        if "b" in self._mode:
+            return b""  # pyre-ignore[7]
+        return ""  # pyre-ignore[7]
 
     def _empty_buffer(self) -> Union[BytesIO, StringIO]:
-        if 'b' in self._mode:
+        if "b" in self._mode:
             return BytesIO()
         return StringIO()
 
@@ -107,10 +107,10 @@ class CombineReader(Readable, Seekable):
         elif whence == os.SEEK_END:
             target_offset = self._content_size + offset
         else:
-            raise ValueError('invalid whence: %r' % whence)
+            raise ValueError("invalid whence: %r" % whence)
 
         if target_offset < 0:
-            raise ValueError('negative seek value %r' % target_offset)
+            raise ValueError("negative seek value %r" % target_offset)
 
         self._offset = target_offset
         return self._offset

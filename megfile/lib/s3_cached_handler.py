@@ -7,21 +7,20 @@ from megfile.utils import generate_cache_path
 
 
 class S3CachedHandler(S3MemoryHandler):
-
     def __init__(
-            self,
-            bucket: str,
-            key: str,
-            mode: str,
-            *,
-            s3_client,
-            cache_path: Optional[str] = None,
-            remove_cache_when_open: bool = True,
-            profile_name: Optional[str] = None):
-
-        if mode not in ('rb', 'wb', 'ab', 'rb+', 'wb+', 'ab+'):
+        self,
+        bucket: str,
+        key: str,
+        mode: str,
+        *,
+        s3_client,
+        cache_path: Optional[str] = None,
+        remove_cache_when_open: bool = True,
+        profile_name: Optional[str] = None,
+    ):
+        if mode not in ("rb", "wb", "ab", "rb+", "wb+", "ab+"):
             # TODO: replace AssertionError with ValueError in 4.0.0
-            raise AssertionError('unacceptable mode: %r' % mode)
+            raise AssertionError("unacceptable mode: %r" % mode)
 
         self._bucket = bucket
         self._key = key
@@ -33,7 +32,7 @@ class S3CachedHandler(S3MemoryHandler):
             cache_path = generate_cache_path(self.name)
 
         self._cache_path = cache_path
-        self._fileobj = open(self._cache_path, 'wb+')
+        self._fileobj = open(self._cache_path, "wb+")
         self._download_fileobj()
 
         if remove_cache_when_open:

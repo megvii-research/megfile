@@ -6,27 +6,27 @@ from megfile.interfaces import Readable, Writable
 
 
 class STDHandler:
-
     def tell(self):
-        raise UnsupportedOperation('not tellable')
+        raise UnsupportedOperation("not tellable")
 
     def _close(self):
         pass
 
 
 class STDReader(STDHandler, Readable):
-    """ megfile encapsulation of stdin. Avoid direct operation on sys.stdin
+    """megfile encapsulation of stdin. Avoid direct operation on sys.stdin
 
     .. note ::
 
         1. For convenience, use buffer by default
 
-        2. There is currently no demand and no design for seek, so seek is not allowed now
+        2. There is currently no demand and no design for seek,
+           so seek is not allowed now
     """
 
     def __init__(self, mode: str):
         handler = sys.stdin
-        if 'b' in mode:
+        if "b" in mode:
             handler = handler.buffer
 
         self._handler = handler
@@ -48,13 +48,14 @@ class STDReader(STDHandler, Readable):
 
 
 class STDWriter(STDHandler, Writable):
-    """ megfile encapsulation of stdin. Avoid direct operation on sys.stdin
+    """megfile encapsulation of stdin. Avoid direct operation on sys.stdin
 
     .. note ::
 
         1. For convenience, use buffer by default
 
-        2. There is currently no demand and no design for seek, so seek is not allowed now
+        2. There is currently no demand and no design for seek,
+           so seek is not allowed now
     """
 
     def __init__(self, path: str, mode: str):
@@ -64,7 +65,7 @@ class STDWriter(STDHandler, Writable):
         else:
             name = "stdout"
             handler = sys.stdout
-        if 'b' in mode:
+        if "b" in mode:
             handler = handler.buffer
 
         self._handler = handler

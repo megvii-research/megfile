@@ -1,5 +1,3 @@
-import pytest
-
 from megfile.interfaces import StatResult
 
 

@@ -2,9 +2,9 @@ from megfile.lib.lazy_handler import LazyHandler
 
 
 def test_lazy_handler(fs):
-    path = '/file'
-    write_mode = 'w'
-    content = 'test'
+    path = "/file"
+    write_mode = "w"
+    content = "test"
     with LazyHandler(path=path, mode=write_mode, open_func=open) as handler:
         assert handler.name == path
         assert handler.mode == write_mode
@@ -12,7 +12,7 @@ def test_lazy_handler(fs):
         assert handler.writable() is True
         handler.write(content)
 
-    read_mode = 'r'
+    read_mode = "r"
     with LazyHandler(path=path, mode=read_mode, open_func=open) as handler:
         assert handler.name == path
         assert handler.mode == read_mode

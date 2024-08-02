@@ -3,9 +3,7 @@ try:
 except ImportError:  # pragma: no cover
     hdfs_api = None
 
-__all__ = [
-    'hdfs_api',
-]
+__all__ = ["hdfs_api"]
 
 if hdfs_api:
     _to_error = hdfs_api.client._to_error

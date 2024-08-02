@@ -22,10 +22,11 @@ sphinx-rtd-theme
 sphinxcontrib-jquery
 sphinx_click
 
-# format & static check
-autoflake
-yapf == 0.31.0
-isort
+# format
+ruff
+black  # for E501
+
+# static check
 pytype
 pyre-check ~= 0.9.22
 bandit

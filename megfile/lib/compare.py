@@ -5,17 +5,19 @@ from megfile.pathlike import StatResult
 
 
 def get_sync_type(src_protocol, dst_protocol):
-    if src_protocol == 's3' and dst_protocol != 's3':
-        return 'download'
-    elif src_protocol != 's3' and dst_protocol == 's3':
-        return 'upload'
+    if src_protocol == "s3" and dst_protocol != "s3":
+        return "download"
+    elif src_protocol != "s3" and dst_protocol == "s3":
+        return "upload"
     else:
-        return 'copy'
+        return "copy"
 
 
 def compare_time(
-        src_stat: Union[StatResult, stat_result],
-        dest_stat: Union[StatResult, stat_result], sync_type: str):
+    src_stat: Union[StatResult, stat_result],
+    dest_stat: Union[StatResult, stat_result],
+    sync_type: str,
+):
     """
     :returns: True if the file does not need updating based on time of
         last modification and type of operation.
@@ -35,7 +37,6 @@ def compare_time(
             # at the source location.
             return False
     elif sync_type == "download":
-
         if delta <= 0:
             return True
         else:
@@ -45,14 +46,17 @@ def compare_time(
 
 
 def is_same_file(
-        src_stat: Union[StatResult, stat_result],
-        dest_stat: Union[StatResult, stat_result], sync_type: str):
+    src_stat: Union[StatResult, stat_result],
+    dest_stat: Union[StatResult, stat_result],
+    sync_type: str,
+):
     """
-    Determines whether or not the source and destination files should be synced based on a comparison of their size and last modified time.
+    Determines whether or not the source and destination files should be synced based on
+    a comparison of their size and last modified time.
 
-    :param src_stat: A Union[StatResult, stat_result] object representing the source file to be compared.
+    :param src_stat: A object representing the source file to be compared.
     :type src_stat: Union[StatResult, stat_result]
-    :param dest_stat: A Union[StatResult, stat_result] object representing the destination file to be compared.
+    :param dest_stat: A object representing the destination file to be compared.
     :type dest_stat: Union[StatResult, stat_result]
 
     :return: A boolean value indicating whether or not the files should be synced.

@@ -3,7 +3,11 @@ from io import BytesIO
 from logging import getLogger as get_logger
 from typing import Optional
 
-from megfile.config import DEFAULT_MAX_BLOCK_SIZE, DEFAULT_MAX_BUFFER_SIZE, DEFAULT_MIN_BLOCK_SIZE
+from megfile.config import (
+    DEFAULT_MAX_BLOCK_SIZE,
+    DEFAULT_MAX_BUFFER_SIZE,
+    DEFAULT_MIN_BLOCK_SIZE,
+)
 from megfile.errors import raise_s3_error
 from megfile.interfaces import Seekable
 from megfile.lib.s3_buffered_writer import S3BufferedWriter
@@ -12,27 +16,27 @@ _logger = get_logger(__name__)
 
 
 class S3LimitedSeekableWriter(S3BufferedWriter, Seekable):
-    ''' For file format like msgpack and mp4, it's a pain that you need to write
+    """For file format like msgpack and mp4, it's a pain that you need to write
     header before writing the data. So it's kind of hard to make streaming write
     to unseekable file system like s3. In this case, we will try to keep the first
     and last parts of data in memory, so we can come back to head again and write
     the header at the last second.
-    '''
+    """
 
     def __init__(
-            self,
-            bucket: str,
-            key: str,
-            *,
-            s3_client,
-            block_size: int = DEFAULT_MIN_BLOCK_SIZE,
-            head_block_size: Optional[int] = None,
-            tail_block_size: Optional[int] = None,
-            max_block_size: int = DEFAULT_MAX_BLOCK_SIZE,
-            max_buffer_size: int = DEFAULT_MAX_BUFFER_SIZE,
-            max_workers: Optional[int] = None,
-            profile_name: Optional[str] = None):
-
+        self,
+        bucket: str,
+        key: str,
+        *,
+        s3_client,
+        block_size: int = DEFAULT_MIN_BLOCK_SIZE,
+        head_block_size: Optional[int] = None,
+        tail_block_size: Optional[int] = None,
+        max_block_size: int = DEFAULT_MAX_BLOCK_SIZE,
+        max_buffer_size: int = DEFAULT_MAX_BUFFER_SIZE,
+        max_workers: Optional[int] = None,
+        profile_name: Optional[str] = None,
+    ):
         super().__init__(
             bucket,
             key,
@@ -41,7 +45,8 @@ class S3LimitedSeekableWriter(S3BufferedWriter, Seekable):
             max_block_size=max_block_size,
             max_buffer_size=max_buffer_size,
             max_workers=max_workers,
-            profile_name=profile_name)
+            profile_name=profile_name,
+        )
 
         self._head_block_size = head_block_size or block_size
         self._tail_block_size = tail_block_size or block_size
@@ -61,7 +66,7 @@ class S3LimitedSeekableWriter(S3BufferedWriter, Seekable):
 
     def seek(self, offset: int, whence: int = os.SEEK_SET) -> int:
         if self.closed:
-            raise IOError('file already closed: %r' % self.name)
+            raise IOError("file already closed: %r" % self.name)
 
         offset = int(offset)  # user maybe put offset with 'numpy.uint64' type
         if whence == os.SEEK_SET:
@@ -71,7 +76,7 @@ class S3LimitedSeekableWriter(S3BufferedWriter, Seekable):
         elif whence == os.SEEK_END:
             target_offset = self._content_size + offset
         else:
-            raise OSError('Unsupported whence value: %d' % whence)
+            raise OSError("Unsupported whence value: %d" % whence)
 
         if target_offset < self._head_block_size:
             self._head_buffer.seek(target_offset)
@@ -79,15 +84,16 @@ class S3LimitedSeekableWriter(S3BufferedWriter, Seekable):
             self._buffer.seek(target_offset - self._tail_offset)
         else:
             raise OSError(
-                'Can only seek inside of head, or seek to tail, target offset: %d'
-                % target_offset)
+                "Can only seek inside of head, or seek to tail, target offset: %d"
+                % target_offset
+            )
 
         self._offset = target_offset
         return self._offset
 
     def write(self, data: bytes) -> int:
         if self.closed:
-            raise IOError('file already closed: %r' % self.name)
+            raise IOError("file already closed: %r" % self.name)
 
         if self._head_size != self._head_block_size:  # no tail part yet
             self._write_to_head(data)
@@ -97,8 +103,9 @@ class S3LimitedSeekableWriter(S3BufferedWriter, Seekable):
             self._write_to_tail(data)
         else:
             raise OSError(
-                'Can only write inside of head, or write to tail, current offset: %d'
-                % self._offset)
+                "Can only write inside of head, or write to tail, current offset: %d"
+                % self._offset
+            )
         return len(data)
 
     def _write_to_head(self, data: bytes):
@@ -117,8 +124,9 @@ class S3LimitedSeekableWriter(S3BufferedWriter, Seekable):
     def _write_to_head_after_tail_part_created(self, data: bytes):
         if self._offset + len(data) > self._head_block_size:
             raise Exception(
-                'Head part overflow, %d bytes left but try to write %d bytes' %
-                (self._head_block_size - self._offset, len(data)))
+                "Head part overflow, %d bytes left but try to write %d bytes"
+                % (self._head_block_size - self._offset, len(data))
+            )
         self._head_buffer.write(data)
         self._offset += len(data)
 
@@ -140,14 +148,15 @@ class S3LimitedSeekableWriter(S3BufferedWriter, Seekable):
         self._submit_upload_content(content[:offset])
 
     def _close(self):
-        _logger.debug('close file: %r' % self.name)
+        _logger.debug("close file: %r" % self.name)
 
         if not self._is_multipart:
             with raise_s3_error(self.name):
                 self._client.put_object(
                     Bucket=self._bucket,
                     Key=self._key,
-                    Body=self._head_buffer.getvalue() + self._buffer.getvalue())
+                    Body=self._head_buffer.getvalue() + self._buffer.getvalue(),
+                )
             self._shutdown()
             return
 

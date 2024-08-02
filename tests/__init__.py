@@ -4,13 +4,11 @@ from megfile.interfaces import StatResult
 
 
 class Any:
-
     def __eq__(self, other):
         return True
 
 
 class Now:
-
     def __eq__(self, other):
         now = time()
         return -5 < other - now < 5
@@ -20,9 +18,10 @@ class Now:
 
 
 class FakeStatResult(StatResult):
-
     def __eq__(self, other):
-        if any(getattr(self, name) != getattr(other, name)
-               for name in ('size', 'ctime', 'mtime', 'isdir', 'islnk')):
+        if any(
+            getattr(self, name) != getattr(other, name)
+            for name in ("size", "ctime", "mtime", "isdir", "islnk")
+        ):
             return False
         return True

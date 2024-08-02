@@ -44,13 +44,26 @@ file = ["requirements.txt"]
 hdfs = { file = ["requirements-hdfs.txt"] }
 cli = { file = ["requirements-cli.txt"] }
 
-[tool.yapf]
-based_on_style = "google"
-split_before_first_argument = true
+[tool.ruff]
+line-length = 88
+indent-width = 4
 
-[tool.isort]
-# ignore line width limit for import
-line_length = 999
+[tool.ruff.lint]
+ignore = [
+    "E402", # imports not on top of file
+    "PGH004", # Use specific rule codes when using noqa
+]
+select = ["E", "F", "W"]
+extend-select = ["I"]
+
+[tool.ruff.lint.extend-per-file-ignores]
+"tests/**/*.py" = [
+    "F811",  # redefinition of unused name
+]
+
+[tool.ruff.format]
+# Like Black, use double quotes for strings.
+quote-style = "double"
 
 [tool.pytype]
 
