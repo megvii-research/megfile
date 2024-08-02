@@ -148,7 +148,7 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
         """
         offset = int(offset)  # user maybe put offset with 'numpy.uint64' type
         if self.closed:
-            raise IOError('file already closed: %r' % self.name)
+            raise IOError("file already closed: %r" % self.name)
         if whence == os.SEEK_CUR:
             target_offset = self._offset + offset
         elif whence == os.SEEK_END:
