@@ -10,7 +10,7 @@ from typing import Optional
 
 from megfile.config import BACKOFF_FACTOR, BACKOFF_INITIAL, DEFAULT_BLOCK_CAPACITY, DEFAULT_BLOCK_SIZE, DEFAULT_MAX_RETRY_TIMES, GLOBAL_MAX_WORKERS, NEWLINE
 from megfile.interfaces import Readable, Seekable
-from megfile.utils import get_human_size, process_local
+from megfile.utils import ProcessLocal, get_human_size, process_local
 
 _logger = get_logger(__name__)
 
@@ -62,7 +62,8 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
         self._block_capacity = block_capacity  # Max number of blocks
         self._block_forward = block_forward  # Number of blocks every prefetch, which should be smaller than block_capacity
 
-        self._futures = self._get_futures()
+        self._process_local = ProcessLocal()
+
         self._content_size = self._get_content_size()
         self._block_stop = ceil(self._content_size / block_size)
 
@@ -88,6 +89,10 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
     @abstractmethod
     def _get_content_size(self):
         pass
+
+    @property
+    def _futures(self):
+        return self._process_local("futures", self._get_futures)
 
     def _get_futures(self):
         return LRUCacheFutureManager()
