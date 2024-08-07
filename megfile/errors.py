@@ -116,6 +116,7 @@ def s3_should_retry(error: Exception) -> bool:
         return True
     if isinstance(error, botocore.exceptions.ClientError):
         return client_error_code(error) in (
+            "429",  # noqa: E501 # TOS ExceedAccountQPSLimit
             "499",  # noqa: E501 # Some cloud providers may send response with http code 499 if the connection not send data in 1 min.
             "500",
             "501",
@@ -125,6 +126,10 @@ def s3_should_retry(error: Exception) -> bool:
             "ServiceUnavailable",
             "SlowDown",
             "ContextCanceled",
+            "ExceedAccountQPSLimit",
+            "ExceedAccountRateLimit",
+            "ExceedBucketQPSLimit",
+            "ExceedBucketRateLimit",
         )
     return False
 
