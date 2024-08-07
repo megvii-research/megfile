@@ -132,7 +132,7 @@ def _patch_make_request(client: botocore.client.BaseClient):
         ):
             return result
         http, parsed_response = result
-        if http.status_code >= 500:
+        if http.status_code >= 400:
             error_code = parsed_response.get("Error", {}).get("Code")
             operation_model = kwargs.get("operation_model") or (
                 args[0] if args else None
