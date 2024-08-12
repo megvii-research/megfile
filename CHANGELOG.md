@@ -1,3 +1,9 @@
+## 3.1.2 - 2024.08.12
+- perf
+    - add retry logic for S3 error `429`
+- fix
+    - fix the deadlock issue of prefetch reader after fork
+
 ## 3.1.1 - 2024.07.24
 - perf
     - `smart_cache` in `w` mode can generate cache path when param `cache_path` is None
