@@ -82,27 +82,28 @@
 <span class="kn">from</span> <span class="nn">megfile.interfaces</span> <span class="kn">import</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">StatResult</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s1">&#39;get_http_session&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;is_http&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;http_open&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;http_stat&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;http_getsize&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;http_getmtime&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;http_exists&#39;</span><span class="p">,</span>
+    <span class="s2">&quot;get_http_session&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;is_http&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;http_open&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;http_stat&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;http_getsize&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;http_getmtime&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;http_exists&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
 
 <div class="viewcode-block" id="http_stat">
 <a class="viewcode-back" href="../../megfile.http.html#megfile.http.http_stat">[docs]</a>
 <span class="k">def</span> <span class="nf">http_stat</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StatResult</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">    Get StatResult of http_url response, including size and mtime, referring to http_getsize and http_getmtime</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get StatResult of http_url response, including size and mtime,</span>
+<span class="sd">    referring to http_getsize and http_getmtime</span>
 
 <span class="sd">    :param path: Given path</span>
 <span class="sd">    :param follow_symlinks: Ignore this parameter, just for compatibility</span>
 <span class="sd">    :returns: StatResult</span>
 <span class="sd">    :raises: HttpPermissionError, HttpFileNotFoundError</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">HttpPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">follow_symlinks</span><span class="p">)</span></div>
 
 
@@ -110,7 +111,7 @@
 <div class="viewcode-block" id="http_getsize">
 <a class="viewcode-back" href="../../megfile.http.html#megfile.http.http_getsize">[docs]</a>
 <span class="k">def</span> <span class="nf">http_getsize</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get file size on the given http_url path.</span>
 
 <span class="sd">    If http response header don&#39;t support Content-Length, will return None</span>
@@ -119,7 +120,7 @@
 <span class="sd">    :param follow_symlinks: Ignore this parameter, just for compatibility</span>
 <span class="sd">    :returns: File size (in bytes)</span>
 <span class="sd">    :raises: HttpPermissionError, HttpFileNotFoundError</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">HttpPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">getsize</span><span class="p">(</span><span class="n">follow_symlinks</span><span class="p">)</span></div>
 
 
@@ -127,7 +128,7 @@
 <div class="viewcode-block" id="http_getmtime">
 <a class="viewcode-back" href="../../megfile.http.html#megfile.http.http_getmtime">[docs]</a>
 <span class="k">def</span> <span class="nf">http_getmtime</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get Last-Modified time of the http request on the given http_url path.</span>
 
 <span class="sd">    If http response header don&#39;t support Last-Modified, will return None</span>
@@ -136,7 +137,7 @@
 <span class="sd">    :param follow_symlinks: Ignore this parameter, just for compatibility</span>
 <span class="sd">    :returns: Last-Modified time (in Unix timestamp format)</span>
 <span class="sd">    :raises: HttpPermissionError, HttpFileNotFoundError</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">HttpPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">getmtime</span><span class="p">(</span><span class="n">follow_symlinks</span><span class="p">)</span></div>
 
 

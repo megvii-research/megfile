@@ -112,7 +112,8 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.hdfs_path.HdfsPath.absolute">
 <span class="sig-name descname"><span class="pre">absolute</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#megfile.hdfs_path.HdfsPath" title="megfile.hdfs_path.HdfsPath"><span class="pre">HdfsPath</span></a></span></span><a class="reference internal" href="_modules/megfile/hdfs_path.html#HdfsPath.absolute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.hdfs_path.HdfsPath.absolute" title="Link to this definition"></a></dt>
-<dd><p>Make the path absolute, without normalization or resolving symlinks. Returns a new path object</p>
+<dd><p>Make the path absolute, without normalization or resolving symlinks.
+Returns a new path object</p>
 </dd></dl>
 
 <dl class="py method">
@@ -130,9 +131,12 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.hdfs_path.HdfsPath.getmtime">
 <span class="sig-name descname"><span class="pre">getmtime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">follow_symlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="_modules/megfile/hdfs_path.html#HdfsPath.getmtime"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.hdfs_path.HdfsPath.getmtime" title="Link to this definition"></a></dt>
-<dd><p>Get last-modified time of the file on the given path path (in Unix timestamp format).
-If the path is an existent directory, return the latest modified time of all file in it. The mtime of empty directory is 1970-01-01 00:00:00</p>
-<p>If path is not an existent path, which means hdfs_exist(path) returns False, then raise FileNotFoundError</p>
+<dd><p>Get last-modified time of the file on the given path path (in Unix timestamp
+format).
+If the path is an existent directory, return the latest modified time of all
+file in it. The mtime of empty directory is 1970-01-01 00:00:00</p>
+<p>If path is not an existent path, which means hdfs_exist(path) returns False,
+then raise FileNotFoundError</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Last-modified time</p>
@@ -147,9 +151,12 @@ If the path is an existent directory, return the latest modified time of all fil
 <dt class="sig sig-object py" id="megfile.hdfs_path.HdfsPath.getsize">
 <span class="sig-name descname"><span class="pre">getsize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">follow_symlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/megfile/hdfs_path.html#HdfsPath.getsize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.hdfs_path.HdfsPath.getsize" title="Link to this definition"></a></dt>
 <dd><p>Get file size on the given path path (in bytes).
-If the path in a directory, return the sum of all file size in it, including file in subdirectories (if exist).
-The result excludes the size of directory itself. In other words, return 0 Byte on an empty directory path.</p>
-<p>If path is not an existent path, which means hdfs_exist(path) returns False, then raise FileNotFoundError</p>
+If the path in a directory, return the sum of all file size in it,
+including file in subdirectories (if exist).</p>
+<p>The result excludes the size of directory itself. In other words,
+return 0 Byte on an empty directory path.</p>
+<p>If path is not an existent path, which means hdfs_exist(path) returns False,
+then raise FileNotFoundError</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>File size</p>
@@ -164,13 +171,16 @@ The result excludes the size of directory itself. In other words, return 0 Byte 
 <dt class="sig sig-object py" id="megfile.hdfs_path.HdfsPath.glob">
 <span class="sig-name descname"><span class="pre">glob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pattern</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#megfile.hdfs_path.HdfsPath" title="megfile.hdfs_path.HdfsPath"><span class="pre">HdfsPath</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/hdfs_path.html#HdfsPath.glob"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.hdfs_path.HdfsPath.glob" title="Link to this definition"></a></dt>
 <dd><p>Return hdfs path list, in which path matches glob pattern
-Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError</p>
+Notes: Only glob in bucket. If trying to match bucket with wildcard characters,
+raise UnsupportedError</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pattern</strong> – Glob the given relative pattern in the directory represented by this path</p></li>
+<li><p><strong>pattern</strong> – Glob the given relative pattern in the directory represented
+by this path</p></li>
 <li><p><strong>recursive</strong> – If False, <cite>**</cite> will not search directory recursively</p></li>
-<li><p><strong>missing_ok</strong> – If False and target path doesn’t match any file, raise FileNotFoundError</p></li>
+<li><p><strong>missing_ok</strong> – If False and target path doesn’t match any file,
+raise FileNotFoundError</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
@@ -185,21 +195,26 @@ Notes: Only glob in bucket. If trying to match bucket with wildcard characters, 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.hdfs_path.HdfsPath.glob_stat">
 <span class="sig-name descname"><span class="pre">glob_stat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pattern</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">FileEntry</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/hdfs_path.html#HdfsPath.glob_stat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.hdfs_path.HdfsPath.glob_stat" title="Link to this definition"></a></dt>
-<dd><p>Return a generator contains tuples of path and file stat, in which path matches glob pattern
-Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError</p>
+<dd><p>Return a generator contains tuples of path and file stat,
+in which path matches glob pattern</p>
+<p>Notes: Only glob in bucket. If trying to match bucket with wildcard characters,
+raise UnsupportedError</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pattern</strong> – Glob the given relative pattern in the directory represented by this path</p></li>
+<li><p><strong>pattern</strong> – Glob the given relative pattern in the directory represented
+by this path</p></li>
 <li><p><strong>recursive</strong> – If False, <cite>**</cite> will not search directory recursively</p></li>
-<li><p><strong>missing_ok</strong> – If False and target path doesn’t match any file, raise FileNotFoundError</p></li>
+<li><p><strong>missing_ok</strong> – If False and target path doesn’t match any file,
+raise FileNotFoundError</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><p>UnsupportedError, when bucket part contains wildcard characters</p>
 </dd>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>A generator contains tuples of path and file stat, in which paths match <cite>hdfs_pathname</cite></p>
+<dd class="field-odd"><p>A generator contains tuples of path and file stat,
+in which paths match <cite>hdfs_pathname</cite></p>
 </dd>
 </dl>
 </dd></dl>
@@ -208,13 +223,16 @@ Notes: Only glob in bucket. If trying to match bucket with wildcard characters, 
 <dt class="sig sig-object py" id="megfile.hdfs_path.HdfsPath.iglob">
 <span class="sig-name descname"><span class="pre">iglob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pattern</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#megfile.hdfs_path.HdfsPath" title="megfile.hdfs_path.HdfsPath"><span class="pre">HdfsPath</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/hdfs_path.html#HdfsPath.iglob"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.hdfs_path.HdfsPath.iglob" title="Link to this definition"></a></dt>
 <dd><p>Return hdfs path iterator, in which path matches glob pattern
-Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError</p>
+Notes: Only glob in bucket. If trying to match bucket with wildcard characters,
+raise UnsupportedError</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pattern</strong> – Glob the given relative pattern in the directory represented by this path</p></li>
+<li><p><strong>pattern</strong> – Glob the given relative pattern in the directory represented
+by this path</p></li>
 <li><p><strong>recursive</strong> – If False, <cite>**</cite> will not search directory recursively</p></li>
-<li><p><strong>missing_ok</strong> – If False and target path doesn’t match any file, raise FileNotFoundError</p></li>
+<li><p><strong>missing_ok</strong> – If False and target path doesn’t match any file,
+raise FileNotFoundError</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
@@ -235,7 +253,8 @@ If there exists a suffix, of which <code class="docutils literal notranslate"><s
 If the url is empty bucket or hdfs://</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>followlinks</strong> – whether followlinks is True or False, result is the same. Because hdfs symlink not support dir.</p>
+<dd class="field-odd"><p><strong>followlinks</strong> – whether followlinks is True or False, result is the same.
+Because hdfs symlink not support dir.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>True if path is hdfs directory, else False</p>
@@ -320,7 +339,7 @@ This function is to test the target bucket have WRITE access.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>mode</strong> – Octal permission to set on the newly created directory. 
+<li><p><strong>mode</strong> – Octal permission to set on the newly created directory.
 These permissions will only be set on directories that do not already exist.</p></li>
 <li><p><strong>parents</strong> – parents is ignored, only be compatible with pathlib.Path</p></li>
 <li><p><strong>exist_ok</strong> – If False and target directory exists, raise FileExistsError</p></li>
@@ -375,10 +394,12 @@ These permissions will only be set on directories that do not already exist.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.hdfs_path.HdfsPath.remove">
 <span class="sig-name descname"><span class="pre">remove</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">missing_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/megfile/hdfs_path.html#HdfsPath.remove"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.hdfs_path.HdfsPath.remove" title="Link to this definition"></a></dt>
-<dd><p>Remove the file or directory on hdfs, <cite>hdfs://</cite> and <cite>hdfs://bucket</cite> are not permitted to remove</p>
+<dd><p>Remove the file or directory on hdfs, <cite>hdfs://</cite> and <cite>hdfs://bucket</cite> are not
+permitted to remove</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>missing_ok</strong> – if False and target file/directory not exists, raise FileNotFoundError</p>
+<dd class="field-odd"><p><strong>missing_ok</strong> – if False and target file/directory not exists,
+raise FileNotFoundError</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><p>FileNotFoundError, UnsupportedError</p>
@@ -403,7 +424,8 @@ These permissions will only be set on directories that do not already exist.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.hdfs_path.HdfsPath.save">
 <span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_object</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">BinaryIO</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/hdfs_path.html#HdfsPath.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.hdfs_path.HdfsPath.save" title="Link to this definition"></a></dt>
-<dd><p>Write the opened binary stream to specified path, but the stream won’t be closed</p>
+<dd><p>Write the opened binary stream to specified path,
+but the stream won’t be closed</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>file_object</strong> – Stream to be read</p>
@@ -420,10 +442,12 @@ Every iteration on generator yields a path string.</p>
 If path is a non-existent path, return an empty generator
 If path is a bucket path, return all file paths in the bucket
 If path is an empty bucket, return an empty generator
-If path doesn’t contain any bucket, which is path == ‘hdfs://’, raise UnsupportedError. walk() on complete hdfs is not supported in megfile</p>
+If path doesn’t contain any bucket, which is path == ‘hdfs://’,
+raise UnsupportedError. walk() on complete hdfs is not supported in megfile</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>missing_ok</strong> – If False and there’s no file in the directory, raise FileNotFoundError</p>
+<dd class="field-odd"><p><strong>missing_ok</strong> – If False and there’s no file in the directory,
+raise FileNotFoundError</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><p>UnsupportedError</p>
@@ -441,7 +465,8 @@ If path doesn’t contain any bucket, which is path == ‘hdfs://’, raise Unsu
 Every iteration on generator yields a tuple of path string and file stat</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>missing_ok</strong> – If False and there’s no file in the directory, raise FileNotFoundError</p>
+<dd class="field-odd"><p><strong>missing_ok</strong> – If False and there’s no file in the directory,
+raise FileNotFoundError</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><p>UnsupportedError</p>
@@ -468,10 +493,13 @@ Every iteration on generator yields a tuple of path string and file stat</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.hdfs_path.HdfsPath.stat">
-<span class="sig-name descname"><span class="pre">stat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">follow_symlinks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="megfile.fs.html#megfile.fs.StatResult" title="megfile.pathlike.StatResult"><span class="pre">StatResult</span></a></span></span><a class="reference internal" href="_modules/megfile/hdfs_path.html#HdfsPath.stat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.hdfs_path.HdfsPath.stat" title="Link to this definition"></a></dt>
-<dd><p>Get StatResult of path file, including file size and mtime, referring to hdfs_getsize and hdfs_getmtime</p>
-<p>If path is not an existent path, which means hdfs_exist(path) returns False, then raise FileNotFoundError
-If attempt to get StatResult of complete hdfs, such as hdfs_dir_url == ‘hdfs://’, raise BucketNotFoundError</p>
+<span class="sig-name descname"><span class="pre">stat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">follow_symlinks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">StatResult</span></span></span><a class="reference internal" href="_modules/megfile/hdfs_path.html#HdfsPath.stat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.hdfs_path.HdfsPath.stat" title="Link to this definition"></a></dt>
+<dd><p>Get StatResult of path file, including file size and mtime,
+referring to hdfs_getsize and hdfs_getmtime</p>
+<p>If path is not an existent path, which means hdfs_exist(path) returns False,
+then raise FileNotFoundError</p>
+<p>If attempt to get StatResult of complete hdfs, such as hdfs_dir_url == ‘hdfs://’,
+raise BucketNotFoundError</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>StatResult</p>
@@ -499,21 +527,27 @@ If attempt to get StatResult of complete hdfs, such as hdfs_dir_url == ‘hdfs:/
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.hdfs_path.HdfsPath.walk">
 <span class="sig-name descname"><span class="pre">walk</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/hdfs_path.html#HdfsPath.walk"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.hdfs_path.HdfsPath.walk" title="Link to this definition"></a></dt>
-<dd><p>Iteratively traverse the given hdfs directory, in top-bottom order. In other words, firstly traverse parent directory, if subdirectories exist, traverse the subdirectories.
-Every iteration on generator yields a 3-tuple: (root, dirs, files)</p>
+<dd><p>Iteratively traverse the given hdfs directory, in top-bottom order.
+In other words, firstly traverse parent directory, if subdirectories exist,
+traverse the subdirectories.</p>
+<p>Every iteration on generator yields a 3-tuple: (root, dirs, files)</p>
 <ul class="simple">
 <li><p>root: Current hdfs path;</p></li>
 <li><p>dirs: Name list of subdirectories in current directory.</p></li>
 <li><p>files: Name list of files in current directory.</p></li>
 </ul>
-<p>If path is a file path, return an empty generator
-If path is a non-existent path, return an empty generator
-If path is a bucket path, bucket will be the top directory, and will be returned at first iteration of generator
-If path is an empty bucket, only yield one 3-tuple (notes: hdfs doesn’t have empty directory)
-If path doesn’t contain any bucket, which is path == ‘hdfs://’, raise UnsupportedError. walk() on complete hdfs is not supported in megfile</p>
+<p>If path is a file path, return an empty generator</p>
+<p>If path is a non-existent path, return an empty generator</p>
+<p>If path is a bucket path, bucket will be the top directory,
+and will be returned at first iteration of generator</p>
+<p>If path is an empty bucket, only yield one 3-tuple
+(notes: hdfs doesn’t have empty directory)</p>
+<p>If path doesn’t contain any bucket, which is path == ‘hdfs://’,
+raise UnsupportedError. walk() on complete hdfs is not supported in megfile</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>followlinks</strong> – whether followlinks is True or False, result is the same. Because hdfs not support symlink.</p>
+<dd class="field-odd"><p><strong>followlinks</strong> – whether followlinks is True or False, result is the same.
+Because hdfs not support symlink.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A 3-tuple generator</p>

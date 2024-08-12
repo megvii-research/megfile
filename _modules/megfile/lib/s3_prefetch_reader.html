@@ -82,43 +82,63 @@
 <span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">BytesIO</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
 
-<span class="kn">from</span> <span class="nn">megfile.config</span> <span class="kn">import</span> <span class="n">BACKOFF_FACTOR</span><span class="p">,</span> <span class="n">BACKOFF_INITIAL</span><span class="p">,</span> <span class="n">DEFAULT_BLOCK_CAPACITY</span><span class="p">,</span> <span class="n">DEFAULT_BLOCK_SIZE</span><span class="p">,</span> <span class="n">GLOBAL_MAX_WORKERS</span><span class="p">,</span> <span class="n">NEWLINE</span><span class="p">,</span> <span class="n">S3_MAX_RETRY_TIMES</span>
-<span class="kn">from</span> <span class="nn">megfile.errors</span> <span class="kn">import</span> <span class="n">S3FileChangedError</span><span class="p">,</span> <span class="n">S3InvalidRangeError</span><span class="p">,</span> <span class="n">patch_method</span><span class="p">,</span> <span class="n">raise_s3_error</span><span class="p">,</span> <span class="n">s3_should_retry</span>
+<span class="kn">from</span> <span class="nn">megfile.config</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">BACKOFF_FACTOR</span><span class="p">,</span>
+    <span class="n">BACKOFF_INITIAL</span><span class="p">,</span>
+    <span class="n">DEFAULT_BLOCK_CAPACITY</span><span class="p">,</span>
+    <span class="n">DEFAULT_BLOCK_SIZE</span><span class="p">,</span>
+    <span class="n">GLOBAL_MAX_WORKERS</span><span class="p">,</span>
+    <span class="n">NEWLINE</span><span class="p">,</span>
+    <span class="n">S3_MAX_RETRY_TIMES</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">megfile.errors</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">S3FileChangedError</span><span class="p">,</span>
+    <span class="n">S3InvalidRangeError</span><span class="p">,</span>
+    <span class="n">patch_method</span><span class="p">,</span>
+    <span class="n">raise_s3_error</span><span class="p">,</span>
+    <span class="n">s3_should_retry</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.base_prefetch_reader</span> <span class="kn">import</span> <span class="n">BasePrefetchReader</span><span class="p">,</span> <span class="n">LRUCacheFutureManager</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s1">&#39;DEFAULT_BLOCK_CAPACITY&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;DEFAULT_BLOCK_SIZE&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;GLOBAL_MAX_WORKERS&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;BACKOFF_INITIAL&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;BACKOFF_FACTOR&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;NEWLINE&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;S3PrefetchReader&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;LRUCacheFutureManager&#39;</span><span class="p">,</span>
+    <span class="s2">&quot;DEFAULT_BLOCK_CAPACITY&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;DEFAULT_BLOCK_SIZE&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;GLOBAL_MAX_WORKERS&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;BACKOFF_INITIAL&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;BACKOFF_FACTOR&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;NEWLINE&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;S3PrefetchReader&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;LRUCacheFutureManager&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
 
 <div class="viewcode-block" id="S3PrefetchReader">
 <a class="viewcode-back" href="../../../megfile.s3.html#megfile.s3.S3PrefetchReader">[docs]</a>
 <span class="k">class</span> <span class="nc">S3PrefetchReader</span><span class="p">(</span><span class="n">BasePrefetchReader</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">    Reader to fast read the s3 content. This will divide the file content into equal parts of block_size size, and will use LRU to cache at most block_capacity blocks in memory.</span>
-<span class="sd">    open(), seek() and read() will trigger prefetch read. The prefetch will cached block_forward blocks of data from offset position (the position after reading if the called function is read).</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reader to fast read the s3 content.</span>
+
+<span class="sd">    This will divide the file content into equalparts of block_size size,</span>
+<span class="sd">    and will use LRU to cache at most block_capacity blocks in memory.</span>
+
+<span class="sd">    open(), seek() and read() will trigger prefetch read.</span>
+<span class="sd">    The prefetch will cached block_forward blocks of data from offset position</span>
+<span class="sd">    (the position after reading if the called function is read).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
-            <span class="bp">self</span><span class="p">,</span>
-            <span class="n">bucket</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-            <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-            <span class="o">*</span><span class="p">,</span>
-            <span class="n">s3_client</span><span class="p">,</span>
-            <span class="n">block_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_BLOCK_SIZE</span><span class="p">,</span>
-            <span class="n">block_capacity</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_BLOCK_CAPACITY</span><span class="p">,</span>
-            <span class="n">block_forward</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="n">max_retries</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">S3_MAX_RETRY_TIMES</span><span class="p">,</span>
-            <span class="n">max_workers</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="n">profile_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">bucket</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">s3_client</span><span class="p">,</span>
+        <span class="n">block_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_BLOCK_SIZE</span><span class="p">,</span>
+        <span class="n">block_capacity</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_BLOCK_CAPACITY</span><span class="p">,</span>
+        <span class="n">block_forward</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">max_retries</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">S3_MAX_RETRY_TIMES</span><span class="p">,</span>
+        <span class="n">max_workers</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">profile_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_bucket</span> <span class="o">=</span> <span class="n">bucket</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_key</span> <span class="o">=</span> <span class="n">key</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_client</span> <span class="o">=</span> <span class="n">s3_client</span>
@@ -131,68 +151,67 @@
             <span class="n">block_capacity</span><span class="o">=</span><span class="n">block_capacity</span><span class="p">,</span>
             <span class="n">block_forward</span><span class="o">=</span><span class="n">block_forward</span><span class="p">,</span>
             <span class="n">max_retries</span><span class="o">=</span><span class="n">max_retries</span><span class="p">,</span>
-            <span class="n">max_workers</span><span class="o">=</span><span class="n">max_workers</span><span class="p">)</span>
+            <span class="n">max_workers</span><span class="o">=</span><span class="n">max_workers</span><span class="p">,</span>
+        <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_get_content_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_block_size</span> <span class="o">-</span> <span class="mi">1</span>
             <span class="n">first_index_response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fetch_response</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">end</span><span class="p">)</span>
-            <span class="n">content_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span>
-                <span class="n">first_index_response</span><span class="p">[</span><span class="s1">&#39;ContentRange&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">content_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">first_index_response</span><span class="p">[</span><span class="s2">&quot;ContentRange&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
         <span class="k">except</span> <span class="n">S3InvalidRangeError</span><span class="p">:</span>
             <span class="c1"># usually when read a empty file</span>
             <span class="c1"># can use minio test empty file: https://hub.docker.com/r/minio/minio</span>
             <span class="n">first_index_response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fetch_response</span><span class="p">()</span>
-            <span class="n">content_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">first_index_response</span><span class="p">[</span><span class="s1">&#39;ContentLength&#39;</span><span class="p">])</span>
+            <span class="n">content_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">first_index_response</span><span class="p">[</span><span class="s2">&quot;ContentLength&quot;</span><span class="p">])</span>
 
         <span class="n">first_future</span> <span class="o">=</span> <span class="n">Future</span><span class="p">()</span>
-        <span class="n">first_future</span><span class="o">.</span><span class="n">set_result</span><span class="p">(</span><span class="n">first_index_response</span><span class="p">[</span><span class="s1">&#39;Body&#39;</span><span class="p">])</span>
+        <span class="n">first_future</span><span class="o">.</span><span class="n">set_result</span><span class="p">(</span><span class="n">first_index_response</span><span class="p">[</span><span class="s2">&quot;Body&quot;</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_insert_futures</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">future</span><span class="o">=</span><span class="n">first_future</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_content_etag</span> <span class="o">=</span> <span class="n">first_index_response</span><span class="p">[</span><span class="s1">&#39;ETag&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_content_etag</span> <span class="o">=</span> <span class="n">first_index_response</span><span class="p">[</span><span class="s2">&quot;ETag&quot;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_content_info</span> <span class="o">=</span> <span class="n">first_index_response</span>
         <span class="k">return</span> <span class="n">content_size</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s1">&#39;s3</span><span class="si">%s</span><span class="s1">://</span><span class="si">%s</span><span class="s1">/</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="k">return</span> <span class="s2">&quot;s3</span><span class="si">%s</span><span class="s2">://</span><span class="si">%s</span><span class="s2">/</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
             <span class="sa">f</span><span class="s2">&quot;+</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_profile_name</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_profile_name</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_bucket</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_key</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_bucket</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_key</span><span class="p">,</span>
+        <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_fetch_response</span><span class="p">(</span>
-            <span class="bp">self</span><span class="p">,</span>
-            <span class="n">start</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="n">end</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-
+        <span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
         <span class="k">def</span> <span class="nf">fetch_response</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">start</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">end</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">get_object</span><span class="p">(</span>
-                    <span class="n">Bucket</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_bucket</span><span class="p">,</span> <span class="n">Key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_key</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">get_object</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_bucket</span><span class="p">,</span> <span class="n">Key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_key</span><span class="p">)</span>
 
-            <span class="n">range_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;bytes=</span><span class="si">{</span><span class="n">start</span><span class="si">}</span><span class="s1">-</span><span class="si">{</span><span class="n">end</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="n">range_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;bytes=</span><span class="si">{</span><span class="n">start</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">end</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">get_object</span><span class="p">(</span>
-                <span class="n">Bucket</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_bucket</span><span class="p">,</span> <span class="n">Key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_key</span><span class="p">,</span> <span class="n">Range</span><span class="o">=</span><span class="n">range_str</span><span class="p">)</span>
-            <span class="n">response</span><span class="p">[</span><span class="s1">&#39;Body&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">(</span><span class="n">response</span><span class="p">[</span><span class="s1">&#39;Body&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+                <span class="n">Bucket</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_bucket</span><span class="p">,</span> <span class="n">Key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_key</span><span class="p">,</span> <span class="n">Range</span><span class="o">=</span><span class="n">range_str</span>
+            <span class="p">)</span>
+            <span class="n">response</span><span class="p">[</span><span class="s2">&quot;Body&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">(</span><span class="n">response</span><span class="p">[</span><span class="s2">&quot;Body&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
             <span class="k">return</span> <span class="n">response</span>
 
         <span class="n">fetch_response</span> <span class="o">=</span> <span class="n">patch_method</span><span class="p">(</span>
-            <span class="n">fetch_response</span><span class="p">,</span>
-            <span class="n">max_retries</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_max_retries</span><span class="p">,</span>
-            <span class="n">should_retry</span><span class="o">=</span><span class="n">s3_should_retry</span><span class="p">)</span>
+            <span class="n">fetch_response</span><span class="p">,</span> <span class="n">max_retries</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_max_retries</span><span class="p">,</span> <span class="n">should_retry</span><span class="o">=</span><span class="n">s3_should_retry</span>
+        <span class="p">)</span>
 
         <span class="k">with</span> <span class="n">raise_s3_error</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">fetch_response</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_fetch_buffer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BytesIO</span><span class="p">:</span>
-        <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="n">index</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_block_size</span><span class="p">,</span> <span class="p">(</span>
-            <span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_block_size</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="n">index</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_block_size</span><span class="p">,</span> <span class="p">(</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_block_size</span> <span class="o">-</span> <span class="mi">1</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fetch_response</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">end</span><span class="p">)</span>
-        <span class="n">etag</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ETag&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">etag</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ETag&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">etag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">etag</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_content_etag</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">S3FileChangedError</span><span class="p">(</span>
-                <span class="s1">&#39;File changed: </span><span class="si">%r</span><span class="s1">, etag before: </span><span class="si">%s</span><span class="s1">, after: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span>
-                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_content_info</span><span class="p">,</span> <span class="n">response</span><span class="p">))</span>
+                <span class="s2">&quot;File changed: </span><span class="si">%r</span><span class="s2">, etag before: </span><span class="si">%s</span><span class="s2">, after: </span><span class="si">%s</span><span class="s2">&quot;</span>
+                <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_content_info</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span>
+            <span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">response</span><span class="p">[</span><span class="s1">&#39;Body&#39;</span><span class="p">]</span></div>
+        <span class="k">return</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;Body&quot;</span><span class="p">]</span></div>
 
 </pre></div>
 

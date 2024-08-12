@@ -89,34 +89,38 @@
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">IO</span><span class="p">,</span> <span class="n">BinaryIO</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">from</span> <span class="nn">megfile.errors</span> <span class="kn">import</span> <span class="n">_create_missing_ok_generator</span>
-<span class="kn">from</span> <span class="nn">megfile.interfaces</span> <span class="kn">import</span> <span class="n">Access</span><span class="p">,</span> <span class="n">ContextIterator</span><span class="p">,</span> <span class="n">FileEntry</span><span class="p">,</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">StatResult</span>
+<span class="kn">from</span> <span class="nn">megfile.interfaces</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Access</span><span class="p">,</span>
+    <span class="n">ContextIterator</span><span class="p">,</span>
+    <span class="n">FileEntry</span><span class="p">,</span>
+    <span class="n">PathLike</span><span class="p">,</span>
+    <span class="n">StatResult</span><span class="p">,</span>
+    <span class="n">URIPath</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.compare</span> <span class="kn">import</span> <span class="n">is_same_file</span>
+<span class="kn">from</span> <span class="nn">megfile.lib.compat</span> <span class="kn">import</span> <span class="n">fspath</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.glob</span> <span class="kn">import</span> <span class="n">iglob</span>
+<span class="kn">from</span> <span class="nn">megfile.lib.joinpath</span> <span class="kn">import</span> <span class="n">path_join</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.url</span> <span class="kn">import</span> <span class="n">get_url_scheme</span>
+<span class="kn">from</span> <span class="nn">megfile.smart_path</span> <span class="kn">import</span> <span class="n">SmartPath</span>
 <span class="kn">from</span> <span class="nn">megfile.utils</span> <span class="kn">import</span> <span class="n">calculate_md5</span>
 
-<span class="kn">from</span> <span class="nn">.interfaces</span> <span class="kn">import</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">URIPath</span>
-<span class="kn">from</span> <span class="nn">.lib.compat</span> <span class="kn">import</span> <span class="n">fspath</span>
-<span class="kn">from</span> <span class="nn">.lib.joinpath</span> <span class="kn">import</span> <span class="n">path_join</span>
-<span class="kn">from</span> <span class="nn">.smart_path</span> <span class="kn">import</span> <span class="n">SmartPath</span>
-
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s1">&#39;FSPath&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;is_fs&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;StatResult&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;fs_path_join&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;_make_stat&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;fs_readlink&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;fs_cwd&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;fs_home&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;fs_iglob&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;fs_glob&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;fs_glob_stat&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;fs_rename&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;fs_resolve&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;fs_move&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;fs_makedirs&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;fs_lstat&#39;</span><span class="p">,</span>
+    <span class="s2">&quot;FSPath&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;is_fs&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;fs_path_join&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_make_stat&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;fs_readlink&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;fs_cwd&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;fs_home&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;fs_iglob&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;fs_glob&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;fs_glob_stat&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;fs_rename&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;fs_resolve&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;fs_move&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;fs_makedirs&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;fs_lstat&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
 
@@ -134,16 +138,16 @@
 <div class="viewcode-block" id="is_fs">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.is_fs">[docs]</a>
 <span class="k">def</span> <span class="nf">is_fs</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="s2">&quot;PathLike&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;Test if a path is fs path</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test if a path is fs path</span>
 
 <span class="sd">    :param path: Path to be tested</span>
 <span class="sd">    :returns: True of a path is fs path, else False</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
         <span class="k">return</span> <span class="kc">True</span>
     <span class="n">path</span> <span class="o">=</span> <span class="n">fspath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
     <span class="n">scheme</span> <span class="o">=</span> <span class="n">get_url_scheme</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">scheme</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span> <span class="ow">or</span> <span class="n">scheme</span> <span class="o">==</span> <span class="s1">&#39;file&#39;</span></div>
+    <span class="k">return</span> <span class="n">scheme</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span> <span class="ow">or</span> <span class="n">scheme</span> <span class="o">==</span> <span class="s2">&quot;file&quot;</span></div>
 
 
 
@@ -157,10 +161,10 @@
 <div class="viewcode-block" id="fs_readlink">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_readlink">[docs]</a>
 <span class="k">def</span> <span class="nf">fs_readlink</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Return a string representing the path to which the symbolic link points.</span>
 <span class="sd">    :returns: Return a string representing the path to which the symbolic link points.</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">readlink</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
 
 
@@ -168,10 +172,10 @@
 <div class="viewcode-block" id="fs_cwd">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_cwd">[docs]</a>
 <span class="k">def</span> <span class="nf">fs_cwd</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;Return current working directory</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return current working directory</span>
 
 <span class="sd">    returns: Current working directory</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span></div>
 
 
@@ -179,61 +183,77 @@
 <div class="viewcode-block" id="fs_home">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_home">[docs]</a>
 <span class="k">def</span> <span class="nf">fs_home</span><span class="p">():</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;Return the home directory</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the home directory</span>
 
 <span class="sd">    returns: Home directory path</span>
-<span class="sd">    &#39;&#39;&#39;</span>
-    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s1">&#39;~&#39;</span><span class="p">)</span></div>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s2">&quot;~&quot;</span><span class="p">)</span></div>
 
 
 
 <div class="viewcode-block" id="fs_iglob">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_iglob">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_iglob</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
-             <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-             <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;Return path iterator in ascending alphabetical order, in which path matches glob pattern</span>
+<span class="k">def</span> <span class="nf">fs_iglob</span><span class="p">(</span>
+    <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return path iterator in ascending alphabetical order,</span>
+<span class="sd">    in which path matches glob pattern</span>
 
 <span class="sd">    1. If doesn&#39;t match any path, return empty list</span>
-<span class="sd">        Notice:  ``glob.glob`` in standard library returns [&#39;a/&#39;] instead of empty list when pathname is like `a/**`, recursive is True and directory &#39;a&#39; doesn&#39;t exist. fs_glob behaves like ``glob.glob`` in standard library under such circumstance.</span>
+<span class="sd">        Notice:  ``glob.glob`` in standard library returns [&#39;a/&#39;] instead of empty list</span>
+<span class="sd">        when pathname is like `a/**`, recursive is True and directory &#39;a&#39; doesn&#39;t exist.</span>
+<span class="sd">        fs_glob behaves like ``glob.glob`` in standard library under such circumstance.</span>
 <span class="sd">    2. No guarantee that each path in result is different, which means:</span>
 <span class="sd">        Assume there exists a path `/a/b/c/b/d.txt`</span>
-<span class="sd">        use path pattern like `/**/b/**/*.txt` to glob, the path above will be returned twice</span>
-<span class="sd">    3. `**` will match any matched file, directory, symlink and &#39;&#39; by default, when recursive is `True`</span>
-<span class="sd">    4. fs_glob returns same as glob.glob(pathname, recursive=True) in ascending alphabetical order.</span>
+<span class="sd">        use path pattern like `/**/b/**/*.txt` to glob,</span>
+<span class="sd">        the path above will be returned twice</span>
+<span class="sd">    3. `**` will match any matched file, directory, symlink and &#39;&#39; by default,</span>
+<span class="sd">        when recursive is `True`</span>
+<span class="sd">    4. fs_glob returns same as glob.glob(pathname, recursive=True)</span>
+<span class="sd">        in ascending alphabetical order.</span>
 <span class="sd">    5. Hidden files (filename stars with &#39;.&#39;) will not be found in the result</span>
 
 <span class="sd">    :param recursive: If False, `**` will not search directory recursively</span>
-<span class="sd">    :param missing_ok: If False and target path doesn&#39;t match any file, raise FileNotFoundError</span>
+<span class="sd">    :param missing_ok: If False and target path doesn&#39;t match any file,</span>
+<span class="sd">        raise FileNotFoundError</span>
 <span class="sd">    :returns: An iterator contains paths match `pathname`</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">_create_missing_ok_generator</span><span class="p">(</span>
-            <span class="n">iglob</span><span class="p">(</span><span class="n">fspath</span><span class="p">(</span><span class="n">path</span><span class="p">),</span> <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">),</span> <span class="n">missing_ok</span><span class="p">,</span>
-            <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s1">&#39;No match any file: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">path</span><span class="p">)):</span>
+        <span class="n">iglob</span><span class="p">(</span><span class="n">fspath</span><span class="p">(</span><span class="n">path</span><span class="p">),</span> <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">),</span>
+        <span class="n">missing_ok</span><span class="p">,</span>
+        <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s2">&quot;No match any file: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">path</span><span class="p">),</span>
+    <span class="p">):</span>
         <span class="k">yield</span> <span class="n">path</span></div>
 
 
 
 <div class="viewcode-block" id="fs_glob">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_glob">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_glob</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
-            <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-            <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;Return path list in ascending alphabetical order, in which path matches glob pattern</span>
+<span class="k">def</span> <span class="nf">fs_glob</span><span class="p">(</span>
+    <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return path list in ascending alphabetical order,</span>
+<span class="sd">    in which path matches glob pattern</span>
 
 <span class="sd">    1. If doesn&#39;t match any path, return empty list</span>
-<span class="sd">        Notice:  ``glob.glob`` in standard library returns [&#39;a/&#39;] instead of empty list when pathname is like `a/**`, recursive is True and directory &#39;a&#39; doesn&#39;t exist. fs_glob behaves like ``glob.glob`` in standard library under such circumstance.</span>
+<span class="sd">        Notice:  ``glob.glob`` in standard library returns [&#39;a/&#39;] instead of empty list</span>
+<span class="sd">        when pathname is like `a/**`, recursive is True and directory &#39;a&#39; doesn&#39;t exist.</span>
+<span class="sd">        fs_glob behaves like ``glob.glob`` in standard library under such circumstance.</span>
 <span class="sd">    2. No guarantee that each path in result is different, which means:</span>
 <span class="sd">        Assume there exists a path `/a/b/c/b/d.txt`</span>
-<span class="sd">        use path pattern like `/**/b/**/*.txt` to glob, the path above will be returned twice</span>
-<span class="sd">    3. `**` will match any matched file, directory, symlink and &#39;&#39; by default, when recursive is `True`</span>
-<span class="sd">    4. fs_glob returns same as glob.glob(pathname, recursive=True) in ascending alphabetical order.</span>
+<span class="sd">        use path pattern like `/**/b/**/*.txt` to glob,</span>
+<span class="sd">        the path above will be returned twice</span>
+<span class="sd">    3. `**` will match any matched file, directory, symlink and &#39;&#39; by default,</span>
+<span class="sd">        when recursive is `True`</span>
+<span class="sd">    4. fs_glob returns same as glob.glob(pathname, recursive=True)</span>
+<span class="sd">        in ascending alphabetical order.</span>
 <span class="sd">    5. Hidden files (filename stars with &#39;.&#39;) will not be found in the result</span>
 
 <span class="sd">    :param recursive: If False, `**` will not search directory recursively</span>
-<span class="sd">    :param missing_ok: If False and target path doesn&#39;t match any file, raise FileNotFoundError</span>
+<span class="sd">    :param missing_ok: If False and target path doesn&#39;t match any file,</span>
+<span class="sd">        raise FileNotFoundError</span>
 <span class="sd">    :returns: A list contains paths match `pathname`</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">fs_iglob</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">,</span> <span class="n">missing_ok</span><span class="o">=</span><span class="n">missing_ok</span><span class="p">))</span></div>
 
 
@@ -241,39 +261,46 @@
 <div class="viewcode-block" id="fs_glob_stat">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_glob_stat">[docs]</a>
 <span class="k">def</span> <span class="nf">fs_glob_stat</span><span class="p">(</span>
-        <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
-        <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">FileEntry</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;Return a list contains tuples of path and file stat, in ascending alphabetical order, in which path matches glob pattern</span>
+    <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">FileEntry</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a list contains tuples of path and file stat,</span>
+<span class="sd">    in ascending alphabetical order, in which path matches glob pattern</span>
 
 <span class="sd">    1. If doesn&#39;t match any path, return empty list</span>
-<span class="sd">        Notice:  ``glob.glob`` in standard library returns [&#39;a/&#39;] instead of empty list when pathname is like `a/**`, recursive is True and directory &#39;a&#39; doesn&#39;t exist. fs_glob behaves like ``glob.glob`` in standard library under such circumstance.</span>
+<span class="sd">        Notice:  ``glob.glob`` in standard library returns [&#39;a/&#39;] instead of empty list</span>
+<span class="sd">        when pathname is like `a/**`, recursive is True and directory &#39;a&#39; doesn&#39;t exist.</span>
+<span class="sd">        fs_glob behaves like ``glob.glob`` in standard library under such circumstance.</span>
 <span class="sd">    2. No guarantee that each path in result is different, which means:</span>
 <span class="sd">        Assume there exists a path `/a/b/c/b/d.txt`</span>
-<span class="sd">        use path pattern like `/**/b/**/*.txt` to glob, the path above will be returned twice</span>
-<span class="sd">    3. `**` will match any matched file, directory, symlink and &#39;&#39; by default, when recursive is `True`</span>
-<span class="sd">    4. fs_glob returns same as glob.glob(pathname, recursive=True) in ascending alphabetical order.</span>
+<span class="sd">        use path pattern like `/**/b/**/*.txt` to glob,</span>
+<span class="sd">        the path above will be returned twice.</span>
+<span class="sd">    3. `**` will match any matched file, directory, symlink and &#39;&#39; by default,</span>
+<span class="sd">        when recursive is `True`</span>
+<span class="sd">    4. fs_glob returns same as glob.glob(pathname, recursive=True)</span>
+<span class="sd">        in ascending alphabetical order.</span>
 <span class="sd">    5. Hidden files (filename stars with &#39;.&#39;) will not be found in the result</span>
 
 <span class="sd">    :param recursive: If False, `**` will not search directory recursively</span>
-<span class="sd">    :param missing_ok: If False and target path doesn&#39;t match any file, raise FileNotFoundError</span>
-<span class="sd">    :returns: A list contains tuples of path and file stat, in which paths match `pathname`</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    :param missing_ok: If False and target path doesn&#39;t match any file,</span>
+<span class="sd">        raise FileNotFoundError</span>
+<span class="sd">    :returns: A list contains tuples of path and file stat,</span>
+<span class="sd">        in which paths match `pathname`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">fs_iglob</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">,</span> <span class="n">missing_ok</span><span class="o">=</span><span class="n">missing_ok</span><span class="p">):</span>
-        <span class="k">yield</span> <span class="n">FileEntry</span><span class="p">(</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">path</span><span class="p">),</span> <span class="n">path</span><span class="p">,</span> <span class="n">_make_stat</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">lstat</span><span class="p">(</span><span class="n">path</span><span class="p">)))</span></div>
+        <span class="k">yield</span> <span class="n">FileEntry</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">path</span><span class="p">),</span> <span class="n">path</span><span class="p">,</span> <span class="n">_make_stat</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">lstat</span><span class="p">(</span><span class="n">path</span><span class="p">)))</span></div>
 
 
 
 <span class="k">def</span> <span class="nf">_fs_rename_file</span><span class="p">(</span>
-        <span class="n">src_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+    <span class="n">src_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    rename file on fs</span>
 
 <span class="sd">    :param src_path: Given path</span>
 <span class="sd">    :param dst_path: Given destination path</span>
 <span class="sd">    :param overwrite: whether or not overwrite file when exists</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">src_path</span><span class="p">,</span> <span class="n">dst_path</span> <span class="o">=</span> <span class="n">fspath</span><span class="p">(</span><span class="n">src_path</span><span class="p">),</span> <span class="n">fspath</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">overwrite</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dst_path</span><span class="p">):</span>
@@ -287,15 +314,14 @@
 
 <div class="viewcode-block" id="fs_rename">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_rename">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_rename</span><span class="p">(</span>
-        <span class="n">src_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="k">def</span> <span class="nf">fs_rename</span><span class="p">(</span><span class="n">src_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    rename file on fs</span>
 
 <span class="sd">    :param src_path: Given path</span>
 <span class="sd">    :param dst_path: Given destination path</span>
 <span class="sd">    :param overwrite: whether or not overwrite file when exists</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">src_path</span><span class="p">,</span> <span class="n">dst_path</span> <span class="o">=</span> <span class="n">fspath</span><span class="p">(</span><span class="n">src_path</span><span class="p">),</span> <span class="n">fspath</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">src_path</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">_fs_rename_file</span><span class="p">(</span><span class="n">src_path</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">)</span>
@@ -307,7 +333,7 @@
             <span class="n">src_file_path</span> <span class="o">=</span> <span class="n">file_entry</span><span class="o">.</span><span class="n">path</span>
             <span class="n">dst_file_path</span> <span class="o">=</span> <span class="n">dst_path</span>
             <span class="n">relative_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">relpath</span><span class="p">(</span><span class="n">src_file_path</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">src_path</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">relative_path</span> <span class="ow">and</span> <span class="n">relative_path</span> <span class="o">!=</span> <span class="s1">&#39;.&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">relative_path</span> <span class="ow">and</span> <span class="n">relative_path</span> <span class="o">!=</span> <span class="s2">&quot;.&quot;</span><span class="p">:</span>
                 <span class="n">dst_file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dst_file_path</span><span class="p">,</span> <span class="n">relative_path</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dst_file_path</span><span class="p">)</span> <span class="ow">and</span> <span class="n">file_entry</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
                 <span class="n">fs_rename</span><span class="p">(</span><span class="n">src_file_path</span><span class="p">,</span> <span class="n">dst_file_path</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">)</span>
@@ -323,15 +349,14 @@
 
 <div class="viewcode-block" id="fs_move">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_move">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_move</span><span class="p">(</span>
-        <span class="n">src_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="k">def</span> <span class="nf">fs_move</span><span class="p">(</span><span class="n">src_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    rename file on fs</span>
 
 <span class="sd">    :param src_path: Given path</span>
 <span class="sd">    :param dst_path: Given destination path</span>
 <span class="sd">    :param overwrite: whether or not overwrite file when exists</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">fs_rename</span><span class="p">(</span><span class="n">src_path</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">)</span></div>
 
 
@@ -339,11 +364,11 @@
 <div class="viewcode-block" id="fs_resolve">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_resolve">[docs]</a>
 <span class="k">def</span> <span class="nf">fs_resolve</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;Equal to fs_realpath, return the real path of given path</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Equal to fs_realpath, return the real path of given path</span>
 
 <span class="sd">    :param path: Given path</span>
 <span class="sd">    :returns: Real path of given path</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">FSPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">realpath</span><span class="p">()</span></div>
 
 
@@ -351,7 +376,7 @@
 <div class="viewcode-block" id="fs_makedirs">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_makedirs">[docs]</a>
 <span class="k">def</span> <span class="nf">fs_makedirs</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">exist_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    make a directory on fs, including parent directory</span>
 
 <span class="sd">    If there exists a file on the path, raise FileExistsError</span>
@@ -359,7 +384,7 @@
 <span class="sd">    :param path: Given path</span>
 <span class="sd">    :param exist_ok: If False and target directory exists, raise FileExistsError</span>
 <span class="sd">    :raises: FileExistsError</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">FSPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="n">exist_ok</span><span class="p">)</span></div>
 
 
@@ -367,12 +392,13 @@
 <div class="viewcode-block" id="fs_lstat">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_lstat">[docs]</a>
 <span class="k">def</span> <span class="nf">fs_lstat</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StatResult</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">    Like Path.stat() but, if the path points to a symbolic link, return the symbolic link’s information rather than its target’s.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Like Path.stat() but, if the path points to a symbolic link,</span>
+<span class="sd">    return the symbolic link’s information rather than its target’s.</span>
 
 <span class="sd">    :param path: Given path</span>
 <span class="sd">    :returns: StatResult</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">FSPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">lstat</span><span class="p">()</span></div>
 
 
@@ -428,58 +454,62 @@
 <div class="viewcode-block" id="FSPath.is_absolute">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.is_absolute">[docs]</a>
     <span class="k">def</span> <span class="nf">is_absolute</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;Test whether a path is absolute</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test whether a path is absolute</span>
 
 <span class="sd">        :returns: True if a path is absolute, else False</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isabs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="FSPath.abspath">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.abspath">[docs]</a>
     <span class="k">def</span> <span class="nf">abspath</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;Return the absolute path of given path</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the absolute path of given path</span>
 
 <span class="sd">        :returns: Absolute path of given path</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">fspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="FSPath.access">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.access">[docs]</a>
     <span class="k">def</span> <span class="nf">access</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="n">Access</span> <span class="o">=</span> <span class="n">Access</span><span class="o">.</span><span class="n">READ</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Test if path has access permission described by mode</span>
 <span class="sd">        Using ``os.access``</span>
 
 <span class="sd">        :param mode: access mode</span>
 <span class="sd">        :returns: Access: Enum, the read/write access that path has.</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="n">Access</span><span class="o">.</span><span class="n">READ</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">access</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">R_OK</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="n">Access</span><span class="o">.</span><span class="n">WRITE</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">access</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">W_OK</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
-                <span class="s1">&#39;Unsupported mode: </span><span class="si">{}</span><span class="s1"> -- Mode should use one of the enums belonging to:  </span><span class="si">{}</span><span class="s1">&#39;</span>
-                <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">Access</span><span class="p">])))</span></div>
+                <span class="s2">&quot;Unsupported mode: </span><span class="si">{}</span><span class="s2"> -- Mode should use one of &quot;</span>
+                <span class="s2">&quot;the enums belonging to:  </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">mode</span><span class="p">,</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">Access</span><span class="p">])</span>
+                <span class="p">)</span>
+            <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="FSPath.exists">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.exists">[docs]</a>
     <span class="k">def</span> <span class="nf">exists</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Test if the path exists</span>
 
 <span class="sd">        .. note::</span>
 
-<span class="sd">            The difference between this function and ``os.path.exists`` is that this function regard symlink as file.</span>
+<span class="sd">            The difference between this function and ``os.path.exists`` is that</span>
+<span class="sd">            this function regard symlink as file.</span>
 <span class="sd">            In other words, this function is equal to ``os.path.lexists``</span>
 
 <span class="sd">        :param followlinks: False if regard symlink as file, else True</span>
 <span class="sd">        :returns: True if the path exists, else False</span>
 
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">followlinks</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">lexists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span></div>
@@ -488,140 +518,172 @@
 <div class="viewcode-block" id="FSPath.getmtime">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.getmtime">[docs]</a>
     <span class="k">def</span> <span class="nf">getmtime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get last-modified time of the file on the given path (in Unix timestamp format).</span>
-<span class="sd">        If the path is an existent directory, return the latest modified time of all file in it.</span>
+<span class="sd">        If the path is an existent directory,</span>
+<span class="sd">        return the latest modified time of all file in it.</span>
 
 <span class="sd">        :returns: last-modified time</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">follow_symlinks</span><span class="o">=</span><span class="n">follow_symlinks</span><span class="p">)</span><span class="o">.</span><span class="n">mtime</span></div>
 
 
 <div class="viewcode-block" id="FSPath.getsize">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.getsize">[docs]</a>
     <span class="k">def</span> <span class="nf">getsize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get file size on the given file path (in bytes).</span>
-<span class="sd">        If the path in a directory, return the sum of all file size in it, including file in subdirectories (if exist).</span>
-<span class="sd">        The result excludes the size of directory itself. In other words, return 0 Byte on an empty directory path.</span>
+<span class="sd">        If the path in a directory, return the sum of all file size in it,</span>
+<span class="sd">        including file in subdirectories (if exist).</span>
+<span class="sd">        The result excludes the size of directory itself.</span>
+<span class="sd">        In other words, return 0 Byte on an empty directory path.</span>
 
 <span class="sd">        :returns: File size</span>
 
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">follow_symlinks</span><span class="o">=</span><span class="n">follow_symlinks</span><span class="p">)</span><span class="o">.</span><span class="n">size</span></div>
 
 
 <div class="viewcode-block" id="FSPath.glob">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.glob">[docs]</a>
-    <span class="k">def</span> <span class="nf">glob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-             <span class="n">pattern</span><span class="p">,</span>
-             <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-             <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s1">&#39;FSPath&#39;</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;Return path list in ascending alphabetical order, in which path matches glob pattern</span>
+    <span class="k">def</span> <span class="nf">glob</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;FSPath&quot;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return path list in ascending alphabetical order,</span>
+<span class="sd">        in which path matches glob pattern</span>
 
 <span class="sd">        1. If doesn&#39;t match any path, return empty list</span>
-<span class="sd">            Notice:  ``glob.glob`` in standard library returns [&#39;a/&#39;] instead of empty list when pathname is like `a/**`, recursive is True and directory &#39;a&#39; doesn&#39;t exist. fs_glob behaves like ``glob.glob`` in standard library under such circumstance.</span>
+<span class="sd">            Notice:  ``glob.glob`` in standard library returns [&#39;a/&#39;] instead of</span>
+<span class="sd">            empty list when pathname is like `a/**`,</span>
+<span class="sd">            recursive is True and directory &#39;a&#39; doesn&#39;t exist.</span>
+<span class="sd">            fs_glob behaves like ``glob.glob`` in standard library</span>
+<span class="sd">            under such circumstance.</span>
 <span class="sd">        2. No guarantee that each path in result is different, which means:</span>
 <span class="sd">            Assume there exists a path `/a/b/c/b/d.txt`</span>
-<span class="sd">            use path pattern like `/**/b/**/*.txt` to glob, the path above will be returned twice</span>
-<span class="sd">        3. `**` will match any matched file, directory, symlink and &#39;&#39; by default, when recursive is `True`</span>
-<span class="sd">        4. fs_glob returns same as glob.glob(pathname, recursive=True) in ascending alphabetical order.</span>
+<span class="sd">            use path pattern like `/**/b/**/*.txt` to glob,</span>
+<span class="sd">            the path above will be returned twice</span>
+<span class="sd">        3. `**` will match any matched file, directory, symlink and &#39;&#39; by default,</span>
+<span class="sd">            when recursive is `True`</span>
+<span class="sd">        4. fs_glob returns same as glob.glob(pathname, recursive=True)</span>
+<span class="sd">            in ascending alphabetical order.</span>
 <span class="sd">        5. Hidden files (filename stars with &#39;.&#39;) will not be found in the result</span>
 
-<span class="sd">        :param pattern: Glob the given relative pattern in the directory represented by this path</span>
+<span class="sd">        :param pattern: Glob the given relative pattern in the directory represented</span>
+<span class="sd">            by this path</span>
 <span class="sd">        :param recursive: If False, `**` will not search directory recursively</span>
-<span class="sd">        :param missing_ok: If False and target path doesn&#39;t match any file, raise FileNotFoundError</span>
+<span class="sd">        :param missing_ok: If False and target path doesn&#39;t match any file,</span>
+<span class="sd">            raise FileNotFoundError</span>
 <span class="sd">        :returns: A list contains paths match `pathname`</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">iglob</span><span class="p">(</span>
-                <span class="n">pattern</span><span class="o">=</span><span class="n">pattern</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">,</span> <span class="n">missing_ok</span><span class="o">=</span><span class="n">missing_ok</span><span class="p">))</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">iglob</span><span class="p">(</span><span class="n">pattern</span><span class="o">=</span><span class="n">pattern</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">,</span> <span class="n">missing_ok</span><span class="o">=</span><span class="n">missing_ok</span><span class="p">)</span>
+        <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="FSPath.glob_stat">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.glob_stat">[docs]</a>
     <span class="k">def</span> <span class="nf">glob_stat</span><span class="p">(</span>
-            <span class="bp">self</span><span class="p">,</span>
-            <span class="n">pattern</span><span class="p">,</span>
-            <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-            <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">FileEntry</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;Return a list contains tuples of path and file stat, in ascending alphabetical order, in which path matches glob pattern</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">FileEntry</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a list contains tuples of path and file stat,</span>
+<span class="sd">        in ascending alphabetical order, in which path matches glob pattern</span>
 
 <span class="sd">        1. If doesn&#39;t match any path, return empty list</span>
-<span class="sd">            Notice:  ``glob.glob`` in standard library returns [&#39;a/&#39;] instead of empty list when pathname is like `a/**`, recursive is True and directory &#39;a&#39; doesn&#39;t exist. fs_glob behaves like ``glob.glob`` in standard library under such circumstance.</span>
+<span class="sd">            Notice:  ``glob.glob`` in standard library returns [&#39;a/&#39;] instead of</span>
+<span class="sd">            empty list when pathname is like `a/**`,</span>
+<span class="sd">            recursive is True and directory &#39;a&#39; doesn&#39;t exist.</span>
+<span class="sd">            fs_glob behaves like ``glob.glob`` in standard library</span>
+<span class="sd">            under such circumstance.</span>
 <span class="sd">        2. No guarantee that each path in result is different, which means:</span>
 <span class="sd">            Assume there exists a path `/a/b/c/b/d.txt`</span>
-<span class="sd">            use path pattern like `/**/b/**/*.txt` to glob, the path above will be returned twice</span>
-<span class="sd">        3. `**` will match any matched file, directory, symlink and &#39;&#39; by default, when recursive is `True`</span>
-<span class="sd">        4. fs_glob returns same as glob.glob(pathname, recursive=True) in ascending alphabetical order.</span>
+<span class="sd">            use path pattern like `/**/b/**/*.txt` to glob,</span>
+<span class="sd">            the path above will be returned twice</span>
+<span class="sd">        3. `**` will match any matched file, directory, symlink and &#39;&#39; by default,</span>
+<span class="sd">            when recursive is `True`</span>
+<span class="sd">        4. fs_glob returns same as glob.glob(pathname, recursive=True)</span>
+<span class="sd">            in ascending alphabetical order.</span>
 <span class="sd">        5. Hidden files (filename stars with &#39;.&#39;) will not be found in the result</span>
 
-<span class="sd">        :param pattern: Glob the given relative pattern in the directory represented by this path</span>
+<span class="sd">        :param pattern: Glob the given relative pattern in the directory represented</span>
+<span class="sd">            by this path</span>
 <span class="sd">        :param recursive: If False, `**` will not search directory recursively</span>
-<span class="sd">        :param missing_ok: If False and target path doesn&#39;t match any file, raise FileNotFoundError</span>
-<span class="sd">        :returns: A list contains tuples of path and file stat, in which paths match `pathname`</span>
-<span class="sd">        &#39;&#39;&#39;</span>
-        <span class="k">for</span> <span class="n">path_obj</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">iglob</span><span class="p">(</span><span class="n">pattern</span><span class="o">=</span><span class="n">pattern</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">,</span>
-                                   <span class="n">missing_ok</span><span class="o">=</span><span class="n">missing_ok</span><span class="p">):</span>
+<span class="sd">        :param missing_ok: If False and target path doesn&#39;t match any file,</span>
+<span class="sd">            raise FileNotFoundError</span>
+<span class="sd">        :returns: A list contains tuples of path and file stat,</span>
+<span class="sd">            in which paths match `pathname`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">path_obj</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">iglob</span><span class="p">(</span>
+            <span class="n">pattern</span><span class="o">=</span><span class="n">pattern</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">,</span> <span class="n">missing_ok</span><span class="o">=</span><span class="n">missing_ok</span>
+        <span class="p">):</span>
             <span class="k">yield</span> <span class="n">FileEntry</span><span class="p">(</span>
                 <span class="n">path_obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
                 <span class="n">path_obj</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>  <span class="c1"># pyre-ignore[6]</span>
-                <span class="n">_make_stat</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">lstat</span><span class="p">(</span><span class="n">path_obj</span><span class="o">.</span><span class="n">path</span><span class="p">)))</span>  <span class="c1"># pyre-ignore[6]</span></div>
+                <span class="n">_make_stat</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">lstat</span><span class="p">(</span><span class="n">path_obj</span><span class="o">.</span><span class="n">path</span><span class="p">)),</span>  <span class="c1"># pyre-ignore[6]</span>
+            <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="FSPath.expanduser">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.expanduser">[docs]</a>
     <span class="k">def</span> <span class="nf">expanduser</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;Expand ~ and ~user constructions.  If user or $HOME is unknown,</span>
-<span class="sd">           do nothing.</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Expand ~ and ~user constructions.  If user or $HOME is unknown,</span>
+<span class="sd">        do nothing.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="FSPath.iglob">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.iglob">[docs]</a>
-    <span class="k">def</span> <span class="nf">iglob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-              <span class="n">pattern</span><span class="p">,</span>
-              <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-              <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="s1">&#39;FSPath&#39;</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;Return path iterator in ascending alphabetical order, in which path matches glob pattern</span>
+    <span class="k">def</span> <span class="nf">iglob</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="s2">&quot;FSPath&quot;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return path iterator in ascending alphabetical order,</span>
+<span class="sd">        in which path matches glob pattern</span>
 
 <span class="sd">        1. If doesn&#39;t match any path, return empty list</span>
-<span class="sd">            Notice:  ``glob.glob`` in standard library returns [&#39;a/&#39;] instead of empty list when pathname is like `a/**`, recursive is True and directory &#39;a&#39; doesn&#39;t exist. fs_glob behaves like ``glob.glob`` in standard library under such circumstance.</span>
+<span class="sd">            Notice:  ``glob.glob`` in standard library returns [&#39;a/&#39;] instead of</span>
+<span class="sd">            empty list when pathname is like `a/**`,</span>
+<span class="sd">            recursive is True and directory &#39;a&#39; doesn&#39;t exist.</span>
+<span class="sd">            fs_glob behaves like ``glob.glob`` in standard library</span>
+<span class="sd">            under such circumstance.</span>
 <span class="sd">        2. No guarantee that each path in result is different, which means:</span>
 <span class="sd">            Assume there exists a path `/a/b/c/b/d.txt`</span>
-<span class="sd">            use path pattern like `/**/b/**/*.txt` to glob, the path above will be returned twice</span>
-<span class="sd">        3. `**` will match any matched file, directory, symlink and &#39;&#39; by default, when recursive is `True`</span>
-<span class="sd">        4. fs_glob returns same as glob.glob(pathname, recursive=True) in ascending alphabetical order.</span>
+<span class="sd">            use path pattern like `/**/b/**/*.txt` to glob,</span>
+<span class="sd">            the path above will be returned twice</span>
+<span class="sd">        3. `**` will match any matched file, directory, symlink and &#39;&#39; by default,</span>
+<span class="sd">            when recursive is `True`</span>
+<span class="sd">        4. fs_glob returns same as glob.glob(pathname, recursive=True)</span>
+<span class="sd">            in ascending alphabetical order.</span>
 <span class="sd">        5. Hidden files (filename stars with &#39;.&#39;) will not be found in the result</span>
 
-<span class="sd">        :param pattern: Glob the given relative pattern in the directory represented by this path</span>
+<span class="sd">        :param pattern: Glob the given relative pattern in the directory represented</span>
+<span class="sd">            by this path</span>
 <span class="sd">        :param recursive: If False, `**` will not search directory recursively</span>
-<span class="sd">        :param missing_ok: If False and target path doesn&#39;t match any file, raise FileNotFoundError</span>
+<span class="sd">        :param missing_ok: If False and target path doesn&#39;t match any file,</span>
+<span class="sd">            raise FileNotFoundError</span>
 <span class="sd">        :returns: An iterator contains paths match `pathname`</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">glob_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span>
         <span class="k">if</span> <span class="n">pattern</span><span class="p">:</span>
             <span class="n">glob_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span><span class="o">.</span><span class="n">path_without_protocol</span>
-        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">fs_iglob</span><span class="p">(</span><span class="n">glob_path</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">,</span>
-                             <span class="n">missing_ok</span><span class="o">=</span><span class="n">missing_ok</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">fs_iglob</span><span class="p">(</span><span class="n">glob_path</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">,</span> <span class="n">missing_ok</span><span class="o">=</span><span class="n">missing_ok</span><span class="p">):</span>
             <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="FSPath.is_dir">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.is_dir">[docs]</a>
     <span class="k">def</span> <span class="nf">is_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Test if a path is directory</span>
 
 <span class="sd">        .. note::</span>
 
-<span class="sd">            The difference between this function and ``os.path.isdir`` is that this function regard symlink as file</span>
+<span class="sd">            The difference between this function and ``os.path.isdir`` is that</span>
+<span class="sd">            this function regard symlink as file</span>
 
 <span class="sd">        :param followlinks: False if regard symlink as file, else True</span>
 <span class="sd">        :returns: True if the path is a directory, else False</span>
 
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">islink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">followlinks</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
         <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span></div>
@@ -630,17 +692,18 @@
 <div class="viewcode-block" id="FSPath.is_file">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.is_file">[docs]</a>
     <span class="k">def</span> <span class="nf">is_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Test if a path is file</span>
 
 <span class="sd">        .. note::</span>
-<span class="sd">        </span>
-<span class="sd">            The difference between this function and ``os.path.isfile`` is that this function regard symlink as file</span>
+
+<span class="sd">            The difference between this function and ``os.path.isfile`` is that</span>
+<span class="sd">            this function regard symlink as file</span>
 
 <span class="sd">        :param followlinks: False if regard symlink as file, else True</span>
 <span class="sd">        :returns: True if the path is a file, else False</span>
 
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">islink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">followlinks</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">True</span>
         <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span></div>
@@ -649,22 +712,24 @@
 <div class="viewcode-block" id="FSPath.listdir">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.listdir">[docs]</a>
     <span class="k">def</span> <span class="nf">listdir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        Get all contents of given fs path. The result is in ascending alphabetical order.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get all contents of given fs path.</span>
+<span class="sd">        The result is in ascending alphabetical order.</span>
 
 <span class="sd">        :returns: All contents have in the path in ascending alphabetical order</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="FSPath.iterdir">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.iterdir">[docs]</a>
-    <span class="k">def</span> <span class="nf">iterdir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="s1">&#39;FSPath&#39;</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        Get all contents of given fs path. The result is in ascending alphabetical order.</span>
+    <span class="k">def</span> <span class="nf">iterdir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="s2">&quot;FSPath&quot;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get all contents of given fs path.</span>
+<span class="sd">        The result is in ascending alphabetical order.</span>
 
 <span class="sd">        :returns: All contents have in the path in ascending alphabetical order</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">listdir</span><span class="p">():</span>
             <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
 
@@ -672,13 +737,13 @@
 <div class="viewcode-block" id="FSPath.load">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.load">[docs]</a>
     <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BinaryIO</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;Read all content on specified path and write into memory</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Read all content on specified path and write into memory</span>
 
 <span class="sd">        User should close the BinaryIO manually</span>
 
 <span class="sd">        :returns: Binary stream</span>
-<span class="sd">        &#39;&#39;&#39;</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">data</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
 
@@ -686,77 +751,81 @@
 <div class="viewcode-block" id="FSPath.mkdir">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.mkdir">[docs]</a>
     <span class="k">def</span> <span class="nf">mkdir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="mo">0o777</span><span class="p">,</span> <span class="n">parents</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">exist_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        make a directory on fs, including parent directory.</span>
 <span class="sd">        If there exists a file on the path, raise FileExistsError</span>
 
-<span class="sd">        :param mode: If mode is given, it is combined with the process’ umask value to determine the file mode and access flags.</span>
-<span class="sd">        :param parents: If parents is true, any missing parents of this path are created as needed;</span>
-<span class="sd">            If parents is false (the default), a missing parent raises FileNotFoundError.</span>
+<span class="sd">        :param mode: If mode is given, it is combined with the process’ umask value to</span>
+<span class="sd">            determine the file mode and access flags.</span>
+<span class="sd">        :param parents: If parents is true, any missing parents of this path</span>
+<span class="sd">            are created as needed; If parents is false (the default),</span>
+<span class="sd">            a missing parent raises FileNotFoundError.</span>
 <span class="sd">        :param exist_ok: If False and target directory exists, raise FileExistsError</span>
 
 <span class="sd">        :raises: FileExistsError</span>
-<span class="sd">        &#39;&#39;&#39;</span>
-        <span class="k">if</span> <span class="n">exist_ok</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">exist_ok</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
             <span class="k">return</span>
         <span class="k">return</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span>
-            <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="n">parents</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="n">exist_ok</span><span class="p">)</span></div>
+            <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="n">parents</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="n">exist_ok</span>
+        <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="FSPath.realpath">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.realpath">[docs]</a>
     <span class="k">def</span> <span class="nf">realpath</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;Return the real path of given path</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the real path of given path</span>
 
 <span class="sd">        :returns: Real path of given path</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">fspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="FSPath.relpath">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.relpath">[docs]</a>
     <span class="k">def</span> <span class="nf">relpath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;Return the relative path of given path</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the relative path of given path</span>
 
 <span class="sd">        :param start: Given start directory</span>
 <span class="sd">        :returns: Relative path from start</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">fspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">relpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="FSPath.rename">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.rename">[docs]</a>
-    <span class="k">def</span> <span class="nf">rename</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;FSPath&#39;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="nf">rename</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;FSPath&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        rename file on fs</span>
 
 <span class="sd">        :param dst_path: Given destination path</span>
 <span class="sd">        :param overwrite: whether or not overwrite file when exists</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">fs_rename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="FSPath.replace">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.replace">[docs]</a>
-    <span class="k">def</span> <span class="nf">replace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;FSPath&#39;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="nf">replace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;FSPath&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        move file on fs</span>
 
 <span class="sd">        :param dst_path: Given destination path</span>
 <span class="sd">        :param overwrite: whether or not overwrite file when exists</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">dst_path</span><span class="o">=</span><span class="n">dst_path</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="FSPath.remove">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.remove">[docs]</a>
     <span class="k">def</span> <span class="nf">remove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Remove the file or directory on fs</span>
 
-<span class="sd">        :param missing_ok: if False and target file/directory not exists, raise FileNotFoundError</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        :param missing_ok: if False and target file/directory not exists,</span>
+<span class="sd">            raise FileNotFoundError</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">missing_ok</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
             <span class="k">return</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
@@ -765,9 +834,9 @@
             <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span></div>
 
 
-    <span class="k">def</span> <span class="nf">_scan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-              <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-              <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="k">def</span> <span class="nf">_scan</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_file</span><span class="p">(</span><span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">):</span>
             <span class="n">path</span> <span class="o">=</span> <span class="n">fspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span>
             <span class="k">yield</span> <span class="n">path</span>
@@ -778,10 +847,8 @@
 
 <div class="viewcode-block" id="FSPath.scan">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.scan">[docs]</a>
-    <span class="k">def</span> <span class="nf">scan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-             <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-             <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="nf">scan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Iteratively traverse only files in given directory, in alphabetical order.</span>
 <span class="sd">        Every iteration on generator yields a path string.</span>
 
@@ -789,53 +856,59 @@
 <span class="sd">        If path is a non-existent path, return an empty generator</span>
 <span class="sd">        If path is a bucket path, return all file paths in the bucket</span>
 
-<span class="sd">        :param missing_ok: If False and there&#39;s no file in the directory, raise FileNotFoundError</span>
+<span class="sd">        :param missing_ok: If False and there&#39;s no file in the directory,</span>
+<span class="sd">            raise FileNotFoundError</span>
 <span class="sd">        :returns: A file path generator</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">_create_missing_ok_generator</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_scan</span><span class="p">(</span><span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">),</span> <span class="n">missing_ok</span><span class="p">,</span>
-            <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s1">&#39;No match any file in: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">))</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_scan</span><span class="p">(</span><span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">),</span>
+            <span class="n">missing_ok</span><span class="p">,</span>
+            <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s2">&quot;No match any file in: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">),</span>
+        <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="FSPath.scan_stat">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.scan_stat">[docs]</a>
-    <span class="k">def</span> <span class="nf">scan_stat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                  <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-                  <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">FileEntry</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="nf">scan_stat</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">FileEntry</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Iteratively traverse only files in given directory, in alphabetical order.</span>
 <span class="sd">        Every iteration on generator yields a tuple of path string and file stat</span>
 
-<span class="sd">        :param missing_ok: If False and there&#39;s no file in the directory, raise FileNotFoundError</span>
+<span class="sd">        :param missing_ok: If False and there&#39;s no file in the directory,</span>
+<span class="sd">            raise FileNotFoundError</span>
 <span class="sd">        :returns: A file path generator</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">file_not_found</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scan</span><span class="p">(</span><span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">):</span>
-            <span class="k">yield</span> <span class="n">FileEntry</span><span class="p">(</span>
-                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">path</span><span class="p">),</span> <span class="n">path</span><span class="p">,</span> <span class="n">_make_stat</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">lstat</span><span class="p">(</span><span class="n">path</span><span class="p">)))</span>
+            <span class="k">yield</span> <span class="n">FileEntry</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">path</span><span class="p">),</span> <span class="n">path</span><span class="p">,</span> <span class="n">_make_stat</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">lstat</span><span class="p">(</span><span class="n">path</span><span class="p">)))</span>
             <span class="n">file_not_found</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">if</span> <span class="n">file_not_found</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">missing_ok</span><span class="p">:</span>
                 <span class="k">return</span>
             <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span>
-                <span class="s1">&#39;No match any file in: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span></div>
+                <span class="s2">&quot;No match any file in: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span>
+            <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="FSPath.scandir">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.scandir">[docs]</a>
     <span class="k">def</span> <span class="nf">scandir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">FileEntry</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get all content of given file path.</span>
 
 <span class="sd">        :returns: An iterator contains all contents have prefix path</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">def</span> <span class="nf">create_generator</span><span class="p">():</span>
             <span class="k">with</span> <span class="n">os</span><span class="o">.</span><span class="n">scandir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span> <span class="k">as</span> <span class="n">entries</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">entries</span><span class="p">:</span>
                     <span class="k">yield</span> <span class="n">FileEntry</span><span class="p">(</span>
-                        <span class="n">entry</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">entry</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
-                        <span class="n">_make_stat</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">follow_symlinks</span><span class="o">=</span><span class="kc">False</span><span class="p">)))</span>
+                        <span class="n">entry</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                        <span class="n">entry</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
+                        <span class="n">_make_stat</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">follow_symlinks</span><span class="o">=</span><span class="kc">False</span><span class="p">)),</span>
+                    <span class="p">)</span>
 
         <span class="k">return</span> <span class="n">ContextIterator</span><span class="p">(</span><span class="n">create_generator</span><span class="p">())</span></div>
 
@@ -843,11 +916,12 @@
 <div class="viewcode-block" id="FSPath.stat">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.stat">[docs]</a>
     <span class="k">def</span> <span class="nf">stat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StatResult</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        Get StatResult of file on fs, including file size and mtime, referring to fs_getsize and fs_getmtime</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get StatResult of file on fs, including file size and mtime,</span>
+<span class="sd">        referring to fs_getsize and fs_getmtime</span>
 
 <span class="sd">        :returns: StatResult</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">follow_symlinks</span><span class="p">:</span>
             <span class="n">result</span> <span class="o">=</span> <span class="n">_make_stat</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
@@ -874,11 +948,11 @@
 <div class="viewcode-block" id="FSPath.unlink">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.unlink">[docs]</a>
     <span class="k">def</span> <span class="nf">unlink</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Remove the file on fs</span>
 
 <span class="sd">        :param missing_ok: if False and target file not exists, raise FileNotFoundError</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">missing_ok</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
             <span class="k">return</span>
         <span class="n">os</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span></div>
@@ -887,27 +961,32 @@
 <div class="viewcode-block" id="FSPath.walk">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.walk">[docs]</a>
     <span class="k">def</span> <span class="nf">walk</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]]:</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generate the file names in a directory tree by walking the tree top-down.</span>
 <span class="sd">        For each directory in the tree rooted at directory path (including path itself),</span>
 <span class="sd">        it yields a 3-tuple (root, dirs, files).</span>
 
-<span class="sd">        root: a string of current path</span>
-<span class="sd">        dirs: name list of subdirectories (excluding &#39;.&#39; and &#39;..&#39; if they exist) in &#39;root&#39;. The list is sorted by ascending alphabetical order</span>
-<span class="sd">        files: name list of non-directory files (link is regarded as file) in &#39;root&#39;. The list is sorted by ascending alphabetical order</span>
+<span class="sd">        - root: a string of current path</span>
+<span class="sd">        - dirs: name list of subdirectories (excluding &#39;.&#39; and &#39;..&#39; if they exist)</span>
+<span class="sd">          in &#39;root&#39;. The list is sorted by ascending alphabetical order</span>
+<span class="sd">        - files: name list of non-directory files (link is regarded as file) in &#39;root&#39;.</span>
+<span class="sd">          The list is sorted by ascending alphabetical order</span>
 
-<span class="sd">        If path not exists, or path is a file (link is regarded as file), return an empty generator</span>
+<span class="sd">        If path not exists, or path is a file (link is regarded as file),</span>
+<span class="sd">        return an empty generator</span>
 
 <span class="sd">        .. note::</span>
 
-<span class="sd">            Be aware that setting ``followlinks`` to True can lead to infinite recursion if a link points to a parent directory of itself. fs_walk() does not keep track of the directories it visited already.</span>
+<span class="sd">            Be aware that setting ``followlinks`` to True can lead to infinite recursion</span>
+<span class="sd">            if a link points to a parent directory of itself. fs_walk() does not keep</span>
+<span class="sd">            track of the directories it visited already.</span>
 
 <span class="sd">        :param followlinks: False if regard symlink as file, else True</span>
+
 <span class="sd">        :returns: A 3-tuple generator</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">):</span>
             <span class="k">return</span>
 
@@ -935,71 +1014,77 @@
             <span class="k">yield</span> <span class="n">root</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">files</span>
 
             <span class="n">stack</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
-                <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">directory</span><span class="p">)</span> <span class="k">for</span> <span class="n">directory</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">dirs</span><span class="p">)))</span></div>
+                <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">directory</span><span class="p">)</span> <span class="k">for</span> <span class="n">directory</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">dirs</span><span class="p">))</span>
+            <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="FSPath.resolve">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.resolve">[docs]</a>
-    <span class="k">def</span> <span class="nf">resolve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;FSPath&#39;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;Equal to fs_realpath</span>
+    <span class="k">def</span> <span class="nf">resolve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;FSPath&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Equal to fs_realpath</span>
 
-<span class="sd">        :return: Return the canonical path of the specified filename, eliminating any symbolic links encountered in the path.</span>
+<span class="sd">        :return: Return the canonical path of the specified filename,</span>
+<span class="sd">            eliminating any symbolic links encountered in the path.</span>
 <span class="sd">        :rtype: FSPath</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span>
-            <span class="n">fspath</span><span class="p">(</span>
-                <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="n">strict</span><span class="o">=</span><span class="n">strict</span><span class="p">)))</span></div>
+            <span class="n">fspath</span><span class="p">(</span><span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="n">strict</span><span class="o">=</span><span class="n">strict</span><span class="p">))</span>
+        <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="FSPath.md5">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.md5">[docs]</a>
     <span class="k">def</span> <span class="nf">md5</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">recalculate</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculate the md5 value of the file</span>
 
 <span class="sd">        :param recalculate: Ignore this parameter, just for compatibility</span>
 <span class="sd">        :param followlinks: Ignore this parameter, just for compatibility</span>
 
 <span class="sd">        returns: md5 of file</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">):</span>
             <span class="n">hash_md5</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">md5</span><span class="p">()</span>  <span class="c1"># nosec</span>
             <span class="k">for</span> <span class="n">file_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">listdir</span><span class="p">():</span>
-                <span class="n">chunk</span> <span class="o">=</span> <span class="n">FSPath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="n">file_name</span><span class="p">)</span><span class="o">.</span><span class="n">md5</span><span class="p">(</span>
-                    <span class="n">recalculate</span><span class="o">=</span><span class="n">recalculate</span><span class="p">,</span> <span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span>
+                <span class="n">chunk</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">FSPath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="n">file_name</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">md5</span><span class="p">(</span><span class="n">recalculate</span><span class="o">=</span><span class="n">recalculate</span><span class="p">,</span> <span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">encode</span><span class="p">()</span>
+                <span class="p">)</span>
                 <span class="n">hash_md5</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">hash_md5</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">src</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">src</span><span class="p">:</span>
             <span class="n">md5</span> <span class="o">=</span> <span class="n">calculate_md5</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">md5</span></div>
 
 
     <span class="k">def</span> <span class="nf">_copyfile</span><span class="p">(</span>
-            <span class="bp">self</span><span class="p">,</span>
-            <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
-            <span class="n">callback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">],</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
-
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
+        <span class="n">callback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">],</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
         <span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span>
-            <span class="n">fspath</span><span class="p">(</span><span class="n">dst_path</span><span class="p">),</span>
-            <span class="n">follow_symlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="n">fspath</span><span class="p">(</span><span class="n">dst_path</span><span class="p">),</span> <span class="n">follow_symlinks</span><span class="o">=</span><span class="n">followlinks</span>
+        <span class="p">)</span>
 
-        <span class="c1"># After python3.8, patch `shutil.copyfile` is not a good way, because `shutil.copy2` will not call it in some cases.</span>
+        <span class="c1"># After python3.8, patch `shutil.copyfile` is not a good way,</span>
+        <span class="c1"># because `shutil.copy2` will not call it in some cases.</span>
         <span class="k">if</span> <span class="n">callback</span><span class="p">:</span>
             <span class="n">callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">follow_symlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
 
 <div class="viewcode-block" id="FSPath.copy">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.copy">[docs]</a>
     <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span>
-            <span class="bp">self</span><span class="p">,</span>
-            <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
-            <span class="n">callback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">],</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-            <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39; File copy on file system</span>
-<span class="sd">        Copy content (excluding meta date) of file on `src_path` to `dst_path`. `dst_path` must be a complete file name</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
+        <span class="n">callback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">],</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;File copy on file system</span>
+<span class="sd">        Copy content (excluding meta date) of file on `src_path` to `dst_path`.</span>
+<span class="sd">        `dst_path` must be a complete file name</span>
 
 <span class="sd">        .. note ::</span>
 
@@ -1007,17 +1092,18 @@
 
 <span class="sd">                1. If parent directory of dst_path doesn&#39;t exist, create it</span>
 
-<span class="sd">                2. Allow callback function, None by default. callback: Optional[Callable[[int], None]],</span>
-
-<span class="sd">            the int data is means the size (in bytes) of the written data that is passed periodically</span>
+<span class="sd">                2. Allow callback function, None by default.</span>
+<span class="sd">                    callback: Optional[Callable[[int], None]], the int data is means</span>
+<span class="sd">                    the size (in bytes) of the written data that is passed periodically</span>
 
 <span class="sd">                3. This function is thread-unsafe</span>
 
 <span class="sd">        :param dst_path: Target file path</span>
-<span class="sd">        :param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call</span>
+<span class="sd">        :param callback: Called periodically during copy, and the input parameter is</span>
+<span class="sd">            the data size (in bytes) of copy since the last call</span>
 <span class="sd">        :param followlinks: False if regard symlink as file, else True</span>
 <span class="sd">        :param overwrite: whether or not overwrite file when exists, default is True</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">dst_path</span> <span class="o">=</span> <span class="n">fspath</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">overwrite</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">((</span><span class="n">dst_path</span><span class="p">)):</span>
             <span class="k">return</span>
@@ -1025,12 +1111,11 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_copyfile</span><span class="p">(</span><span class="n">dst_path</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">callback</span><span class="p">,</span> <span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">FileNotFoundError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
-            <span class="c1"># Prevent the dst_path directory from being created when src_path does not exist</span>
+            <span class="c1"># Prevent the dst_path directory from being created when src_path does not</span>
+            <span class="c1"># exist</span>
             <span class="k">if</span> <span class="n">dst_path</span> <span class="o">==</span> <span class="n">error</span><span class="o">.</span><span class="n">filename</span><span class="p">:</span>
-                <span class="n">FSPath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">dst_path</span><span class="p">))</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span>
-                    <span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_copyfile</span><span class="p">(</span>
-                    <span class="n">dst_path</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">callback</span><span class="p">,</span> <span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span>
+                <span class="n">FSPath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">dst_path</span><span class="p">))</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_copyfile</span><span class="p">(</span><span class="n">dst_path</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">callback</span><span class="p">,</span> <span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span></div>
 
@@ -1038,18 +1123,20 @@
 <div class="viewcode-block" id="FSPath.sync">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.sync">[docs]</a>
     <span class="k">def</span> <span class="nf">sync</span><span class="p">(</span>
-            <span class="bp">self</span><span class="p">,</span>
-            <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
-            <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-            <span class="n">force</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-            <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;Force write of everything to disk.</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
+        <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">force</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Force write of everything to disk.</span>
 
 <span class="sd">        :param dst_path: Target file path</span>
 <span class="sd">        :param followlinks: False if regard symlink as file, else True</span>
-<span class="sd">        :param force: Sync file forcible, do not ignore same files, priority is higher than &#39;overwrite&#39;, default is False</span>
+<span class="sd">        :param force: Sync file forcible, do not ignore same files,</span>
+<span class="sd">            priority is higher than &#39;overwrite&#39;, default is False</span>
 <span class="sd">        :param overwrite: whether or not overwrite file when exists, default is True</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dir</span><span class="p">(</span><span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">):</span>
 
             <span class="k">def</span> <span class="nf">ignore_same_file</span><span class="p">(</span><span class="n">src</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
@@ -1061,7 +1148,8 @@
                     <span class="k">elif</span> <span class="ow">not</span> <span class="n">overwrite</span> <span class="ow">and</span> <span class="n">dst_obj</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
                         <span class="n">ignore_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
                     <span class="k">elif</span> <span class="n">dst_obj</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="n">is_same_file</span><span class="p">(</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">stat</span><span class="p">(),</span> <span class="n">dst_obj</span><span class="o">.</span><span class="n">stat</span><span class="p">(),</span> <span class="s1">&#39;copy&#39;</span><span class="p">):</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">stat</span><span class="p">(),</span> <span class="n">dst_obj</span><span class="o">.</span><span class="n">stat</span><span class="p">(),</span> <span class="s2">&quot;copy&quot;</span>
+                    <span class="p">):</span>
                         <span class="n">ignore_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
                 <span class="k">return</span> <span class="n">ignore_files</span>
 
@@ -1069,7 +1157,8 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span>
                 <span class="n">dst_path</span><span class="p">,</span>
                 <span class="n">ignore</span><span class="o">=</span><span class="n">ignore_same_file</span><span class="p">,</span>
-                <span class="n">dirs_exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">dirs_exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">dst_path</span><span class="p">,</span> <span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">)</span></div>
 
@@ -1077,62 +1166,65 @@
 <div class="viewcode-block" id="FSPath.symlink">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.symlink">[docs]</a>
     <span class="k">def</span> <span class="nf">symlink</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create a symbolic link pointing to src_path named dst_path.</span>
 
 <span class="sd">        :param dst_path: Destination path</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">symlink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="FSPath.readlink">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.readlink">[docs]</a>
-    <span class="k">def</span> <span class="nf">readlink</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;FSPath&#39;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        Return a FSPath instance representing the path to which the symbolic link points.</span>
-<span class="sd">        :returns: Return a FSPath instance representing the path to which the symbolic link points.</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="nf">readlink</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;FSPath&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a FSPath instance representing the path to which</span>
+<span class="sd">        the symbolic link points.</span>
+
+<span class="sd">        :returns: Return a FSPath instance representing the path to which</span>
+<span class="sd">            the symbolic link points.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">fs_readlink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="FSPath.is_symlink">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.is_symlink">[docs]</a>
     <span class="k">def</span> <span class="nf">is_symlink</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;Test whether a path is a symbolic link</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test whether a path is a symbolic link</span>
 
 <span class="sd">        :return: If path is a symbolic link return True, else False</span>
 <span class="sd">        :rtype: bool</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">islink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="FSPath.is_mount">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.is_mount">[docs]</a>
     <span class="k">def</span> <span class="nf">is_mount</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;Test whether a path is a mount point</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test whether a path is a mount point</span>
 
 <span class="sd">        :returns: True if a path is a mount point, else False</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">ismount</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="FSPath.cwd">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.cwd">[docs]</a>
-    <span class="k">def</span> <span class="nf">cwd</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;FSPath&#39;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;Return current working directory</span>
+    <span class="k">def</span> <span class="nf">cwd</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;FSPath&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return current working directory</span>
 
 <span class="sd">        returns: Current working directory</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">fs_cwd</span><span class="p">())</span></div>
 
 
 <div class="viewcode-block" id="FSPath.home">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.home">[docs]</a>
     <span class="k">def</span> <span class="nf">home</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;Return the home directory</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the home directory</span>
 
 <span class="sd">        returns: Home directory path</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">fs_home</span><span class="p">())</span></div>
 
 
@@ -1140,41 +1232,44 @@
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.joinpath">[docs]</a>
     <span class="k">def</span> <span class="nf">joinpath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">other_paths</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;FSPath&quot;</span><span class="p">:</span>
         <span class="n">path</span> <span class="o">=</span> <span class="n">fspath</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">path</span> <span class="o">==</span> <span class="s1">&#39;.&#39;</span><span class="p">:</span>
-            <span class="n">path</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">path</span> <span class="o">==</span> <span class="s2">&quot;.&quot;</span><span class="p">:</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">path_join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="o">*</span><span class="nb">map</span><span class="p">(</span><span class="n">fspath</span><span class="p">,</span> <span class="n">other_paths</span><span class="p">)))</span></div>
 
 
 <div class="viewcode-block" id="FSPath.save">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.save">[docs]</a>
     <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_object</span><span class="p">:</span> <span class="n">BinaryIO</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;Write the opened binary stream to path</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Write the opened binary stream to path</span>
 <span class="sd">        If parent directory of path doesn&#39;t exist, it will be created.</span>
 
 <span class="sd">        :param file_object: stream to be read</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">FSPath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">))</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span>
-            <span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">output</span><span class="p">:</span>
+            <span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">output</span><span class="p">:</span>
             <span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">file_object</span><span class="o">.</span><span class="n">read</span><span class="p">())</span></div>
 
 
 <div class="viewcode-block" id="FSPath.open">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.open">[docs]</a>
     <span class="k">def</span> <span class="nf">open</span><span class="p">(</span>
-            <span class="bp">self</span><span class="p">,</span>
-            <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span>
-            <span class="n">buffering</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
-            <span class="n">encoding</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">errors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">newline</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">closefd</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IO</span><span class="p">:</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="s1">&#39;w&#39;</span> <span class="ow">in</span> <span class="n">mode</span> <span class="ow">or</span>
-                                                                <span class="s1">&#39;x&#39;</span> <span class="ow">in</span> <span class="n">mode</span> <span class="ow">or</span>
-                                                                <span class="s1">&#39;a&#39;</span> <span class="ow">in</span> <span class="n">mode</span><span class="p">):</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;r&quot;</span><span class="p">,</span>
+        <span class="n">buffering</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">encoding</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">errors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">newline</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">closefd</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IO</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span>
+            <span class="s2">&quot;w&quot;</span> <span class="ow">in</span> <span class="n">mode</span> <span class="ow">or</span> <span class="s2">&quot;x&quot;</span> <span class="ow">in</span> <span class="n">mode</span> <span class="ow">or</span> <span class="s2">&quot;a&quot;</span> <span class="ow">in</span> <span class="n">mode</span>
+        <span class="p">):</span>
             <span class="n">FSPath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">))</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span>
-                <span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
         <span class="k">return</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span>
             <span class="n">mode</span><span class="p">,</span>
@@ -1182,118 +1277,130 @@
             <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">,</span>
             <span class="n">errors</span><span class="o">=</span><span class="n">errors</span><span class="p">,</span>
             <span class="n">newline</span><span class="o">=</span><span class="n">newline</span><span class="p">,</span>
-            <span class="n">closefd</span><span class="o">=</span><span class="n">closefd</span><span class="p">)</span></div>
+            <span class="n">closefd</span><span class="o">=</span><span class="n">closefd</span><span class="p">,</span>
+        <span class="p">)</span></div>
 
 
     <span class="nd">@cached_property</span>
     <span class="k">def</span> <span class="nf">parts</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        A tuple giving access to the path’s various components</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span><span class="o">.</span><span class="n">parts</span>
 
 <div class="viewcode-block" id="FSPath.chmod">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.chmod">[docs]</a>
     <span class="k">def</span> <span class="nf">chmod</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Change the file mode and permissions, like os.chmod().</span>
 
-<span class="sd">        This method normally follows symlinks. </span>
+<span class="sd">        This method normally follows symlinks.</span>
 <span class="sd">        Some Unix flavours support changing permissions on the symlink itself;</span>
-<span class="sd">        on these platforms you may add the argument follow_symlinks=False, or use lchmod().</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        on these platforms you may add the argument follow_symlinks=False,</span>
+<span class="sd">        or use lchmod().</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span>
-            <span class="n">path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span>
-            <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span>
-            <span class="n">follow_symlinks</span><span class="o">=</span><span class="n">follow_symlinks</span><span class="p">)</span></div>
+            <span class="n">path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="o">=</span><span class="n">follow_symlinks</span>
+        <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="FSPath.group">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.group">[docs]</a>
     <span class="k">def</span> <span class="nf">group</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        Return the name of the group owning the file. KeyError is raised if the file’s gid isn’t found in the system database.</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the name of the group owning the file. KeyError is raised if</span>
+<span class="sd">        the file’s gid isn’t found in the system database.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span><span class="o">.</span><span class="n">group</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="FSPath.is_socket">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.is_socket">[docs]</a>
     <span class="k">def</span> <span class="nf">is_socket</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        Return True if the path points to a Unix socket (or a symbolic link pointing to a Unix socket), False if it points to another kind of file.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return True if the path points to a Unix socket (or a symbolic link pointing to</span>
+<span class="sd">        a Unix socket), False if it points to another kind of file.</span>
 
-<span class="sd">        False is also returned if the path doesn’t exist or is a broken symlink; other errors (such as permission errors) are propagated.</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        False is also returned if the path doesn’t exist or is a broken symlink;</span>
+<span class="sd">        other errors (such as permission errors) are propagated.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span><span class="o">.</span><span class="n">is_socket</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="FSPath.is_fifo">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.is_fifo">[docs]</a>
     <span class="k">def</span> <span class="nf">is_fifo</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        Return True if the path points to a FIFO (or a symbolic link pointing to a FIFO), False if it points to another kind of file.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return True if the path points to a FIFO (or a symbolic link pointing to a FIFO)</span>
+<span class="sd">        Return False if it points to another kind of file.</span>
 
-<span class="sd">        False is also returned if the path doesn’t exist or is a broken symlink; other errors (such as permission errors) are propagated.</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        False is also returned if the path doesn’t exist or is a broken symlink;</span>
+<span class="sd">        other errors (such as permission errors) are propagated.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span><span class="o">.</span><span class="n">is_fifo</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="FSPath.is_block_device">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.is_block_device">[docs]</a>
     <span class="k">def</span> <span class="nf">is_block_device</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        Return True if the path points to a block device (or a symbolic link pointing to a block device), False if it points to another kind of file.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return True if the path points to a block device (or a symbolic link pointing to</span>
+<span class="sd">        a block device), False if it points to another kind of file.</span>
 
-<span class="sd">        False is also returned if the path doesn’t exist or is a broken symlink; other errors (such as permission errors) are propagated.</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        False is also returned if the path doesn’t exist or is a broken symlink;</span>
+<span class="sd">        other errors (such as permission errors) are propagated.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span><span class="o">.</span><span class="n">is_block_device</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="FSPath.is_char_device">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.is_char_device">[docs]</a>
     <span class="k">def</span> <span class="nf">is_char_device</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        Return True if the path points to a character device (or a symbolic link pointing to a character device), False if it points to another kind of file.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return True if the path points to a character device (or a symbolic link</span>
+<span class="sd">        pointing to a character device), False if it points to another kind of file.</span>
 
-<span class="sd">        False is also returned if the path doesn’t exist or is a broken symlink; other errors (such as permission errors) are propagated.</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        False is also returned if the path doesn’t exist or is a broken symlink;</span>
+<span class="sd">        other errors (such as permission errors) are propagated.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span><span class="o">.</span><span class="n">is_char_device</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="FSPath.owner">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.owner">[docs]</a>
     <span class="k">def</span> <span class="nf">owner</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        Return the name of the user owning the file. KeyError is raised if the file’s uid isn’t found in the system database.</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the name of the user owning the file. KeyError is raised if the file’s</span>
+<span class="sd">        uid isn’t found in the system database.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span><span class="o">.</span><span class="n">owner</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="FSPath.absolute">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.absolute">[docs]</a>
-    <span class="k">def</span> <span class="nf">absolute</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;FSPath&#39;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        Make the path absolute, without normalization or resolving symlinks. Returns a new path object</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="nf">absolute</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;FSPath&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Make the path absolute, without normalization or resolving symlinks.</span>
+<span class="sd">        Returns a new path object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="FSPath.rmdir">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.rmdir">[docs]</a>
     <span class="k">def</span> <span class="nf">rmdir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Remove this directory. The directory must be empty.</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">rmdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="FSPath.hardlink_to">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.hardlink_to">[docs]</a>
     <span class="k">def</span> <span class="nf">hardlink_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Make this path a hard link to the same file as target.</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">link</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span></div>
 
 
@@ -1303,10 +1410,11 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set the access and modified times of the file specified by path.</span>
 
-<span class="sd">        :param atime: a float or int representing the access time to be set. If it is set to None, the</span>
-<span class="sd">                      access time is set to the current time.</span>
-<span class="sd">        :param mtime: a float or int representing the modified time to be set. If it is set to None, the</span>
-<span class="sd">                      modified time is set to the current time.</span>
+<span class="sd">        :param atime: a float or int representing the access time to be set.</span>
+<span class="sd">                      If it is set to None, the access time is set to the current time.</span>
+<span class="sd">        :param mtime: a float or int representing the modified time to be set.</span>
+<span class="sd">                      If it is set to None, the modified time is set</span>
+<span class="sd">                      to the current time.</span>
 <span class="sd">        :return: None</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">utime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="n">times</span><span class="o">=</span><span class="p">(</span><span class="n">atime</span><span class="p">,</span> <span class="n">mtime</span><span class="p">))</span></div>

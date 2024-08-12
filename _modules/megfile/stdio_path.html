@@ -88,16 +88,13 @@
 <span class="kn">from</span> <span class="nn">megfile.smart_path</span> <span class="kn">import</span> <span class="n">SmartPath</span>
 <span class="kn">from</span> <span class="nn">megfile.utils</span> <span class="kn">import</span> <span class="n">get_binary_mode</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s2">&quot;StdioPath&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;is_stdio&quot;</span><span class="p">,</span>
-<span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;StdioPath&quot;</span><span class="p">,</span> <span class="s2">&quot;is_stdio&quot;</span><span class="p">]</span>
 
 
 <div class="viewcode-block" id="is_stdio">
 <a class="viewcode-back" href="../../megfile.stdio.html#megfile.stdio.is_stdio">[docs]</a>
 <span class="k">def</span> <span class="nf">is_stdio</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;stdio scheme definition: stdio://-</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;stdio scheme definition: stdio://-</span>
 
 <span class="sd">    .. note ::</span>
 
@@ -105,14 +102,14 @@
 
 <span class="sd">    :param path: Path to be tested</span>
 <span class="sd">    :returns: True of a path is stdio url, else False</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">path</span> <span class="o">=</span> <span class="n">fspath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;stdio://&#39;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;stdio://&quot;</span><span class="p">):</span>
         <span class="k">return</span> <span class="kc">False</span>
 
     <span class="n">scheme</span> <span class="o">=</span> <span class="n">get_url_scheme</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">scheme</span> <span class="o">==</span> <span class="s1">&#39;stdio&#39;</span></div>
+    <span class="k">return</span> <span class="n">scheme</span> <span class="o">==</span> <span class="s2">&quot;stdio&quot;</span></div>
 
 
 
@@ -120,11 +117,10 @@
 <a class="viewcode-back" href="../../megfile.stdio_path.html#megfile.stdio.StdioPath">[docs]</a>
 <span class="nd">@SmartPath</span><span class="o">.</span><span class="n">register</span>
 <span class="k">class</span> <span class="nc">StdioPath</span><span class="p">(</span><span class="n">BaseURIPath</span><span class="p">):</span>
-
     <span class="n">protocol</span> <span class="o">=</span> <span class="s2">&quot;stdio&quot;</span>
 
-    <span class="k">def</span> <span class="nf">_open</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">STDReader</span><span class="p">,</span> <span class="n">STDWriter</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;Used to read or write stdio</span>
+    <span class="k">def</span> <span class="nf">_open</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">STDReader</span><span class="p">,</span> <span class="n">STDWriter</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Used to read or write stdio</span>
 
 <span class="sd">        .. note ::</span>
 
@@ -133,39 +129,41 @@
 <span class="sd">        :param path: stdio path, stdio://- or stdio://0 stdio://1 stdio://2</span>
 <span class="sd">        :param mode: Only supports &#39;rb&#39; and &#39;wb&#39; now</span>
 <span class="sd">        :return: STDReader, STDWriter</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">if</span> <span class="n">mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;rb&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">,</span> <span class="s1">&#39;rt&#39;</span><span class="p">,</span> <span class="s1">&#39;wt&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;unacceptable mode: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;rb&quot;</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">,</span> <span class="s2">&quot;rt&quot;</span><span class="p">,</span> <span class="s2">&quot;wt&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;unacceptable mode: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span>
 
         <span class="n">mode</span> <span class="o">=</span> <span class="n">get_binary_mode</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;stdio://-&#39;</span><span class="p">,</span> <span class="s1">&#39;stdio://0&#39;</span><span class="p">,</span>
-                                           <span class="s1">&#39;stdio://1&#39;</span><span class="p">,</span> <span class="s1">&#39;stdio://2&#39;</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;unacceptable path: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span>
+            <span class="s2">&quot;stdio://-&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;stdio://0&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;stdio://1&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;stdio://2&quot;</span><span class="p">,</span>
+        <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;unacceptable path: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;stdio://1&#39;</span><span class="p">,</span>
-                                       <span class="s1">&#39;stdio://2&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="s1">&#39;r&#39;</span> <span class="ow">in</span> <span class="n">mode</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s1">&#39;cannot open for reading: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;stdio://1&quot;</span><span class="p">,</span> <span class="s2">&quot;stdio://2&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">&quot;r&quot;</span> <span class="ow">in</span> <span class="n">mode</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;cannot open for reading: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span> <span class="o">==</span> <span class="s1">&#39;stdio://0&#39;</span> <span class="ow">and</span> <span class="s1">&#39;w&#39;</span> <span class="ow">in</span> <span class="n">mode</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s1">&#39;cannot open for writing: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span> <span class="o">==</span> <span class="s2">&quot;stdio://0&quot;</span> <span class="ow">and</span> <span class="s2">&quot;w&quot;</span> <span class="ow">in</span> <span class="n">mode</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;cannot open for writing: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="s1">&#39;r&#39;</span> <span class="ow">in</span> <span class="n">mode</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">&quot;r&quot;</span> <span class="ow">in</span> <span class="n">mode</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">STDReader</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">STDWriter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span>
 
 <div class="viewcode-block" id="StdioPath.open">
 <a class="viewcode-back" href="../../megfile.stdio_path.html#megfile.stdio.StdioPath.open">[docs]</a>
     <span class="k">def</span> <span class="nf">open</span><span class="p">(</span>
-            <span class="bp">self</span><span class="p">,</span>
-            <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;rb&#39;</span><span class="p">,</span>
-            <span class="n">encoding</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="n">errors</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IO</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;Used to read or write stdio</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;rb&quot;</span><span class="p">,</span>
+        <span class="n">encoding</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">errors</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IO</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Used to read or write stdio</span>
 
 <span class="sd">        .. note ::</span>
 
@@ -173,12 +171,11 @@
 
 <span class="sd">        :param mode: Only supports &#39;rb&#39; and &#39;wb&#39; now</span>
 <span class="sd">        :return: STDReader, STDWriter</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">fileobj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_open</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="s1">&#39;b&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">mode</span><span class="p">:</span>
-            <span class="n">fileobj</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">TextIOWrapper</span><span class="p">(</span>
-                <span class="n">fileobj</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="n">errors</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;b&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">mode</span><span class="p">:</span>
+            <span class="n">fileobj</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">TextIOWrapper</span><span class="p">(</span><span class="n">fileobj</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="n">errors</span><span class="p">)</span>
             <span class="n">fileobj</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="n">mode</span>  <span class="c1"># pyre-ignore[41]</span>
 
         <span class="k">return</span> <span class="n">fileobj</span></div>

@@ -80,47 +80,54 @@
   <h1>Source code for megfile.hdfs</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">IO</span><span class="p">,</span> <span class="n">BinaryIO</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
 
-<span class="kn">from</span> <span class="nn">megfile.hdfs_path</span> <span class="kn">import</span> <span class="n">HdfsPath</span><span class="p">,</span> <span class="n">hdfs_glob</span><span class="p">,</span> <span class="n">hdfs_glob_stat</span><span class="p">,</span> <span class="n">hdfs_iglob</span><span class="p">,</span> <span class="n">hdfs_makedirs</span><span class="p">,</span> <span class="n">is_hdfs</span>
+<span class="kn">from</span> <span class="nn">megfile.hdfs_path</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">HdfsPath</span><span class="p">,</span>
+    <span class="n">hdfs_glob</span><span class="p">,</span>
+    <span class="n">hdfs_glob_stat</span><span class="p">,</span>
+    <span class="n">hdfs_iglob</span><span class="p">,</span>
+    <span class="n">hdfs_makedirs</span><span class="p">,</span>
+    <span class="n">is_hdfs</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span> <span class="nn">megfile.interfaces</span> <span class="kn">import</span> <span class="n">FileEntry</span><span class="p">,</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">StatResult</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s1">&#39;is_hdfs&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;hdfs_glob&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;hdfs_glob_stat&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;hdfs_iglob&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;hdfs_makedirs&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;hdfs_exists&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;hdfs_stat&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;hdfs_getmtime&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;hdfs_getsize&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;hdfs_isdir&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;hdfs_isfile&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;hdfs_listdir&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;hdfs_load_from&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;hdfs_move&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;hdfs_remove&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;hdfs_scan&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;hdfs_scan_stat&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;hdfs_scandir&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;hdfs_unlink&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;hdfs_walk&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;hdfs_getmd5&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;hdfs_save_as&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;hdfs_open&#39;</span><span class="p">,</span>
+    <span class="s2">&quot;is_hdfs&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;hdfs_glob&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;hdfs_glob_stat&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;hdfs_iglob&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;hdfs_makedirs&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;hdfs_exists&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;hdfs_stat&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;hdfs_getmtime&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;hdfs_getsize&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;hdfs_isdir&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;hdfs_isfile&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;hdfs_listdir&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;hdfs_load_from&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;hdfs_move&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;hdfs_remove&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;hdfs_scan&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;hdfs_scan_stat&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;hdfs_scandir&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;hdfs_unlink&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;hdfs_walk&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;hdfs_getmd5&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;hdfs_save_as&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;hdfs_open&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
 
 <div class="viewcode-block" id="hdfs_exists">
 <a class="viewcode-back" href="../../megfile.hdfs.html#megfile.hdfs.hdfs_exists">[docs]</a>
 <span class="k">def</span> <span class="nf">hdfs_exists</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Test if path exists</span>
 
 <span class="sd">    If the bucket of path are not permitted to read, return False</span>
 
 <span class="sd">    :param path: Given path</span>
 <span class="sd">    :returns: True if path exists, else False</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">HdfsPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">followlinks</span><span class="p">)</span></div>
 
 
@@ -128,16 +135,20 @@
 <div class="viewcode-block" id="hdfs_stat">
 <a class="viewcode-back" href="../../megfile.hdfs.html#megfile.hdfs.hdfs_stat">[docs]</a>
 <span class="k">def</span> <span class="nf">hdfs_stat</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StatResult</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">    Get StatResult of path file, including file size and mtime, referring to hdfs_getsize and hdfs_getmtime</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get StatResult of path file, including file size and mtime,</span>
+<span class="sd">    referring to hdfs_getsize and hdfs_getmtime</span>
 
-<span class="sd">    If path is not an existent path, which means hdfs_exist(path) returns False, then raise FileNotFoundError</span>
-<span class="sd">    If attempt to get StatResult of complete hdfs, such as hdfs_dir_url == &#39;hdfs://&#39;, raise BucketNotFoundError</span>
+<span class="sd">    If path is not an existent path, which means hdfs_exist(path) returns False,</span>
+<span class="sd">    then raise FileNotFoundError</span>
+
+<span class="sd">    If attempt to get StatResult of complete hdfs, such as hdfs_dir_url == &#39;hdfs://&#39;,</span>
+<span class="sd">    raise BucketNotFoundError</span>
 
 <span class="sd">    :param path: Given path</span>
 <span class="sd">    :returns: StatResult</span>
 <span class="sd">    :raises: FileNotFoundError</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">HdfsPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">follow_symlinks</span><span class="p">)</span></div>
 
 
@@ -145,16 +156,19 @@
 <div class="viewcode-block" id="hdfs_getmtime">
 <a class="viewcode-back" href="../../megfile.hdfs.html#megfile.hdfs.hdfs_getmtime">[docs]</a>
 <span class="k">def</span> <span class="nf">hdfs_getmtime</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">    Get last-modified time of the file on the given path path (in Unix timestamp format).</span>
-<span class="sd">    If the path is an existent directory, return the latest modified time of all file in it. The mtime of empty directory is 1970-01-01 00:00:00</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get last-modified time of the file on the given path path (in Unix timestamp</span>
+<span class="sd">    format).</span>
+<span class="sd">    If the path is an existent directory, return the latest modified time of all</span>
+<span class="sd">    file in it. The mtime of empty directory is 1970-01-01 00:00:00</span>
 
-<span class="sd">    If path is not an existent path, which means hdfs_exist(path) returns False, then raise FileNotFoundError</span>
+<span class="sd">    If path is not an existent path, which means hdfs_exist(path) returns False,</span>
+<span class="sd">    then raise FileNotFoundError</span>
 
 <span class="sd">    :param path: Given path</span>
 <span class="sd">    :returns: Last-modified time</span>
 <span class="sd">    :raises: FileNotFoundError</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">HdfsPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">getmtime</span><span class="p">(</span><span class="n">follow_symlinks</span><span class="p">)</span></div>
 
 
@@ -162,17 +176,21 @@
 <div class="viewcode-block" id="hdfs_getsize">
 <a class="viewcode-back" href="../../megfile.hdfs.html#megfile.hdfs.hdfs_getsize">[docs]</a>
 <span class="k">def</span> <span class="nf">hdfs_getsize</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get file size on the given path path (in bytes).</span>
-<span class="sd">    If the path in a directory, return the sum of all file size in it, including file in subdirectories (if exist).</span>
-<span class="sd">    The result excludes the size of directory itself. In other words, return 0 Byte on an empty directory path.</span>
+<span class="sd">    If the path in a directory, return the sum of all file size in it,</span>
+<span class="sd">    including file in subdirectories (if exist).</span>
 
-<span class="sd">    If path is not an existent path, which means hdfs_exist(path) returns False, then raise FileNotFoundError</span>
+<span class="sd">    The result excludes the size of directory itself. In other words,</span>
+<span class="sd">    return 0 Byte on an empty directory path.</span>
+
+<span class="sd">    If path is not an existent path, which means hdfs_exist(path) returns False,</span>
+<span class="sd">    then raise FileNotFoundError</span>
 
 <span class="sd">    :param path: Given path</span>
 <span class="sd">    :returns: File size</span>
 <span class="sd">    :raises: FileNotFoundError</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">HdfsPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">getsize</span><span class="p">(</span><span class="n">follow_symlinks</span><span class="p">)</span></div>
 
 
@@ -180,16 +198,17 @@
 <div class="viewcode-block" id="hdfs_isdir">
 <a class="viewcode-back" href="../../megfile.hdfs.html#megfile.hdfs.hdfs_isdir">[docs]</a>
 <span class="k">def</span> <span class="nf">hdfs_isdir</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Test if an hdfs url is directory</span>
 <span class="sd">    Specific procedures are as follows:</span>
 <span class="sd">    If there exists a suffix, of which ``os.path.join(path, suffix)`` is a file</span>
 <span class="sd">    If the url is empty bucket or hdfs://</span>
 
 <span class="sd">    :param path: Given path</span>
-<span class="sd">    :param followlinks: whether followlinks is True or False, result is the same. Because hdfs symlink not support dir.</span>
+<span class="sd">    :param followlinks: whether followlinks is True or False, result is the same.</span>
+<span class="sd">        Because hdfs symlink not support dir.</span>
 <span class="sd">    :returns: True if path is hdfs directory, else False</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">HdfsPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">is_dir</span><span class="p">(</span><span class="n">followlinks</span><span class="p">)</span></div>
 
 
@@ -197,12 +216,12 @@
 <div class="viewcode-block" id="hdfs_isfile">
 <a class="viewcode-back" href="../../megfile.hdfs.html#megfile.hdfs.hdfs_isfile">[docs]</a>
 <span class="k">def</span> <span class="nf">hdfs_isfile</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Test if an path is file</span>
 
 <span class="sd">    :param path: Given path</span>
 <span class="sd">    :returns: True if path is hdfs file, else False</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">HdfsPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">(</span><span class="n">followlinks</span><span class="p">)</span></div>
 
 
@@ -210,13 +229,13 @@
 <div class="viewcode-block" id="hdfs_listdir">
 <a class="viewcode-back" href="../../megfile.hdfs.html#megfile.hdfs.hdfs_listdir">[docs]</a>
 <span class="k">def</span> <span class="nf">hdfs_listdir</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get all contents of given path.</span>
 
 <span class="sd">    :param path: Given path</span>
 <span class="sd">    :returns: All contents have prefix of path.</span>
 <span class="sd">    :raises: FileNotFoundError, NotADirectoryError</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">HdfsPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">followlinks</span><span class="p">)</span></div>
 
 
@@ -224,27 +243,26 @@
 <div class="viewcode-block" id="hdfs_load_from">
 <a class="viewcode-back" href="../../megfile.hdfs.html#megfile.hdfs.hdfs_load_from">[docs]</a>
 <span class="k">def</span> <span class="nf">hdfs_load_from</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BinaryIO</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;Read all content in binary on specified path and write into memory</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Read all content in binary on specified path and write into memory</span>
 
 <span class="sd">    User should close the BinaryIO manually</span>
 
 <span class="sd">    :param path: Given path</span>
 <span class="sd">    :returns: BinaryIO</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">HdfsPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">followlinks</span><span class="p">)</span></div>
 
 
 
 <div class="viewcode-block" id="hdfs_move">
 <a class="viewcode-back" href="../../megfile.hdfs.html#megfile.hdfs.hdfs_move">[docs]</a>
-<span class="k">def</span> <span class="nf">hdfs_move</span><span class="p">(</span>
-        <span class="n">src_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="k">def</span> <span class="nf">hdfs_move</span><span class="p">(</span><span class="n">src_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Move file/directory path from src_path to dst_path</span>
 
 <span class="sd">    :param src_path: Given path</span>
 <span class="sd">    :param dst_path: Given destination path</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">HdfsPath</span><span class="p">(</span><span class="n">src_path</span><span class="p">)</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">dst_path</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">)</span></div>
 
 
@@ -252,13 +270,15 @@
 <div class="viewcode-block" id="hdfs_remove">
 <a class="viewcode-back" href="../../megfile.hdfs.html#megfile.hdfs.hdfs_remove">[docs]</a>
 <span class="k">def</span> <span class="nf">hdfs_remove</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">    Remove the file or directory on hdfs, `hdfs://` and `hdfs://bucket` are not permitted to remove</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Remove the file or directory on hdfs, `hdfs://` and `hdfs://bucket` are not</span>
+<span class="sd">    permitted to remove</span>
 
 <span class="sd">    :param path: Given path</span>
-<span class="sd">    :param missing_ok: if False and target file/directory not exists, raise FileNotFoundError</span>
+<span class="sd">    :param missing_ok: if False and target file/directory not exists,</span>
+<span class="sd">        raise FileNotFoundError</span>
 <span class="sd">    :raises: FileNotFoundError, UnsupportedError</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">HdfsPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">missing_ok</span><span class="p">)</span></div>
 
 
@@ -266,10 +286,9 @@
 <div class="viewcode-block" id="hdfs_scan">
 <a class="viewcode-back" href="../../megfile.hdfs.html#megfile.hdfs.hdfs_scan">[docs]</a>
 <span class="k">def</span> <span class="nf">hdfs_scan</span><span class="p">(</span>
-        <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
-        <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+    <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Iteratively traverse only files in given hdfs directory.</span>
 <span class="sd">    Every iteration on generator yields a path string.</span>
 
@@ -277,13 +296,15 @@
 <span class="sd">    If path is a non-existent path, return an empty generator</span>
 <span class="sd">    If path is a bucket path, return all file paths in the bucket</span>
 <span class="sd">    If path is an empty bucket, return an empty generator</span>
-<span class="sd">    If path doesn&#39;t contain any bucket, which is path == &#39;hdfs://&#39;, raise UnsupportedError. walk() on complete hdfs is not supported in megfile</span>
+<span class="sd">    If path doesn&#39;t contain any bucket, which is path == &#39;hdfs://&#39;,</span>
+<span class="sd">    raise UnsupportedError. walk() on complete hdfs is not supported in megfile</span>
 
 <span class="sd">    :param path: Given path</span>
-<span class="sd">    :param missing_ok: If False and there&#39;s no file in the directory, raise FileNotFoundError</span>
+<span class="sd">    :param missing_ok: If False and there&#39;s no file in the directory,</span>
+<span class="sd">        raise FileNotFoundError</span>
 <span class="sd">    :raises: UnsupportedError</span>
 <span class="sd">    :returns: A file path generator</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">HdfsPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">scan</span><span class="p">(</span><span class="n">missing_ok</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">)</span></div>
 
 
@@ -291,33 +312,32 @@
 <div class="viewcode-block" id="hdfs_scan_stat">
 <a class="viewcode-back" href="../../megfile.hdfs.html#megfile.hdfs.hdfs_scan_stat">[docs]</a>
 <span class="k">def</span> <span class="nf">hdfs_scan_stat</span><span class="p">(</span>
-        <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
-        <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">FileEntry</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+    <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">FileEntry</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Iteratively traverse only files in given directory.</span>
 <span class="sd">    Every iteration on generator yields a tuple of path string and file stat</span>
 
 <span class="sd">    :param path: Given path</span>
-<span class="sd">    :param missing_ok: If False and there&#39;s no file in the directory, raise FileNotFoundError</span>
+<span class="sd">    :param missing_ok: If False and there&#39;s no file in the directory,</span>
+<span class="sd">        raise FileNotFoundError</span>
 <span class="sd">    :raises: UnsupportedError</span>
 <span class="sd">    :returns: A file path generator</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">HdfsPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">scan_stat</span><span class="p">(</span><span class="n">missing_ok</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">)</span></div>
 
 
 
 <div class="viewcode-block" id="hdfs_scandir">
 <a class="viewcode-back" href="../../megfile.hdfs.html#megfile.hdfs.hdfs_scandir">[docs]</a>
-<span class="k">def</span> <span class="nf">hdfs_scandir</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
-                 <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">FileEntry</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="k">def</span> <span class="nf">hdfs_scandir</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">FileEntry</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get all contents of given path, the order of result is not guaranteed.</span>
 
 <span class="sd">    :param path: Given path</span>
 <span class="sd">    :returns: All contents have prefix of path</span>
 <span class="sd">    :raises: FileNotFoundError, NotADirectoryError</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">HdfsPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">scandir</span><span class="p">(</span><span class="n">followlinks</span><span class="p">)</span></div>
 
 
@@ -325,13 +345,13 @@
 <div class="viewcode-block" id="hdfs_unlink">
 <a class="viewcode-back" href="../../megfile.hdfs.html#megfile.hdfs.hdfs_unlink">[docs]</a>
 <span class="k">def</span> <span class="nf">hdfs_unlink</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Remove the file on hdfs</span>
 
 <span class="sd">    :param path: Given path</span>
 <span class="sd">    :param missing_ok: if False and target file not exists, raise FileNotFoundError</span>
 <span class="sd">    :raises: FileNotFoundError, IsADirectoryError</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">HdfsPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">missing_ok</span><span class="p">)</span></div>
 
 
@@ -339,11 +359,13 @@
 <div class="viewcode-block" id="hdfs_walk">
 <a class="viewcode-back" href="../../megfile.hdfs.html#megfile.hdfs.hdfs_walk">[docs]</a>
 <span class="k">def</span> <span class="nf">hdfs_walk</span><span class="p">(</span>
-        <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
-        <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]]:</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">    Iteratively traverse the given hdfs directory, in top-bottom order. In other words, firstly traverse parent directory, if subdirectories exist, traverse the subdirectories.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Iteratively traverse the given hdfs directory, in top-bottom order.</span>
+<span class="sd">    In other words, firstly traverse parent directory, if subdirectories exist,</span>
+<span class="sd">    traverse the subdirectories.</span>
+
 <span class="sd">    Every iteration on generator yields a 3-tuple: (root, dirs, files)</span>
 
 <span class="sd">    - root: Current hdfs path;</span>
@@ -351,15 +373,23 @@
 <span class="sd">    - files: Name list of files in current directory.</span>
 
 <span class="sd">    If path is a file path, return an empty generator</span>
+
 <span class="sd">    If path is a non-existent path, return an empty generator</span>
-<span class="sd">    If path is a bucket path, bucket will be the top directory, and will be returned at first iteration of generator</span>
-<span class="sd">    If path is an empty bucket, only yield one 3-tuple (notes: hdfs doesn&#39;t have empty directory)</span>
-<span class="sd">    If path doesn&#39;t contain any bucket, which is path == &#39;hdfs://&#39;, raise UnsupportedError. walk() on complete hdfs is not supported in megfile</span>
+
+<span class="sd">    If path is a bucket path, bucket will be the top directory,</span>
+<span class="sd">    and will be returned at first iteration of generator</span>
+
+<span class="sd">    If path is an empty bucket, only yield one 3-tuple</span>
+<span class="sd">    (notes: hdfs doesn&#39;t have empty directory)</span>
+
+<span class="sd">    If path doesn&#39;t contain any bucket, which is path == &#39;hdfs://&#39;,</span>
+<span class="sd">    raise UnsupportedError. walk() on complete hdfs is not supported in megfile</span>
 
 <span class="sd">    :param path: Given path</span>
-<span class="sd">    :param followlinks: whether followlinks is True or False, result is the same. Because hdfs not support symlink.</span>
+<span class="sd">    :param followlinks: whether followlinks is True or False, result is the same.</span>
+<span class="sd">        Because hdfs not support symlink.</span>
 <span class="sd">    :returns: A 3-tuple generator</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">HdfsPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">followlinks</span><span class="p">)</span></div>
 
 
@@ -367,17 +397,16 @@
 <div class="viewcode-block" id="hdfs_getmd5">
 <a class="viewcode-back" href="../../megfile.hdfs.html#megfile.hdfs.hdfs_getmd5">[docs]</a>
 <span class="k">def</span> <span class="nf">hdfs_getmd5</span><span class="p">(</span>
-        <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
-        <span class="n">recalculate</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+    <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">recalculate</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get checksum of the file or dir.</span>
 
 <span class="sd">    :param path: Given path</span>
 <span class="sd">    :param recalculate: Ignore this parameter, just for compatibility</span>
 <span class="sd">    :param followlinks: Ignore this parameter, just for compatibility</span>
 <span class="sd">    :returns: checksum</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">HdfsPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">md5</span><span class="p">(</span><span class="n">recalculate</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">)</span></div>
 
 
@@ -385,11 +414,12 @@
 <div class="viewcode-block" id="hdfs_save_as">
 <a class="viewcode-back" href="../../megfile.hdfs.html#megfile.hdfs.hdfs_save_as">[docs]</a>
 <span class="k">def</span> <span class="nf">hdfs_save_as</span><span class="p">(</span><span class="n">file_object</span><span class="p">:</span> <span class="n">BinaryIO</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;Write the opened binary stream to specified path, but the stream won&#39;t be closed</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Write the opened binary stream to specified path,</span>
+<span class="sd">    but the stream won&#39;t be closed</span>
 
 <span class="sd">    :param path: Given path</span>
 <span class="sd">    :param file_object: Stream to be read</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">HdfsPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">file_object</span><span class="p">)</span></div>
 
 
@@ -397,15 +427,17 @@
 <div class="viewcode-block" id="hdfs_open">
 <a class="viewcode-back" href="../../megfile.hdfs.html#megfile.hdfs.hdfs_open">[docs]</a>
 <span class="k">def</span> <span class="nf">hdfs_open</span><span class="p">(</span>
-        <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
-        <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span>
-        <span class="o">*</span><span class="p">,</span>
-        <span class="n">buffering</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">encoding</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">errors</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IO</span><span class="p">:</span>
+    <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
+    <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;r&quot;</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">buffering</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">encoding</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">errors</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IO</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">HdfsPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">(</span>
-        <span class="n">mode</span><span class="p">,</span> <span class="n">buffering</span><span class="o">=</span><span class="n">buffering</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="n">errors</span><span class="p">)</span></div>
+        <span class="n">mode</span><span class="p">,</span> <span class="n">buffering</span><span class="o">=</span><span class="n">buffering</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="n">errors</span>
+    <span class="p">)</span></div>
 
 </pre></div>
 

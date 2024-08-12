@@ -160,7 +160,8 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="megfile.sftp.sftp_absolute">
 <span class="sig-prename descclassname"><span class="pre">megfile.sftp.</span></span><span class="sig-name descname"><span class="pre">sftp_absolute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath" title="megfile.sftp_path.SftpPath"><span class="pre">SftpPath</span></a></span></span><a class="reference internal" href="_modules/megfile/sftp.html#sftp_absolute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp.sftp_absolute" title="Link to this definition"></a></dt>
-<dd><p>Make the path absolute, without normalization or resolving symlinks. Returns a new path object</p>
+<dd><p>Make the path absolute, without normalization or resolving symlinks.
+Returns a new path object</p>
 </dd></dl>
 
 <dl class="py function">
@@ -201,8 +202,9 @@
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>src_path</strong> – Given path</p></li>
 <li><p><strong>dst_path</strong> – The destination path to copy the file to.</p></li>
-<li><p><strong>callback</strong> – An optional callback function that takes an integer parameter and is called
-periodically during the copy operation to report the number of bytes copied.</p></li>
+<li><p><strong>callback</strong> – An optional callback function that takes an integer parameter
+and is called periodically during the copy operation to report the number
+of bytes copied.</p></li>
 <li><p><strong>followlinks</strong> – Whether to follow symbolic links when copying directories.</p></li>
 </ul>
 </dd>
@@ -218,12 +220,19 @@ periodically during the copy operation to report the number of bytes copied.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="megfile.sftp.sftp_download">
 <span class="sig-prename descclassname"><span class="pre">megfile.sftp.</span></span><span class="sig-name descname"><span class="pre">sftp_download</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callback</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/sftp_path.html#sftp_download"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp.sftp_download" title="Link to this definition"></a></dt>
-<dd><p>Downloads a file from sftp to local filesystem.
-:param src_url: source sftp path
-:param dst_url: target fs path
-:param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
-:param followlinks: False if regard symlink as file, else True
-:param overwrite: whether or not overwrite file when exists, default is True</p>
+<dd><p>Downloads a file from sftp to local filesystem.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>src_url</strong> – source sftp path</p></li>
+<li><p><strong>dst_url</strong> – target fs path</p></li>
+<li><p><strong>callback</strong> – Called periodically during copy, and the input parameter is
+the data size (in bytes) of copy since the last call</p></li>
+<li><p><strong>followlinks</strong> – False if regard symlink as file, else True</p></li>
+<li><p><strong>overwrite</strong> – whether or not overwrite file when exists, default is True</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -262,8 +271,9 @@ periodically during the copy operation to report the number of bytes copied.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="megfile.sftp.sftp_getmtime">
 <span class="sig-prename descclassname"><span class="pre">megfile.sftp.</span></span><span class="sig-name descname"><span class="pre">sftp_getmtime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">follow_symlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="_modules/megfile/sftp.html#sftp_getmtime"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp.sftp_getmtime" title="Link to this definition"></a></dt>
-<dd><p>Get last-modified time of the file on the given path (in Unix timestamp format).
-If the path is an existent directory, return the latest modified time of all file in it.</p>
+<dd><p>Get last-modified time of the file on the given path (in Unix timestamp format).</p>
+<p>If the path is an existent directory,
+return the latest modified time of all file in it.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>path</strong> – Given path</p>
@@ -277,9 +287,11 @@ If the path is an existent directory, return the latest modified time of all fil
 <dl class="py function">
 <dt class="sig sig-object py" id="megfile.sftp.sftp_getsize">
 <span class="sig-prename descclassname"><span class="pre">megfile.sftp.</span></span><span class="sig-name descname"><span class="pre">sftp_getsize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">follow_symlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/megfile/sftp.html#sftp_getsize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp.sftp_getsize" title="Link to this definition"></a></dt>
-<dd><p>Get file size on the given file path (in bytes).
-If the path in a directory, return the sum of all file size in it, including file in subdirectories (if exist).
-The result excludes the size of directory itself. In other words, return 0 Byte on an empty directory path.</p>
+<dd><p>Get file size on the given file path (in bytes).</p>
+<p>If the path in a directory, return the sum of all file size in it,
+including file in subdirectories (if exist).</p>
+<p>The result excludes the size of directory itself. In other words,
+return 0 Byte on an empty directory path.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>path</strong> – Given path</p>
@@ -293,30 +305,32 @@ The result excludes the size of directory itself. In other words, return 0 Byte 
 <dl class="py function">
 <dt class="sig sig-object py" id="megfile.sftp.sftp_glob">
 <span class="sig-prename descclassname"><span class="pre">megfile.sftp.</span></span><span class="sig-name descname"><span class="pre">sftp_glob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#sftp_glob"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp.sftp_glob" title="Link to this definition"></a></dt>
-<dd><p>Return path list in ascending alphabetical order, in which path matches glob pattern</p>
+<dd><p>Return path list in ascending alphabetical order,
+in which path matches glob pattern</p>
 <ol class="arabic simple">
-<li><dl class="simple">
-<dt>If doesn’t match any path, return empty list</dt><dd><p>Notice:  <code class="docutils literal notranslate"><span class="pre">glob.glob</span></code> in standard library returns [‘a/’] instead of empty list when pathname is like <cite>a/**</cite>, recursive is True and directory ‘a’ doesn’t exist. fs_glob behaves like <code class="docutils literal notranslate"><span class="pre">glob.glob</span></code> in standard library under such circumstance.</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>No guarantee that each path in result is different, which means:</dt><dd><p>Assume there exists a path <cite>/a/b/c/b/d.txt</cite>
-use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will be returned twice</p>
-</dd>
-</dl>
-</li>
-<li><p><cite>**</cite> will match any matched file, directory, symlink and ‘’ by default, when recursive is <cite>True</cite></p></li>
-<li><p>fs_glob returns same as glob.glob(pathname, recursive=True) in ascending alphabetical order.</p></li>
+<li><p>If doesn’t match any path, return empty list
+Notice:  <code class="docutils literal notranslate"><span class="pre">glob.glob</span></code> in standard library returns [‘a/’] instead of empty list
+when pathname is like <cite>a/**</cite>, recursive is True and directory ‘a’ doesn’t exist.
+fs_glob behaves like <code class="docutils literal notranslate"><span class="pre">glob.glob</span></code> in standard library under such circumstance.</p></li>
+<li><p>No guarantee that each path in result is different, which means:
+Assume there exists a path <cite>/a/b/c/b/d.txt</cite>
+use path pattern like <cite>/**/b/**/*.txt</cite> to glob,
+the path above will be returned twice</p></li>
+<li><p><cite>**</cite> will match any matched file, directory, symlink and ‘’ by default,
+when recursive is <cite>True</cite></p></li>
+<li><p>fs_glob returns same as glob.glob(pathname, recursive=True)
+in ascending alphabetical order.</p></li>
 <li><p>Hidden files (filename stars with ‘.’) will not be found in the result</p></li>
 </ol>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>path</strong> – Given path</p></li>
-<li><p><strong>pattern</strong> – Glob the given relative pattern in the directory represented by this path</p></li>
+<li><p><strong>pattern</strong> – Glob the given relative pattern in the directory represented
+by this path</p></li>
 <li><p><strong>recursive</strong> – If False, <cite>**</cite> will not search directory recursively</p></li>
-<li><p><strong>missing_ok</strong> – If False and target path doesn’t match any file, raise FileNotFoundError</p></li>
+<li><p><strong>missing_ok</strong> – If False and target path doesn’t match any file,
+raise FileNotFoundError</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -328,34 +342,37 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 <dl class="py function">
 <dt class="sig sig-object py" id="megfile.sftp.sftp_glob_stat">
 <span class="sig-prename descclassname"><span class="pre">megfile.sftp.</span></span><span class="sig-name descname"><span class="pre">sftp_glob_stat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">FileEntry</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#sftp_glob_stat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp.sftp_glob_stat" title="Link to this definition"></a></dt>
-<dd><p>Return a list contains tuples of path and file stat, in ascending alphabetical order, in which path matches glob pattern</p>
+<dd><p>Return a list contains tuples of path and file stat, in ascending alphabetical
+order, in which path matches glob pattern</p>
 <ol class="arabic simple">
-<li><dl class="simple">
-<dt>If doesn’t match any path, return empty list</dt><dd><p>Notice:  <code class="docutils literal notranslate"><span class="pre">glob.glob</span></code> in standard library returns [‘a/’] instead of empty list when pathname is like <cite>a/**</cite>, recursive is True and directory ‘a’ doesn’t exist. sftp_glob behaves like <code class="docutils literal notranslate"><span class="pre">glob.glob</span></code> in standard library under such circumstance.</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>No guarantee that each path in result is different, which means:</dt><dd><p>Assume there exists a path <cite>/a/b/c/b/d.txt</cite>
-use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will be returned twice</p>
-</dd>
-</dl>
-</li>
-<li><p><cite>**</cite> will match any matched file, directory, symlink and ‘’ by default, when recursive is <cite>True</cite></p></li>
-<li><p>fs_glob returns same as glob.glob(pathname, recursive=True) in ascending alphabetical order.</p></li>
+<li><p>If doesn’t match any path, return empty list
+Notice:  <code class="docutils literal notranslate"><span class="pre">glob.glob</span></code> in standard library returns [‘a/’] instead of empty list
+when pathname is like <cite>a/**</cite>, recursive is True and directory ‘a’ doesn’t exist.
+sftp_glob behaves like <code class="docutils literal notranslate"><span class="pre">glob.glob</span></code> in standard library under such circumstance.</p></li>
+<li><p>No guarantee that each path in result is different, which means:
+Assume there exists a path <cite>/a/b/c/b/d.txt</cite>
+use path pattern like <cite>/**/b/**/*.txt</cite> to glob,
+the path above will be returned twice</p></li>
+<li><p><cite>**</cite> will match any matched file, directory, symlink and ‘’ by default,
+when recursive is <cite>True</cite></p></li>
+<li><p>fs_glob returns same as glob.glob(pathname, recursive=True) in
+ascending alphabetical order.</p></li>
 <li><p>Hidden files (filename stars with ‘.’) will not be found in the result</p></li>
 </ol>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>path</strong> – Given path</p></li>
-<li><p><strong>pattern</strong> – Glob the given relative pattern in the directory represented by this path</p></li>
+<li><p><strong>pattern</strong> – Glob the given relative pattern in the directory represented
+by this path</p></li>
 <li><p><strong>recursive</strong> – If False, <cite>**</cite> will not search directory recursively</p></li>
-<li><p><strong>missing_ok</strong> – If False and target path doesn’t match any file, raise FileNotFoundError</p></li>
+<li><p><strong>missing_ok</strong> – If False and target path doesn’t match any file,
+raise FileNotFoundError</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A list contains tuples of path and file stat, in which paths match <cite>pathname</cite></p>
+<dd class="field-even"><p>A list contains tuples of path and file stat,
+in which paths match <cite>pathname</cite></p>
 </dd>
 </dl>
 </dd></dl>
@@ -363,30 +380,32 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 <dl class="py function">
 <dt class="sig sig-object py" id="megfile.sftp.sftp_iglob">
 <span class="sig-prename descclassname"><span class="pre">megfile.sftp.</span></span><span class="sig-name descname"><span class="pre">sftp_iglob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#sftp_iglob"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp.sftp_iglob" title="Link to this definition"></a></dt>
-<dd><p>Return path iterator in ascending alphabetical order, in which path matches glob pattern</p>
+<dd><p>Return path iterator in ascending alphabetical order,
+in which path matches glob pattern</p>
 <ol class="arabic simple">
-<li><dl class="simple">
-<dt>If doesn’t match any path, return empty list</dt><dd><p>Notice:  <code class="docutils literal notranslate"><span class="pre">glob.glob</span></code> in standard library returns [‘a/’] instead of empty list when pathname is like <cite>a/**</cite>, recursive is True and directory ‘a’ doesn’t exist. fs_glob behaves like <code class="docutils literal notranslate"><span class="pre">glob.glob</span></code> in standard library under such circumstance.</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>No guarantee that each path in result is different, which means:</dt><dd><p>Assume there exists a path <cite>/a/b/c/b/d.txt</cite>
-use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will be returned twice</p>
-</dd>
-</dl>
-</li>
-<li><p><cite>**</cite> will match any matched file, directory, symlink and ‘’ by default, when recursive is <cite>True</cite></p></li>
-<li><p>fs_glob returns same as glob.glob(pathname, recursive=True) in ascending alphabetical order.</p></li>
+<li><p>If doesn’t match any path, return empty list
+Notice:  <code class="docutils literal notranslate"><span class="pre">glob.glob</span></code> in standard library returns [‘a/’] instead of empty list
+when pathname is like <cite>a/**</cite>, recursive is True and directory ‘a’ doesn’t exist.
+fs_glob behaves like <code class="docutils literal notranslate"><span class="pre">glob.glob</span></code> in standard library under such circumstance.</p></li>
+<li><p>No guarantee that each path in result is different, which means:
+Assume there exists a path <cite>/a/b/c/b/d.txt</cite>
+use path pattern like <cite>/**/b/**/*.txt</cite> to glob,
+the path above will be returned twice</p></li>
+<li><p><cite>**</cite> will match any matched file, directory, symlink and ‘’ by default,
+when recursive is <cite>True</cite></p></li>
+<li><p>fs_glob returns same as glob.glob(pathname, recursive=True) in
+ascending alphabetical order.</p></li>
 <li><p>Hidden files (filename stars with ‘.’) will not be found in the result</p></li>
 </ol>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>path</strong> – Given path</p></li>
-<li><p><strong>pattern</strong> – Glob the given relative pattern in the directory represented by this path</p></li>
+<li><p><strong>pattern</strong> – Glob the given relative pattern in the directory represented
+by this path</p></li>
 <li><p><strong>recursive</strong> – If False, <cite>**</cite> will not search directory recursively</p></li>
-<li><p><strong>missing_ok</strong> – If False and target path doesn’t match any file, raise FileNotFoundError</p></li>
+<li><p><strong>missing_ok</strong> – If False and target path doesn’t match any file,
+raise FileNotFoundError</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -401,7 +420,8 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 <dd><p>Test if a path is directory</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The difference between this function and <code class="docutils literal notranslate"><span class="pre">os.path.isdir</span></code> is that this function regard symlink as file</p>
+<p>The difference between this function and <code class="docutils literal notranslate"><span class="pre">os.path.isdir</span></code> is that
+this function regard symlink as file</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -422,7 +442,8 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 <dd><p>Test if a path is file</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The difference between this function and <code class="docutils literal notranslate"><span class="pre">os.path.isfile</span></code> is that this function regard symlink as file</p>
+<p>The difference between this function and <code class="docutils literal notranslate"><span class="pre">os.path.isfile</span></code> is that
+this function regard symlink as file</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -457,7 +478,8 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 <dl class="py function">
 <dt class="sig sig-object py" id="megfile.sftp.sftp_listdir">
 <span class="sig-prename descclassname"><span class="pre">megfile.sftp.</span></span><span class="sig-name descname"><span class="pre">sftp_listdir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/sftp.html#sftp_listdir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp.sftp_listdir" title="Link to this definition"></a></dt>
-<dd><p>Get all contents of given sftp path. The result is in ascending alphabetical order.</p>
+<dd><p>Get all contents of given sftp path.
+The result is in ascending alphabetical order.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>path</strong> – Given path</p>
@@ -485,8 +507,9 @@ use path pattern like <cite>/**/b/**/*.txt</cite> to glob, the path above will b
 
 <dl class="py function">
 <dt class="sig sig-object py" id="megfile.sftp.sftp_lstat">
-<span class="sig-prename descclassname"><span class="pre">megfile.sftp.</span></span><span class="sig-name descname"><span class="pre">sftp_lstat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="megfile.fs.html#megfile.fs.StatResult" title="megfile.pathlike.StatResult"><span class="pre">StatResult</span></a></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#sftp_lstat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp.sftp_lstat" title="Link to this definition"></a></dt>
-<dd><p>Get StatResult of file on sftp, including file size and mtime, referring to fs_getsize and fs_getmtime</p>
+<span class="sig-prename descclassname"><span class="pre">megfile.sftp.</span></span><span class="sig-name descname"><span class="pre">sftp_lstat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">StatResult</span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#sftp_lstat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp.sftp_lstat" title="Link to this definition"></a></dt>
+<dd><p>Get StatResult of file on sftp, including file size and mtime,
+referring to fs_getsize and fs_getmtime</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>path</strong> – Given path</p>
@@ -506,9 +529,11 @@ If there exists a file on the path, raise FileExistsError</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>path</strong> – Given path</p></li>
-<li><p><strong>mode</strong> – If mode is given, it is combined with the process’ umask value to determine the file mode and access flags.</p></li>
-<li><p><strong>parents</strong> – If parents is true, any missing parents of this path are created as needed;
-If parents is false (the default), a missing parent raises FileNotFoundError.</p></li>
+<li><p><strong>mode</strong> – If mode is given, it is combined with the process’ umask value to
+determine the file mode and access flags.</p></li>
+<li><p><strong>parents</strong> – If parents is true, any missing parents of this path
+are created as needed; If parents is false (the default),
+a missing parent raises FileNotFoundError.</p></li>
 <li><p><strong>exist_ok</strong> – If False and target directory exists, raise FileExistsError</p></li>
 </ul>
 </dd>
@@ -542,9 +567,12 @@ If parents is false (the default), a missing parent raises FileNotFoundError.</p
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>path</strong> – Given path</p></li>
 <li><p><strong>mode</strong> – Mode to open file</p></li>
-<li><p><strong>buffering</strong> – buffering is an optional integer used to set the buffering policy.</p></li>
-<li><p><strong>encoding</strong> – encoding is the name of the encoding used to decode or encode the file. This should only be used in text mode.</p></li>
-<li><p><strong>errors</strong> – errors is an optional string that specifies how encoding and decoding errors are to be handled—this cannot be used in binary mode.</p></li>
+<li><p><strong>buffering</strong> – buffering is an optional integer used to
+set the buffering policy.</p></li>
+<li><p><strong>encoding</strong> – encoding is the name of the encoding used to decode or encode
+the file. This should only be used in text mode.</p></li>
+<li><p><strong>errors</strong> – errors is an optional string that specifies how encoding and
+decoding errors are to be handled—this cannot be used in binary mode.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -570,17 +598,27 @@ If parents is false (the default), a missing parent raises FileNotFoundError.</p
 </dl>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The difference between this function and <code class="docutils literal notranslate"><span class="pre">os.path.join</span></code> is that this function ignores left side slash (which indicates absolute path) in <code class="docutils literal notranslate"><span class="pre">other_paths</span></code> and will directly concat.
-e.g. os.path.join(‘/path’, ‘to’, ‘/file’) =&gt; ‘/file’, but sftp_path_join(‘/path’, ‘to’, ‘/file’) =&gt; ‘/path/to/file’</p>
+<p>The difference between this function and <code class="docutils literal notranslate"><span class="pre">os.path.join</span></code> is that this function
+ignores left side slash (which indicates absolute path) in <code class="docutils literal notranslate"><span class="pre">other_paths</span></code>
+and will directly concat.</p>
+<p>e.g. os.path.join(‘/path’, ‘to’, ‘/file’) =&gt; ‘/file’,
+but sftp_path_join(‘/path’, ‘to’, ‘/file’) =&gt; ‘/path/to/file’</p>
 </div>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="megfile.sftp.sftp_readlink">
 <span class="sig-prename descclassname"><span class="pre">megfile.sftp.</span></span><span class="sig-name descname"><span class="pre">sftp_readlink</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/megfile/sftp_path.html#sftp_readlink"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp.sftp_readlink" title="Link to this definition"></a></dt>
-<dd><p>Return a SftpPath instance representing the path to which the symbolic link points.
-:param path: Given path
-:returns: Return a SftpPath instance representing the path to which the symbolic link points.</p>
+<dd><p>Return a SftpPath instance representing the path to which the symbolic link points.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> – Given path</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Return a SftpPath instance representing the path to
+which the symbolic link points.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -605,7 +643,8 @@ e.g. os.path.join(‘/path’, ‘to’, ‘/file’) =&gt; ‘/file’, but sft
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>path</strong> – Given path</p></li>
-<li><p><strong>missing_ok</strong> – if False and target file/directory not exists, raise FileNotFoundError</p></li>
+<li><p><strong>missing_ok</strong> – if False and target file/directory not exists,
+raise FileNotFoundError</p></li>
 </ul>
 </dd>
 </dl>
@@ -638,7 +677,8 @@ e.g. os.path.join(‘/path’, ‘to’, ‘/file’) =&gt; ‘/file’, but sft
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Return the canonical path of the specified filename, eliminating any symbolic links encountered in the path.</p>
+<dd class="field-even"><p>Return the canonical path of the specified filename,
+eliminating any symbolic links encountered in the path.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath" title="megfile.sftp_path.SftpPath">SftpPath</a></p>
@@ -679,7 +719,8 @@ If path is a bucket path, return all file paths in the bucket</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>path</strong> – Given path</p></li>
-<li><p><strong>missing_ok</strong> – If False and there’s no file in the directory, raise FileNotFoundError</p></li>
+<li><p><strong>missing_ok</strong> – If False and there’s no file in the directory,
+raise FileNotFoundError</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -697,7 +738,8 @@ Every iteration on generator yields a tuple of path string and file stat</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>path</strong> – Given path</p></li>
-<li><p><strong>missing_ok</strong> – If False and there’s no file in the directory, raise FileNotFoundError</p></li>
+<li><p><strong>missing_ok</strong> – If False and there’s no file in the directory,
+raise FileNotFoundError</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -722,8 +764,9 @@ Every iteration on generator yields a tuple of path string and file stat</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="megfile.sftp.sftp_stat">
-<span class="sig-prename descclassname"><span class="pre">megfile.sftp.</span></span><span class="sig-name descname"><span class="pre">sftp_stat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">follow_symlinks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="megfile.fs.html#megfile.fs.StatResult" title="megfile.pathlike.StatResult"><span class="pre">StatResult</span></a></span></span><a class="reference internal" href="_modules/megfile/sftp.html#sftp_stat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp.sftp_stat" title="Link to this definition"></a></dt>
-<dd><p>Get StatResult of file on sftp, including file size and mtime, referring to fs_getsize and fs_getmtime</p>
+<span class="sig-prename descclassname"><span class="pre">megfile.sftp.</span></span><span class="sig-name descname"><span class="pre">sftp_stat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">follow_symlinks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">StatResult</span></span></span><a class="reference internal" href="_modules/megfile/sftp.html#sftp_stat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp.sftp_stat" title="Link to this definition"></a></dt>
+<dd><p>Get StatResult of file on sftp, including file size and mtime,
+referring to fs_getsize and fs_getmtime</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>path</strong> – Given path</p>
@@ -758,7 +801,8 @@ Every iteration on generator yields a tuple of path string and file stat</p>
 <li><p><strong>src_path</strong> – Given path</p></li>
 <li><p><strong>dst_url</strong> – Given destination path</p></li>
 <li><p><strong>followlinks</strong> – False if regard symlink as file, else True</p></li>
-<li><p><strong>force</strong> – Sync file forcible, do not ignore same files, priority is higher than ‘overwrite’, default is False</p></li>
+<li><p><strong>force</strong> – Sync file forcible, do not ignore same files,
+priority is higher than ‘overwrite’, default is False</p></li>
 <li><p><strong>overwrite</strong> – whether or not overwrite file when exists, default is True</p></li>
 </ul>
 </dd>
@@ -782,11 +826,18 @@ Every iteration on generator yields a tuple of path string and file stat</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="megfile.sftp.sftp_upload">
 <span class="sig-prename descclassname"><span class="pre">megfile.sftp.</span></span><span class="sig-name descname"><span class="pre">sftp_upload</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callback</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/sftp_path.html#sftp_upload"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.sftp.sftp_upload" title="Link to this definition"></a></dt>
-<dd><p>Uploads a file from local filesystem to sftp server.
-:param src_url: source fs path
-:param dst_url: target sftp path
-:param callback: Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call
-:param overwrite: whether or not overwrite file when exists, default is True</p>
+<dd><p>Uploads a file from local filesystem to sftp server.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>src_url</strong> – source fs path</p></li>
+<li><p><strong>dst_url</strong> – target sftp path</p></li>
+<li><p><strong>callback</strong> – Called periodically during copy, and the input parameter is
+the data size (in bytes) of copy since the last call</p></li>
+<li><p><strong>overwrite</strong> – whether or not overwrite file when exists, default is True</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -795,13 +846,20 @@ Every iteration on generator yields a tuple of path string and file stat</p>
 <dd><p>Generate the file names in a directory tree by walking the tree top-down.
 For each directory in the tree rooted at directory path (including path itself),
 it yields a 3-tuple (root, dirs, files).</p>
-<p>root: a string of current path
-dirs: name list of subdirectories (excluding ‘.’ and ‘..’ if they exist) in ‘root’. The list is sorted by ascending alphabetical order
-files: name list of non-directory files (link is regarded as file) in ‘root’. The list is sorted by ascending alphabetical order</p>
-<p>If path not exists, or path is a file (link is regarded as file), return an empty generator</p>
+<ul class="simple">
+<li><p>root: a string of current path</p></li>
+<li><p>dirs: name list of subdirectories (excluding ‘.’ and ‘..’ if they exist)
+in ‘root’. The list is sorted by ascending alphabetical order</p></li>
+<li><p>files: name list of non-directory files (link is regarded as file) in ‘root’.
+The list is sorted by ascending alphabetical order</p></li>
+</ul>
+<p>If path not exists, or path is a file (link is regarded as file),
+return an empty generator</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Be aware that setting <code class="docutils literal notranslate"><span class="pre">followlinks</span></code> to True can lead to infinite recursion if a link points to a parent directory of itself. fs_walk() does not keep track of the directories it visited already.</p>
+<p>Be aware that setting <code class="docutils literal notranslate"><span class="pre">followlinks</span></code> to True can lead to infinite recursion
+if a link points to a parent directory of itself. fs_walk() does not keep
+track of the directories it visited already.</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>

@@ -276,16 +276,9 @@ $ megfile config s3 accesskey secretkey \
 <blockquote>
 <div><p><em>You can submit code even if the code doesn’t meet conditions. The project members will evaluate and assist you in making code changes</em></p>
 </div></blockquote>
-<ul>
-<li><p><strong>Code format</strong>: Your code needs to pass <strong>code format check</strong>. <code class="docutils literal notranslate"><span class="pre">megfile</span></code> uses <code class="docutils literal notranslate"><span class="pre">yapf</span></code> as lint tool and the version is locked at 0.27.0. The version lock may be removed in the future</p></li>
-<li><p><strong>Static check</strong>: Your code needs complete <strong>type hint</strong>. <code class="docutils literal notranslate"><span class="pre">megfile</span></code> uses <code class="docutils literal notranslate"><span class="pre">pytype</span></code> as static check tool. If <code class="docutils literal notranslate"><span class="pre">pytype</span></code> failed in static check, use <code class="docutils literal notranslate"><span class="pre">#</span> <span class="pre">pytype:</span> <span class="pre">disable=XXX</span></code> to disable the error and please tell us why you disable it.</p>
-<blockquote>
-<div><p><em>Note</em> : Because <code class="docutils literal notranslate"><span class="pre">pytype</span></code> doesn’t support variable type annation, the variable type hint format introduced by py36 cannot be used.</p>
-</div></blockquote>
-<blockquote>
-<div><p>i.e. <code class="docutils literal notranslate"><span class="pre">variable:</span> <span class="pre">int</span></code> is invalid, replace it with <code class="docutils literal notranslate"><span class="pre">variable</span>&#160; <span class="pre">#</span> <span class="pre">type:</span> <span class="pre">int</span></code></p>
-</div></blockquote>
-</li>
+<ul class="simple">
+<li><p><strong>Code format</strong>: Your code needs to pass <strong>code format check</strong>. <code class="docutils literal notranslate"><span class="pre">megfile</span></code> uses <code class="docutils literal notranslate"><span class="pre">ruff</span></code> as lint tool</p></li>
+<li><p><strong>Static check</strong>: Your code needs complete <strong>type hint</strong>. <code class="docutils literal notranslate"><span class="pre">megfile</span></code> uses <code class="docutils literal notranslate"><span class="pre">pytype</span></code> as static check tool. If <code class="docutils literal notranslate"><span class="pre">pytype</span></code> failed in static check, use <code class="docutils literal notranslate"><span class="pre">#</span> <span class="pre">pytype:</span> <span class="pre">disable=XXX</span></code> to disable the error and please tell us why you disable it.</p></li>
 <li><p><strong>Test</strong>: Your code needs complete <strong>unit test</strong> coverage. <code class="docutils literal notranslate"><span class="pre">megfile</span></code> uses <code class="docutils literal notranslate"><span class="pre">pyfakefs</span></code> and <code class="docutils literal notranslate"><span class="pre">moto</span></code> as local file system and s3 virtual environment in unit tests. The newly added code should have a complete unit test to ensure the correctness</p></li>
 </ul>
 </li>

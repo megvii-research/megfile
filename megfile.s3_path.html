@@ -112,7 +112,8 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.s3_path.S3Path.absolute">
 <span class="sig-name descname"><span class="pre">absolute</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#megfile.s3_path.S3Path" title="megfile.s3_path.S3Path"><span class="pre">S3Path</span></a></span></span><a class="reference internal" href="_modules/megfile/s3_path.html#S3Path.absolute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.s3_path.S3Path.absolute" title="Link to this definition"></a></dt>
-<dd><p>Make the path absolute, without normalization or resolving symlinks. Returns a new path object</p>
+<dd><p>Make the path absolute, without normalization or resolving symlinks.
+Returns a new path object</p>
 </dd></dl>
 
 <dl class="py method">
@@ -134,12 +135,13 @@
 <span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dst_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callback</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/megfile/s3_path.html#S3Path.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.s3_path.S3Path.copy" title="Link to this definition"></a></dt>
 <dd><p>File copy on S3
 Copy content of file on <cite>src_path</cite> to <cite>dst_path</cite>.
-It’s caller’s responsibility to ensure the s3_isfile(src_url) == True</p>
+It’s caller’s responsibility to ensure the s3_isfile(src_url) is True</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>dst_path</strong> – Target file path</p></li>
-<li><p><strong>callback</strong> – Called periodically during copy, and the input parameter is the data size (in bytes) of copy since the last call</p></li>
+<li><p><strong>callback</strong> – Called periodically during copy, and the input parameter is
+the data size (in bytes) of copy since the last call</p></li>
 <li><p><strong>followlinks</strong> – False if regard symlink as file, else True</p></li>
 <li><p><strong>overwrite</strong> – whether or not overwrite file when exists, default is True</p></li>
 </ul>
@@ -169,9 +171,12 @@ It’s caller’s responsibility to ensure the s3_isfile(src_url) == True</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.s3_path.S3Path.getmtime">
 <span class="sig-name descname"><span class="pre">getmtime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">follow_symlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="_modules/megfile/s3_path.html#S3Path.getmtime"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.s3_path.S3Path.getmtime" title="Link to this definition"></a></dt>
-<dd><p>Get last-modified time of the file on the given s3_url path (in Unix timestamp format).
-If the path is an existent directory, return the latest modified time of all file in it. The mtime of empty directory is 1970-01-01 00:00:00</p>
-<p>If s3_url is not an existent path, which means s3_exist(s3_url) returns False, then raise S3FileNotFoundError</p>
+<dd><p>Get last-modified time of the file on the given s3_url path
+(in Unix timestamp format).</p>
+<p>If the path is an existent directory, return the latest modified time of
+all file in it. The mtime of empty directory is 1970-01-01 00:00:00</p>
+<p>If s3_url is not an existent path, which means s3_exist(s3_url) returns False,
+then raise S3FileNotFoundError</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Last-modified time</p>
@@ -185,10 +190,13 @@ If the path is an existent directory, return the latest modified time of all fil
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.s3_path.S3Path.getsize">
 <span class="sig-name descname"><span class="pre">getsize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">follow_symlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/megfile/s3_path.html#S3Path.getsize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.s3_path.S3Path.getsize" title="Link to this definition"></a></dt>
-<dd><p>Get file size on the given s3_url path (in bytes).
-If the path in a directory, return the sum of all file size in it, including file in subdirectories (if exist).
-The result excludes the size of directory itself. In other words, return 0 Byte on an empty directory path.</p>
-<p>If s3_url is not an existent path, which means s3_exist(s3_url) returns False, then raise S3FileNotFoundError</p>
+<dd><p>Get file size on the given s3_url path (in bytes).</p>
+<p>If the path in a directory, return the sum of all file size in it,
+including file in subdirectories (if exist).</p>
+<p>The result excludes the size of directory itself.
+In other words, return 0 Byte on an empty directory path.</p>
+<p>If s3_url is not an existent path, which means s3_exist(s3_url) returns False,
+then raise S3FileNotFoundError</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>File size</p>
@@ -202,14 +210,18 @@ The result excludes the size of directory itself. In other words, return 0 Byte 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.s3_path.S3Path.glob">
 <span class="sig-name descname"><span class="pre">glob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pattern</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#megfile.s3_path.S3Path" title="megfile.s3_path.S3Path"><span class="pre">S3Path</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/s3_path.html#S3Path.glob"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.s3_path.S3Path.glob" title="Link to this definition"></a></dt>
-<dd><p>Return s3 path list in ascending alphabetical order, in which path matches glob pattern
-Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError</p>
+<dd><p>Return s3 path list in ascending alphabetical order,
+in which path matches glob pattern</p>
+<p>Notes: Only glob in bucket. If trying to match bucket with wildcard characters,
+raise UnsupportedError</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pattern</strong> – Glob the given relative pattern in the directory represented by this path</p></li>
+<li><p><strong>pattern</strong> – Glob the given relative pattern in the directory represented
+by this path</p></li>
 <li><p><strong>recursive</strong> – If False, <cite>**</cite> will not search directory recursively</p></li>
-<li><p><strong>missing_ok</strong> – If False and target path doesn’t match any file, raise FileNotFoundError</p></li>
+<li><p><strong>missing_ok</strong> – If False and target path doesn’t match any file,
+raise FileNotFoundError</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
@@ -224,21 +236,26 @@ Notes: Only glob in bucket. If trying to match bucket with wildcard characters, 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.s3_path.S3Path.glob_stat">
 <span class="sig-name descname"><span class="pre">glob_stat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pattern</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">FileEntry</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/s3_path.html#S3Path.glob_stat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.s3_path.S3Path.glob_stat" title="Link to this definition"></a></dt>
-<dd><p>Return a generator contains tuples of path and file stat, in ascending alphabetical order, in which path matches glob pattern
-Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError</p>
+<dd><p>Return a generator contains tuples of path and file stat,
+in ascending alphabetical order, in which path matches glob pattern</p>
+<p>Notes: Only glob in bucket. If trying to match bucket with wildcard characters,
+raise UnsupportedError</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pattern</strong> – Glob the given relative pattern in the directory represented by this path</p></li>
+<li><p><strong>pattern</strong> – Glob the given relative pattern in the directory represented
+by this path</p></li>
 <li><p><strong>recursive</strong> – If False, <cite>**</cite> will not search directory recursively</p></li>
-<li><p><strong>missing_ok</strong> – If False and target path doesn’t match any file, raise FileNotFoundError</p></li>
+<li><p><strong>missing_ok</strong> – If False and target path doesn’t match any file,
+raise FileNotFoundError</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><p>UnsupportedError, when bucket part contains wildcard characters</p>
 </dd>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>A generator contains tuples of path and file stat, in which paths match <cite>s3_pathname</cite></p>
+<dd class="field-odd"><p>A generator contains tuples of path and file stat,
+in which paths match <cite>s3_pathname</cite></p>
 </dd>
 </dl>
 </dd></dl>
@@ -257,14 +274,18 @@ Notes: Only glob in bucket. If trying to match bucket with wildcard characters, 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.s3_path.S3Path.iglob">
 <span class="sig-name descname"><span class="pre">iglob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pattern</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">missing_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#megfile.s3_path.S3Path" title="megfile.s3_path.S3Path"><span class="pre">S3Path</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/s3_path.html#S3Path.iglob"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.s3_path.S3Path.iglob" title="Link to this definition"></a></dt>
-<dd><p>Return s3 path iterator in ascending alphabetical order, in which path matches glob pattern
-Notes: Only glob in bucket. If trying to match bucket with wildcard characters, raise UnsupportedError</p>
+<dd><p>Return s3 path iterator in ascending alphabetical order,
+in which path matches glob pattern</p>
+<p>Notes: Only glob in bucket. If trying to match bucket with wildcard characters,
+raise UnsupportedError</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pattern</strong> – Glob the given relative pattern in the directory represented by this path</p></li>
+<li><p><strong>pattern</strong> – Glob the given relative pattern in the directory represented
+by this path</p></li>
 <li><p><strong>recursive</strong> – If False, <cite>**</cite> will not search directory recursively</p></li>
-<li><p><strong>missing_ok</strong> – If False and target path doesn’t match any file, raise FileNotFoundError</p></li>
+<li><p><strong>missing_ok</strong> – If False and target path doesn’t match any file,
+raise FileNotFoundError</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
@@ -285,7 +306,8 @@ If there exists a suffix, of which <code class="docutils literal notranslate"><s
 If the url is empty bucket or s3://</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>followlinks</strong> – whether followlinks is True or False, result is the same. Because s3 symlink not support dir.</p>
+<dd class="field-odd"><p><strong>followlinks</strong> – whether followlinks is True or False, result is the same.
+Because s3 symlink not support dir.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>True if path is s3 directory, else False</p>
@@ -431,7 +453,8 @@ This function is to test the target bucket have WRITE access.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="megfile.s3_path.S3Path.path_without_protocol">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">path_without_protocol</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#megfile.s3_path.S3Path.path_without_protocol" title="Link to this definition"></a></dt>
-<dd><p>Return path without protocol, example: if path is s3://bucket/key, return bucket/key</p>
+<dd><p>Return path without protocol, example: if path is s3://bucket/key,
+return bucket/key</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -442,13 +465,15 @@ This function is to test the target bucket have WRITE access.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.s3_path.S3Path.readlink">
 <span class="sig-name descname"><span class="pre">readlink</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#megfile.s3_path.S3Path" title="megfile.s3_path.S3Path"><span class="pre">S3Path</span></a></span></span><a class="reference internal" href="_modules/megfile/s3_path.html#S3Path.readlink"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.s3_path.S3Path.readlink" title="Link to this definition"></a></dt>
-<dd><p>Return a S3Path instance representing the path to which the symbolic link points.</p>
+<dd><p>Return a S3Path instance representing the path to which the symbolic link points</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Return a S3Path instance representing the path to which the symbolic link points.</p>
+<dd class="field-odd"><p>Return a S3Path instance representing the path to
+which the symbolic link points.</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p>S3NameTooLongError, S3BucketNotFoundError, S3IsADirectoryError, S3NotALinkError</p>
+<dd class="field-even"><p>S3NameTooLongError, S3BucketNotFoundError, S3IsADirectoryError,
+S3NotALinkError</p>
 </dd>
 </dl>
 </dd></dl>
@@ -456,10 +481,12 @@ This function is to test the target bucket have WRITE access.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.s3_path.S3Path.remove">
 <span class="sig-name descname"><span class="pre">remove</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">missing_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/megfile/s3_path.html#S3Path.remove"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.s3_path.S3Path.remove" title="Link to this definition"></a></dt>
-<dd><p>Remove the file or directory on s3, <cite>s3://</cite> and <cite>s3://bucket</cite> are not permitted to remove</p>
+<dd><p>Remove the file or directory on s3, <cite>s3://</cite> and <cite>s3://bucket</cite>
+are not permitted to remove</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>missing_ok</strong> – if False and target file/directory not exists, raise S3FileNotFoundError</p>
+<dd class="field-odd"><p><strong>missing_ok</strong> – if False and target file/directory not exists,
+raise S3FileNotFoundError</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><p>S3PermissionError, S3FileNotFoundError, UnsupportedError</p>
@@ -484,7 +511,8 @@ This function is to test the target bucket have WRITE access.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.s3_path.S3Path.save">
 <span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_object</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">BinaryIO</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/s3_path.html#S3Path.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.s3_path.S3Path.save" title="Link to this definition"></a></dt>
-<dd><p>Write the opened binary stream to specified path, but the stream won’t be closed</p>
+<dd><p>Write the opened binary stream to specified path,
+but the stream won’t be closed</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>file_object</strong> – Stream to be read</p>
@@ -497,14 +525,16 @@ This function is to test the target bucket have WRITE access.</p>
 <span class="sig-name descname"><span class="pre">scan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">missing_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/s3_path.html#S3Path.scan"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.s3_path.S3Path.scan" title="Link to this definition"></a></dt>
 <dd><p>Iteratively traverse only files in given s3 directory, in alphabetical order.
 Every iteration on generator yields a path string.</p>
-<p>If s3_url is a file path, yields the file only
-If s3_url is a non-existent path, return an empty generator
-If s3_url is a bucket path, return all file paths in the bucket
-If s3_url is an empty bucket, return an empty generator
-If s3_url doesn’t contain any bucket, which is s3_url == ‘s3://’, raise UnsupportedError. walk() on complete s3 is not supported in megfile</p>
+<p>If s3_url is a file path, yields the file only</p>
+<p>If s3_url is a non-existent path, return an empty generator</p>
+<p>If s3_url is a bucket path, return all file paths in the bucket</p>
+<p>If s3_url is an empty bucket, return an empty generator</p>
+<p>If s3_url doesn’t contain any bucket, which is s3_url == ‘s3://’,
+raise UnsupportedError. walk() on complete s3 is not supported in megfile</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>missing_ok</strong> – If False and there’s no file in the directory, raise FileNotFoundError</p>
+<dd class="field-odd"><p><strong>missing_ok</strong> – If False and there’s no file in the directory,
+raise FileNotFoundError</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><p>UnsupportedError</p>
@@ -522,7 +552,8 @@ If s3_url doesn’t contain any bucket, which is s3_url == ‘s3://’, raise Un
 Every iteration on generator yields a tuple of path string and file stat</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>missing_ok</strong> – If False and there’s no file in the directory, raise FileNotFoundError</p>
+<dd class="field-odd"><p><strong>missing_ok</strong> – If False and there’s no file in the directory,
+raise FileNotFoundError</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><p>UnsupportedError</p>
@@ -549,10 +580,13 @@ Every iteration on generator yields a tuple of path string and file stat</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.s3_path.S3Path.stat">
-<span class="sig-name descname"><span class="pre">stat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">follow_symlinks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="megfile.fs.html#megfile.fs.StatResult" title="megfile.pathlike.StatResult"><span class="pre">StatResult</span></a></span></span><a class="reference internal" href="_modules/megfile/s3_path.html#S3Path.stat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.s3_path.S3Path.stat" title="Link to this definition"></a></dt>
-<dd><p>Get StatResult of s3_url file, including file size and mtime, referring to s3_getsize and s3_getmtime</p>
-<p>If s3_url is not an existent path, which means s3_exist(s3_url) returns False, then raise S3FileNotFoundError
-If attempt to get StatResult of complete s3, such as s3_dir_url == ‘s3://’, raise S3BucketNotFoundError</p>
+<span class="sig-name descname"><span class="pre">stat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">follow_symlinks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">StatResult</span></span></span><a class="reference internal" href="_modules/megfile/s3_path.html#S3Path.stat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.s3_path.S3Path.stat" title="Link to this definition"></a></dt>
+<dd><p>Get StatResult of s3_url file, including file size and mtime,
+referring to s3_getsize and s3_getmtime</p>
+<p>If s3_url is not an existent path, which means s3_exist(s3_url) returns False,
+then raise S3FileNotFoundError</p>
+<p>If attempt to get StatResult of complete s3, such as s3_dir_url == ‘s3://’,
+raise S3BucketNotFoundError</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>StatResult</p>
@@ -586,7 +620,8 @@ If attempt to get StatResult of complete s3, such as s3_dir_url == ‘s3://’, 
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>dst_url</strong> – Given destination path</p></li>
 <li><p><strong>followlinks</strong> – False if regard symlink as file, else True</p></li>
-<li><p><strong>force</strong> – Sync file forcible, do not ignore same files, priority is higher than ‘overwrite’, default is False</p></li>
+<li><p><strong>force</strong> – Sync file forcible, do not ignore same files,
+priority is higher than ‘overwrite’, default is False</p></li>
 <li><p><strong>overwrite</strong> – whether or not overwrite file when exists, default is True</p></li>
 </ul>
 </dd>
@@ -599,7 +634,8 @@ If attempt to get StatResult of complete s3, such as s3_dir_url == ‘s3://’, 
 <dd><p>Remove the file on s3</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>missing_ok</strong> – if False and target file not exists, raise S3FileNotFoundError</p>
+<dd class="field-odd"><p><strong>missing_ok</strong> – if False and target file not exists,
+raise S3FileNotFoundError</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><p>S3PermissionError, S3FileNotFoundError, S3IsADirectoryError</p>
@@ -610,21 +646,29 @@ If attempt to get StatResult of complete s3, such as s3_dir_url == ‘s3://’, 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.s3_path.S3Path.walk">
 <span class="sig-name descname"><span class="pre">walk</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/s3_path.html#S3Path.walk"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.s3_path.S3Path.walk" title="Link to this definition"></a></dt>
-<dd><p>Iteratively traverse the given s3 directory, in top-bottom order. In other words, firstly traverse parent directory, if subdirectories exist, traverse the subdirectories in alphabetical order.
-Every iteration on generator yields a 3-tuple: (root, dirs, files)</p>
+<dd><p>Iteratively traverse the given s3 directory, in top-bottom order.
+In other words, firstly traverse parent directory, if subdirectories exist,
+traverse the subdirectories in alphabetical order.</p>
+<p>Every iteration on generator yields a 3-tuple: (root, dirs, files)</p>
 <ul class="simple">
 <li><p>root: Current s3 path;</p></li>
-<li><p>dirs: Name list of subdirectories in current directory. The list is sorted by name in ascending alphabetical order;</p></li>
-<li><p>files: Name list of files in current directory. The list is sorted by name in ascending alphabetical order;</p></li>
+<li><p>dirs: Name list of subdirectories in current directory.
+The list is sorted by name in ascending alphabetical order;</p></li>
+<li><p>files: Name list of files in current directory.
+The list is sorted by name in ascending alphabetical order;</p></li>
 </ul>
-<p>If s3_url is a file path, return an empty generator
-If s3_url is a non-existent path, return an empty generator
-If s3_url is a bucket path, bucket will be the top directory, and will be returned at first iteration of generator
-If s3_url is an empty bucket, only yield one 3-tuple (notes: s3 doesn’t have empty directory)
-If s3_url doesn’t contain any bucket, which is s3_url == ‘s3://’, raise UnsupportedError. walk() on complete s3 is not supported in megfile</p>
+<p>If s3_url is a file path, return an empty generator</p>
+<p>If s3_url is a non-existent path, return an empty generator</p>
+<p>If s3_url is a bucket path, bucket will be the top directory,
+and will be returned at first iteration of generator</p>
+<p>If s3_url is an empty bucket, only yield one 3-tuple
+(notes: s3 doesn’t have empty directory)</p>
+<p>If s3_url doesn’t contain any bucket, which is s3_url == ‘s3://’,
+raise UnsupportedError. walk() on complete s3 is not supported in megfile</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>followlinks</strong> – whether followlinks is True or False, result is the same. Because s3 symlink not support dir.</p>
+<dd class="field-odd"><p><strong>followlinks</strong> – whether followlinks is True or False, result is the same.
+Because s3 symlink not support dir.</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><p>UnsupportedError</p>
