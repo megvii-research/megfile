@@ -126,6 +126,8 @@ def s3_should_retry(error: Exception) -> bool:
             "ServiceUnavailable",
             "SlowDown",
             "ContextCanceled",
+            "Timeout",  # noqa: E501 # TOS Timeout
+            "RequestTimeout",
             "ExceedAccountQPSLimit",
             "ExceedAccountRateLimit",
             "ExceedBucketQPSLimit",
