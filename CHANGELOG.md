@@ -1,6 +1,6 @@
 ## 3.1.3 - 2024.08.23
 - feat
-    - support retrying request with S3 error codes of `Timeout` and `RequestTimeout`.
+    - support retrying S3 request with error codes of `Timeout` and `RequestTimeout`.
 
 ## 3.1.2 - 2024.08.12
 - perf
