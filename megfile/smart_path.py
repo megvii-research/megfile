@@ -85,9 +85,10 @@ class SmartPath(BasePath):
     @classmethod
     def _create_pathlike(cls, path: Union[PathLike, int]) -> BaseURIPath:
         protocol, path_without_protocol = cls._extract_protocol(path)
-        if protocol in cls._aliases:
-            protocol = cls._aliases[protocol]["protocol"]
-            path = protocol + "://" + path_without_protocol
+        aliases: Dict[str, Dict[str, str]] = cls._aliases  # pyre-ignore[9]
+        if protocol in aliases:
+            protocol = aliases[protocol]["protocol"]
+            path = protocol + "://" + str(path_without_protocol)
         if protocol.startswith("s3+"):
             protocol = "s3"
         if protocol not in cls._registered_protocols:
