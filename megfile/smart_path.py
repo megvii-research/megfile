@@ -10,7 +10,7 @@ from megfile.utils import classproperty
 from .errors import ProtocolExistsError, ProtocolNotFoundError
 from .interfaces import BasePath, BaseURIPath, PathLike
 
-aliases_config = "~/.config/megfile/aliases"
+aliases_config = "~/.config/megfile/aliases.conf"
 
 
 def _bind_function(name):

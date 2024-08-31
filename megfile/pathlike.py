@@ -411,7 +411,7 @@ class BaseURIPath(BasePath):
     def path_with_protocol(self) -> str:
         """Return path with protocol, like file:///root, s3://bucket/key"""
         path = self.path
-        protocol_prefix = self.protocol + "://"  # pyre-ignore[58]
+        protocol_prefix = str(self.protocol) + "://"
         if path.startswith(protocol_prefix):
             return path
         return protocol_prefix + path.lstrip("/")
@@ -423,7 +423,7 @@ class BaseURIPath(BasePath):
         return bucket/key
         """
         path = self.path
-        protocol_prefix = self.protocol + "://"  # pyre-ignore[58]
+        protocol_prefix = str(self.protocol) + "://"
         if path.startswith(protocol_prefix):
             path = path[len(protocol_prefix) :]
         return path
