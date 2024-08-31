@@ -1,11 +1,16 @@
+import os
+from configparser import ConfigParser
 from pathlib import PurePath
 from typing import Tuple, Union
 
 from megfile.lib.compat import fspath
 from megfile.lib.url import get_url_scheme
+from megfile.utils import classproperty
 
 from .errors import ProtocolExistsError, ProtocolNotFoundError
 from .interfaces import BasePath, BaseURIPath, PathLike
+
+aliases_config = "~/.config/megfile/aliases"
 
 
 def _bind_function(name):
@@ -25,6 +30,17 @@ def _bind_property(name):
     return smart_property
 
 
+def _load_aliases_config(config_path):
+    if not os.path.exists(config_path):
+        return {}
+    parser = ConfigParser()
+    parser.read(config_path)
+    configs = {}
+    for section in parser.sections():
+        configs[section] = dict(parser.items(section))
+    return configs
+
+
 class SmartPath(BasePath):
     _registered_protocols = dict()
 
@@ -37,6 +53,13 @@ class SmartPath(BasePath):
             pathlike = pathlike.joinpath(*other_paths)  # pyre-ignore[6]
             self.path = str(pathlike)
         self.pathlike = pathlike
+
+    @classproperty
+    def _aliases(cls):
+        config_path = os.path.expanduser(aliases_config)
+        aliases = _load_aliases_config(config_path)
+        setattr(cls, "_aliases", aliases)
+        return aliases
 
     @staticmethod
     def _extract_protocol(path: Union[PathLike, int]) -> Tuple[str, Union[str, int]]:
@@ -62,6 +85,10 @@ class SmartPath(BasePath):
     @classmethod
     def _create_pathlike(cls, path: Union[PathLike, int]) -> BaseURIPath:
         protocol, _ = cls._extract_protocol(path)
+        if protocol in cls._aliases:
+            path_without_protocol = path[len(protocol) + 3 :]
+            protocol = cls._aliases[protocol]["protocol"]
+            path = protocol + "://" + path_without_protocol
         if protocol.startswith("s3+"):
             protocol = "s3"
         if protocol not in cls._registered_protocols:
