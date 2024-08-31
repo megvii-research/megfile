@@ -271,7 +271,7 @@ class classproperty(property):
             return "value"
     """
 
-    def __get__(self, _, cls) -> object:
+    def __get__(self, _, cls):
         """
         This method gets called when a property value is requested.
         @param cls: The class type of the above instance.

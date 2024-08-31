@@ -1,7 +1,7 @@
 import os
 from configparser import ConfigParser
 from pathlib import PurePath
-from typing import Tuple, Union
+from typing import Dict, Tuple, Union
 
 from megfile.lib.compat import fspath
 from megfile.lib.url import get_url_scheme
@@ -30,7 +30,7 @@ def _bind_property(name):
     return smart_property
 
 
-def _load_aliases_config(config_path):
+def _load_aliases_config(config_path) -> Dict[str, Dict[str, str]]:
     if not os.path.exists(config_path):
         return {}
     parser = ConfigParser()
@@ -55,7 +55,7 @@ class SmartPath(BasePath):
         self.pathlike = pathlike
 
     @classproperty
-    def _aliases(cls):
+    def _aliases(cls) -> Dict[str, Dict[str, str]]:
         config_path = os.path.expanduser(aliases_config)
         aliases = _load_aliases_config(config_path)
         setattr(cls, "_aliases", aliases)
@@ -84,9 +84,8 @@ class SmartPath(BasePath):
 
     @classmethod
     def _create_pathlike(cls, path: Union[PathLike, int]) -> BaseURIPath:
-        protocol, _ = cls._extract_protocol(path)
+        protocol, path_without_protocol = cls._extract_protocol(path)
         if protocol in cls._aliases:
-            path_without_protocol = path[len(protocol) + 3 :]
             protocol = cls._aliases[protocol]["protocol"]
             path = protocol + "://" + path_without_protocol
         if protocol.startswith("s3+"):
