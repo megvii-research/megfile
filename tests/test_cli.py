@@ -5,6 +5,7 @@ import pytest
 from click.testing import CliRunner
 
 from megfile.cli import (
+    alias,
     cat,
     cp,
     hdfs,
@@ -355,8 +356,10 @@ def test_config_s3(tmpdir, runner):
             str(tmpdir / "oss_config"),
             "-e",
             "Endpoint",
-            "-s",
-            "Addressing",
+            "-as",
+            "virtual",
+            "-sv",
+            "s3v4",
             "Aws_access_key_id",
             "Aws_secret_access_key",
         ],
@@ -372,7 +375,7 @@ def test_config_s3(tmpdir, runner):
             "new_test",
             "-e",
             "end-point",
-            "-s",
+            "-as",
             "add",
             "1345",
             "2345",
@@ -472,3 +475,20 @@ def test_config_hdfs(tmpdir, runner):
     )
     config.read(str(tmpdir / "config"))
     assert result.exit_code == 1
+
+
+def test_config_alias(tmpdir, runner):
+    result = runner.invoke(
+        alias,
+        [
+            "-p",
+            str(tmpdir / "config"),
+            "a",
+            "b",
+        ],
+    )
+    assert "Your alias config" in result.output
+
+    config = configparser.ConfigParser()
+    config.read(str(tmpdir / "config"))
+    assert config["a"]["protocol"] == "b"
