@@ -197,7 +197,7 @@ def _get_ssh_client(
     )
 
     ssh_client = paramiko.SSHClient()
-    ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    ssh_client.set_missing_host_key_policy(paramiko.WarningPolicy())
     max_unauth_connections = int(os.getenv(SFTP_MAX_UNAUTH_CONN, 10))
     try:
         fd = os.open(
