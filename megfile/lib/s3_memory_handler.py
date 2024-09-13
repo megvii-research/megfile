@@ -22,8 +22,7 @@ class S3MemoryHandler(Readable[bytes], Seekable, Writable[bytes]):
         profile_name: Optional[str] = None,
     ):
         if mode not in ("rb", "wb", "ab", "rb+", "wb+", "ab+"):
-            # TODO: replace AssertionError with ValueError in 4.0.0
-            raise AssertionError("unacceptable mode: %r" % mode)
+            raise ValueError("unacceptable mode: %r" % mode)
 
         self._bucket = bucket
         self._key = key

@@ -72,8 +72,7 @@ def iglob(
     if recursive and _isrecursive(pathname):
         s = next(it)  # skip empty string
         if s:
-            # TODO: replace AssertionError with OSError in 4.0.0
-            raise AssertionError("iglob with recursive=True error")
+            raise OSError("iglob with recursive=True error")
     return it
 
 
@@ -87,8 +86,7 @@ def _iglob(pathname: str, recursive: bool, dironly: bool, fs: FSFunc) -> Iterato
         dirname = "://".join([protocol, dirname])
     if not has_magic(pathname):
         if dironly:
-            # TODO: replace AssertionError with OSError in 4.0.0
-            raise AssertionError("can't use dironly with non-magic patterns in _iglob")
+            raise OSError("can't use dironly with non-magic patterns in _iglob")
         if basename:
             if fs.exists(pathname):
                 yield pathname
@@ -150,8 +148,7 @@ def _glob0(dirname: str, basename: str, dironly: bool, fs: FSFunc) -> List[str]:
 # directory.
 def _glob2(dirname: str, pattern: str, dironly: bool, fs: FSFunc) -> Iterator[str]:
     if not _isrecursive(pattern):
-        # TODO: replace AssertionError with OSError in 4.0.0
-        raise AssertionError("error call '_glob2' with non-glob pattern")
+        raise OSError("error call '_glob2' with non-glob pattern")
     yield pattern[:0]
     yield from _rlistdir(dirname, dironly, fs)
 
