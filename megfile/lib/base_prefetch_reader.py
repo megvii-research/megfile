@@ -55,8 +55,7 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
             block_forward = max(block_capacity - 1, 1)
 
         if block_capacity <= block_forward:
-            # TODO: replace AssertionError with ValueError in 4.0.0
-            raise AssertionError(
+            raise ValueError(
                 "block_capacity should greater than block_forward, "
                 "got: block_capacity=%s, block_forward=%s"
                 % (block_capacity, block_forward)
