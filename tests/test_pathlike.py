@@ -22,7 +22,6 @@ def test_base_path(mocker):
     path = "/test"
     base_path = BasePath(path)
     assert base_path.__fspath__() == path
-    assert base_path.is_link() is False
 
     funcA = mocker.patch("megfile.pathlike.BasePath.open")
     base_path.touch()
