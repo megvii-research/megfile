@@ -373,10 +373,6 @@ class BasePath:
         with self.open("w"):
             pass
 
-    # TODO: will be deleted in next version
-    def is_link(self) -> bool:
-        return self.is_symlink()
-
     def makedirs(self, exist_ok: bool = False) -> None:
         """
         Recursive directory creation function. Like mkdir(), but makes all
@@ -389,15 +385,7 @@ PathLike = Union[str, BasePath, _PathLike]
 
 
 class BaseURIPath(BasePath):
-    # #####
-    # TODO: Backwards compatible API, will be removed in megfile 1.0
-    @classmethod
-    def get_protocol(self) -> Optional[str]:
-        pass  # pragma: no cover
-
-    @classproperty
-    def protocol(cls) -> str:
-        return cls.get_protocol() or ""
+    protocol = ""
 
     def make_uri(self) -> str:
         return self.path_with_protocol
