@@ -115,11 +115,6 @@ class FileLike(Closable, IOBase, IO[AnyStr], ABC):  # pytype: disable=signature-
         This is not implemented for read-only and non-blocking streams.
         """
 
-    def __del__(self) -> None:
-        # TODO: Next version should turn on __del__ for auto closing,
-        # and disable this in child class like CombineReader
-        pass
-
 
 class Seekable(FileLike, ABC):
     def seekable(self) -> bool:
