@@ -11,7 +11,9 @@ class BaseShadowHandler(RawIOBase):
     """ShadowHandler using RawIOBase's interface. (avoid type checking error)"""
 
 
-class ShadowHandler(Readable, Seekable, Writable, BaseShadowHandler):
+class ShadowHandler(  # pytype: disable=signature-mismatch
+    Readable, Seekable, Writable, BaseShadowHandler
+):
     """Create a File-Like Object, maintaining file pointer,
     to avoid misunderstanding the position when read / write / seek.
 
