@@ -120,10 +120,11 @@ def _patch_sftp_client_request(
     port: Optional[int] = None,
     username: Optional[str] = None,
     password: Optional[str] = None,
+    default_policy: paramiko.MissingHostKeyPolicy = paramiko.RejectPolicy,
 ):
     def retry_callback(error, *args, **kwargs):
         client.close()
-        ssh_client = get_ssh_client(hostname, port, username, password)
+        ssh_client = get_ssh_client(hostname, port, username, password, default_policy)
         ssh_client.close()
         atexit.unregister(ssh_client.close)
         ssh_key = f"ssh_client:{hostname},{port},{username},{password}"
@@ -134,7 +135,11 @@ def _patch_sftp_client_request(
             del thread_local[sftp_key]
 
         new_sftp_client = get_sftp_client(
-            hostname=hostname, port=port, username=username, password=password
+            hostname=hostname,
+            port=port,
+            username=username,
+            password=password,
+            default_policy=default_policy,
         )
         client.sock = new_sftp_client.sock
 
@@ -152,17 +157,24 @@ def _get_sftp_client(
     port: Optional[int] = None,
     username: Optional[str] = None,
     password: Optional[str] = None,
+    default_policy: paramiko.MissingHostKeyPolicy = paramiko.RejectPolicy,
 ) -> paramiko.SFTPClient:
     """Get sftp client
 
     :returns: sftp client
     """
     session = get_ssh_session(
-        hostname=hostname, port=port, username=username, password=password
+        hostname=hostname,
+        port=port,
+        username=username,
+        password=password,
+        default_policy=default_policy,
     )
     session.invoke_subsystem("sftp")
     sftp_client = paramiko.SFTPClient(session)
-    _patch_sftp_client_request(sftp_client, hostname, port, username, password)
+    _patch_sftp_client_request(
+        sftp_client, hostname, port, username, password, default_policy
+    )
     return sftp_client
 
 
@@ -171,6 +183,7 @@ def get_sftp_client(
     port: Optional[int] = None,
     username: Optional[str] = None,
     password: Optional[str] = None,
+    default_policy: paramiko.MissingHostKeyPolicy = paramiko.RejectPolicy,
 ) -> paramiko.SFTPClient:
     """Get sftp client
 
@@ -183,6 +196,7 @@ def get_sftp_client(
         port,
         username,
         password,
+        default_policy,
     )
 
 
@@ -191,6 +205,7 @@ def _get_ssh_client(
     port: Optional[int] = None,
     username: Optional[str] = None,
     password: Optional[str] = None,
+    default_policy: paramiko.MissingHostKeyPolicy = paramiko.RejectPolicy,
 ) -> paramiko.SSHClient:
     hostname, port, username, password, private_key = provide_connect_info(
         hostname=hostname, port=port, username=username, password=password
@@ -201,7 +216,7 @@ def _get_ssh_client(
         "reject": paramiko.RejectPolicy,
         "warning": paramiko.WarningPolicy,
     }
-    policy = policies.get(SFTP_HOST_KEY_POLICY, paramiko.RejectPolicy)()
+    policy = policies.get(SFTP_HOST_KEY_POLICY, default_policy)()
 
     ssh_client = paramiko.SSHClient()
     ssh_client.set_missing_host_key_policy(policy)
@@ -244,6 +259,7 @@ def get_ssh_client(
     port: Optional[int] = None,
     username: Optional[str] = None,
     password: Optional[str] = None,
+    default_policy: paramiko.MissingHostKeyPolicy = paramiko.RejectPolicy,
 ) -> paramiko.SSHClient:
     return thread_local(
         f"ssh_client:{hostname},{port},{username},{password}",
@@ -252,6 +268,7 @@ def get_ssh_client(
         port,
         username,
         password,
+        default_policy,
     )
 
 
@@ -260,9 +277,10 @@ def get_ssh_session(
     port: Optional[int] = None,
     username: Optional[str] = None,
     password: Optional[str] = None,
+    default_policy: paramiko.MissingHostKeyPolicy = paramiko.RejectPolicy,
 ) -> paramiko.Channel:
     def retry_callback(error, *args, **kwargs):
-        ssh_client = get_ssh_client(hostname, port, username, password)
+        ssh_client = get_ssh_client(hostname, port, username, password, default_policy)
         ssh_client.close()
         atexit.unregister(ssh_client.close)
         ssh_key = f"ssh_client:{hostname},{port},{username},{password}"
@@ -277,7 +295,7 @@ def get_ssh_session(
         max_retries=MAX_RETRIES,
         should_retry=sftp_should_retry,
         retry_callback=retry_callback,
-    )(hostname, port, username, password)
+    )(hostname, port, username, password, default_policy)
 
 
 def _open_session(
@@ -285,8 +303,9 @@ def _open_session(
     port: Optional[int] = None,
     username: Optional[str] = None,
     password: Optional[str] = None,
+    default_policy: paramiko.MissingHostKeyPolicy = paramiko.RejectPolicy,
 ) -> paramiko.Channel:
-    ssh_client = get_ssh_client(hostname, port, username, password)
+    ssh_client = get_ssh_client(hostname, port, username, password, default_policy)
     transport = ssh_client.get_transport()
     if not transport:
         raise paramiko.SSHException("Get transport error")
@@ -627,6 +646,7 @@ class SftpPath(URIPath):
     """
 
     protocol = "sftp"
+    default_policy = paramiko.RejectPolicy
 
     def __init__(self, path: "PathLike", *other_paths: "PathLike"):
         super().__init__(path, *other_paths)
@@ -659,6 +679,7 @@ class SftpPath(URIPath):
             port=self._urlsplit_parts.port,
             username=self._urlsplit_parts.username,
             password=self._urlsplit_parts.password,
+            default_policy=self.default_policy,
         )
 
     def _generate_path_object(self, sftp_local_path: str, resolve: bool = False):
@@ -1341,6 +1362,7 @@ class SftpPath(URIPath):
             port=self._urlsplit_parts.port,
             username=self._urlsplit_parts.username,
             password=self._urlsplit_parts.password,
+            default_policy=self.default_policy,
         ) as chan:
             chan.settimeout(timeout)
             if environment:
