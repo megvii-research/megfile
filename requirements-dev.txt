@@ -25,7 +25,7 @@ ruff
 black  # for E501
 
 # static check
-https://github.com/jcrist/msgspec.git@main; python_version == "3.13"
+git+https://github.com/jcrist/msgspec.git@main; python_version == "3.13"
 pytype
 pyre-check ~= 0.9.22
 bandit
