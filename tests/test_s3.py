@@ -2931,13 +2931,13 @@ def test_s3_buffered_open(mocker, s3_empty_client, fs):
     s3_empty_client.create_bucket(Bucket="bucket")
 
     writer = s3.s3_buffered_open("s3://bucket/key", "wb")
-    assert isinstance(writer, s3.S3BufferedWriter)
+    assert isinstance(writer, s3_path.S3BufferedWriter)
 
     writer = s3.s3_buffered_open("s3://bucket/key", "ab", cache_path="/test")
     assert isinstance(writer, S3CachedHandler)
 
     writer = s3.s3_buffered_open("s3://bucket/key", "wb", limited_seekable=True)
-    assert isinstance(writer, s3.S3LimitedSeekableWriter)
+    assert isinstance(writer, s3_path.S3LimitedSeekableWriter)
 
     writer = s3.s3_buffered_open("s3://bucket/key.pkl", "wb")
     assert isinstance(writer, BufferedWriter)
@@ -2952,11 +2952,11 @@ def test_s3_buffered_open(mocker, s3_empty_client, fs):
 
     s3_empty_client.put_object(Bucket="bucket", Key="key", Body=content)
     reader = s3.s3_buffered_open("s3://bucket/key", "rb", forward_ratio=0.5)
-    assert isinstance(reader, s3.S3PrefetchReader)
+    assert isinstance(reader, s3_path.S3PrefetchReader)
     assert reader._block_forward == DEFAULT_MAX_BUFFER_SIZE // DEFAULT_BLOCK_SIZE * 0.5
 
     reader = s3.s3_buffered_open("s3://bucket/key", "rb", share_cache_key="share")
-    assert isinstance(reader, s3.S3ShareCacheReader)
+    assert isinstance(reader, s3_path.S3ShareCacheReader)
 
     with s3.s3_buffered_open("s3://bucket/key", "wb") as writer:
         assert writer.name == "s3://bucket/key"
@@ -3046,10 +3046,10 @@ def test_s3_open(s3_empty_client):
     s3_empty_client.put_object(Bucket="bucket", Key="key", Body=content)
 
     writer = s3.s3_open("s3://bucket/key", "wb")
-    assert isinstance(writer, s3.S3BufferedWriter)
+    assert isinstance(writer, s3_path.S3BufferedWriter)
 
     reader = s3.s3_open("s3://bucket/key", "rb")
-    assert isinstance(reader, s3.S3PrefetchReader)
+    assert isinstance(reader, s3_path.S3PrefetchReader)
 
     writer = s3.s3_open("s3://bucket/key", "ab")
     assert isinstance(writer, S3MemoryHandler)
@@ -3142,7 +3142,7 @@ def test_s3_cacher(s3_empty_client, fs):
     s3_empty_client.create_bucket(Bucket="bucket")
     s3_empty_client.put_object(Bucket="bucket", Key="key", Body=content)
 
-    with s3.S3Cacher("s3://bucket/key", "/path/to/file") as path:
+    with s3_path.S3Cacher("s3://bucket/key", "/path/to/file") as path:
         assert path == "/path/to/file"
         assert os.path.exists(path)
         with open(path, "rb") as fp:
@@ -3150,7 +3150,7 @@ def test_s3_cacher(s3_empty_client, fs):
 
     assert not os.path.exists(path)
 
-    with s3.S3Cacher("s3://bucket/key", "/path/to/file", "w") as path:
+    with s3_path.S3Cacher("s3://bucket/key", "/path/to/file", "w") as path:
         assert path == "/path/to/file"
         assert not os.path.exists(path)
         with open(path, "wb") as fp:
@@ -3159,7 +3159,7 @@ def test_s3_cacher(s3_empty_client, fs):
     assert not os.path.exists(path)
     assert s3.s3_load_content("s3://bucket/key") == content
 
-    with s3.S3Cacher("s3://bucket/key", "/path/to/file", "a") as path:
+    with s3_path.S3Cacher("s3://bucket/key", "/path/to/file", "a") as path:
         assert path == "/path/to/file"
         assert os.path.exists(path)
         with open(path, "rb+") as fp:
@@ -3170,7 +3170,7 @@ def test_s3_cacher(s3_empty_client, fs):
     assert s3.s3_load_content("s3://bucket/key") == content * 2
 
     with pytest.raises(ValueError):
-        with s3.S3Cacher("s3://bucket/key", "/path/to/file", "rb"):
+        with s3_path.S3Cacher("s3://bucket/key", "/path/to/file", "rb"):
             pass
 
 

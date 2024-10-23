@@ -1,5 +1,10 @@
-from megfile.http_path import HttpPath, get_http_session, http_open, is_http
+from io import BufferedReader
+from typing import Optional, Union
+
+from megfile.config import DEFAULT_BLOCK_SIZE
+from megfile.http_path import HttpPath, HttpPrefetchReader, get_http_session, is_http
 from megfile.interfaces import PathLike, StatResult
+from megfile.lib.s3_buffered_writer import DEFAULT_MAX_BUFFER_SIZE
 
 __all__ = [
     "get_http_session",
@@ -10,6 +15,48 @@ __all__ = [
     "http_getmtime",
     "http_exists",
 ]
+
+
+def http_open(
+    path: PathLike,
+    mode: str = "rb",
+    *,
+    encoding: Optional[str] = None,
+    errors: Optional[str] = None,
+    max_concurrency: Optional[int] = None,
+    max_buffer_size: int = DEFAULT_MAX_BUFFER_SIZE,
+    forward_ratio: Optional[float] = None,
+    block_size: int = DEFAULT_BLOCK_SIZE,
+    **kwargs,
+) -> Union[BufferedReader, HttpPrefetchReader]:
+    """Open a BytesIO to read binary data of given http(s) url
+
+    .. note ::
+
+        Essentially, it reads data of http(s) url to memory by requests,
+        and then return BytesIO to user.
+
+    :param path: Given path
+    :param mode: Only supports 'rb' mode now
+    :param encoding: encoding is the name of the encoding used to decode or encode
+        the file. This should only be used in text mode.
+    :param errors: errors is an optional string that specifies how encoding and decoding
+        errors are to be handled—this cannot be used in binary mode.
+    :param max_concurrency: Max download thread number, None by default
+    :param max_buffer_size: Max cached buffer size in memory, 128MB by default
+    :param block_size: Size of single block, 8MB by default. Each block will be uploaded
+        or downloaded by single thread.
+    :return: BytesIO initialized with http(s) data
+    """
+    return HttpPath(path).open(
+        mode,
+        encoding=encoding,
+        errors=errors,
+        max_concurrency=max_concurrency,
+        max_buffer_size=max_buffer_size,
+        forward_ratio=forward_ratio,
+        block_size=block_size,
+    )
 
 
 def http_stat(path: PathLike, follow_symlinks=True) -> StatResult:

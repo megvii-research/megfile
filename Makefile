@@ -4,11 +4,6 @@ VERSION := $(shell cat ${PACKAGE}/version.py | sed -n -E 's/.*=//; s/ //g; s/"//
 test:
 	pytest --cov-config=pyproject.toml --cov=${PACKAGE} --disable-socket --no-cov-on-fail --cov-report=html:html_cov/ --cov-report term-missing --cov-report=xml tests/ --durations=10
 
-autofile:
-	python3 -m "scripts.generate_file"
-	black megfile
-	make format
-
 format:
 	ruff check --fix ${PACKAGE} tests scripts pyproject.toml
 	ruff format ${PACKAGE} tests scripts pyproject.toml
