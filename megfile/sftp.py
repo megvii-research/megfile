@@ -210,9 +210,9 @@ def sftp_download(
         return
 
     if isinstance(src_url, SftpPath):
-        src_path = src_url
+        src_path: SftpPath = src_url
     else:
-        src_path = SftpPath(src_url)
+        src_path: SftpPath = SftpPath(src_url)
 
     if followlinks and src_path.is_symlink():
         src_path = src_path.readlink()
@@ -274,9 +274,9 @@ def sftp_upload(
 
     src_path = FSPath(src_url)
     if isinstance(dst_url, SftpPath):
-        dst_path = dst_url
+        dst_path: SftpPath = dst_url
     else:
-        dst_path = SftpPath(dst_url)
+        dst_path: SftpPath = SftpPath(dst_url)
     if not overwrite and dst_path.exists():
         return
 
