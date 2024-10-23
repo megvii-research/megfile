@@ -1252,9 +1252,10 @@ def s3_concat(
         else:
             groups = _group_src_paths_by_block(src_paths, block_size=block_size)
 
-        with MultiPartWriter(client, dst_path) as writer, ThreadPoolExecutor(
-            max_workers=max_workers
-        ) as executor:
+        with (
+            MultiPartWriter(client, dst_path) as writer,
+            ThreadPoolExecutor(max_workers=max_workers) as executor,
+        ):
             for index, group in enumerate(groups, start=1):
                 if len(group) == 1:
                     executor.submit(

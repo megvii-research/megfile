@@ -523,9 +523,11 @@ def to(path: str, append: bool, stdout: bool):
     mode = "wb"
     if append:
         mode = "ab"
-    with smart_open("stdio://0", "rb") as stdin, smart_open(
-        path, mode
-    ) as f, smart_open("stdio://1", "wb") as stdout_fd:
+    with (
+        smart_open("stdio://0", "rb") as stdin,
+        smart_open(path, mode) as f,
+        smart_open("stdio://1", "wb") as stdout_fd,
+    ):
         length = 16 * 1024
         while True:
             buf = stdin.read(length)
