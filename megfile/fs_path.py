@@ -30,17 +30,6 @@ __all__ = [
     "is_fs",
     "fs_path_join",
     "_make_stat",
-    "fs_readlink",
-    "fs_cwd",
-    "fs_home",
-    "fs_iglob",
-    "fs_glob",
-    "fs_glob_stat",
-    "fs_rename",
-    "fs_resolve",
-    "fs_move",
-    "fs_makedirs",
-    "fs_lstat",
 ]
 
 
@@ -72,121 +61,6 @@ def fs_path_join(path: PathLike, *other_paths: PathLike) -> str:
     return path_join(fspath(path), *map(fspath, other_paths))
 
 
-def fs_readlink(path) -> str:
-    """
-    Return a string representing the path to which the symbolic link points.
-    :returns: Return a string representing the path to which the symbolic link points.
-    """
-    return os.readlink(path)
-
-
-def fs_cwd() -> str:
-    """Return current working directory
-
-    returns: Current working directory
-    """
-    return os.getcwd()
-
-
-def fs_home():
-    """Return the home directory
-
-    returns: Home directory path
-    """
-    return os.path.expanduser("~")
-
-
-def fs_iglob(
-    path: PathLike, recursive: bool = True, missing_ok: bool = True
-) -> Iterator[str]:
-    """Return path iterator in ascending alphabetical order,
-    in which path matches glob pattern
-
-    1. If doesn't match any path, return empty list
-        Notice:  ``glob.glob`` in standard library returns ['a/'] instead of empty list
-        when pathname is like `a/**`, recursive is True and directory 'a' doesn't exist.
-        fs_glob behaves like ``glob.glob`` in standard library under such circumstance.
-    2. No guarantee that each path in result is different, which means:
-        Assume there exists a path `/a/b/c/b/d.txt`
-        use path pattern like `/**/b/**/*.txt` to glob,
-        the path above will be returned twice
-    3. `**` will match any matched file, directory, symlink and '' by default,
-        when recursive is `True`
-    4. fs_glob returns same as glob.glob(pathname, recursive=True)
-        in ascending alphabetical order.
-    5. Hidden files (filename stars with '.') will not be found in the result
-
-    :param recursive: If False, `**` will not search directory recursively
-    :param missing_ok: If False and target path doesn't match any file,
-        raise FileNotFoundError
-    :returns: An iterator contains paths match `pathname`
-    """
-    for path in _create_missing_ok_generator(
-        iglob(fspath(path), recursive=recursive),
-        missing_ok,
-        FileNotFoundError("No match any file: %r" % path),
-    ):
-        yield path
-
-
-def fs_glob(
-    path: PathLike, recursive: bool = True, missing_ok: bool = True
-) -> List[str]:
-    """Return path list in ascending alphabetical order,
-    in which path matches glob pattern
-
-    1. If doesn't match any path, return empty list
-        Notice:  ``glob.glob`` in standard library returns ['a/'] instead of empty list
-        when pathname is like `a/**`, recursive is True and directory 'a' doesn't exist.
-        fs_glob behaves like ``glob.glob`` in standard library under such circumstance.
-    2. No guarantee that each path in result is different, which means:
-        Assume there exists a path `/a/b/c/b/d.txt`
-        use path pattern like `/**/b/**/*.txt` to glob,
-        the path above will be returned twice
-    3. `**` will match any matched file, directory, symlink and '' by default,
-        when recursive is `True`
-    4. fs_glob returns same as glob.glob(pathname, recursive=True)
-        in ascending alphabetical order.
-    5. Hidden files (filename stars with '.') will not be found in the result
-
-    :param recursive: If False, `**` will not search directory recursively
-    :param missing_ok: If False and target path doesn't match any file,
-        raise FileNotFoundError
-    :returns: A list contains paths match `pathname`
-    """
-    return list(fs_iglob(path=path, recursive=recursive, missing_ok=missing_ok))
-
-
-def fs_glob_stat(
-    path: PathLike, recursive: bool = True, missing_ok: bool = True
-) -> Iterator[FileEntry]:
-    """Return a list contains tuples of path and file stat,
-    in ascending alphabetical order, in which path matches glob pattern
-
-    1. If doesn't match any path, return empty list
-        Notice:  ``glob.glob`` in standard library returns ['a/'] instead of empty list
-        when pathname is like `a/**`, recursive is True and directory 'a' doesn't exist.
-        fs_glob behaves like ``glob.glob`` in standard library under such circumstance.
-    2. No guarantee that each path in result is different, which means:
-        Assume there exists a path `/a/b/c/b/d.txt`
-        use path pattern like `/**/b/**/*.txt` to glob,
-        the path above will be returned twice.
-    3. `**` will match any matched file, directory, symlink and '' by default,
-        when recursive is `True`
-    4. fs_glob returns same as glob.glob(pathname, recursive=True)
-        in ascending alphabetical order.
-    5. Hidden files (filename stars with '.') will not be found in the result
-
-    :param recursive: If False, `**` will not search directory recursively
-    :param missing_ok: If False and target path doesn't match any file,
-        raise FileNotFoundError
-    :returns: A list contains tuples of path and file stat,
-        in which paths match `pathname`
-    """
-    for path in fs_iglob(path=path, recursive=recursive, missing_ok=missing_ok):
-        yield FileEntry(os.path.basename(path), path, _make_stat(os.lstat(path)))
-
-
 def _fs_rename_file(
     src_path: PathLike, dst_path: PathLike, overwrite: bool = True
 ) -> None:
@@ -206,82 +80,6 @@ def _fs_rename_file(
     if dst_dir and dst_dir != ".":
         os.makedirs(dst_dir, exist_ok=True)
     shutil.move(src_path, dst_path)
-
-
-def fs_rename(src_path: PathLike, dst_path: PathLike, overwrite: bool = True) -> None:
-    """
-    rename file on fs
-
-    :param src_path: Given path
-    :param dst_path: Given destination path
-    :param overwrite: whether or not overwrite file when exists
-    """
-    src_path, dst_path = fspath(src_path), fspath(dst_path)
-    if os.path.isfile(src_path):
-        return _fs_rename_file(src_path, dst_path, overwrite)
-    else:
-        os.makedirs(dst_path, exist_ok=True)
-
-    with os.scandir(src_path) as entries:
-        for file_entry in entries:
-            src_file_path = file_entry.path
-            dst_file_path = dst_path
-            relative_path = os.path.relpath(src_file_path, start=src_path)
-            if relative_path and relative_path != ".":
-                dst_file_path = os.path.join(dst_file_path, relative_path)
-            if os.path.exists(dst_file_path) and file_entry.is_dir():
-                fs_rename(src_file_path, dst_file_path, overwrite)
-            else:
-                _fs_rename_file(src_file_path, dst_file_path, overwrite)
-
-        if os.path.isdir(src_path):
-            shutil.rmtree(src_path)
-        else:
-            os.remove(src_path)
-
-
-def fs_move(src_path: PathLike, dst_path: PathLike, overwrite: bool = True) -> None:
-    """
-    rename file on fs
-
-    :param src_path: Given path
-    :param dst_path: Given destination path
-    :param overwrite: whether or not overwrite file when exists
-    """
-    return fs_rename(src_path, dst_path, overwrite)
-
-
-def fs_resolve(path: PathLike) -> str:
-    """Equal to fs_realpath, return the real path of given path
-
-    :param path: Given path
-    :returns: Real path of given path
-    """
-    return FSPath(path).realpath()
-
-
-def fs_makedirs(path: PathLike, exist_ok: bool = False):
-    """
-    make a directory on fs, including parent directory
-
-    If there exists a file on the path, raise FileExistsError
-
-    :param path: Given path
-    :param exist_ok: If False and target directory exists, raise FileExistsError
-    :raises: FileExistsError
-    """
-    return FSPath(path).mkdir(parents=True, exist_ok=exist_ok)
-
-
-def fs_lstat(path: PathLike) -> StatResult:
-    """
-    Like Path.stat() but, if the path points to a symbolic link,
-    return the symbolic link’s information rather than its target’s.
-
-    :param path: Given path
-    :returns: StatResult
-    """
-    return FSPath(path).lstat()
 
 
 @SmartPath.register
@@ -512,7 +310,12 @@ class FSPath(URIPath):
         glob_path = self.path_without_protocol
         if pattern:
             glob_path = self.joinpath(pattern).path_without_protocol
-        for path in fs_iglob(glob_path, recursive=recursive, missing_ok=missing_ok):
+
+        for path in _create_missing_ok_generator(
+            iglob(fspath(glob_path), recursive=recursive),
+            missing_ok,
+            FileNotFoundError("No match any file: %r" % glob_path),
+        ):
             yield self.from_path(path)
 
     def is_dir(self, followlinks: bool = False) -> bool:
@@ -621,7 +424,30 @@ class FSPath(URIPath):
         :param dst_path: Given destination path
         :param overwrite: whether or not overwrite file when exists
         """
-        fs_rename(self.path_without_protocol, dst_path, overwrite)
+        src_path, dst_path = fspath(self.path_without_protocol), fspath(dst_path)
+        if os.path.isfile(src_path):
+            _fs_rename_file(src_path, dst_path, overwrite)
+            return self.from_path(dst_path)
+        else:
+            os.makedirs(dst_path, exist_ok=True)
+
+        with os.scandir(src_path) as entries:
+            for file_entry in entries:
+                src_file_path = file_entry.path
+                dst_file_path = dst_path
+                relative_path = os.path.relpath(src_file_path, start=src_path)
+                if relative_path and relative_path != ".":
+                    dst_file_path = os.path.join(dst_file_path, relative_path)
+                if os.path.exists(dst_file_path) and file_entry.is_dir():
+                    self.from_path(src_file_path).rename(dst_file_path, overwrite)
+                else:
+                    _fs_rename_file(src_file_path, dst_file_path, overwrite)
+
+            if os.path.isdir(src_path):
+                shutil.rmtree(src_path)
+            else:
+                os.remove(src_path)
+
         return self.from_path(dst_path)
 
     def replace(self, dst_path: PathLike, overwrite: bool = True) -> "FSPath":
@@ -962,7 +788,7 @@ class FSPath(URIPath):
         :returns: Return a FSPath instance representing the path to which
             the symbolic link points.
         """
-        return self.from_path(fs_readlink(self.path_without_protocol))
+        return self.from_path(os.readlink(self.path_without_protocol))
 
     def is_symlink(self) -> bool:
         """Test whether a path is a symbolic link
@@ -984,14 +810,14 @@ class FSPath(URIPath):
 
         returns: Current working directory
         """
-        return self.from_path(fs_cwd())
+        return self.from_path(os.getcwd())
 
     def home(self):
         """Return the home directory
 
         returns: Home directory path
         """
-        return self.from_path(fs_home())
+        return self.from_path(os.path.expanduser("~"))
 
     def joinpath(self, *other_paths: PathLike) -> "FSPath":
         path = fspath(self)

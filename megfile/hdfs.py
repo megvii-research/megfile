@@ -2,10 +2,6 @@ from typing import IO, BinaryIO, Iterator, List, Optional, Tuple
 
 from megfile.hdfs_path import (
     HdfsPath,
-    hdfs_glob,
-    hdfs_glob_stat,
-    hdfs_iglob,
-    hdfs_makedirs,
     is_hdfs,
 )
 from megfile.interfaces import FileEntry, PathLike, StatResult
@@ -305,3 +301,76 @@ def hdfs_open(
     return HdfsPath(path).open(
         mode, buffering=buffering, encoding=encoding, errors=errors
     )
+
+
+def hdfs_glob(
+    path: PathLike, recursive: bool = True, missing_ok: bool = True
+) -> List[str]:
+    """Return hdfs path list in ascending alphabetical order,
+    in which path matches glob pattern
+
+    Notes: Only glob in bucket. If trying to match bucket with wildcard characters,
+    raise UnsupportedError
+
+    :param recursive: If False, `**` will not search directory recursively
+    :param missing_ok: If False and target path doesn't match any file,
+        raise FileNotFoundError
+    :raises: UnsupportedError, when bucket part contains wildcard characters
+    :returns: A list contains paths match `path`
+    """
+    return list(hdfs_iglob(path, recursive=recursive, missing_ok=missing_ok))
+
+
+def hdfs_glob_stat(
+    path: PathLike, recursive: bool = True, missing_ok: bool = True
+) -> Iterator[FileEntry]:
+    """Return a generator contains tuples of path and file stat,
+    in ascending alphabetical order, in which path matches glob pattern
+
+    Notes: Only glob in bucket. If trying to match bucket with wildcard characters,
+    raise UnsupportedError
+
+    :param recursive: If False, `**` will not search directory recursively
+    :param missing_ok: If False and target path doesn't match any file,
+        raise FileNotFoundError
+    :raises: UnsupportedError, when bucket part contains wildcard characters
+    :returns: A generator contains tuples of path and file stat,
+        in which paths match `path`
+    """
+    return HdfsPath(path).glob_stat(
+        pattern="", recursive=recursive, missing_ok=missing_ok
+    )
+
+
+def hdfs_iglob(
+    path: PathLike, recursive: bool = True, missing_ok: bool = True
+) -> Iterator[str]:
+    """Return hdfs path iterator in ascending alphabetical order,
+    in which path matches glob pattern
+
+    Notes: Only glob in bucket. If trying to match bucket with wildcard characters,
+    raise UnsupportedError
+
+    :param recursive: If False, `**` will not search directory recursively
+    :param missing_ok: If False and target path doesn't match any file,
+        raise FileNotFoundError
+    :raises: UnsupportedError, when bucket part contains wildcard characters
+    :returns: An iterator contains paths match `path`
+    """
+    for path_obj in HdfsPath(path).iglob(
+        pattern="", recursive=recursive, missing_ok=missing_ok
+    ):
+        yield path_obj.path_with_protocol
+
+
+def hdfs_makedirs(path: PathLike, exist_ok: bool = False):
+    """
+    Create an hdfs directory.
+    Purely creating directory is invalid because it's unavailable on OSS.
+    This function is to test the target bucket have WRITE access.
+
+    :param path: Given path
+    :param exist_ok: If False and target directory exists, raise S3FileExistsError
+    :raises: FileExistsError
+    """
+    return HdfsPath(path).mkdir(parents=True, exist_ok=exist_ok)
