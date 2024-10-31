@@ -319,7 +319,7 @@ class BasePath:
         :return: new instance of new path
         :rtype: Self
         """
-        return cls(path)
+        return cls(path)  # pyre-ignore[19]
 
     @classmethod
     def from_uri(cls: Type[Self], path: "PathLike") -> Self:
@@ -392,7 +392,7 @@ class BasePath:
         if path.startswith(other_path):
             relative = path[len(other_path) :]
             relative = relative.lstrip("/")
-            return type(self)(relative)
+            return type(self)(relative)  # pyre-ignore[19]
         else:
             raise ValueError("%r does not start with %r" % (path, other))
 
@@ -551,7 +551,7 @@ class BasePath:
 
     @classproperty
     def anchor(self) -> str:
-        return self.root
+        return self.root  # pyre-ignore[7]
 
     def joinpath(self: Self, *other_paths: "PathLike") -> Self:
         """
@@ -853,7 +853,7 @@ class URIPath(BasePath):
         path = path.lstrip("/")
         if path != "":
             parts.extend(path.split("/"))
-        return tuple(parts)
+        return tuple(parts)  # pyre-ignore[7]
 
     @cached_property
     def parents(self) -> "URIPathParents":
