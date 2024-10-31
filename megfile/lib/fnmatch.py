@@ -122,10 +122,7 @@ def _translate(pat: str, match_curly: bool) -> str:
                 buf.write(r"\{")
             else:
                 stuff = pat[i:j].replace("\\", r"\\")
-                stuff = r"|".join(
-                    _translate(part, False)
-                    for part in stuff.split(",")
-                )
+                stuff = r"|".join(_translate(part, False) for part in stuff.split(","))
                 buf.write(r"(%s)" % stuff)
                 i = j + 1
         else:

@@ -338,12 +338,11 @@ def _glob_with_curly():
     assert_glob(
         "/bucketForGlobTest/1/**/*.{json,msg}",
         [
-            '/bucketForGlobTest/1/a/b/1.json',
-            '/bucketForGlobTest/1/a/b/c/1.json',
-            '/bucketForGlobTest/1/a/b/c/A.msg',
+            "/bucketForGlobTest/1/a/b/1.json",
+            "/bucketForGlobTest/1/a/b/c/1.json",
+            "/bucketForGlobTest/1/a/b/c/A.msg",
         ],
     )
-
 
 
 def test_glob(fs_setup):
