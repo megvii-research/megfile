@@ -490,9 +490,9 @@ class FSPath(URIPath):
                     _fs_rename_file(src_file_path, dst_file_path, overwrite)
 
             if os.path.isdir(src_path):
-                shutil.rmtree(src_path)  # pyre-ignore[6]
+                shutil.rmtree(src_path)
             else:
-                os.remove(src_path)  # pyre-ignore[6]
+                os.remove(src_path)
 
         return self.from_path(dst_path)
 
