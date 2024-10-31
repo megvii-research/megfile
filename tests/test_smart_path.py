@@ -3,7 +3,7 @@ import stat
 
 import boto3
 import pytest
-from mock import patch
+from mock import PropertyMock, patch
 from moto import mock_aws
 
 from megfile.errors import (
@@ -16,7 +16,7 @@ from megfile.http_path import HttpPath, HttpsPath
 from megfile.interfaces import Access
 from megfile.s3_path import S3Path
 from megfile.sftp_path import SftpPath
-from megfile.smart_path import PurePath, SmartPath
+from megfile.smart_path import PurePath, SmartPath, _load_aliases_config, aliases_config
 from megfile.stdio_path import StdioPath
 
 FS_PROTOCOL_PREFIX = FSPath.protocol + "://"
@@ -74,6 +74,23 @@ def test_register_result():
     assert SmartPath._registered_protocols[StdioPath.protocol] == StdioPath
     assert SmartPath._registered_protocols[HdfsPath.protocol] == HdfsPath
     assert SmartPath.from_uri(FS_TEST_ABSOLUTE_PATH) == SmartPath(FS_TEST_ABSOLUTE_PATH)
+
+
+def test_aliases(fs):
+    config_path = os.path.expanduser(aliases_config)
+    fs.create_file(
+        config_path,
+        contents="[oss2]\nprotocol = s3+oss2\n[tos]\nprotocol = s3+tos",
+    )
+    aliases = {"oss2": {"protocol": "s3+oss2"}, "tos": {"protocol": "s3+tos"}}
+    assert _load_aliases_config(config_path) == aliases
+
+    with patch.object(SmartPath, "_aliases", new_callable=PropertyMock) as mock_aliases:
+        mock_aliases.return_value = aliases
+        assert (
+            SmartPath.from_uri("oss2://bucket/dir/file").pathlike
+            == SmartPath("s3+oss2://bucket/dir/file").pathlike
+        )
 
 
 @patch.object(SmartPath, "_create_pathlike")

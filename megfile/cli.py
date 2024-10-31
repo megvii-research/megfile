@@ -570,7 +570,12 @@ def config():
     pass
 
 
-@config.command(short_help="Return the config file for s3")
+def _safe_makedirs(path: str):
+    if path not in ("", ".", "/"):
+        os.makedirs(path, exist_ok=True)
+
+
+@config.command(short_help="Update the config file for s3")
 @click.option(
     "-p",
     "--path",
@@ -584,7 +589,8 @@ def config():
 @click.argument("aws_access_key_id")
 @click.argument("aws_secret_access_key")
 @click.option("-e", "--endpoint-url", help="endpoint-url")
-@click.option("-s", "--addressing-style", help="addressing-style")
+@click.option("-as", "--addressing-style", help="addressing-style")
+@click.option("-sv", "--signature-version", help="signature-version")
 @click.option("--no-cover", is_flag=True, help="Not cover the same-name config")
 def s3(
     path,
@@ -593,6 +599,7 @@ def s3(
     aws_secret_access_key,
     endpoint_url,
     addressing_style,
+    signature_version,
     no_cover,
 ):
     path = os.path.expanduser(path)
@@ -602,30 +609,27 @@ def s3(
         "aws_access_key_id": aws_access_key_id,
         "aws_secret_access_key": aws_secret_access_key,
     }
-    s3 = {}
-    if endpoint_url:
-        s3.update({"endpoint_url": endpoint_url})
-    if addressing_style:
-        s3.update({"addressing_style": addressing_style})
-    if s3:
-        config_dict.update({"s3": s3})
+    s3_config_dict = {
+        "endpoint_url": endpoint_url,
+        "addressing_style": addressing_style,
+        "signature_version": signature_version,
+    }
+
+    s3_config_dict = {k: v for k, v in s3_config_dict.items() if v}
+    if s3_config_dict:
+        config_dict["s3"] = s3_config_dict
 
     def dumps(config_dict: dict) -> str:
         content = "[{}]\n".format(config_dict["name"])
-        content += "aws_access_key_id = {}\n".format(config_dict["aws_access_key_id"])
-        content += "aws_secret_access_key = {}\n".format(
-            config_dict["aws_secret_access_key"]
-        )
+        for key in ("aws_access_key_id", "aws_secret_access_key"):
+            content += "{} = {}\n".format(key, config_dict[key])
         if "s3" in config_dict.keys():
             content += "\ns3 = \n"
-            s3: dict = config_dict["s3"]
-            if "endpoint_url" in s3.keys():
-                content += "    endpoint_url = {}\n".format(s3["endpoint_url"])
-            if "addressing_style" in s3.keys():
-                content += "    addressing_style = {}\n".format(s3["addressing_style"])
+            for key, value in config_dict["s3"].items():
+                content += "    {} = {}\n".format(key, value)
         return content
 
-    os.makedirs(os.path.dirname(path), exist_ok=True)  # make sure dirpath exist
+    _safe_makedirs(os.path.dirname(path))  # make sure dirpath exist
     if not os.path.exists(path):  # If this file doesn't exist.
         content_str = dumps(config_dict)
         with open(path, "w") as fp:
@@ -663,15 +667,15 @@ def s3(
     click.echo(f"Your oss config has been saved into {path}")
 
 
-@config.command(short_help="Return the config file for s3")
-@click.argument("url")
+@config.command(short_help="Update the config file for hdfs")
 @click.option(
     "-p",
     "--path",
     default="~/.hdfscli.cfg",
-    help="s3 config file, default is $HOME/.hdfscli.cfg",
+    help="hdfs config file, default is $HOME/.hdfscli.cfg",
 )
-@click.option("-n", "--profile-name", default="default", help="s3 config file")
+@click.argument("url")
+@click.option("-n", "--profile-name", default="default", help="hdfs config file")
 @click.option("-u", "--user", help="user name")
 @click.option("-r", "--root", help="hdfs path's root dir")
 @click.option("-t", "--token", help="token for requesting hdfs server")
@@ -681,7 +685,7 @@ def s3(
     help=f"request hdfs server timeout, default {DEFAULT_HDFS_TIMEOUT}",
 )
 @click.option("--no-cover", is_flag=True, help="Not cover the same-name config")
-def hdfs(url, path, profile_name, user, root, token, timeout, no_cover):
+def hdfs(path, url, profile_name, user, root, token, timeout, no_cover):
     path = os.path.expanduser(path)
     current_config = {
         "url": url,
@@ -704,9 +708,38 @@ def hdfs(url, path, profile_name, user, root, token, timeout, no_cover):
     for key, value in current_config.items():
         if value:
             config[profile_name][key] = value
+
+    _safe_makedirs(os.path.dirname(path))  # make sure dirpath exist
     with open(path, "w") as fp:
         config.write(fp)
     click.echo(f"Your hdfs config has been saved into {path}")
+
+
+@config.command(short_help="Update the config file for aliases")
+@click.option(
+    "-p",
+    "--path",
+    default="~/.config/megfile/aliases.conf",
+    help="alias config file, default is $HOME/.config/megfile/aliases.conf",
+)
+@click.argument("name")
+@click.argument("protocol")
+@click.option("--no-cover", is_flag=True, help="Not cover the same-name config")
+def alias(path, name, protocol, no_cover):
+    path = os.path.expanduser(path)
+    config = configparser.ConfigParser()
+    if os.path.exists(path):
+        config.read(path)
+    if name in config.sections() and no_cover:
+        raise NameError(f"alias-name has been used: {name}")
+    config[name] = {
+        "protocol": protocol,
+    }
+
+    _safe_makedirs(os.path.dirname(path))  # make sure dirpath exist
+    with open(path, "w") as fp:
+        config.write(fp)
+    click.echo(f"Your alias config has been saved into {path}")
 
 
 if __name__ == "__main__":
