@@ -6,7 +6,7 @@ import os
 import random
 import shlex
 import socket
-import subprocess
+import subprocess  # nosec B404
 from functools import cached_property
 from logging import getLogger as get_logger
 from stat import S_ISDIR, S_ISLNK, S_ISREG
@@ -33,10 +33,10 @@ __all__ = [
 ]
 
 SFTP_USERNAME = "SFTP_USERNAME"
-SFTP_PASSWORD = "SFTP_PASSWORD"
+SFTP_PASSWORD = "SFTP_PASSWORD"  # nosec B105
 SFTP_PRIVATE_KEY_PATH = "SFTP_PRIVATE_KEY_PATH"
 SFTP_PRIVATE_KEY_TYPE = "SFTP_PRIVATE_KEY_TYPE"
-SFTP_PRIVATE_KEY_PASSWORD = "SFTP_PRIVATE_KEY_PASSWORD"
+SFTP_PRIVATE_KEY_PASSWORD = "SFTP_PRIVATE_KEY_PASSWORD"  # nosec B105
 SFTP_MAX_UNAUTH_CONN = "SFTP_MAX_UNAUTH_CONN"
 MAX_RETRIES = SFTP_MAX_RETRY_TIMES
 DEFAULT_SSH_CONNECT_TIMEOUT = 5
@@ -213,8 +213,8 @@ def _get_ssh_client(
     try:
         fd = os.open(
             os.path.join(
-                "/tmp",
-                f"megfile-sftp-{hostname}-{random.randint(1, max_unauth_connections)}",
+                "/tmp",  # nosec B108
+                f"megfile-sftp-{hostname}-{random.randint(1, max_unauth_connections)}",  # nosec B311
             ),
             os.O_WRONLY | os.O_CREAT | os.O_TRUNC,
         )
@@ -1062,7 +1062,7 @@ class SftpPath(URIPath):
             chan.settimeout(timeout)
             if environment:
                 chan.update_environment(environment)
-            chan.exec_command(" ".join([shlex.quote(arg) for arg in command]))
+            chan.exec_command(" ".join([shlex.quote(arg) for arg in command]))  # nosec B601
             stdout = (
                 chan.makefile("r", bufsize).read().decode(errors="backslashreplace")
             )
