@@ -5,7 +5,7 @@ from megfile.lib.compat import fspath
 from megfile.lib.url import get_url_scheme
 
 from .errors import ProtocolExistsError, ProtocolNotFoundError
-from .interfaces import BasePath, BaseURIPath, PathLike
+from .interfaces import BasePath, PathLike
 
 
 def _bind_function(name):
@@ -31,7 +31,7 @@ class SmartPath(BasePath):
     def __init__(self, path: Union[PathLike, int], *other_paths: PathLike):
         self.path = str(path) if not isinstance(path, int) else path
         pathlike = path
-        if not isinstance(pathlike, BaseURIPath):
+        if not isinstance(pathlike, BasePath):
             pathlike = self._create_pathlike(path)
         if len(other_paths) > 0:
             pathlike = pathlike.joinpath(*other_paths)  # pyre-ignore[6]
@@ -50,7 +50,7 @@ class SmartPath(BasePath):
                 path_without_protocol = path
             else:
                 path_without_protocol = path[len(protocol) + 3 :]
-        elif isinstance(path, (BaseURIPath, SmartPath)):
+        elif isinstance(path, (BasePath, SmartPath)):
             protocol = path.protocol
             path_without_protocol = str(path)
         elif isinstance(path, (PurePath, BasePath)):
@@ -60,7 +60,7 @@ class SmartPath(BasePath):
         return protocol, path_without_protocol
 
     @classmethod
-    def _create_pathlike(cls, path: Union[PathLike, int]) -> BaseURIPath:
+    def _create_pathlike(cls, path: Union[PathLike, int]) -> BasePath:
         protocol, _ = cls._extract_protocol(path)
         if protocol.startswith("s3+"):
             protocol = "s3"
@@ -132,18 +132,12 @@ class SmartPath(BasePath):
     __fspath__ = _bind_function("__fspath__")
     __truediv__ = _bind_function("__truediv__")
 
-    joinpath = _bind_function("joinpath")
     is_reserved = _bind_function("is_reserved")
     match = _bind_function("match")
     relative_to = _bind_function("relative_to")
     with_name = _bind_function("with_name")
     with_suffix = _bind_function("with_suffix")
     with_stem = _bind_function("with_stem")
-    is_absolute = _bind_function("is_absolute")
-    is_mount = _bind_function("is_mount")
-    abspath = _bind_function("abspath")
-    realpath = _bind_function("realpath")
-    relpath = _bind_function("relpath")
     iterdir = _bind_function("iterdir")
     cwd = _bind_function("cwd")
     home = _bind_function("home")

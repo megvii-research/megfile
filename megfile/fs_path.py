@@ -4,8 +4,12 @@ import os
 import pathlib
 import shutil
 from functools import cached_property
+from stat import S_ISBLK as stat_isblk
+from stat import S_ISCHR as stat_ischr
 from stat import S_ISDIR as stat_isdir
+from stat import S_ISFIFO as stat_isfifo
 from stat import S_ISLNK as stat_islnk
+from stat import S_ISSOCK as stat_issock
 from typing import IO, BinaryIO, Callable, Iterator, List, Optional, Tuple, Union
 
 from megfile.errors import _create_missing_ok_generator
@@ -98,26 +102,35 @@ class FSPath(URIPath):
         self.path = path
 
     def __fspath__(self) -> str:
+        if isinstance(self.path, int):
+            raise TypeError("'__fspath__' not support the path of int type")
         return os.path.normpath(self.path_without_protocol)
 
     @cached_property
     def root(self) -> str:
+        if isinstance(self.path_without_protocol, int):
+            return "/"
         return pathlib.Path(self.path_without_protocol).root
 
     @cached_property
     def anchor(self) -> str:
+        if isinstance(self.path_without_protocol, int):
+            return "/"
         return pathlib.Path(self.path_without_protocol).anchor
 
     @cached_property
     def drive(self) -> str:
+        if isinstance(self.path_without_protocol, int):
+            return ""
         return pathlib.Path(self.path_without_protocol).drive
 
     @classmethod
     def from_uri(cls, path: PathLike) -> "FSPath":
         return cls.from_path(path)
 
-    @property
+    @cached_property
     def path_with_protocol(self) -> Union[str, int]:
+        """Return path with protocol, like file:///root"""
         if isinstance(self.path, int):
             return self.path
         protocol_prefix = self.protocol + "://"
@@ -125,11 +138,23 @@ class FSPath(URIPath):
             return self.path  # pyre-ignore[7]
         return protocol_prefix + self.path  # pyre-ignore[58]
 
+    @cached_property
+    def path_without_protocol(self) -> Union[str, int]:
+        """
+        Return path without protocol, example: if path is file:///root,
+        return /root
+        """
+        if isinstance(self.path, int):
+            return self.path
+        return super().path_without_protocol
+
     def is_absolute(self) -> bool:
         """Test whether a path is absolute
 
         :returns: True if a path is absolute, else False
         """
+        if isinstance(self.path_without_protocol, int):
+            return False
         return os.path.isabs(self.path_without_protocol)
 
     def abspath(self) -> str:
@@ -396,7 +421,10 @@ class FSPath(URIPath):
 
         :raises: FileExistsError
         """
-        if exist_ok and self.path_without_protocol == "":
+        if exist_ok and (
+            self.path_without_protocol == ""
+            or isinstance(self.path_without_protocol, int)
+        ):
             return
         return pathlib.Path(self.path_without_protocol).mkdir(
             mode=mode, parents=parents, exist_ok=exist_ok
@@ -646,6 +674,8 @@ class FSPath(URIPath):
             eliminating any symbolic links encountered in the path.
         :rtype: FSPath
         """
+        if isinstance(self.path_without_protocol, int):
+            raise ValueError("path of int type not support 'resolve'")
         return self.from_path(
             fspath(pathlib.Path(self.path_without_protocol).resolve(strict=strict))
         )
@@ -868,6 +898,9 @@ class FSPath(URIPath):
         """
         A tuple giving access to the path’s various components
         """
+        if isinstance(self.path_without_protocol, int):
+            raise ValueError("path of int type not support 'parts'")
+
         return pathlib.Path(self.path_without_protocol).parts
 
     def chmod(self, mode: int, *, follow_symlinks: bool = True):
@@ -888,6 +921,8 @@ class FSPath(URIPath):
         Return the name of the group owning the file. KeyError is raised if
         the file’s gid isn’t found in the system database.
         """
+        if isinstance(self.path_without_protocol, int):
+            raise ValueError("path of int type not support 'group'")
         return pathlib.Path(self.path_without_protocol).group()
 
     def is_socket(self) -> bool:
@@ -898,6 +933,8 @@ class FSPath(URIPath):
         False is also returned if the path doesn’t exist or is a broken symlink;
         other errors (such as permission errors) are propagated.
         """
+        if isinstance(self.path_without_protocol, int):
+            return bool(stat_issock(os.stat(self.path_without_protocol).st_mode))
         return pathlib.Path(self.path_without_protocol).is_socket()
 
     def is_fifo(self) -> bool:
@@ -908,6 +945,8 @@ class FSPath(URIPath):
         False is also returned if the path doesn’t exist or is a broken symlink;
         other errors (such as permission errors) are propagated.
         """
+        if isinstance(self.path_without_protocol, int):
+            return bool(stat_isfifo(os.stat(self.path_without_protocol).st_mode))
         return pathlib.Path(self.path_without_protocol).is_fifo()
 
     def is_block_device(self) -> bool:
@@ -918,6 +957,8 @@ class FSPath(URIPath):
         False is also returned if the path doesn’t exist or is a broken symlink;
         other errors (such as permission errors) are propagated.
         """
+        if isinstance(self.path_without_protocol, int):
+            return bool(stat_isblk(os.stat(self.path_without_protocol).st_mode))
         return pathlib.Path(self.path_without_protocol).is_block_device()
 
     def is_char_device(self) -> bool:
@@ -928,6 +969,8 @@ class FSPath(URIPath):
         False is also returned if the path doesn’t exist or is a broken symlink;
         other errors (such as permission errors) are propagated.
         """
+        if isinstance(self.path_without_protocol, int):
+            return bool(stat_ischr(os.stat(self.path_without_protocol).st_mode))
         return pathlib.Path(self.path_without_protocol).is_char_device()
 
     def owner(self) -> str:
@@ -935,6 +978,8 @@ class FSPath(URIPath):
         Return the name of the user owning the file. KeyError is raised if the file’s
         uid isn’t found in the system database.
         """
+        if isinstance(self.path_without_protocol, int):
+            raise ValueError("path of int type not support 'owner'")
         return pathlib.Path(self.path_without_protocol).owner()
 
     def absolute(self) -> "FSPath":
