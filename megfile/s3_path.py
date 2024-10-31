@@ -106,7 +106,6 @@ __all__ = [
 _logger = get_logger(__name__)
 content_md5_header = "megfile-content-md5"
 endpoint_url = "https://s3.amazonaws.com"
-max_pool_connections = GLOBAL_MAX_WORKERS  # for compatibility
 max_retries = S3_MAX_RETRY_TIMES
 max_keys = 1000
 
@@ -673,7 +672,7 @@ def s3_prefetch_open(
             pass
 
     bucket, key = parse_s3_url(s3_url.path_with_protocol)
-    config = botocore.config.Config(max_pool_connections=max_pool_connections)
+    config = botocore.config.Config(max_pool_connections=GLOBAL_MAX_WORKERS)
     client = get_s3_client_with_cache(config=config, profile_name=s3_url._profile_name)
     return S3PrefetchReader(
         bucket,
@@ -726,7 +725,7 @@ def s3_share_cache_open(
             pass
 
     bucket, key = parse_s3_url(s3_url.path_with_protocol)
-    config = botocore.config.Config(max_pool_connections=max_pool_connections)
+    config = botocore.config.Config(max_pool_connections=GLOBAL_MAX_WORKERS)
     client = get_s3_client_with_cache(config=config, profile_name=s3_url._profile_name)
     return S3ShareCacheReader(
         bucket,
@@ -781,7 +780,7 @@ def s3_pipe_open(
             pass
 
     bucket, key = parse_s3_url(s3_url.path_with_protocol)
-    config = botocore.config.Config(max_pool_connections=max_pool_connections)
+    config = botocore.config.Config(max_pool_connections=GLOBAL_MAX_WORKERS)
     client = get_s3_client_with_cache(config=config, profile_name=s3_url._profile_name)
     return S3PipeHandler(
         bucket,
@@ -827,7 +826,7 @@ def s3_cached_open(
             pass
 
     bucket, key = parse_s3_url(s3_url.path_with_protocol)
-    config = botocore.config.Config(max_pool_connections=max_pool_connections)
+    config = botocore.config.Config(max_pool_connections=GLOBAL_MAX_WORKERS)
     client = get_s3_client_with_cache(config=config, profile_name=s3_url._profile_name)
     return S3CachedHandler(
         bucket,
@@ -895,7 +894,7 @@ def s3_buffered_open(
     block_size = block_size or DEFAULT_BLOCK_SIZE
 
     bucket, key = parse_s3_url(s3_url.path_with_protocol)
-    config = botocore.config.Config(max_pool_connections=max_pool_connections)
+    config = botocore.config.Config(max_pool_connections=GLOBAL_MAX_WORKERS)
     client = get_s3_client_with_cache(config=config, profile_name=s3_url._profile_name)
 
     if "a" in mode or "+" in mode:
@@ -1002,7 +1001,7 @@ def s3_memory_open(
             pass
 
     bucket, key = parse_s3_url(s3_url.path_with_protocol)
-    config = botocore.config.Config(max_pool_connections=max_pool_connections)
+    config = botocore.config.Config(max_pool_connections=GLOBAL_MAX_WORKERS)
     client = get_s3_client_with_cache(config=config, profile_name=s3_url._profile_name)
     return S3MemoryHandler(
         bucket, key, mode, s3_client=client, profile_name=s3_url._profile_name

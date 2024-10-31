@@ -2,7 +2,6 @@ import pytest
 
 from megfile.pathlike import (
     BasePath,
-    BaseURIPath,
     FileEntry,
     PathLike,
     StatResult,
@@ -21,7 +20,8 @@ def test_file_entry():
 def test_base_path(mocker):
     path = "/test"
     base_path = BasePath(path)
-    assert base_path.__fspath__() == path
+    base_path.protocol = "p"
+    assert base_path.__fspath__() == "p://test"
 
     funcA = mocker.patch("megfile.pathlike.BasePath.open")
     base_path.touch()
@@ -33,18 +33,18 @@ def test_base_path(mocker):
 
 def test_base_uri_path_as_posix(mocker):
     path = "/test"
-    base_uri_path = BaseURIPath(path)
-    mocker.patch("megfile.pathlike.BaseURIPath.protocol", "fs")
+    base_uri_path = BasePath(path)
+    mocker.patch("megfile.pathlike.BasePath.protocol", "fs")
     assert base_uri_path.as_posix() == "fs://test"
 
 
 def test_base_uri_path(mocker):
     from megfile.utils import classproperty
 
-    mocker.patch("megfile.pathlike.BaseURIPath.protocol", "fs")
+    mocker.patch("megfile.pathlike.BasePath.protocol", "fs")
 
     path = "/test"
-    base_uri_path = BaseURIPath(path)
+    base_uri_path = BasePath(path)
 
     other_path_a = 1
     with pytest.raises(TypeError):
@@ -59,7 +59,7 @@ def test_base_uri_path(mocker):
     with pytest.raises(TypeError):
         base_uri_path <= other_path_a
 
-    class BaseURIPathB(BaseURIPath):
+    class BaseURIPathB(BasePath):
         def __init__(self, path: PathLike):
             super().__init__(path)
 
@@ -80,7 +80,7 @@ def test_base_uri_path(mocker):
     with pytest.raises(TypeError):
         base_uri_path <= other_path_b
 
-    other_path_c = BaseURIPath("/test2")
+    other_path_c = BasePath("/test2")
     assert (base_uri_path > other_path_c) is False
     assert (base_uri_path < other_path_c) is True
     assert (base_uri_path >= other_path_c) is False

@@ -6,7 +6,6 @@ from typing import IO, AnyStr, Iterable, List, Optional
 from megfile.pathlike import (
     Access,
     BasePath,
-    BaseURIPath,
     FileEntry,
     PathLike,
     Self,
@@ -17,11 +16,11 @@ from megfile.pathlike import (
 __all__ = [
     "Access",
     "BasePath",
-    "BaseURIPath",
+    "BasePath",
     "FileEntry",
     "PathLike",
     "StatResult",
-    "URIPath",
+    "BasePath",
     "fullname",
     "Closable",
     "FileLike",
@@ -31,6 +30,7 @@ __all__ = [
     "FileCacher",
     "NullCacher",
     "ContextIterator",
+    "URIPath",
 ]
 
 

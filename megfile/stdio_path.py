@@ -1,7 +1,7 @@
 import io
 from typing import IO, Optional, Union
 
-from megfile.interfaces import BaseURIPath, PathLike
+from megfile.interfaces import BasePath, PathLike
 from megfile.lib.compat import fspath
 from megfile.lib.stdio_handler import STDReader, STDWriter
 from megfile.lib.url import get_url_scheme
@@ -31,7 +31,7 @@ def is_stdio(path: PathLike) -> bool:
 
 
 @SmartPath.register
-class StdioPath(BaseURIPath):
+class StdioPath(BasePath):
     protocol = "stdio"
 
     def _open(self, mode: str = "rb") -> Union[STDReader, STDWriter]:
