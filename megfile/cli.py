@@ -570,6 +570,11 @@ def config():
     pass
 
 
+def _safe_makedirs(path: str):
+    if path not in ("", ".", "/"):
+        os.makedirs(path, exist_ok=True)
+
+
 @config.command(short_help="Update the config file for s3")
 @click.option(
     "-p",
@@ -624,7 +629,7 @@ def s3(
                 content += "    {} = {}\n".format(key, value)
         return content
 
-    os.makedirs(os.path.dirname(path), exist_ok=True)  # make sure dirpath exist
+    _safe_makedirs(os.path.dirname(path))  # make sure dirpath exist
     if not os.path.exists(path):  # If this file doesn't exist.
         content_str = dumps(config_dict)
         with open(path, "w") as fp:
@@ -703,6 +708,8 @@ def hdfs(path, url, profile_name, user, root, token, timeout, no_cover):
     for key, value in current_config.items():
         if value:
             config[profile_name][key] = value
+
+    _safe_makedirs(os.path.dirname(path))  # make sure dirpath exist
     with open(path, "w") as fp:
         config.write(fp)
     click.echo(f"Your hdfs config has been saved into {path}")
@@ -728,7 +735,8 @@ def alias(path, name, protocol, no_cover):
     config[name] = {
         "protocol": protocol,
     }
-    os.makedirs(os.path.dirname(path), exist_ok=True)
+
+    _safe_makedirs(os.path.dirname(path))  # make sure dirpath exist
     with open(path, "w") as fp:
         config.write(fp)
     click.echo(f"Your alias config has been saved into {path}")
