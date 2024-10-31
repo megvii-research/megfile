@@ -16,11 +16,9 @@ from megfile.pathlike import (
 __all__ = [
     "Access",
     "BasePath",
-    "BasePath",
     "FileEntry",
     "PathLike",
     "StatResult",
-    "BasePath",
     "fullname",
     "Closable",
     "FileLike",
