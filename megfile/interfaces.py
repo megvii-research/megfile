@@ -194,7 +194,9 @@ class Readable(FileLike[AnyStr], ABC):
     def write(self, data: AnyStr) -> int:
         raise OSError("not writable")
 
-    def writelines(self, lines: Iterable[AnyStr]) -> None:  # pyre-ignore[14]  # pytype: disable=signature-mismatch
+    def writelines(  # pyre-ignore[14]  # pytype: disable=signature-mismatch
+        self, lines: Iterable[AnyStr]
+    ) -> None:
         raise OSError("not writable")
 
 
@@ -210,7 +212,9 @@ class Writable(FileLike[AnyStr], ABC):
         Return the number of bytes or string written.
         """
 
-    def writelines(self, lines: Iterable[AnyStr]) -> None:  # pyre-ignore[14]  # pytype: disable=signature-mismatch
+    def writelines(  # pyre-ignore[14]  # pytype: disable=signature-mismatch
+        self, lines: Iterable[AnyStr]
+    ) -> None:
         """Write `lines` to the file.
 
         Note that newlines are not added.
