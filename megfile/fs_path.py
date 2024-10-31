@@ -901,7 +901,7 @@ class FSPath(URIPath):
         if isinstance(self.path_without_protocol, int):
             raise ValueError("path of int type not support 'parts'")
 
-        return pathlib.Path(self.path_without_protocol).parts
+        return pathlib.Path(self.path_without_protocol).parts  # pyre-ignore[6]
 
     def chmod(self, mode: int, *, follow_symlinks: bool = True):
         """
@@ -923,7 +923,7 @@ class FSPath(URIPath):
         """
         if isinstance(self.path_without_protocol, int):
             raise ValueError("path of int type not support 'group'")
-        return pathlib.Path(self.path_without_protocol).group()
+        return pathlib.Path(self.path_without_protocol).group()  # pyre-ignore[6]
 
     def is_socket(self) -> bool:
         """
@@ -935,7 +935,7 @@ class FSPath(URIPath):
         """
         if isinstance(self.path_without_protocol, int):
             return bool(stat_issock(os.stat(self.path_without_protocol).st_mode))
-        return pathlib.Path(self.path_without_protocol).is_socket()
+        return pathlib.Path(self.path_without_protocol).is_socket()  # pyre-ignore[6]
 
     def is_fifo(self) -> bool:
         """
@@ -947,7 +947,7 @@ class FSPath(URIPath):
         """
         if isinstance(self.path_without_protocol, int):
             return bool(stat_isfifo(os.stat(self.path_without_protocol).st_mode))
-        return pathlib.Path(self.path_without_protocol).is_fifo()
+        return pathlib.Path(self.path_without_protocol).is_fifo()  # pyre-ignore[6]
 
     def is_block_device(self) -> bool:
         """
@@ -959,7 +959,9 @@ class FSPath(URIPath):
         """
         if isinstance(self.path_without_protocol, int):
             return bool(stat_isblk(os.stat(self.path_without_protocol).st_mode))
-        return pathlib.Path(self.path_without_protocol).is_block_device()
+        return pathlib.Path(
+            self.path_without_protocol
+        ).is_block_device()  # pyre-ignore[6]
 
     def is_char_device(self) -> bool:
         """
@@ -971,7 +973,9 @@ class FSPath(URIPath):
         """
         if isinstance(self.path_without_protocol, int):
             return bool(stat_ischr(os.stat(self.path_without_protocol).st_mode))
-        return pathlib.Path(self.path_without_protocol).is_char_device()
+        return pathlib.Path(
+            self.path_without_protocol
+        ).is_char_device()  # pyre-ignore[6]
 
     def owner(self) -> str:
         """
@@ -980,13 +984,15 @@ class FSPath(URIPath):
         """
         if isinstance(self.path_without_protocol, int):
             raise ValueError("path of int type not support 'owner'")
-        return pathlib.Path(self.path_without_protocol).owner()
+        return pathlib.Path(self.path_without_protocol).owner()  # pyre-ignore[6]
 
     def absolute(self) -> "FSPath":
         """
         Make the path absolute, without normalization or resolving symlinks.
         Returns a new path object
         """
+        if isinstance(self.path_without_protocol, int):
+            raise ValueError("path of int type not support 'absolute'")
         return self.from_path(os.path.abspath(self.path_without_protocol))
 
     def rmdir(self):

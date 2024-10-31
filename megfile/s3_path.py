@@ -1060,7 +1060,7 @@ def s3_download(
     if not src_url.is_file():
         raise S3IsADirectoryError("Is a directory: %r" % src_url.path_with_protocol)
 
-    dst_directory = os.path.dirname(dst_path.path_without_protocol)
+    dst_directory = os.path.dirname(dst_path.path_without_protocol)  # pyre-ignore[6]
     if dst_directory != "":
         os.makedirs(dst_directory, exist_ok=True)
 
