@@ -40,7 +40,7 @@ __all__ = [
 def _make_stat(stat: os.stat_result) -> StatResult:
     return StatResult(
         size=stat.st_size,
-        ctime=stat.st_ctime,
+        ctime=stat.st_ctime,  # pyre-ignore[16]
         mtime=stat.st_mtime,
         isdir=stat_isdir(stat.st_mode),
         islnk=stat_islnk(stat.st_mode),
@@ -162,7 +162,9 @@ class FSPath(URIPath):
 
         :returns: Absolute path of given path
         """
-        return fspath(os.path.abspath(self.path_without_protocol))
+        if isinstance(self.path_without_protocol, int):
+            raise ValueError("path of int type not support 'abspath'")
+        return fspath(os.path.abspath(self.path_without_protocol))  # pyre-ignore[6]
 
     def access(self, mode: Access = Access.READ) -> bool:
         """
@@ -488,9 +490,9 @@ class FSPath(URIPath):
                     _fs_rename_file(src_file_path, dst_file_path, overwrite)
 
             if os.path.isdir(src_path):
-                shutil.rmtree(src_path)
+                shutil.rmtree(src_path)  # pyre-ignore[6]
             else:
-                os.remove(src_path)
+                os.remove(src_path)  # pyre-ignore[6]
 
         return self.from_path(dst_path)
 
@@ -513,9 +515,9 @@ class FSPath(URIPath):
         if missing_ok and not self.exists():
             return
         if self.is_dir():
-            shutil.rmtree(self.path_without_protocol)
+            shutil.rmtree(self.path_without_protocol)  # pyre-ignore[6]
         else:
-            os.remove(self.path_without_protocol)
+            os.remove(self.path_without_protocol)  # pyre-ignore[6]
 
     def _scan(
         self, missing_ok: bool = True, followlinks: bool = False
@@ -597,7 +599,7 @@ class FSPath(URIPath):
         if follow_symlinks or isinstance(self.path_without_protocol, int):
             result = _make_stat(os.stat(self.path_without_protocol))
         else:
-            result = _make_stat(os.lstat(self.path_without_protocol))
+            result = _make_stat(os.lstat(self.path_without_protocol))  # pyre-ignore[6]
 
         if result.islnk or not result.isdir:
             return result
@@ -606,12 +608,12 @@ class FSPath(URIPath):
         ctime = result.ctime
         mtime = result.mtime
         if not isinstance(self.path_without_protocol, int):
-            for root, _, files in os.walk(self.path_without_protocol):
+            for root, _, files in os.walk(self.path_without_protocol):  # pyre-ignore[6]
                 for filename in files:
                     canonical_path = os.path.join(root, filename)
                     stat = os.lstat(canonical_path)
                     size += stat.st_size
-                    if ctime > stat.st_ctime:
+                    if ctime > stat.st_ctime:  # pyre-ignore[16]
                         ctime = stat.st_ctime
                     if mtime < stat.st_mtime:
                         mtime = stat.st_mtime
