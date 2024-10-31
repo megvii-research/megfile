@@ -40,7 +40,7 @@ __all__ = [
 def _make_stat(stat: os.stat_result) -> StatResult:
     return StatResult(
         size=stat.st_size,
-        ctime=stat.st_ctime,
+        ctime=stat.st_ctime,  # pyre-ignore[16]
         mtime=stat.st_mtime,
         isdir=stat_isdir(stat.st_mode),
         islnk=stat_islnk(stat.st_mode),
@@ -101,28 +101,31 @@ class FSPath(URIPath):
             path = str(path)
         self.path = path
 
+    def _check_int_path(self) -> None:
+        if isinstance(self.path_without_protocol, int):
+            raise TypeError("not support the path of int type")
+
     def __fspath__(self) -> str:
-        if isinstance(self.path, int):
-            raise TypeError("'__fspath__' not support the path of int type")
-        return os.path.normpath(self.path_without_protocol)
+        self._check_int_path()
+        return os.path.normpath(self.path_without_protocol)  # pyre-ignore[6]
 
     @cached_property
     def root(self) -> str:
         if isinstance(self.path_without_protocol, int):
             return "/"
-        return pathlib.Path(self.path_without_protocol).root
+        return pathlib.Path(self.path_without_protocol).root  # pyre-ignore[6]
 
     @cached_property
     def anchor(self) -> str:
         if isinstance(self.path_without_protocol, int):
             return "/"
-        return pathlib.Path(self.path_without_protocol).anchor
+        return pathlib.Path(self.path_without_protocol).anchor  # pyre-ignore[6]
 
     @cached_property
     def drive(self) -> str:
         if isinstance(self.path_without_protocol, int):
             return ""
-        return pathlib.Path(self.path_without_protocol).drive
+        return pathlib.Path(self.path_without_protocol).drive  # pyre-ignore[6]
 
     @classmethod
     def from_uri(cls, path: PathLike) -> "FSPath":
@@ -155,14 +158,15 @@ class FSPath(URIPath):
         """
         if isinstance(self.path_without_protocol, int):
             return False
-        return os.path.isabs(self.path_without_protocol)
+        return os.path.isabs(self.path_without_protocol)  # pyre-ignore[6]
 
     def abspath(self) -> str:
         """Return the absolute path of given path
 
         :returns: Absolute path of given path
         """
-        return fspath(os.path.abspath(self.path_without_protocol))
+        self._check_int_path()
+        return fspath(os.path.abspath(self.path_without_protocol))  # pyre-ignore[6]
 
     def access(self, mode: Access = Access.READ) -> bool:
         """
@@ -384,7 +388,8 @@ class FSPath(URIPath):
 
         :returns: All contents have in the path in ascending alphabetical order
         """
-        return sorted(os.listdir(self.path_without_protocol))
+        self._check_int_path()
+        return sorted(os.listdir(self.path_without_protocol))  # pyre-ignore[6]
 
     def iterdir(self) -> Iterator["FSPath"]:
         """
@@ -426,7 +431,8 @@ class FSPath(URIPath):
             or isinstance(self.path_without_protocol, int)
         ):
             return
-        return pathlib.Path(self.path_without_protocol).mkdir(
+        self._check_int_path()
+        return pathlib.Path(self.path_without_protocol).mkdir(  # pyre-ignore[6]
             mode=mode, parents=parents, exist_ok=exist_ok
         )
 
@@ -435,7 +441,8 @@ class FSPath(URIPath):
 
         :returns: Real path of given path
         """
-        return fspath(os.path.realpath(self.path_without_protocol))
+        self._check_int_path()
+        return fspath(os.path.realpath(self.path_without_protocol))  # pyre-ignore[6]
 
     def relpath(self, start: Optional[str] = None) -> str:
         """Return the relative path of given path
@@ -443,7 +450,13 @@ class FSPath(URIPath):
         :param start: Given start directory
         :returns: Relative path from start
         """
-        return fspath(os.path.relpath(self.path_without_protocol, start=start))
+        self._check_int_path()
+        return fspath(
+            os.path.relpath(
+                self.path_without_protocol,  # pyre-ignore[6]
+                start=start,
+            )
+        )
 
     def rename(self, dst_path: PathLike, overwrite: bool = True) -> "FSPath":
         """
@@ -452,6 +465,8 @@ class FSPath(URIPath):
         :param dst_path: Given destination path
         :param overwrite: whether or not overwrite file when exists
         """
+        self._check_int_path()
+
         src_path, dst_path = fspath(self.path_without_protocol), fspath(dst_path)
         if os.path.isfile(src_path):
             _fs_rename_file(src_path, dst_path, overwrite)
@@ -497,9 +512,9 @@ class FSPath(URIPath):
         if missing_ok and not self.exists():
             return
         if self.is_dir():
-            shutil.rmtree(self.path_without_protocol)
+            shutil.rmtree(self.path_without_protocol)  # pyre-ignore[6]
         else:
-            os.remove(self.path_without_protocol)
+            os.remove(self.path_without_protocol)  # pyre-ignore[6]
 
     def _scan(
         self, missing_ok: bool = True, followlinks: bool = False
@@ -578,10 +593,10 @@ class FSPath(URIPath):
 
         :returns: StatResult
         """
-        if follow_symlinks:
+        if follow_symlinks or isinstance(self.path_without_protocol, int):
             result = _make_stat(os.stat(self.path_without_protocol))
         else:
-            result = _make_stat(os.lstat(self.path_without_protocol))
+            result = _make_stat(os.lstat(self.path_without_protocol))  # pyre-ignore[6]
 
         if result.islnk or not result.isdir:
             return result
@@ -589,15 +604,16 @@ class FSPath(URIPath):
         size = 0
         ctime = result.ctime
         mtime = result.mtime
-        for root, _, files in os.walk(self.path_without_protocol):
-            for filename in files:
-                canonical_path = os.path.join(root, filename)
-                stat = os.lstat(canonical_path)
-                size += stat.st_size
-                if ctime > stat.st_ctime:
-                    ctime = stat.st_ctime
-                if mtime < stat.st_mtime:
-                    mtime = stat.st_mtime
+        if not isinstance(self.path_without_protocol, int):
+            for root, _, files in os.walk(self.path_without_protocol):  # pyre-ignore[6]
+                for filename in files:
+                    canonical_path = os.path.join(root, filename)
+                    stat = os.lstat(canonical_path)
+                    size += stat.st_size
+                    if ctime > stat.st_ctime:  # pyre-ignore[16]
+                        ctime = stat.st_ctime
+                    if mtime < stat.st_mtime:
+                        mtime = stat.st_mtime
         return result._replace(size=size, ctime=ctime, mtime=mtime)
 
     def unlink(self, missing_ok: bool = False) -> None:
@@ -606,9 +622,11 @@ class FSPath(URIPath):
 
         :param missing_ok: if False and target file not exists, raise FileNotFoundError
         """
+        self._check_int_path()
+
         if missing_ok and not self.exists():
             return
-        os.unlink(self.path_without_protocol)
+        os.unlink(self.path_without_protocol)  # pyre-ignore[6]
 
     def walk(
         self, followlinks: bool = False
@@ -637,6 +655,8 @@ class FSPath(URIPath):
 
         :returns: A 3-tuple generator
         """
+        self._check_int_path()
+
         if not self.exists(followlinks=followlinks):
             return
 
@@ -644,7 +664,7 @@ class FSPath(URIPath):
             return
 
         path = fspath(self.path_without_protocol)
-        path = os.path.normpath(self.path_without_protocol)
+        path = os.path.normpath(self.path_without_protocol)  # pyre-ignore[6]
 
         stack = [path]
         while stack:
@@ -674,10 +694,13 @@ class FSPath(URIPath):
             eliminating any symbolic links encountered in the path.
         :rtype: FSPath
         """
-        if isinstance(self.path_without_protocol, int):
-            raise ValueError("path of int type not support 'resolve'")
+        self._check_int_path()
         return self.from_path(
-            fspath(pathlib.Path(self.path_without_protocol).resolve(strict=strict))
+            fspath(
+                pathlib.Path(
+                    self.path_without_protocol  # pyre-ignore[6]
+                ).resolve(strict=strict)
+            )
         )
 
     def md5(self, recalculate: bool = False, followlinks: bool = True):
@@ -709,14 +732,29 @@ class FSPath(URIPath):
         callback: Optional[Callable[[int], None]] = None,
         followlinks: bool = False,
     ):
-        shutil.copy2(
-            self.path_without_protocol, fspath(dst_path), follow_symlinks=followlinks
-        )
+        if isinstance(self.path_without_protocol, int):
+            with open(fspath(dst_path), "wb") as fdst:
+                # This magic number is copied from  copyfileobj
+                length = 16 * 1024
+                while True:
+                    buf = os.read(self.path_without_protocol, length)  # pyre-ignore[6]
+                    if not buf:
+                        break
+                    fdst.write(buf)
+                    if callback is None:
+                        continue
+                    callback(len(buf))
+        else:
+            shutil.copy2(
+                self.path_without_protocol,  # pyre-ignore[6]
+                fspath(dst_path),
+                follow_symlinks=followlinks,
+            )
 
-        # After python3.8, patch `shutil.copyfile` is not a good way,
-        # because `shutil.copy2` will not call it in some cases.
-        if callback:
-            callback(self.stat(follow_symlinks=followlinks).size)
+            # After python3.8, patch `shutil.copyfile` is not a good way,
+            # because `shutil.copy2` will not call it in some cases.
+            if callback:
+                callback(self.stat(follow_symlinks=followlinks).size)
 
     def copy(
         self,
@@ -794,7 +832,7 @@ class FSPath(URIPath):
                 return ignore_files
 
             shutil.copytree(
-                self.path_without_protocol,
+                self.path_without_protocol,  # pyre-ignore[6]
                 dst_path,
                 ignore=ignore_same_file,
                 dirs_exist_ok=True,
@@ -808,7 +846,8 @@ class FSPath(URIPath):
 
         :param dst_path: Destination path
         """
-        return os.symlink(self.path_without_protocol, dst_path)
+        self._check_int_path()
+        return os.symlink(self.path_without_protocol, dst_path)  # pyre-ignore[6]
 
     def readlink(self) -> "FSPath":
         """
@@ -818,7 +857,12 @@ class FSPath(URIPath):
         :returns: Return a FSPath instance representing the path to which
             the symbolic link points.
         """
-        return self.from_path(os.readlink(self.path_without_protocol))
+        self._check_int_path()
+        return self.from_path(
+            os.readlink(
+                self.path_without_protocol  # pyre-ignore[6]
+            )
+        )
 
     def is_symlink(self) -> bool:
         """Test whether a path is a symbolic link
@@ -861,9 +905,11 @@ class FSPath(URIPath):
 
         :param file_object: stream to be read
         """
-        FSPath(os.path.dirname(self.path_without_protocol)).mkdir(
-            parents=True, exist_ok=True
-        )
+        FSPath(
+            os.path.dirname(
+                self.path_without_protocol  # pyre-ignore[6]
+            )
+        ).mkdir(parents=True, exist_ok=True)
         with open(self.path_without_protocol, "wb") as output:
             output.write(file_object.read())
 
@@ -880,9 +926,11 @@ class FSPath(URIPath):
         if not isinstance(self.path_without_protocol, int) and (
             "w" in mode or "x" in mode or "a" in mode
         ):
-            FSPath(os.path.dirname(self.path_without_protocol)).mkdir(
-                parents=True, exist_ok=True
-            )
+            FSPath(
+                os.path.dirname(
+                    self.path_without_protocol  # pyre-ignore[6]
+                )
+            ).mkdir(parents=True, exist_ok=True)
         return io.open(
             self.path_without_protocol,
             mode,
@@ -898,10 +946,8 @@ class FSPath(URIPath):
         """
         A tuple giving access to the path’s various components
         """
-        if isinstance(self.path_without_protocol, int):
-            raise ValueError("path of int type not support 'parts'")
-
-        return pathlib.Path(self.path_without_protocol).parts
+        self._check_int_path()
+        return pathlib.Path(self.path_without_protocol).parts  # pyre-ignore[6]
 
     def chmod(self, mode: int, *, follow_symlinks: bool = True):
         """
@@ -921,9 +967,8 @@ class FSPath(URIPath):
         Return the name of the group owning the file. KeyError is raised if
         the file’s gid isn’t found in the system database.
         """
-        if isinstance(self.path_without_protocol, int):
-            raise ValueError("path of int type not support 'group'")
-        return pathlib.Path(self.path_without_protocol).group()
+        self._check_int_path()
+        return pathlib.Path(self.path_without_protocol).group()  # pyre-ignore[6]
 
     def is_socket(self) -> bool:
         """
@@ -935,7 +980,7 @@ class FSPath(URIPath):
         """
         if isinstance(self.path_without_protocol, int):
             return bool(stat_issock(os.stat(self.path_without_protocol).st_mode))
-        return pathlib.Path(self.path_without_protocol).is_socket()
+        return pathlib.Path(self.path_without_protocol).is_socket()  # pyre-ignore[6]
 
     def is_fifo(self) -> bool:
         """
@@ -947,7 +992,7 @@ class FSPath(URIPath):
         """
         if isinstance(self.path_without_protocol, int):
             return bool(stat_isfifo(os.stat(self.path_without_protocol).st_mode))
-        return pathlib.Path(self.path_without_protocol).is_fifo()
+        return pathlib.Path(self.path_without_protocol).is_fifo()  # pyre-ignore[6]
 
     def is_block_device(self) -> bool:
         """
@@ -959,7 +1004,9 @@ class FSPath(URIPath):
         """
         if isinstance(self.path_without_protocol, int):
             return bool(stat_isblk(os.stat(self.path_without_protocol).st_mode))
-        return pathlib.Path(self.path_without_protocol).is_block_device()
+        return pathlib.Path(
+            self.path_without_protocol  # pyre-ignore[6]
+        ).is_block_device()
 
     def is_char_device(self) -> bool:
         """
@@ -971,23 +1018,29 @@ class FSPath(URIPath):
         """
         if isinstance(self.path_without_protocol, int):
             return bool(stat_ischr(os.stat(self.path_without_protocol).st_mode))
-        return pathlib.Path(self.path_without_protocol).is_char_device()
+        return pathlib.Path(
+            self.path_without_protocol  # pyre-ignore[6]
+        ).is_char_device()
 
     def owner(self) -> str:
         """
         Return the name of the user owning the file. KeyError is raised if the file’s
         uid isn’t found in the system database.
         """
-        if isinstance(self.path_without_protocol, int):
-            raise ValueError("path of int type not support 'owner'")
-        return pathlib.Path(self.path_without_protocol).owner()
+        self._check_int_path()
+        return pathlib.Path(self.path_without_protocol).owner()  # pyre-ignore[6]
 
     def absolute(self) -> "FSPath":
         """
         Make the path absolute, without normalization or resolving symlinks.
         Returns a new path object
         """
-        return self.from_path(os.path.abspath(self.path_without_protocol))
+        self._check_int_path()
+        return self.from_path(
+            os.path.abspath(
+                self.path_without_protocol  # pyre-ignore[6]
+            )
+        )
 
     def rmdir(self):
         """

@@ -6,7 +6,7 @@ import os
 import random
 import shlex
 import socket
-import subprocess
+import subprocess  # nosec B404
 from functools import cached_property
 from logging import getLogger as get_logger
 from stat import S_ISDIR, S_ISLNK, S_ISREG
@@ -33,10 +33,10 @@ __all__ = [
 ]
 
 SFTP_USERNAME = "SFTP_USERNAME"
-SFTP_PASSWORD = "SFTP_PASSWORD"
+SFTP_PASSWORD = "SFTP_PASSWORD"  # nosec B105
 SFTP_PRIVATE_KEY_PATH = "SFTP_PRIVATE_KEY_PATH"
 SFTP_PRIVATE_KEY_TYPE = "SFTP_PRIVATE_KEY_TYPE"
-SFTP_PRIVATE_KEY_PASSWORD = "SFTP_PRIVATE_KEY_PASSWORD"
+SFTP_PRIVATE_KEY_PASSWORD = "SFTP_PRIVATE_KEY_PASSWORD"  # nosec B105
 SFTP_MAX_UNAUTH_CONN = "SFTP_MAX_UNAUTH_CONN"
 MAX_RETRIES = SFTP_MAX_RETRY_TIMES
 DEFAULT_SSH_CONNECT_TIMEOUT = 5
@@ -205,7 +205,7 @@ def _get_ssh_client(
         "reject": paramiko.RejectPolicy,
         "warning": paramiko.WarningPolicy,
     }
-    policy = policies.get(SFTP_HOST_KEY_POLICY, default_policy)()
+    policy = policies.get(SFTP_HOST_KEY_POLICY, default_policy)()  # pyre-ignore[29]
 
     ssh_client = paramiko.SSHClient()
     ssh_client.set_missing_host_key_policy(policy)
@@ -213,8 +213,8 @@ def _get_ssh_client(
     try:
         fd = os.open(
             os.path.join(
-                "/tmp",
-                f"megfile-sftp-{hostname}-{random.randint(1, max_unauth_connections)}",
+                "/tmp",  # nosec B108
+                f"megfile-sftp-{hostname}-{random.randint(1, max_unauth_connections)}",  # nosec B311
             ),
             os.O_WRONLY | os.O_CREAT | os.O_TRUNC,
         )
@@ -321,7 +321,7 @@ def _sftp_scan_pairs(
     src_url: PathLike, dst_url: PathLike
 ) -> Iterator[Tuple[PathLike, PathLike]]:
     for src_file_path in SftpPath(src_url).scan():
-        content_path = src_file_path[len(src_url) :]
+        content_path = src_file_path[len(fspath(src_url)) :]
         if len(content_path) > 0:
             dst_file_path = SftpPath(dst_url).joinpath(content_path).path_with_protocol
         else:
@@ -1062,7 +1062,7 @@ class SftpPath(URIPath):
             chan.settimeout(timeout)
             if environment:
                 chan.update_environment(environment)
-            chan.exec_command(" ".join([shlex.quote(arg) for arg in command]))
+            chan.exec_command(" ".join([shlex.quote(arg) for arg in command]))  # nosec B601
             stdout = (
                 chan.makefile("r", bufsize).read().decode(errors="backslashreplace")
             )

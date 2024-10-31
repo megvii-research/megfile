@@ -580,7 +580,7 @@ def _s3_scan_pairs(
     src_url: PathLike, dst_url: PathLike
 ) -> Iterator[Tuple[PathLike, PathLike]]:
     for src_file_path in S3Path(src_url).scan():
-        content_path = src_file_path[len(src_url) :]
+        content_path = src_file_path[len(fspath(src_url)) :]
         if len(content_path) > 0:
             dst_file_path = s3_path_join(dst_url, content_path)
         else:
@@ -1060,7 +1060,7 @@ def s3_download(
     if not src_url.is_file():
         raise S3IsADirectoryError("Is a directory: %r" % src_url.path_with_protocol)
 
-    dst_directory = os.path.dirname(dst_path.path_without_protocol)
+    dst_directory = os.path.dirname(dst_path.path_without_protocol)  # pyre-ignore[6]
     if dst_directory != "":
         os.makedirs(dst_directory, exist_ok=True)
 

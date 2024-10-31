@@ -238,7 +238,7 @@ def necessary_params(func: Callable, **kwargs):
     return res_kwargs
 
 
-def generate_cache_path(filename: str, cache_dir: str = "/tmp") -> str:
+def generate_cache_path(filename: str, cache_dir: str = "/tmp") -> str:  # nosec B108
     suffix = os.path.splitext(filename)[1]
     return os.path.join(cache_dir, str(uuid.uuid4()) + suffix)
 

@@ -34,7 +34,7 @@ class SmartPath(BasePath):
         if not isinstance(pathlike, BasePath):
             pathlike = self._create_pathlike(path)
         if len(other_paths) > 0:
-            pathlike = pathlike.joinpath(*other_paths)  # pyre-ignore[6]
+            pathlike = pathlike.joinpath(*other_paths)
             self.path = str(pathlike)
         self.pathlike = pathlike
 
@@ -120,7 +120,7 @@ class SmartPath(BasePath):
         return self.pathlike.protocol
 
     @classmethod
-    def from_uri(cls, path: str):
+    def from_uri(cls, path: PathLike):
         return cls(path)
 
     as_uri = _bind_function("as_uri")
