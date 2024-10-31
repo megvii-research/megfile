@@ -737,7 +737,7 @@ class FSPath(URIPath):
                 # This magic number is copied from  copyfileobj
                 length = 16 * 1024
                 while True:
-                    buf = os.read(self.path_without_protocol, length)
+                    buf = os.read(self.path_without_protocol, length)  # pyre-ignore[6]
                     if not buf:
                         break
                     fdst.write(buf)
