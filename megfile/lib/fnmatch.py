@@ -13,6 +13,7 @@ corresponding to PATTERN.  (It does not compile it.)
 """Compared with the standard library, syntax '{seq1,seq2}' is supported"""
 
 import functools
+import io
 import os
 import re
 from typing import Callable, List, Match, Optional
@@ -71,14 +72,9 @@ def _compat(res: str) -> str:
     return r"(?s:%s)\Z" % res
 
 
-def translate(pat: str) -> str:
-    """Translate a shell PATTERN to a regular expression.
-
-    There is no way to quote meta-characters.
-    """
-
+def _translate(pat: str, match_curly: bool) -> str:
     i, n = 0, len(pat)
-    res = ""
+    buf = io.StringIO()
     while i < n:
         c = pat[i]
         i = i + 1
@@ -90,14 +86,14 @@ def translate(pat: str) -> str:
                 if (j < n and pat[j] == "/") and (i <= 1 or pat[i - 2] == "/"):
                     # hit /**/ instead of /seq**/
                     j = j + 1
-                    res = res + r"(.*/)?"
+                    buf.write(r"(.*/)?")
                 else:
-                    res = res + r".*"
+                    buf.write(r".*")
             else:
-                res = res + r"[^/]*"
+                buf.write(r"[^/]*")
             i = j
         elif c == "?":
-            res = res + r"."
+            buf.write(r".")
         elif c == "[":
             j = i
             if j < n and pat[j] == "!":
@@ -107,7 +103,7 @@ def translate(pat: str) -> str:
             while j < n and pat[j] != "]":
                 j = j + 1
             if j >= n:
-                res = res + r"\["
+                buf.write(r"\[")
             else:
                 stuff = pat[i:j].replace("\\", r"\\")
                 i = j + 1
@@ -115,20 +111,29 @@ def translate(pat: str) -> str:
                     stuff = r"^" + stuff[1:]
                 elif stuff[0] == "^":
                     stuff = "\\" + stuff
-                res = r"%s[%s]" % (res, stuff)
-        elif c == "{":
+                buf.write(r"[%s]" % stuff)
+        elif match_curly and c == "{":
             j = i
             if j < n and pat[j] == "}":
                 j = j + 1
             while j < n and pat[j] != "}":
                 j = j + 1
             if j >= n:
-                res = res + r"\{"
+                buf.write(r"\{")
             else:
                 stuff = pat[i:j].replace("\\", r"\\")
-                stuff = r"|".join(map(re.escape, stuff.split(",")))  # pyre-ignore[6]
-                res = r"%s(%s)" % (res, stuff)
+                stuff = r"|".join(_translate(part, False) for part in stuff.split(","))
+                buf.write(r"(%s)" % stuff)
                 i = j + 1
         else:
-            res = res + re.escape(c)
-    return _compat(res)
+            buf.write(re.escape(c))
+    return buf.getvalue()
+
+
+def translate(pat: str) -> str:
+    """Translate a shell PATTERN to a regular expression.
+
+    There is no way to quote meta-characters.
+    """
+
+    return _compat(_translate(pat, True))

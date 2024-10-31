@@ -142,10 +142,10 @@ You can update config file with `megfile` command easyly:
 ```
 $ megfile config s3 accesskey secretkey
 
-# for aliyun
+# for aliyun oss
 $ megfile config s3 accesskey secretkey \
 --addressing-style virtual \
---endpoint-url http://oss-cn-hangzhou.aliyuncs.com \
+--endpoint-url http://oss-cn-hangzhou.aliyuncs.com
 ```
 
 You can get the configuration from `~/.aws/credentials`, like:
@@ -158,6 +158,25 @@ s3 =
     addressing_style = virtual
     endpoint_url = http://oss-cn-hangzhou.aliyuncs.com
 ```
+
+### Create aliases
+```
+# for volcengine tos
+$ megfile config s3 accesskey secretkey \
+--addressing-style virtual \
+--endpoint-url https://tos-s3-cn-beijing.ivolces.com \
+--profile tos
+
+# create alias
+$ megfile config tos s3+tos
+```
+
+You can get the configuration from `~/.config/megfile/aliases.conf`, like:
+```
+[tos]
+protocol = s3+tos
+```
+
 
 ## How to Contribute
 * We welcome everyone to contribute code to the `megfile` project, but the contributed code needs to meet the following conditions as much as possible:

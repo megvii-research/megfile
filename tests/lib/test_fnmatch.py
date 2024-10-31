@@ -41,9 +41,9 @@ def test_translate():
 
     # weirdos
     assert fnmatch.translate("(a|b)") == fnmatch._compat(r"\(a\|b\)")
-    assert fnmatch.translate("{*,d}") == fnmatch._compat(r"(\*|d)")
-    assert fnmatch.translate("{**,d}") == fnmatch._compat(r"(\*\*|d)")
-    assert fnmatch.translate("{[abc],d}") == fnmatch._compat(r"(\[abc\]|d)")
+    assert fnmatch.translate("{*,d}") == fnmatch._compat(r"([^/]*|d)")
+    assert fnmatch.translate("{**,d}") == fnmatch._compat(r"(.*|d)")
+    assert fnmatch.translate("{[abc],d}") == fnmatch._compat(r"([abc]|d)")
     if sys.version_info > (3, 7):
         assert fnmatch.translate("{{a,b},d}") == fnmatch._compat(r"(\{a|b),d\}")
     else:
@@ -174,9 +174,60 @@ def test_filter():
 
     # weirdos
     assert fnmatch.filter(file_list, "(a|b)") == ["(a|b)"]
-    assert fnmatch.filter(file_list, "{*,d}") == ["d", "*"]
-    assert fnmatch.filter(file_list, "{**,d}") == ["d", "**"]
-    assert fnmatch.filter(file_list, "{[abc],d}") == ["d", "[abc]"]
+    assert fnmatch.filter(file_list, "{*,d}") == [
+        "a",
+        "b",
+        "d",
+        "*",
+        "**",
+        "[abc]",
+        "(a|b)",
+        "{a",
+        "b}",
+        "{a,d}",
+        "[",
+        "]",
+        "[]",
+        "[!]",
+        "{",
+        "}",
+        "{}",
+        "{,}",
+        "^",
+        "!",
+        "?",
+        ",",
+    ]
+    assert fnmatch.filter(file_list, "{**,d}") == [
+        "a",
+        "b",
+        "c/d",
+        "d",
+        "*",
+        "**",
+        "[abc]",
+        "(a|b)",
+        "{a",
+        "b}",
+        "{a,d}",
+        "[",
+        "]",
+        "[]",
+        "[!]",
+        "{",
+        "}",
+        "{}",
+        "{,}",
+        "^",
+        "!",
+        "?",
+        ",",
+    ]
+    assert fnmatch.filter(file_list, "{[abc],d}") == [
+        "a",
+        "b",
+        "d",
+    ]
     assert fnmatch.filter(file_list, "{{a,b},d}") == ["{a,d}"]
 
 
