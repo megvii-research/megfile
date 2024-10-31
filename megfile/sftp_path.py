@@ -205,7 +205,7 @@ def _get_ssh_client(
         "reject": paramiko.RejectPolicy,
         "warning": paramiko.WarningPolicy,
     }
-    policy = policies.get(SFTP_HOST_KEY_POLICY, default_policy)()
+    policy = policies.get(SFTP_HOST_KEY_POLICY, default_policy)()  # pyre-ignore[29]
 
     ssh_client = paramiko.SSHClient()
     ssh_client.set_missing_host_key_policy(policy)

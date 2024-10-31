@@ -427,7 +427,7 @@ def fs_readlink(path) -> str:
     Return a string representing the path to which the symbolic link points.
     :returns: Return a string representing the path to which the symbolic link points.
     """
-    return FSPath(path).readlink().path_without_protocol
+    return FSPath(path).readlink().path_without_protocol  # pyre-ignore[6]
 
 
 def fs_cwd() -> str:
@@ -474,7 +474,7 @@ def fs_iglob(
     for path_obj in FSPath(path).iglob(
         pattern="", recursive=recursive, missing_ok=missing_ok
     ):
-        yield path_obj.path_without_protocol
+        yield path_obj.path_without_protocol  # pyre-ignore[6]
 
 
 def fs_glob(
