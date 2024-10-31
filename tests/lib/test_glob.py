@@ -324,6 +324,28 @@ def _glob_with_dironly():
     )
 
 
+def _glob_with_curly():
+    """
+    scenario: pathname with the curly braces('{}')
+    expectation: returns only contains pathname of files
+    """
+    assert_glob(
+        "/bucketForGlobTest/{1,2}/", ["/bucketForGlobTest/1/", "/bucketForGlobTest/2/"]
+    )
+
+    assert_glob("/bucketForGlobTest/{[2-4],[4-9]}/", ["/bucketForGlobTest/2/"])
+
+    assert_glob(
+        "/bucketForGlobTest/1/**/*.{json,msg}",
+        [
+            '/bucketForGlobTest/1/a/b/1.json',
+            '/bucketForGlobTest/1/a/b/c/1.json',
+            '/bucketForGlobTest/1/a/b/c/A.msg',
+        ],
+    )
+
+
+
 def test_glob(fs_setup):
     _glob_with_common_wildcard()
     _glob_with_recursive_pathname()
@@ -331,6 +353,7 @@ def test_glob(fs_setup):
     _glob_with_nested_pathname()
     _glob_with_not_exists_dir()
     _glob_with_dironly()
+    _glob_with_curly()
 
 
 def test_escape():

@@ -125,7 +125,7 @@ def _translate(pat: str, match_curly: bool) -> str:
                 stuff = r"|".join(
                     _translate(part, False)
                     for part in stuff.split(",")
-                )  # pyre-ignore[6]
+                )
                 buf.write(r"(%s)" % stuff)
                 i = j + 1
         else:
