@@ -16,7 +16,8 @@ junit-xml ~= 1.9
 requests_mock
 
 # doc
-Sphinx ~= 7.3.7
+Sphinx;python_version < "3.10"
+Sphinx ~= 7.3.7;python_version >= "3.10"
 m2r2
 sphinx-rtd-theme ~= 2.0
 sphinxcontrib-jquery
