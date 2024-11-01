@@ -78,14 +78,19 @@
            <div itemprop="articleBody">
              
   <h1>Source code for megfile.smart_path</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">PurePath</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">configparser</span> <span class="kn">import</span> <span class="n">ConfigParser</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">PurePath</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">from</span> <span class="nn">megfile.lib.compat</span> <span class="kn">import</span> <span class="n">fspath</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.url</span> <span class="kn">import</span> <span class="n">get_url_scheme</span>
+<span class="kn">from</span> <span class="nn">megfile.utils</span> <span class="kn">import</span> <span class="n">classproperty</span>
 
 <span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">ProtocolExistsError</span><span class="p">,</span> <span class="n">ProtocolNotFoundError</span>
 <span class="kn">from</span> <span class="nn">.interfaces</span> <span class="kn">import</span> <span class="n">BasePath</span><span class="p">,</span> <span class="n">BaseURIPath</span><span class="p">,</span> <span class="n">PathLike</span>
+
+<span class="n">aliases_config</span> <span class="o">=</span> <span class="s2">&quot;~/.config/megfile/aliases.conf&quot;</span>
 
 
 <span class="k">def</span> <span class="nf">_bind_function</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
@@ -105,6 +110,17 @@
     <span class="k">return</span> <span class="n">smart_property</span>
 
 
+<span class="k">def</span> <span class="nf">_load_aliases_config</span><span class="p">(</span><span class="n">config_path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">config_path</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{}</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">ConfigParser</span><span class="p">()</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">config_path</span><span class="p">)</span>
+    <span class="n">configs</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">section</span> <span class="ow">in</span> <span class="n">parser</span><span class="o">.</span><span class="n">sections</span><span class="p">():</span>
+        <span class="n">configs</span><span class="p">[</span><span class="n">section</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">parser</span><span class="o">.</span><span class="n">items</span><span class="p">(</span><span class="n">section</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">configs</span>
+
+
 <div class="viewcode-block" id="SmartPath">
 <a class="viewcode-back" href="../../megfile.smart_path.html#megfile.smart_path.SmartPath">[docs]</a>
 <span class="k">class</span> <span class="nc">SmartPath</span><span class="p">(</span><span class="n">BasePath</span><span class="p">):</span>
@@ -119,6 +135,13 @@
             <span class="n">pathlike</span> <span class="o">=</span> <span class="n">pathlike</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="o">*</span><span class="n">other_paths</span><span class="p">)</span>  <span class="c1"># pyre-ignore[6]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">pathlike</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">pathlike</span> <span class="o">=</span> <span class="n">pathlike</span>
+
+    <span class="nd">@classproperty</span>
+    <span class="k">def</span> <span class="nf">_aliases</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+        <span class="n">config_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">aliases_config</span><span class="p">)</span>
+        <span class="n">aliases</span> <span class="o">=</span> <span class="n">_load_aliases_config</span><span class="p">(</span><span class="n">config_path</span><span class="p">)</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="s2">&quot;_aliases&quot;</span><span class="p">,</span> <span class="n">aliases</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">aliases</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_extract_protocol</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">PathLike</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]:</span>
@@ -143,7 +166,11 @@
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">_create_pathlike</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">PathLike</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">BaseURIPath</span><span class="p">:</span>
-        <span class="n">protocol</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_extract_protocol</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="n">protocol</span><span class="p">,</span> <span class="n">path_without_protocol</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_extract_protocol</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="n">aliases</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_aliases</span>  <span class="c1"># pyre-ignore[9]</span>
+        <span class="k">if</span> <span class="n">protocol</span> <span class="ow">in</span> <span class="n">aliases</span><span class="p">:</span>
+            <span class="n">protocol</span> <span class="o">=</span> <span class="n">aliases</span><span class="p">[</span><span class="n">protocol</span><span class="p">][</span><span class="s2">&quot;protocol&quot;</span><span class="p">]</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">protocol</span> <span class="o">+</span> <span class="s2">&quot;://&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">path_without_protocol</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">protocol</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;s3+&quot;</span><span class="p">):</span>
             <span class="n">protocol</span> <span class="o">=</span> <span class="s2">&quot;s3&quot;</span>
         <span class="k">if</span> <span class="n">protocol</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_registered_protocols</span><span class="p">:</span>

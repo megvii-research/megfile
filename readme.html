@@ -64,6 +64,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#configuration">Configuration</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#use-environments">Use environments</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#use-command">Use command</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#create-aliases">Create aliases</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#how-to-contribute">How to Contribute</a></li>
@@ -251,10 +252,10 @@ pip3<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </
 <a class="reference external" href="https://megvii-research.github.io/megfile/cli.html#megfile-config-s3">megfile config s3 [OPTIONS] AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY</a></p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ megfile config s3 accesskey secretkey
 
-# for aliyun
+# for aliyun oss
 $ megfile config s3 accesskey secretkey \
 --addressing-style virtual \
---endpoint-url http://oss-cn-hangzhou.aliyuncs.com \
+--endpoint-url http://oss-cn-hangzhou.aliyuncs.com
 </pre></div>
 </div>
 <p>You can get the configuration from <code class="docutils literal notranslate"><span class="pre">~/.aws/credentials</span></code>, like:</p>
@@ -265,6 +266,24 @@ $ megfile config s3 accesskey secretkey \
 <span class="n">s3</span> <span class="o">=</span>
     <span class="n">addressing_style</span> <span class="o">=</span> <span class="n">virtual</span>
     <span class="n">endpoint_url</span> <span class="o">=</span> <span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">oss</span><span class="o">-</span><span class="n">cn</span><span class="o">-</span><span class="n">hangzhou</span><span class="o">.</span><span class="n">aliyuncs</span><span class="o">.</span><span class="n">com</span>
+</pre></div>
+</div>
+</section>
+<section id="create-aliases">
+<h3>Create aliases<a class="headerlink" href="#create-aliases" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span># for volcengine tos
+$ megfile config s3 accesskey secretkey \
+--addressing-style virtual \
+--endpoint-url https://tos-s3-cn-beijing.ivolces.com \
+--profile tos
+
+# create alias
+$ megfile config tos s3+tos
+</pre></div>
+</div>
+<p>You can get the configuration from <code class="docutils literal notranslate"><span class="pre">~/.config/megfile/aliases.conf</span></code>, like:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">tos</span><span class="p">]</span>
+<span class="n">protocol</span> <span class="o">=</span> <span class="n">s3</span><span class="o">+</span><span class="n">tos</span>
 </pre></div>
 </div>
 </section>
