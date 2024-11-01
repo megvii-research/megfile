@@ -1,3 +1,8 @@
+## 3.1.4 - 2024.11.01
+- feat
+    - add `megfile config alias` command for adding [custom protocol alias](https://megvii-research.github.io/megfile/readme.html#create-aliases)
+    - glob path support using glob syntax within curly braces but does not support nesting.
+
 ## 3.1.3 - 2024.08.23
 - feat
     - support retrying S3 request with error codes of `Timeout` and `RequestTimeout`.
