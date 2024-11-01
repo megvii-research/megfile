@@ -16,7 +16,7 @@ junit-xml ~= 1.9
 requests_mock
 
 # doc
-Sphinx ~= 7.0
+Sphinx ~= 7.3.7
 m2r2
 sphinx-rtd-theme
 sphinxcontrib-jquery
