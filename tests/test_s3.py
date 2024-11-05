@@ -332,7 +332,7 @@ def test_get_s3_client(mocker):
     mocker.patch("megfile.s3_path.get_s3_session", return_value=mock_session)
 
     s3.get_s3_client()
-    access_key, secret_key = s3_path.get_access_token()
+    access_key, secret_key, session_token = s3_path.get_access_token()
 
     mock_session.client.assert_called_with(
         "s3",
@@ -340,6 +340,7 @@ def test_get_s3_client(mocker):
         config=Any(),
         aws_access_key_id=access_key,
         aws_secret_access_key=secret_key,
+        aws_session_token=session_token,
     )
 
     client = s3.get_s3_client(cache_key="test")
@@ -384,7 +385,7 @@ def test_get_s3_client_from_env(mocker):
     mocker.patch.dict(os.environ, {"OSS_ENDPOINT": "oss-endpoint"})
 
     s3.get_s3_client()
-    access_key, secret_key = s3_path.get_access_token()
+    access_key, secret_key, session_token = s3_path.get_access_token()
 
     mock_session.client.assert_called_with(
         "s3",
@@ -392,6 +393,7 @@ def test_get_s3_client_from_env(mocker):
         config=Any(),
         aws_access_key_id=access_key,
         aws_secret_access_key=secret_key,
+        aws_session_token=session_token,
     )
 
 
@@ -406,7 +408,7 @@ def test_get_s3_client_with_config(mocker):
 
     config = EQConfig(max_pool_connections=GLOBAL_MAX_WORKERS, connect_timeout=1)
     s3.get_s3_client(config)
-    access_key, secret_key = s3_path.get_access_token()
+    access_key, secret_key, session_token = s3_path.get_access_token()
 
     mock_session.client.assert_called_with(
         "s3",
@@ -414,6 +416,7 @@ def test_get_s3_client_with_config(mocker):
         config=config,
         aws_access_key_id=access_key,
         aws_secret_access_key=secret_key,
+        aws_session_token=session_token,
     )
 
 
@@ -569,12 +572,18 @@ def test_parse_s3_url():
 def test_get_access_token():
     os.environ["AWS_ACCESS_KEY_ID"] = "default-key"
     os.environ["AWS_SECRET_ACCESS_KEY"] = "default-secret"
+    os.environ["AWS_SESSION_TOKEN"] = "default-token"
 
     os.environ["TEST__AWS_ACCESS_KEY_ID"] = "test-key"
     os.environ["TEST__AWS_SECRET_ACCESS_KEY"] = "test-secret"
+    os.environ["TEST__AWS_SESSION_TOKEN"] = "test-token"
 
-    assert s3_path.get_access_token() == ("default-key", "default-secret")
-    assert s3_path.get_access_token("test") == ("test-key", "test-secret")
+    assert s3_path.get_access_token() == (
+        "default-key",
+        "default-secret",
+        "default-token",
+    )
+    assert s3_path.get_access_token("test") == ("test-key", "test-secret", "test-token")
 
 
 def test_s3_scandir_internal(truncating_client, mocker):

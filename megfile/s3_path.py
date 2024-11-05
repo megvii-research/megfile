@@ -235,10 +235,16 @@ def get_access_token(profile_name=None):
         if profile_name
         else "AWS_SECRET_ACCESS_KEY"
     )
+    session_token_env_name = (
+        f"{profile_name}__AWS_SESSION_TOKEN".upper()
+        if profile_name
+        else "AWS_SESSION_TOKEN"
+    )
     access_key = os.getenv(access_key_env_name)
     secret_key = os.getenv(secret_key_env_name)
+    session_token = os.getenv(session_token_env_name)
     if access_key and secret_key:
-        return access_key, secret_key
+        return access_key, secret_key, session_token
 
     try:
         credentials = get_s3_session(profile_name=profile_name).get_credentials()
@@ -249,7 +255,9 @@ def get_access_token(profile_name=None):
             access_key = credentials.access_key
         if not secret_key:
             secret_key = credentials.secret_key
-    return access_key, secret_key
+        if not session_token:
+            session_token = credentials.token
+    return access_key, secret_key, session_token
 
 
 def get_s3_client(
@@ -290,7 +298,7 @@ def get_s3_client(
             botocore.config.Config(s3={"addressing_style": addressing_style})
         )
 
-    access_key, secret_key = get_access_token(profile_name)
+    access_key, secret_key, session_token = get_access_token(profile_name)
     try:
         session = get_s3_session(profile_name=profile_name)
     except botocore.exceptions.ProfileNotFound:
@@ -301,6 +309,7 @@ def get_s3_client(
         config=config,
         aws_access_key_id=access_key,
         aws_secret_access_key=secret_key,
+        aws_session_token=session_token,
     )
     client = _patch_make_request(client)
     return client
