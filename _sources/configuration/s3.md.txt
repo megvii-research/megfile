@@ -8,6 +8,7 @@ You can use environments and configuration file for configuration, and priority 
 You can use environments to setup authentication credentials for your s3 account:
 - `AWS_ACCESS_KEY_ID`: access key
 - `AWS_SECRET_ACCESS_KEY`: secret key
+- `AWS_SESSION_TOKEN`: session token
 - `OSS_ENDPOINT` / `AWS_ENDPOINT_URL_S3` / `AWS_ENDPOINT_URL`: endpoint url of s3
 - `AWS_S3_ADDRESSING_STYLE`: addressing style
 - `MEGFILE_S3_MAX_RETRY_TIMES`: s3 request max retry times when catch error which may fix by retry, default is `10`
@@ -60,6 +61,7 @@ You need use `PROFILE_NAME__` prefix, like:
 
 - `PROFILE1__AWS_ACCESS_KEY_ID`
 - `PROFILE1__AWS_SECRET_ACCESS_KEY`
+- `PROFILE1__AWS_SESSION_TOKEN`
 - `PROFILE1__OSS_ENDPOINT`
 - `PROFILE1__AWS_S3_ADDRESSING_STYLE`
 

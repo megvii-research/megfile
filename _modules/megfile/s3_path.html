@@ -324,10 +324,16 @@
         <span class="k">if</span> <span class="n">profile_name</span>
         <span class="k">else</span> <span class="s2">&quot;AWS_SECRET_ACCESS_KEY&quot;</span>
     <span class="p">)</span>
+    <span class="n">session_token_env_name</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">profile_name</span><span class="si">}</span><span class="s2">__AWS_SESSION_TOKEN&quot;</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">profile_name</span>
+        <span class="k">else</span> <span class="s2">&quot;AWS_SESSION_TOKEN&quot;</span>
+    <span class="p">)</span>
     <span class="n">access_key</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="n">access_key_env_name</span><span class="p">)</span>
     <span class="n">secret_key</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="n">secret_key_env_name</span><span class="p">)</span>
+    <span class="n">session_token</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="n">session_token_env_name</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">access_key</span> <span class="ow">and</span> <span class="n">secret_key</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">access_key</span><span class="p">,</span> <span class="n">secret_key</span>
+        <span class="k">return</span> <span class="n">access_key</span><span class="p">,</span> <span class="n">secret_key</span><span class="p">,</span> <span class="n">session_token</span>
 
     <span class="k">try</span><span class="p">:</span>
         <span class="n">credentials</span> <span class="o">=</span> <span class="n">get_s3_session</span><span class="p">(</span><span class="n">profile_name</span><span class="o">=</span><span class="n">profile_name</span><span class="p">)</span><span class="o">.</span><span class="n">get_credentials</span><span class="p">()</span>
@@ -338,7 +344,9 @@
             <span class="n">access_key</span> <span class="o">=</span> <span class="n">credentials</span><span class="o">.</span><span class="n">access_key</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">secret_key</span><span class="p">:</span>
             <span class="n">secret_key</span> <span class="o">=</span> <span class="n">credentials</span><span class="o">.</span><span class="n">secret_key</span>
-    <span class="k">return</span> <span class="n">access_key</span><span class="p">,</span> <span class="n">secret_key</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">session_token</span><span class="p">:</span>
+            <span class="n">session_token</span> <span class="o">=</span> <span class="n">credentials</span><span class="o">.</span><span class="n">token</span>
+    <span class="k">return</span> <span class="n">access_key</span><span class="p">,</span> <span class="n">secret_key</span><span class="p">,</span> <span class="n">session_token</span>
 
 
 <div class="viewcode-block" id="get_s3_client">
@@ -381,7 +389,7 @@
             <span class="n">botocore</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">Config</span><span class="p">(</span><span class="n">s3</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;addressing_style&quot;</span><span class="p">:</span> <span class="n">addressing_style</span><span class="p">})</span>
         <span class="p">)</span>
 
-    <span class="n">access_key</span><span class="p">,</span> <span class="n">secret_key</span> <span class="o">=</span> <span class="n">get_access_token</span><span class="p">(</span><span class="n">profile_name</span><span class="p">)</span>
+    <span class="n">access_key</span><span class="p">,</span> <span class="n">secret_key</span><span class="p">,</span> <span class="n">session_token</span> <span class="o">=</span> <span class="n">get_access_token</span><span class="p">(</span><span class="n">profile_name</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">session</span> <span class="o">=</span> <span class="n">get_s3_session</span><span class="p">(</span><span class="n">profile_name</span><span class="o">=</span><span class="n">profile_name</span><span class="p">)</span>
     <span class="k">except</span> <span class="n">botocore</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">ProfileNotFound</span><span class="p">:</span>
@@ -392,6 +400,7 @@
         <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span>
         <span class="n">aws_access_key_id</span><span class="o">=</span><span class="n">access_key</span><span class="p">,</span>
         <span class="n">aws_secret_access_key</span><span class="o">=</span><span class="n">secret_key</span><span class="p">,</span>
+        <span class="n">aws_session_token</span><span class="o">=</span><span class="n">session_token</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">client</span> <span class="o">=</span> <span class="n">_patch_make_request</span><span class="p">(</span><span class="n">client</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">client</span></div>
