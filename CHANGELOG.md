@@ -1,3 +1,7 @@
+## 3.1.5 - 2024.11.05
+- feat
+    - support `AWS_SESSION_TOKEN` env
+
 ## 3.1.4 - 2024.11.01
 - feat
     - add `megfile config alias` command for adding [custom protocol alias](https://megvii-research.github.io/megfile/readme.html#create-aliases)
