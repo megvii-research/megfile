@@ -6,6 +6,7 @@ from megfile.utils import (
     _get_class,
     _is_pickle,
     binary_open,
+    cached_classproperty,
     combine,
     get_human_size,
     necessary_params,
@@ -53,6 +54,34 @@ def test_get_class():
         pass
 
     assert _get_class(Test) == _get_class(Test())
+
+
+def test_cached_classproperty():
+    class Test1:
+        count = 0
+
+        @cached_classproperty
+        def test(cls):
+            cls.count += 1
+            return cls.count
+
+    assert Test1().test == 1
+    assert Test1().test == 1
+    assert Test1.test == 1
+    assert Test1.test == 1
+
+    class Test2:
+        count = 0
+
+        @cached_classproperty
+        def test(cls):
+            cls.count += 1
+            return cls.count
+
+    assert Test2.test == 1
+    assert Test2.test == 1
+    assert Test2().test == 1
+    assert Test2().test == 1
 
 
 def test__is_pickle():

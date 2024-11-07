@@ -655,6 +655,21 @@ class URIPath(BaseURIPath):
         raw_suffix = self.suffix
         return self.from_path(path[: len(path) - len(raw_suffix)] + suffix)
 
+    def relpath(self, start=None):
+        """Return the relative path."""
+        if start is None:
+            raise TypeError("start is required")
+
+        other_path = self.from_path(start).path_with_protocol
+        path = self.path_with_protocol
+
+        if path.startswith(other_path):
+            relative = path[len(other_path) :]
+            relative = relative.lstrip("/")
+            return relative
+        else:
+            raise ValueError("%r does not start with %r" % (path, other_path))
+
     def is_absolute(self) -> bool:
         return True
 

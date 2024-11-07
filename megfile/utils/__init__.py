@@ -4,7 +4,7 @@ import math
 import os
 import uuid
 from copy import copy
-from functools import wraps
+from functools import cached_property, wraps
 from io import (
     BufferedIOBase,
     BufferedRandom,
@@ -298,3 +298,33 @@ class classproperty(property):
         """
         # call this method only on the class, not the instance
         super(classproperty, self).__delete__(_get_class(cls_or_obj))
+
+
+class cached_classproperty(cached_property):
+    """
+    The use this class as a decorator for your class property with cache.
+    Example:
+        @cached_classproperty
+        def prop(cls):
+            return "value"
+    """
+
+    def __get__(self, _, cls) -> object:
+        """
+        This method gets called when a property value is requested.
+        @param cls: The class type of the above instance.
+        @return: The value of the property.
+        """
+        if self.attrname is None:
+            raise TypeError(
+                "Cannot use cached_classproperty instance without calling "
+                "__set_name__ on it."
+            )
+        with self.lock:
+            # check if another thread filled cache while we awaited lock
+            # cannot use getattr since it will cause RecursionError
+            val = cls.__dict__[self.attrname]
+            if val is self:
+                val = self.func(cls)
+                setattr(cls, self.attrname, val)
+        return val

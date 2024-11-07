@@ -29,6 +29,7 @@ from megfile.smart import (
     smart_open,
     smart_path_join,
     smart_readlink,
+    smart_relpath,
     smart_remove,
     smart_rename,
     smart_scan_stat,
@@ -78,7 +79,7 @@ def get_echo_path(file_stat, base_path: str = "", full_path: bool = False):
     elif full_path:
         path = file_stat.path
     else:
-        path = os.path.relpath(file_stat.path, start=base_path)
+        path = smart_relpath(file_stat.path, start=base_path)
     return path
 
 

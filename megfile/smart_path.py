@@ -1,11 +1,11 @@
 import os
 from configparser import ConfigParser
 from pathlib import PurePath
-from typing import Dict, Tuple, Union
+from typing import Dict, Optional, Tuple, Union
 
 from megfile.lib.compat import fspath
 from megfile.lib.url import get_url_scheme
-from megfile.utils import classproperty
+from megfile.utils import cached_classproperty
 
 from .errors import ProtocolExistsError, ProtocolNotFoundError
 from .interfaces import BasePath, BaseURIPath, PathLike
@@ -54,15 +54,15 @@ class SmartPath(BasePath):
             self.path = str(pathlike)
         self.pathlike = pathlike
 
-    @classproperty
+    @cached_classproperty
     def _aliases(cls) -> Dict[str, Dict[str, str]]:
         config_path = os.path.expanduser(aliases_config)
-        aliases = _load_aliases_config(config_path)
-        setattr(cls, "_aliases", aliases)
-        return aliases
+        return _load_aliases_config(config_path)
 
-    @staticmethod
-    def _extract_protocol(path: Union[PathLike, int]) -> Tuple[str, Union[str, int]]:
+    @classmethod
+    def _extract_protocol(
+        cls, path: Union[PathLike, int]
+    ) -> Tuple[str, Union[str, int]]:
         if isinstance(path, int):
             protocol = "file"
             path_without_protocol = path
@@ -74,27 +74,26 @@ class SmartPath(BasePath):
             else:
                 path_without_protocol = path[len(protocol) + 3 :]
         elif isinstance(path, (BaseURIPath, SmartPath)):
-            protocol = path.protocol
-            path_without_protocol = str(path)
+            return path.protocol, str(path)
         elif isinstance(path, (PurePath, BasePath)):
-            protocol, path_without_protocol = SmartPath._extract_protocol(fspath(path))
+            return SmartPath._extract_protocol(fspath(path))
         else:
             raise ProtocolNotFoundError("protocol not found: %r" % path)
-        return protocol, path_without_protocol
-
-    @classmethod
-    def _create_pathlike(cls, path: Union[PathLike, int]) -> BaseURIPath:
-        protocol, path_without_protocol = cls._extract_protocol(path)
         aliases: Dict[str, Dict[str, str]] = cls._aliases  # pyre-ignore[9]
         if protocol in aliases:
             protocol = aliases[protocol]["protocol"]
-            path = protocol + "://" + str(path_without_protocol)
+            path = "%s://%s" % (protocol, path_without_protocol)
+        return protocol, path
+
+    @classmethod
+    def _create_pathlike(cls, path: Union[PathLike, int]) -> BaseURIPath:
+        protocol, unaliased_path = cls._extract_protocol(path)
         if protocol.startswith("s3+"):
             protocol = "s3"
         if protocol not in cls._registered_protocols:
             raise ProtocolNotFoundError("protocol %r not found: %r" % (protocol, path))
         path_class = cls._registered_protocols[protocol]
-        return path_class(path)
+        return path_class(unaliased_path)
 
     @classmethod
     def register(cls, path_class, override_ok: bool = False):
@@ -137,7 +136,6 @@ class SmartPath(BasePath):
     joinpath = _bind_function("joinpath")
     abspath = _bind_function("abspath")
     realpath = _bind_function("realpath")
-    relpath = _bind_function("relpath")
     is_absolute = _bind_function("is_absolute")
     is_mount = _bind_function("is_mount")
     md5 = _bind_function("md5")
@@ -149,6 +147,16 @@ class SmartPath(BasePath):
     @classmethod
     def from_uri(cls, path: str):
         return cls(path)
+
+    def relpath(self, start: Optional[str] = None) -> str:
+        """Return the relative path of given path
+
+        :param start: Given start directory
+        :returns: Relative path from start
+        """
+        if start is not None:
+            _, start = SmartPath._extract_protocol(fspath(start))
+        return self.pathlike.relpath(start=start)
 
     as_uri = _bind_function("as_uri")
     as_posix = _bind_function("as_posix")
@@ -170,7 +178,6 @@ class SmartPath(BasePath):
     is_mount = _bind_function("is_mount")
     abspath = _bind_function("abspath")
     realpath = _bind_function("realpath")
-    relpath = _bind_function("relpath")
     iterdir = _bind_function("iterdir")
     cwd = _bind_function("cwd")
     home = _bind_function("home")

@@ -113,7 +113,7 @@ def test_extract_protocol():
     )
     assert SmartPath._extract_protocol(FS_TEST_ABSOLUTE_PATH_WITH_PROTOCOL) == (
         FSPath.protocol,
-        FS_TEST_ABSOLUTE_PATH,
+        FS_TEST_ABSOLUTE_PATH_WITH_PROTOCOL,
     )
     assert SmartPath._extract_protocol(FS_TEST_RELATIVE_PATH) == (
         FSPath.protocol,
@@ -121,23 +121,23 @@ def test_extract_protocol():
     )
     assert SmartPath._extract_protocol(FS_TEST_RELATIVE_PATH_WITH_PROTOCOL) == (
         FSPath.protocol,
-        FS_TEST_RELATIVE_PATH,
+        FS_TEST_RELATIVE_PATH_WITH_PROTOCOL,
     )
     assert SmartPath._extract_protocol(S3_TEST_PATH) == (
         S3Path.protocol,
-        S3_TEST_PATH_WITHOUT_PROTOCOL,
+        S3_TEST_PATH,
     )
     assert SmartPath._extract_protocol(HTTP_TEST_PATH) == (
         HttpPath.protocol,
-        HTTP_TEST_PATH_WITHOUT_PROTOCOL,
+        HTTP_TEST_PATH,
     )
     assert SmartPath._extract_protocol(HTTPS_TEST_PATH) == (
         HttpsPath.protocol,
-        HTTPS_TEST_PATH_WITHOUT_PROTOCOL,
+        HTTPS_TEST_PATH,
     )
     assert SmartPath._extract_protocol(STDIO_TEST_PATH) == (
         StdioPath.protocol,
-        STDIO_TEST_PATH_WITHOUT_PROTOCOL,
+        STDIO_TEST_PATH,
     )
 
     fs_path = FSPath(FS_TEST_ABSOLUTE_PATH)
