@@ -366,7 +366,7 @@ def translate_s3_error(s3_error: Exception, s3_url: PathLike) -> Exception:
                 "Invalid configuration: %r, code: %r, message: %r, endpoint: %r"
                 % (s3_url, code, message, s3_endpoint_url(s3_url))
             )
-        if code in ("InvalidRange"):
+        if code in ("InvalidRange", "Requested Range Not Satisfiable"):
             return S3InvalidRangeError(
                 "Index out of range: %r, code: %r, message: %r, endpoint: %r"
                 % (
