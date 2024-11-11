@@ -591,6 +591,7 @@ def _safe_makedirs(path: str):
 @click.argument("aws_access_key_id")
 @click.argument("aws_secret_access_key")
 @click.option("-e", "--endpoint-url", help="endpoint-url")
+@click.option("-st", "--session-token", help="session-token")
 @click.option("-as", "--addressing-style", help="addressing-style")
 @click.option("-sv", "--signature-version", help="signature-version")
 @click.option("--no-cover", is_flag=True, help="Not cover the same-name config")
@@ -600,6 +601,7 @@ def s3(
     aws_access_key_id,
     aws_secret_access_key,
     endpoint_url,
+    session_token,
     addressing_style,
     signature_version,
     no_cover,
@@ -610,6 +612,7 @@ def s3(
         "name": profile_name,
         "aws_access_key_id": aws_access_key_id,
         "aws_secret_access_key": aws_secret_access_key,
+        "aws_session_token": session_token,
     }
     s3_config_dict = {
         "endpoint_url": endpoint_url,
@@ -617,14 +620,16 @@ def s3(
         "signature_version": signature_version,
     }
 
+    config_dict = {k: v for k, v in config_dict.items() if v}
     s3_config_dict = {k: v for k, v in s3_config_dict.items() if v}
     if s3_config_dict:
         config_dict["s3"] = s3_config_dict
 
     def dumps(config_dict: dict) -> str:
         content = "[{}]\n".format(config_dict["name"])
-        for key in ("aws_access_key_id", "aws_secret_access_key"):
-            content += "{} = {}\n".format(key, config_dict[key])
+        for key in ("aws_access_key_id", "aws_secret_access_key", "session_token"):
+            if key in config_dict:
+                content += "{} = {}\n".format(key, config_dict[key])
         if "s3" in config_dict.keys():
             content += "\ns3 = \n"
             for key, value in config_dict["s3"].items():
