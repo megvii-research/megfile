@@ -988,6 +988,8 @@ def test_smart_relpath(mocker, s3_path, s3_bucket, abs_path, rel_path):
     mocker.patch("os.getcwd", return_value=os.path.dirname(__file__))
     with pytest.raises(TypeError):
         assert smart.smart_relpath(s3_path) == s3_path
+    with pytest.raises(ValueError):
+        smart.smart_relpath(s3_path, abs_path)
     assert smart.smart_relpath(abs_path, os.path.dirname(__file__)) == rel_path
     assert smart.smart_relpath(s3_path, s3_bucket) == rel_path
 
