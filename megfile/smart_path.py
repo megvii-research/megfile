@@ -74,7 +74,7 @@ class SmartPath(BasePath):
             else:
                 path_without_protocol = path[len(protocol) + 3 :]
         elif isinstance(path, (BaseURIPath, SmartPath)):
-            return path.protocol, str(path)
+            return str(path.protocol), str(path)
         elif isinstance(path, (PurePath, BasePath)):
             return SmartPath._extract_protocol(fspath(path))
         else:

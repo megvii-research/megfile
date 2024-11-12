@@ -323,7 +323,11 @@ class cached_classproperty(cached_property):
         if not hasattr(func, "lock"):
             self.lock = RLock()
 
-    def __get__(self, _, cls) -> object:
+    def __get__(  # pyre-ignore[14]
+        self,
+        _,
+        cls,  # pytype: disable=signature-mismatch
+    ) -> object:
         """
         This method gets called when a property value is requested.
         @param cls: The class type of the above instance.
