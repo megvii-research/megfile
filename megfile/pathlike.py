@@ -636,8 +636,8 @@ class URIPath(BaseURIPath):
             relative = path[len(other_path) :]
             relative = relative.lstrip("/")
             return type(self)(relative)  # pyre-ignore[19]
-        else:
-            raise ValueError("%r does not start with %r" % (path, other))
+
+        raise ValueError("%r does not start with %r" % (path, other))
 
     def with_name(self: Self, name: str) -> Self:
         """Return a new path with the name changed"""
@@ -667,8 +667,8 @@ class URIPath(BaseURIPath):
             relative = path[len(other_path) :]
             relative = relative.lstrip("/")
             return relative
-        else:
-            raise ValueError("%r does not start with %r" % (path, other_path))
+
+        raise ValueError("%r does not start with %r" % (path, other_path))
 
     def is_absolute(self) -> bool:
         return True

@@ -932,6 +932,11 @@ def s3_path():
 
 
 @pytest.fixture
+def s3_bucket():
+    yield "s3://bucket"
+
+
+@pytest.fixture
 def abs_path(fs):
     fs.create_file(os.path.join(os.path.dirname(__file__), "test"))
     yield os.path.join(os.path.dirname(__file__), "test")
@@ -979,11 +984,12 @@ def test_smart_realpath(s3_path, abs_path, link_path):
     assert smart.smart_realpath(link_path) == abs_path
 
 
-def test_smart_relpath(mocker, s3_path, abs_path, rel_path):
+def test_smart_relpath(mocker, s3_path, s3_bucket, abs_path, rel_path):
     mocker.patch("os.getcwd", return_value=os.path.dirname(__file__))
-    with pytest.raises(NotImplementedError):
+    with pytest.raises(TypeError):
         assert smart.smart_relpath(s3_path) == s3_path
     assert smart.smart_relpath(abs_path, os.path.dirname(__file__)) == rel_path
+    assert smart.smart_relpath(s3_path, s3_bucket) == rel_path
 
 
 def test_smart_open_stdin(mocker):
