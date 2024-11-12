@@ -15,6 +15,7 @@ from io import (
     TextIOBase,
     TextIOWrapper,
 )
+from threading import RLock
 from typing import IO, Callable, Optional
 
 from megfile.utils.mutex import ProcessLocal, ThreadLocal
@@ -308,6 +309,19 @@ class cached_classproperty(cached_property):
         def prop(cls):
             return "value"
     """
+
+    def __init__(self, func: Callable) -> None:
+        """
+        This method initializes the cached_classproperty instance.
+        @param func: The function to be called when the property value is requested.
+        """
+        super().__init__(func)
+        # Python 3.12 removed the lock attribute from cached_property.
+        # Maybe we should remove this in the future.
+        # See also: https://github.com/python/cpython/pull/101890
+        #        https://github.com/python/cpython/issues/87634
+        if not hasattr(func, "lock"):
+            self.lock = RLock()
 
     def __get__(self, _, cls) -> object:
         """
