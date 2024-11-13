@@ -122,7 +122,7 @@ max_retries = S3_MAX_RETRY_TIMES
 max_keys = 1000
 
 
-def _patch_make_request(client: botocore.client.BaseClient):
+def _patch_make_request(client: botocore.client.BaseClient, redirect: bool = False):
     def after_callback(result: Tuple[AWSResponse, dict], *args, **kwargs):
         if (
             not isinstance(result, tuple)
@@ -161,6 +161,26 @@ def _patch_make_request(client: botocore.client.BaseClient):
         before_callback=before_callback,
         retry_callback=retry_callback,
     )
+
+    def patch_send_request(send_request):
+        def patched_send_request(request_dict, operation_model):
+            http, parsed_response = send_request(request_dict, operation_model)
+            if (
+                request_dict["method"] == "GET"  # only support GET method for now
+                and http.status_code in (301, 302, 307, 308)
+                and "Location" in http.headers
+            ):
+                request_dict["url"] = http.headers["Location"]
+                http, parsed_response = send_request(request_dict, operation_model)
+            return http, parsed_response
+
+        return patched_send_request
+
+    if redirect:
+        client._endpoint._send_request = patch_send_request(
+            client._endpoint._send_request
+        )
+
     return client
 
 
@@ -180,7 +200,11 @@ def parse_s3_url(s3_url: PathLike) -> Tuple[str, str]:
 
 
 def get_scoped_config(profile_name: Optional[str] = None) -> Dict:
-    return get_s3_session(profile_name=profile_name)._session.get_scoped_config()
+    try:
+        session = get_s3_session(profile_name=profile_name)
+    except botocore.exceptions.ProfileNotFound:
+        session = get_s3_session()
+    return session._session.get_scoped_config()
 
 
 @lru_cache()
@@ -224,25 +248,22 @@ def get_s3_session(profile_name=None) -> boto3.Session:
     )
 
 
+def get_env_var(env_name: str, profile_name=None):
+    if profile_name:
+        return os.getenv(f"{profile_name}__{env_name}".upper())
+    return os.getenv(env_name.upper())
+
+
+def parse_boolean(value: Optional[str], default: bool = False) -> bool:
+    if value is None:
+        return default
+    return value.lower() in ("true", "yes", "1")
+
+
 def get_access_token(profile_name=None):
-    access_key_env_name = (
-        f"{profile_name}__AWS_ACCESS_KEY_ID".upper()
-        if profile_name
-        else "AWS_ACCESS_KEY_ID"
-    )
-    secret_key_env_name = (
-        f"{profile_name}__AWS_SECRET_ACCESS_KEY".upper()
-        if profile_name
-        else "AWS_SECRET_ACCESS_KEY"
-    )
-    session_token_env_name = (
-        f"{profile_name}__AWS_SESSION_TOKEN".upper()
-        if profile_name
-        else "AWS_SESSION_TOKEN"
-    )
-    access_key = os.getenv(access_key_env_name)
-    secret_key = os.getenv(secret_key_env_name)
-    session_token = os.getenv(session_token_env_name)
+    access_key = get_env_var("AWS_ACCESS_KEY_ID", profile_name=profile_name)
+    secret_key = get_env_var("AWS_SECRET_ACCESS_KEY", profile_name=profile_name)
+    session_token = get_env_var("AWS_SESSION_TOKEN", profile_name=profile_name)
     if access_key and secret_key:
         return access_key, secret_key, session_token
 
@@ -289,10 +310,7 @@ def get_s3_client(
             connect_timeout=5, max_pool_connections=GLOBAL_MAX_WORKERS
         )
 
-    addressing_style_env_key = "AWS_S3_ADDRESSING_STYLE"
-    if profile_name:
-        addressing_style_env_key = f"{profile_name}__AWS_S3_ADDRESSING_STYLE".upper()
-    addressing_style = os.environ.get(addressing_style_env_key)
+    addressing_style = get_env_var("AWS_S3_ADDRESSING_STYLE", profile_name=profile_name)
     if addressing_style:
         config = config.merge(
             botocore.config.Config(s3={"addressing_style": addressing_style})
@@ -303,15 +321,25 @@ def get_s3_client(
         session = get_s3_session(profile_name=profile_name)
     except botocore.exceptions.ProfileNotFound:
         session = get_s3_session()
+
+    s3_config = get_scoped_config(profile_name=profile_name).get("s3", {})
+    verify = get_env_var("AWS_S3_VERIFY", profile_name=profile_name)
+    verify = verify or s3_config.get("verify")
+    verify = parse_boolean(verify, default=True)
+    redirect = get_env_var("AWS_S3_REDIRECT", profile_name=profile_name)
+    redirect = redirect or s3_config.get("redirect")
+    redirect = parse_boolean(redirect, default=False)
+
     client = session.client(
         "s3",
         endpoint_url=get_endpoint_url(profile_name=profile_name),
+        verify=verify,
         config=config,
         aws_access_key_id=access_key,
         aws_secret_access_key=secret_key,
         aws_session_token=session_token,
     )
-    client = _patch_make_request(client)
+    client = _patch_make_request(client, redirect=redirect)
     return client
 
 
