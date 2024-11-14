@@ -202,7 +202,7 @@
 <span class="n">max_keys</span> <span class="o">=</span> <span class="mi">1000</span>
 
 
-<span class="k">def</span> <span class="nf">_patch_make_request</span><span class="p">(</span><span class="n">client</span><span class="p">:</span> <span class="n">botocore</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">BaseClient</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_patch_make_request</span><span class="p">(</span><span class="n">client</span><span class="p">:</span> <span class="n">botocore</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">BaseClient</span><span class="p">,</span> <span class="n">redirect</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">after_callback</span><span class="p">(</span><span class="n">result</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">AWSResponse</span><span class="p">,</span> <span class="nb">dict</span><span class="p">],</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">if</span> <span class="p">(</span>
             <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span>
@@ -241,6 +241,26 @@
         <span class="n">before_callback</span><span class="o">=</span><span class="n">before_callback</span><span class="p">,</span>
         <span class="n">retry_callback</span><span class="o">=</span><span class="n">retry_callback</span><span class="p">,</span>
     <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">patch_send_request</span><span class="p">(</span><span class="n">send_request</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">patched_send_request</span><span class="p">(</span><span class="n">request_dict</span><span class="p">,</span> <span class="n">operation_model</span><span class="p">):</span>
+            <span class="n">http</span><span class="p">,</span> <span class="n">parsed_response</span> <span class="o">=</span> <span class="n">send_request</span><span class="p">(</span><span class="n">request_dict</span><span class="p">,</span> <span class="n">operation_model</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">request_dict</span><span class="p">[</span><span class="s2">&quot;method&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;GET&quot;</span>  <span class="c1"># only support GET method for now</span>
+                <span class="ow">and</span> <span class="n">http</span><span class="o">.</span><span class="n">status_code</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">301</span><span class="p">,</span> <span class="mi">302</span><span class="p">,</span> <span class="mi">307</span><span class="p">,</span> <span class="mi">308</span><span class="p">)</span>
+                <span class="ow">and</span> <span class="s2">&quot;Location&quot;</span> <span class="ow">in</span> <span class="n">http</span><span class="o">.</span><span class="n">headers</span>
+            <span class="p">):</span>
+                <span class="n">request_dict</span><span class="p">[</span><span class="s2">&quot;url&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">http</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s2">&quot;Location&quot;</span><span class="p">]</span>
+                <span class="n">http</span><span class="p">,</span> <span class="n">parsed_response</span> <span class="o">=</span> <span class="n">send_request</span><span class="p">(</span><span class="n">request_dict</span><span class="p">,</span> <span class="n">operation_model</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">http</span><span class="p">,</span> <span class="n">parsed_response</span>
+
+        <span class="k">return</span> <span class="n">patched_send_request</span>
+
+    <span class="k">if</span> <span class="n">redirect</span><span class="p">:</span>
+        <span class="n">client</span><span class="o">.</span><span class="n">_endpoint</span><span class="o">.</span><span class="n">_send_request</span> <span class="o">=</span> <span class="n">patch_send_request</span><span class="p">(</span>
+            <span class="n">client</span><span class="o">.</span><span class="n">_endpoint</span><span class="o">.</span><span class="n">_send_request</span>
+        <span class="p">)</span>
+
     <span class="k">return</span> <span class="n">client</span>
 
 
@@ -263,7 +283,11 @@
 
 
 <span class="k">def</span> <span class="nf">get_scoped_config</span><span class="p">(</span><span class="n">profile_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
-    <span class="k">return</span> <span class="n">get_s3_session</span><span class="p">(</span><span class="n">profile_name</span><span class="o">=</span><span class="n">profile_name</span><span class="p">)</span><span class="o">.</span><span class="n">_session</span><span class="o">.</span><span class="n">get_scoped_config</span><span class="p">()</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">session</span> <span class="o">=</span> <span class="n">get_s3_session</span><span class="p">(</span><span class="n">profile_name</span><span class="o">=</span><span class="n">profile_name</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">botocore</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">ProfileNotFound</span><span class="p">:</span>
+        <span class="n">session</span> <span class="o">=</span> <span class="n">get_s3_session</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">session</span><span class="o">.</span><span class="n">_session</span><span class="o">.</span><span class="n">get_scoped_config</span><span class="p">()</span>
 
 
 <span class="nd">@lru_cache</span><span class="p">()</span>
@@ -313,25 +337,22 @@
 
 
 
+<span class="k">def</span> <span class="nf">get_env_var</span><span class="p">(</span><span class="n">env_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">profile_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">profile_name</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">profile_name</span><span class="si">}</span><span class="s2">__</span><span class="si">{</span><span class="n">env_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="n">env_name</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
+
+
+<span class="k">def</span> <span class="nf">parse_boolean</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">default</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">default</span>
+    <span class="k">return</span> <span class="n">value</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;true&quot;</span><span class="p">,</span> <span class="s2">&quot;yes&quot;</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">)</span>
+
+
 <span class="k">def</span> <span class="nf">get_access_token</span><span class="p">(</span><span class="n">profile_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="n">access_key_env_name</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">profile_name</span><span class="si">}</span><span class="s2">__AWS_ACCESS_KEY_ID&quot;</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">profile_name</span>
-        <span class="k">else</span> <span class="s2">&quot;AWS_ACCESS_KEY_ID&quot;</span>
-    <span class="p">)</span>
-    <span class="n">secret_key_env_name</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">profile_name</span><span class="si">}</span><span class="s2">__AWS_SECRET_ACCESS_KEY&quot;</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">profile_name</span>
-        <span class="k">else</span> <span class="s2">&quot;AWS_SECRET_ACCESS_KEY&quot;</span>
-    <span class="p">)</span>
-    <span class="n">session_token_env_name</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">profile_name</span><span class="si">}</span><span class="s2">__AWS_SESSION_TOKEN&quot;</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">profile_name</span>
-        <span class="k">else</span> <span class="s2">&quot;AWS_SESSION_TOKEN&quot;</span>
-    <span class="p">)</span>
-    <span class="n">access_key</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="n">access_key_env_name</span><span class="p">)</span>
-    <span class="n">secret_key</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="n">secret_key_env_name</span><span class="p">)</span>
-    <span class="n">session_token</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="n">session_token_env_name</span><span class="p">)</span>
+    <span class="n">access_key</span> <span class="o">=</span> <span class="n">get_env_var</span><span class="p">(</span><span class="s2">&quot;AWS_ACCESS_KEY_ID&quot;</span><span class="p">,</span> <span class="n">profile_name</span><span class="o">=</span><span class="n">profile_name</span><span class="p">)</span>
+    <span class="n">secret_key</span> <span class="o">=</span> <span class="n">get_env_var</span><span class="p">(</span><span class="s2">&quot;AWS_SECRET_ACCESS_KEY&quot;</span><span class="p">,</span> <span class="n">profile_name</span><span class="o">=</span><span class="n">profile_name</span><span class="p">)</span>
+    <span class="n">session_token</span> <span class="o">=</span> <span class="n">get_env_var</span><span class="p">(</span><span class="s2">&quot;AWS_SESSION_TOKEN&quot;</span><span class="p">,</span> <span class="n">profile_name</span><span class="o">=</span><span class="n">profile_name</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">access_key</span> <span class="ow">and</span> <span class="n">secret_key</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">access_key</span><span class="p">,</span> <span class="n">secret_key</span><span class="p">,</span> <span class="n">session_token</span>
 
@@ -380,10 +401,7 @@
             <span class="n">connect_timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">max_pool_connections</span><span class="o">=</span><span class="n">GLOBAL_MAX_WORKERS</span>
         <span class="p">)</span>
 
-    <span class="n">addressing_style_env_key</span> <span class="o">=</span> <span class="s2">&quot;AWS_S3_ADDRESSING_STYLE&quot;</span>
-    <span class="k">if</span> <span class="n">profile_name</span><span class="p">:</span>
-        <span class="n">addressing_style_env_key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">profile_name</span><span class="si">}</span><span class="s2">__AWS_S3_ADDRESSING_STYLE&quot;</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
-    <span class="n">addressing_style</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">addressing_style_env_key</span><span class="p">)</span>
+    <span class="n">addressing_style</span> <span class="o">=</span> <span class="n">get_env_var</span><span class="p">(</span><span class="s2">&quot;AWS_S3_ADDRESSING_STYLE&quot;</span><span class="p">,</span> <span class="n">profile_name</span><span class="o">=</span><span class="n">profile_name</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">addressing_style</span><span class="p">:</span>
         <span class="n">config</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
             <span class="n">botocore</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">Config</span><span class="p">(</span><span class="n">s3</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;addressing_style&quot;</span><span class="p">:</span> <span class="n">addressing_style</span><span class="p">})</span>
@@ -394,15 +412,25 @@
         <span class="n">session</span> <span class="o">=</span> <span class="n">get_s3_session</span><span class="p">(</span><span class="n">profile_name</span><span class="o">=</span><span class="n">profile_name</span><span class="p">)</span>
     <span class="k">except</span> <span class="n">botocore</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">ProfileNotFound</span><span class="p">:</span>
         <span class="n">session</span> <span class="o">=</span> <span class="n">get_s3_session</span><span class="p">()</span>
+
+    <span class="n">s3_config</span> <span class="o">=</span> <span class="n">get_scoped_config</span><span class="p">(</span><span class="n">profile_name</span><span class="o">=</span><span class="n">profile_name</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;s3&quot;</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="n">verify</span> <span class="o">=</span> <span class="n">get_env_var</span><span class="p">(</span><span class="s2">&quot;AWS_S3_VERIFY&quot;</span><span class="p">,</span> <span class="n">profile_name</span><span class="o">=</span><span class="n">profile_name</span><span class="p">)</span>
+    <span class="n">verify</span> <span class="o">=</span> <span class="n">verify</span> <span class="ow">or</span> <span class="n">s3_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;verify&quot;</span><span class="p">)</span>
+    <span class="n">verify</span> <span class="o">=</span> <span class="n">parse_boolean</span><span class="p">(</span><span class="n">verify</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">redirect</span> <span class="o">=</span> <span class="n">get_env_var</span><span class="p">(</span><span class="s2">&quot;AWS_S3_REDIRECT&quot;</span><span class="p">,</span> <span class="n">profile_name</span><span class="o">=</span><span class="n">profile_name</span><span class="p">)</span>
+    <span class="n">redirect</span> <span class="o">=</span> <span class="n">redirect</span> <span class="ow">or</span> <span class="n">s3_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;redirect&quot;</span><span class="p">)</span>
+    <span class="n">redirect</span> <span class="o">=</span> <span class="n">parse_boolean</span><span class="p">(</span><span class="n">redirect</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
     <span class="n">client</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">client</span><span class="p">(</span>
         <span class="s2">&quot;s3&quot;</span><span class="p">,</span>
         <span class="n">endpoint_url</span><span class="o">=</span><span class="n">get_endpoint_url</span><span class="p">(</span><span class="n">profile_name</span><span class="o">=</span><span class="n">profile_name</span><span class="p">),</span>
+        <span class="n">verify</span><span class="o">=</span><span class="n">verify</span><span class="p">,</span>
         <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span>
         <span class="n">aws_access_key_id</span><span class="o">=</span><span class="n">access_key</span><span class="p">,</span>
         <span class="n">aws_secret_access_key</span><span class="o">=</span><span class="n">secret_key</span><span class="p">,</span>
         <span class="n">aws_session_token</span><span class="o">=</span><span class="n">session_token</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="n">client</span> <span class="o">=</span> <span class="n">_patch_make_request</span><span class="p">(</span><span class="n">client</span><span class="p">)</span>
+    <span class="n">client</span> <span class="o">=</span> <span class="n">_patch_make_request</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">redirect</span><span class="o">=</span><span class="n">redirect</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">client</span></div>
 
 
