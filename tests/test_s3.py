@@ -331,17 +331,21 @@ def test_get_s3_client(mocker):
     mocker.patch("megfile.s3_path.get_scoped_config", return_value={})
     mocker.patch("megfile.s3_path.get_s3_session", return_value=mock_session)
 
-    s3.get_s3_client()
+    client = s3.get_s3_client()
     access_key, secret_key, session_token = s3_path.get_access_token()
 
     mock_session.client.assert_called_with(
         "s3",
         endpoint_url="https://s3.amazonaws.com",
         config=Any(),
+        verify=True,
         aws_access_key_id=access_key,
         aws_secret_access_key=secret_key,
         aws_session_token=session_token,
     )
+
+    # assert _send_request is not patched
+    assert "_send_request" not in client._endpoint.__dict__
 
     client = s3.get_s3_client(cache_key="test")
     assert client is s3.get_s3_client(cache_key="test")
@@ -354,6 +358,8 @@ def test_get_s3_client(mocker):
         "TEST__AWS_S3_ADDRESSING_STYLE": "auto",
         "AWS_ACCESS_KEY_ID": "test",
         "AWS_SECRET_ACCESS_KEY": "test",
+        "AWS_S3_VERIFY": "false",
+        "AWS_S3_REDIRECT": "true",
     },
 )
 def test_get_s3_client_v2():
@@ -377,29 +383,42 @@ def test_get_s3_client_v2():
         == "virtual"
     )
 
+    # assert _send_request is patched
+    assert "_send_request" in client._endpoint.__dict__
+
 
 def test_get_s3_client_from_env(mocker):
     mock_session = mocker.Mock(spec=boto3.Session)
     mocker.patch("megfile.s3_path.get_scoped_config", return_value={})
     mocker.patch("megfile.s3_path.get_s3_session", return_value=mock_session)
-    mocker.patch.dict(os.environ, {"OSS_ENDPOINT": "oss-endpoint"})
+    mocker.patch.dict(
+        os.environ,
+        {"OSS_ENDPOINT": "oss-endpoint", "AWS_S3_VERIFY": "0", "AWS_S3_REDIRECT": "1"},
+    )
 
-    s3.get_s3_client()
+    client = s3.get_s3_client()
     access_key, secret_key, session_token = s3_path.get_access_token()
 
     mock_session.client.assert_called_with(
         "s3",
         endpoint_url="oss-endpoint",
         config=Any(),
+        verify=False,
         aws_access_key_id=access_key,
         aws_secret_access_key=secret_key,
         aws_session_token=session_token,
     )
 
+    # assert _send_request is patched
+    assert "_send_request" in client._endpoint.__dict__
+
 
 def test_get_s3_client_with_config(mocker):
     mock_session = mocker.Mock(spec=boto3.Session)
-    mocker.patch("megfile.s3_path.get_scoped_config", return_value={})
+    mocker.patch(
+        "megfile.s3_path.get_scoped_config",
+        return_value={"s3": {"verify": "no", "redirect": "yes"}},
+    )
     mocker.patch("megfile.s3_path.get_s3_session", return_value=mock_session)
 
     class EQConfig(botocore.config.Config):
@@ -407,17 +426,21 @@ def test_get_s3_client_with_config(mocker):
             return self._user_provided_options == other._user_provided_options
 
     config = EQConfig(max_pool_connections=GLOBAL_MAX_WORKERS, connect_timeout=1)
-    s3.get_s3_client(config)
+    client = s3.get_s3_client(config)
     access_key, secret_key, session_token = s3_path.get_access_token()
 
     mock_session.client.assert_called_with(
         "s3",
         endpoint_url="https://s3.amazonaws.com",
         config=config,
+        verify=False,
         aws_access_key_id=access_key,
         aws_secret_access_key=secret_key,
         aws_session_token=session_token,
     )
+
+    # assert _send_request is patched
+    assert "_send_request" in client._endpoint.__dict__
 
 
 def test_get_s3_session_threading(mocker):
