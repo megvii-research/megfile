@@ -4,7 +4,7 @@ import math
 import os
 import uuid
 from copy import copy
-from functools import wraps
+from functools import cached_property, wraps
 from io import (
     BufferedIOBase,
     BufferedRandom,
@@ -15,6 +15,7 @@ from io import (
     TextIOBase,
     TextIOWrapper,
 )
+from threading import RLock
 from typing import IO, Callable, Optional
 
 from megfile.utils.mutex import ProcessLocal, ThreadLocal
@@ -298,3 +299,50 @@ class classproperty(property):
         """
         # call this method only on the class, not the instance
         super(classproperty, self).__delete__(_get_class(cls_or_obj))
+
+
+class cached_classproperty(cached_property):
+    """
+    The use this class as a decorator for your class property with cache.
+    Example:
+        @cached_classproperty
+        def prop(cls):
+            return "value"
+    """
+
+    def __init__(self, func: Callable) -> None:
+        """
+        This method initializes the cached_classproperty instance.
+        @param func: The function to be called when the property value is requested.
+        """
+        super().__init__(func)
+        # Python 3.12 removed the lock attribute from cached_property.
+        # Maybe we should remove this in the future.
+        # See also: https://github.com/python/cpython/pull/101890
+        #        https://github.com/python/cpython/issues/87634
+        if not hasattr(func, "lock"):
+            self.lock = RLock()
+
+    def __get__(  # pyre-ignore[14]
+        self,
+        _,
+        cls,  # pytype: disable=signature-mismatch
+    ) -> object:
+        """
+        This method gets called when a property value is requested.
+        @param cls: The class type of the above instance.
+        @return: The value of the property.
+        """
+        if self.attrname is None:
+            raise TypeError(
+                "Cannot use cached_classproperty instance without calling "
+                "__set_name__ on it."
+            )
+        with self.lock:
+            # check if another thread filled cache while we awaited lock
+            # cannot use getattr since it will cause RecursionError
+            val = cls.__dict__[self.attrname]
+            if val is self:
+                val = self.func(cls)
+                setattr(cls, self.attrname, val)
+        return val
