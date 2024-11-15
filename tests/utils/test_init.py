@@ -9,6 +9,7 @@ from megfile.utils import (
     cached_classproperty,
     combine,
     get_human_size,
+    is_domain_or_subdomain,
     necessary_params,
     patch_rlimit,
 )
@@ -108,3 +109,12 @@ def test__is_pickle():
     fileObj.name = "test"
     fileObj.mode = "wb"
     assert _is_pickle(fileObj) is False
+
+
+def test_is_domain_or_subdomain():
+    assert is_domain_or_subdomain("test1.com", "test2.com") is False
+    assert is_domain_or_subdomain("test1.test.com", "test2.test.com") is False
+
+    assert is_domain_or_subdomain("test.com", "test.com") is True
+    assert is_domain_or_subdomain("test1.test.com", "test.com") is True
+    assert is_domain_or_subdomain("test.com", "test1.test.com") is False

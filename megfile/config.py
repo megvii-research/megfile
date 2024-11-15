@@ -60,3 +60,5 @@ HDFS_MAX_RETRY_TIMES = int(
 SFTP_MAX_RETRY_TIMES = int(
     os.getenv("MEGFILE_SFTP_MAX_RETRY_TIMES") or DEFAULT_MAX_RETRY_TIMES
 )
+
+HTTP_AUTH_HEADERS = ("Authorization", "Www-Authenticate", "Cookie", "Cookie2")

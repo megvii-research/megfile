@@ -7,16 +7,18 @@ from concurrent.futures import ThreadPoolExecutor
 from functools import cached_property, lru_cache, wraps
 from logging import getLogger as get_logger
 from typing import IO, Any, BinaryIO, Callable, Dict, Iterator, List, Optional, Tuple
+from urllib.parse import urlparse
 
 import boto3
 import botocore
-from botocore.awsrequest import AWSResponse
+from botocore.awsrequest import AWSPreparedRequest, AWSResponse
 
 from megfile.config import (
     DEFAULT_BLOCK_SIZE,
     DEFAULT_MAX_BLOCK_SIZE,
     DEFAULT_MIN_BLOCK_SIZE,
     GLOBAL_MAX_WORKERS,
+    HTTP_AUTH_HEADERS,
     S3_CLIENT_CACHE_MODE,
     S3_MAX_RETRY_TIMES,
 )
@@ -76,6 +78,7 @@ from megfile.utils import (
     generate_cache_path,
     get_binary_mode,
     get_content_offset,
+    is_domain_or_subdomain,
     is_readable,
     necessary_params,
     process_local,
@@ -162,24 +165,30 @@ def _patch_make_request(client: botocore.client.BaseClient, redirect: bool = Fal
         retry_callback=retry_callback,
     )
 
-    def patch_send_request(send_request):
-        def patched_send_request(request_dict, operation_model):
-            http, parsed_response = send_request(request_dict, operation_model)
+    def patch_send(send):
+        def patched_send(request: AWSPreparedRequest) -> AWSResponse:
+            response: AWSResponse = send(request)
             if (
-                request_dict["method"] == "GET"  # only support GET method for now
-                and http.status_code in (301, 302, 307, 308)
-                and "Location" in http.headers
+                request.method == "GET"  # only support GET method for now
+                and response.status_code in (301, 302, 307, 308)
+                and "Location" in response.headers
             ):
-                request_dict["url"] = http.headers["Location"]
-                http, parsed_response = send_request(request_dict, operation_model)
-            return http, parsed_response
+                # Permit sending auth/cookie headers from "foo.com" to "sub.foo.com".
+                # See also: https://go.dev/src/net/http/client.go#L980
+                location = response.headers["Location"]
+                ihost = urlparse(request.url).hostname
+                dhost = urlparse(location).hostname
+                if not is_domain_or_subdomain(dhost, ihost):
+                    for name in HTTP_AUTH_HEADERS:
+                        request.headers.pop(name, None)
+                request.url = location
+                response = send(request)
+            return response
 
-        return patched_send_request
+        return patched_send
 
     if redirect:
-        client._endpoint._send_request = patch_send_request(
-            client._endpoint._send_request
-        )
+        client._endpoint._send = patch_send(client._endpoint._send)
 
     return client
 
