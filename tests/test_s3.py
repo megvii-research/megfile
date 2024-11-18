@@ -344,8 +344,8 @@ def test_get_s3_client(mocker):
         aws_session_token=session_token,
     )
 
-    # assert _send_request is not patched
-    assert "_send_request" not in client._endpoint.__dict__
+    # assert _send is not patched
+    assert "_send" not in client._endpoint.__dict__
 
     client = s3.get_s3_client(cache_key="test")
     assert client is s3.get_s3_client(cache_key="test")
@@ -383,8 +383,8 @@ def test_get_s3_client_v2():
         == "virtual"
     )
 
-    # assert _send_request is patched
-    assert "_send_request" in client._endpoint.__dict__
+    # assert _send is patched
+    assert "_send" in client._endpoint.__dict__
 
 
 def test_get_s3_client_from_env(mocker):
@@ -409,8 +409,8 @@ def test_get_s3_client_from_env(mocker):
         aws_session_token=session_token,
     )
 
-    # assert _send_request is patched
-    assert "_send_request" in client._endpoint.__dict__
+    # assert _send is patched
+    assert "_send" in client._endpoint.__dict__
 
 
 def test_get_s3_client_with_config(mocker):
@@ -439,8 +439,8 @@ def test_get_s3_client_with_config(mocker):
         aws_session_token=session_token,
     )
 
-    # assert _send_request is patched
-    assert "_send_request" in client._endpoint.__dict__
+    # assert _send is patched
+    assert "_send" in client._endpoint.__dict__
 
 
 def test_get_s3_session_threading(mocker):

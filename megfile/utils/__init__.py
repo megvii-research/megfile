@@ -346,3 +346,11 @@ class cached_classproperty(cached_property):
                 val = self.func(cls)
                 setattr(cls, self.attrname, val)
         return val
+
+
+def is_domain_or_subdomain(sub, parent):
+    if sub == parent:
+        return True
+    if sub.endswith(f".{parent}"):
+        return True
+    return False
