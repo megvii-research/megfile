@@ -1,3 +1,8 @@
+## 3.1.6.post1 - 2024.11.18
+- fix
+    - support ali oss response
+    - strip auth headers on redirect
+
 ## 3.1.6 - 2024.11.14
 - fix
     - fix bugs of alias paths in `megfile ls` command
