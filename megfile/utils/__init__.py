@@ -343,7 +343,7 @@ class cached_classproperty(cached_property):
             val = cls.__dict__[self.attrname]
             if val is self:
                 val = self.func(cls)
-                setattr(cls, self.attrname, val)
+                setattr(cls, self.attrname, val)  # pyre-ignore[6]
         return val
 
 

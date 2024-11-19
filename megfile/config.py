@@ -1,45 +1,26 @@
 import os
-from logging import getLogger
 
-_logger = getLogger(__name__)
+READER_BLOCK_SIZE = int(os.getenv("MEGFILE_READER_BLOCK_SIZE") or 8 * 2**20)
+if READER_BLOCK_SIZE <= 0:
+    raise ValueError(
+        f"'MEGFILE_READER_BLOCK_SIZE' must bigger than 0, got {READER_BLOCK_SIZE}"
+    )
+READER_MAX_BUFFER_SIZE = int(os.getenv("MEGFILE_READER_MAX_BUFFER_SIZE") or 128 * 2**20)
 
-DEFAULT_BLOCK_SIZE = int(os.getenv("MEGFILE_BLOCK_SIZE") or 8 * 2**20)
+# Multi-upload has a maximum of 10,000 parts,
+# so the maximum supported file size is MEGFILE_WRITE_BLOCK_SIZE * 10,000 MB,
+# the largest object that can be uploaded in a single PUT is 5 TB in aws s3.
+WRITER_BLOCK_SIZE = int(os.getenv("MEGFILE_WRITER_BLOCK_SIZE") or 32 * 2**20)
+if WRITER_BLOCK_SIZE <= 0:
+    raise ValueError(
+        f"'MEGFILE_WRITER_BLOCK_SIZE' must bigger than 0, got {WRITER_BLOCK_SIZE}"
+    )
+# Multi-upload part size must be between 5 MiB and 5 GiB.
+# There is no minimum size limit on the last part of your multipart upload.
+WRITER_MIN_BLOCK_SIZE = 8 * 2**20
+WRITER_MAX_BUFFER_SIZE = int(os.getenv("MEGFILE_WRITER_MAX_BUFFER_SIZE") or 128 * 2**20)
 
-if os.getenv("MEGFILE_MAX_BUFFER_SIZE"):
-    DEFAULT_MAX_BUFFER_SIZE = int(os.environ["MEGFILE_MAX_BUFFER_SIZE"])
-    if DEFAULT_MAX_BUFFER_SIZE < DEFAULT_BLOCK_SIZE:
-        DEFAULT_MAX_BUFFER_SIZE = DEFAULT_BLOCK_SIZE
-        _logger.warning(
-            "Env 'MEGFILE_MAX_BUFFER_SIZE' is smaller than block size, "
-            "will not use buffer."
-        )
-    DEFAULT_BLOCK_CAPACITY = DEFAULT_MAX_BUFFER_SIZE // DEFAULT_BLOCK_SIZE
-    if os.getenv("MEGFILE_BLOCK_CAPACITY"):
-        _logger.warning(
-            "Env 'MEGFILE_MAX_BUFFER_SIZE' and 'MEGFILE_BLOCK_CAPACITY' are both set, "
-            "'MEGFILE_BLOCK_CAPACITY' will be ignored."
-        )
-elif os.getenv("MEGFILE_BLOCK_CAPACITY"):
-    DEFAULT_BLOCK_CAPACITY = int(os.environ["MEGFILE_BLOCK_CAPACITY"])
-    DEFAULT_MAX_BUFFER_SIZE = DEFAULT_BLOCK_SIZE * DEFAULT_BLOCK_CAPACITY
-else:
-    DEFAULT_MAX_BUFFER_SIZE = 128 * 2**20
-    DEFAULT_BLOCK_CAPACITY = 16
-
-DEFAULT_MIN_BLOCK_SIZE = int(os.getenv("MEGFILE_MIN_BLOCK_SIZE") or DEFAULT_BLOCK_SIZE)
-
-if os.getenv("MEGFILE_MAX_BLOCK_SIZE"):
-    DEFAULT_MAX_BLOCK_SIZE = int(os.environ["MEGFILE_MAX_BLOCK_SIZE"])
-    if DEFAULT_MAX_BLOCK_SIZE < DEFAULT_BLOCK_SIZE:
-        DEFAULT_MAX_BLOCK_SIZE = DEFAULT_BLOCK_SIZE
-        _logger.warning(
-            "Env 'MEGFILE_MAX_BLOCK_SIZE' is smaller than block size, will be ignored."
-        )
-else:
-    DEFAULT_MAX_BLOCK_SIZE = max(128 * 2**20, DEFAULT_BLOCK_SIZE)
-
-GLOBAL_MAX_WORKERS = int(os.getenv("MEGFILE_MAX_WORKERS") or 32)
-DEFAULT_MAX_RETRY_TIMES = int(os.getenv("MEGFILE_MAX_RETRY_TIMES") or 10)
+GLOBAL_MAX_WORKERS = int(os.getenv("MEGFILE_MAX_WORKERS") or 8)
 
 # for logging the size of file had read or wrote
 BACKOFF_INITIAL = 64 * 2**20  # 64MB
@@ -48,6 +29,8 @@ BACKOFF_FACTOR = 4
 NEWLINE = ord("\n")
 
 S3_CLIENT_CACHE_MODE = os.getenv("MEGFILE_S3_CLIENT_CACHE_MODE") or "thread_local"
+
+DEFAULT_MAX_RETRY_TIMES = int(os.getenv("MEGFILE_MAX_RETRY_TIMES") or 10)
 S3_MAX_RETRY_TIMES = int(
     os.getenv("MEGFILE_S3_MAX_RETRY_TIMES") or DEFAULT_MAX_RETRY_TIMES
 )
@@ -60,6 +43,7 @@ HDFS_MAX_RETRY_TIMES = int(
 SFTP_MAX_RETRY_TIMES = int(
     os.getenv("MEGFILE_SFTP_MAX_RETRY_TIMES") or DEFAULT_MAX_RETRY_TIMES
 )
+
 SFTP_HOST_KEY_POLICY = os.getenv("MEGFILE_SFTP_HOST_KEY_POLICY")
 
 HTTP_AUTH_HEADERS = ("Authorization", "Www-Authenticate", "Cookie", "Cookie2")

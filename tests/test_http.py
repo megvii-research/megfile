@@ -234,7 +234,7 @@ def test_http_getstat(mocker):
 
 def test_get_http_session(mocker):
     requests_request_func = mocker.patch("requests.Session.request")
-    mocker.patch("megfile.http_path.max_retries", 1)
+    mocker.patch("megfile.http_path.HTTP_MAX_RETRY_TIMES", 1)
 
     class FakeResponse502(FakeResponse):
         status_code = 502

@@ -327,7 +327,7 @@ def test_head_and_tail(runner, tmpdir, mocker):
     assert result.exit_code == 0
     assert result.output == "9\n"
 
-    mocker.patch("megfile.config.DEFAULT_BLOCK_SIZE", 1)
+    mocker.patch("megfile.config.READER_BLOCK_SIZE", 1)
     result = runner.invoke(tail, ["-n", "5", str(tmpdir / "text")])
 
     assert result.exit_code == 0

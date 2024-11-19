@@ -4,9 +4,9 @@ from typing import Optional
 import requests
 
 from megfile.config import (
-    DEFAULT_BLOCK_CAPACITY,
-    DEFAULT_BLOCK_SIZE,
     HTTP_MAX_RETRY_TIMES,
+    READER_BLOCK_SIZE,
+    READER_MAX_BUFFER_SIZE,
 )
 from megfile.errors import (
     HttpBodyIncompleteError,
@@ -39,8 +39,8 @@ class HttpPrefetchReader(BasePrefetchReader):
         url: PathLike,
         *,
         content_size: Optional[int] = None,
-        block_size: int = DEFAULT_BLOCK_SIZE,
-        block_capacity: int = DEFAULT_BLOCK_CAPACITY,
+        block_size: int = READER_BLOCK_SIZE,
+        max_buffer_size: int = READER_MAX_BUFFER_SIZE,
         block_forward: Optional[int] = None,
         max_retries: int = HTTP_MAX_RETRY_TIMES,
         max_workers: Optional[int] = None,
@@ -50,7 +50,7 @@ class HttpPrefetchReader(BasePrefetchReader):
 
         super().__init__(
             block_size=block_size,
-            block_capacity=block_capacity,
+            max_buffer_size=max_buffer_size,
             block_forward=block_forward,
             max_retries=max_retries,
             max_workers=max_workers,

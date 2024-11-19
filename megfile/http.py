@@ -1,10 +1,9 @@
 from io import BufferedReader
 from typing import Optional, Union
 
-from megfile.config import DEFAULT_BLOCK_SIZE
+from megfile.config import READER_BLOCK_SIZE, READER_MAX_BUFFER_SIZE
 from megfile.http_path import HttpPath, HttpPrefetchReader, get_http_session, is_http
 from megfile.interfaces import PathLike, StatResult
-from megfile.lib.s3_buffered_writer import DEFAULT_MAX_BUFFER_SIZE
 
 __all__ = [
     "get_http_session",
@@ -24,9 +23,9 @@ def http_open(
     encoding: Optional[str] = None,
     errors: Optional[str] = None,
     max_concurrency: Optional[int] = None,
-    max_buffer_size: int = DEFAULT_MAX_BUFFER_SIZE,
-    forward_ratio: Optional[float] = None,
-    block_size: int = DEFAULT_BLOCK_SIZE,
+    max_buffer_size: int = READER_MAX_BUFFER_SIZE,
+    block_forward: Optional[int] = None,
+    block_size: int = READER_BLOCK_SIZE,
     **kwargs,
 ) -> Union[BufferedReader, HttpPrefetchReader]:
     """Open a BytesIO to read binary data of given http(s) url
@@ -44,6 +43,7 @@ def http_open(
         errors are to be handled—this cannot be used in binary mode.
     :param max_concurrency: Max download thread number, None by default
     :param max_buffer_size: Max cached buffer size in memory, 128MB by default
+    :param block_forward: How many blocks of data cached from offset position
     :param block_size: Size of single block, 8MB by default. Each block will be uploaded
         or downloaded by single thread.
     :return: BytesIO initialized with http(s) data
@@ -54,7 +54,7 @@ def http_open(
         errors=errors,
         max_concurrency=max_concurrency,
         max_buffer_size=max_buffer_size,
-        forward_ratio=forward_ratio,
+        block_forward=block_forward,
         block_size=block_size,
     )
 

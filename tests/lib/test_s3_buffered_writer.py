@@ -53,7 +53,6 @@ def test_s3_buffered_writer_write_max_worker(client, mocker):
         s3_client=client,
         max_workers=2,
         block_size=8 * BACKOFF_INITIAL,
-        max_block_size=8 * BACKOFF_INITIAL,
     ) as writer:
         writer.write(content)
         writer.write(b"\n")
@@ -86,7 +85,7 @@ def test_s3_buffered_writer_write_large_bytes(client):
 
 
 def test_s3_buffered_writer_write_multipart(client, mocker):
-    block_size = 8 * 2**20
+    block_size = 10 * 2**20
     content_size = 16 * 2**20
     content = b"a" * content_size
 

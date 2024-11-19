@@ -1,3 +1,4 @@
+import os
 from collections import OrderedDict
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from io import BytesIO
@@ -8,10 +9,10 @@ from typing import NamedTuple, Optional
 from megfile.config import (
     BACKOFF_FACTOR,
     BACKOFF_INITIAL,
-    DEFAULT_MAX_BLOCK_SIZE,
-    DEFAULT_MAX_BUFFER_SIZE,
-    DEFAULT_MIN_BLOCK_SIZE,
     GLOBAL_MAX_WORKERS,
+    WRITER_BLOCK_SIZE,
+    WRITER_MAX_BUFFER_SIZE,
+    WRITER_MIN_BLOCK_SIZE,
 )
 from megfile.errors import raise_s3_error
 from megfile.interfaces import Writable
@@ -45,9 +46,8 @@ class S3BufferedWriter(Writable[bytes]):
         key: str,
         *,
         s3_client,
-        block_size: int = DEFAULT_MIN_BLOCK_SIZE,
-        max_block_size: int = DEFAULT_MAX_BLOCK_SIZE,
-        max_buffer_size: int = DEFAULT_MAX_BUFFER_SIZE,
+        block_size: int = WRITER_BLOCK_SIZE,
+        max_buffer_size: int = WRITER_MAX_BUFFER_SIZE,
         max_workers: Optional[int] = None,
         profile_name: Optional[str] = None,
     ):
@@ -59,7 +59,6 @@ class S3BufferedWriter(Writable[bytes]):
         # user maybe put block_size with 'numpy.uint64' type
         self._block_size = int(block_size)
 
-        self._max_block_size = max_block_size
         self._max_buffer_size = max_buffer_size
         self._total_buffer_size = 0
         self._offset = 0
@@ -121,13 +120,14 @@ class S3BufferedWriter(Writable[bytes]):
 
     @property
     def _upload_id(self) -> str:
-        with self.__upload_id_lock:
-            if self.__upload_id is None:
-                with raise_s3_error(self.name):
-                    self.__upload_id = self._client.create_multipart_upload(
-                        Bucket=self._bucket, Key=self._key
-                    )["UploadId"]
-            return self.__upload_id
+        if self.__upload_id is None:
+            with self.__upload_id_lock:
+                if self.__upload_id is None:
+                    with raise_s3_error(self.name):
+                        self.__upload_id = self._client.create_multipart_upload(
+                            Bucket=self._bucket, Key=self._key
+                        )["UploadId"]
+        return self.__upload_id
 
     @property
     def _buffer_size(self):
@@ -169,6 +169,7 @@ class S3BufferedWriter(Writable[bytes]):
         )
         self._total_buffer_size += len(content)
         while self._buffer_size > self._max_buffer_size:
+            # TODO: optimize this code, use wait return data
             wait(self._uploading_futures, return_when=FIRST_COMPLETED)
 
     def _submit_upload_content(self, content: bytes):
@@ -176,20 +177,23 @@ class S3BufferedWriter(Writable[bytes]):
         # so we need to divide content into equal-size parts,
         # and give last part more size.
         # e.g. 257MB can be divided into 2 parts, 128MB and 129MB
-        offset = 0
-        while len(content) - offset - self._max_block_size > self._block_size:
+        while len(content) - self._block_size > WRITER_MIN_BLOCK_SIZE:
             self._part_number += 1
-            offset_stop = offset + self._max_block_size
-            self._submit_upload_buffer(self._part_number, content[offset:offset_stop])
-            offset = offset_stop
-        self._part_number += 1
-        self._submit_upload_buffer(self._part_number, content[offset:])
+            current_content, content = (
+                content[: self._block_size],
+                content[self._block_size :],
+            )
+            self._submit_upload_buffer(self._part_number, current_content)
+        if content:
+            self._part_number += 1
+            self._submit_upload_buffer(self._part_number, content)
 
     def _submit_futures(self):
         content = self._buffer.getvalue()
         if len(content) == 0:
             return
-        self._buffer = BytesIO()
+        self._buffer.seek(0, os.SEEK_SET)
+        self._buffer.truncate()
         self._submit_upload_content(content)
 
     def write(self, data: bytes) -> int:

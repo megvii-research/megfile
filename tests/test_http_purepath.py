@@ -278,7 +278,7 @@ def test_with_suffix():
 
 def test_http_retry(requests_mock, mocker):
     max_retries = 2
-    mocker.patch("megfile.http_path.max_retries", max_retries)
+    mocker.patch("megfile.http_path.HTTP_MAX_RETRY_TIMES", max_retries)
     requests_mock.post("http://foo", status_code=500)
     session = get_http_session()
     history_index = 0
