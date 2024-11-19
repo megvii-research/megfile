@@ -1,3 +1,16 @@
+## 3.1.6.post1 - 2024.11.18
+- fix
+    - support ali oss response
+    - strip auth headers on redirect
+
+## 3.1.6 - 2024.11.14
+- fix
+    - fix bugs of alias paths in `megfile ls` command
+    - support `InvalidRange` error in tos oss
+- feat
+    - add new env `AWS_S3_VERIFY` for setting s3 verify, default is `true`
+    - add new env `AWS_S3_REDIRECT` for turning on supporting http redirect, default is `false`
+
 ## 3.1.5 - 2024.11.05
 - feat
     - support `AWS_SESSION_TOKEN` env

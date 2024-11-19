@@ -6,8 +6,10 @@ from megfile.utils import (
     _get_class,
     _is_pickle,
     binary_open,
+    cached_classproperty,
     combine,
     get_human_size,
+    is_domain_or_subdomain,
     necessary_params,
     patch_rlimit,
 )
@@ -55,6 +57,34 @@ def test_get_class():
     assert _get_class(Test) == _get_class(Test())
 
 
+def test_cached_classproperty():
+    class Test1:
+        count = 0
+
+        @cached_classproperty
+        def test(cls):
+            cls.count += 1
+            return cls.count
+
+    assert Test1().test == 1
+    assert Test1().test == 1
+    assert Test1.test == 1
+    assert Test1.test == 1
+
+    class Test2:
+        count = 0
+
+        @cached_classproperty
+        def test(cls):
+            cls.count += 1
+            return cls.count
+
+    assert Test2.test == 1
+    assert Test2.test == 1
+    assert Test2().test == 1
+    assert Test2().test == 1
+
+
 def test__is_pickle():
     data = "test"
     fileObj = BytesIO(pickle.dumps(data))
@@ -79,3 +109,12 @@ def test__is_pickle():
     fileObj.name = "test"
     fileObj.mode = "wb"
     assert _is_pickle(fileObj) is False
+
+
+def test_is_domain_or_subdomain():
+    assert is_domain_or_subdomain("test1.com", "test2.com") is False
+    assert is_domain_or_subdomain("test1.test.com", "test2.test.com") is False
+
+    assert is_domain_or_subdomain("test.com", "test.com") is True
+    assert is_domain_or_subdomain("test1.test.com", "test.com") is True
+    assert is_domain_or_subdomain("test.com", "test1.test.com") is False
