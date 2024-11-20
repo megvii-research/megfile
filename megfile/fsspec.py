@@ -63,7 +63,7 @@ def _make_entry(filesystem, info):
 
 class BaseFSSpecPath(URIPath):
     protocol: str
-    filesystem: 'fsspec.AbstractFileSystem'
+    filesystem: "fsspec.AbstractFileSystem"
 
     def __init__(self, path: PathLike, *other_paths: PathLike):
         super().__init__(path, *other_paths)
@@ -375,7 +375,7 @@ class BaseFSSpecPath(URIPath):
             self.path_without_protocol, dst_path, recursive=True
         )
 
-    def rename(self, dst_path: PathLike, overwrite: bool = True) -> "BaseFSSpecPath":
+    def rename(self, dst_path: PathLike, overwrite: bool = True):
         """
         rename file with fsspec
 
@@ -384,7 +384,7 @@ class BaseFSSpecPath(URIPath):
         """
         self.filesystem.mv(self.path_without_protocol, dst_path, recursive=False)
 
-    def move(self, dst_path: PathLike, overwrite: bool = True) -> "BaseFSSpecPath":
+    def move(self, dst_path: PathLike, overwrite: bool = True):
         """
         move file/directory with fsspec
 
@@ -393,7 +393,7 @@ class BaseFSSpecPath(URIPath):
         """
         self.filesystem.mv(self.path_without_protocol, dst_path, recursive=True)
 
-    def unlink(self, missing_ok: bool = False) -> None:
+    def unlink(self, missing_ok: bool = False):
         """
         Remove the file with fsspec
 
@@ -403,7 +403,7 @@ class BaseFSSpecPath(URIPath):
             return
         self.filesystem.rm(self.path_without_protocol, recursive=False)
 
-    def remove(self, missing_ok: bool = False) -> None:
+    def remove(self, missing_ok: bool = False):
         """
         Remove the file or directory with fsspec
 
@@ -456,7 +456,7 @@ class BaseFSSpecPath(URIPath):
             FileNotFoundError("No match any file in: %r" % self.path_with_protocol),
         )
 
-    def scandir(self) -> Iterator[FileEntry]:
+    def scandir(self, followlinks: bool = False) -> Iterator[FileEntry]:
         """
         Get all content of given file path.
 
