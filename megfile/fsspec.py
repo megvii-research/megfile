@@ -3,7 +3,10 @@ import os
 from datetime import datetime
 from typing import IO, BinaryIO, Callable, Iterator, List, Optional, Tuple
 
-import fsspec
+try:
+    import fsspec
+except ImportError:  # pragma: no cover
+    fsspec = None
 
 from megfile.errors import _create_missing_ok_generator
 from megfile.interfaces import ContextIterator, FileEntry, PathLike, StatResult, URIPath
@@ -60,7 +63,7 @@ def _make_entry(filesystem, info):
 
 class BaseFSSpecPath(URIPath):
     protocol: str
-    filesystem: fsspec.AbstractFileSystem
+    filesystem: 'fsspec.AbstractFileSystem'
 
     def __init__(self, path: PathLike, *other_paths: PathLike):
         super().__init__(path, *other_paths)
