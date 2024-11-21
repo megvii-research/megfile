@@ -60,7 +60,7 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
             block_forward = max(block_capacity - 1, 0)
             self._is_auto_scaling = block_forward > 0
 
-        if block_capacity <= block_forward:
+        if 0 < block_capacity <= block_forward:
             raise ValueError(
                 "max_buffer_size should greater than block_forward * block_size, "
                 "got: max_buffer_size=%s, block_size=%s, block_forward=%s"

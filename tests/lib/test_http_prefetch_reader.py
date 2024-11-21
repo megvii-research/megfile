@@ -272,6 +272,65 @@ def test_http_prefetch_reader_backward_seek_and_the_target_in_remains(
         assert reader._cached_blocks == [2, 1, 0]
 
 
+def test_http_prefetch_reader_max_buffer_size_eq_0(http_patch, mocker):
+    """目标 offset 在 remains 中 重置 remains 位置"""
+    with HttpPrefetchReader(
+        URL,
+        content_size=CONTENT_SIZE,
+        max_workers=2,
+        block_size=3,
+        max_buffer_size=0,
+    ) as reader:
+        assert reader._cached_blocks == []
+
+        reader._buffer
+        sleep_until_downloaded(reader)
+        assert reader._cached_blocks == []
+
+        reader.seek(3)
+        reader._buffer
+        sleep_until_downloaded(reader)
+        assert reader._cached_blocks == []
+
+        reader.seek(1)
+        reader._buffer
+        sleep_until_downloaded(reader)
+        assert reader._cached_blocks == []
+
+
+def test_http_prefetch_reader_block_forward_eq_0(http_patch, mocker):
+    """目标 offset 在 remains 中 重置 remains 位置"""
+    with HttpPrefetchReader(
+        URL,
+        content_size=CONTENT_SIZE,
+        max_workers=2,
+        block_size=3,
+        max_buffer_size=3,
+        block_forward=0,
+    ) as reader:
+        assert reader._block_forward == 0
+        assert reader._cached_blocks == []
+
+        reader._buffer
+        sleep_until_downloaded(reader)
+        assert reader._cached_blocks == [0]
+
+        reader.seek(3)
+        reader._buffer
+        sleep_until_downloaded(reader)
+        assert reader._cached_blocks == [1]
+
+        reader.seek(9)
+        reader._buffer
+        sleep_until_downloaded(reader)
+        assert reader._cached_blocks == [3]
+
+        reader.seek(1)
+        reader._buffer
+        sleep_until_downloaded(reader)
+        assert reader._cached_blocks == [0]
+
+
 def test_http_prefetch_reader_backward_block_forward_eq_1(http_patch, mocker):
     class FakeHistory:
         read_count = 1
