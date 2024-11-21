@@ -26,7 +26,7 @@ class HttpPrefetchReader(BasePrefetchReader):
     Reader to fast read the http content, service must support Accept-Ranges.
 
     This will divide the file content into equal parts of block_size size, and will use
-    LRU to cache at most block_capacity blocks in memory.
+    LRU to cache at most blocks in max_buffer_size memory.
 
     open(), seek() and read() will trigger prefetch read.
 

@@ -313,9 +313,10 @@ def hdfs_open(
                     Should only be used in text mode.
     :param errors: Optional string specifying how encoding and decoding errors are
                 to be handled. Cannot be used in binary mode.
-    :param max_concurrency: Maximum number of concurrent threads for reader.
-    :param max_buffer_size: Maximum cached buffer size in memory for reader,
-        default is 128MB.
+    :param max_concurrency: Max download thread number, `None` by default,
+        will use global thread pool with 8 threads.
+    :param max_buffer_size: Max cached buffer size in memory, 128MB by default.
+        Set to `0` will disable cache.
     :param block_forward: Number of blocks of data for reader cached from the
         offset position.
     :param block_size: Size of a single block for reader, default is 8MB.

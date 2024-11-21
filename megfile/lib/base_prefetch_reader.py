@@ -31,15 +31,6 @@ class SeekRecord:
 
 
 class BasePrefetchReader(Readable[bytes], Seekable, ABC):
-    """
-    Reader to fast read the remote file content.
-    This will divide the file content into equal parts of block_size size,
-    and will use LRU to cache at most block_capacity blocks in memory.
-    open(), seek() and read() will trigger prefetch read.
-    The prefetch will cached block_forward blocks of data from offset position
-    (the position after reading if the called function is read).
-    """
-
     def __init__(
         self,
         *,

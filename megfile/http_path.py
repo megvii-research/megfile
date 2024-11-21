@@ -163,17 +163,19 @@ class HttpPath(URIPath):
             Essentially, it reads data of http(s) url to memory by requests,
             and then return BytesIO to user.
 
-        :param mode: Only supports 'rb' mode now
+        :param mode: Only supports 'r' or 'rb' mode now
         :param encoding: encoding is the name of the encoding used to decode or encode
             the file. This should only be used in text mode.
         :param errors: errors is an optional string that specifies how encoding and
             decoding errors are to be handled—this cannot be used in binary mode.
-        :param max_concurrency: Max download thread number, None by default
-        :param max_buffer_size: Max cached buffer size in memory, 128MB by default
+        :param max_concurrency: Max download thread number, `None` by default,
+            will use global thread pool with 8 threads.
+        :param max_buffer_size: Max cached buffer size in memory, 128MB by default.
+            Set to `0` will disable cache.
         :param block_forward: How many blocks of data cached from offset position
         :param block_size: Size of single block, 8MB by default. Each block will
             be uploaded or downloaded by single thread.
-        :return: BytesIO initialized with http(s) data
+        :return: A file-like object with http(s) data
         """
         if mode not in ("rb",):
             raise ValueError("unacceptable mode: %r" % mode)

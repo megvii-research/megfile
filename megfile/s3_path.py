@@ -701,7 +701,14 @@ def s3_prefetch_open(
         Some parameter setting may perform well: max_concurrency=10 or 20,
         block_size=8 or 16 MB, default value None means using global thread pool
 
-    :param max_concurrency: Max download thread number, None by default
+    :param s3_url: s3 path
+    :param mode: only support "r" or "rb"
+    :param encoding: encoding is the name of the encoding used to decode or encode
+        the file. This should only be used in text mode.
+    :param errors: errors is an optional string that specifies how encoding and
+        decoding errors are to be handled—this cannot be used in binary mode.
+    :param followlinks: follow symbolic link, default `False`
+    :param max_concurrency: Max download thread number, `None` by default
     :param block_size: Max data size downloaded by each thread, in bytes,
         8MB by default
     :returns: An opened S3PrefetchReader object
@@ -753,6 +760,13 @@ def s3_share_cache_open(
         Some parameter setting may perform well: max_concurrency=10 or 20,
         block_size=8 or 16 MB, default value None means using global thread pool
 
+    :param s3_url: s3 path
+    :param mode: only support "r" or "rb"
+    :param encoding: encoding is the name of the encoding used to decode or encode
+        the file. This should only be used in text mode.
+    :param errors: errors is an optional string that specifies how encoding and
+        decoding errors are to be handled—this cannot be used in binary mode.
+    :param followlinks: follow symbolic link, default `False`
     :param max_concurrency: Max download thread number, None by default
     :param block_size: Max data size downloaded by each thread, in bytes,
         8MB by default
@@ -807,7 +821,13 @@ def s3_pipe_open(
         But asynchronous behavior can guarantee the file are successfully written,
         and frequent execution may cause thread and file handle exhaustion
 
-    :param mode: Mode to open file, either "rb" or "wb"
+    :param s3_url: s3 path
+    :param mode: Mode to open file, either "r", "rb", "w" or "wb"
+    :param encoding: encoding is the name of the encoding used to decode or encode
+        the file. This should only be used in text mode.
+    :param errors: errors is an optional string that specifies how encoding and
+        decoding errors are to be handled—this cannot be used in binary mode.
+    :param followlinks: follow symbolic link, default `False`
     :param join_thread: If wait after function execution until s3 finishes writing
     :returns: An opened BufferedReader / BufferedWriter object
     """
@@ -857,7 +877,14 @@ def s3_cached_open(
         cache_path can specify the path of cache file. Performance could be better
         if cache file path is on ssd or tmpfs
 
-    :param mode: Mode to open file, could be one of "rb", "wb" or "ab"
+    :param s3_url: s3 path
+    :param mode: Mode to open file, could be one of "rb", "wb", "ab", "rb+", "wb+"
+        or "ab+"
+    :param encoding: encoding is the name of the encoding used to decode or encode
+        the file. This should only be used in text mode.
+    :param errors: errors is an optional string that specifies how encoding and
+        decoding errors are to be handled—this cannot be used in binary mode.
+    :param followlinks: follow symbolic link, default `False`
     :param cache_path: cache file path
     :returns: An opened BufferedReader / BufferedWriter object
     """
@@ -910,8 +937,18 @@ def s3_buffered_open(
         Some parameter setting may perform well: max_concurrency=10 or 20,
         default value None means using global thread pool
 
-    :param max_concurrency: Max download thread number, None by default
-    :param max_buffer_size: Max cached buffer size in memory, 128MB by default
+    :param s3_url: s3 path
+    :param mode: Mode to open file, could be one of "rb", "wb", "ab", "rb+", "wb+"
+        or "ab+"
+    :param encoding: encoding is the name of the encoding used to decode or encode
+        the file. This should only be used in text mode.
+    :param errors: errors is an optional string that specifies how encoding and
+        decoding errors are to be handled—this cannot be used in binary mode.
+    :param followlinks: follow symbolic link, default `False`
+    :param max_concurrency: Max download / upload thread number, `None` by default,
+        will use global thread pool with 8 threads.
+    :param max_buffer_size: Max cached buffer size in memory, 128MB by default.
+        Set to `0` will disable cache.
     :param block_forward: How many blocks of data cached from offset position, only for
         read mode.
     :param block_size: Size of single block.
@@ -920,7 +957,7 @@ def s3_buffered_open(
         (both file head part and tail part can seek block_size).
         Notes: This parameter are valid only for write-handle.
         Read-handle support arbitrary seek
-    :returns: An opened S3PrefetchReader object
+    :returns: An opened File object
     :raises: S3FileNotFoundError
     """
     if mode not in ("rb", "wb", "ab", "rb+", "wb+", "ab+"):
