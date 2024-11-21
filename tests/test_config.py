@@ -1,6 +1,7 @@
 import importlib
 import os
 
+import pytest
 from mock import patch
 
 
@@ -19,3 +20,29 @@ def test_config():
 
     assert config.READER_MAX_BUFFER_SIZE // 2**20 == 4 * 8
     assert config.WRITER_BLOCK_SIZE == 2**20
+
+
+@patch.dict(
+    os.environ,
+    {
+        "MEGFILE_READER_BLOCK_SIZE": "0",
+    },
+)
+def test_config_error():
+    with pytest.raises(ValueError):
+        from megfile import config
+
+        importlib.reload(config)
+
+
+@patch.dict(
+    os.environ,
+    {
+        "MEGFILE_WRITER_BLOCK_SIZE": "0",
+    },
+)
+def test_config_error2():
+    with pytest.raises(ValueError):
+        from megfile import config
+
+        importlib.reload(config)
