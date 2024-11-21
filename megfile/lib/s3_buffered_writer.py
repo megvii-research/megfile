@@ -66,7 +66,8 @@ class S3BufferedWriter(Writable[bytes]):
         self._backoff_size = BACKOFF_INITIAL
         self._buffer = BytesIO()
 
-        self._futures = OrderedDict()
+        self._futures_result = OrderedDict()
+        self._uploading_futures = set()
         self._is_global_executor = False
         if max_workers is None:
             self._executor = process_local(
@@ -116,7 +117,7 @@ class S3BufferedWriter(Writable[bytes]):
 
     @property
     def _is_multipart(self) -> bool:
-        return len(self._futures) > 0
+        return len(self._futures_result) > 0 or len(self._uploading_futures) > 0
 
     @property
     def _upload_id(self) -> str:
@@ -130,24 +131,13 @@ class S3BufferedWriter(Writable[bytes]):
         return self.__upload_id
 
     @property
-    def _buffer_size(self):
-        return self._total_buffer_size - sum(
-            future.result().content_size
-            for future in self._futures.values()
-            if future.done()
-        )
-
-    @property
-    def _uploading_futures(self):
-        return [future for future in self._futures.values() if not future.done()]
-
-    @property
     def _multipart_upload(self):
-        return {
-            "Parts": [
-                future.result().asdict() for _, future in sorted(self._futures.items())
-            ]
-        }
+        for future in self._uploading_futures:
+            result = future.result()
+            self._total_buffer_size -= result.content_size
+            self._futures_result[result.part_number] = result.asdict()
+        self._uploading_futures = set()
+        return {"Parts": [result for _, result in sorted(self._futures_result.items())]}
 
     def _upload_buffer(self, part_number, content):
         with raise_s3_error(self.name):
@@ -164,13 +154,21 @@ class S3BufferedWriter(Writable[bytes]):
             )
 
     def _submit_upload_buffer(self, part_number, content):
-        self._futures[part_number] = self._executor.submit(
-            self._upload_buffer, part_number, content
+        self._uploading_futures.add(
+            self._executor.submit(self._upload_buffer, part_number, content)
         )
         self._total_buffer_size += len(content)
-        while self._buffer_size > self._max_buffer_size:
-            # TODO: optimize this code, use wait return data
-            wait(self._uploading_futures, return_when=FIRST_COMPLETED)
+
+        while (
+            self._uploading_futures
+            and self._total_buffer_size >= self._max_buffer_size
+        ):
+            wait_result = wait(self._uploading_futures, return_when=FIRST_COMPLETED)
+            for future in wait_result.done:
+                result = future.result()
+                self._total_buffer_size -= result.content_size
+                self._futures_result[result.part_number] = result.asdict()
+            self._uploading_futures = wait_result.not_done
 
     def _submit_upload_content(self, content: bytes):
         # s3 part needs at least 5MB,

@@ -2748,9 +2748,7 @@ def test_s3_prefetch_open(s3_empty_client):
         assert reader.mode == "rb"
         assert reader.read() == content
 
-    with s3.s3_prefetch_open(
-        "s3://bucket/key", max_concurrency=1, block_size=1
-    ) as reader:
+    with s3.s3_prefetch_open("s3://bucket/key", max_workers=1, block_size=1) as reader:
         assert reader.read() == content
 
     with s3.s3_prefetch_open("s3://bucket/symlink", followlinks=True) as reader:
@@ -2759,12 +2757,12 @@ def test_s3_prefetch_open(s3_empty_client):
         assert reader.read() == content
 
     with s3.s3_prefetch_open(
-        "s3://bucket/symlink", max_concurrency=1, block_size=1, followlinks=True
+        "s3://bucket/symlink", max_workers=1, block_size=1, followlinks=True
     ) as reader:
         assert reader.read() == content
 
     with pytest.raises(S3BucketNotFoundError):
-        s3.s3_prefetch_open("s3://", max_concurrency=1, block_size=1)
+        s3.s3_prefetch_open("s3://", max_workers=1, block_size=1)
 
     with pytest.raises(ValueError):
         s3.s3_prefetch_open("s3://bucket/key", mode="wb")
@@ -2786,9 +2784,7 @@ def test_s3_share_cache_open(s3_empty_client):
         assert reader.mode == "rb"
         assert reader.read() == content
 
-    with s3.s3_prefetch_open(
-        "s3://bucket/key", max_concurrency=1, block_size=1
-    ) as reader:
+    with s3.s3_prefetch_open("s3://bucket/key", max_workers=1, block_size=1) as reader:
         assert reader.read() == content
 
     with s3.s3_share_cache_open("s3://bucket/symlink", followlinks=True) as reader:
@@ -2797,7 +2793,7 @@ def test_s3_share_cache_open(s3_empty_client):
         assert reader.read() == content
 
     with s3.s3_prefetch_open(
-        "s3://bucket/symlink", max_concurrency=1, block_size=1, followlinks=True
+        "s3://bucket/symlink", max_workers=1, block_size=1, followlinks=True
     ) as reader:
         assert reader.read() == content
 

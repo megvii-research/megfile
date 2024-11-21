@@ -686,7 +686,7 @@ def s3_prefetch_open(
     mode: str = "rb",
     followlinks: bool = False,
     *,
-    max_concurrency: Optional[int] = None,
+    max_workers: Optional[int] = None,
     block_size: int = READER_BLOCK_SIZE,
 ) -> S3PrefetchReader:
     """Open a asynchronous prefetch reader, to support fast sequential
@@ -698,7 +698,7 @@ def s3_prefetch_open(
 
         Supports context manager
 
-        Some parameter setting may perform well: max_concurrency=10 or 20,
+        Some parameter setting may perform well: max_workers=10 or 20,
         block_size=8 or 16 MB, default value None means using global thread pool
 
     :param s3_url: s3 path
@@ -708,7 +708,7 @@ def s3_prefetch_open(
     :param errors: errors is an optional string that specifies how encoding and
         decoding errors are to be handled—this cannot be used in binary mode.
     :param followlinks: follow symbolic link, default `False`
-    :param max_concurrency: Max download thread number, `None` by default
+    :param max_workers: Max download thread number, `None` by default
     :param block_size: Max data size downloaded by each thread, in bytes,
         8MB by default
     :returns: An opened S3PrefetchReader object
@@ -732,7 +732,7 @@ def s3_prefetch_open(
         key,
         s3_client=client,
         max_retries=max_retries,
-        max_workers=max_concurrency,
+        max_workers=max_workers,
         block_size=block_size,
         profile_name=s3_url._profile_name,
     )
@@ -745,7 +745,7 @@ def s3_share_cache_open(
     followlinks: bool = False,
     *,
     cache_key: str = "lru",
-    max_concurrency: Optional[int] = None,
+    max_workers: Optional[int] = None,
     block_size: int = READER_BLOCK_SIZE,
 ) -> S3ShareCacheReader:
     """Open a asynchronous prefetch reader, to support fast sequential read and
@@ -757,7 +757,7 @@ def s3_share_cache_open(
 
         Supports context manager
 
-        Some parameter setting may perform well: max_concurrency=10 or 20,
+        Some parameter setting may perform well: max_workers=10 or 20,
         block_size=8 or 16 MB, default value None means using global thread pool
 
     :param s3_url: s3 path
@@ -767,7 +767,7 @@ def s3_share_cache_open(
     :param errors: errors is an optional string that specifies how encoding and
         decoding errors are to be handled—this cannot be used in binary mode.
     :param followlinks: follow symbolic link, default `False`
-    :param max_concurrency: Max download thread number, None by default
+    :param max_workers: Max download thread number, None by default
     :param block_size: Max data size downloaded by each thread, in bytes,
         8MB by default
     :returns: An opened S3ShareCacheReader object
@@ -793,7 +793,7 @@ def s3_share_cache_open(
         cache_key=cache_key,
         s3_client=client,
         max_retries=max_retries,
-        max_workers=max_concurrency,
+        max_workers=max_workers,
         block_size=block_size,
         profile_name=s3_url._profile_name,
     )
@@ -917,7 +917,7 @@ def s3_buffered_open(
     mode: str,
     followlinks: bool = False,
     *,
-    max_concurrency: Optional[int] = None,
+    max_workers: Optional[int] = None,
     max_buffer_size: Optional[int] = None,
     block_forward: Optional[int] = None,
     block_size: Optional[int] = None,
@@ -934,7 +934,7 @@ def s3_buffered_open(
 
         Supports context manager
 
-        Some parameter setting may perform well: max_concurrency=10 or 20,
+        Some parameter setting may perform well: max_workers=10 or 20,
         default value None means using global thread pool
 
     :param s3_url: s3 path
@@ -945,7 +945,7 @@ def s3_buffered_open(
     :param errors: errors is an optional string that specifies how encoding and
         decoding errors are to be handled—this cannot be used in binary mode.
     :param followlinks: follow symbolic link, default `False`
-    :param max_concurrency: Max download / upload thread number, `None` by default,
+    :param max_workers: Max download / upload thread number, `None` by default,
         will use global thread pool with 8 threads.
     :param max_buffer_size: Max cached buffer size in memory, 128MB by default.
         Set to `0` will disable cache.
@@ -995,7 +995,7 @@ def s3_buffered_open(
                 cache_key=share_cache_key,
                 s3_client=client,
                 max_retries=max_retries,
-                max_workers=max_concurrency,
+                max_workers=max_workers,
                 block_size=block_size or READER_BLOCK_SIZE,
                 block_forward=block_forward,
                 profile_name=s3_url._profile_name,
@@ -1006,7 +1006,7 @@ def s3_buffered_open(
                 key,
                 s3_client=client,
                 max_retries=max_retries,
-                max_workers=max_concurrency,
+                max_workers=max_workers,
                 max_buffer_size=max_buffer_size or READER_MAX_BUFFER_SIZE,
                 block_forward=block_forward,
                 block_size=block_size or READER_BLOCK_SIZE,
@@ -1021,7 +1021,7 @@ def s3_buffered_open(
             bucket,
             key,
             s3_client=client,
-            max_workers=max_concurrency,
+            max_workers=max_workers,
             block_size=block_size or WRITER_BLOCK_SIZE,
             max_buffer_size=max_buffer_size or WRITER_MAX_BUFFER_SIZE,
             profile_name=s3_url._profile_name,
@@ -1031,7 +1031,7 @@ def s3_buffered_open(
             bucket,
             key,
             s3_client=client,
-            max_workers=max_concurrency,
+            max_workers=max_workers,
             block_size=block_size or WRITER_BLOCK_SIZE,
             max_buffer_size=max_buffer_size or WRITER_MAX_BUFFER_SIZE,
             profile_name=s3_url._profile_name,

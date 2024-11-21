@@ -141,7 +141,7 @@ def test_s3_buffered_writer_write_multipart_pending(client, mocker):
 
     def fake_wait(futures, **kwargs):
         if writer._buffer_size_before_wait is None:
-            writer._buffer_size_before_wait = writer._buffer_size
+            writer._buffer_size_before_wait = writer._total_buffer_size
         upload_part_event.set()
         return wait(futures, **kwargs)
 
@@ -156,15 +156,15 @@ def test_s3_buffered_writer_write_multipart_pending(client, mocker):
     writer.write(CONTENT)
     assert writer._buffer_size_before_wait == 22
     writer._buffer_size_before_wait = None
-    assert writer._buffer_size == 0
+    assert writer._total_buffer_size == 0
 
     writer.write(b"\n")
     assert writer._buffer_size_before_wait is None
-    assert writer._buffer_size == 0
+    assert writer._total_buffer_size == 0
 
     writer.write(CONTENT)
     assert writer._buffer_size_before_wait == 23
     writer._buffer_size_before_wait = None
-    assert writer._buffer_size == 0
+    assert writer._total_buffer_size == 0
 
     assert writer._is_multipart

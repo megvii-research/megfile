@@ -22,7 +22,7 @@ def http_open(
     *,
     encoding: Optional[str] = None,
     errors: Optional[str] = None,
-    max_concurrency: Optional[int] = None,
+    max_workers: Optional[int] = None,
     max_buffer_size: int = READER_MAX_BUFFER_SIZE,
     block_forward: Optional[int] = None,
     block_size: int = READER_BLOCK_SIZE,
@@ -41,7 +41,7 @@ def http_open(
         the file. This should only be used in text mode.
     :param errors: errors is an optional string that specifies how encoding and decoding
         errors are to be handled—this cannot be used in binary mode.
-    :param max_concurrency: Max download thread number, `None` by default,
+    :param max_workers: Max download thread number, `None` by default,
         will use global thread pool with 8 threads.
     :param max_buffer_size: Max cached buffer size in memory, 128MB by default.
         Set to `0` will disable cache.
@@ -54,7 +54,7 @@ def http_open(
         mode,
         encoding=encoding,
         errors=errors,
-        max_concurrency=max_concurrency,
+        max_workers=max_workers,
         max_buffer_size=max_buffer_size,
         block_forward=block_forward,
         block_size=block_size,

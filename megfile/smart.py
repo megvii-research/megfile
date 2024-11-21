@@ -708,7 +708,7 @@ def smart_open(
     :param followlinks: follow symbolic link, default `False`. Only be used when support
     :param s3_open_func: Function used to open s3_url. Require the function includes
         2 necessary parameters, file path and mode. only be used in s3 path.
-    :param max_concurrency: Max download / upload thread number, `None` by default,
+    :param max_workers: Max download / upload thread number, `None` by default,
         will use global thread pool with 8 threads. Only be used in s3, http, hdfs.
     :param max_buffer_size: Max cached buffer size in memory, 128MB by default.
         Set to `0` will disable cache. Only be used in s3, http, hdfs.
