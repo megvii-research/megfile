@@ -160,8 +160,7 @@ class S3BufferedWriter(Writable[bytes]):
         self._total_buffer_size += len(content)
 
         while (
-            self._uploading_futures
-            and self._total_buffer_size >= self._max_buffer_size
+            self._uploading_futures and self._total_buffer_size >= self._max_buffer_size
         ):
             wait_result = wait(self._uploading_futures, return_when=FIRST_COMPLETED)
             for future in wait_result.done:
