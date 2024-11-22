@@ -138,7 +138,7 @@ def _glob_with_recursive_pathname():
     assert_glob(
         "/bucketForGlobTest/**",
         [
-            "/bucketForGlobTest/",  # TODO: remove it
+            "/bucketForGlobTest/",
             "/bucketForGlobTest/1",
             "/bucketForGlobTest/1/a",
             "/bucketForGlobTest/1/a/b",

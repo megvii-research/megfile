@@ -43,22 +43,19 @@ def test_s3_buffered_writer_write(client):
 
 
 def test_s3_buffered_writer_write_max_worker(client, mocker):
-    BACKOFF_INITIAL = 2**20
+    UNIT = 2**20
     content_size = 16 * 2**20
-    mocker.patch("megfile.lib.s3_buffered_writer.BACKOFF_INITIAL", BACKOFF_INITIAL)
     content = b"a" * content_size
     with S3BufferedWriter(
         BUCKET,
         KEY,
         s3_client=client,
         max_workers=2,
-        block_size=8 * BACKOFF_INITIAL,
-        max_block_size=8 * BACKOFF_INITIAL,
+        block_size=8 * UNIT,
     ) as writer:
         writer.write(content)
         writer.write(b"\n")
         writer.write(content)
-        assert writer._backoff_size == BACKOFF_INITIAL * 4 * 4 * 4
 
     read_content = client.get_object(Bucket=BUCKET, Key=KEY)["Body"].read()
     assert read_content == content + b"\n" + content
@@ -86,7 +83,7 @@ def test_s3_buffered_writer_write_large_bytes(client):
 
 
 def test_s3_buffered_writer_write_multipart(client, mocker):
-    block_size = 8 * 2**20
+    block_size = 10 * 2**20
     content_size = 16 * 2**20
     content = b"a" * content_size
 
@@ -142,7 +139,7 @@ def test_s3_buffered_writer_write_multipart_pending(client, mocker):
 
     def fake_wait(futures, **kwargs):
         if writer._buffer_size_before_wait is None:
-            writer._buffer_size_before_wait = writer._buffer_size
+            writer._buffer_size_before_wait = writer._total_buffer_size
         upload_part_event.set()
         return wait(futures, **kwargs)
 
@@ -157,15 +154,15 @@ def test_s3_buffered_writer_write_multipart_pending(client, mocker):
     writer.write(CONTENT)
     assert writer._buffer_size_before_wait == 22
     writer._buffer_size_before_wait = None
-    assert writer._buffer_size == 0
+    assert writer._total_buffer_size == 0
 
     writer.write(b"\n")
     assert writer._buffer_size_before_wait is None
-    assert writer._buffer_size == 0
+    assert writer._total_buffer_size == 0
 
     writer.write(CONTENT)
     assert writer._buffer_size_before_wait == 23
     writer._buffer_size_before_wait = None
-    assert writer._buffer_size == 0
+    assert writer._total_buffer_size == 0
 
     assert writer._is_multipart

@@ -4,14 +4,17 @@ from logging import getLogger as get_logger
 from typing import Optional
 
 from megfile.config import (
-    DEFAULT_BLOCK_CAPACITY,
-    DEFAULT_BLOCK_SIZE,
+    READER_BLOCK_SIZE,
+    READER_MAX_BUFFER_SIZE,
     S3_MAX_RETRY_TIMES,
 )
 from megfile.lib.s3_prefetch_reader import LRUCacheFutureManager, S3PrefetchReader
 from megfile.utils import thread_local
 
 _logger = get_logger(__name__)
+
+
+DEFAULT_BLOCK_CAPACITY = max(READER_MAX_BUFFER_SIZE // READER_BLOCK_SIZE, 1)
 
 
 class S3ShareCacheReader(S3PrefetchReader):
@@ -32,8 +35,8 @@ class S3ShareCacheReader(S3PrefetchReader):
         key: str,
         *,
         s3_client,
-        block_size: int = DEFAULT_BLOCK_SIZE,
-        block_capacity: int = DEFAULT_BLOCK_CAPACITY,
+        block_size: int = READER_BLOCK_SIZE,
+        max_buffer_size: int = READER_MAX_BUFFER_SIZE,
         block_forward: Optional[int] = None,
         max_retries: int = S3_MAX_RETRY_TIMES,
         cache_key: str = "lru",
@@ -47,7 +50,7 @@ class S3ShareCacheReader(S3PrefetchReader):
             key,
             s3_client=s3_client,
             block_size=block_size,
-            block_capacity=block_capacity,
+            max_buffer_size=max_buffer_size,
             block_forward=block_forward,
             max_retries=max_retries,
             max_workers=max_workers,

@@ -157,8 +157,9 @@ def test_s3_share_cache_reader_fetch(client, mocker):
         sleep_until_downloaded(reader)
         get_object_func.assert_any_call(Bucket=BUCKET, Key=KEY, Range="bytes=0-6")
         get_object_func.assert_any_call(Bucket=BUCKET, Key=KEY, Range="bytes=7-13")
+        get_object_func.assert_any_call(Bucket=BUCKET, Key=KEY, Range="bytes=14-20")
         assert not reader._is_downloading
-        assert get_object_func.call_count == 2
+        assert get_object_func.call_count == 3
         get_object_func.reset_mock()
 
         # 以下三次 read 不会引起 _executor 启动
@@ -169,18 +170,9 @@ def test_s3_share_cache_reader_fetch(client, mocker):
         # get_object_func.assert_not_called() in Python 3.6+
         assert get_object_func.call_count == 0
 
-        # 读 block0 的前 2 字节, _executor 下载 block2,
+        # 读 block0 的前 2 字节, _executor 预读 block3,
         # 完成后阻塞地等待 _downloading 事件
         reader.read(2)
-        sleep_until_downloaded(reader)
-        get_object_func.assert_called_once_with(
-            Bucket=BUCKET, Key=KEY, Range="bytes=14-20"
-        )
-        assert not reader._is_downloading
-        get_object_func.reset_mock()
-
-        # 读到 block1, 引发 _executor 开始下载 block3
-        reader.read(6)
         sleep_until_downloaded(reader)
         get_object_func.assert_called_once_with(
             Bucket=BUCKET, Key=KEY, Range="bytes=21-27"
@@ -188,19 +180,25 @@ def test_s3_share_cache_reader_fetch(client, mocker):
         assert not reader._is_downloading
         get_object_func.reset_mock()
 
-        # reader._futures 可满足 size, 不会引发 _executor 下载 block4,
+        # 读到 block1, 引发 _executor 开始预读 block4
+        reader.read(6)
+        sleep_until_downloaded(reader)
+        get_object_func.assert_called_once_with(
+            Bucket=BUCKET, Key=KEY, Range="bytes=28-34"
+        )
+        assert not reader._is_downloading
+        get_object_func.reset_mock()
+
+        # reader._futures 可满足 size, 不会引发 _executor 下载
         # 且 _executor 仍旧阻塞
         reader.read(6)
         # get_object_func.assert_not_called() in Python 3.6+
         assert get_object_func.call_count == 0
         assert not reader._is_downloading
 
-        # 连续读多个 block, 引发 _executor 下载 block4
+        # reader._futures 可满足 size, 不会引发 _executor 下载
         reader.read(21)
         sleep_until_downloaded(reader)
-        get_object_func.assert_called_once_with(
-            Bucket=BUCKET, Key=KEY, Range="bytes=28-34"
-        )
         assert not reader._is_downloading
         assert reader._is_alive
 
@@ -248,13 +246,17 @@ def test_s3_share_cache_reader_backward_seek_and_the_target_in_remains(client, m
     ) as reader:
         reader.read(0)
         sleep_until_downloaded(reader)
-        assert reader._cached_blocks == [("s3://bucket/key", 1), ("s3://bucket/key", 0)]
+        assert reader._cached_blocks == [
+            ("s3://bucket/key", 2),
+            ("s3://bucket/key", 1),
+            ("s3://bucket/key", 0),
+        ]
 
         reader.seek(3)
         reader.read(0)
         sleep_until_downloaded(reader)
         assert reader._cached_blocks == [
-            ("s3://bucket/key", 0),
+            ("s3://bucket/key", 3),
             ("s3://bucket/key", 2),
             ("s3://bucket/key", 1),
         ]
@@ -282,13 +284,17 @@ def test_s3_share_cache_reader_backward_seek_and_the_target_out_of_remains(
     ) as reader:  # buffer 最大为 6B
         reader.read(0)
         sleep_until_downloaded(reader)
-        assert reader._cached_blocks == [("s3://bucket/key", 1), ("s3://bucket/key", 0)]
+        assert reader._cached_blocks == [
+            ("s3://bucket/key", 2),
+            ("s3://bucket/key", 1),
+            ("s3://bucket/key", 0),
+        ]
 
         reader.seek(10)
         reader.read(0)
         sleep_until_downloaded(reader)
         assert reader._cached_blocks == [
-            ("s3://bucket/key", 0),
+            ("s3://bucket/key", 5),
             ("s3://bucket/key", 4),
             ("s3://bucket/key", 3),
         ]
@@ -297,7 +303,7 @@ def test_s3_share_cache_reader_backward_seek_and_the_target_out_of_remains(
         reader.read(0)
         sleep_until_downloaded(reader)
         assert reader._cached_blocks == [
-            ("s3://bucket/key", 3),
+            ("s3://bucket/key", 2),
             ("s3://bucket/key", 1),
             ("s3://bucket/key", 0),
         ]
@@ -314,18 +320,26 @@ def test_s3_share_cache_reader_seek_and_the_target_in_buffer(client, mocker):
     ) as reader:  # buffer 最长为 9B
         sleep_until_downloaded(reader)
         reader.read(0)
-        assert reader._cached_blocks == [("s3://bucket/key", 1), ("s3://bucket/key", 0)]
+        assert reader._cached_blocks == [
+            ("s3://bucket/key", 2),
+            ("s3://bucket/key", 1),
+            ("s3://bucket/key", 0),
+        ]
 
         reader.seek(1)
         reader.read(0)
         sleep_until_downloaded(reader)
-        assert reader._cached_blocks == [("s3://bucket/key", 1), ("s3://bucket/key", 0)]
+        assert reader._cached_blocks == [
+            ("s3://bucket/key", 2),
+            ("s3://bucket/key", 1),
+            ("s3://bucket/key", 0),
+        ]
 
         reader.seek(5)
         reader.read(0)
         sleep_until_downloaded(reader)
         assert reader._cached_blocks == [
-            ("s3://bucket/key", 0),
+            ("s3://bucket/key", 3),
             ("s3://bucket/key", 2),
             ("s3://bucket/key", 1),
         ]
@@ -334,7 +348,7 @@ def test_s3_share_cache_reader_seek_and_the_target_in_buffer(client, mocker):
         reader.read(0)
         sleep_until_downloaded(reader)
         assert reader._cached_blocks == [
-            ("s3://bucket/key", 1),
+            ("s3://bucket/key", 5),
             ("s3://bucket/key", 4),
             ("s3://bucket/key", 3),
         ]
@@ -351,13 +365,17 @@ def test_s3_share_cache_reader_seek_and_the_target_out_of_buffer(client, mocker)
     ) as reader:  # buffer 最大为 6B
         reader.read(0)
         sleep_until_downloaded(reader)
-        assert reader._cached_blocks == [("s3://bucket/key", 1), ("s3://bucket/key", 0)]
+        assert reader._cached_blocks == [
+            ("s3://bucket/key", 2),
+            ("s3://bucket/key", 1),
+            ("s3://bucket/key", 0),
+        ]
 
         reader.seek(10)
         reader.read(0)
         sleep_until_downloaded(reader)
         assert reader._cached_blocks == [
-            ("s3://bucket/key", 0),
+            ("s3://bucket/key", 5),
             ("s3://bucket/key", 4),
             ("s3://bucket/key", 3),
         ]

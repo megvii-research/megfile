@@ -9,12 +9,15 @@ from typing import Iterable, Iterator, Optional, Tuple, Union
 import requests
 from urllib3 import HTTPResponse
 
-from megfile.config import DEFAULT_BLOCK_SIZE, HTTP_MAX_RETRY_TIMES
+from megfile.config import (
+    HTTP_MAX_RETRY_TIMES,
+    READER_BLOCK_SIZE,
+    READER_MAX_BUFFER_SIZE,
+)
 from megfile.errors import http_should_retry, patch_method, translate_http_error
 from megfile.interfaces import PathLike, Readable, StatResult, URIPath
 from megfile.lib.compat import fspath
 from megfile.lib.http_prefetch_reader import DEFAULT_TIMEOUT, HttpPrefetchReader
-from megfile.lib.s3_buffered_writer import DEFAULT_MAX_BUFFER_SIZE
 from megfile.lib.url import get_url_scheme
 from megfile.smart_path import SmartPath
 from megfile.utils import _is_pickle, binary_open
@@ -27,7 +30,6 @@ __all__ = [
 ]
 
 _logger = get_logger(__name__)
-max_retries = HTTP_MAX_RETRY_TIMES
 
 
 def get_http_session(
@@ -106,7 +108,7 @@ def get_http_session(
 
     session.request = patch_method(
         partial(session.request, timeout=timeout),
-        max_retries=max_retries,
+        max_retries=HTTP_MAX_RETRY_TIMES,
         should_retry=http_should_retry,
         before_callback=before_callback,
         after_callback=after_callback,
@@ -148,10 +150,10 @@ class HttpPath(URIPath):
         self,
         mode: str = "rb",
         *,
-        max_concurrency: Optional[int] = None,
-        max_buffer_size: int = DEFAULT_MAX_BUFFER_SIZE,
-        forward_ratio: Optional[float] = None,
-        block_size: int = DEFAULT_BLOCK_SIZE,
+        max_workers: Optional[int] = None,
+        max_buffer_size: int = READER_MAX_BUFFER_SIZE,
+        block_forward: Optional[int] = None,
+        block_size: int = READER_BLOCK_SIZE,
         **kwargs,
     ) -> Union[BufferedReader, HttpPrefetchReader]:
         """Open a BytesIO to read binary data of given http(s) url
@@ -161,16 +163,19 @@ class HttpPath(URIPath):
             Essentially, it reads data of http(s) url to memory by requests,
             and then return BytesIO to user.
 
-        :param mode: Only supports 'rb' mode now
+        :param mode: Only supports 'r' or 'rb' mode now
         :param encoding: encoding is the name of the encoding used to decode or encode
             the file. This should only be used in text mode.
         :param errors: errors is an optional string that specifies how encoding and
             decoding errors are to be handled—this cannot be used in binary mode.
-        :param max_concurrency: Max download thread number, None by default
-        :param max_buffer_size: Max cached buffer size in memory, 128MB by default
+        :param max_workers: Max download thread number, `None` by default,
+            will use global thread pool with 8 threads.
+        :param max_buffer_size: Max cached buffer size in memory, 128MB by default.
+            Set to `0` will disable cache.
+        :param block_forward: How many blocks of data cached from offset position
         :param block_size: Size of single block, 8MB by default. Each block will
             be uploaded or downloaded by single thread.
-        :return: BytesIO initialized with http(s) data
+        :return: A file-like object with http(s) data
         """
         if mode not in ("rb",):
             raise ValueError("unacceptable mode: %r" % mode)
@@ -197,20 +202,14 @@ class HttpPath(URIPath):
         ):
             response.close()
 
-            block_capacity = max_buffer_size // block_size
-            if forward_ratio is None:
-                block_forward = None
-            else:
-                block_forward = max(int(block_capacity * forward_ratio), 1)
-
             reader = HttpPrefetchReader(
                 self,
                 content_size=content_size,
-                max_retries=max_retries,
-                max_workers=max_concurrency,
-                block_capacity=block_capacity,
-                block_forward=block_forward,
                 block_size=block_size,
+                max_buffer_size=max_buffer_size,
+                block_forward=block_forward,
+                max_retries=HTTP_MAX_RETRY_TIMES,
+                max_workers=max_workers,
             )
             if _is_pickle(reader):
                 reader = BufferedReader(reader)  # type: ignore

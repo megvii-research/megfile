@@ -14,13 +14,14 @@ import botocore
 from botocore.awsrequest import AWSPreparedRequest, AWSResponse
 
 from megfile.config import (
-    DEFAULT_BLOCK_SIZE,
-    DEFAULT_MAX_BLOCK_SIZE,
-    DEFAULT_MIN_BLOCK_SIZE,
     GLOBAL_MAX_WORKERS,
     HTTP_AUTH_HEADERS,
+    READER_BLOCK_SIZE,
+    READER_MAX_BUFFER_SIZE,
     S3_CLIENT_CACHE_MODE,
     S3_MAX_RETRY_TIMES,
+    WRITER_BLOCK_SIZE,
+    WRITER_MAX_BUFFER_SIZE,
 )
 from megfile.errors import (
     S3BucketNotFoundError,
@@ -61,7 +62,6 @@ from megfile.lib.fnmatch import translate
 from megfile.lib.glob import has_magic, has_magic_ignore_brace, ungloblize
 from megfile.lib.joinpath import uri_join
 from megfile.lib.s3_buffered_writer import (
-    DEFAULT_MAX_BUFFER_SIZE,
     S3BufferedWriter,
 )
 from megfile.lib.s3_cached_handler import S3CachedHandler
@@ -686,8 +686,8 @@ def s3_prefetch_open(
     mode: str = "rb",
     followlinks: bool = False,
     *,
-    max_concurrency: Optional[int] = None,
-    max_block_size: int = DEFAULT_BLOCK_SIZE,
+    max_workers: Optional[int] = None,
+    block_size: int = READER_BLOCK_SIZE,
 ) -> S3PrefetchReader:
     """Open a asynchronous prefetch reader, to support fast sequential
     read and random read
@@ -698,11 +698,18 @@ def s3_prefetch_open(
 
         Supports context manager
 
-        Some parameter setting may perform well: max_concurrency=10 or 20,
-        max_block_size=8 or 16 MB, default value None means using global thread pool
+        Some parameter setting may perform well: max_workers=10 or 20,
+        block_size=8 or 16 MB, default value None means using global thread pool
 
-    :param max_concurrency: Max download thread number, None by default
-    :param max_block_size: Max data size downloaded by each thread, in bytes,
+    :param s3_url: s3 path
+    :param mode: only support "r" or "rb"
+    :param encoding: encoding is the name of the encoding used to decode or encode
+        the file. This should only be used in text mode.
+    :param errors: errors is an optional string that specifies how encoding and
+        decoding errors are to be handled—this cannot be used in binary mode.
+    :param followlinks: follow symbolic link, default `False`
+    :param max_workers: Max download thread number, `None` by default
+    :param block_size: Max data size downloaded by each thread, in bytes,
         8MB by default
     :returns: An opened S3PrefetchReader object
     :raises: S3FileNotFoundError
@@ -725,8 +732,8 @@ def s3_prefetch_open(
         key,
         s3_client=client,
         max_retries=max_retries,
-        max_workers=max_concurrency,
-        block_size=max_block_size,
+        max_workers=max_workers,
+        block_size=block_size,
         profile_name=s3_url._profile_name,
     )
 
@@ -738,8 +745,8 @@ def s3_share_cache_open(
     followlinks: bool = False,
     *,
     cache_key: str = "lru",
-    max_concurrency: Optional[int] = None,
-    max_block_size: int = DEFAULT_BLOCK_SIZE,
+    max_workers: Optional[int] = None,
+    block_size: int = READER_BLOCK_SIZE,
 ) -> S3ShareCacheReader:
     """Open a asynchronous prefetch reader, to support fast sequential read and
     random read
@@ -750,11 +757,18 @@ def s3_share_cache_open(
 
         Supports context manager
 
-        Some parameter setting may perform well: max_concurrency=10 or 20,
-        max_block_size=8 or 16 MB, default value None means using global thread pool
+        Some parameter setting may perform well: max_workers=10 or 20,
+        block_size=8 or 16 MB, default value None means using global thread pool
 
-    :param max_concurrency: Max download thread number, None by default
-    :param max_block_size: Max data size downloaded by each thread, in bytes,
+    :param s3_url: s3 path
+    :param mode: only support "r" or "rb"
+    :param encoding: encoding is the name of the encoding used to decode or encode
+        the file. This should only be used in text mode.
+    :param errors: errors is an optional string that specifies how encoding and
+        decoding errors are to be handled—this cannot be used in binary mode.
+    :param followlinks: follow symbolic link, default `False`
+    :param max_workers: Max download thread number, None by default
+    :param block_size: Max data size downloaded by each thread, in bytes,
         8MB by default
     :returns: An opened S3ShareCacheReader object
     :raises: S3FileNotFoundError
@@ -779,8 +793,8 @@ def s3_share_cache_open(
         cache_key=cache_key,
         s3_client=client,
         max_retries=max_retries,
-        max_workers=max_concurrency,
-        block_size=max_block_size,
+        max_workers=max_workers,
+        block_size=block_size,
         profile_name=s3_url._profile_name,
     )
 
@@ -807,7 +821,13 @@ def s3_pipe_open(
         But asynchronous behavior can guarantee the file are successfully written,
         and frequent execution may cause thread and file handle exhaustion
 
-    :param mode: Mode to open file, either "rb" or "wb"
+    :param s3_url: s3 path
+    :param mode: Mode to open file, either "r", "rb", "w" or "wb"
+    :param encoding: encoding is the name of the encoding used to decode or encode
+        the file. This should only be used in text mode.
+    :param errors: errors is an optional string that specifies how encoding and
+        decoding errors are to be handled—this cannot be used in binary mode.
+    :param followlinks: follow symbolic link, default `False`
     :param join_thread: If wait after function execution until s3 finishes writing
     :returns: An opened BufferedReader / BufferedWriter object
     """
@@ -857,7 +877,14 @@ def s3_cached_open(
         cache_path can specify the path of cache file. Performance could be better
         if cache file path is on ssd or tmpfs
 
-    :param mode: Mode to open file, could be one of "rb", "wb" or "ab"
+    :param s3_url: s3 path
+    :param mode: Mode to open file, could be one of "rb", "wb", "ab", "rb+", "wb+"
+        or "ab+"
+    :param encoding: encoding is the name of the encoding used to decode or encode
+        the file. This should only be used in text mode.
+    :param errors: errors is an optional string that specifies how encoding and
+        decoding errors are to be handled—this cannot be used in binary mode.
+    :param followlinks: follow symbolic link, default `False`
     :param cache_path: cache file path
     :returns: An opened BufferedReader / BufferedWriter object
     """
@@ -890,16 +917,14 @@ def s3_buffered_open(
     mode: str,
     followlinks: bool = False,
     *,
-    max_concurrency: Optional[int] = None,
-    max_buffer_size: int = DEFAULT_MAX_BUFFER_SIZE,
-    forward_ratio: Optional[float] = None,
+    max_workers: Optional[int] = None,
+    max_buffer_size: Optional[int] = None,
+    block_forward: Optional[int] = None,
     block_size: Optional[int] = None,
     limited_seekable: bool = False,
     buffered: bool = False,
     share_cache_key: Optional[str] = None,
     cache_path: Optional[str] = None,
-    min_block_size: Optional[int] = None,
-    max_block_size: int = DEFAULT_MAX_BLOCK_SIZE,
 ) -> IO:
     """Open an asynchronous prefetch reader, to support fast sequential read
 
@@ -909,22 +934,30 @@ def s3_buffered_open(
 
         Supports context manager
 
-        Some parameter setting may perform well: max_concurrency=10 or 20,
-        max_block_size=8 or 16 MB, default value None means using global thread pool
+        Some parameter setting may perform well: max_workers=10 or 20,
+        default value None means using global thread pool
 
-    :param max_concurrency: Max download thread number, None by default
-    :param max_buffer_size: Max cached buffer size in memory, 128MB by default
-    :param min_block_size: Min size of single block, default is same as block_size.
-        Each block will be downloaded by single thread.
-    :param max_block_size: Max size of single block, 128MB by default.
-        Each block will be downloaded by single thread.
-    :param block_size: Size of single block, 8MB by default.
+    :param s3_url: s3 path
+    :param mode: Mode to open file, could be one of "rb", "wb", "ab", "rb+", "wb+"
+        or "ab+"
+    :param encoding: encoding is the name of the encoding used to decode or encode
+        the file. This should only be used in text mode.
+    :param errors: errors is an optional string that specifies how encoding and
+        decoding errors are to be handled—this cannot be used in binary mode.
+    :param followlinks: follow symbolic link, default `False`
+    :param max_workers: Max download / upload thread number, `None` by default,
+        will use global thread pool with 8 threads.
+    :param max_buffer_size: Max cached buffer size in memory, 128MB by default.
+        Set to `0` will disable cache.
+    :param block_forward: How many blocks of data cached from offset position, only for
+        read mode.
+    :param block_size: Size of single block.
         Each block will be uploaded by single thread.
     :param limited_seekable: If write-handle supports limited seek
         (both file head part and tail part can seek block_size).
         Notes: This parameter are valid only for write-handle.
         Read-handle support arbitrary seek
-    :returns: An opened S3PrefetchReader object
+    :returns: An opened File object
     :raises: S3FileNotFoundError
     """
     if mode not in ("rb", "wb", "ab", "rb+", "wb+", "ab+"):
@@ -936,9 +969,6 @@ def s3_buffered_open(
             s3_url = s3_url.readlink()
         except S3NotALinkError:
             pass
-    min_block_size = min_block_size or block_size or DEFAULT_MIN_BLOCK_SIZE
-    block_size = block_size or DEFAULT_BLOCK_SIZE
-
     bucket, key = parse_s3_url(s3_url.path_with_protocol)
     config = botocore.config.Config(max_pool_connections=GLOBAL_MAX_WORKERS)
     client = get_s3_client_with_cache(config=config, profile_name=s3_url._profile_name)
@@ -958,13 +988,6 @@ def s3_buffered_open(
         )
 
     if mode == "rb":
-        # A rough conversion algorithm to align 2 types of Reader / Writer parameters
-        # TODO: Optimize the conversion algorithm
-        block_capacity = max_buffer_size // block_size
-        if forward_ratio is None:
-            block_forward = None
-        else:
-            block_forward = max(int(block_capacity * forward_ratio), 1)
         if share_cache_key is not None:
             reader = S3ShareCacheReader(
                 bucket,
@@ -972,8 +995,8 @@ def s3_buffered_open(
                 cache_key=share_cache_key,
                 s3_client=client,
                 max_retries=max_retries,
-                max_workers=max_concurrency,
-                block_size=block_size,
+                max_workers=max_workers,
+                block_size=block_size or READER_BLOCK_SIZE,
                 block_forward=block_forward,
                 profile_name=s3_url._profile_name,
             )
@@ -983,10 +1006,10 @@ def s3_buffered_open(
                 key,
                 s3_client=client,
                 max_retries=max_retries,
-                max_workers=max_concurrency,
-                block_capacity=block_capacity,
+                max_workers=max_workers,
+                max_buffer_size=max_buffer_size or READER_MAX_BUFFER_SIZE,
                 block_forward=block_forward,
-                block_size=block_size,
+                block_size=block_size or READER_BLOCK_SIZE,
                 profile_name=s3_url._profile_name,
             )
         if buffered or _is_pickle(reader):
@@ -998,10 +1021,9 @@ def s3_buffered_open(
             bucket,
             key,
             s3_client=client,
-            max_workers=max_concurrency,
-            block_size=min_block_size,
-            max_block_size=max_block_size,
-            max_buffer_size=max_buffer_size,
+            max_workers=max_workers,
+            block_size=block_size or WRITER_BLOCK_SIZE,
+            max_buffer_size=max_buffer_size or WRITER_MAX_BUFFER_SIZE,
             profile_name=s3_url._profile_name,
         )
     else:
@@ -1009,10 +1031,9 @@ def s3_buffered_open(
             bucket,
             key,
             s3_client=client,
-            max_workers=max_concurrency,
-            block_size=min_block_size,
-            max_block_size=max_block_size,
-            max_buffer_size=max_buffer_size,
+            max_workers=max_workers,
+            block_size=block_size or WRITER_BLOCK_SIZE,
+            max_buffer_size=max_buffer_size or WRITER_MAX_BUFFER_SIZE,
             profile_name=s3_url._profile_name,
         )
     if buffered or _is_pickle(writer):
@@ -1236,7 +1257,7 @@ class S3Cacher(FileCacher):
 
 
 def _group_src_paths_by_block(
-    src_paths: List[PathLike], block_size: int = DEFAULT_BLOCK_SIZE
+    src_paths: List[PathLike], block_size: int = READER_BLOCK_SIZE
 ) -> List[List[Tuple[PathLike, Optional[str]]]]:
     groups = []
     current_group, current_group_size = [], 0
@@ -1282,7 +1303,7 @@ def _group_src_paths_by_block(
 def s3_concat(
     src_paths: List[PathLike],
     dst_path: PathLike,
-    block_size: int = DEFAULT_BLOCK_SIZE,
+    block_size: int = READER_BLOCK_SIZE,
     max_workers: int = GLOBAL_MAX_WORKERS,
 ) -> None:
     """Concatenate s3 files to one file.

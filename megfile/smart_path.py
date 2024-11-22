@@ -155,7 +155,7 @@ class SmartPath(BasePath):
         :returns: Relative path from start
         """
         if start is not None:
-            _, start = SmartPath._extract_protocol(fspath(start))
+            _, start = SmartPath._extract_protocol(fspath(start))  # pyre-ignore[9]
         return self.pathlike.relpath(start=start)
 
     as_uri = _bind_function("as_uri")

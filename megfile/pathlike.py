@@ -710,10 +710,6 @@ class BasePath:
         """Write the opened binary stream to the path."""
         raise NotImplementedError('method "save" not implemented: %r' % self)
 
-    def relpath(self, start=None):
-        """Return the relative path."""
-        raise NotImplementedError('method "relpath" not implemented: %r' % self)
-
     def chmod(self, mode: int, *, follow_symlinks: bool = True):
         raise NotImplementedError(f"'chmod' is unsupported on '{type(self)}'")
 

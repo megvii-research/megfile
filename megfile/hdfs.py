@@ -1,5 +1,6 @@
 from typing import IO, BinaryIO, Iterator, List, Optional, Tuple
 
+from megfile.config import READER_BLOCK_SIZE, READER_MAX_BUFFER_SIZE
 from megfile.hdfs_path import (
     HdfsPath,
     is_hdfs,
@@ -296,10 +297,41 @@ def hdfs_open(
     buffering: Optional[int] = None,
     encoding: Optional[str] = None,
     errors: Optional[str] = None,
+    max_workers: Optional[int] = None,
+    max_buffer_size: int = READER_MAX_BUFFER_SIZE,
+    block_forward: Optional[int] = None,
+    block_size: int = READER_BLOCK_SIZE,
     **kwargs,
 ) -> IO:
+    """
+    Open a file on the specified path.
+
+    :param path: Given path
+    :param mode: Mode to open the file. Supports 'r', 'rb', 'w', 'wb', 'a', 'ab'.
+    :param buffering: Optional integer used to set the buffering policy.
+    :param encoding: Name of the encoding used to decode or encode the file.
+                    Should only be used in text mode.
+    :param errors: Optional string specifying how encoding and decoding errors are
+                to be handled. Cannot be used in binary mode.
+    :param max_workers: Max download thread number, `None` by default,
+        will use global thread pool with 8 threads.
+    :param max_buffer_size: Max cached buffer size in memory, 128MB by default.
+        Set to `0` will disable cache.
+    :param block_forward: Number of blocks of data for reader cached from the
+        offset position.
+    :param block_size: Size of a single block for reader, default is 8MB.
+    :returns: A file-like object.
+    :raises ValueError: If an unacceptable mode is provided.
+    """
     return HdfsPath(path).open(
-        mode, buffering=buffering, encoding=encoding, errors=errors
+        mode,
+        buffering=buffering,
+        encoding=encoding,
+        errors=errors,
+        max_workers=max_workers,
+        max_buffer_size=max_buffer_size,
+        block_forward=block_forward,
+        block_size=block_size,
     )
 
 

@@ -169,7 +169,7 @@ $ megfile config s3 accesskey secretkey \
 --profile tos
 
 # create alias
-$ megfile config tos s3+tos
+$ megfile alias tos s3+tos
 ```
 
 You can get the configuration from `~/.config/megfile/aliases.conf`, like:

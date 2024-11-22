@@ -19,8 +19,6 @@ from moto import mock_aws
 
 from megfile import s3, s3_path, smart
 from megfile.config import (
-    DEFAULT_BLOCK_SIZE,
-    DEFAULT_MAX_BUFFER_SIZE,
     GLOBAL_MAX_WORKERS,
 )
 from megfile.errors import (
@@ -2750,9 +2748,7 @@ def test_s3_prefetch_open(s3_empty_client):
         assert reader.mode == "rb"
         assert reader.read() == content
 
-    with s3.s3_prefetch_open(
-        "s3://bucket/key", max_concurrency=1, max_block_size=1
-    ) as reader:
+    with s3.s3_prefetch_open("s3://bucket/key", max_workers=1, block_size=1) as reader:
         assert reader.read() == content
 
     with s3.s3_prefetch_open("s3://bucket/symlink", followlinks=True) as reader:
@@ -2761,12 +2757,12 @@ def test_s3_prefetch_open(s3_empty_client):
         assert reader.read() == content
 
     with s3.s3_prefetch_open(
-        "s3://bucket/symlink", max_concurrency=1, max_block_size=1, followlinks=True
+        "s3://bucket/symlink", max_workers=1, block_size=1, followlinks=True
     ) as reader:
         assert reader.read() == content
 
     with pytest.raises(S3BucketNotFoundError):
-        s3.s3_prefetch_open("s3://", max_concurrency=1, max_block_size=1)
+        s3.s3_prefetch_open("s3://", max_workers=1, block_size=1)
 
     with pytest.raises(ValueError):
         s3.s3_prefetch_open("s3://bucket/key", mode="wb")
@@ -2788,9 +2784,7 @@ def test_s3_share_cache_open(s3_empty_client):
         assert reader.mode == "rb"
         assert reader.read() == content
 
-    with s3.s3_prefetch_open(
-        "s3://bucket/key", max_concurrency=1, max_block_size=1
-    ) as reader:
+    with s3.s3_prefetch_open("s3://bucket/key", max_workers=1, block_size=1) as reader:
         assert reader.read() == content
 
     with s3.s3_share_cache_open("s3://bucket/symlink", followlinks=True) as reader:
@@ -2799,7 +2793,7 @@ def test_s3_share_cache_open(s3_empty_client):
         assert reader.read() == content
 
     with s3.s3_prefetch_open(
-        "s3://bucket/symlink", max_concurrency=1, max_block_size=1, followlinks=True
+        "s3://bucket/symlink", max_workers=1, block_size=1, followlinks=True
     ) as reader:
         assert reader.read() == content
 
@@ -2983,9 +2977,9 @@ def test_s3_buffered_open(mocker, s3_empty_client, fs):
     assert isinstance(reader, BufferedReader)
 
     s3_empty_client.put_object(Bucket="bucket", Key="key", Body=content)
-    reader = s3.s3_buffered_open("s3://bucket/key", "rb", forward_ratio=0.5)
+    reader = s3.s3_buffered_open("s3://bucket/key", "rb", block_forward=1)
     assert isinstance(reader, s3_path.S3PrefetchReader)
-    assert reader._block_forward == DEFAULT_MAX_BUFFER_SIZE // DEFAULT_BLOCK_SIZE * 0.5
+    assert reader._block_forward == 1
 
     reader = s3.s3_buffered_open("s3://bucket/key", "rb", share_cache_key="share")
     assert isinstance(reader, s3_path.S3ShareCacheReader)

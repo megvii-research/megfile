@@ -6,6 +6,11 @@ import sys
 from functools import cached_property, lru_cache
 from typing import IO, BinaryIO, Iterator, List, Optional, Tuple
 
+from megfile.config import (
+    HDFS_MAX_RETRY_TIMES,
+    READER_BLOCK_SIZE,
+    READER_MAX_BUFFER_SIZE,
+)
 from megfile.errors import _create_missing_ok_generator, raise_hdfs_error
 from megfile.interfaces import FileEntry, PathLike, StatResult, URIPath
 from megfile.lib.compat import fspath
@@ -564,8 +569,31 @@ class HdfsPath(URIPath):
         buffering: Optional[int] = None,
         encoding: Optional[str] = None,
         errors: Optional[str] = None,
+        max_workers: Optional[int] = None,
+        max_buffer_size: int = READER_MAX_BUFFER_SIZE,
+        block_forward: Optional[int] = None,
+        block_size: int = READER_BLOCK_SIZE,
         **kwargs,
     ) -> IO:
+        """
+        Open a file on the specified path.
+
+        :param mode: Mode to open the file. Supports 'r', 'rb', 'w', 'wb', 'a', 'ab'.
+        :param buffering: Optional integer used to set the buffering policy.
+        :param encoding: Name of the encoding used to decode or encode the file.
+                        Should only be used in text mode.
+        :param errors: Optional string specifying how encoding and decoding errors are
+                    to be handled. Cannot be used in binary mode.
+        :param max_workers: Max download thread number, `None` by default,
+            will use global thread pool with 8 threads.
+        :param max_buffer_size: Max cached buffer size in memory, 128MB by default.
+            Set to `0` will disable cache.
+        :param block_forward: Number of blocks of data for reader cached from the
+            offset position.
+        :param block_size: Size of a single block for reader, default is 8MB.
+        :returns: A file-like object.
+        :raises ValueError: If an unacceptable mode is provided.
+        """
         if "+" in mode:
             raise ValueError("unacceptable mode: %r" % mode)
 
@@ -576,22 +604,15 @@ class HdfsPath(URIPath):
 
         with raise_hdfs_error(self.path_with_protocol):
             if mode in ("r", "rb"):
-                keys = [
-                    "block_size",
-                    "block_capacity",
-                    "block_forward",
-                    "max_retries",
-                    "max_workers",
-                ]
-                input_kwargs = {}
-                for key in keys:
-                    if key in kwargs:
-                        input_kwargs[key] = kwargs[key]
                 file_obj = HdfsPrefetchReader(
                     hdfs_path=self.path_without_protocol,
                     client=self._client,
                     profile_name=self._profile_name,
-                    **input_kwargs,
+                    block_size=block_size,
+                    max_buffer_size=max_buffer_size,
+                    block_forward=block_forward,
+                    max_retries=HDFS_MAX_RETRY_TIMES,
+                    max_workers=max_workers,
                 )
                 if _is_pickle(file_obj):
                     file_obj = io.BufferedReader(file_obj)  # type: ignore
