@@ -10,6 +10,8 @@ from typing import IO, Any, BinaryIO, Callable, Dict, Iterator, List, Optional, 
 from urllib.parse import urlparse
 
 import boto3
+import boto3.s3
+import boto3.s3.transfer
 import botocore
 from botocore.awsrequest import AWSPreparedRequest, AWSResponse
 
@@ -1135,9 +1137,21 @@ def s3_download(
     download_file = patch_method(
         client.download_file, max_retries=max_retries, should_retry=s3_should_retry
     )
+
+    transfer_config = boto3.s3.transfer.TransferConfig(
+        multipart_threshold=READER_BLOCK_SIZE,
+        max_concurrency=GLOBAL_MAX_WORKERS,
+        multipart_chunksize=READER_BLOCK_SIZE,
+        num_download_attempts=S3_MAX_RETRY_TIMES,
+        max_io_queue=max(READER_MAX_BUFFER_SIZE // READER_BLOCK_SIZE, 1),
+    )
     try:
         download_file(
-            src_bucket, src_key, dst_path.path_without_protocol, Callback=callback
+            src_bucket,
+            src_key,
+            dst_path.path_without_protocol,
+            Callback=callback,
+            Config=transfer_config,
         )
     except Exception as error:
         error = translate_fs_error(error, dst_url)
@@ -1188,8 +1202,19 @@ def s3_upload(
         client.upload_fileobj, max_retries=max_retries, should_retry=s3_should_retry
     )
 
+    transfer_config = boto3.s3.transfer.TransferConfig(
+        multipart_threshold=WRITER_BLOCK_SIZE,
+        max_concurrency=GLOBAL_MAX_WORKERS,
+        multipart_chunksize=WRITER_BLOCK_SIZE,
+    )
     with open(src_path.path_without_protocol, "rb") as src, raise_s3_error(dst_url):
-        upload_fileobj(src, Bucket=dst_bucket, Key=dst_key, Callback=callback)
+        upload_fileobj(
+            src,
+            Bucket=dst_bucket,
+            Key=dst_key,
+            Callback=callback,
+            Config=transfer_config,
+        )
 
 
 def s3_load_content(
