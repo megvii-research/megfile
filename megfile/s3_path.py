@@ -10,9 +10,8 @@ from typing import IO, Any, BinaryIO, Callable, Dict, Iterator, List, Optional, 
 from urllib.parse import urlparse
 
 import boto3
-import boto3.s3
-import boto3.s3.transfer
 import botocore
+from boto3.s3.transfer import TransferConfig
 from botocore.awsrequest import AWSPreparedRequest, AWSResponse
 
 from megfile.config import (
@@ -1138,7 +1137,7 @@ def s3_download(
         client.download_file, max_retries=max_retries, should_retry=s3_should_retry
     )
 
-    transfer_config = boto3.s3.transfer.TransferConfig(
+    transfer_config = TransferConfig(
         multipart_threshold=READER_BLOCK_SIZE,
         max_concurrency=GLOBAL_MAX_WORKERS,
         multipart_chunksize=READER_BLOCK_SIZE,
@@ -1202,7 +1201,7 @@ def s3_upload(
         client.upload_fileobj, max_retries=max_retries, should_retry=s3_should_retry
     )
 
-    transfer_config = boto3.s3.transfer.TransferConfig(
+    transfer_config = TransferConfig(
         multipart_threshold=WRITER_BLOCK_SIZE,
         max_concurrency=GLOBAL_MAX_WORKERS,
         multipart_chunksize=WRITER_BLOCK_SIZE,
