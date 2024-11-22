@@ -8,7 +8,7 @@ if READER_BLOCK_SIZE <= 0:
 READER_MAX_BUFFER_SIZE = int(os.getenv("MEGFILE_READER_MAX_BUFFER_SIZE") or 128 * 2**20)
 
 # Multi-upload in aws s3 has a maximum of 10,000 parts,
-# so the maximum supported file size is MEGFILE_WRITE_BLOCK_SIZE * 10,000 MB,
+# so the maximum supported file size is MEGFILE_WRITE_BLOCK_SIZE * 10,000,
 # the largest object that can be uploaded in a single PUT is 5 TB in aws s3.
 WRITER_BLOCK_SIZE = int(os.getenv("MEGFILE_WRITER_BLOCK_SIZE") or 32 * 2**20)
 if WRITER_BLOCK_SIZE <= 0:

@@ -37,6 +37,8 @@ class PartResult(_PartResult):
 
 
 class S3BufferedWriter(Writable[bytes]):
+    # Multi-upload part size must be between 5 MiB and 5 GiB.
+    # There is no minimum size limit on the last part of your multipart upload.
     MIN_BLOCK_SIZE = 8 * 2**20
 
     def __init__(
