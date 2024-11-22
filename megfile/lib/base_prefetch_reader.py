@@ -39,12 +39,12 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
         max_workers: Optional[int] = None,
         **kwargs,
     ):
-        self._is_auto_scaling = False
         if max_buffer_size == 0:
             block_capacity = block_forward = 0
         else:
             block_capacity = max(max_buffer_size // block_size, 1)
 
+        self._is_auto_scaling = False
         if block_forward is None:
             block_forward = max(block_capacity - 1, 0)
             self._is_auto_scaling = block_forward > 0
@@ -316,7 +316,7 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
     def _seek_buffer(self, index: int, offset: int = 0):
         # The corresponding block is probably not downloaded when seek to a new position
         # So record the offset first, set it when it is accessed
-        if self._is_auto_scaling and self._block_forward > 0:  # pyre-ignore[58]
+        if self._is_auto_scaling:  # pyre-ignore[58]
             history = []
             for item in self._seek_history:
                 if item.seek_count > self._block_capacity * 2:
@@ -333,6 +333,7 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
                 self._block_capacity // len(self._seek_history), 0
             )
             if self._block_forward == 0:
+                self._is_auto_scaling = False
                 self._seek_history = []
 
         self._cached_offset = offset
