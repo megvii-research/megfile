@@ -7,16 +7,13 @@ from threading import Lock
 from typing import NamedTuple, Optional
 
 from megfile.config import (
-    BACKOFF_FACTOR,
-    BACKOFF_INITIAL,
     GLOBAL_MAX_WORKERS,
     WRITER_BLOCK_SIZE,
     WRITER_MAX_BUFFER_SIZE,
-    WRITER_MIN_BLOCK_SIZE,
 )
 from megfile.errors import raise_s3_error
 from megfile.interfaces import Writable
-from megfile.utils import get_human_size, process_local
+from megfile.utils import process_local
 
 _logger = get_logger(__name__)
 """
@@ -40,6 +37,8 @@ class PartResult(_PartResult):
 
 
 class S3BufferedWriter(Writable[bytes]):
+    MIN_BLOCK_SIZE = 8 * 2**20
+
     def __init__(
         self,
         bucket: str,
@@ -62,8 +61,7 @@ class S3BufferedWriter(Writable[bytes]):
         self._max_buffer_size = max_buffer_size
         self._total_buffer_size = 0
         self._offset = 0
-        self.__content_size = 0
-        self._backoff_size = BACKOFF_INITIAL
+        self._content_size = 0
         self._buffer = BytesIO()
 
         self._futures_result = OrderedDict()
@@ -99,21 +97,6 @@ class S3BufferedWriter(Writable[bytes]):
 
     def tell(self) -> int:
         return self._offset
-
-    @property
-    def _content_size(self) -> int:
-        return self.__content_size
-
-    @_content_size.setter
-    def _content_size(self, value: int):
-        if value > self._backoff_size:
-            _logger.debug(
-                "writing file: %r, current size: %s"
-                % (self.name, get_human_size(value))
-            )
-        while value > self._backoff_size:
-            self._backoff_size *= BACKOFF_FACTOR
-        self.__content_size = value
 
     @property
     def _is_multipart(self) -> bool:
@@ -174,7 +157,7 @@ class S3BufferedWriter(Writable[bytes]):
         # so we need to divide content into equal-size parts,
         # and give last part more size.
         # e.g. 257MB can be divided into 2 parts, 128MB and 129MB
-        while len(content) - self._block_size > WRITER_MIN_BLOCK_SIZE:
+        while len(content) - self._block_size > self.MIN_BLOCK_SIZE:
             self._part_number += 1
             current_content, content = (
                 content[: self._block_size],

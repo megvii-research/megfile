@@ -9,8 +9,6 @@ from statistics import mean
 from typing import Optional
 
 from megfile.config import (
-    BACKOFF_FACTOR,
-    BACKOFF_INITIAL,
     DEFAULT_MAX_RETRY_TIMES,
     GLOBAL_MAX_WORKERS,
     NEWLINE,
@@ -18,7 +16,7 @@ from megfile.config import (
     READER_MAX_BUFFER_SIZE,
 )
 from megfile.interfaces import Readable, Seekable
-from megfile.utils import ProcessLocal, get_human_size, process_local
+from megfile.utils import ProcessLocal, process_local
 
 _logger = get_logger(__name__)
 
@@ -73,8 +71,7 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
         self._content_size = self._get_content_size()
         self._block_stop = ceil(self._content_size / block_size)
 
-        self.__offset = 0
-        self._backoff_size = BACKOFF_INITIAL
+        self._offset = 0
         self._cached_buffer = None
         self._block_index = None  # Current block index
         self._seek_history = []
@@ -115,21 +112,6 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
 
     def tell(self) -> int:
         return self._offset
-
-    @property
-    def _offset(self) -> int:
-        return self.__offset
-
-    @_offset.setter
-    def _offset(self, value: int):
-        if value > self._backoff_size:
-            _logger.debug(
-                "reading file: %r, current offset / total size: %s / %s"
-                % (self.name, get_human_size(value), get_human_size(self._content_size))
-            )
-        while value > self._backoff_size:
-            self._backoff_size *= BACKOFF_FACTOR
-        self.__offset = value
 
     def seek(self, offset: int, whence: int = os.SEEK_SET) -> int:
         """Change stream position.

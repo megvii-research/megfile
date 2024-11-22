@@ -183,7 +183,6 @@ def test_http_prefetch_reader_read_readline_mix(mocker):
 
 def test_http_prefetch_reader_seek_out_of_range(mocker):
     content = b"1\n2\n3\n4\n"
-    mocker.patch("megfile.lib.base_prefetch_reader.BACKOFF_INITIAL", 4)
     mocker.patch(
         "megfile.http_path.requests.get", return_value=FakeResponse200(b"1\n2\n3\n4\n")
     )
@@ -196,7 +195,6 @@ def test_http_prefetch_reader_seek_out_of_range(mocker):
         reader.seek(100)
         assert reader.tell() == 8
         assert reader.read(2) == b""
-        assert reader._backoff_size == 16
 
         with pytest.raises(ValueError):
             reader.seek(0, "error_whence")

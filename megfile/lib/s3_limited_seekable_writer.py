@@ -5,7 +5,6 @@ from typing import Optional
 
 from megfile.config import (
     WRITER_MAX_BUFFER_SIZE,
-    WRITER_MIN_BLOCK_SIZE,
 )
 from megfile.errors import raise_s3_error
 from megfile.interfaces import Seekable
@@ -28,7 +27,7 @@ class S3LimitedSeekableWriter(S3BufferedWriter, Seekable):
         key: str,
         *,
         s3_client,
-        block_size: int = WRITER_MIN_BLOCK_SIZE,
+        block_size: int = S3BufferedWriter.MIN_BLOCK_SIZE,
         head_block_size: Optional[int] = None,
         tail_block_size: Optional[int] = None,
         max_buffer_size: int = WRITER_MAX_BUFFER_SIZE,

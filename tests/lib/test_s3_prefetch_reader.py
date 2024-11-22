@@ -121,7 +121,6 @@ def test_s3_prefetch_reader_read_readline_mix(s3_empty_client):
 
 
 def test_s3_prefetch_reader_seek_out_of_range(s3_empty_client, mocker):
-    mocker.patch("megfile.lib.base_prefetch_reader.BACKOFF_INITIAL", 4)
     s3_empty_client.create_bucket(Bucket=BUCKET)
     s3_empty_client.put_object(Bucket=BUCKET, Key=KEY, Body=b"1\n2\n3\n4\n")
     with S3PrefetchReader(
@@ -133,7 +132,6 @@ def test_s3_prefetch_reader_seek_out_of_range(s3_empty_client, mocker):
         reader.seek(100)
         assert reader.tell() == 8
         assert reader.read(2) == b""
-        assert reader._backoff_size == 16
 
         with pytest.raises(ValueError):
             reader.seek(0, "error_whence")
