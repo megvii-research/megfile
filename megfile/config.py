@@ -3,9 +3,14 @@ from logging import getLogger
 
 _logger = getLogger(__name__)
 
+
+def to_boolean(value):
+    return value.lower() in ("true", "yes", "1")
+
+
 DEFAULT_BLOCK_SIZE = int(os.getenv("MEGFILE_BLOCK_SIZE") or 8 * 2**20)
 
-if os.getenv("MEGFILE_MAX_BUFFER_SIZE"):
+if "MEGFILE_MAX_BUFFER_SIZE" in os.environ:
     DEFAULT_MAX_BUFFER_SIZE = int(os.environ["MEGFILE_MAX_BUFFER_SIZE"])
     if DEFAULT_MAX_BUFFER_SIZE < DEFAULT_BLOCK_SIZE:
         DEFAULT_MAX_BUFFER_SIZE = DEFAULT_BLOCK_SIZE
@@ -14,12 +19,12 @@ if os.getenv("MEGFILE_MAX_BUFFER_SIZE"):
             "will not use buffer."
         )
     DEFAULT_BLOCK_CAPACITY = DEFAULT_MAX_BUFFER_SIZE // DEFAULT_BLOCK_SIZE
-    if os.getenv("MEGFILE_BLOCK_CAPACITY"):
+    if "MEGFILE_BLOCK_CAPACITY" in os.environ:
         _logger.warning(
             "Env 'MEGFILE_MAX_BUFFER_SIZE' and 'MEGFILE_BLOCK_CAPACITY' are both set, "
             "'MEGFILE_BLOCK_CAPACITY' will be ignored."
         )
-elif os.getenv("MEGFILE_BLOCK_CAPACITY"):
+elif "MEGFILE_BLOCK_CAPACITY" in os.environ:
     DEFAULT_BLOCK_CAPACITY = int(os.environ["MEGFILE_BLOCK_CAPACITY"])
     DEFAULT_MAX_BUFFER_SIZE = DEFAULT_BLOCK_SIZE * DEFAULT_BLOCK_CAPACITY
 else:
@@ -28,7 +33,7 @@ else:
 
 DEFAULT_MIN_BLOCK_SIZE = int(os.getenv("MEGFILE_MIN_BLOCK_SIZE") or DEFAULT_BLOCK_SIZE)
 
-if os.getenv("MEGFILE_MAX_BLOCK_SIZE"):
+if "MEGFILE_MAX_BLOCK_SIZE" in os.environ:
     DEFAULT_MAX_BLOCK_SIZE = int(os.environ["MEGFILE_MAX_BLOCK_SIZE"])
     if DEFAULT_MAX_BLOCK_SIZE < DEFAULT_BLOCK_SIZE:
         DEFAULT_MAX_BLOCK_SIZE = DEFAULT_BLOCK_SIZE
@@ -37,6 +42,15 @@ if os.getenv("MEGFILE_MAX_BLOCK_SIZE"):
         )
 else:
     DEFAULT_MAX_BLOCK_SIZE = max(128 * 2**20, DEFAULT_BLOCK_SIZE)
+
+if "MEGFILE_BLOCK_AOTOSCALE" in os.environ:
+    DEFAULT_BLOCK_AOTOSCALE = to_boolean(os.environ["MEGFILE_BLOCK_AOTOSCALE"].lower())
+else:
+    DEFAULT_BLOCK_AOTOSCALE = (
+        "MEGFILE_BLOCK_SIZE" not in os.environ
+        and "MEGFILE_MAX_BLOCK_SIZE" not in os.environ
+        and "MEGFILE_MIN_BLOCK_SIZE" not in os.environ
+    )
 
 GLOBAL_MAX_WORKERS = int(os.getenv("MEGFILE_MAX_WORKERS") or 32)
 DEFAULT_MAX_RETRY_TIMES = int(os.getenv("MEGFILE_MAX_RETRY_TIMES") or 10)
