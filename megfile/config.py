@@ -43,10 +43,10 @@ if "MEGFILE_MAX_BLOCK_SIZE" in os.environ:
 else:
     DEFAULT_MAX_BLOCK_SIZE = max(128 * 2**20, DEFAULT_BLOCK_SIZE)
 
-if "MEGFILE_BLOCK_AOTOSCALE" in os.environ:
-    DEFAULT_BLOCK_AOTOSCALE = to_boolean(os.environ["MEGFILE_BLOCK_AOTOSCALE"].lower())
+if "DEFAULT_BLOCK_AUTOSCALE" in os.environ:
+    DEFAULT_BLOCK_AUTOSCALE = to_boolean(os.environ["DEFAULT_BLOCK_AUTOSCALE"].lower())
 else:
-    DEFAULT_BLOCK_AOTOSCALE = (
+    DEFAULT_BLOCK_AUTOSCALE = (
         "MEGFILE_BLOCK_SIZE" not in os.environ
         and "MEGFILE_MAX_BLOCK_SIZE" not in os.environ
         and "MEGFILE_MIN_BLOCK_SIZE" not in os.environ
