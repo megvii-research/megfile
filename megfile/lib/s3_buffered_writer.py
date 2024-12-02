@@ -8,7 +8,7 @@ from typing import NamedTuple, Optional
 from megfile.config import (
     BACKOFF_FACTOR,
     BACKOFF_INITIAL,
-    DEFAULT_BLOCK_AOTOSCALE,
+    DEFAULT_BLOCK_AUTOSCALE,
     DEFAULT_MAX_BLOCK_SIZE,
     DEFAULT_MAX_BUFFER_SIZE,
     DEFAULT_MIN_BLOCK_SIZE,
@@ -47,7 +47,7 @@ class S3BufferedWriter(Writable[bytes]):
         *,
         s3_client,
         block_size: int = DEFAULT_MIN_BLOCK_SIZE,
-        block_autoscale: bool = DEFAULT_BLOCK_AOTOSCALE,
+        block_autoscale: bool = DEFAULT_BLOCK_AUTOSCALE,
         max_block_size: int = DEFAULT_MAX_BLOCK_SIZE,
         max_buffer_size: int = DEFAULT_MAX_BUFFER_SIZE,
         max_workers: Optional[int] = None,
