@@ -1,5 +1,9 @@
 import os
 
+
+def to_boolean(value):
+    return value.lower() in ("true", "yes", "1")
+
 READER_BLOCK_SIZE = int(os.getenv("MEGFILE_READER_BLOCK_SIZE") or 8 * 2**20)
 if READER_BLOCK_SIZE <= 0:
     raise ValueError(
@@ -16,6 +20,14 @@ if WRITER_BLOCK_SIZE <= 0:
         f"'MEGFILE_WRITER_BLOCK_SIZE' must bigger than 0, got {WRITER_BLOCK_SIZE}"
     )
 WRITER_MAX_BUFFER_SIZE = int(os.getenv("MEGFILE_WRITER_MAX_BUFFER_SIZE") or 128 * 2**20)
+if os.getenv("MEGFILE_WRITER_BLOCK_AUTOSCALE"):
+    DEFAULT_WRITER_BLOCK_AUTOSCALE = to_boolean(
+        os.environ["MEGFILE_WRITER_BLOCK_AUTOSCALE"].lower())
+else:
+    DEFAULT_WRITER_BLOCK_AUTOSCALE = (
+        not os.getenv("MEGFILE_WRITER_BLOCK_SIZE")
+        and not os.getenv("MEGFILE_WRITER_MAX_BUFFER_SIZE")
+    )
 
 GLOBAL_MAX_WORKERS = int(os.getenv("MEGFILE_MAX_WORKERS") or 8)
 
