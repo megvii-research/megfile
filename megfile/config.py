@@ -3,6 +3,11 @@ from logging import getLogger
 
 _logger = getLogger(__name__)
 
+
+def to_boolean(value):
+    return value.lower() in ("true", "yes", "1")
+
+
 DEFAULT_BLOCK_SIZE = int(os.getenv("MEGFILE_BLOCK_SIZE") or 8 * 2**20)
 
 if os.getenv("MEGFILE_MAX_BUFFER_SIZE"):
@@ -37,6 +42,15 @@ if os.getenv("MEGFILE_MAX_BLOCK_SIZE"):
         )
 else:
     DEFAULT_MAX_BLOCK_SIZE = max(128 * 2**20, DEFAULT_BLOCK_SIZE)
+
+if os.getenv("MEGFILE_BLOCK_AUTOSCALE"):
+    DEFAULT_BLOCK_AUTOSCALE = to_boolean(os.environ["MEGFILE_BLOCK_AUTOSCALE"].lower())
+else:
+    DEFAULT_BLOCK_AUTOSCALE = (
+        not os.getenv("MEGFILE_BLOCK_SIZE")
+        and not os.getenv("MEGFILE_MAX_BLOCK_SIZE")
+        and not os.getenv("MEGFILE_MIN_BLOCK_SIZE")
+    )
 
 GLOBAL_MAX_WORKERS = int(os.getenv("MEGFILE_MAX_WORKERS") or 32)
 DEFAULT_MAX_RETRY_TIMES = int(os.getenv("MEGFILE_MAX_RETRY_TIMES") or 10)
