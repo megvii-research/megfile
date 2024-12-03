@@ -109,12 +109,12 @@ class S3BufferedWriter(Writable[bytes]):
             if self._part_number < 10:
                 return self._base_block_size
             elif self._part_number < 100:
-                return min(self._base_block_size * 2, self._max_block_size)
+                return min(self._base_block_size * 2, self._max_buffer_size)
             elif self._part_number < 1000:
-                return min(self._base_block_size * 4, self._max_block_size)
+                return min(self._base_block_size * 4, self._max_buffer_size)
             elif self._part_number < 10000:
-                return min(self._base_block_size * 8, self._max_block_size)
-            return min(self._base_block_size * 16, self._max_block_size)  # unreachable
+                return min(self._base_block_size * 8, self._max_buffer_size)
+            return min(self._base_block_size * 16, self._max_buffer_size)  # unreachable
         return self._base_block_size
 
     @property
