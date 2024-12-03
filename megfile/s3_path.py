@@ -23,6 +23,7 @@ from megfile.config import (
     S3_MAX_RETRY_TIMES,
     WRITER_BLOCK_SIZE,
     WRITER_MAX_BUFFER_SIZE,
+    to_boolean,
 )
 from megfile.errors import (
     S3BucketNotFoundError,
@@ -255,7 +256,7 @@ def get_env_var(env_name: str, profile_name=None):
 def parse_boolean(value: Optional[str], default: bool = False) -> bool:
     if value is None:
         return default
-    return value.lower() in ("true", "yes", "1")
+    return to_boolean(value)
 
 
 def get_access_token(profile_name=None):
