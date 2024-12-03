@@ -187,7 +187,6 @@ def test_s3_buffered_writer_write_multipart_autoscale(client, mocker):
             writer.write(b"\n")
 
     assert writer._is_multipart
-    # put_object_func.assert_not_called() in Python 3.6+
     assert put_object_func.call_count == 0
     create_multipart_upload_func.assert_called_once_with(Bucket=BUCKET, Key=KEY)
 
