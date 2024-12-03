@@ -166,3 +166,38 @@ def test_s3_buffered_writer_write_multipart_pending(client, mocker):
     assert writer._total_buffer_size == 0
 
     assert writer._is_multipart
+
+
+def test_s3_buffered_writer_write_multipart_autoscale(client, mocker):
+    block_size = 8 * 2**20
+    content_size = 8 * 2**20
+    content_repeat = 20
+    content = b"a" * content_size
+
+    put_object_func = mocker.spy(client, "put_object")
+    create_multipart_upload_func = mocker.spy(client, "create_multipart_upload")
+    upload_part_func = mocker.spy(client, "upload_part")
+    complete_multipart_upload_func = mocker.spy(client, "complete_multipart_upload")
+
+    with S3BufferedWriter(
+        BUCKET, KEY, s3_client=client, block_size=block_size
+    ) as writer:
+        for _ in range(content_repeat):
+            writer.write(content)
+            writer.write(b"\n")
+
+    assert writer._is_multipart
+    assert put_object_func.call_count == 0
+    create_multipart_upload_func.assert_called_once_with(Bucket=BUCKET, Key=KEY)
+
+    assert upload_part_func.call_count == 16
+
+    complete_multipart_upload_func.assert_called_once_with(
+        Bucket=BUCKET,
+        Key=KEY,
+        UploadId=writer._upload_id,
+        MultipartUpload=writer._multipart_upload,
+    )
+
+    content_read = client.get_object(Bucket=BUCKET, Key=KEY)["Body"].read()
+    assert content_read == (content + b"\n") * content_repeat

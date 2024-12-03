@@ -7,6 +7,7 @@ from threading import Lock
 from typing import NamedTuple, Optional
 
 from megfile.config import (
+    DEFAULT_WRITER_BLOCK_AUTOSCALE,
     GLOBAL_MAX_WORKERS,
     WRITER_BLOCK_SIZE,
     WRITER_MAX_BUFFER_SIZE,
@@ -48,6 +49,7 @@ class S3BufferedWriter(Writable[bytes]):
         *,
         s3_client,
         block_size: int = WRITER_BLOCK_SIZE,
+        block_autoscale: bool = DEFAULT_WRITER_BLOCK_AUTOSCALE,
         max_buffer_size: int = WRITER_MAX_BUFFER_SIZE,
         max_workers: Optional[int] = None,
         profile_name: Optional[str] = None,
@@ -58,7 +60,8 @@ class S3BufferedWriter(Writable[bytes]):
         self._profile_name = profile_name
 
         # user maybe put block_size with 'numpy.uint64' type
-        self._block_size = int(block_size)
+        self._base_block_size = int(block_size)
+        self._block_autoscale = block_autoscale
 
         self._max_buffer_size = max_buffer_size
         self._total_buffer_size = 0
@@ -99,6 +102,20 @@ class S3BufferedWriter(Writable[bytes]):
 
     def tell(self) -> int:
         return self._offset
+
+    @property
+    def _block_size(self) -> int:
+        if self._block_autoscale:
+            if self._part_number < 10:
+                return self._base_block_size
+            elif self._part_number < 100:
+                return min(self._base_block_size * 2, self._max_buffer_size)
+            elif self._part_number < 1000:
+                return min(self._base_block_size * 4, self._max_buffer_size)
+            elif self._part_number < 10000:
+                return min(self._base_block_size * 8, self._max_buffer_size)
+            return min(self._base_block_size * 16, self._max_buffer_size)  # unreachable
+        return self._base_block_size
 
     @property
     def _is_multipart(self) -> bool:
