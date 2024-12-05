@@ -349,6 +349,9 @@ def sync(
     quiet: bool,
     skip: bool,
 ):
+    if not smart_exists(dst_path):
+        force = True
+
     with ThreadPoolExecutor(max_workers=worker) as executor:
         if has_magic(src_path):
             src_root_path = get_non_glob_dir(src_path)
@@ -411,7 +414,7 @@ def sync(
             dict(
                 src_root_path=src_root_path,
                 dst_root_path=dst_path,
-                src_file_path=file_entry.path,
+                src_file_entry=file_entry,
                 callback=callback,
                 followlinks=True,
                 callback_after_copy_file=callback_after_copy_file,

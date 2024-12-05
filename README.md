@@ -37,7 +37,7 @@ megfile - Megvii FILE library
 
 ## Quick Start
 
-Path string in `megfile` almost is `protocol://path/to/file`, for example `s3://bucketA/key`. But sftp path is a little different, format is `sftp://[username[:password]@]hostname[:port]//file_path`, and relative path is replace `//file_path` to `/file_path`.
+Path string in `megfile` almost is `protocol://path/to/file`, for example `s3://bucketA/key`. But sftp path is a little different, format is `sftp://[username[:password]@]hostname[:port]//absolute_file_path`. More details see [path format document](https://megvii-research.github.io/megfile/path_format.html).
 Here's an example of writing a file to s3 / fs, syncing to local, reading and finally deleting it.
 
 ### Functional Interface

@@ -397,7 +397,9 @@ def smart_copy(
 def _smart_sync_single_file(items: dict):
     src_root_path = items["src_root_path"]
     dst_root_path = items["dst_root_path"]
-    src_file_path = items["src_file_path"]
+    src_file_entry = items["src_file_entry"]
+    src_file_path = src_file_entry.path
+    src_file_stat = src_file_entry.stat
     callback = items["callback"]
     followlinks = items["followlinks"]
     callback_after_copy_file = items["callback_after_copy_file"]
@@ -417,17 +419,17 @@ def _smart_sync_single_file(items: dict):
     dst_protocol, _ = SmartPath._extract_protocol(dst_abs_file_path)
     should_sync = True
     try:
-        if force:
-            pass
-        elif not overwrite and smart_exists(dst_abs_file_path):
-            should_sync = False
-        elif smart_exists(dst_abs_file_path) and is_same_file(
-            smart_stat(src_file_path, follow_symlinks=followlinks),
-            smart_stat(dst_abs_file_path, follow_symlinks=followlinks),
-            get_sync_type(src_protocol, dst_protocol),
-        ):
-            should_sync = False
-    except NotImplementedError:
+        if not force:
+            dst_file_stat = smart_stat(dst_abs_file_path, follow_symlinks=followlinks)
+            if not overwrite:
+                should_sync = False
+            elif is_same_file(
+                src_file_stat,
+                dst_file_stat,
+                get_sync_type(src_protocol, dst_protocol),
+            ):
+                should_sync = False
+    except (NotImplementedError, FileNotFoundError):
         pass
 
     if should_sync:
@@ -513,15 +515,16 @@ def smart_sync(
     src_path, dst_path = get_traditional_path(src_path), get_traditional_path(dst_path)
     if not src_file_stats:
         src_file_stats = smart_scan_stat(src_path, followlinks=followlinks)
+    if not smart_exists(dst_path):
+        force = True
 
     def create_generator():
         for src_file_entry in src_file_stats:
             if src_file_entry.name:
-                src_file_path = src_file_entry.path
                 yield dict(
                     src_root_path=src_path,
                     dst_root_path=dst_path,
-                    src_file_path=src_file_path,
+                    src_file_entry=src_file_entry,
                     callback=callback,
                     followlinks=followlinks,
                     callback_after_copy_file=callback_after_copy_file,
