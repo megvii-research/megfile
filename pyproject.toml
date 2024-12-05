@@ -31,7 +31,7 @@ requires-python = ">=3.9"
 megfile = "megfile.cli:safe_cli"
 
 [tool.setuptools.packages.find]
-exclude = ["tests", "tests*", "remof"]
+exclude = ["tests", "tests*", "remof", "scripts", "docs"]
 
 [tool.setuptools.dynamic]
 version = {attr = "megfile.version.VERSION"}
