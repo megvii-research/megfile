@@ -399,7 +399,7 @@ def _smart_sync_single_file(items: dict):
     dst_root_path = items["dst_root_path"]
     src_file_entry = items["src_file_entry"]
     src_file_path = src_file_entry.path
-    src_stat = src_file_entry.stat
+    src_file_stat = src_file_entry.stat
     callback = items["callback"]
     followlinks = items["followlinks"]
     callback_after_copy_file = items["callback_after_copy_file"]
@@ -424,7 +424,7 @@ def _smart_sync_single_file(items: dict):
             if not overwrite:
                 should_sync = False
             elif is_same_file(
-                src_stat,
+                src_file_stat,
                 dst_file_stat,
                 get_sync_type(src_protocol, dst_protocol),
             ):
