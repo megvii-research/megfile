@@ -104,9 +104,10 @@ def test_s3_memory_handler_mode_rb(client):
     with open(LOCAL_PATH, "wb") as writer:
         writer.write(CONTENT)
 
-    with open(LOCAL_PATH, "rb") as fp1, S3MemoryHandler(
-        BUCKET, KEY, "rb", s3_client=client
-    ) as fp2:
+    with (
+        open(LOCAL_PATH, "rb") as fp1,
+        S3MemoryHandler(BUCKET, KEY, "rb", s3_client=client) as fp2,
+    ):
         assert_ability(fp1, fp2)
         assert_read(fp1, fp2, 5)
         assert_seek(fp1, fp2, 0, 0)
@@ -131,9 +132,10 @@ def test_s3_memory_handler_mode_wb(client):
     with open(LOCAL_PATH, "wb") as writer:
         writer.write(CONTENT)
 
-    with open(LOCAL_PATH, "wb") as fp1, S3MemoryHandler(
-        BUCKET, KEY, "wb", s3_client=client
-    ) as fp2:
+    with (
+        open(LOCAL_PATH, "wb") as fp1,
+        S3MemoryHandler(BUCKET, KEY, "wb", s3_client=client) as fp2,
+    ):
         assert_ability(fp1, fp2)
         assert_write(fp1, fp2, CONTENT)
         assert_seek(fp1, fp2, 0, 0)
@@ -156,9 +158,10 @@ def test_s3_memory_handler_mode_ab(client):
     with open(LOCAL_PATH, "wb") as writer:
         writer.write(CONTENT)
 
-    with open(LOCAL_PATH, "ab") as fp1, S3MemoryHandler(
-        BUCKET, KEY, "ab", s3_client=client
-    ) as fp2:
+    with (
+        open(LOCAL_PATH, "ab") as fp1,
+        S3MemoryHandler(BUCKET, KEY, "ab", s3_client=client) as fp2,
+    ):
         assert_ability(fp1, fp2)
         assert_write(fp1, fp2, CONTENT)
         assert_seek(fp1, fp2, 0, 0)
@@ -175,9 +178,10 @@ def test_s3_memory_handler_mode_rbp(client):
     with open(LOCAL_PATH, "wb") as writer:
         writer.write(CONTENT)
 
-    with open(LOCAL_PATH, "rb+") as fp1, S3MemoryHandler(
-        BUCKET, KEY, "rb+", s3_client=client
-    ) as fp2:
+    with (
+        open(LOCAL_PATH, "rb+") as fp1,
+        S3MemoryHandler(BUCKET, KEY, "rb+", s3_client=client) as fp2,
+    ):
         assert_ability(fp1, fp2)
         assert_read(fp1, fp2, 5)
         assert_write(fp1, fp2, CONTENT)
@@ -196,9 +200,10 @@ def test_s3_memory_handler_mode_rbp(client):
     with open(LOCAL_PATH, "wb") as writer:
         writer.write(CONTENT)
 
-    with open(LOCAL_PATH, "wb+") as fp1, S3MemoryHandler(
-        BUCKET, KEY, "wb+", s3_client=client
-    ) as fp2:
+    with (
+        open(LOCAL_PATH, "wb+") as fp1,
+        S3MemoryHandler(BUCKET, KEY, "wb+", s3_client=client) as fp2,
+    ):
         assert_ability(fp1, fp2)
         assert_read(fp1, fp2, 5)
         assert_write(fp1, fp2, CONTENT)
@@ -217,9 +222,10 @@ def test_s3_memory_handler_mode_rbp(client):
     with open(LOCAL_PATH, "wb") as writer:
         writer.write(CONTENT)
 
-    with open(LOCAL_PATH, "ab+") as fp1, S3MemoryHandler(
-        BUCKET, KEY, "ab+", s3_client=client
-    ) as fp2:
+    with (
+        open(LOCAL_PATH, "ab+") as fp1,
+        S3MemoryHandler(BUCKET, KEY, "ab+", s3_client=client) as fp2,
+    ):
         assert_ability(fp1, fp2)
         assert_read(fp1, fp2, 5)
         assert_write(fp1, fp2, CONTENT)

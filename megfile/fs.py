@@ -1,20 +1,10 @@
+import os
 from typing import BinaryIO, Callable, Iterator, List, Optional, Tuple
 
 from megfile.fs_path import (
     FSPath,
     _make_stat,
-    fs_cwd,
-    fs_glob,
-    fs_glob_stat,
-    fs_home,
-    fs_iglob,
-    fs_lstat,
-    fs_makedirs,
-    fs_move,
     fs_path_join,
-    fs_readlink,
-    fs_rename,
-    fs_resolve,
     is_fs,
 )
 from megfile.interfaces import Access, FileEntry, PathLike, StatResult
@@ -430,3 +420,171 @@ def fs_save_as(file_object: BinaryIO, path: PathLike):
     :param file_object: stream to be read
     """
     return FSPath(path).save(file_object)
+
+
+def fs_readlink(path) -> str:
+    """
+    Return a string representing the path to which the symbolic link points.
+    :returns: Return a string representing the path to which the symbolic link points.
+    """
+    return FSPath(path).readlink().path_without_protocol  # pyre-ignore[7]
+
+
+def fs_cwd() -> str:
+    """Return current working directory
+
+    returns: Current working directory
+    """
+    return os.getcwd()
+
+
+def fs_home():
+    """Return the home directory
+
+    returns: Home directory path
+    """
+    return os.path.expanduser("~")
+
+
+def fs_iglob(
+    path: PathLike, recursive: bool = True, missing_ok: bool = True
+) -> Iterator[str]:
+    """Return path iterator in ascending alphabetical order,
+    in which path matches glob pattern
+
+    1. If doesn't match any path, return empty list
+        Notice:  ``glob.glob`` in standard library returns ['a/'] instead of empty list
+        when pathname is like `a/**`, recursive is True and directory 'a' doesn't exist.
+        fs_glob behaves like ``glob.glob`` in standard library under such circumstance.
+    2. No guarantee that each path in result is different, which means:
+        Assume there exists a path `/a/b/c/b/d.txt`
+        use path pattern like `/**/b/**/*.txt` to glob,
+        the path above will be returned twice
+    3. `**` will match any matched file, directory, symlink and '' by default,
+        when recursive is `True`
+    4. fs_glob returns same as glob.glob(pathname, recursive=True)
+        in ascending alphabetical order.
+    5. Hidden files (filename stars with '.') will not be found in the result
+
+    :param recursive: If False, `**` will not search directory recursively
+    :param missing_ok: If False and target path doesn't match any file,
+        raise FileNotFoundError
+    :returns: An iterator contains paths match `pathname`
+    """
+    for path_obj in FSPath(path).iglob(
+        pattern="", recursive=recursive, missing_ok=missing_ok
+    ):
+        yield path_obj.path_without_protocol  # pyre-ignore[7]
+
+
+def fs_glob(
+    path: PathLike, recursive: bool = True, missing_ok: bool = True
+) -> List[str]:
+    """Return path list in ascending alphabetical order,
+    in which path matches glob pattern
+
+    1. If doesn't match any path, return empty list
+        Notice:  ``glob.glob`` in standard library returns ['a/'] instead of empty list
+        when pathname is like `a/**`, recursive is True and directory 'a' doesn't exist.
+        fs_glob behaves like ``glob.glob`` in standard library under such circumstance.
+    2. No guarantee that each path in result is different, which means:
+        Assume there exists a path `/a/b/c/b/d.txt`
+        use path pattern like `/**/b/**/*.txt` to glob,
+        the path above will be returned twice
+    3. `**` will match any matched file, directory, symlink and '' by default,
+        when recursive is `True`
+    4. fs_glob returns same as glob.glob(pathname, recursive=True)
+        in ascending alphabetical order.
+    5. Hidden files (filename stars with '.') will not be found in the result
+
+    :param recursive: If False, `**` will not search directory recursively
+    :param missing_ok: If False and target path doesn't match any file,
+        raise FileNotFoundError
+    :returns: A list contains paths match `pathname`
+    """
+    return list(fs_iglob(path=path, recursive=recursive, missing_ok=missing_ok))
+
+
+def fs_glob_stat(
+    path: PathLike, recursive: bool = True, missing_ok: bool = True
+) -> Iterator[FileEntry]:
+    """Return a list contains tuples of path and file stat,
+    in ascending alphabetical order, in which path matches glob pattern
+
+    1. If doesn't match any path, return empty list
+        Notice:  ``glob.glob`` in standard library returns ['a/'] instead of empty list
+        when pathname is like `a/**`, recursive is True and directory 'a' doesn't exist.
+        fs_glob behaves like ``glob.glob`` in standard library under such circumstance.
+    2. No guarantee that each path in result is different, which means:
+        Assume there exists a path `/a/b/c/b/d.txt`
+        use path pattern like `/**/b/**/*.txt` to glob,
+        the path above will be returned twice.
+    3. `**` will match any matched file, directory, symlink and '' by default,
+        when recursive is `True`
+    4. fs_glob returns same as glob.glob(pathname, recursive=True)
+        in ascending alphabetical order.
+    5. Hidden files (filename stars with '.') will not be found in the result
+
+    :param recursive: If False, `**` will not search directory recursively
+    :param missing_ok: If False and target path doesn't match any file,
+        raise FileNotFoundError
+    :returns: A list contains tuples of path and file stat,
+        in which paths match `pathname`
+    """
+    for path in fs_iglob(path=path, recursive=recursive, missing_ok=missing_ok):
+        yield FileEntry(os.path.basename(path), path, _make_stat(os.lstat(path)))
+
+
+def fs_resolve(path: PathLike) -> str:
+    """Equal to fs_realpath, return the real path of given path
+
+    :param path: Given path
+    :returns: Real path of given path
+    """
+    return FSPath(path).realpath()
+
+
+def fs_makedirs(path: PathLike, exist_ok: bool = False):
+    """
+    make a directory on fs, including parent directory
+
+    If there exists a file on the path, raise FileExistsError
+
+    :param path: Given path
+    :param exist_ok: If False and target directory exists, raise FileExistsError
+    :raises: FileExistsError
+    """
+    return FSPath(path).mkdir(parents=True, exist_ok=exist_ok)
+
+
+def fs_lstat(path: PathLike) -> StatResult:
+    """
+    Like Path.stat() but, if the path points to a symbolic link,
+    return the symbolic link’s information rather than its target’s.
+
+    :param path: Given path
+    :returns: StatResult
+    """
+    return FSPath(path).lstat()
+
+
+def fs_rename(src_path: PathLike, dst_path: PathLike, overwrite: bool = True) -> None:
+    """
+    rename file on fs
+
+    :param src_path: Given path
+    :param dst_path: Given destination path
+    :param overwrite: whether or not overwrite file when exists
+    """
+    FSPath(src_path).rename(dst_path, overwrite)
+
+
+def fs_move(src_path: PathLike, dst_path: PathLike, overwrite: bool = True) -> None:
+    """
+    rename file on fs
+
+    :param src_path: Given path
+    :param dst_path: Given destination path
+    :param overwrite: whether or not overwrite file when exists
+    """
+    return fs_rename(src_path, dst_path, overwrite)

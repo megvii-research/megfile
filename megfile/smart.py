@@ -671,9 +671,10 @@ def smart_makedirs(path: PathLike, exist_ok: bool = False) -> None:
 def smart_open(
     path: PathLike,
     mode: str = "r",
-    s3_open_func: Callable[[str, str], BinaryIO] = s3_open,
     encoding: Optional[str] = None,
     errors: Optional[str] = None,
+    *,
+    s3_open_func: Callable[[str, str], BinaryIO] = s3_open,
     **options,
 ) -> IO:
     r"""
@@ -684,16 +685,6 @@ def smart_open(
         On fs, the difference between this function and ``io.open`` is that
         this function create directories automatically, instead of
         raising FileNotFoundError
-
-    Currently, supported protocols are:
-
-    1. s3:      "s3://<bucket>/<key>"
-
-    2. http(s): http(s) url
-
-    3. stdio:   "stdio://-"
-
-    4. FS file: Besides above mentioned protocols, other path are considered fs path
 
     Here are a few examples: ::
 
@@ -708,12 +699,24 @@ def smart_open(
 
     :param path: Given path
     :param mode: Mode to open file, supports r'[rwa][tb]?\+?'
-    :param s3_open_func: Function used to open s3_url. Require the function includes 2
-        necessary parameters, file path and mode
     :param encoding: encoding is the name of the encoding used to decode or encode
         the file. This should only be used in text mode.
     :param errors: errors is an optional string that specifies how encoding and decoding
         errors are to be handled—this cannot be used in binary mode.
+    :param buffering: buffering is an optional integer used to
+        set the buffering policy. Only be used when support.
+    :param followlinks: follow symbolic link, default `False`. Only be used when support
+    :param s3_open_func: Function used to open s3_url. Require the function includes
+        2 necessary parameters, file path and mode. only be used in s3 path.
+    :param max_workers: Max download / upload thread number, `None` by default,
+        will use global thread pool with 8 threads. Only be used in s3, http, hdfs.
+    :param max_buffer_size: Max cached buffer size in memory, 128MB by default.
+        Set to `0` will disable cache. Only be used in s3, http, hdfs.
+    :param block_forward: How many blocks of data cached from offset position, only for
+        read mode. Only be used in s3, http, hdfs.
+    :param block_size: Size of single block. Each block will be uploaded by single
+        thread. Only be used in s3, http, hdfs.
+
     :returns: File-Like object
     :raises: FileNotFoundError, IsADirectoryError, ValueError
     """

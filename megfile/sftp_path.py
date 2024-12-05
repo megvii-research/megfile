@@ -6,22 +6,21 @@ import os
 import random
 import shlex
 import socket
-import subprocess
+import subprocess  # nosec B404
 from functools import cached_property
 from logging import getLogger as get_logger
 from stat import S_ISDIR, S_ISLNK, S_ISREG
-from typing import IO, BinaryIO, Callable, Iterator, List, Optional, Tuple, Union
+from typing import IO, BinaryIO, Callable, Iterator, List, Optional, Tuple, Type, Union
 from urllib.parse import urlsplit, urlunsplit
 
 import paramiko
 
-from megfile.config import SFTP_MAX_RETRY_TIMES
+from megfile.config import SFTP_HOST_KEY_POLICY, SFTP_MAX_RETRY_TIMES
 from megfile.errors import SameFileError, _create_missing_ok_generator, patch_method
 from megfile.interfaces import ContextIterator, FileEntry, PathLike, StatResult
 from megfile.lib.compare import is_same_file
 from megfile.lib.compat import fspath
 from megfile.lib.glob import FSFunc, iglob
-from megfile.lib.joinpath import uri_join
 from megfile.pathlike import URIPath
 from megfile.smart_path import SmartPath
 from megfile.utils import calculate_md5, thread_local
@@ -31,23 +30,13 @@ _logger = get_logger(__name__)
 __all__ = [
     "SftpPath",
     "is_sftp",
-    "sftp_readlink",
-    "sftp_glob",
-    "sftp_iglob",
-    "sftp_glob_stat",
-    "sftp_resolve",
-    "sftp_download",
-    "sftp_upload",
-    "sftp_path_join",
-    "sftp_concat",
-    "sftp_lstat",
 ]
 
 SFTP_USERNAME = "SFTP_USERNAME"
-SFTP_PASSWORD = "SFTP_PASSWORD"
+SFTP_PASSWORD = "SFTP_PASSWORD"  # nosec B105
 SFTP_PRIVATE_KEY_PATH = "SFTP_PRIVATE_KEY_PATH"
 SFTP_PRIVATE_KEY_TYPE = "SFTP_PRIVATE_KEY_TYPE"
-SFTP_PRIVATE_KEY_PASSWORD = "SFTP_PRIVATE_KEY_PASSWORD"
+SFTP_PRIVATE_KEY_PASSWORD = "SFTP_PRIVATE_KEY_PASSWORD"  # nosec B105
 SFTP_MAX_UNAUTH_CONN = "SFTP_MAX_UNAUTH_CONN"
 MAX_RETRIES = SFTP_MAX_RETRY_TIMES
 DEFAULT_SSH_CONNECT_TIMEOUT = 5
@@ -120,10 +109,11 @@ def _patch_sftp_client_request(
     port: Optional[int] = None,
     username: Optional[str] = None,
     password: Optional[str] = None,
+    default_policy: Type[paramiko.MissingHostKeyPolicy] = paramiko.RejectPolicy,
 ):
     def retry_callback(error, *args, **kwargs):
         client.close()
-        ssh_client = get_ssh_client(hostname, port, username, password)
+        ssh_client = get_ssh_client(hostname, port, username, password, default_policy)
         ssh_client.close()
         atexit.unregister(ssh_client.close)
         ssh_key = f"ssh_client:{hostname},{port},{username},{password}"
@@ -134,7 +124,11 @@ def _patch_sftp_client_request(
             del thread_local[sftp_key]
 
         new_sftp_client = get_sftp_client(
-            hostname=hostname, port=port, username=username, password=password
+            hostname=hostname,
+            port=port,
+            username=username,
+            password=password,
+            default_policy=default_policy,
         )
         client.sock = new_sftp_client.sock
 
@@ -152,17 +146,24 @@ def _get_sftp_client(
     port: Optional[int] = None,
     username: Optional[str] = None,
     password: Optional[str] = None,
+    default_policy: Type[paramiko.MissingHostKeyPolicy] = paramiko.RejectPolicy,
 ) -> paramiko.SFTPClient:
     """Get sftp client
 
     :returns: sftp client
     """
     session = get_ssh_session(
-        hostname=hostname, port=port, username=username, password=password
+        hostname=hostname,
+        port=port,
+        username=username,
+        password=password,
+        default_policy=default_policy,
     )
     session.invoke_subsystem("sftp")
     sftp_client = paramiko.SFTPClient(session)
-    _patch_sftp_client_request(sftp_client, hostname, port, username, password)
+    _patch_sftp_client_request(
+        sftp_client, hostname, port, username, password, default_policy
+    )
     return sftp_client
 
 
@@ -171,6 +172,7 @@ def get_sftp_client(
     port: Optional[int] = None,
     username: Optional[str] = None,
     password: Optional[str] = None,
+    default_policy: Type[paramiko.MissingHostKeyPolicy] = paramiko.RejectPolicy,
 ) -> paramiko.SFTPClient:
     """Get sftp client
 
@@ -183,6 +185,7 @@ def get_sftp_client(
         port,
         username,
         password,
+        default_policy,
     )
 
 
@@ -191,19 +194,27 @@ def _get_ssh_client(
     port: Optional[int] = None,
     username: Optional[str] = None,
     password: Optional[str] = None,
+    default_policy: Type[paramiko.MissingHostKeyPolicy] = paramiko.RejectPolicy,
 ) -> paramiko.SSHClient:
     hostname, port, username, password, private_key = provide_connect_info(
         hostname=hostname, port=port, username=username, password=password
     )
 
+    policies = {
+        "auto": paramiko.AutoAddPolicy,
+        "reject": paramiko.RejectPolicy,
+        "warning": paramiko.WarningPolicy,
+    }
+    policy = policies.get(SFTP_HOST_KEY_POLICY, default_policy)()  # pyre-ignore[29]
+
     ssh_client = paramiko.SSHClient()
-    ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    ssh_client.set_missing_host_key_policy(policy)
     max_unauth_connections = int(os.getenv(SFTP_MAX_UNAUTH_CONN, 10))
     try:
         fd = os.open(
             os.path.join(
-                "/tmp",
-                f"megfile-sftp-{hostname}-{random.randint(1, max_unauth_connections)}",
+                "/tmp",  # nosec B108
+                f"megfile-sftp-{hostname}-{random.randint(1, max_unauth_connections)}",  # nosec B311
             ),
             os.O_WRONLY | os.O_CREAT | os.O_TRUNC,
         )
@@ -237,6 +248,7 @@ def get_ssh_client(
     port: Optional[int] = None,
     username: Optional[str] = None,
     password: Optional[str] = None,
+    default_policy: Type[paramiko.MissingHostKeyPolicy] = paramiko.RejectPolicy,
 ) -> paramiko.SSHClient:
     return thread_local(
         f"ssh_client:{hostname},{port},{username},{password}",
@@ -245,6 +257,7 @@ def get_ssh_client(
         port,
         username,
         password,
+        default_policy,
     )
 
 
@@ -253,9 +266,10 @@ def get_ssh_session(
     port: Optional[int] = None,
     username: Optional[str] = None,
     password: Optional[str] = None,
+    default_policy: Type[paramiko.MissingHostKeyPolicy] = paramiko.RejectPolicy,
 ) -> paramiko.Channel:
     def retry_callback(error, *args, **kwargs):
-        ssh_client = get_ssh_client(hostname, port, username, password)
+        ssh_client = get_ssh_client(hostname, port, username, password, default_policy)
         ssh_client.close()
         atexit.unregister(ssh_client.close)
         ssh_key = f"ssh_client:{hostname},{port},{username},{password}"
@@ -270,7 +284,7 @@ def get_ssh_session(
         max_retries=MAX_RETRIES,
         should_retry=sftp_should_retry,
         retry_callback=retry_callback,
-    )(hostname, port, username, password)
+    )(hostname, port, username, password, default_policy)
 
 
 def _open_session(
@@ -278,8 +292,9 @@ def _open_session(
     port: Optional[int] = None,
     username: Optional[str] = None,
     password: Optional[str] = None,
+    default_policy: Type[paramiko.MissingHostKeyPolicy] = paramiko.RejectPolicy,
 ) -> paramiko.Channel:
-    ssh_client = get_ssh_client(hostname, port, username, password)
+    ssh_client = get_ssh_client(hostname, port, username, password, default_policy)
     transport = ssh_client.get_transport()
     if not transport:
         raise paramiko.SSHException("Get transport error")
@@ -302,310 +317,16 @@ def is_sftp(path: PathLike) -> bool:
     return parts.scheme == "sftp"
 
 
-def sftp_readlink(path: PathLike) -> "str":
-    """
-    Return a SftpPath instance representing the path to which the symbolic link points.
-
-    :param path: Given path
-    :returns: Return a SftpPath instance representing the path to
-        which the symbolic link points.
-    """
-    return SftpPath(path).readlink().path_with_protocol
-
-
-def sftp_glob(
-    path: PathLike, recursive: bool = True, missing_ok: bool = True
-) -> List[str]:
-    """Return path list in ascending alphabetical order,
-    in which path matches glob pattern
-
-    1. If doesn't match any path, return empty list
-       Notice:  ``glob.glob`` in standard library returns ['a/'] instead of empty list
-       when pathname is like `a/**`, recursive is True and directory 'a' doesn't exist.
-       fs_glob behaves like ``glob.glob`` in standard library under such circumstance.
-    2. No guarantee that each path in result is different, which means:
-       Assume there exists a path `/a/b/c/b/d.txt`
-       use path pattern like `/**/b/**/*.txt` to glob,
-       the path above will be returned twice
-    3. `**` will match any matched file, directory, symlink and '' by default,
-       when recursive is `True`
-    4. fs_glob returns same as glob.glob(pathname, recursive=True)
-       in ascending alphabetical order.
-    5. Hidden files (filename stars with '.') will not be found in the result
-
-    :param path: Given path
-    :param pattern: Glob the given relative pattern in the directory represented
-        by this path
-    :param recursive: If False, `**` will not search directory recursively
-    :param missing_ok: If False and target path doesn't match any file,
-        raise FileNotFoundError
-    :returns: A list contains paths match `pathname`
-    """
-    return list(sftp_iglob(path=path, recursive=recursive, missing_ok=missing_ok))
-
-
-def sftp_glob_stat(
-    path: PathLike, recursive: bool = True, missing_ok: bool = True
-) -> Iterator[FileEntry]:
-    """Return a list contains tuples of path and file stat, in ascending alphabetical
-    order, in which path matches glob pattern
-
-    1. If doesn't match any path, return empty list
-       Notice:  ``glob.glob`` in standard library returns ['a/'] instead of empty list
-       when pathname is like `a/**`, recursive is True and directory 'a' doesn't exist.
-       sftp_glob behaves like ``glob.glob`` in standard library under such circumstance.
-    2. No guarantee that each path in result is different, which means:
-       Assume there exists a path `/a/b/c/b/d.txt`
-       use path pattern like `/**/b/**/*.txt` to glob,
-       the path above will be returned twice
-    3. `**` will match any matched file, directory, symlink and '' by default,
-       when recursive is `True`
-    4. fs_glob returns same as glob.glob(pathname, recursive=True) in
-       ascending alphabetical order.
-    5. Hidden files (filename stars with '.') will not be found in the result
-
-    :param path: Given path
-    :param pattern: Glob the given relative pattern in the directory represented
-        by this path
-    :param recursive: If False, `**` will not search directory recursively
-    :param missing_ok: If False and target path doesn't match any file,
-        raise FileNotFoundError
-    :returns: A list contains tuples of path and file stat,
-        in which paths match `pathname`
-    """
-    for path in sftp_iglob(path=path, recursive=recursive, missing_ok=missing_ok):
-        path_object = SftpPath(path)
-        yield FileEntry(
-            path_object.name, path_object.path_with_protocol, path_object.lstat()
-        )
-
-
-def sftp_iglob(
-    path: PathLike, recursive: bool = True, missing_ok: bool = True
-) -> Iterator[str]:
-    """Return path iterator in ascending alphabetical order,
-    in which path matches glob pattern
-
-    1. If doesn't match any path, return empty list
-       Notice:  ``glob.glob`` in standard library returns ['a/'] instead of empty list
-       when pathname is like `a/**`, recursive is True and directory 'a' doesn't exist.
-       fs_glob behaves like ``glob.glob`` in standard library under such circumstance.
-    2. No guarantee that each path in result is different, which means:
-       Assume there exists a path `/a/b/c/b/d.txt`
-       use path pattern like `/**/b/**/*.txt` to glob,
-       the path above will be returned twice
-    3. `**` will match any matched file, directory, symlink and '' by default,
-       when recursive is `True`
-    4. fs_glob returns same as glob.glob(pathname, recursive=True) in
-       ascending alphabetical order.
-    5. Hidden files (filename stars with '.') will not be found in the result
-
-    :param path: Given path
-    :param pattern: Glob the given relative pattern in the directory represented
-        by this path
-    :param recursive: If False, `**` will not search directory recursively
-    :param missing_ok: If False and target path doesn't match any file,
-        raise FileNotFoundError
-    :returns: An iterator contains paths match `pathname`
-    """
-
-    for path in SftpPath(path).iglob(
-        pattern="", recursive=recursive, missing_ok=missing_ok
-    ):
-        yield path.path_with_protocol
-
-
-def sftp_resolve(path: PathLike, strict=False) -> "str":
-    """Equal to fs_realpath
-
-    :param path: Given path
-    :param strict: Ignore this parameter, just for compatibility
-    :return: Return the canonical path of the specified filename,
-        eliminating any symbolic links encountered in the path.
-    :rtype: SftpPath
-    """
-    return SftpPath(path).resolve(strict).path_with_protocol
-
-
 def _sftp_scan_pairs(
     src_url: PathLike, dst_url: PathLike
 ) -> Iterator[Tuple[PathLike, PathLike]]:
     for src_file_path in SftpPath(src_url).scan():
-        content_path = src_file_path[len(src_url) :]
+        content_path = src_file_path[len(fspath(src_url)) :]
         if len(content_path) > 0:
             dst_file_path = SftpPath(dst_url).joinpath(content_path).path_with_protocol
         else:
             dst_file_path = dst_url
         yield src_file_path, dst_file_path
-
-
-def sftp_download(
-    src_url: PathLike,
-    dst_url: PathLike,
-    callback: Optional[Callable[[int], None]] = None,
-    followlinks: bool = False,
-    overwrite: bool = True,
-):
-    """
-    Downloads a file from sftp to local filesystem.
-
-    :param src_url: source sftp path
-    :param dst_url: target fs path
-    :param callback: Called periodically during copy, and the input parameter is
-        the data size (in bytes) of copy since the last call
-    :param followlinks: False if regard symlink as file, else True
-    :param overwrite: whether or not overwrite file when exists, default is True
-    """
-    from megfile.fs import is_fs
-    from megfile.fs_path import FSPath
-
-    if not is_fs(dst_url):
-        raise OSError(f"dst_url is not fs path: {dst_url}")
-    if not is_sftp(src_url) and not isinstance(src_url, SftpPath):
-        raise OSError(f"src_url is not sftp path: {src_url}")
-
-    dst_path = FSPath(dst_url)
-    if not overwrite and dst_path.exists():
-        return
-
-    if isinstance(src_url, SftpPath):
-        src_path = src_url
-    else:
-        src_path = SftpPath(src_url)
-
-    if followlinks and src_path.is_symlink():
-        src_path = src_path.readlink()
-    if src_path.is_dir():
-        raise IsADirectoryError("Is a directory: %r" % src_url)
-    if str(dst_url).endswith("/"):
-        raise IsADirectoryError("Is a directory: %r" % dst_url)
-
-    dst_path.parent.makedirs(exist_ok=True)
-
-    sftp_callback = None
-    if callback:
-        bytes_transferred_before = 0
-
-        def sftp_callback(bytes_transferred: int, _total_bytes: int):
-            nonlocal bytes_transferred_before
-            callback(bytes_transferred - bytes_transferred_before)  # pyre-ignore[29]
-            bytes_transferred_before = bytes_transferred
-
-    src_path._client.get(
-        src_path._real_path, dst_path.path_without_protocol, callback=sftp_callback
-    )
-
-    src_stat = src_path.stat()
-    dst_path.utime(src_stat.st_atime, src_stat.st_mtime)
-    dst_path.chmod(src_stat.st_mode)
-
-
-def sftp_upload(
-    src_url: PathLike,
-    dst_url: PathLike,
-    callback: Optional[Callable[[int], None]] = None,
-    followlinks: bool = False,
-    overwrite: bool = True,
-):
-    """
-    Uploads a file from local filesystem to sftp server.
-
-    :param src_url: source fs path
-    :param dst_url: target sftp path
-    :param callback: Called periodically during copy, and the input parameter is
-        the data size (in bytes) of copy since the last call
-    :param overwrite: whether or not overwrite file when exists, default is True
-    """
-    from megfile.fs import is_fs
-    from megfile.fs_path import FSPath
-
-    if not is_fs(src_url):
-        raise OSError(f"src_url is not fs path: {src_url}")
-    if not is_sftp(dst_url) and not isinstance(dst_url, SftpPath):
-        raise OSError(f"dst_url is not sftp path: {dst_url}")
-
-    if followlinks and os.path.islink(src_url):
-        src_url = os.readlink(src_url)
-    if os.path.isdir(src_url):
-        raise IsADirectoryError("Is a directory: %r" % src_url)
-    if str(dst_url).endswith("/"):
-        raise IsADirectoryError("Is a directory: %r" % dst_url)
-
-    src_path = FSPath(src_url)
-    if isinstance(dst_url, SftpPath):
-        dst_path = dst_url
-    else:
-        dst_path = SftpPath(dst_url)
-    if not overwrite and dst_path.exists():
-        return
-
-    dst_path.parent.makedirs(exist_ok=True)
-
-    sftp_callback = None
-    if callback:
-        bytes_transferred_before = 0
-
-        def sftp_callback(bytes_transferred: int, _total_bytes: int):
-            nonlocal bytes_transferred_before
-            callback(bytes_transferred - bytes_transferred_before)  # pyre-ignore[29]
-            bytes_transferred_before = bytes_transferred
-
-    dst_path._client.put(
-        src_path.path_without_protocol, dst_path._real_path, callback=sftp_callback
-    )
-
-    src_stat = src_path.stat()
-    dst_path.utime(src_stat.st_atime, src_stat.st_mtime)
-    dst_path.chmod(src_stat.st_mode)
-
-
-def sftp_path_join(path: PathLike, *other_paths: PathLike) -> str:
-    """
-    Concat 2 or more path to a complete path
-
-    :param path: Given path
-    :param other_paths: Paths to be concatenated
-    :returns: Concatenated complete path
-
-    .. note ::
-
-        The difference between this function and ``os.path.join`` is that this function
-        ignores left side slash (which indicates absolute path) in ``other_paths``
-        and will directly concat.
-
-        e.g. os.path.join('/path', 'to', '/file') => '/file',
-        but sftp_path_join('/path', 'to', '/file') => '/path/to/file'
-    """
-    return uri_join(fspath(path), *map(fspath, other_paths))
-
-
-def sftp_concat(src_paths: List[PathLike], dst_path: PathLike) -> None:
-    """Concatenate sftp files to one file.
-
-    :param src_paths: Given source paths
-    :param dst_path: Given destination path
-    """
-    dst_path_obj = SftpPath(dst_path)
-
-    def get_real_path(path: PathLike) -> str:
-        return SftpPath(path)._real_path
-
-    command = ["cat", *map(get_real_path, src_paths), ">", get_real_path(dst_path)]
-    exec_result = dst_path_obj._exec_command(command)
-    if exec_result.returncode != 0:
-        _logger.error(exec_result.stderr)
-        raise OSError(f"Failed to concat {src_paths} to {dst_path}")
-
-
-def sftp_lstat(path: PathLike) -> StatResult:
-    """
-    Get StatResult of file on sftp, including file size and mtime,
-    referring to fs_getsize and fs_getmtime
-
-    :param path: Given path
-    :returns: StatResult
-    """
-    return SftpPath(path).lstat()
 
 
 @SmartPath.register
@@ -620,6 +341,7 @@ class SftpPath(URIPath):
     """
 
     protocol = "sftp"
+    default_policy = paramiko.RejectPolicy
 
     def __init__(self, path: "PathLike", *other_paths: "PathLike"):
         super().__init__(path, *other_paths)
@@ -652,6 +374,7 @@ class SftpPath(URIPath):
             port=self._urlsplit_parts.port,
             username=self._urlsplit_parts.username,
             password=self._urlsplit_parts.password,
+            default_policy=self.default_policy,
         )
 
     def _generate_path_object(self, sftp_local_path: str, resolve: bool = False):
@@ -1334,11 +1057,12 @@ class SftpPath(URIPath):
             port=self._urlsplit_parts.port,
             username=self._urlsplit_parts.username,
             password=self._urlsplit_parts.password,
+            default_policy=self.default_policy,
         ) as chan:
             chan.settimeout(timeout)
             if environment:
                 chan.update_environment(environment)
-            chan.exec_command(" ".join([shlex.quote(arg) for arg in command]))
+            chan.exec_command(" ".join([shlex.quote(arg) for arg in command]))  # nosec B601
             stdout = (
                 chan.makefile("r", bufsize).read().decode(errors="backslashreplace")
             )

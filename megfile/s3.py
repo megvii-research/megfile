@@ -2,12 +2,7 @@ from typing import BinaryIO, Callable, Iterator, List, Optional, Tuple
 
 from megfile.interfaces import Access, FileEntry, PathLike, StatResult
 from megfile.s3_path import (
-    S3BufferedWriter,
-    S3Cacher,
-    S3LimitedSeekableWriter,
     S3Path,
-    S3PrefetchReader,
-    S3ShareCacheReader,
     get_endpoint_url,
     get_s3_client,
     get_s3_session,
@@ -17,19 +12,12 @@ from megfile.s3_path import (
     s3_cached_open,
     s3_concat,
     s3_download,
-    s3_glob,
-    s3_glob_stat,
-    s3_iglob,
     s3_load_content,
-    s3_lstat,
-    s3_makedirs,
     s3_memory_open,
     s3_open,
     s3_path_join,
     s3_pipe_open,
     s3_prefetch_open,
-    s3_readlink,
-    s3_rename,
     s3_share_cache_open,
     s3_upload,
 )
@@ -48,11 +36,6 @@ __all__ = [
     "s3_prefetch_open",
     "s3_share_cache_open",
     "s3_open",
-    "S3Cacher",
-    "S3BufferedWriter",
-    "S3LimitedSeekableWriter",
-    "S3PrefetchReader",
-    "S3ShareCacheReader",
     "s3_upload",
     "s3_download",
     "s3_load_content",
@@ -443,3 +426,121 @@ def s3_save_as(file_object: BinaryIO, path: PathLike):
     :param file_object: Stream to be read
     """
     return S3Path(path).save(file_object)
+
+
+def s3_readlink(path) -> str:
+    """
+    Return a string representing the path to which the symbolic link points.
+
+    :returns: Return a string representing the path to which the symbolic link points.
+    :raises: S3NameTooLongError, S3BucketNotFoundError, S3IsADirectoryError,
+        S3NotALinkError
+    """
+    return S3Path(path).readlink().path_with_protocol
+
+
+def s3_rename(src_url: PathLike, dst_url: PathLike, overwrite: bool = True) -> None:
+    """
+    Move s3 file path from src_url to dst_url
+
+    :param dst_url: Given destination path
+    :param overwrite: whether or not overwrite file when exists
+    """
+    S3Path(src_url).rename(dst_url, overwrite)
+
+
+def s3_glob(
+    path: PathLike,
+    recursive: bool = True,
+    missing_ok: bool = True,
+    followlinks: bool = False,
+) -> List[str]:
+    """Return s3 path list in ascending alphabetical order,
+    in which path matches glob pattern
+
+    Notes: Only glob in bucket. If trying to match bucket with wildcard characters,
+    raise UnsupportedError
+
+    :param recursive: If False, `**` will not search directory recursively
+    :param missing_ok: If False and target path doesn't match any file,
+        raise FileNotFoundError
+    :raises: UnsupportedError, when bucket part contains wildcard characters
+    :returns: A list contains paths match `s3_pathname`
+    """
+    return list(
+        s3_iglob(
+            path=path,
+            recursive=recursive,
+            missing_ok=missing_ok,
+            followlinks=followlinks,
+        )
+    )
+
+
+def s3_glob_stat(
+    path: PathLike,
+    recursive: bool = True,
+    missing_ok: bool = True,
+    followlinks: bool = False,
+) -> Iterator[FileEntry]:
+    """Return a generator contains tuples of path and file stat,
+    in ascending alphabetical order, in which path matches glob pattern
+
+    Notes: Only glob in bucket. If trying to match bucket with wildcard characters,
+    raise UnsupportedError
+
+    :param recursive: If False, `**` will not search directory recursively
+    :param missing_ok: If False and target path doesn't match any file,
+        raise FileNotFoundError
+    :raises: UnsupportedError, when bucket part contains wildcard characters
+    :returns: A generator contains tuples of path and file stat,
+        in which paths match `s3_pathname`
+    """
+    return S3Path(path).glob_stat(
+        pattern="", recursive=recursive, missing_ok=missing_ok, followlinks=followlinks
+    )
+
+
+def s3_iglob(
+    path: PathLike,
+    recursive: bool = True,
+    missing_ok: bool = True,
+    followlinks: bool = False,
+) -> Iterator[str]:
+    """Return s3 path iterator in ascending alphabetical order,
+    in which path matches glob pattern
+
+    Notes: Only glob in bucket. If trying to match bucket with wildcard characters,
+    raise UnsupportedError
+
+    :param recursive: If False, `**` will not search directory recursively
+    :param missing_ok: If False and target path doesn't match any file,
+        raise FileNotFoundError
+    :raises: UnsupportedError, when bucket part contains wildcard characters
+    :returns: An iterator contains paths match `s3_pathname`
+    """
+    for path_obj in S3Path(path).iglob(
+        pattern="", recursive=recursive, missing_ok=missing_ok, followlinks=followlinks
+    ):
+        yield path_obj.path_with_protocol
+
+
+def s3_makedirs(path: PathLike, exist_ok: bool = False):
+    """
+    Create an s3 directory.
+    Purely creating directory is invalid because it's unavailable on OSS.
+    This function is to test the target bucket have WRITE access.
+
+    :param path: Given path
+    :param exist_ok: If False and target directory exists, raise S3FileExistsError
+    :raises: S3BucketNotFoundError, S3FileExistsError
+    """
+    return S3Path(path).mkdir(parents=True, exist_ok=exist_ok)
+
+
+def s3_lstat(path: PathLike) -> StatResult:
+    """
+    Like Path.stat() but, if the path points to a symbolic link,
+    return the symbolic link’s information rather than its target’s.
+    """
+    return S3Path(path).lstat()

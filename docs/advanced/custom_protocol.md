@@ -24,8 +24,8 @@ class CustomPath(URIPath):
 
 - `protocol = "custom"` is the name of your custom protocol. Then your path will be like `custom://path/to/file`.
 - Implement methods
-    - `URIPath` provide some properties and methods like `path_with_protocol`, `path_without_protocol`, `parts`, `parents` and you can use them. You can read more about them in [megfile.pathlike.URIPath](https://github.com/megvii-research/megfile/blob/main/megfile/pathlike.py#L524).
-    - smart methods will call your `CustomPath`'s methods automatically, if you have implemented the corresponding method. For example: if you implement `CustomPath.open`, `smart_open` will call it when `path` is `custom://path/to/file`. You can find the corresponding class methods required for smart methods in [megfile.smart_path.SmartPath](https://github.com/megvii-research/megfile/blob/main/megfile/smart_path.py#L85).
+    - `URIPath` provide some properties and methods like `path_with_protocol`, `path_without_protocol`, `parts`, `parents` and you can use them. You can read more about them in [megfile.pathlike.URIPath](https://github.com/megvii-research/megfile/blob/main/megfile/pathlike.py#L819).
+    - smart methods will call your `CustomPath`'s methods automatically, if you have implemented the corresponding method. For example: if you implement `CustomPath.open`, `smart_open` will call it when `path` is `custom://path/to/file`. You can find the corresponding class methods required for smart methods in [megfile.smart_path.SmartPath](https://github.com/megvii-research/megfile/blob/main/megfile/smart_path.py#L28).
 - **You must import your custom python file before you use smart methods.** You must make the decorator `@SmartPath.register` effective. Like this:
 
 ```

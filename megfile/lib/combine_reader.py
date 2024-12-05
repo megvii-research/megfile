@@ -118,3 +118,8 @@ class CombineReader(Readable, Seekable):
     def _close(self):
         for file_object in self._file_objects:
             file_object.close()
+
+    def __del__(self) -> None:
+        # CombineReader not close files in __del__
+        # user should use `close()` or use `with`
+        pass

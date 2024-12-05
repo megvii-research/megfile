@@ -104,10 +104,6 @@ def test_operators():
     assert SmartPath("foo") / "bar" / "baz" == SmartPath("foo/bar/baz")
     assert SmartPath("file://foo") / "bar" / "baz" in {SmartPath("file://foo/bar/baz")}
 
-    # TODO: 下面是还暂不支持的用法
-    # assert 'file://foo' / SmartPath('bar') == SmartPath('file://foo/bar')
-    # assert 'foo' / SmartPath('bar') == SmartPath('foo/bar')
-
 
 def test_parts():
     assert SmartPath("file://foo//bar").parts == ("foo", "bar")

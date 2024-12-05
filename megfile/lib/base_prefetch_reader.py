@@ -9,16 +9,14 @@ from statistics import mean
 from typing import Optional
 
 from megfile.config import (
-    BACKOFF_FACTOR,
-    BACKOFF_INITIAL,
-    DEFAULT_BLOCK_CAPACITY,
-    DEFAULT_BLOCK_SIZE,
     DEFAULT_MAX_RETRY_TIMES,
     GLOBAL_MAX_WORKERS,
     NEWLINE,
+    READER_BLOCK_SIZE,
+    READER_MAX_BUFFER_SIZE,
 )
 from megfile.interfaces import Readable, Seekable
-from megfile.utils import ProcessLocal, get_human_size, process_local
+from megfile.utils import ProcessLocal, process_local
 
 _logger = get_logger(__name__)
 
@@ -31,35 +29,31 @@ class SeekRecord:
 
 
 class BasePrefetchReader(Readable[bytes], Seekable, ABC):
-    """
-    Reader to fast read the remote file content.
-    This will divide the file content into equal parts of block_size size,
-    and will use LRU to cache at most block_capacity blocks in memory.
-    open(), seek() and read() will trigger prefetch read.
-    The prefetch will cached block_forward blocks of data from offset position
-    (the position after reading if the called function is read).
-    """
-
     def __init__(
         self,
         *,
-        block_size: int = DEFAULT_BLOCK_SIZE,
-        block_capacity: int = DEFAULT_BLOCK_CAPACITY,
+        block_size: int = READER_BLOCK_SIZE,
+        max_buffer_size: int = READER_MAX_BUFFER_SIZE,
         block_forward: Optional[int] = None,
         max_retries: int = DEFAULT_MAX_RETRY_TIMES,
         max_workers: Optional[int] = None,
         **kwargs,
     ):
-        self._is_auto_scaling = block_forward is None
-        if block_forward is None:
-            block_forward = max(block_capacity - 1, 1)
+        if max_buffer_size == 0:
+            block_capacity = block_forward = 0
+        else:
+            block_capacity = max(max_buffer_size // block_size, 1)
 
-        if block_capacity <= block_forward:
-            # TODO: replace AssertionError with ValueError in 4.0.0
-            raise AssertionError(
-                "block_capacity should greater than block_forward, "
-                "got: block_capacity=%s, block_forward=%s"
-                % (block_capacity, block_forward)
+        self._is_auto_scaling = False
+        if block_forward is None:
+            block_forward = max(block_capacity - 1, 0)
+            self._is_auto_scaling = block_forward > 0
+
+        if 0 < block_capacity <= block_forward:
+            raise ValueError(
+                "max_buffer_size should greater than block_forward * block_size, "
+                "got: max_buffer_size=%s, block_size=%s, block_forward=%s"
+                % (max_buffer_size, block_size, block_forward)
             )
 
         # user maybe put block_size with 'numpy.uint64' type
@@ -77,8 +71,7 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
         self._content_size = self._get_content_size()
         self._block_stop = ceil(self._content_size / block_size)
 
-        self.__offset = 0
-        self._backoff_size = BACKOFF_INITIAL
+        self._offset = 0
         self._cached_buffer = None
         self._block_index = None  # Current block index
         self._seek_history = []
@@ -102,7 +95,7 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
         pass
 
     @property
-    def _futures(self):
+    def _futures(self) -> "LRUCacheFutureManager":
         return self._process_local("futures", self._get_futures)
 
     def _get_futures(self):
@@ -119,21 +112,6 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
 
     def tell(self) -> int:
         return self._offset
-
-    @property
-    def _offset(self) -> int:
-        return self.__offset
-
-    @_offset.setter
-    def _offset(self, value: int):
-        if value > self._backoff_size:
-            _logger.debug(
-                "reading file: %r, current offset / total size: %s / %s"
-                % (self.name, get_human_size(value), get_human_size(self._content_size))
-            )
-        while value > self._backoff_size:
-            self._backoff_size *= BACKOFF_FACTOR
-        self.__offset = value
 
     def seek(self, offset: int, whence: int = os.SEEK_SET) -> int:
         """Change stream position.
@@ -176,9 +154,6 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
         if self.closed:
             raise IOError("file already closed: %r" % self.name)
 
-        if len(self._seek_history) > 0:
-            self._seek_history[-1].read_count += 1
-
         if self._offset >= self._content_size:
             return b""
 
@@ -187,31 +162,9 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
         else:
             size = min(size, self._content_size - self._offset)
 
-        if self._block_forward == 1:
-            block_index = self._offset // self._block_size
-            if len(self._seek_history) > 0:
-                mean_read_count = mean(item.read_count for item in self._seek_history)
-            else:
-                mean_read_count = 0
-            if block_index not in self._futures and mean_read_count < 3:
-                # No using LRP will be better if read() are always called less than 3
-                # times after seek()
-                return self._read(size)
-
-        data = self._buffer.read(size)
-        if len(data) == size:
-            self._offset += len(data)
-            return data
-
-        buffer = BytesIO()
-        buffer.write(data)
-        while buffer.tell() < size:
-            remain_size = size - buffer.tell()
-            data = self._next_buffer.read(remain_size)
-            buffer.write(data)
-
-        self._offset += buffer.tell()
-        return buffer.getvalue()
+        buffer = bytearray(size)
+        self.readinto(buffer)
+        return bytes(buffer)
 
     def readline(self, size: Optional[int] = None) -> bytes:
         """Next line from the file, as a bytes object.
@@ -270,11 +223,30 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
         if self.closed:
             raise IOError("file already closed: %r" % self.name)
 
+        if len(self._seek_history) > 0:
+            self._seek_history[-1].read_count += 1
+
         if self._offset >= self._content_size:
             return 0
 
         size = len(buffer)
         size = min(size, self._content_size - self._offset)
+
+        if self._block_capacity == 0:
+            buffer[:size] = self._read(size)
+            return size
+
+        if self._block_forward == 0:
+            block_index = self._offset // self._block_size
+            if len(self._seek_history) > 0:
+                mean_read_count = mean(item.read_count for item in self._seek_history)
+            else:
+                mean_read_count = 0
+            if block_index not in self._futures and mean_read_count < 3:
+                # No using LRP will be better if read() are always called less than 3
+                # times after seek()
+                buffer[:size] = self._read(size)
+                return size
 
         data = self._buffer.read(size)
         buffer[: len(data)] = data
@@ -306,13 +278,22 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
 
     @property
     def _buffer(self) -> BytesIO:
-        if self._cached_offset is not None:
-            start = self._block_index
-            stop = min(start + self._block_forward, self._block_stop)
+        if self._block_capacity == 0:
+            buffer = self._fetch_buffer(index=self._block_index)
+            buffer.seek(self._cached_offset)
+            self._cached_offset = None
+            return buffer
 
-            # reversed(range(start, stop))
-            for index in range(stop - 1, start - 1, -1):
-                self._submit_future(index)
+        if self._cached_offset is not None:
+            if self._block_forward > 0:  # pyre-ignore[58]
+                start = self._block_index
+                stop = min(start + self._block_forward, self._block_stop)
+
+                # reversed(range(start, stop))
+                for index in range(stop, start - 1, -1):
+                    self._submit_future(index)
+            else:
+                self._submit_future(self._block_index)
             self._cleanup_futures()
 
             self._cached_buffer = self._fetch_future_result(self._block_index)
@@ -335,7 +316,7 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
     def _seek_buffer(self, index: int, offset: int = 0):
         # The corresponding block is probably not downloaded when seek to a new position
         # So record the offset first, set it when it is accessed
-        if self._is_auto_scaling:  # When user doesn't define forward
+        if self._is_auto_scaling:
             history = []
             for item in self._seek_history:
                 if item.seek_count > self._block_capacity * 2:
@@ -349,8 +330,11 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
             history.append(SeekRecord(index))
             self._seek_history = history
             self._block_forward = max(
-                (self._block_capacity - 1) // len(self._seek_history), 1
+                self._block_capacity // len(self._seek_history), 0
             )
+            if self._block_forward == 0:
+                self._is_auto_scaling = False
+                self._seek_history = []
 
         self._cached_offset = offset
         self._block_index = index

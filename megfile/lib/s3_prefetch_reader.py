@@ -3,12 +3,8 @@ from io import BytesIO
 from typing import Optional
 
 from megfile.config import (
-    BACKOFF_FACTOR,
-    BACKOFF_INITIAL,
-    DEFAULT_BLOCK_CAPACITY,
-    DEFAULT_BLOCK_SIZE,
-    GLOBAL_MAX_WORKERS,
-    NEWLINE,
+    READER_BLOCK_SIZE,
+    READER_MAX_BUFFER_SIZE,
     S3_MAX_RETRY_TIMES,
 )
 from megfile.errors import (
@@ -21,12 +17,6 @@ from megfile.errors import (
 from megfile.lib.base_prefetch_reader import BasePrefetchReader, LRUCacheFutureManager
 
 __all__ = [
-    "DEFAULT_BLOCK_CAPACITY",
-    "DEFAULT_BLOCK_SIZE",
-    "GLOBAL_MAX_WORKERS",
-    "BACKOFF_INITIAL",
-    "BACKOFF_FACTOR",
-    "NEWLINE",
     "S3PrefetchReader",
     "LRUCacheFutureManager",
 ]
@@ -37,7 +27,7 @@ class S3PrefetchReader(BasePrefetchReader):
     Reader to fast read the s3 content.
 
     This will divide the file content into equalparts of block_size size,
-    and will use LRU to cache at most block_capacity blocks in memory.
+    and will use LRU to cache at most blocks in max_buffer_size memory.
 
     open(), seek() and read() will trigger prefetch read.
     The prefetch will cached block_forward blocks of data from offset position
@@ -50,8 +40,8 @@ class S3PrefetchReader(BasePrefetchReader):
         key: str,
         *,
         s3_client,
-        block_size: int = DEFAULT_BLOCK_SIZE,
-        block_capacity: int = DEFAULT_BLOCK_CAPACITY,
+        block_size: int = READER_BLOCK_SIZE,
+        max_buffer_size: int = READER_MAX_BUFFER_SIZE,
         block_forward: Optional[int] = None,
         max_retries: int = S3_MAX_RETRY_TIMES,
         max_workers: Optional[int] = None,
@@ -66,7 +56,7 @@ class S3PrefetchReader(BasePrefetchReader):
 
         super().__init__(
             block_size=block_size,
-            block_capacity=block_capacity,
+            max_buffer_size=max_buffer_size,
             block_forward=block_forward,
             max_retries=max_retries,
             max_workers=max_workers,
@@ -87,9 +77,10 @@ class S3PrefetchReader(BasePrefetchReader):
             first_index_response = self._fetch_response()
             content_size = int(first_index_response["ContentLength"])
 
-        first_future = Future()
-        first_future.set_result(first_index_response["Body"])
-        self._insert_futures(index=0, future=first_future)
+        if self._block_capacity > 0:
+            first_future = Future()
+            first_future.set_result(first_index_response["Body"])
+            self._insert_futures(index=0, future=first_future)
         self._content_etag = first_index_response["ETag"]
         self._content_info = first_index_response
         return content_size

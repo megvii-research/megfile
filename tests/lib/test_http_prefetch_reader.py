@@ -5,6 +5,7 @@ from io import BytesIO
 import pytest
 import requests
 
+from megfile.config import READER_BLOCK_SIZE
 from megfile.lib.http_prefetch_reader import HttpPrefetchReader
 
 URL = "http://test"
@@ -182,7 +183,6 @@ def test_http_prefetch_reader_read_readline_mix(mocker):
 
 def test_http_prefetch_reader_seek_out_of_range(mocker):
     content = b"1\n2\n3\n4\n"
-    mocker.patch("megfile.lib.base_prefetch_reader.BACKOFF_INITIAL", 4)
     mocker.patch(
         "megfile.http_path.requests.get", return_value=FakeResponse200(b"1\n2\n3\n4\n")
     )
@@ -195,7 +195,6 @@ def test_http_prefetch_reader_seek_out_of_range(mocker):
         reader.seek(100)
         assert reader.tell() == 8
         assert reader.read(2) == b""
-        assert reader._backoff_size == 16
 
         with pytest.raises(ValueError):
             reader.seek(0, "error_whence")
@@ -251,24 +250,83 @@ def test_http_prefetch_reader_backward_seek_and_the_target_in_remains(
         content_size=CONTENT_SIZE,
         max_workers=2,
         block_size=3,
-        block_capacity=3,
+        max_buffer_size=3 * 3,
         block_forward=2,
     ) as reader:
         assert reader._cached_blocks == []
 
         reader._buffer
         sleep_until_downloaded(reader)
-        assert reader._cached_blocks == [1, 0]
+        assert reader._cached_blocks == [2, 1, 0]
 
         reader.seek(3)
         reader._buffer
         sleep_until_downloaded(reader)
-        assert reader._cached_blocks == [0, 2, 1]
+        assert reader._cached_blocks == [3, 2, 1]
 
         reader.seek(1)
         reader._buffer
         sleep_until_downloaded(reader)
         assert reader._cached_blocks == [2, 1, 0]
+
+
+def test_http_prefetch_reader_max_buffer_size_eq_0(http_patch, mocker):
+    """目标 offset 在 remains 中 重置 remains 位置"""
+    with HttpPrefetchReader(
+        URL,
+        content_size=CONTENT_SIZE,
+        max_workers=2,
+        block_size=3,
+        max_buffer_size=0,
+    ) as reader:
+        assert reader._cached_blocks == []
+
+        reader._buffer
+        sleep_until_downloaded(reader)
+        assert reader._cached_blocks == []
+
+        reader.seek(3)
+        reader._buffer
+        sleep_until_downloaded(reader)
+        assert reader._cached_blocks == []
+
+        reader.seek(1)
+        reader._buffer
+        sleep_until_downloaded(reader)
+        assert reader._cached_blocks == []
+
+
+def test_http_prefetch_reader_block_forward_eq_0(http_patch, mocker):
+    """目标 offset 在 remains 中 重置 remains 位置"""
+    with HttpPrefetchReader(
+        URL,
+        content_size=CONTENT_SIZE,
+        max_workers=2,
+        block_size=3,
+        max_buffer_size=3,
+        block_forward=0,
+    ) as reader:
+        assert reader._block_forward == 0
+        assert reader._cached_blocks == []
+
+        reader._buffer
+        sleep_until_downloaded(reader)
+        assert reader._cached_blocks == [0]
+
+        reader.seek(3)
+        reader._buffer
+        sleep_until_downloaded(reader)
+        assert reader._cached_blocks == [1]
+
+        reader.seek(9)
+        reader._buffer
+        sleep_until_downloaded(reader)
+        assert reader._cached_blocks == [3]
+
+        reader.seek(1)
+        reader._buffer
+        sleep_until_downloaded(reader)
+        assert reader._cached_blocks == [0]
 
 
 def test_http_prefetch_reader_backward_block_forward_eq_1(http_patch, mocker):
@@ -280,18 +338,18 @@ def test_http_prefetch_reader_backward_block_forward_eq_1(http_patch, mocker):
         content_size=CONTENT_SIZE,
         max_workers=2,
         block_size=3,
-        block_capacity=3,
+        max_buffer_size=3 * 3,
         block_forward=1,
     ) as reader:
         assert reader.read(6) == b"block0"
-        assert reader._cached_blocks == []
+        assert reader._cached_blocks == [0, 2, 1]
 
         reader._seek_history = [FakeHistory()]
         assert reader.read(7) == b" block1"
-        assert reader._cached_blocks == []
+        assert reader._cached_blocks == [3, 5, 4]
 
         assert reader.read(7) == b" block2"
-        assert reader._cached_blocks == [4, 5, 6]
+        assert reader._cached_blocks == [5, 7, 6]
 
 
 def test_http_prefetch_reader_backward_seek_and_the_target_out_of_remains(http_patch):
@@ -304,24 +362,24 @@ def test_http_prefetch_reader_backward_seek_and_the_target_out_of_remains(http_p
         content_size=CONTENT_SIZE,
         max_workers=2,
         block_size=3,
-        block_capacity=3,
+        max_buffer_size=3 * 3,
         block_forward=2,
     ) as reader:  # buffer 最大为 6B
         assert reader._cached_blocks == []
 
         reader._buffer
         sleep_until_downloaded(reader)
-        assert reader._cached_blocks == [1, 0]
+        assert reader._cached_blocks == [2, 1, 0]
 
         reader.seek(10)
         reader._buffer
         sleep_until_downloaded(reader)
-        assert reader._cached_blocks == [0, 4, 3]
+        assert reader._cached_blocks == [5, 4, 3]
 
         reader.seek(0)
         reader._buffer
         sleep_until_downloaded(reader)
-        assert reader._cached_blocks == [3, 1, 0]
+        assert reader._cached_blocks == [2, 1, 0]
 
 
 def test_http_prefetch_reader_seek_and_the_target_in_buffer(http_patch, mocker):
@@ -334,29 +392,29 @@ def test_http_prefetch_reader_seek_and_the_target_in_buffer(http_patch, mocker):
         content_size=CONTENT_SIZE,
         max_workers=3,
         block_size=3,
-        block_capacity=3,
+        max_buffer_size=3 * 3,
         block_forward=2,
     ) as reader:  # buffer 最长为 9B
         assert reader._cached_blocks == []
 
         reader._buffer
         sleep_until_downloaded(reader)
-        assert reader._cached_blocks == [1, 0]
+        assert reader._cached_blocks == [2, 1, 0]
 
         reader.seek(1)
         reader._buffer
         sleep_until_downloaded(reader)
-        assert reader._cached_blocks == [1, 0]
+        assert reader._cached_blocks == [2, 1, 0]
 
         reader.seek(5)
         reader._buffer
         sleep_until_downloaded(reader)
-        assert reader._cached_blocks == [0, 2, 1]
+        assert reader._cached_blocks == [3, 2, 1]
 
         reader.seek(10)
         reader._buffer
         sleep_until_downloaded(reader)
-        assert reader._cached_blocks == [1, 4, 3]
+        assert reader._cached_blocks == [5, 4, 3]
 
 
 def test_http_prefetch_reader_seek_and_the_target_out_of_buffer(http_patch):
@@ -369,19 +427,19 @@ def test_http_prefetch_reader_seek_and_the_target_out_of_buffer(http_patch):
         content_size=CONTENT_SIZE,
         max_workers=2,
         block_size=3,
-        block_capacity=3,
+        max_buffer_size=3 * 3,
         block_forward=2,
     ) as reader:  # buffer 最大为 6B
         assert reader._cached_blocks == []
 
         reader._buffer
         sleep_until_downloaded(reader)
-        assert reader._cached_blocks == [1, 0]
+        assert reader._cached_blocks == [2, 1, 0]
 
         reader.seek(10)
         reader._buffer
         sleep_until_downloaded(reader)
-        assert reader._cached_blocks == [0, 4, 3]
+        assert reader._cached_blocks == [5, 4, 3]
 
 
 def test_http_prefetch_reader_read_with_forward_seek(http_patch):
@@ -455,7 +513,7 @@ def test_http_prefetch_reader_readinto(http_patch):
         content_size=CONTENT_SIZE,
         max_workers=2,
         block_size=3,
-        block_capacity=3,
+        max_buffer_size=3 * 3,
         block_forward=2,
     ) as reader:
         assert reader.readinto(bytearray(b"test")) == 4
@@ -465,7 +523,9 @@ def test_http_prefetch_reader_readinto(http_patch):
 
 
 def test_http_prefetch_reader_seek_history(http_patch):
-    with HttpPrefetchReader(URL, content_size=CONTENT_SIZE, block_capacity=3) as reader:
+    with HttpPrefetchReader(
+        URL, content_size=CONTENT_SIZE, max_buffer_size=3 * READER_BLOCK_SIZE
+    ) as reader:
         reader._seek_buffer(2)
         history = reader._seek_history[0]
         assert history.seek_count == 1

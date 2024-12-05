@@ -1,3 +1,4 @@
+import os
 from collections import OrderedDict
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from io import BytesIO
@@ -6,17 +7,14 @@ from threading import Lock
 from typing import NamedTuple, Optional
 
 from megfile.config import (
-    BACKOFF_FACTOR,
-    BACKOFF_INITIAL,
-    DEFAULT_BLOCK_AUTOSCALE,
-    DEFAULT_MAX_BLOCK_SIZE,
-    DEFAULT_MAX_BUFFER_SIZE,
-    DEFAULT_MIN_BLOCK_SIZE,
+    DEFAULT_WRITER_BLOCK_AUTOSCALE,
     GLOBAL_MAX_WORKERS,
+    WRITER_BLOCK_SIZE,
+    WRITER_MAX_BUFFER_SIZE,
 )
 from megfile.errors import raise_s3_error
 from megfile.interfaces import Writable
-from megfile.utils import get_human_size, process_local
+from megfile.utils import process_local
 
 _logger = get_logger(__name__)
 """
@@ -40,16 +38,19 @@ class PartResult(_PartResult):
 
 
 class S3BufferedWriter(Writable[bytes]):
+    # Multi-upload part size must be between 5 MiB and 5 GiB.
+    # There is no minimum size limit on the last part of your multipart upload.
+    MIN_BLOCK_SIZE = 8 * 2**20
+
     def __init__(
         self,
         bucket: str,
         key: str,
         *,
         s3_client,
-        block_size: int = DEFAULT_MIN_BLOCK_SIZE,
-        block_autoscale: bool = DEFAULT_BLOCK_AUTOSCALE,
-        max_block_size: int = DEFAULT_MAX_BLOCK_SIZE,
-        max_buffer_size: int = DEFAULT_MAX_BUFFER_SIZE,
+        block_size: int = WRITER_BLOCK_SIZE,
+        block_autoscale: bool = DEFAULT_WRITER_BLOCK_AUTOSCALE,
+        max_buffer_size: int = WRITER_MAX_BUFFER_SIZE,
         max_workers: Optional[int] = None,
         profile_name: Optional[str] = None,
     ):
@@ -62,15 +63,14 @@ class S3BufferedWriter(Writable[bytes]):
         self._base_block_size = int(block_size)
         self._block_autoscale = block_autoscale
 
-        self._max_block_size = max_block_size
         self._max_buffer_size = max_buffer_size
         self._total_buffer_size = 0
         self._offset = 0
-        self.__content_size = 0
-        self._backoff_size = BACKOFF_INITIAL
+        self._content_size = 0
         self._buffer = BytesIO()
 
-        self._futures = OrderedDict()
+        self._futures_result = OrderedDict()
+        self._uploading_futures = set()
         self._is_global_executor = False
         if max_workers is None:
             self._executor = process_local(
@@ -104,67 +104,42 @@ class S3BufferedWriter(Writable[bytes]):
         return self._offset
 
     @property
-    def _content_size(self) -> int:
-        return self.__content_size
-
-    @_content_size.setter
-    def _content_size(self, value: int):
-        if value > self._backoff_size:
-            _logger.debug(
-                "writing file: %r, current size: %s"
-                % (self.name, get_human_size(value))
-            )
-        while value > self._backoff_size:
-            self._backoff_size *= BACKOFF_FACTOR
-        self.__content_size = value
-
-    @property
     def _block_size(self) -> int:
         if self._block_autoscale:
             if self._part_number < 10:
                 return self._base_block_size
             elif self._part_number < 100:
-                return min(self._base_block_size * 2, self._max_block_size)
+                return min(self._base_block_size * 2, self._max_buffer_size)
             elif self._part_number < 1000:
-                return min(self._base_block_size * 4, self._max_block_size)
+                return min(self._base_block_size * 4, self._max_buffer_size)
             elif self._part_number < 10000:
-                return min(self._base_block_size * 8, self._max_block_size)
-            return min(self._base_block_size * 16, self._max_block_size)  # unreachable
+                return min(self._base_block_size * 8, self._max_buffer_size)
+            return min(self._base_block_size * 16, self._max_buffer_size)  # unreachable
         return self._base_block_size
 
     @property
     def _is_multipart(self) -> bool:
-        return len(self._futures) > 0
+        return len(self._futures_result) > 0 or len(self._uploading_futures) > 0
 
     @property
     def _upload_id(self) -> str:
-        with self.__upload_id_lock:
-            if self.__upload_id is None:
-                with raise_s3_error(self.name):
-                    self.__upload_id = self._client.create_multipart_upload(
-                        Bucket=self._bucket, Key=self._key
-                    )["UploadId"]
-            return self.__upload_id
-
-    @property
-    def _buffer_size(self):
-        return self._total_buffer_size - sum(
-            future.result().content_size
-            for future in self._futures.values()
-            if future.done()
-        )
-
-    @property
-    def _uploading_futures(self):
-        return [future for future in self._futures.values() if not future.done()]
+        if self.__upload_id is None:
+            with self.__upload_id_lock:
+                if self.__upload_id is None:
+                    with raise_s3_error(self.name):
+                        self.__upload_id = self._client.create_multipart_upload(
+                            Bucket=self._bucket, Key=self._key
+                        )["UploadId"]
+        return self.__upload_id
 
     @property
     def _multipart_upload(self):
-        return {
-            "Parts": [
-                future.result().asdict() for _, future in sorted(self._futures.items())
-            ]
-        }
+        for future in self._uploading_futures:
+            result = future.result()
+            self._total_buffer_size -= result.content_size
+            self._futures_result[result.part_number] = result.asdict()
+        self._uploading_futures = set()
+        return {"Parts": [result for _, result in sorted(self._futures_result.items())]}
 
     def _upload_buffer(self, part_number, content):
         with raise_s3_error(self.name):
@@ -181,32 +156,43 @@ class S3BufferedWriter(Writable[bytes]):
             )
 
     def _submit_upload_buffer(self, part_number, content):
-        self._futures[part_number] = self._executor.submit(
-            self._upload_buffer, part_number, content
+        self._uploading_futures.add(
+            self._executor.submit(self._upload_buffer, part_number, content)
         )
         self._total_buffer_size += len(content)
-        while self._buffer_size > self._max_buffer_size:
-            wait(self._uploading_futures, return_when=FIRST_COMPLETED)
+
+        while (
+            self._uploading_futures and self._total_buffer_size >= self._max_buffer_size
+        ):
+            wait_result = wait(self._uploading_futures, return_when=FIRST_COMPLETED)
+            for future in wait_result.done:
+                result = future.result()
+                self._total_buffer_size -= result.content_size
+                self._futures_result[result.part_number] = result.asdict()
+            self._uploading_futures = wait_result.not_done
 
     def _submit_upload_content(self, content: bytes):
         # s3 part needs at least 5MB,
         # so we need to divide content into equal-size parts,
         # and give last part more size.
         # e.g. 257MB can be divided into 2 parts, 128MB and 129MB
-        offset = 0
-        while len(content) - offset - self._max_block_size > self._block_size:
+        while len(content) - self._block_size > self.MIN_BLOCK_SIZE:
             self._part_number += 1
-            offset_stop = offset + self._max_block_size
-            self._submit_upload_buffer(self._part_number, content[offset:offset_stop])
-            offset = offset_stop
-        self._part_number += 1
-        self._submit_upload_buffer(self._part_number, content[offset:])
+            current_content, content = (
+                content[: self._block_size],
+                content[self._block_size :],
+            )
+            self._submit_upload_buffer(self._part_number, current_content)
+        if content:
+            self._part_number += 1
+            self._submit_upload_buffer(self._part_number, content)
 
     def _submit_futures(self):
         content = self._buffer.getvalue()
         if len(content) == 0:
             return
-        self._buffer = BytesIO()
+        self._buffer.seek(0, os.SEEK_SET)
+        self._buffer.truncate()
         self._submit_upload_content(content)
 
     def write(self, data: bytes) -> int:

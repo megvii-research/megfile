@@ -2,9 +2,9 @@ from io import BytesIO
 from typing import Optional
 
 from megfile.config import (
-    DEFAULT_BLOCK_CAPACITY,
-    DEFAULT_BLOCK_SIZE,
     HDFS_MAX_RETRY_TIMES,
+    READER_BLOCK_SIZE,
+    READER_MAX_BUFFER_SIZE,
 )
 from megfile.errors import raise_hdfs_error
 from megfile.lib.base_prefetch_reader import BasePrefetchReader
@@ -13,8 +13,8 @@ from megfile.lib.base_prefetch_reader import BasePrefetchReader
 class HdfsPrefetchReader(BasePrefetchReader):
     """
     Reader to fast read the hdfs content. This will divide the file content into equal
-    parts of block_size size, and will use LRU to cache at most block_capacity blocks
-    in memory.
+    parts of block_size size, and will use LRU to cache at most blocks in
+    max_buffer_size memory.
 
     open(), seek() and read() will trigger prefetch read. The prefetch will cached
     block_forward blocks of data from offset position (the position after reading
@@ -26,8 +26,8 @@ class HdfsPrefetchReader(BasePrefetchReader):
         hdfs_path: str,
         *,
         client,
-        block_size: int = DEFAULT_BLOCK_SIZE,
-        block_capacity: int = DEFAULT_BLOCK_CAPACITY,
+        block_size: int = READER_BLOCK_SIZE,
+        max_buffer_size: int = READER_MAX_BUFFER_SIZE,
         block_forward: Optional[int] = None,
         max_retries: int = HDFS_MAX_RETRY_TIMES,
         max_workers: Optional[int] = None,
@@ -39,7 +39,7 @@ class HdfsPrefetchReader(BasePrefetchReader):
 
         super().__init__(
             block_size=block_size,
-            block_capacity=block_capacity,
+            max_buffer_size=max_buffer_size,
             block_forward=block_forward,
             max_retries=max_retries,
             max_workers=max_workers,

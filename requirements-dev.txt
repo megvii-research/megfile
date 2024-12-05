@@ -8,11 +8,9 @@ pytest-mock > 3.6.0
 pytest-socket
 moto[s3] >= 5.0.0
 cryptography >= 3.3.2
-aws-xray-sdk == 2.8.0
 mutmut
 pyfakefs >= 4.5
 mock
-junit-xml ~= 1.9
 requests_mock
 
 # doc
@@ -28,6 +26,7 @@ ruff
 black  # for E501
 
 # static check
+git+https://github.com/jcrist/msgspec.git@29390b0385cda4ba76a0aaf4ede5d54ae9ff35ff; python_version == "3.13"
 pytype
 pyre-check ~= 0.9.22
 bandit

@@ -8,7 +8,7 @@ from megfile.lib.url import get_url_scheme
 from megfile.utils import cached_classproperty
 
 from .errors import ProtocolExistsError, ProtocolNotFoundError
-from .interfaces import BasePath, BaseURIPath, PathLike
+from .interfaces import BasePath, PathLike
 
 aliases_config = "~/.config/megfile/aliases.conf"
 
@@ -47,10 +47,10 @@ class SmartPath(BasePath):
     def __init__(self, path: Union[PathLike, int], *other_paths: PathLike):
         self.path = str(path) if not isinstance(path, int) else path
         pathlike = path
-        if not isinstance(pathlike, BaseURIPath):
+        if not isinstance(pathlike, BasePath):
             pathlike = self._create_pathlike(path)
         if len(other_paths) > 0:
-            pathlike = pathlike.joinpath(*other_paths)  # pyre-ignore[6]
+            pathlike = pathlike.joinpath(*other_paths)
             self.path = str(pathlike)
         self.pathlike = pathlike
 
@@ -73,7 +73,7 @@ class SmartPath(BasePath):
                 path_without_protocol = path
             else:
                 path_without_protocol = path[len(protocol) + 3 :]
-        elif isinstance(path, (BaseURIPath, SmartPath)):
+        elif isinstance(path, (BasePath, SmartPath)):
             return str(path.protocol), str(path)
         elif isinstance(path, (PurePath, BasePath)):
             return SmartPath._extract_protocol(fspath(path))
@@ -86,14 +86,14 @@ class SmartPath(BasePath):
         return protocol, path
 
     @classmethod
-    def _create_pathlike(cls, path: Union[PathLike, int]) -> BaseURIPath:
-        protocol, unaliased_path = cls._extract_protocol(path)
+    def _create_pathlike(cls, path: Union[PathLike, int]) -> BasePath:
+        protocol, un_aliased_path = cls._extract_protocol(path)
         if protocol.startswith("s3+"):
             protocol = "s3"
         if protocol not in cls._registered_protocols:
             raise ProtocolNotFoundError("protocol %r not found: %r" % (protocol, path))
         path_class = cls._registered_protocols[protocol]
-        return path_class(unaliased_path)
+        return path_class(un_aliased_path)
 
     @classmethod
     def register(cls, path_class, override_ok: bool = False):
@@ -145,7 +145,7 @@ class SmartPath(BasePath):
         return self.pathlike.protocol
 
     @classmethod
-    def from_uri(cls, path: str):
+    def from_uri(cls, path: PathLike):
         return cls(path)
 
     def relpath(self, start: Optional[str] = None) -> str:
@@ -155,7 +155,7 @@ class SmartPath(BasePath):
         :returns: Relative path from start
         """
         if start is not None:
-            _, start = SmartPath._extract_protocol(fspath(start))
+            _, start = SmartPath._extract_protocol(fspath(start))  # pyre-ignore[9]
         return self.pathlike.relpath(start=start)
 
     as_uri = _bind_function("as_uri")
@@ -167,17 +167,12 @@ class SmartPath(BasePath):
     __fspath__ = _bind_function("__fspath__")
     __truediv__ = _bind_function("__truediv__")
 
-    joinpath = _bind_function("joinpath")
     is_reserved = _bind_function("is_reserved")
     match = _bind_function("match")
     relative_to = _bind_function("relative_to")
     with_name = _bind_function("with_name")
     with_suffix = _bind_function("with_suffix")
     with_stem = _bind_function("with_stem")
-    is_absolute = _bind_function("is_absolute")
-    is_mount = _bind_function("is_mount")
-    abspath = _bind_function("abspath")
-    realpath = _bind_function("realpath")
     iterdir = _bind_function("iterdir")
     cwd = _bind_function("cwd")
     home = _bind_function("home")

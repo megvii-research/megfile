@@ -6,6 +6,11 @@ import sys
 from functools import cached_property, lru_cache
 from typing import IO, BinaryIO, Iterator, List, Optional, Tuple
 
+from megfile.config import (
+    HDFS_MAX_RETRY_TIMES,
+    READER_BLOCK_SIZE,
+    READER_MAX_BUFFER_SIZE,
+)
 from megfile.errors import _create_missing_ok_generator, raise_hdfs_error
 from megfile.interfaces import FileEntry, PathLike, StatResult, URIPath
 from megfile.lib.compat import fspath
@@ -19,17 +24,13 @@ from megfile.utils import _is_pickle
 __all__ = [
     "HdfsPath",
     "is_hdfs",
-    "hdfs_glob",
-    "hdfs_glob_stat",
-    "hdfs_iglob",
-    "hdfs_makedirs",
 ]
 
 HDFS_USER = "HDFS_USER"
 HDFS_URL = "HDFS_URL"
 HDFS_ROOT = "HDFS_ROOT"
 HDFS_TIMEOUT = "HDFS_TIMEOUT"
-HDFS_TOKEN = "HDFS_TOKEN"
+HDFS_TOKEN = "HDFS_TOKEN"  # nosec B105
 HDFS_CONFIG_PATH = "HDFS_CONFIG_PATH"
 MAX_RETRIES = 10
 DEFAULT_HDFS_TIMEOUT = 10
@@ -95,79 +96,6 @@ def get_hdfs_client(profile_name: Optional[str] = None):
         return hdfs_api.TokenClient(**config)
     config.pop("token", None)
     return hdfs_api.InsecureClient(**config)
-
-
-def hdfs_glob(
-    path: PathLike, recursive: bool = True, missing_ok: bool = True
-) -> List[str]:
-    """Return hdfs path list in ascending alphabetical order,
-    in which path matches glob pattern
-
-    Notes: Only glob in bucket. If trying to match bucket with wildcard characters,
-    raise UnsupportedError
-
-    :param recursive: If False, `**` will not search directory recursively
-    :param missing_ok: If False and target path doesn't match any file,
-        raise FileNotFoundError
-    :raises: UnsupportedError, when bucket part contains wildcard characters
-    :returns: A list contains paths match `path`
-    """
-    return list(hdfs_iglob(path, recursive=recursive, missing_ok=missing_ok))
-
-
-def hdfs_glob_stat(
-    path: PathLike, recursive: bool = True, missing_ok: bool = True
-) -> Iterator[FileEntry]:
-    """Return a generator contains tuples of path and file stat,
-    in ascending alphabetical order, in which path matches glob pattern
-
-    Notes: Only glob in bucket. If trying to match bucket with wildcard characters,
-    raise UnsupportedError
-
-    :param recursive: If False, `**` will not search directory recursively
-    :param missing_ok: If False and target path doesn't match any file,
-        raise FileNotFoundError
-    :raises: UnsupportedError, when bucket part contains wildcard characters
-    :returns: A generator contains tuples of path and file stat,
-        in which paths match `path`
-    """
-    return HdfsPath(path).glob_stat(
-        pattern="", recursive=recursive, missing_ok=missing_ok
-    )
-
-
-def hdfs_iglob(
-    path: PathLike, recursive: bool = True, missing_ok: bool = True
-) -> Iterator[str]:
-    """Return hdfs path iterator in ascending alphabetical order,
-    in which path matches glob pattern
-
-    Notes: Only glob in bucket. If trying to match bucket with wildcard characters,
-    raise UnsupportedError
-
-    :param recursive: If False, `**` will not search directory recursively
-    :param missing_ok: If False and target path doesn't match any file,
-        raise FileNotFoundError
-    :raises: UnsupportedError, when bucket part contains wildcard characters
-    :returns: An iterator contains paths match `path`
-    """
-    for path_obj in HdfsPath(path).iglob(
-        pattern="", recursive=recursive, missing_ok=missing_ok
-    ):
-        yield path_obj.path_with_protocol
-
-
-def hdfs_makedirs(path: PathLike, exist_ok: bool = False):
-    """
-    Create an hdfs directory.
-    Purely creating directory is invalid because it's unavailable on OSS.
-    This function is to test the target bucket have WRITE access.
-
-    :param path: Given path
-    :param exist_ok: If False and target directory exists, raise S3FileExistsError
-    :raises: FileExistsError
-    """
-    return HdfsPath(path).mkdir(parents=True, exist_ok=exist_ok)
 
 
 @SmartPath.register
@@ -641,8 +569,31 @@ class HdfsPath(URIPath):
         buffering: Optional[int] = None,
         encoding: Optional[str] = None,
         errors: Optional[str] = None,
+        max_workers: Optional[int] = None,
+        max_buffer_size: int = READER_MAX_BUFFER_SIZE,
+        block_forward: Optional[int] = None,
+        block_size: int = READER_BLOCK_SIZE,
         **kwargs,
     ) -> IO:
+        """
+        Open a file on the specified path.
+
+        :param mode: Mode to open the file. Supports 'r', 'rb', 'w', 'wb', 'a', 'ab'.
+        :param buffering: Optional integer used to set the buffering policy.
+        :param encoding: Name of the encoding used to decode or encode the file.
+                        Should only be used in text mode.
+        :param errors: Optional string specifying how encoding and decoding errors are
+                    to be handled. Cannot be used in binary mode.
+        :param max_workers: Max download thread number, `None` by default,
+            will use global thread pool with 8 threads.
+        :param max_buffer_size: Max cached buffer size in memory, 128MB by default.
+            Set to `0` will disable cache.
+        :param block_forward: Number of blocks of data for reader cached from the
+            offset position.
+        :param block_size: Size of a single block for reader, default is 8MB.
+        :returns: A file-like object.
+        :raises ValueError: If an unacceptable mode is provided.
+        """
         if "+" in mode:
             raise ValueError("unacceptable mode: %r" % mode)
 
@@ -653,22 +604,15 @@ class HdfsPath(URIPath):
 
         with raise_hdfs_error(self.path_with_protocol):
             if mode in ("r", "rb"):
-                keys = [
-                    "block_size",
-                    "block_capacity",
-                    "block_forward",
-                    "max_retries",
-                    "max_workers",
-                ]
-                input_kwargs = {}
-                for key in keys:
-                    if key in kwargs:
-                        input_kwargs[key] = kwargs[key]
                 file_obj = HdfsPrefetchReader(
                     hdfs_path=self.path_without_protocol,
                     client=self._client,
                     profile_name=self._profile_name,
-                    **input_kwargs,
+                    block_size=block_size,
+                    max_buffer_size=max_buffer_size,
+                    block_forward=block_forward,
+                    max_retries=HDFS_MAX_RETRY_TIMES,
+                    max_workers=max_workers,
                 )
                 if _is_pickle(file_obj):
                     file_obj = io.BufferedReader(file_obj)  # type: ignore

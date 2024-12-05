@@ -90,9 +90,7 @@ def test_write(client):
 
 
 def test_s3_buffered_writer_write_large_bytes(client):
-    with S3LimitedSeekableWriter(
-        BUCKET, KEY, s3_client=client, max_block_size=8
-    ) as writer:
+    with S3LimitedSeekableWriter(BUCKET, KEY, s3_client=client) as writer:
         writer.write(CONTENT * 10)
 
     with pytest.raises(IOError):

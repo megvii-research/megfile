@@ -209,8 +209,7 @@ def binary_open(open_func):
 def get_human_size(size_bytes: float) -> str:
     """Get human-readable size, e.g. `100MB`"""
     if size_bytes < 0:
-        # TODO: replace AssertionError with ValueError in 4.0.0
-        raise AssertionError("negative size: %r" % size_bytes)
+        raise ValueError("negative size: %r" % size_bytes)
     if size_bytes == 0:
         return "0 B"
     size_name = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
@@ -240,7 +239,7 @@ def necessary_params(func: Callable, **kwargs):
     return res_kwargs
 
 
-def generate_cache_path(filename: str, cache_dir: str = "/tmp") -> str:
+def generate_cache_path(filename: str, cache_dir: str = "/tmp") -> str:  # nosec B108
     suffix = os.path.splitext(filename)[1]
     return os.path.join(cache_dir, str(uuid.uuid4()) + suffix)
 
@@ -344,7 +343,7 @@ class cached_classproperty(cached_property):
             val = cls.__dict__[self.attrname]
             if val is self:
                 val = self.func(cls)
-                setattr(cls, self.attrname, val)
+                setattr(cls, self.attrname, val)  # pyre-ignore[6]
         return val
 
 

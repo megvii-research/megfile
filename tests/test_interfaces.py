@@ -163,8 +163,14 @@ class Klass9(URIPath):
     protocol = "s4"
 
 
-class Klass10(BasePath):
+class Klass10:
     protocol = "s3"
+
+    def __init__(self, path) -> None:
+        self.path = path
+
+    def __repr__(self) -> str:
+        return f"Klass10('{self.path}')"
 
 
 def test_uripath_truediv(mocker):
@@ -177,7 +183,7 @@ def test_uripath_truediv(mocker):
     other_path = Klass10("file")
     with pytest.raises(TypeError) as error:
         path / other_path
-    assert error.value.args[0] == "Klass10('file') is not 'str' nor 'URIPath'"
+    assert error.value.args[0] == "Klass10('file') is not 'PathLike' object"
 
     assert (path / "file").path == "s3://bucket/dir/file"
     assert (path / "/file").path == "s3://bucket/dir/file"

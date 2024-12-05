@@ -10,7 +10,7 @@ from functools import partial
 import click
 from tqdm import tqdm
 
-from megfile.config import DEFAULT_BLOCK_SIZE
+from megfile.config import READER_BLOCK_SIZE
 from megfile.hdfs_path import DEFAULT_HDFS_TIMEOUT
 from megfile.interfaces import FileEntry
 from megfile.lib.glob import get_non_glob_dir, has_magic
@@ -484,11 +484,11 @@ def tail(path: str, lines: int, follow: bool):
         f.seek(0, os.SEEK_SET)
 
         for current_offset in range(
-            file_size - DEFAULT_BLOCK_SIZE, 0 - DEFAULT_BLOCK_SIZE, -DEFAULT_BLOCK_SIZE
+            file_size - READER_BLOCK_SIZE, 0 - READER_BLOCK_SIZE, -READER_BLOCK_SIZE
         ):
             current_offset = max(0, current_offset)
             f.seek(current_offset)
-            block_lines = f.read(DEFAULT_BLOCK_SIZE).split(b"\n")
+            block_lines = f.read(READER_BLOCK_SIZE).split(b"\n")
             if len(line_list) > 0:
                 block_lines[-1] += line_list[0]
                 block_lines.extend(line_list[1:])
@@ -524,9 +524,11 @@ def to(path: str, append: bool, stdout: bool):
     mode = "wb"
     if append:
         mode = "ab"
-    with smart_open("stdio://0", "rb") as stdin, smart_open(
-        path, mode
-    ) as f, smart_open("stdio://1", "wb") as stdout_fd:
+    with (
+        smart_open("stdio://0", "rb") as stdin,
+        smart_open(path, mode) as f,
+        smart_open("stdio://1", "wb") as stdout_fd,
+    ):
         length = 16 * 1024
         while True:
             buf = stdin.read(length)
