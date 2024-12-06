@@ -19,13 +19,13 @@
         - `MEGFILE_WRITER_MAX_BUFFER_SIZE`
     - Updated `MEGFILE_MAX_WORKERS` default value from `32` to `8`.
     - Updated all `open` method parameters:
-    - Removed `min_block_size` and `max_block_size`.
-    - Renamed `forward_ratio: Optional[float]` to `block_forward: Optional[int]`.
-    - Renamed `max_concurrency` to `max_workers`.
+        - Removed `min_block_size` and `max_block_size`.
+        - Renamed `forward_ratio: Optional[float]` to `block_forward: Optional[int]`.
+        - Renamed `max_concurrency` to `max_workers`.
     - Updated `__init__` parameters for all `Reader` classes inheriting from `BasePrefetchReader`:
-    - Replaced `block_capacity: int` by `max_buffer_size: int`.
+        - Replaced `block_capacity: int` by `max_buffer_size: int`.
     - Updated `S3BufferedWriter.__init__` parameters:
-    - Removed `max_block_size`.
+        - Removed `max_block_size`.
 
 - perf
     - Introduced `TransferConfig` for S3 to allow user-configurable upload and download settings.
@@ -33,7 +33,7 @@
     - Reduced the number of S3 requests during `smart_sync`.
 
 - feat
-    - Added the `MEGFILE_WRITER_BLOCK_AUTOSCALE` environment variable to enable S3 block autoscaling.
+    - Added the `MEGFILE_WRITER_BLOCK_AUTOSCALE` environment variable to enable S3 block autoscaling. Default is `true`. However, if you set `MEGFILE_WRITER_BLOCK_SIZE`, default will be `false`.
 
 ## 3.1.6.post1 - 2024.11.18
 - fix
