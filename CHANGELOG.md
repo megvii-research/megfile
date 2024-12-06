@@ -6,21 +6,21 @@
     - The `__del__` method in `Filelike` now closes file handles.
     - Removed `BaseURIPath`.
     - Environment variable changes:
-    - **Removed**:
-        - `MEGFILE_BLOCK_SIZE`
-        - `MEGFILE_MAX_BUFFER_SIZE`
-        - `MEGFILE_BLOCK_CAPACITY`
-        - `MEGFILE_MIN_BLOCK_SIZE`
-        - `MEGFILE_MAX_BLOCK_SIZE`
-    - **Added**:
-        - `MEGFILE_READER_BLOCK_SIZE`
-        - `MEGFILE_READER_MAX_BUFFER_SIZE`
-        - `MEGFILE_WRITER_BLOCK_SIZE`
-        - `MEGFILE_WRITER_MAX_BUFFER_SIZE`
-    - Updated `MEGFILE_MAX_WORKERS` default value from `32` to `8`.
+        - **Removed**:
+            - `MEGFILE_BLOCK_SIZE`
+            - `MEGFILE_MAX_BUFFER_SIZE`
+            - `MEGFILE_BLOCK_CAPACITY`
+            - `MEGFILE_MIN_BLOCK_SIZE`
+            - `MEGFILE_MAX_BLOCK_SIZE`
+        - **Added**:
+            - `MEGFILE_READER_BLOCK_SIZE`
+            - `MEGFILE_READER_MAX_BUFFER_SIZE`
+            - `MEGFILE_WRITER_BLOCK_SIZE`
+            - `MEGFILE_WRITER_MAX_BUFFER_SIZE`
+        - Updated `MEGFILE_MAX_WORKERS` default value from `32` to `8`.
     - Updated all `open` method parameters:
         - Removed `min_block_size` and `max_block_size`.
-        - Renamed `forward_ratio: Optional[float]` to `block_forward: Optional[int]`.
+        - Replaced `forward_ratio: Optional[float]` by `block_forward: Optional[int]`.
         - Renamed `max_concurrency` to `max_workers`.
     - Updated `__init__` parameters for all `Reader` classes inheriting from `BasePrefetchReader`:
         - Replaced `block_capacity: int` by `max_buffer_size: int`.
