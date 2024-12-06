@@ -65,6 +65,7 @@ from megfile.hdfs import (
     is_hdfs,
 )
 from megfile.hdfs_path import HdfsPath
+from megfile.hf_path import HFPath
 from megfile.http import (
     http_exists,
     http_getmtime,
@@ -396,6 +397,7 @@ __all__ = [
     "hdfs_makedirs",
     "S3Path",
     "FSPath",
+    "HFPath",
     "HttpPath",
     "HttpsPath",
     "StdioPath",
