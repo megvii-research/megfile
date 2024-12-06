@@ -17,10 +17,10 @@
             - `MEGFILE_READER_MAX_BUFFER_SIZE`
             - `MEGFILE_WRITER_BLOCK_SIZE`
             - `MEGFILE_WRITER_MAX_BUFFER_SIZE`
-    - Updated `MEGFILE_MAX_WORKERS` default value from `32` to `8`.
+        - Updated `MEGFILE_MAX_WORKERS` default value from `32` to `8`.
     - Updated all `open` method parameters:
         - Removed `min_block_size` and `max_block_size`.
-        - Renamed `forward_ratio: Optional[float]` to `block_forward: Optional[int]`.
+        - Replaced `forward_ratio: Optional[float]` by `block_forward: Optional[int]`.
         - Renamed `max_concurrency` to `max_workers`.
     - Updated `__init__` parameters for all `Reader` classes inheriting from `BasePrefetchReader`:
         - Replaced `block_capacity: int` by `max_buffer_size: int`.
