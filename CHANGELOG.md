@@ -1,3 +1,40 @@
+## 4.0.0 - 2024.12.06
+
+- **breaking change**
+    - Dropped support for Python 3.8; added support for Python 3.13.
+    - Removed the deprecated methods `is_link` and `get_protocol` from `BasePath`.
+    - The `__del__` method in `Filelike` now closes file handles.
+    - Removed `BaseURIPath`.
+    - Environment variable changes:
+    - **Removed**:
+        - `MEGFILE_BLOCK_SIZE`
+        - `MEGFILE_MAX_BUFFER_SIZE`
+        - `MEGFILE_BLOCK_CAPACITY`
+        - `MEGFILE_MIN_BLOCK_SIZE`
+        - `MEGFILE_MAX_BLOCK_SIZE`
+    - **Added**:
+        - `MEGFILE_READER_BLOCK_SIZE`
+        - `MEGFILE_READER_MAX_BUFFER_SIZE`
+        - `MEGFILE_WRITER_BLOCK_SIZE`
+        - `MEGFILE_WRITER_MAX_BUFFER_SIZE`
+    - Updated `MEGFILE_MAX_WORKERS` default value from `32` to `8`.
+    - Updated all `open` method parameters:
+        - Removed `min_block_size` and `max_block_size`.
+        - Renamed `forward_ratio: Optional[float]` to `block_forward: Optional[int]`.
+        - Renamed `max_concurrency` to `max_workers`.
+    - Updated `__init__` parameters for all `Reader` classes inheriting from `BasePrefetchReader`:
+        - Replaced `block_capacity: int` by `max_buffer_size: int`.
+    - Updated `S3BufferedWriter.__init__` parameters:
+        - Removed `max_block_size`.
+
+- perf
+    - Introduced `TransferConfig` for S3 to allow user-configurable upload and download settings.
+    - By default, writing larger files to S3 is now supported. Refer to the [configuration docs](https://megvii-research.github.io/megfile/configuration/common.html) for details.
+    - Reduced the number of S3 requests during `smart_sync`.
+
+- feat
+    - Added the `MEGFILE_WRITER_BLOCK_AUTOSCALE` environment variable to enable S3 block autoscaling. Default is `true`. However, if you set `MEGFILE_WRITER_BLOCK_SIZE`, default will be `false`.
+
 ## 3.1.6.post1 - 2024.11.18
 - fix
     - support ali oss response
