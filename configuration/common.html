@@ -96,24 +96,18 @@
 <section id="environment-configurations">
 <h2>Environment configurations<a class="headerlink" href="#environment-configurations" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_BLOCK_SIZE</span></code>: default block size of read and write operate, unit is bytes, default is <code class="docutils literal notranslate"><span class="pre">8MB</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_MIN_BLOCK_SIZE</span></code>:</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_READER_BLOCK_SIZE</span></code>: default block size of read operate, unit is bytes, default is <code class="docutils literal notranslate"><span class="pre">8MB</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_READER_MAX_BUFFER_SIZE</span></code>: max read buffer size, unit is bytes, default is <code class="docutils literal notranslate"><span class="pre">128MB</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_WRITER_BLOCK_SIZE</span></code>:</p>
 <ul>
-<li><p>min write block size, unit is bytes, default is equal to <code class="docutils literal notranslate"><span class="pre">MEGFILE_BLOCK_SIZE</span></code></p></li>
-<li><p>If you need write big size file, you should set <code class="docutils literal notranslate"><span class="pre">MEGFILE_MIN_BLOCK_SIZE</span></code> to a big value.</p></li>
+<li><p>default block size of write operate, unit is bytes, default is <code class="docutils literal notranslate"><span class="pre">8MB</span></code></p></li>
+<li><p>In S3, the block size automatically increases with the amount of data written if you don’t set <code class="docutils literal notranslate"><span class="pre">MEGFILE_WRITER_BLOCK_SIZE</span></code> and don’t set <code class="docutils literal notranslate"><span class="pre">MEGFILE_WRITER_BLOCK_AUTOSCALE</span></code> to false. The largest file size you can write under these conditions is <code class="docutils literal notranslate"><span class="pre">500GB</span></code>. If you need to write a larger file to S3, you should set a larger block size. Note that AWS S3’s multipart upload supports a maximum of 10,000 parts, so the maximum supported file size is <code class="docutils literal notranslate"><span class="pre">MEGFILE_WRITE_BLOCK_SIZE</span></code> * 10,000.</p></li>
 </ul>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_MAX_BLOCK_SIZE</span></code>: max write block size, unit is bytes, default is <code class="docutils literal notranslate"><span class="pre">128MB</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_MAX_BUFFER_SIZE</span></code>: max read buffer size, unit is bytes, default is <code class="docutils literal notranslate"><span class="pre">128MB</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_MAX_WORKERS</span></code>: max threads will be used, default is <code class="docutils literal notranslate"><span class="pre">32</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_BLOCK_CAPACITY</span></code>:</p>
-<ul>
-<li><p>default cache capacity of block, default is <code class="docutils literal notranslate"><span class="pre">16</span></code></p></li>
-<li><p>if <code class="docutils literal notranslate"><span class="pre">MEGFILE_MAX_BUFFER_SIZE</span></code> and <code class="docutils literal notranslate"><span class="pre">MEGFILE_BLOCK_CAPACITY</span></code> are both set, <code class="docutils literal notranslate"><span class="pre">MEGFILE_BLOCK_CAPACITY</span></code> will be ignored</p></li>
-</ul>
-</li>
-<li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_S3_CLIENT_CACHE_MODE</span></code>: s3 client cache mode, <code class="docutils literal notranslate"><span class="pre">thread_local</span></code> or <code class="docutils literal notranslate"><span class="pre">process_local</span></code>, default is <code class="docutils literal notranslate"><span class="pre">thread_local</span></code>, <strong>it’s a experimental feature.</strong></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_MAX_RETRY_TIMES</span></code>: default max retry times when catch error which may fix by retry, default is <code class="docutils literal notranslate"><span class="pre">10</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_WRITER_MAX_BUFFER_SIZE</span></code>: max write buffer size, unit is bytes, default is <code class="docutils literal notranslate"><span class="pre">128MB</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_WRITER_BLOCK_AUTOSCALE</span></code>: whether to automatically increase the block size; the default is <code class="docutils literal notranslate"><span class="pre">true</span></code>. However, if you set <code class="docutils literal notranslate"><span class="pre">MEGFILE_WRITER_BLOCK_SIZE</span></code>, it will be set to <code class="docutils literal notranslate"><span class="pre">false</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_MAX_WORKERS</span></code>: max threads will be used, default is <code class="docutils literal notranslate"><span class="pre">8</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_MAX_RETRY_TIMES</span></code>: default max retry times when catch error which may fix by retry, default is <code class="docutils literal notranslate"><span class="pre">10</span></code>.</p></li>
 </ul>
 </section>
 </section>

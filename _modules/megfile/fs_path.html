@@ -84,8 +84,12 @@
 <span class="kn">import</span> <span class="nn">pathlib</span>
 <span class="kn">import</span> <span class="nn">shutil</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">cached_property</span>
+<span class="kn">from</span> <span class="nn">stat</span> <span class="kn">import</span> <span class="n">S_ISBLK</span> <span class="k">as</span> <span class="n">stat_isblk</span>
+<span class="kn">from</span> <span class="nn">stat</span> <span class="kn">import</span> <span class="n">S_ISCHR</span> <span class="k">as</span> <span class="n">stat_ischr</span>
 <span class="kn">from</span> <span class="nn">stat</span> <span class="kn">import</span> <span class="n">S_ISDIR</span> <span class="k">as</span> <span class="n">stat_isdir</span>
+<span class="kn">from</span> <span class="nn">stat</span> <span class="kn">import</span> <span class="n">S_ISFIFO</span> <span class="k">as</span> <span class="n">stat_isfifo</span>
 <span class="kn">from</span> <span class="nn">stat</span> <span class="kn">import</span> <span class="n">S_ISLNK</span> <span class="k">as</span> <span class="n">stat_islnk</span>
+<span class="kn">from</span> <span class="nn">stat</span> <span class="kn">import</span> <span class="n">S_ISSOCK</span> <span class="k">as</span> <span class="n">stat_issock</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">IO</span><span class="p">,</span> <span class="n">BinaryIO</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">from</span> <span class="nn">megfile.errors</span> <span class="kn">import</span> <span class="n">_create_missing_ok_generator</span>
@@ -110,24 +114,13 @@
     <span class="s2">&quot;is_fs&quot;</span><span class="p">,</span>
     <span class="s2">&quot;fs_path_join&quot;</span><span class="p">,</span>
     <span class="s2">&quot;_make_stat&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;fs_readlink&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;fs_cwd&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;fs_home&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;fs_iglob&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;fs_glob&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;fs_glob_stat&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;fs_rename&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;fs_resolve&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;fs_move&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;fs_makedirs&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;fs_lstat&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
 
 <span class="k">def</span> <span class="nf">_make_stat</span><span class="p">(</span><span class="n">stat</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">stat_result</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StatResult</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">StatResult</span><span class="p">(</span>
         <span class="n">size</span><span class="o">=</span><span class="n">stat</span><span class="o">.</span><span class="n">st_size</span><span class="p">,</span>
-        <span class="n">ctime</span><span class="o">=</span><span class="n">stat</span><span class="o">.</span><span class="n">st_ctime</span><span class="p">,</span>
+        <span class="n">ctime</span><span class="o">=</span><span class="n">stat</span><span class="o">.</span><span class="n">st_ctime</span><span class="p">,</span>  <span class="c1"># pyre-ignore[16]</span>
         <span class="n">mtime</span><span class="o">=</span><span class="n">stat</span><span class="o">.</span><span class="n">st_mtime</span><span class="p">,</span>
         <span class="n">isdir</span><span class="o">=</span><span class="n">stat_isdir</span><span class="p">(</span><span class="n">stat</span><span class="o">.</span><span class="n">st_mode</span><span class="p">),</span>
         <span class="n">islnk</span><span class="o">=</span><span class="n">stat_islnk</span><span class="p">(</span><span class="n">stat</span><span class="o">.</span><span class="n">st_mode</span><span class="p">),</span>
@@ -158,139 +151,6 @@
 
 
 
-<div class="viewcode-block" id="fs_readlink">
-<a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_readlink">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_readlink</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Return a string representing the path to which the symbolic link points.</span>
-<span class="sd">    :returns: Return a string representing the path to which the symbolic link points.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">readlink</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
-
-
-
-<div class="viewcode-block" id="fs_cwd">
-<a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_cwd">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_cwd</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return current working directory</span>
-
-<span class="sd">    returns: Current working directory</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span></div>
-
-
-
-<div class="viewcode-block" id="fs_home">
-<a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_home">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_home</span><span class="p">():</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the home directory</span>
-
-<span class="sd">    returns: Home directory path</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s2">&quot;~&quot;</span><span class="p">)</span></div>
-
-
-
-<div class="viewcode-block" id="fs_iglob">
-<a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_iglob">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_iglob</span><span class="p">(</span>
-    <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return path iterator in ascending alphabetical order,</span>
-<span class="sd">    in which path matches glob pattern</span>
-
-<span class="sd">    1. If doesn&#39;t match any path, return empty list</span>
-<span class="sd">        Notice:  ``glob.glob`` in standard library returns [&#39;a/&#39;] instead of empty list</span>
-<span class="sd">        when pathname is like `a/**`, recursive is True and directory &#39;a&#39; doesn&#39;t exist.</span>
-<span class="sd">        fs_glob behaves like ``glob.glob`` in standard library under such circumstance.</span>
-<span class="sd">    2. No guarantee that each path in result is different, which means:</span>
-<span class="sd">        Assume there exists a path `/a/b/c/b/d.txt`</span>
-<span class="sd">        use path pattern like `/**/b/**/*.txt` to glob,</span>
-<span class="sd">        the path above will be returned twice</span>
-<span class="sd">    3. `**` will match any matched file, directory, symlink and &#39;&#39; by default,</span>
-<span class="sd">        when recursive is `True`</span>
-<span class="sd">    4. fs_glob returns same as glob.glob(pathname, recursive=True)</span>
-<span class="sd">        in ascending alphabetical order.</span>
-<span class="sd">    5. Hidden files (filename stars with &#39;.&#39;) will not be found in the result</span>
-
-<span class="sd">    :param recursive: If False, `**` will not search directory recursively</span>
-<span class="sd">    :param missing_ok: If False and target path doesn&#39;t match any file,</span>
-<span class="sd">        raise FileNotFoundError</span>
-<span class="sd">    :returns: An iterator contains paths match `pathname`</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">_create_missing_ok_generator</span><span class="p">(</span>
-        <span class="n">iglob</span><span class="p">(</span><span class="n">fspath</span><span class="p">(</span><span class="n">path</span><span class="p">),</span> <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">),</span>
-        <span class="n">missing_ok</span><span class="p">,</span>
-        <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s2">&quot;No match any file: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">path</span><span class="p">),</span>
-    <span class="p">):</span>
-        <span class="k">yield</span> <span class="n">path</span></div>
-
-
-
-<div class="viewcode-block" id="fs_glob">
-<a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_glob">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_glob</span><span class="p">(</span>
-    <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return path list in ascending alphabetical order,</span>
-<span class="sd">    in which path matches glob pattern</span>
-
-<span class="sd">    1. If doesn&#39;t match any path, return empty list</span>
-<span class="sd">        Notice:  ``glob.glob`` in standard library returns [&#39;a/&#39;] instead of empty list</span>
-<span class="sd">        when pathname is like `a/**`, recursive is True and directory &#39;a&#39; doesn&#39;t exist.</span>
-<span class="sd">        fs_glob behaves like ``glob.glob`` in standard library under such circumstance.</span>
-<span class="sd">    2. No guarantee that each path in result is different, which means:</span>
-<span class="sd">        Assume there exists a path `/a/b/c/b/d.txt`</span>
-<span class="sd">        use path pattern like `/**/b/**/*.txt` to glob,</span>
-<span class="sd">        the path above will be returned twice</span>
-<span class="sd">    3. `**` will match any matched file, directory, symlink and &#39;&#39; by default,</span>
-<span class="sd">        when recursive is `True`</span>
-<span class="sd">    4. fs_glob returns same as glob.glob(pathname, recursive=True)</span>
-<span class="sd">        in ascending alphabetical order.</span>
-<span class="sd">    5. Hidden files (filename stars with &#39;.&#39;) will not be found in the result</span>
-
-<span class="sd">    :param recursive: If False, `**` will not search directory recursively</span>
-<span class="sd">    :param missing_ok: If False and target path doesn&#39;t match any file,</span>
-<span class="sd">        raise FileNotFoundError</span>
-<span class="sd">    :returns: A list contains paths match `pathname`</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">fs_iglob</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">,</span> <span class="n">missing_ok</span><span class="o">=</span><span class="n">missing_ok</span><span class="p">))</span></div>
-
-
-
-<div class="viewcode-block" id="fs_glob_stat">
-<a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_glob_stat">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_glob_stat</span><span class="p">(</span>
-    <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">FileEntry</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a list contains tuples of path and file stat,</span>
-<span class="sd">    in ascending alphabetical order, in which path matches glob pattern</span>
-
-<span class="sd">    1. If doesn&#39;t match any path, return empty list</span>
-<span class="sd">        Notice:  ``glob.glob`` in standard library returns [&#39;a/&#39;] instead of empty list</span>
-<span class="sd">        when pathname is like `a/**`, recursive is True and directory &#39;a&#39; doesn&#39;t exist.</span>
-<span class="sd">        fs_glob behaves like ``glob.glob`` in standard library under such circumstance.</span>
-<span class="sd">    2. No guarantee that each path in result is different, which means:</span>
-<span class="sd">        Assume there exists a path `/a/b/c/b/d.txt`</span>
-<span class="sd">        use path pattern like `/**/b/**/*.txt` to glob,</span>
-<span class="sd">        the path above will be returned twice.</span>
-<span class="sd">    3. `**` will match any matched file, directory, symlink and &#39;&#39; by default,</span>
-<span class="sd">        when recursive is `True`</span>
-<span class="sd">    4. fs_glob returns same as glob.glob(pathname, recursive=True)</span>
-<span class="sd">        in ascending alphabetical order.</span>
-<span class="sd">    5. Hidden files (filename stars with &#39;.&#39;) will not be found in the result</span>
-
-<span class="sd">    :param recursive: If False, `**` will not search directory recursively</span>
-<span class="sd">    :param missing_ok: If False and target path doesn&#39;t match any file,</span>
-<span class="sd">        raise FileNotFoundError</span>
-<span class="sd">    :returns: A list contains tuples of path and file stat,</span>
-<span class="sd">        in which paths match `pathname`</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">fs_iglob</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">,</span> <span class="n">missing_ok</span><span class="o">=</span><span class="n">missing_ok</span><span class="p">):</span>
-        <span class="k">yield</span> <span class="n">FileEntry</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">path</span><span class="p">),</span> <span class="n">path</span><span class="p">,</span> <span class="n">_make_stat</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">lstat</span><span class="p">(</span><span class="n">path</span><span class="p">)))</span></div>
-
-
-
 <span class="k">def</span> <span class="nf">_fs_rename_file</span><span class="p">(</span>
     <span class="n">src_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -312,97 +172,6 @@
     <span class="n">shutil</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">src_path</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="fs_rename">
-<a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_rename">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_rename</span><span class="p">(</span><span class="n">src_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    rename file on fs</span>
-
-<span class="sd">    :param src_path: Given path</span>
-<span class="sd">    :param dst_path: Given destination path</span>
-<span class="sd">    :param overwrite: whether or not overwrite file when exists</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">src_path</span><span class="p">,</span> <span class="n">dst_path</span> <span class="o">=</span> <span class="n">fspath</span><span class="p">(</span><span class="n">src_path</span><span class="p">),</span> <span class="n">fspath</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">src_path</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">_fs_rename_file</span><span class="p">(</span><span class="n">src_path</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">dst_path</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-    <span class="k">with</span> <span class="n">os</span><span class="o">.</span><span class="n">scandir</span><span class="p">(</span><span class="n">src_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">entries</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">file_entry</span> <span class="ow">in</span> <span class="n">entries</span><span class="p">:</span>
-            <span class="n">src_file_path</span> <span class="o">=</span> <span class="n">file_entry</span><span class="o">.</span><span class="n">path</span>
-            <span class="n">dst_file_path</span> <span class="o">=</span> <span class="n">dst_path</span>
-            <span class="n">relative_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">relpath</span><span class="p">(</span><span class="n">src_file_path</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">src_path</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">relative_path</span> <span class="ow">and</span> <span class="n">relative_path</span> <span class="o">!=</span> <span class="s2">&quot;.&quot;</span><span class="p">:</span>
-                <span class="n">dst_file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dst_file_path</span><span class="p">,</span> <span class="n">relative_path</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dst_file_path</span><span class="p">)</span> <span class="ow">and</span> <span class="n">file_entry</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
-                <span class="n">fs_rename</span><span class="p">(</span><span class="n">src_file_path</span><span class="p">,</span> <span class="n">dst_file_path</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">_fs_rename_file</span><span class="p">(</span><span class="n">src_file_path</span><span class="p">,</span> <span class="n">dst_file_path</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">src_path</span><span class="p">):</span>
-            <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">src_path</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">src_path</span><span class="p">)</span></div>
-
-
-
-<div class="viewcode-block" id="fs_move">
-<a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_move">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_move</span><span class="p">(</span><span class="n">src_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    rename file on fs</span>
-
-<span class="sd">    :param src_path: Given path</span>
-<span class="sd">    :param dst_path: Given destination path</span>
-<span class="sd">    :param overwrite: whether or not overwrite file when exists</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">fs_rename</span><span class="p">(</span><span class="n">src_path</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">)</span></div>
-
-
-
-<div class="viewcode-block" id="fs_resolve">
-<a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_resolve">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_resolve</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Equal to fs_realpath, return the real path of given path</span>
-
-<span class="sd">    :param path: Given path</span>
-<span class="sd">    :returns: Real path of given path</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">FSPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">realpath</span><span class="p">()</span></div>
-
-
-
-<div class="viewcode-block" id="fs_makedirs">
-<a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_makedirs">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_makedirs</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">exist_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    make a directory on fs, including parent directory</span>
-
-<span class="sd">    If there exists a file on the path, raise FileExistsError</span>
-
-<span class="sd">    :param path: Given path</span>
-<span class="sd">    :param exist_ok: If False and target directory exists, raise FileExistsError</span>
-<span class="sd">    :raises: FileExistsError</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">FSPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="n">exist_ok</span><span class="p">)</span></div>
-
-
-
-<div class="viewcode-block" id="fs_lstat">
-<a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_lstat">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_lstat</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StatResult</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Like Path.stat() but, if the path points to a symbolic link,</span>
-<span class="sd">    return the symbolic link’s information rather than its target’s.</span>
-
-<span class="sd">    :param path: Given path</span>
-<span class="sd">    :returns: StatResult</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">FSPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">lstat</span><span class="p">()</span></div>
-
-
-
 <div class="viewcode-block" id="FSPath">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath">[docs]</a>
 <span class="nd">@SmartPath</span><span class="o">.</span><span class="n">register</span>
@@ -420,20 +189,31 @@
             <span class="n">path</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">path</span>
 
+    <span class="k">def</span> <span class="nf">_check_int_path</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;not support the path of int type&quot;</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">__fspath__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_int_path</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span>  <span class="c1"># pyre-ignore[6]</span>
 
     <span class="nd">@cached_property</span>
     <span class="k">def</span> <span class="nf">root</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span><span class="o">.</span><span class="n">root</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">return</span> <span class="s2">&quot;/&quot;</span>
+        <span class="k">return</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span><span class="o">.</span><span class="n">root</span>  <span class="c1"># pyre-ignore[6]</span>
 
     <span class="nd">@cached_property</span>
     <span class="k">def</span> <span class="nf">anchor</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span><span class="o">.</span><span class="n">anchor</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">return</span> <span class="s2">&quot;/&quot;</span>
+        <span class="k">return</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span><span class="o">.</span><span class="n">anchor</span>  <span class="c1"># pyre-ignore[6]</span>
 
     <span class="nd">@cached_property</span>
     <span class="k">def</span> <span class="nf">drive</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span><span class="o">.</span><span class="n">drive</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span><span class="o">.</span><span class="n">drive</span>  <span class="c1"># pyre-ignore[6]</span>
 
 <div class="viewcode-block" id="FSPath.from_uri">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.from_uri">[docs]</a>
@@ -442,14 +222,25 @@
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
 
 
-    <span class="nd">@property</span>
+    <span class="nd">@cached_property</span>
     <span class="k">def</span> <span class="nf">path_with_protocol</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return path with protocol, like file:///root&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span>
         <span class="n">protocol_prefix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span> <span class="o">+</span> <span class="s2">&quot;://&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">protocol_prefix</span><span class="p">):</span>  <span class="c1"># pyre-ignore[16]</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span>  <span class="c1"># pyre-ignore[7]</span>
         <span class="k">return</span> <span class="n">protocol_prefix</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span>  <span class="c1"># pyre-ignore[58]</span>
+
+    <span class="nd">@cached_property</span>
+    <span class="k">def</span> <span class="nf">path_without_protocol</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return path without protocol, example: if path is file:///root,</span>
+<span class="sd">        return /root</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">path_without_protocol</span>
 
 <div class="viewcode-block" id="FSPath.is_absolute">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.is_absolute">[docs]</a>
@@ -458,7 +249,9 @@
 
 <span class="sd">        :returns: True if a path is absolute, else False</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isabs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span></div>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isabs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span>  <span class="c1"># pyre-ignore[6]</span></div>
 
 
 <div class="viewcode-block" id="FSPath.abspath">
@@ -468,7 +261,8 @@
 
 <span class="sd">        :returns: Absolute path of given path</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">fspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">))</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_int_path</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">fspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">))</span>  <span class="c1"># pyre-ignore[6]</span></div>
 
 
 <div class="viewcode-block" id="FSPath.access">
@@ -665,7 +459,12 @@
         <span class="n">glob_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span>
         <span class="k">if</span> <span class="n">pattern</span><span class="p">:</span>
             <span class="n">glob_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span><span class="o">.</span><span class="n">path_without_protocol</span>
-        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">fs_iglob</span><span class="p">(</span><span class="n">glob_path</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">,</span> <span class="n">missing_ok</span><span class="o">=</span><span class="n">missing_ok</span><span class="p">):</span>
+
+        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">_create_missing_ok_generator</span><span class="p">(</span>
+            <span class="n">iglob</span><span class="p">(</span><span class="n">fspath</span><span class="p">(</span><span class="n">glob_path</span><span class="p">),</span> <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">),</span>
+            <span class="n">missing_ok</span><span class="p">,</span>
+            <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s2">&quot;No match any file: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">glob_path</span><span class="p">),</span>
+        <span class="p">):</span>
             <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
 
 
@@ -718,7 +517,8 @@
 
 <span class="sd">        :returns: All contents have in the path in ascending alphabetical order</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">))</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_int_path</span><span class="p">()</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">))</span>  <span class="c1"># pyre-ignore[6]</span></div>
 
 
 <div class="viewcode-block" id="FSPath.iterdir">
@@ -764,9 +564,13 @@
 
 <span class="sd">        :raises: FileExistsError</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">exist_ok</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">exist_ok</span> <span class="ow">and</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span>
+            <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
+        <span class="p">):</span>
             <span class="k">return</span>
-        <span class="k">return</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_int_path</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span>  <span class="c1"># pyre-ignore[6]</span>
             <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="n">parents</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="n">exist_ok</span>
         <span class="p">)</span></div>
 
@@ -778,7 +582,8 @@
 
 <span class="sd">        :returns: Real path of given path</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">fspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">))</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_int_path</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">fspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">))</span>  <span class="c1"># pyre-ignore[6]</span></div>
 
 
 <div class="viewcode-block" id="FSPath.relpath">
@@ -789,7 +594,13 @@
 <span class="sd">        :param start: Given start directory</span>
 <span class="sd">        :returns: Relative path from start</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">fspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">relpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">))</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_int_path</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">fspath</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">relpath</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span>  <span class="c1"># pyre-ignore[6]</span>
+                <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="FSPath.rename">
@@ -801,7 +612,32 @@
 <span class="sd">        :param dst_path: Given destination path</span>
 <span class="sd">        :param overwrite: whether or not overwrite file when exists</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">fs_rename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_int_path</span><span class="p">()</span>
+
+        <span class="n">src_path</span><span class="p">,</span> <span class="n">dst_path</span> <span class="o">=</span> <span class="n">fspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">),</span> <span class="n">fspath</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">src_path</span><span class="p">):</span>
+            <span class="n">_fs_rename_file</span><span class="p">(</span><span class="n">src_path</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">dst_path</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">os</span><span class="o">.</span><span class="n">scandir</span><span class="p">(</span><span class="n">src_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">entries</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">file_entry</span> <span class="ow">in</span> <span class="n">entries</span><span class="p">:</span>
+                <span class="n">src_file_path</span> <span class="o">=</span> <span class="n">file_entry</span><span class="o">.</span><span class="n">path</span>
+                <span class="n">dst_file_path</span> <span class="o">=</span> <span class="n">dst_path</span>
+                <span class="n">relative_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">relpath</span><span class="p">(</span><span class="n">src_file_path</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">src_path</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">relative_path</span> <span class="ow">and</span> <span class="n">relative_path</span> <span class="o">!=</span> <span class="s2">&quot;.&quot;</span><span class="p">:</span>
+                    <span class="n">dst_file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dst_file_path</span><span class="p">,</span> <span class="n">relative_path</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dst_file_path</span><span class="p">)</span> <span class="ow">and</span> <span class="n">file_entry</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">src_file_path</span><span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">dst_file_path</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">_fs_rename_file</span><span class="p">(</span><span class="n">src_file_path</span><span class="p">,</span> <span class="n">dst_file_path</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">src_path</span><span class="p">):</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">src_path</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">src_path</span><span class="p">)</span>
+
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span></div>
 
 
@@ -829,9 +665,9 @@
         <span class="k">if</span> <span class="n">missing_ok</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
             <span class="k">return</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
-            <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span>  <span class="c1"># pyre-ignore[6]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span></div>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span>  <span class="c1"># pyre-ignore[6]</span></div>
 
 
     <span class="k">def</span> <span class="nf">_scan</span><span class="p">(</span>
@@ -922,10 +758,10 @@
 
 <span class="sd">        :returns: StatResult</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">follow_symlinks</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">follow_symlinks</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
             <span class="n">result</span> <span class="o">=</span> <span class="n">_make_stat</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">result</span> <span class="o">=</span> <span class="n">_make_stat</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">lstat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">))</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">_make_stat</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">lstat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">))</span>  <span class="c1"># pyre-ignore[6]</span>
 
         <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">islnk</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">result</span><span class="o">.</span><span class="n">isdir</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">result</span>
@@ -933,15 +769,16 @@
         <span class="n">size</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">ctime</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">ctime</span>
         <span class="n">mtime</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">mtime</span>
-        <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
-                <span class="n">canonical_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
-                <span class="n">stat</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">lstat</span><span class="p">(</span><span class="n">canonical_path</span><span class="p">)</span>
-                <span class="n">size</span> <span class="o">+=</span> <span class="n">stat</span><span class="o">.</span><span class="n">st_size</span>
-                <span class="k">if</span> <span class="n">ctime</span> <span class="o">&gt;</span> <span class="n">stat</span><span class="o">.</span><span class="n">st_ctime</span><span class="p">:</span>
-                    <span class="n">ctime</span> <span class="o">=</span> <span class="n">stat</span><span class="o">.</span><span class="n">st_ctime</span>
-                <span class="k">if</span> <span class="n">mtime</span> <span class="o">&lt;</span> <span class="n">stat</span><span class="o">.</span><span class="n">st_mtime</span><span class="p">:</span>
-                    <span class="n">mtime</span> <span class="o">=</span> <span class="n">stat</span><span class="o">.</span><span class="n">st_mtime</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">):</span>  <span class="c1"># pyre-ignore[6]</span>
+                <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+                    <span class="n">canonical_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+                    <span class="n">stat</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">lstat</span><span class="p">(</span><span class="n">canonical_path</span><span class="p">)</span>
+                    <span class="n">size</span> <span class="o">+=</span> <span class="n">stat</span><span class="o">.</span><span class="n">st_size</span>
+                    <span class="k">if</span> <span class="n">ctime</span> <span class="o">&gt;</span> <span class="n">stat</span><span class="o">.</span><span class="n">st_ctime</span><span class="p">:</span>  <span class="c1"># pyre-ignore[16]</span>
+                        <span class="n">ctime</span> <span class="o">=</span> <span class="n">stat</span><span class="o">.</span><span class="n">st_ctime</span>
+                    <span class="k">if</span> <span class="n">mtime</span> <span class="o">&lt;</span> <span class="n">stat</span><span class="o">.</span><span class="n">st_mtime</span><span class="p">:</span>
+                        <span class="n">mtime</span> <span class="o">=</span> <span class="n">stat</span><span class="o">.</span><span class="n">st_mtime</span>
         <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">_replace</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span> <span class="n">ctime</span><span class="o">=</span><span class="n">ctime</span><span class="p">,</span> <span class="n">mtime</span><span class="o">=</span><span class="n">mtime</span><span class="p">)</span></div>
 
 
@@ -953,9 +790,11 @@
 
 <span class="sd">        :param missing_ok: if False and target file not exists, raise FileNotFoundError</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_int_path</span><span class="p">()</span>
+
         <span class="k">if</span> <span class="n">missing_ok</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
             <span class="k">return</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span></div>
+        <span class="n">os</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span>  <span class="c1"># pyre-ignore[6]</span></div>
 
 
 <div class="viewcode-block" id="FSPath.walk">
@@ -987,6 +826,8 @@
 
 <span class="sd">        :returns: A 3-tuple generator</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_int_path</span><span class="p">()</span>
+
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">):</span>
             <span class="k">return</span>
 
@@ -994,7 +835,7 @@
             <span class="k">return</span>
 
         <span class="n">path</span> <span class="o">=</span> <span class="n">fspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span>
-        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span>  <span class="c1"># pyre-ignore[6]</span>
 
         <span class="n">stack</span> <span class="o">=</span> <span class="p">[</span><span class="n">path</span><span class="p">]</span>
         <span class="k">while</span> <span class="n">stack</span><span class="p">:</span>
@@ -1027,8 +868,13 @@
 <span class="sd">            eliminating any symbolic links encountered in the path.</span>
 <span class="sd">        :rtype: FSPath</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_int_path</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span>
-            <span class="n">fspath</span><span class="p">(</span><span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="n">strict</span><span class="o">=</span><span class="n">strict</span><span class="p">))</span>
+            <span class="n">fspath</span><span class="p">(</span>
+                <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span>  <span class="c1"># pyre-ignore[6]</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="n">strict</span><span class="o">=</span><span class="n">strict</span><span class="p">)</span>
+            <span class="p">)</span>
         <span class="p">)</span></div>
 
 
@@ -1064,14 +910,29 @@
         <span class="n">callback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">],</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="n">fspath</span><span class="p">(</span><span class="n">dst_path</span><span class="p">),</span> <span class="n">follow_symlinks</span><span class="o">=</span><span class="n">followlinks</span>
-        <span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fspath</span><span class="p">(</span><span class="n">dst_path</span><span class="p">),</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fdst</span><span class="p">:</span>
+                <span class="c1"># This magic number is copied from  copyfileobj</span>
+                <span class="n">length</span> <span class="o">=</span> <span class="mi">16</span> <span class="o">*</span> <span class="mi">1024</span>
+                <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                    <span class="n">buf</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="n">length</span><span class="p">)</span>  <span class="c1"># pyre-ignore[6]</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">buf</span><span class="p">:</span>
+                        <span class="k">break</span>
+                    <span class="n">fdst</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">callback</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="n">callback</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">buf</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span>  <span class="c1"># pyre-ignore[6]</span>
+                <span class="n">fspath</span><span class="p">(</span><span class="n">dst_path</span><span class="p">),</span>
+                <span class="n">follow_symlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">,</span>
+            <span class="p">)</span>
 
-        <span class="c1"># After python3.8, patch `shutil.copyfile` is not a good way,</span>
-        <span class="c1"># because `shutil.copy2` will not call it in some cases.</span>
-        <span class="k">if</span> <span class="n">callback</span><span class="p">:</span>
-            <span class="n">callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">follow_symlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+            <span class="c1"># After python3.8, patch `shutil.copyfile` is not a good way,</span>
+            <span class="c1"># because `shutil.copy2` will not call it in some cases.</span>
+            <span class="k">if</span> <span class="n">callback</span><span class="p">:</span>
+                <span class="n">callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">follow_symlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
 
 <div class="viewcode-block" id="FSPath.copy">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.copy">[docs]</a>
@@ -1154,7 +1015,7 @@
                 <span class="k">return</span> <span class="n">ignore_files</span>
 
             <span class="n">shutil</span><span class="o">.</span><span class="n">copytree</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span>  <span class="c1"># pyre-ignore[6]</span>
                 <span class="n">dst_path</span><span class="p">,</span>
                 <span class="n">ignore</span><span class="o">=</span><span class="n">ignore_same_file</span><span class="p">,</span>
                 <span class="n">dirs_exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -1171,7 +1032,8 @@
 
 <span class="sd">        :param dst_path: Destination path</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">symlink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_int_path</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">symlink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">)</span>  <span class="c1"># pyre-ignore[6]</span></div>
 
 
 <div class="viewcode-block" id="FSPath.readlink">
@@ -1184,7 +1046,12 @@
 <span class="sd">        :returns: Return a FSPath instance representing the path to which</span>
 <span class="sd">            the symbolic link points.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">fs_readlink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">))</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_int_path</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">readlink</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span>  <span class="c1"># pyre-ignore[6]</span>
+            <span class="p">)</span>
+        <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="FSPath.is_symlink">
@@ -1215,7 +1082,7 @@
 
 <span class="sd">        returns: Current working directory</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">fs_cwd</span><span class="p">())</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">())</span></div>
 
 
 <div class="viewcode-block" id="FSPath.home">
@@ -1225,7 +1092,7 @@
 
 <span class="sd">        returns: Home directory path</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">fs_home</span><span class="p">())</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s2">&quot;~&quot;</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="FSPath.joinpath">
@@ -1245,9 +1112,11 @@
 
 <span class="sd">        :param file_object: stream to be read</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">FSPath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">))</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span>
-            <span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span>
-        <span class="p">)</span>
+        <span class="n">FSPath</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span>  <span class="c1"># pyre-ignore[6]</span>
+            <span class="p">)</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">output</span><span class="p">:</span>
             <span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">file_object</span><span class="o">.</span><span class="n">read</span><span class="p">())</span></div>
 
@@ -1267,9 +1136,11 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span>
             <span class="s2">&quot;w&quot;</span> <span class="ow">in</span> <span class="n">mode</span> <span class="ow">or</span> <span class="s2">&quot;x&quot;</span> <span class="ow">in</span> <span class="n">mode</span> <span class="ow">or</span> <span class="s2">&quot;a&quot;</span> <span class="ow">in</span> <span class="n">mode</span>
         <span class="p">):</span>
-            <span class="n">FSPath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">))</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span>
-                <span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span>
-            <span class="p">)</span>
+            <span class="n">FSPath</span><span class="p">(</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span>  <span class="c1"># pyre-ignore[6]</span>
+                <span class="p">)</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span>
             <span class="n">mode</span><span class="p">,</span>
@@ -1286,7 +1157,8 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        A tuple giving access to the path’s various components</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span><span class="o">.</span><span class="n">parts</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_int_path</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span><span class="o">.</span><span class="n">parts</span>  <span class="c1"># pyre-ignore[6]</span>
 
 <div class="viewcode-block" id="FSPath.chmod">
 <a class="viewcode-back" href="../../megfile.fs_path.html#megfile.fs.FSPath.chmod">[docs]</a>
@@ -1311,7 +1183,8 @@
 <span class="sd">        Return the name of the group owning the file. KeyError is raised if</span>
 <span class="sd">        the file’s gid isn’t found in the system database.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span><span class="o">.</span><span class="n">group</span><span class="p">()</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_int_path</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span><span class="o">.</span><span class="n">group</span><span class="p">()</span>  <span class="c1"># pyre-ignore[6]</span></div>
 
 
 <div class="viewcode-block" id="FSPath.is_socket">
@@ -1324,7 +1197,9 @@
 <span class="sd">        False is also returned if the path doesn’t exist or is a broken symlink;</span>
 <span class="sd">        other errors (such as permission errors) are propagated.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span><span class="o">.</span><span class="n">is_socket</span><span class="p">()</span></div>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">stat_issock</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span><span class="o">.</span><span class="n">st_mode</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span><span class="o">.</span><span class="n">is_socket</span><span class="p">()</span>  <span class="c1"># pyre-ignore[6]</span></div>
 
 
 <div class="viewcode-block" id="FSPath.is_fifo">
@@ -1337,7 +1212,9 @@
 <span class="sd">        False is also returned if the path doesn’t exist or is a broken symlink;</span>
 <span class="sd">        other errors (such as permission errors) are propagated.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span><span class="o">.</span><span class="n">is_fifo</span><span class="p">()</span></div>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">stat_isfifo</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span><span class="o">.</span><span class="n">st_mode</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span><span class="o">.</span><span class="n">is_fifo</span><span class="p">()</span>  <span class="c1"># pyre-ignore[6]</span></div>
 
 
 <div class="viewcode-block" id="FSPath.is_block_device">
@@ -1350,7 +1227,11 @@
 <span class="sd">        False is also returned if the path doesn’t exist or is a broken symlink;</span>
 <span class="sd">        other errors (such as permission errors) are propagated.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span><span class="o">.</span><span class="n">is_block_device</span><span class="p">()</span></div>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">stat_isblk</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span><span class="o">.</span><span class="n">st_mode</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span>  <span class="c1"># pyre-ignore[6]</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">is_block_device</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="FSPath.is_char_device">
@@ -1363,7 +1244,11 @@
 <span class="sd">        False is also returned if the path doesn’t exist or is a broken symlink;</span>
 <span class="sd">        other errors (such as permission errors) are propagated.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span><span class="o">.</span><span class="n">is_char_device</span><span class="p">()</span></div>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">stat_ischr</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span><span class="o">.</span><span class="n">st_mode</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span>  <span class="c1"># pyre-ignore[6]</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">is_char_device</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="FSPath.owner">
@@ -1373,7 +1258,8 @@
 <span class="sd">        Return the name of the user owning the file. KeyError is raised if the file’s</span>
 <span class="sd">        uid isn’t found in the system database.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span><span class="o">.</span><span class="n">owner</span><span class="p">()</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_int_path</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span><span class="o">.</span><span class="n">owner</span><span class="p">()</span>  <span class="c1"># pyre-ignore[6]</span></div>
 
 
 <div class="viewcode-block" id="FSPath.absolute">
@@ -1383,7 +1269,12 @@
 <span class="sd">        Make the path absolute, without normalization or resolving symlinks.</span>
 <span class="sd">        Returns a new path object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">))</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_int_path</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span>  <span class="c1"># pyre-ignore[6]</span>
+            <span class="p">)</span>
+        <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="FSPath.rmdir">

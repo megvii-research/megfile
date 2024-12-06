@@ -146,7 +146,7 @@
 </section>
 <section id="quick-start">
 <h2>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading"></a></h2>
-<p>Path string in <code class="docutils literal notranslate"><span class="pre">megfile</span></code> almost is <code class="docutils literal notranslate"><span class="pre">protocol://path/to/file</span></code>, for example <code class="docutils literal notranslate"><span class="pre">s3://bucketA/key</span></code>. But sftp path is a little different, format is <code class="docutils literal notranslate"><span class="pre">sftp://[username[:password]&#64;]hostname[:port]//file_path</span></code>, and relative path is replace <code class="docutils literal notranslate"><span class="pre">//file_path</span></code> to <code class="docutils literal notranslate"><span class="pre">/file_path</span></code>.
+<p>Path string in <code class="docutils literal notranslate"><span class="pre">megfile</span></code> almost is <code class="docutils literal notranslate"><span class="pre">protocol://path/to/file</span></code>, for example <code class="docutils literal notranslate"><span class="pre">s3://bucketA/key</span></code>. But sftp path is a little different, format is <code class="docutils literal notranslate"><span class="pre">sftp://[username[:password]&#64;]hostname[:port]//absolute_file_path</span></code>. More details see <a class="reference external" href="https://megvii-research.github.io/megfile/path_format.html">path format document</a>.
 Here’s an example of writing a file to s3 / fs, syncing to local, reading and finally deleting it.</p>
 <section id="functional-interface">
 <h3>Functional Interface<a class="headerlink" href="#functional-interface" title="Link to this heading"></a></h3>
@@ -279,7 +279,7 @@ $ megfile config s3 accesskey secretkey \
 --profile tos
 
 # create alias
-$ megfile config tos s3+tos
+$ megfile alias tos s3+tos
 </pre></div>
 </div>
 <p>You can get the configuration from <code class="docutils literal notranslate"><span class="pre">~/.config/megfile/aliases.conf</span></code>, like:</p>

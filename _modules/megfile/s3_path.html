@@ -87,18 +87,23 @@
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">cached_property</span><span class="p">,</span> <span class="n">lru_cache</span><span class="p">,</span> <span class="n">wraps</span>
 <span class="kn">from</span> <span class="nn">logging</span> <span class="kn">import</span> <span class="n">getLogger</span> <span class="k">as</span> <span class="n">get_logger</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">IO</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">BinaryIO</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="kn">import</span> <span class="n">urlparse</span>
 
 <span class="kn">import</span> <span class="nn">boto3</span>
 <span class="kn">import</span> <span class="nn">botocore</span>
-<span class="kn">from</span> <span class="nn">botocore.awsrequest</span> <span class="kn">import</span> <span class="n">AWSResponse</span>
+<span class="kn">from</span> <span class="nn">boto3.s3.transfer</span> <span class="kn">import</span> <span class="n">TransferConfig</span>
+<span class="kn">from</span> <span class="nn">botocore.awsrequest</span> <span class="kn">import</span> <span class="n">AWSPreparedRequest</span><span class="p">,</span> <span class="n">AWSResponse</span>
 
 <span class="kn">from</span> <span class="nn">megfile.config</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">DEFAULT_BLOCK_SIZE</span><span class="p">,</span>
-    <span class="n">DEFAULT_MAX_BLOCK_SIZE</span><span class="p">,</span>
-    <span class="n">DEFAULT_MIN_BLOCK_SIZE</span><span class="p">,</span>
     <span class="n">GLOBAL_MAX_WORKERS</span><span class="p">,</span>
+    <span class="n">HTTP_AUTH_HEADERS</span><span class="p">,</span>
+    <span class="n">READER_BLOCK_SIZE</span><span class="p">,</span>
+    <span class="n">READER_MAX_BUFFER_SIZE</span><span class="p">,</span>
     <span class="n">S3_CLIENT_CACHE_MODE</span><span class="p">,</span>
     <span class="n">S3_MAX_RETRY_TIMES</span><span class="p">,</span>
+    <span class="n">WRITER_BLOCK_SIZE</span><span class="p">,</span>
+    <span class="n">WRITER_MAX_BUFFER_SIZE</span><span class="p">,</span>
+    <span class="n">to_boolean</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">megfile.errors</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">S3BucketNotFoundError</span><span class="p">,</span>
@@ -139,7 +144,6 @@
 <span class="kn">from</span> <span class="nn">megfile.lib.glob</span> <span class="kn">import</span> <span class="n">has_magic</span><span class="p">,</span> <span class="n">has_magic_ignore_brace</span><span class="p">,</span> <span class="n">ungloblize</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.joinpath</span> <span class="kn">import</span> <span class="n">uri_join</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.s3_buffered_writer</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">DEFAULT_MAX_BUFFER_SIZE</span><span class="p">,</span>
     <span class="n">S3BufferedWriter</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.s3_cached_handler</span> <span class="kn">import</span> <span class="n">S3CachedHandler</span>
@@ -156,6 +160,7 @@
     <span class="n">generate_cache_path</span><span class="p">,</span>
     <span class="n">get_binary_mode</span><span class="p">,</span>
     <span class="n">get_content_offset</span><span class="p">,</span>
+    <span class="n">is_domain_or_subdomain</span><span class="p">,</span>
     <span class="n">is_readable</span><span class="p">,</span>
     <span class="n">necessary_params</span><span class="p">,</span>
     <span class="n">process_local</span><span class="p">,</span>
@@ -178,26 +183,14 @@
     <span class="s2">&quot;s3_share_cache_open&quot;</span><span class="p">,</span>
     <span class="s2">&quot;s3_open&quot;</span><span class="p">,</span>
     <span class="s2">&quot;S3Cacher&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;S3BufferedWriter&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;S3LimitedSeekableWriter&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;S3PrefetchReader&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;S3ShareCacheReader&quot;</span><span class="p">,</span>
     <span class="s2">&quot;s3_upload&quot;</span><span class="p">,</span>
     <span class="s2">&quot;s3_download&quot;</span><span class="p">,</span>
     <span class="s2">&quot;s3_load_content&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;s3_readlink&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;s3_glob&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;s3_glob_stat&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;s3_iglob&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;s3_rename&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;s3_makedirs&quot;</span><span class="p">,</span>
     <span class="s2">&quot;s3_concat&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;s3_lstat&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 <span class="n">_logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 <span class="n">content_md5_header</span> <span class="o">=</span> <span class="s2">&quot;megfile-content-md5&quot;</span>
 <span class="n">endpoint_url</span> <span class="o">=</span> <span class="s2">&quot;https://s3.amazonaws.com&quot;</span>
-<span class="n">max_pool_connections</span> <span class="o">=</span> <span class="n">GLOBAL_MAX_WORKERS</span>  <span class="c1"># for compatibility</span>
 <span class="n">max_retries</span> <span class="o">=</span> <span class="n">S3_MAX_RETRY_TIMES</span>
 <span class="n">max_keys</span> <span class="o">=</span> <span class="mi">1000</span>
 
@@ -242,24 +235,30 @@
         <span class="n">retry_callback</span><span class="o">=</span><span class="n">retry_callback</span><span class="p">,</span>
     <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">patch_send_request</span><span class="p">(</span><span class="n">send_request</span><span class="p">):</span>
-        <span class="k">def</span> <span class="nf">patched_send_request</span><span class="p">(</span><span class="n">request_dict</span><span class="p">,</span> <span class="n">operation_model</span><span class="p">):</span>
-            <span class="n">http</span><span class="p">,</span> <span class="n">parsed_response</span> <span class="o">=</span> <span class="n">send_request</span><span class="p">(</span><span class="n">request_dict</span><span class="p">,</span> <span class="n">operation_model</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">patch_send</span><span class="p">(</span><span class="n">send</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">patched_send</span><span class="p">(</span><span class="n">request</span><span class="p">:</span> <span class="n">AWSPreparedRequest</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AWSResponse</span><span class="p">:</span>
+            <span class="n">response</span><span class="p">:</span> <span class="n">AWSResponse</span> <span class="o">=</span> <span class="n">send</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
             <span class="k">if</span> <span class="p">(</span>
-                <span class="n">request_dict</span><span class="p">[</span><span class="s2">&quot;method&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;GET&quot;</span>  <span class="c1"># only support GET method for now</span>
-                <span class="ow">and</span> <span class="n">http</span><span class="o">.</span><span class="n">status_code</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">301</span><span class="p">,</span> <span class="mi">302</span><span class="p">,</span> <span class="mi">307</span><span class="p">,</span> <span class="mi">308</span><span class="p">)</span>
-                <span class="ow">and</span> <span class="s2">&quot;Location&quot;</span> <span class="ow">in</span> <span class="n">http</span><span class="o">.</span><span class="n">headers</span>
+                <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;GET&quot;</span>  <span class="c1"># only support GET method for now</span>
+                <span class="ow">and</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">301</span><span class="p">,</span> <span class="mi">302</span><span class="p">,</span> <span class="mi">307</span><span class="p">,</span> <span class="mi">308</span><span class="p">)</span>
+                <span class="ow">and</span> <span class="s2">&quot;Location&quot;</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">headers</span>
             <span class="p">):</span>
-                <span class="n">request_dict</span><span class="p">[</span><span class="s2">&quot;url&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">http</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s2">&quot;Location&quot;</span><span class="p">]</span>
-                <span class="n">http</span><span class="p">,</span> <span class="n">parsed_response</span> <span class="o">=</span> <span class="n">send_request</span><span class="p">(</span><span class="n">request_dict</span><span class="p">,</span> <span class="n">operation_model</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">http</span><span class="p">,</span> <span class="n">parsed_response</span>
+                <span class="c1"># Permit sending auth/cookie headers from &quot;foo.com&quot; to &quot;sub.foo.com&quot;.</span>
+                <span class="c1"># See also: https://go.dev/src/net/http/client.go#L980</span>
+                <span class="n">location</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s2">&quot;Location&quot;</span><span class="p">]</span>
+                <span class="n">ihost</span> <span class="o">=</span> <span class="n">urlparse</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">url</span><span class="p">)</span><span class="o">.</span><span class="n">hostname</span>
+                <span class="n">dhost</span> <span class="o">=</span> <span class="n">urlparse</span><span class="p">(</span><span class="n">location</span><span class="p">)</span><span class="o">.</span><span class="n">hostname</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">is_domain_or_subdomain</span><span class="p">(</span><span class="n">dhost</span><span class="p">,</span> <span class="n">ihost</span><span class="p">):</span>
+                    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">HTTP_AUTH_HEADERS</span><span class="p">:</span>
+                        <span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="n">request</span><span class="o">.</span><span class="n">url</span> <span class="o">=</span> <span class="n">location</span>
+                <span class="n">response</span> <span class="o">=</span> <span class="n">send</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">response</span>
 
-        <span class="k">return</span> <span class="n">patched_send_request</span>
+        <span class="k">return</span> <span class="n">patched_send</span>
 
     <span class="k">if</span> <span class="n">redirect</span><span class="p">:</span>
-        <span class="n">client</span><span class="o">.</span><span class="n">_endpoint</span><span class="o">.</span><span class="n">_send_request</span> <span class="o">=</span> <span class="n">patch_send_request</span><span class="p">(</span>
-            <span class="n">client</span><span class="o">.</span><span class="n">_endpoint</span><span class="o">.</span><span class="n">_send_request</span>
-        <span class="p">)</span>
+        <span class="n">client</span><span class="o">.</span><span class="n">_endpoint</span><span class="o">.</span><span class="n">_send</span> <span class="o">=</span> <span class="n">patch_send</span><span class="p">(</span><span class="n">client</span><span class="o">.</span><span class="n">_endpoint</span><span class="o">.</span><span class="n">_send</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">client</span>
 
@@ -346,7 +345,7 @@
 <span class="k">def</span> <span class="nf">parse_boolean</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">default</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">default</span>
-    <span class="k">return</span> <span class="n">value</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;true&quot;</span><span class="p">,</span> <span class="s2">&quot;yes&quot;</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">to_boolean</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">get_access_token</span><span class="p">(</span><span class="n">profile_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -724,7 +723,7 @@
     <span class="n">src_url</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">dst_url</span><span class="p">:</span> <span class="n">PathLike</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">PathLike</span><span class="p">,</span> <span class="n">PathLike</span><span class="p">]]:</span>
     <span class="k">for</span> <span class="n">src_file_path</span> <span class="ow">in</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">src_url</span><span class="p">)</span><span class="o">.</span><span class="n">scan</span><span class="p">():</span>
-        <span class="n">content_path</span> <span class="o">=</span> <span class="n">src_file_path</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">src_url</span><span class="p">)</span> <span class="p">:]</span>
+        <span class="n">content_path</span> <span class="o">=</span> <span class="n">src_file_path</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">fspath</span><span class="p">(</span><span class="n">src_url</span><span class="p">))</span> <span class="p">:]</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">content_path</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">dst_file_path</span> <span class="o">=</span> <span class="n">s3_path_join</span><span class="p">(</span><span class="n">dst_url</span><span class="p">,</span> <span class="n">content_path</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -789,8 +788,8 @@
     <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;rb&quot;</span><span class="p">,</span>
     <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
-    <span class="n">max_concurrency</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">max_block_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_BLOCK_SIZE</span><span class="p">,</span>
+    <span class="n">max_workers</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">block_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">READER_BLOCK_SIZE</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">S3PrefetchReader</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Open a asynchronous prefetch reader, to support fast sequential</span>
 <span class="sd">    read and random read</span>
@@ -801,11 +800,18 @@
 
 <span class="sd">        Supports context manager</span>
 
-<span class="sd">        Some parameter setting may perform well: max_concurrency=10 or 20,</span>
-<span class="sd">        max_block_size=8 or 16 MB, default value None means using global thread pool</span>
+<span class="sd">        Some parameter setting may perform well: max_workers=10 or 20,</span>
+<span class="sd">        block_size=8 or 16 MB, default value None means using global thread pool</span>
 
-<span class="sd">    :param max_concurrency: Max download thread number, None by default</span>
-<span class="sd">    :param max_block_size: Max data size downloaded by each thread, in bytes,</span>
+<span class="sd">    :param s3_url: s3 path</span>
+<span class="sd">    :param mode: only support &quot;r&quot; or &quot;rb&quot;</span>
+<span class="sd">    :param encoding: encoding is the name of the encoding used to decode or encode</span>
+<span class="sd">        the file. This should only be used in text mode.</span>
+<span class="sd">    :param errors: errors is an optional string that specifies how encoding and</span>
+<span class="sd">        decoding errors are to be handled—this cannot be used in binary mode.</span>
+<span class="sd">    :param followlinks: follow symbolic link, default `False`</span>
+<span class="sd">    :param max_workers: Max download thread number, `None` by default</span>
+<span class="sd">    :param block_size: Max data size downloaded by each thread, in bytes,</span>
 <span class="sd">        8MB by default</span>
 <span class="sd">    :returns: An opened S3PrefetchReader object</span>
 <span class="sd">    :raises: S3FileNotFoundError</span>
@@ -821,15 +827,15 @@
             <span class="k">pass</span>
 
     <span class="n">bucket</span><span class="p">,</span> <span class="n">key</span> <span class="o">=</span> <span class="n">parse_s3_url</span><span class="p">(</span><span class="n">s3_url</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">)</span>
-    <span class="n">config</span> <span class="o">=</span> <span class="n">botocore</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">Config</span><span class="p">(</span><span class="n">max_pool_connections</span><span class="o">=</span><span class="n">max_pool_connections</span><span class="p">)</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">botocore</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">Config</span><span class="p">(</span><span class="n">max_pool_connections</span><span class="o">=</span><span class="n">GLOBAL_MAX_WORKERS</span><span class="p">)</span>
     <span class="n">client</span> <span class="o">=</span> <span class="n">get_s3_client_with_cache</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="n">profile_name</span><span class="o">=</span><span class="n">s3_url</span><span class="o">.</span><span class="n">_profile_name</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">S3PrefetchReader</span><span class="p">(</span>
         <span class="n">bucket</span><span class="p">,</span>
         <span class="n">key</span><span class="p">,</span>
         <span class="n">s3_client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span>
         <span class="n">max_retries</span><span class="o">=</span><span class="n">max_retries</span><span class="p">,</span>
-        <span class="n">max_workers</span><span class="o">=</span><span class="n">max_concurrency</span><span class="p">,</span>
-        <span class="n">block_size</span><span class="o">=</span><span class="n">max_block_size</span><span class="p">,</span>
+        <span class="n">max_workers</span><span class="o">=</span><span class="n">max_workers</span><span class="p">,</span>
+        <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span><span class="p">,</span>
         <span class="n">profile_name</span><span class="o">=</span><span class="n">s3_url</span><span class="o">.</span><span class="n">_profile_name</span><span class="p">,</span>
     <span class="p">)</span></div>
 
@@ -844,8 +850,8 @@
     <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">cache_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;lru&quot;</span><span class="p">,</span>
-    <span class="n">max_concurrency</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">max_block_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_BLOCK_SIZE</span><span class="p">,</span>
+    <span class="n">max_workers</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">block_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">READER_BLOCK_SIZE</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">S3ShareCacheReader</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Open a asynchronous prefetch reader, to support fast sequential read and</span>
 <span class="sd">    random read</span>
@@ -856,11 +862,18 @@
 
 <span class="sd">        Supports context manager</span>
 
-<span class="sd">        Some parameter setting may perform well: max_concurrency=10 or 20,</span>
-<span class="sd">        max_block_size=8 or 16 MB, default value None means using global thread pool</span>
+<span class="sd">        Some parameter setting may perform well: max_workers=10 or 20,</span>
+<span class="sd">        block_size=8 or 16 MB, default value None means using global thread pool</span>
 
-<span class="sd">    :param max_concurrency: Max download thread number, None by default</span>
-<span class="sd">    :param max_block_size: Max data size downloaded by each thread, in bytes,</span>
+<span class="sd">    :param s3_url: s3 path</span>
+<span class="sd">    :param mode: only support &quot;r&quot; or &quot;rb&quot;</span>
+<span class="sd">    :param encoding: encoding is the name of the encoding used to decode or encode</span>
+<span class="sd">        the file. This should only be used in text mode.</span>
+<span class="sd">    :param errors: errors is an optional string that specifies how encoding and</span>
+<span class="sd">        decoding errors are to be handled—this cannot be used in binary mode.</span>
+<span class="sd">    :param followlinks: follow symbolic link, default `False`</span>
+<span class="sd">    :param max_workers: Max download thread number, None by default</span>
+<span class="sd">    :param block_size: Max data size downloaded by each thread, in bytes,</span>
 <span class="sd">        8MB by default</span>
 <span class="sd">    :returns: An opened S3ShareCacheReader object</span>
 <span class="sd">    :raises: S3FileNotFoundError</span>
@@ -877,7 +890,7 @@
             <span class="k">pass</span>
 
     <span class="n">bucket</span><span class="p">,</span> <span class="n">key</span> <span class="o">=</span> <span class="n">parse_s3_url</span><span class="p">(</span><span class="n">s3_url</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">)</span>
-    <span class="n">config</span> <span class="o">=</span> <span class="n">botocore</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">Config</span><span class="p">(</span><span class="n">max_pool_connections</span><span class="o">=</span><span class="n">max_pool_connections</span><span class="p">)</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">botocore</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">Config</span><span class="p">(</span><span class="n">max_pool_connections</span><span class="o">=</span><span class="n">GLOBAL_MAX_WORKERS</span><span class="p">)</span>
     <span class="n">client</span> <span class="o">=</span> <span class="n">get_s3_client_with_cache</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="n">profile_name</span><span class="o">=</span><span class="n">s3_url</span><span class="o">.</span><span class="n">_profile_name</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">S3ShareCacheReader</span><span class="p">(</span>
         <span class="n">bucket</span><span class="p">,</span>
@@ -885,8 +898,8 @@
         <span class="n">cache_key</span><span class="o">=</span><span class="n">cache_key</span><span class="p">,</span>
         <span class="n">s3_client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span>
         <span class="n">max_retries</span><span class="o">=</span><span class="n">max_retries</span><span class="p">,</span>
-        <span class="n">max_workers</span><span class="o">=</span><span class="n">max_concurrency</span><span class="p">,</span>
-        <span class="n">block_size</span><span class="o">=</span><span class="n">max_block_size</span><span class="p">,</span>
+        <span class="n">max_workers</span><span class="o">=</span><span class="n">max_workers</span><span class="p">,</span>
+        <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span><span class="p">,</span>
         <span class="n">profile_name</span><span class="o">=</span><span class="n">s3_url</span><span class="o">.</span><span class="n">_profile_name</span><span class="p">,</span>
     <span class="p">)</span></div>
 
@@ -916,7 +929,13 @@
 <span class="sd">        But asynchronous behavior can guarantee the file are successfully written,</span>
 <span class="sd">        and frequent execution may cause thread and file handle exhaustion</span>
 
-<span class="sd">    :param mode: Mode to open file, either &quot;rb&quot; or &quot;wb&quot;</span>
+<span class="sd">    :param s3_url: s3 path</span>
+<span class="sd">    :param mode: Mode to open file, either &quot;r&quot;, &quot;rb&quot;, &quot;w&quot; or &quot;wb&quot;</span>
+<span class="sd">    :param encoding: encoding is the name of the encoding used to decode or encode</span>
+<span class="sd">        the file. This should only be used in text mode.</span>
+<span class="sd">    :param errors: errors is an optional string that specifies how encoding and</span>
+<span class="sd">        decoding errors are to be handled—this cannot be used in binary mode.</span>
+<span class="sd">    :param followlinks: follow symbolic link, default `False`</span>
 <span class="sd">    :param join_thread: If wait after function execution until s3 finishes writing</span>
 <span class="sd">    :returns: An opened BufferedReader / BufferedWriter object</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -935,7 +954,7 @@
             <span class="k">pass</span>
 
     <span class="n">bucket</span><span class="p">,</span> <span class="n">key</span> <span class="o">=</span> <span class="n">parse_s3_url</span><span class="p">(</span><span class="n">s3_url</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">)</span>
-    <span class="n">config</span> <span class="o">=</span> <span class="n">botocore</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">Config</span><span class="p">(</span><span class="n">max_pool_connections</span><span class="o">=</span><span class="n">max_pool_connections</span><span class="p">)</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">botocore</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">Config</span><span class="p">(</span><span class="n">max_pool_connections</span><span class="o">=</span><span class="n">GLOBAL_MAX_WORKERS</span><span class="p">)</span>
     <span class="n">client</span> <span class="o">=</span> <span class="n">get_s3_client_with_cache</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="n">profile_name</span><span class="o">=</span><span class="n">s3_url</span><span class="o">.</span><span class="n">_profile_name</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">S3PipeHandler</span><span class="p">(</span>
         <span class="n">bucket</span><span class="p">,</span>
@@ -969,7 +988,14 @@
 <span class="sd">        cache_path can specify the path of cache file. Performance could be better</span>
 <span class="sd">        if cache file path is on ssd or tmpfs</span>
 
-<span class="sd">    :param mode: Mode to open file, could be one of &quot;rb&quot;, &quot;wb&quot; or &quot;ab&quot;</span>
+<span class="sd">    :param s3_url: s3 path</span>
+<span class="sd">    :param mode: Mode to open file, could be one of &quot;rb&quot;, &quot;wb&quot;, &quot;ab&quot;, &quot;rb+&quot;, &quot;wb+&quot;</span>
+<span class="sd">        or &quot;ab+&quot;</span>
+<span class="sd">    :param encoding: encoding is the name of the encoding used to decode or encode</span>
+<span class="sd">        the file. This should only be used in text mode.</span>
+<span class="sd">    :param errors: errors is an optional string that specifies how encoding and</span>
+<span class="sd">        decoding errors are to be handled—this cannot be used in binary mode.</span>
+<span class="sd">    :param followlinks: follow symbolic link, default `False`</span>
 <span class="sd">    :param cache_path: cache file path</span>
 <span class="sd">    :returns: An opened BufferedReader / BufferedWriter object</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -984,7 +1010,7 @@
             <span class="k">pass</span>
 
     <span class="n">bucket</span><span class="p">,</span> <span class="n">key</span> <span class="o">=</span> <span class="n">parse_s3_url</span><span class="p">(</span><span class="n">s3_url</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">)</span>
-    <span class="n">config</span> <span class="o">=</span> <span class="n">botocore</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">Config</span><span class="p">(</span><span class="n">max_pool_connections</span><span class="o">=</span><span class="n">max_pool_connections</span><span class="p">)</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">botocore</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">Config</span><span class="p">(</span><span class="n">max_pool_connections</span><span class="o">=</span><span class="n">GLOBAL_MAX_WORKERS</span><span class="p">)</span>
     <span class="n">client</span> <span class="o">=</span> <span class="n">get_s3_client_with_cache</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="n">profile_name</span><span class="o">=</span><span class="n">s3_url</span><span class="o">.</span><span class="n">_profile_name</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">S3CachedHandler</span><span class="p">(</span>
         <span class="n">bucket</span><span class="p">,</span>
@@ -1005,16 +1031,14 @@
     <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
-    <span class="n">max_concurrency</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">max_buffer_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_MAX_BUFFER_SIZE</span><span class="p">,</span>
-    <span class="n">forward_ratio</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">max_workers</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">max_buffer_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">block_forward</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">block_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">limited_seekable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">buffered</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">share_cache_key</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">cache_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">min_block_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">max_block_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_MAX_BLOCK_SIZE</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IO</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Open an asynchronous prefetch reader, to support fast sequential read</span>
 
@@ -1024,22 +1048,30 @@
 
 <span class="sd">        Supports context manager</span>
 
-<span class="sd">        Some parameter setting may perform well: max_concurrency=10 or 20,</span>
-<span class="sd">        max_block_size=8 or 16 MB, default value None means using global thread pool</span>
+<span class="sd">        Some parameter setting may perform well: max_workers=10 or 20,</span>
+<span class="sd">        default value None means using global thread pool</span>
 
-<span class="sd">    :param max_concurrency: Max download thread number, None by default</span>
-<span class="sd">    :param max_buffer_size: Max cached buffer size in memory, 128MB by default</span>
-<span class="sd">    :param min_block_size: Min size of single block, default is same as block_size.</span>
-<span class="sd">        Each block will be downloaded by single thread.</span>
-<span class="sd">    :param max_block_size: Max size of single block, 128MB by default.</span>
-<span class="sd">        Each block will be downloaded by single thread.</span>
-<span class="sd">    :param block_size: Size of single block, 8MB by default.</span>
+<span class="sd">    :param s3_url: s3 path</span>
+<span class="sd">    :param mode: Mode to open file, could be one of &quot;rb&quot;, &quot;wb&quot;, &quot;ab&quot;, &quot;rb+&quot;, &quot;wb+&quot;</span>
+<span class="sd">        or &quot;ab+&quot;</span>
+<span class="sd">    :param encoding: encoding is the name of the encoding used to decode or encode</span>
+<span class="sd">        the file. This should only be used in text mode.</span>
+<span class="sd">    :param errors: errors is an optional string that specifies how encoding and</span>
+<span class="sd">        decoding errors are to be handled—this cannot be used in binary mode.</span>
+<span class="sd">    :param followlinks: follow symbolic link, default `False`</span>
+<span class="sd">    :param max_workers: Max download / upload thread number, `None` by default,</span>
+<span class="sd">        will use global thread pool with 8 threads.</span>
+<span class="sd">    :param max_buffer_size: Max cached buffer size in memory, 128MB by default.</span>
+<span class="sd">        Set to `0` will disable cache.</span>
+<span class="sd">    :param block_forward: How many blocks of data cached from offset position, only for</span>
+<span class="sd">        read mode.</span>
+<span class="sd">    :param block_size: Size of single block.</span>
 <span class="sd">        Each block will be uploaded by single thread.</span>
 <span class="sd">    :param limited_seekable: If write-handle supports limited seek</span>
 <span class="sd">        (both file head part and tail part can seek block_size).</span>
 <span class="sd">        Notes: This parameter are valid only for write-handle.</span>
 <span class="sd">        Read-handle support arbitrary seek</span>
-<span class="sd">    :returns: An opened S3PrefetchReader object</span>
+<span class="sd">    :returns: An opened File object</span>
 <span class="sd">    :raises: S3FileNotFoundError</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;rb&quot;</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">,</span> <span class="s2">&quot;ab&quot;</span><span class="p">,</span> <span class="s2">&quot;rb+&quot;</span><span class="p">,</span> <span class="s2">&quot;wb+&quot;</span><span class="p">,</span> <span class="s2">&quot;ab+&quot;</span><span class="p">):</span>
@@ -1051,11 +1083,8 @@
             <span class="n">s3_url</span> <span class="o">=</span> <span class="n">s3_url</span><span class="o">.</span><span class="n">readlink</span><span class="p">()</span>
         <span class="k">except</span> <span class="n">S3NotALinkError</span><span class="p">:</span>
             <span class="k">pass</span>
-    <span class="n">min_block_size</span> <span class="o">=</span> <span class="n">min_block_size</span> <span class="ow">or</span> <span class="n">block_size</span> <span class="ow">or</span> <span class="n">DEFAULT_MIN_BLOCK_SIZE</span>
-    <span class="n">block_size</span> <span class="o">=</span> <span class="n">block_size</span> <span class="ow">or</span> <span class="n">DEFAULT_BLOCK_SIZE</span>
-
     <span class="n">bucket</span><span class="p">,</span> <span class="n">key</span> <span class="o">=</span> <span class="n">parse_s3_url</span><span class="p">(</span><span class="n">s3_url</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">)</span>
-    <span class="n">config</span> <span class="o">=</span> <span class="n">botocore</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">Config</span><span class="p">(</span><span class="n">max_pool_connections</span><span class="o">=</span><span class="n">max_pool_connections</span><span class="p">)</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">botocore</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">Config</span><span class="p">(</span><span class="n">max_pool_connections</span><span class="o">=</span><span class="n">GLOBAL_MAX_WORKERS</span><span class="p">)</span>
     <span class="n">client</span> <span class="o">=</span> <span class="n">get_s3_client_with_cache</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="n">profile_name</span><span class="o">=</span><span class="n">s3_url</span><span class="o">.</span><span class="n">_profile_name</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="s2">&quot;a&quot;</span> <span class="ow">in</span> <span class="n">mode</span> <span class="ow">or</span> <span class="s2">&quot;+&quot;</span> <span class="ow">in</span> <span class="n">mode</span><span class="p">:</span>
@@ -1073,13 +1102,6 @@
         <span class="p">)</span>
 
     <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;rb&quot;</span><span class="p">:</span>
-        <span class="c1"># A rough conversion algorithm to align 2 types of Reader / Writer parameters</span>
-        <span class="c1"># TODO: Optimize the conversion algorithm</span>
-        <span class="n">block_capacity</span> <span class="o">=</span> <span class="n">max_buffer_size</span> <span class="o">//</span> <span class="n">block_size</span>
-        <span class="k">if</span> <span class="n">forward_ratio</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">block_forward</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">block_forward</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">block_capacity</span> <span class="o">*</span> <span class="n">forward_ratio</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">share_cache_key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">reader</span> <span class="o">=</span> <span class="n">S3ShareCacheReader</span><span class="p">(</span>
                 <span class="n">bucket</span><span class="p">,</span>
@@ -1087,8 +1109,8 @@
                 <span class="n">cache_key</span><span class="o">=</span><span class="n">share_cache_key</span><span class="p">,</span>
                 <span class="n">s3_client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span>
                 <span class="n">max_retries</span><span class="o">=</span><span class="n">max_retries</span><span class="p">,</span>
-                <span class="n">max_workers</span><span class="o">=</span><span class="n">max_concurrency</span><span class="p">,</span>
-                <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span><span class="p">,</span>
+                <span class="n">max_workers</span><span class="o">=</span><span class="n">max_workers</span><span class="p">,</span>
+                <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span> <span class="ow">or</span> <span class="n">READER_BLOCK_SIZE</span><span class="p">,</span>
                 <span class="n">block_forward</span><span class="o">=</span><span class="n">block_forward</span><span class="p">,</span>
                 <span class="n">profile_name</span><span class="o">=</span><span class="n">s3_url</span><span class="o">.</span><span class="n">_profile_name</span><span class="p">,</span>
             <span class="p">)</span>
@@ -1098,10 +1120,10 @@
                 <span class="n">key</span><span class="p">,</span>
                 <span class="n">s3_client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span>
                 <span class="n">max_retries</span><span class="o">=</span><span class="n">max_retries</span><span class="p">,</span>
-                <span class="n">max_workers</span><span class="o">=</span><span class="n">max_concurrency</span><span class="p">,</span>
-                <span class="n">block_capacity</span><span class="o">=</span><span class="n">block_capacity</span><span class="p">,</span>
+                <span class="n">max_workers</span><span class="o">=</span><span class="n">max_workers</span><span class="p">,</span>
+                <span class="n">max_buffer_size</span><span class="o">=</span><span class="n">max_buffer_size</span> <span class="ow">or</span> <span class="n">READER_MAX_BUFFER_SIZE</span><span class="p">,</span>
                 <span class="n">block_forward</span><span class="o">=</span><span class="n">block_forward</span><span class="p">,</span>
-                <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span><span class="p">,</span>
+                <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span> <span class="ow">or</span> <span class="n">READER_BLOCK_SIZE</span><span class="p">,</span>
                 <span class="n">profile_name</span><span class="o">=</span><span class="n">s3_url</span><span class="o">.</span><span class="n">_profile_name</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="k">if</span> <span class="n">buffered</span> <span class="ow">or</span> <span class="n">_is_pickle</span><span class="p">(</span><span class="n">reader</span><span class="p">):</span>
@@ -1113,10 +1135,9 @@
             <span class="n">bucket</span><span class="p">,</span>
             <span class="n">key</span><span class="p">,</span>
             <span class="n">s3_client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span>
-            <span class="n">max_workers</span><span class="o">=</span><span class="n">max_concurrency</span><span class="p">,</span>
-            <span class="n">block_size</span><span class="o">=</span><span class="n">min_block_size</span><span class="p">,</span>
-            <span class="n">max_block_size</span><span class="o">=</span><span class="n">max_block_size</span><span class="p">,</span>
-            <span class="n">max_buffer_size</span><span class="o">=</span><span class="n">max_buffer_size</span><span class="p">,</span>
+            <span class="n">max_workers</span><span class="o">=</span><span class="n">max_workers</span><span class="p">,</span>
+            <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span> <span class="ow">or</span> <span class="n">WRITER_BLOCK_SIZE</span><span class="p">,</span>
+            <span class="n">max_buffer_size</span><span class="o">=</span><span class="n">max_buffer_size</span> <span class="ow">or</span> <span class="n">WRITER_MAX_BUFFER_SIZE</span><span class="p">,</span>
             <span class="n">profile_name</span><span class="o">=</span><span class="n">s3_url</span><span class="o">.</span><span class="n">_profile_name</span><span class="p">,</span>
         <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
@@ -1124,10 +1145,9 @@
             <span class="n">bucket</span><span class="p">,</span>
             <span class="n">key</span><span class="p">,</span>
             <span class="n">s3_client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span>
-            <span class="n">max_workers</span><span class="o">=</span><span class="n">max_concurrency</span><span class="p">,</span>
-            <span class="n">block_size</span><span class="o">=</span><span class="n">min_block_size</span><span class="p">,</span>
-            <span class="n">max_block_size</span><span class="o">=</span><span class="n">max_block_size</span><span class="p">,</span>
-            <span class="n">max_buffer_size</span><span class="o">=</span><span class="n">max_buffer_size</span><span class="p">,</span>
+            <span class="n">max_workers</span><span class="o">=</span><span class="n">max_workers</span><span class="p">,</span>
+            <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span> <span class="ow">or</span> <span class="n">WRITER_BLOCK_SIZE</span><span class="p">,</span>
+            <span class="n">max_buffer_size</span><span class="o">=</span><span class="n">max_buffer_size</span> <span class="ow">or</span> <span class="n">WRITER_MAX_BUFFER_SIZE</span><span class="p">,</span>
             <span class="n">profile_name</span><span class="o">=</span><span class="n">s3_url</span><span class="o">.</span><span class="n">_profile_name</span><span class="p">,</span>
         <span class="p">)</span>
     <span class="k">if</span> <span class="n">buffered</span> <span class="ow">or</span> <span class="n">_is_pickle</span><span class="p">(</span><span class="n">writer</span><span class="p">):</span>
@@ -1165,7 +1185,7 @@
             <span class="k">pass</span>
 
     <span class="n">bucket</span><span class="p">,</span> <span class="n">key</span> <span class="o">=</span> <span class="n">parse_s3_url</span><span class="p">(</span><span class="n">s3_url</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">)</span>
-    <span class="n">config</span> <span class="o">=</span> <span class="n">botocore</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">Config</span><span class="p">(</span><span class="n">max_pool_connections</span><span class="o">=</span><span class="n">max_pool_connections</span><span class="p">)</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">botocore</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">Config</span><span class="p">(</span><span class="n">max_pool_connections</span><span class="o">=</span><span class="n">GLOBAL_MAX_WORKERS</span><span class="p">)</span>
     <span class="n">client</span> <span class="o">=</span> <span class="n">get_s3_client_with_cache</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="n">profile_name</span><span class="o">=</span><span class="n">s3_url</span><span class="o">.</span><span class="n">_profile_name</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">S3MemoryHandler</span><span class="p">(</span>
         <span class="n">bucket</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">s3_client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span> <span class="n">profile_name</span><span class="o">=</span><span class="n">s3_url</span><span class="o">.</span><span class="n">_profile_name</span>
@@ -1227,7 +1247,7 @@
     <span class="k">if</span> <span class="ow">not</span> <span class="n">src_url</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
         <span class="k">raise</span> <span class="n">S3IsADirectoryError</span><span class="p">(</span><span class="s2">&quot;Is a directory: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">src_url</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">)</span>
 
-    <span class="n">dst_directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">dst_path</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span>
+    <span class="n">dst_directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">dst_path</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">)</span>  <span class="c1"># pyre-ignore[6]</span>
     <span class="k">if</span> <span class="n">dst_directory</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
         <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">dst_directory</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
@@ -1235,9 +1255,21 @@
     <span class="n">download_file</span> <span class="o">=</span> <span class="n">patch_method</span><span class="p">(</span>
         <span class="n">client</span><span class="o">.</span><span class="n">download_file</span><span class="p">,</span> <span class="n">max_retries</span><span class="o">=</span><span class="n">max_retries</span><span class="p">,</span> <span class="n">should_retry</span><span class="o">=</span><span class="n">s3_should_retry</span>
     <span class="p">)</span>
+
+    <span class="n">transfer_config</span> <span class="o">=</span> <span class="n">TransferConfig</span><span class="p">(</span>
+        <span class="n">multipart_threshold</span><span class="o">=</span><span class="n">READER_BLOCK_SIZE</span><span class="p">,</span>
+        <span class="n">max_concurrency</span><span class="o">=</span><span class="n">GLOBAL_MAX_WORKERS</span><span class="p">,</span>
+        <span class="n">multipart_chunksize</span><span class="o">=</span><span class="n">READER_BLOCK_SIZE</span><span class="p">,</span>
+        <span class="n">num_download_attempts</span><span class="o">=</span><span class="n">S3_MAX_RETRY_TIMES</span><span class="p">,</span>
+        <span class="n">max_io_queue</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="n">READER_MAX_BUFFER_SIZE</span> <span class="o">//</span> <span class="n">READER_BLOCK_SIZE</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">download_file</span><span class="p">(</span>
-            <span class="n">src_bucket</span><span class="p">,</span> <span class="n">src_key</span><span class="p">,</span> <span class="n">dst_path</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="n">Callback</span><span class="o">=</span><span class="n">callback</span>
+            <span class="n">src_bucket</span><span class="p">,</span>
+            <span class="n">src_key</span><span class="p">,</span>
+            <span class="n">dst_path</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span>
+            <span class="n">Callback</span><span class="o">=</span><span class="n">callback</span><span class="p">,</span>
+            <span class="n">Config</span><span class="o">=</span><span class="n">transfer_config</span><span class="p">,</span>
         <span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
         <span class="n">error</span> <span class="o">=</span> <span class="n">translate_fs_error</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">dst_url</span><span class="p">)</span>
@@ -1291,8 +1323,19 @@
         <span class="n">client</span><span class="o">.</span><span class="n">upload_fileobj</span><span class="p">,</span> <span class="n">max_retries</span><span class="o">=</span><span class="n">max_retries</span><span class="p">,</span> <span class="n">should_retry</span><span class="o">=</span><span class="n">s3_should_retry</span>
     <span class="p">)</span>
 
+    <span class="n">transfer_config</span> <span class="o">=</span> <span class="n">TransferConfig</span><span class="p">(</span>
+        <span class="n">multipart_threshold</span><span class="o">=</span><span class="n">WRITER_BLOCK_SIZE</span><span class="p">,</span>
+        <span class="n">max_concurrency</span><span class="o">=</span><span class="n">GLOBAL_MAX_WORKERS</span><span class="p">,</span>
+        <span class="n">multipart_chunksize</span><span class="o">=</span><span class="n">WRITER_BLOCK_SIZE</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">src_path</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">src</span><span class="p">,</span> <span class="n">raise_s3_error</span><span class="p">(</span><span class="n">dst_url</span><span class="p">):</span>
-        <span class="n">upload_fileobj</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">Bucket</span><span class="o">=</span><span class="n">dst_bucket</span><span class="p">,</span> <span class="n">Key</span><span class="o">=</span><span class="n">dst_key</span><span class="p">,</span> <span class="n">Callback</span><span class="o">=</span><span class="n">callback</span><span class="p">)</span></div>
+        <span class="n">upload_fileobj</span><span class="p">(</span>
+            <span class="n">src</span><span class="p">,</span>
+            <span class="n">Bucket</span><span class="o">=</span><span class="n">dst_bucket</span><span class="p">,</span>
+            <span class="n">Key</span><span class="o">=</span><span class="n">dst_key</span><span class="p">,</span>
+            <span class="n">Callback</span><span class="o">=</span><span class="n">callback</span><span class="p">,</span>
+            <span class="n">Config</span><span class="o">=</span><span class="n">transfer_config</span><span class="p">,</span>
+        <span class="p">)</span></div>
 
 
 
@@ -1342,35 +1385,6 @@
 
 
 
-<div class="viewcode-block" id="s3_readlink">
-<a class="viewcode-back" href="../../megfile.s3.html#megfile.s3.s3_readlink">[docs]</a>
-<span class="k">def</span> <span class="nf">s3_readlink</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Return a string representing the path to which the symbolic link points.</span>
-
-<span class="sd">    :returns: Return a string representing the path to which the symbolic link points.</span>
-<span class="sd">    :raises: S3NameTooLongError, S3BucketNotFoundError, S3IsADirectoryError,</span>
-<span class="sd">        S3NotALinkError</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">readlink</span><span class="p">()</span><span class="o">.</span><span class="n">path_with_protocol</span></div>
-
-
-
-<div class="viewcode-block" id="s3_rename">
-<a class="viewcode-back" href="../../megfile.s3.html#megfile.s3.s3_rename">[docs]</a>
-<span class="k">def</span> <span class="nf">s3_rename</span><span class="p">(</span><span class="n">src_url</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">dst_url</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Move s3 file path from src_url to dst_url</span>
-
-<span class="sd">    :param dst_url: Given destination path</span>
-<span class="sd">    :param overwrite: whether or not overwrite file when exists</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">S3Path</span><span class="p">(</span><span class="n">src_url</span><span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">dst_url</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">)</span></div>
-
-
-
-<div class="viewcode-block" id="S3Cacher">
-<a class="viewcode-back" href="../../megfile.s3.html#megfile.s3.S3Cacher">[docs]</a>
 <span class="k">class</span> <span class="nc">S3Cacher</span><span class="p">(</span><span class="n">FileCacher</span><span class="p">):</span>
     <span class="n">cache_path</span> <span class="o">=</span> <span class="kc">None</span>
 
@@ -1389,113 +1403,11 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_path</span><span class="p">):</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">):</span>
                 <span class="n">s3_upload</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_path</span><span class="p">)</span></div>
-
-
-
-<div class="viewcode-block" id="s3_glob">
-<a class="viewcode-back" href="../../megfile.s3.html#megfile.s3.s3_glob">[docs]</a>
-<span class="k">def</span> <span class="nf">s3_glob</span><span class="p">(</span>
-    <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
-    <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-    <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-    <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return s3 path list in ascending alphabetical order,</span>
-<span class="sd">    in which path matches glob pattern</span>
-
-<span class="sd">    Notes: Only glob in bucket. If trying to match bucket with wildcard characters,</span>
-<span class="sd">    raise UnsupportedError</span>
-
-<span class="sd">    :param recursive: If False, `**` will not search directory recursively</span>
-<span class="sd">    :param missing_ok: If False and target path doesn&#39;t match any file,</span>
-<span class="sd">        raise FileNotFoundError</span>
-<span class="sd">    :raises: UnsupportedError, when bucket part contains wildcard characters</span>
-<span class="sd">    :returns: A list contains paths match `s3_pathname`</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span>
-        <span class="n">s3_iglob</span><span class="p">(</span>
-            <span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span>
-            <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">,</span>
-            <span class="n">missing_ok</span><span class="o">=</span><span class="n">missing_ok</span><span class="p">,</span>
-            <span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">,</span>
-        <span class="p">)</span>
-    <span class="p">)</span></div>
-
-
-
-<div class="viewcode-block" id="s3_glob_stat">
-<a class="viewcode-back" href="../../megfile.s3.html#megfile.s3.s3_glob_stat">[docs]</a>
-<span class="k">def</span> <span class="nf">s3_glob_stat</span><span class="p">(</span>
-    <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
-    <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-    <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-    <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">FileEntry</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a generator contains tuples of path and file stat,</span>
-<span class="sd">    in ascending alphabetical order, in which path matches glob pattern</span>
-
-<span class="sd">    Notes: Only glob in bucket. If trying to match bucket with wildcard characters,</span>
-<span class="sd">    raise UnsupportedError</span>
-
-<span class="sd">    :param recursive: If False, `**` will not search directory recursively</span>
-<span class="sd">    :param missing_ok: If False and target path doesn&#39;t match any file,</span>
-<span class="sd">        raise FileNotFoundError</span>
-<span class="sd">    :raises: UnsupportedError, when bucket part contains wildcard characters</span>
-<span class="sd">    :returns: A generator contains tuples of path and file stat,</span>
-<span class="sd">        in which paths match `s3_pathname`</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">glob_stat</span><span class="p">(</span>
-        <span class="n">pattern</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">,</span> <span class="n">missing_ok</span><span class="o">=</span><span class="n">missing_ok</span><span class="p">,</span> <span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span>
-    <span class="p">)</span></div>
-
-
-
-<div class="viewcode-block" id="s3_iglob">
-<a class="viewcode-back" href="../../megfile.s3.html#megfile.s3.s3_iglob">[docs]</a>
-<span class="k">def</span> <span class="nf">s3_iglob</span><span class="p">(</span>
-    <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
-    <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-    <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-    <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return s3 path iterator in ascending alphabetical order,</span>
-<span class="sd">    in which path matches glob pattern</span>
-
-<span class="sd">    Notes: Only glob in bucket. If trying to match bucket with wildcard characters,</span>
-<span class="sd">    raise UnsupportedError</span>
-
-<span class="sd">    :param recursive: If False, `**` will not search directory recursively</span>
-<span class="sd">    :param missing_ok: If False and target path doesn&#39;t match any file,</span>
-<span class="sd">        raise FileNotFoundError</span>
-<span class="sd">    :raises: UnsupportedError, when bucket part contains wildcard characters</span>
-<span class="sd">    :returns: An iterator contains paths match `s3_pathname`</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">for</span> <span class="n">path_obj</span> <span class="ow">in</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">iglob</span><span class="p">(</span>
-        <span class="n">pattern</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">,</span> <span class="n">missing_ok</span><span class="o">=</span><span class="n">missing_ok</span><span class="p">,</span> <span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span>
-    <span class="p">):</span>
-        <span class="k">yield</span> <span class="n">path_obj</span><span class="o">.</span><span class="n">path_with_protocol</span></div>
-
-
-
-<div class="viewcode-block" id="s3_makedirs">
-<a class="viewcode-back" href="../../megfile.s3.html#megfile.s3.s3_makedirs">[docs]</a>
-<span class="k">def</span> <span class="nf">s3_makedirs</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">exist_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Create an s3 directory.</span>
-<span class="sd">    Purely creating directory is invalid because it&#39;s unavailable on OSS.</span>
-<span class="sd">    This function is to test the target bucket have WRITE access.</span>
-
-<span class="sd">    :param path: Given path</span>
-<span class="sd">    :param exist_ok: If False and target directory exists, raise S3FileExistsError</span>
-<span class="sd">    :raises: S3BucketNotFoundError, S3FileExistsError</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="n">exist_ok</span><span class="p">)</span></div>
-
+            <span class="n">os</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_path</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">_group_src_paths_by_block</span><span class="p">(</span>
-    <span class="n">src_paths</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">PathLike</span><span class="p">],</span> <span class="n">block_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_BLOCK_SIZE</span>
+    <span class="n">src_paths</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">PathLike</span><span class="p">],</span> <span class="n">block_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">READER_BLOCK_SIZE</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">PathLike</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]]]]:</span>
     <span class="n">groups</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">current_group</span><span class="p">,</span> <span class="n">current_group_size</span> <span class="o">=</span> <span class="p">[],</span> <span class="mi">0</span>
@@ -1543,7 +1455,7 @@
 <span class="k">def</span> <span class="nf">s3_concat</span><span class="p">(</span>
     <span class="n">src_paths</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">PathLike</span><span class="p">],</span>
     <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
-    <span class="n">block_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_BLOCK_SIZE</span><span class="p">,</span>
+    <span class="n">block_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">READER_BLOCK_SIZE</span><span class="p">,</span>
     <span class="n">max_workers</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">GLOBAL_MAX_WORKERS</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Concatenate s3 files to one file.</span>
@@ -1558,9 +1470,10 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">groups</span> <span class="o">=</span> <span class="n">_group_src_paths_by_block</span><span class="p">(</span><span class="n">src_paths</span><span class="p">,</span> <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span><span class="p">)</span>
 
-        <span class="k">with</span> <span class="n">MultiPartWriter</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">,</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span>
-            <span class="n">max_workers</span><span class="o">=</span><span class="n">max_workers</span>
-        <span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+        <span class="k">with</span> <span class="p">(</span>
+            <span class="n">MultiPartWriter</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">,</span>
+            <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="n">max_workers</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">,</span>
+        <span class="p">):</span>
             <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">group</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">groups</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">group</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                     <span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span>
@@ -1568,17 +1481,6 @@
                     <span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">writer</span><span class="o">.</span><span class="n">upload_part_by_paths</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">group</span><span class="p">)</span></div>
-
-
-
-<div class="viewcode-block" id="s3_lstat">
-<a class="viewcode-back" href="../../megfile.s3.html#megfile.s3.s3_lstat">[docs]</a>
-<span class="k">def</span> <span class="nf">s3_lstat</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StatResult</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Like Path.stat() but, if the path points to a symbolic link,</span>
-<span class="sd">    return the symbolic link’s information rather than its target’s.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">lstat</span><span class="p">()</span></div>
 
 
 
