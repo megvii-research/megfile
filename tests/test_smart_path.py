@@ -19,6 +19,8 @@ from megfile.sftp_path import SftpPath
 from megfile.smart_path import PurePath, SmartPath, _load_aliases_config, aliases_config
 from megfile.stdio_path import StdioPath
 
+from .test_sftp import sftp_mocker  # noqa: F401
+
 FS_PROTOCOL_PREFIX = FSPath.protocol + "://"
 FS_TEST_ABSOLUTE_PATH = "/test/dir/file"
 FS_TEST_ABSOLUTE_PATH_WITH_PROTOCOL = FS_PROTOCOL_PREFIX + FS_TEST_ABSOLUTE_PATH
@@ -76,7 +78,7 @@ def test_register_result():
     assert SmartPath.from_uri(FS_TEST_ABSOLUTE_PATH) == SmartPath(FS_TEST_ABSOLUTE_PATH)
 
 
-def test_aliases(fs):
+def test_aliases(fs, sftp_mocker):
     config_path = os.path.expanduser(aliases_config)
     fs.create_file(
         config_path,
@@ -88,8 +90,16 @@ def test_aliases(fs):
     with patch.object(SmartPath, "_aliases", new_callable=PropertyMock) as mock_aliases:
         mock_aliases.return_value = aliases
         assert (
-            SmartPath.from_uri("oss2://bucket/dir/file").pathlike
+            SmartPath("oss2://bucket/dir/file").pathlike
             == SmartPath("s3+oss2://bucket/dir/file").pathlike
+        )
+
+    aliases = {"dev": {"protocol": "sftp", "prefix": "ubuntu@host//"}}
+    with patch.object(SmartPath, "_aliases", new_callable=PropertyMock) as mock_aliases:
+        mock_aliases.return_value = aliases
+        assert (
+            SmartPath("dev://dir/file").pathlike
+            == SmartPath("sftp://ubuntu@host//dir/file").pathlike
         )
 
 
