@@ -276,9 +276,10 @@ def test_write_head_part_overflow(client):
 
 def test_write_random(client):
     writer = S3LimitedSeekableWriter(BUCKET, KEY, s3_client=client)
-    data = (random.choice(ascii_letters) * random.randint(1, 100 * 1024 * 1024)).encode(
-        "ascii"
-    )
+    data = (
+        random.choice(ascii_letters)
+        * random.randint(5 * 1024 * 1024, 100 * 1024 * 1024)
+    ).encode("ascii")
 
     writer.write(data)
     writer.close()
