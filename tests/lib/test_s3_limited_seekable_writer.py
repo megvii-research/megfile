@@ -285,3 +285,14 @@ def test_write_random(client):
 
     body = client.get_object(Bucket=BUCKET, Key=KEY)["Body"]
     assert body.read() == data
+
+
+def test_write_for_autoscaling_block(client):
+    writer = S3LimitedSeekableWriter(BUCKET, KEY, s3_client=client)
+    data = (random.choice(ascii_letters) * 97 * 1024 * 1024).encode("ascii")
+
+    writer.write(data)
+    writer.close()
+
+    body = client.get_object(Bucket=BUCKET, Key=KEY)["Body"]
+    assert body.read() == data
