@@ -12,7 +12,6 @@ from megfile.interfaces import Access, FileEntry, PathLike, StatResult
 __all__ = [
     "is_fs",
     "fs_path_join",
-    "_make_stat",
     "fs_readlink",
     "fs_cwd",
     "fs_home",
