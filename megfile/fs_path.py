@@ -33,7 +33,6 @@ __all__ = [
     "FSPath",
     "is_fs",
     "fs_path_join",
-    "_make_stat",
 ]
 
 

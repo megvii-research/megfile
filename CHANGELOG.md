@@ -1,3 +1,6 @@
+## 4.0.0.post1 - 2024.12.09
+- fix s3 part upload size being too small caused by autoscaling block size
+
 ## 4.0.0 - 2024.12.06
 
 - **breaking change**
