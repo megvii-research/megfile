@@ -5,6 +5,9 @@
     - Removed the deprecated methods `is_link` and `get_protocol` from `BasePath`.
     - The `__del__` method in `Filelike` now closes file handles.
     - Removed `BaseURIPath`.
+    - Changed the default SFTP missing host key policy from `auto` to `reject`.  
+        You can set the default policy using the `MEGFILE_SFTP_HOST_KEY_POLICY` environment.  
+        Available values: `auto`, `reject`, `warning`.
     - Environment variable changes:
         - **Removed**:
             - `MEGFILE_BLOCK_SIZE`
