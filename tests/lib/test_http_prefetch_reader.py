@@ -539,3 +539,19 @@ def test_http_prefetch_reader_seek_history(http_patch):
         reader._seek_buffer(1)
         for item in reader._seek_history:
             assert item.seek_index != 2
+
+
+def test_http_prefetch_reader_no_buffer(http_patch):
+    with HttpPrefetchReader(
+        URL,
+        content_size=CONTENT_SIZE,
+        max_buffer_size=0,
+    ) as reader:
+        assert reader._block_capacity == 0
+        assert reader._block_forward == 0
+        assert list(reader._futures.keys()) == []
+        assert reader._content_size == CONTENT_SIZE
+
+        reader.read()
+
+        assert list(reader._futures.keys()) == []
