@@ -208,6 +208,7 @@ def _get_ssh_client(
     policy = policies.get(SFTP_HOST_KEY_POLICY, default_policy)()  # pyre-ignore[29]
 
     ssh_client = paramiko.SSHClient()
+    ssh_client.load_system_host_keys()
     ssh_client.set_missing_host_key_policy(policy)
     max_unauth_connections = int(os.getenv(SFTP_MAX_UNAUTH_CONN, 10))
     try:
