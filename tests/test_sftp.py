@@ -943,3 +943,41 @@ def test_sftp_concat(sftp_mocker, mocker):
             ],
             "sftp://username@host//4",
         )
+
+
+def test_sftp_add_host_key(fs, mocker):
+    class FakeKey:
+        def get_name(self):
+            return "ssh-ed25519"
+
+        def asbytes(self):
+            return b"test"
+
+        def get_base64(self):
+            return "test"
+
+    class FakeTransport:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def connect(self):
+            pass
+
+        def get_remote_server_key(self):
+            return FakeKey()
+
+        def close(self):
+            pass
+
+    mocker.patch("paramiko.Transport", return_value=FakeTransport())
+
+    host_key_path = ".ssh/known_hosts"
+    sftp.sftp_add_host_key("127.0.0.1", host_key_path=host_key_path)
+
+    with open(host_key_path, "r") as f:
+        assert "127.0.0.1 ssh-ed25519 test\n" == f.read()
+    file_stat = os.stat(host_key_path)
+    assert stat.S_IMODE(file_stat.st_mode) == 0o600
+
+    dir_stat = os.stat(os.path.dirname(host_key_path))
+    assert stat.S_IMODE(dir_stat.st_mode) == 0o700

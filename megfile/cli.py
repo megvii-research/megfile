@@ -10,10 +10,11 @@ from functools import partial
 import click
 from tqdm import tqdm
 
-from megfile.config import READER_BLOCK_SIZE
+from megfile.config import READER_BLOCK_SIZE, SFTP_HOST_KEY_POLICY
 from megfile.hdfs_path import DEFAULT_HDFS_TIMEOUT
 from megfile.interfaces import FileEntry
 from megfile.lib.glob import get_non_glob_dir, has_magic
+from megfile.sftp import sftp_add_host_key
 from megfile.smart import (
     _smart_sync_single_file,
     smart_copy,
@@ -110,6 +111,23 @@ def smart_list_stat(path):
         yield from smart_scandir(path)
 
 
+def _sftp_prompt_host_key(path):
+    if SFTP_HOST_KEY_POLICY == "auto":
+        return
+
+    path = SmartPath(path)
+    if path.protocol == "sftp":
+        hostname = (
+            path.pathlike._urlsplit_parts.hostname  # pytype: disable=attribute-error
+        )
+        port = path.pathlike._urlsplit_parts.port  # pytype: disable=attribute-error
+        sftp_add_host_key(
+            hostname=hostname,
+            port=port,
+            prompt=True,
+        )
+
+
 def _ls(path: str, long: bool, recursive: bool, human_readable: bool):
     base_path = path
     full_path = False
@@ -121,6 +139,9 @@ def _ls(path: str, long: bool, recursive: bool, human_readable: bool):
         scan_func = smart_scan_stat
     else:
         scan_func = smart_list_stat
+
+    _sftp_prompt_host_key(base_path)
+
     if long:
         if human_readable:
             echo_func = human_echo
@@ -209,6 +230,10 @@ def cp(
 ):
     if not no_target_directory and (dst_path.endswith("/") or smart_isdir(dst_path)):
         dst_path = smart_path_join(dst_path, os.path.basename(src_path))
+
+    _sftp_prompt_host_key(src_path)
+    _sftp_prompt_host_key(dst_path)
+
     if recursive:
         with ThreadPoolExecutor(max_workers=(os.cpu_count() or 1) * 2) as executor:
             if progress_bar:
@@ -274,6 +299,10 @@ def mv(
 ):
     if not no_target_directory and (dst_path.endswith("/") or smart_isdir(dst_path)):
         dst_path = smart_path_join(dst_path, os.path.basename(src_path))
+
+    _sftp_prompt_host_key(src_path)
+    _sftp_prompt_host_key(dst_path)
+
     if progress_bar:
         src_protocol, _ = SmartPath._extract_protocol(src_path)
         dst_protocol, _ = SmartPath._extract_protocol(dst_path)
@@ -324,6 +353,8 @@ def mv(
     "under the specified directory or prefix.",
 )
 def rm(path: str, recursive: bool):
+    _sftp_prompt_host_key(path)
+
     remove_func = smart_remove if recursive else smart_unlink
     remove_func(path)
 
@@ -349,6 +380,9 @@ def sync(
     quiet: bool,
     skip: bool,
 ):
+    _sftp_prompt_host_key(src_path)
+    _sftp_prompt_host_key(dst_path)
+
     if not smart_exists(dst_path):
         force = True
 
@@ -434,18 +468,24 @@ def sync(
 @cli.command(short_help="Make the path if it doesn't already exist.")
 @click.argument("path")
 def mkdir(path: str):
+    _sftp_prompt_host_key(path)
+
     smart_makedirs(path)
 
 
 @cli.command(short_help="Make the file if it doesn't already exist.")
 @click.argument("path")
 def touch(path: str):
+    _sftp_prompt_host_key(path)
+
     smart_touch(path)
 
 
 @cli.command(short_help="Concatenate any files and send them to stdout.")
 @click.argument("path")
 def cat(path: str):
+    _sftp_prompt_host_key(path)
+
     with smart_open(path, "rb") as f:
         shutil.copyfileobj(f, sys.stdout.buffer)  # pytype: disable=wrong-arg-types
 
@@ -458,6 +498,8 @@ def cat(path: str):
     "-n", "--lines", type=click.INT, default=10, help="print the first NUM lines"
 )
 def head(path: str, lines: int):
+    _sftp_prompt_host_key(path)
+
     with smart_open(path, "rb") as f:
         for _ in range(lines):
             try:
@@ -480,6 +522,8 @@ def head(path: str, lines: int):
     "-f", "--follow", is_flag=True, help="output appended data as the file grows"
 )
 def tail(path: str, lines: int, follow: bool):
+    _sftp_prompt_host_key(path)
+
     line_list = []
     with smart_open(path, "rb") as f:
         f.seek(0, os.SEEK_END)
@@ -524,6 +568,8 @@ def tail(path: str, lines: int, follow: bool):
 @click.option("-a", "--append", is_flag=True, help="Append to the given file")
 @click.option("-o", "--stdout", is_flag=True, help="File content to standard output")
 def to(path: str, append: bool, stdout: bool):
+    _sftp_prompt_host_key(path)
+
     mode = "wb"
     if append:
         mode = "ab"
@@ -545,24 +591,32 @@ def to(path: str, append: bool, stdout: bool):
 @cli.command(short_help="Produce an md5sum file for all the objects in the path.")
 @click.argument("path")
 def md5sum(path: str):
+    _sftp_prompt_host_key(path)
+
     click.echo(smart_getmd5(path, recalculate=True))
 
 
 @cli.command(short_help="Return the total size and number of objects in remote:path.")
 @click.argument("path")
 def size(path: str):
+    _sftp_prompt_host_key(path)
+
     click.echo(smart_getsize(path))
 
 
 @cli.command(short_help="Return the mtime and number of objects in remote:path.")
 @click.argument("path")
 def mtime(path: str):
+    _sftp_prompt_host_key(path)
+
     click.echo(smart_getmtime(path))
 
 
 @cli.command(short_help="Return the stat and number of objects in remote:path.")
 @click.argument("path")
 def stat(path: str):
+    _sftp_prompt_host_key(path)
+
     click.echo(smart_stat(path))
 
 
