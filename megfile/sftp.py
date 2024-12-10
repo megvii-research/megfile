@@ -745,15 +745,18 @@ def sftp_sync(
     return SftpPath(src_path).sync(dst_path, followlinks, force, overwrite)
 
 
-def _check_input(input_str: str, fingerprint: str) -> bool:
+def _check_input(input_str: str, fingerprint: str, times: int = 0) -> bool:
     answers = input_str.strip()
     if answers.lower() in ("yes", "y") or answers == fingerprint:
         return True
     elif answers.lower() in ("no", "n"):
         return False
+    elif times >= 10:
+        _logger.warning("Retried more than 10 times, give up")
+        return False
     else:
         input_str = input("Please type 'yes', 'no' or the fingerprint: ")
-        return _check_input(input_str, fingerprint)
+        return _check_input(input_str, fingerprint, times=times + 1)
 
 
 def _prompt_add_to_known_hosts(hostname, key) -> bool:

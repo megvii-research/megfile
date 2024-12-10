@@ -117,9 +117,13 @@ def _sftp_prompt_host_key(path):
 
     path = SmartPath(path)
     if path.protocol == "sftp":
+        hostname = (
+            path.pathlike._urlsplit_parts.hostname  # pytype: disable=attribute-error
+        )
+        port = path.pathlike._urlsplit_parts.port  # pytype: disable=attribute-error
         sftp_add_host_key(
-            hostname=path.pathlike._urlsplit_parts.hostname,
-            port=path.pathlike._urlsplit_parts.port,
+            hostname=hostname,
+            port=port,
             prompt=True,
         )
 
