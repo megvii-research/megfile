@@ -1026,7 +1026,10 @@ def test_smart_load_content(funcA, fs):
 
     assert smart.smart_load_content(path) == content
     assert smart.smart_load_content(path, 1) == content[1:]
+    assert smart.smart_load_content(path, 0, 1) == content[:1]
     assert smart.smart_load_content(path, 4, 7) == content[4:7]
+    assert smart.smart_load_content(path, stop=5) == content[:5]
+    assert smart.smart_load_content(path, stop=100) == content
 
     smart.smart_load_content("s3://bucket/test.txt")
     funcA.assert_called_once()
