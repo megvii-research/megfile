@@ -60,7 +60,7 @@ def parse_quantity(quantity: T.Union[str, int]) -> int:
         raise ValueError("{} has unknown suffix".format(quantity))
 
     exponent = int(exponents[suffix[0]])
-    return number * (base**exponent)
+    return number * (base**exponent)  # pytype: disable=bad-return-type
 
 
 def to_boolean(value):
