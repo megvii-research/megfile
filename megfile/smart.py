@@ -995,11 +995,12 @@ def smart_load_content(
         return s3_load_content(path, start, stop)
 
     with smart_open(path, "rb") as fd:
-        if start:
+        if start is not None:
             fd.seek(start)
         offset = -1
-        if start and stop:
-            offset = stop - start
+        if stop is not None:
+            offset = stop - (start or 0)  # start may be None
+            assert offset >= 0, "stop should be greater than start"
         return fd.read(offset)  # pytype: disable=bad-return-type
 
 
