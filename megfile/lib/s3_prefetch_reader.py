@@ -52,7 +52,6 @@ class S3PrefetchReader(BasePrefetchReader):
         self._client = s3_client
         self._profile_name = profile_name
         self._content_etag = None
-        self._content_info = None
 
         super().__init__(
             block_size=block_size,
@@ -63,26 +62,31 @@ class S3PrefetchReader(BasePrefetchReader):
         )
 
     def _get_content_size(self):
-        try:
-            start, end = 0, self._block_size - 1
-            first_index_response = self._fetch_response(start=start, end=end)
-            if "ContentRange" in first_index_response:
-                content_size = int(first_index_response["ContentRange"].split("/")[-1])
-            else:
-                # usually when read a file only have one block
-                content_size = int(first_index_response["ContentLength"])
-        except S3InvalidRangeError:
-            # usually when read a empty file
-            # can use minio test empty file: https://hub.docker.com/r/minio/minio
-            first_index_response = self._fetch_response()
-            content_size = int(first_index_response["ContentLength"])
-
         if self._block_capacity > 0:
+            try:
+                start, end = 0, self._block_size - 1
+                first_index_response = self._fetch_response(start=start, end=end)
+                if "ContentRange" in first_index_response:
+                    content_size = int(
+                        first_index_response["ContentRange"].split("/")[-1]
+                    )
+                else:
+                    # usually when read a file only have one block
+                    content_size = int(first_index_response["ContentLength"])
+            except S3InvalidRangeError:
+                # usually when read a empty file
+                # can use minio test empty file: https://hub.docker.com/r/minio/minio
+                first_index_response = self._fetch_response()
+                content_size = int(first_index_response["ContentLength"])
+
             first_future = Future()
             first_future.set_result(first_index_response["Body"])
             self._insert_futures(index=0, future=first_future)
-        self._content_etag = first_index_response["ETag"]
-        self._content_info = first_index_response
+            self._content_etag = first_index_response["ETag"]
+        else:
+            response = self._client.head_object(Bucket=self._bucket, Key=self._key)
+            self._content_etag = response["ETag"]
+            content_size = int(response["ContentLength"])
         return content_size
 
     @property
@@ -121,7 +125,7 @@ class S3PrefetchReader(BasePrefetchReader):
         if etag is not None and etag != self._content_etag:
             raise S3FileChangedError(
                 "File changed: %r, etag before: %s, after: %s"
-                % (self.name, self._content_info, response)
+                % (self.name, self._content_etag, etag)
             )
 
         return response["Body"]

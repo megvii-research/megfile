@@ -588,3 +588,21 @@ def test_empty_file(client):
     with pytest.raises(S3InvalidRangeError):
         with S3PrefetchReader(BUCKET, KEY2, s3_client=client) as error_reader:
             error_reader._fetch_response(start=0, end=1)
+
+
+def test_s3_prefetch_reader_no_buffer(client_for_get_object):
+    with S3PrefetchReader(
+        BUCKET,
+        KEY,
+        s3_client=client_for_get_object,
+        max_buffer_size=0,
+    ) as reader:
+        assert reader._block_capacity == 0
+        assert reader._block_forward == 0
+        assert list(reader._futures.keys()) == []
+        assert reader._content_size > 0
+        assert reader._content_etag is not None
+
+        reader.read()
+
+        assert list(reader._futures.keys()) == []
