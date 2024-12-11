@@ -121,6 +121,7 @@ from megfile.s3_path import S3Path
 from megfile.sftp import (
     is_sftp,
     sftp_absolute,
+    sftp_add_host_key,
     sftp_chmod,
     sftp_concat,
     sftp_copy,
@@ -371,6 +372,7 @@ __all__ = [
     "sftp_copy",
     "sftp_sync",
     "sftp_concat",
+    "sftp_add_host_key",
     "is_hdfs",
     "hdfs_exists",
     "hdfs_stat",

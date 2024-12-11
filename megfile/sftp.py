@@ -56,6 +56,7 @@ __all__ = [
     "sftp_rmdir",
     "sftp_copy",
     "sftp_sync",
+    "sftp_add_host_key",
 ]
 
 
@@ -775,6 +776,14 @@ def sftp_add_host_key(
     prompt: bool = False,
     host_key_path: Optional["str"] = None,
 ):
+    """Add a host key to known_hosts.
+
+    :param hostname: hostname
+    :param port: port, default is 22
+    :param prompt: If True, requires user input of 'yes' or 'no' to decide whether to
+        add this host key
+    :param host_key_path: path of known_hosts, default is ~/.ssh/known_hosts
+    """
     if not host_key_path:
         host_key_path = os.path.expanduser("~/.ssh/known_hosts")
 
