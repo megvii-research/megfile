@@ -22,8 +22,6 @@ def parse_quantity(quantity: T.Union[str, int]) -> int:
     """
     if isinstance(quantity, int):
         return quantity
-    elif quantity.isdigit():
-        return int(quantity)
 
     exponents = {"K": 1, "k": 1, "M": 2, "G": 3, "T": 4, "P": 5, "E": 6}
 
