@@ -166,10 +166,10 @@ s3 =
 $ megfile config s3 accesskey secretkey \
 --addressing-style virtual \
 --endpoint-url https://tos-s3-cn-beijing.ivolces.com \
---profile tos
+--profile-name tos
 
 # create alias
-$ megfile alias tos s3+tos
+$ megfile config alias tos s3+tos
 ```
 
 You can get the configuration from `~/.config/megfile/aliases.conf`, like:
