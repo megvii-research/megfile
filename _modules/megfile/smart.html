@@ -519,7 +519,9 @@
 <span class="k">def</span> <span class="nf">_smart_sync_single_file</span><span class="p">(</span><span class="n">items</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
     <span class="n">src_root_path</span> <span class="o">=</span> <span class="n">items</span><span class="p">[</span><span class="s2">&quot;src_root_path&quot;</span><span class="p">]</span>
     <span class="n">dst_root_path</span> <span class="o">=</span> <span class="n">items</span><span class="p">[</span><span class="s2">&quot;dst_root_path&quot;</span><span class="p">]</span>
-    <span class="n">src_file_path</span> <span class="o">=</span> <span class="n">items</span><span class="p">[</span><span class="s2">&quot;src_file_path&quot;</span><span class="p">]</span>
+    <span class="n">src_file_entry</span> <span class="o">=</span> <span class="n">items</span><span class="p">[</span><span class="s2">&quot;src_file_entry&quot;</span><span class="p">]</span>
+    <span class="n">src_file_path</span> <span class="o">=</span> <span class="n">src_file_entry</span><span class="o">.</span><span class="n">path</span>
+    <span class="n">src_file_stat</span> <span class="o">=</span> <span class="n">src_file_entry</span><span class="o">.</span><span class="n">stat</span>
     <span class="n">callback</span> <span class="o">=</span> <span class="n">items</span><span class="p">[</span><span class="s2">&quot;callback&quot;</span><span class="p">]</span>
     <span class="n">followlinks</span> <span class="o">=</span> <span class="n">items</span><span class="p">[</span><span class="s2">&quot;followlinks&quot;</span><span class="p">]</span>
     <span class="n">callback_after_copy_file</span> <span class="o">=</span> <span class="n">items</span><span class="p">[</span><span class="s2">&quot;callback_after_copy_file&quot;</span><span class="p">]</span>
@@ -539,17 +541,17 @@
     <span class="n">dst_protocol</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">SmartPath</span><span class="o">.</span><span class="n">_extract_protocol</span><span class="p">(</span><span class="n">dst_abs_file_path</span><span class="p">)</span>
     <span class="n">should_sync</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">force</span><span class="p">:</span>
-            <span class="k">pass</span>
-        <span class="k">elif</span> <span class="ow">not</span> <span class="n">overwrite</span> <span class="ow">and</span> <span class="n">smart_exists</span><span class="p">(</span><span class="n">dst_abs_file_path</span><span class="p">):</span>
-            <span class="n">should_sync</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="k">elif</span> <span class="n">smart_exists</span><span class="p">(</span><span class="n">dst_abs_file_path</span><span class="p">)</span> <span class="ow">and</span> <span class="n">is_same_file</span><span class="p">(</span>
-            <span class="n">smart_stat</span><span class="p">(</span><span class="n">src_file_path</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">),</span>
-            <span class="n">smart_stat</span><span class="p">(</span><span class="n">dst_abs_file_path</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">),</span>
-            <span class="n">get_sync_type</span><span class="p">(</span><span class="n">src_protocol</span><span class="p">,</span> <span class="n">dst_protocol</span><span class="p">),</span>
-        <span class="p">):</span>
-            <span class="n">should_sync</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="k">except</span> <span class="ne">NotImplementedError</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">force</span><span class="p">:</span>
+            <span class="n">dst_file_stat</span> <span class="o">=</span> <span class="n">smart_stat</span><span class="p">(</span><span class="n">dst_abs_file_path</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">overwrite</span><span class="p">:</span>
+                <span class="n">should_sync</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">elif</span> <span class="n">is_same_file</span><span class="p">(</span>
+                <span class="n">src_file_stat</span><span class="p">,</span>
+                <span class="n">dst_file_stat</span><span class="p">,</span>
+                <span class="n">get_sync_type</span><span class="p">(</span><span class="n">src_protocol</span><span class="p">,</span> <span class="n">dst_protocol</span><span class="p">),</span>
+            <span class="p">):</span>
+                <span class="n">should_sync</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">NotImplementedError</span><span class="p">,</span> <span class="ne">FileNotFoundError</span><span class="p">):</span>
         <span class="k">pass</span>
 
     <span class="k">if</span> <span class="n">should_sync</span><span class="p">:</span>
@@ -637,15 +639,16 @@
     <span class="n">src_path</span><span class="p">,</span> <span class="n">dst_path</span> <span class="o">=</span> <span class="n">get_traditional_path</span><span class="p">(</span><span class="n">src_path</span><span class="p">),</span> <span class="n">get_traditional_path</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">src_file_stats</span><span class="p">:</span>
         <span class="n">src_file_stats</span> <span class="o">=</span> <span class="n">smart_scan_stat</span><span class="p">(</span><span class="n">src_path</span><span class="p">,</span> <span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">smart_exists</span><span class="p">(</span><span class="n">dst_path</span><span class="p">):</span>
+        <span class="n">force</span> <span class="o">=</span> <span class="kc">True</span>
 
     <span class="k">def</span> <span class="nf">create_generator</span><span class="p">():</span>
         <span class="k">for</span> <span class="n">src_file_entry</span> <span class="ow">in</span> <span class="n">src_file_stats</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">src_file_entry</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
-                <span class="n">src_file_path</span> <span class="o">=</span> <span class="n">src_file_entry</span><span class="o">.</span><span class="n">path</span>
                 <span class="k">yield</span> <span class="nb">dict</span><span class="p">(</span>
                     <span class="n">src_root_path</span><span class="o">=</span><span class="n">src_path</span><span class="p">,</span>
                     <span class="n">dst_root_path</span><span class="o">=</span><span class="n">dst_path</span><span class="p">,</span>
-                    <span class="n">src_file_path</span><span class="o">=</span><span class="n">src_file_path</span><span class="p">,</span>
+                    <span class="n">src_file_entry</span><span class="o">=</span><span class="n">src_file_entry</span><span class="p">,</span>
                     <span class="n">callback</span><span class="o">=</span><span class="n">callback</span><span class="p">,</span>
                     <span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">,</span>
                     <span class="n">callback_after_copy_file</span><span class="o">=</span><span class="n">callback_after_copy_file</span><span class="p">,</span>
@@ -816,9 +819,10 @@
 <span class="k">def</span> <span class="nf">smart_open</span><span class="p">(</span>
     <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
     <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;r&quot;</span><span class="p">,</span>
-    <span class="n">s3_open_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">BinaryIO</span><span class="p">]</span> <span class="o">=</span> <span class="n">s3_open</span><span class="p">,</span>
     <span class="n">encoding</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">errors</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">s3_open_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">BinaryIO</span><span class="p">]</span> <span class="o">=</span> <span class="n">s3_open</span><span class="p">,</span>
     <span class="o">**</span><span class="n">options</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IO</span><span class="p">:</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
@@ -829,16 +833,6 @@
 <span class="sd">        On fs, the difference between this function and ``io.open`` is that</span>
 <span class="sd">        this function create directories automatically, instead of</span>
 <span class="sd">        raising FileNotFoundError</span>
-
-<span class="sd">    Currently, supported protocols are:</span>
-
-<span class="sd">    1. s3:      &quot;s3://&lt;bucket&gt;/&lt;key&gt;&quot;</span>
-
-<span class="sd">    2. http(s): http(s) url</span>
-
-<span class="sd">    3. stdio:   &quot;stdio://-&quot;</span>
-
-<span class="sd">    4. FS file: Besides above mentioned protocols, other path are considered fs path</span>
 
 <span class="sd">    Here are a few examples: ::</span>
 
@@ -853,12 +847,24 @@
 
 <span class="sd">    :param path: Given path</span>
 <span class="sd">    :param mode: Mode to open file, supports r&#39;[rwa][tb]?\+?&#39;</span>
-<span class="sd">    :param s3_open_func: Function used to open s3_url. Require the function includes 2</span>
-<span class="sd">        necessary parameters, file path and mode</span>
 <span class="sd">    :param encoding: encoding is the name of the encoding used to decode or encode</span>
 <span class="sd">        the file. This should only be used in text mode.</span>
 <span class="sd">    :param errors: errors is an optional string that specifies how encoding and decoding</span>
 <span class="sd">        errors are to be handled—this cannot be used in binary mode.</span>
+<span class="sd">    :param buffering: buffering is an optional integer used to</span>
+<span class="sd">        set the buffering policy. Only be used when support.</span>
+<span class="sd">    :param followlinks: follow symbolic link, default `False`. Only be used when support</span>
+<span class="sd">    :param s3_open_func: Function used to open s3_url. Require the function includes</span>
+<span class="sd">        2 necessary parameters, file path and mode. only be used in s3 path.</span>
+<span class="sd">    :param max_workers: Max download / upload thread number, `None` by default,</span>
+<span class="sd">        will use global thread pool with 8 threads. Only be used in s3, http, hdfs.</span>
+<span class="sd">    :param max_buffer_size: Max cached buffer size in memory, 128MB by default.</span>
+<span class="sd">        Set to `0` will disable cache. Only be used in s3, http, hdfs.</span>
+<span class="sd">    :param block_forward: How many blocks of data cached from offset position, only for</span>
+<span class="sd">        read mode. Only be used in s3, http, hdfs.</span>
+<span class="sd">    :param block_size: Size of single block. Each block will be uploaded by single</span>
+<span class="sd">        thread. Only be used in s3, http, hdfs.</span>
+
 <span class="sd">    :returns: File-Like object</span>
 <span class="sd">    :raises: FileNotFoundError, IsADirectoryError, ValueError</span>
 <span class="sd">    &quot;&quot;&quot;</span>

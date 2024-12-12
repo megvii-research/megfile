@@ -89,20 +89,27 @@
 <span class="kn">import</span> <span class="nn">requests</span>
 <span class="kn">from</span> <span class="nn">urllib3</span> <span class="kn">import</span> <span class="n">HTTPResponse</span>
 
-<span class="kn">from</span> <span class="nn">megfile.config</span> <span class="kn">import</span> <span class="n">DEFAULT_BLOCK_SIZE</span><span class="p">,</span> <span class="n">HTTP_MAX_RETRY_TIMES</span>
+<span class="kn">from</span> <span class="nn">megfile.config</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">HTTP_MAX_RETRY_TIMES</span><span class="p">,</span>
+    <span class="n">READER_BLOCK_SIZE</span><span class="p">,</span>
+    <span class="n">READER_MAX_BUFFER_SIZE</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span> <span class="nn">megfile.errors</span> <span class="kn">import</span> <span class="n">http_should_retry</span><span class="p">,</span> <span class="n">patch_method</span><span class="p">,</span> <span class="n">translate_http_error</span>
 <span class="kn">from</span> <span class="nn">megfile.interfaces</span> <span class="kn">import</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">Readable</span><span class="p">,</span> <span class="n">StatResult</span><span class="p">,</span> <span class="n">URIPath</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.compat</span> <span class="kn">import</span> <span class="n">fspath</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.http_prefetch_reader</span> <span class="kn">import</span> <span class="n">DEFAULT_TIMEOUT</span><span class="p">,</span> <span class="n">HttpPrefetchReader</span>
-<span class="kn">from</span> <span class="nn">megfile.lib.s3_buffered_writer</span> <span class="kn">import</span> <span class="n">DEFAULT_MAX_BUFFER_SIZE</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.url</span> <span class="kn">import</span> <span class="n">get_url_scheme</span>
 <span class="kn">from</span> <span class="nn">megfile.smart_path</span> <span class="kn">import</span> <span class="n">SmartPath</span>
 <span class="kn">from</span> <span class="nn">megfile.utils</span> <span class="kn">import</span> <span class="n">_is_pickle</span><span class="p">,</span> <span class="n">binary_open</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;HttpPath&quot;</span><span class="p">,</span> <span class="s2">&quot;HttpsPath&quot;</span><span class="p">,</span> <span class="s2">&quot;get_http_session&quot;</span><span class="p">,</span> <span class="s2">&quot;is_http&quot;</span><span class="p">,</span> <span class="s2">&quot;http_open&quot;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;HttpPath&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;HttpsPath&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;get_http_session&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;is_http&quot;</span><span class="p">,</span>
+<span class="p">]</span>
 
 <span class="n">_logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
-<span class="n">max_retries</span> <span class="o">=</span> <span class="n">HTTP_MAX_RETRY_TIMES</span>
 
 
 <div class="viewcode-block" id="get_http_session">
@@ -183,7 +190,7 @@
 
     <span class="n">session</span><span class="o">.</span><span class="n">request</span> <span class="o">=</span> <span class="n">patch_method</span><span class="p">(</span>
         <span class="n">partial</span><span class="p">(</span><span class="n">session</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">),</span>
-        <span class="n">max_retries</span><span class="o">=</span><span class="n">max_retries</span><span class="p">,</span>
+        <span class="n">max_retries</span><span class="o">=</span><span class="n">HTTP_MAX_RETRY_TIMES</span><span class="p">,</span>
         <span class="n">should_retry</span><span class="o">=</span><span class="n">http_should_retry</span><span class="p">,</span>
         <span class="n">before_callback</span><span class="o">=</span><span class="n">before_callback</span><span class="p">,</span>
         <span class="n">after_callback</span><span class="o">=</span><span class="n">after_callback</span><span class="p">,</span>
@@ -213,51 +220,6 @@
 
 
 
-<div class="viewcode-block" id="http_open">
-<a class="viewcode-back" href="../../megfile.http.html#megfile.http.http_open">[docs]</a>
-<span class="k">def</span> <span class="nf">http_open</span><span class="p">(</span>
-    <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
-    <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;rb&quot;</span><span class="p">,</span>
-    <span class="o">*</span><span class="p">,</span>
-    <span class="n">encoding</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">errors</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">max_concurrency</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">max_buffer_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_MAX_BUFFER_SIZE</span><span class="p">,</span>
-    <span class="n">forward_ratio</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">block_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_BLOCK_SIZE</span><span class="p">,</span>
-    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">BufferedReader</span><span class="p">,</span> <span class="n">HttpPrefetchReader</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Open a BytesIO to read binary data of given http(s) url</span>
-
-<span class="sd">    .. note ::</span>
-
-<span class="sd">        Essentially, it reads data of http(s) url to memory by requests,</span>
-<span class="sd">        and then return BytesIO to user.</span>
-
-<span class="sd">    :param path: Given path</span>
-<span class="sd">    :param mode: Only supports &#39;rb&#39; mode now</span>
-<span class="sd">    :param encoding: encoding is the name of the encoding used to decode or encode</span>
-<span class="sd">        the file. This should only be used in text mode.</span>
-<span class="sd">    :param errors: errors is an optional string that specifies how encoding and decoding</span>
-<span class="sd">        errors are to be handled—this cannot be used in binary mode.</span>
-<span class="sd">    :param max_concurrency: Max download thread number, None by default</span>
-<span class="sd">    :param max_buffer_size: Max cached buffer size in memory, 128MB by default</span>
-<span class="sd">    :param block_size: Size of single block, 8MB by default. Each block will be uploaded</span>
-<span class="sd">        or downloaded by single thread.</span>
-<span class="sd">    :return: BytesIO initialized with http(s) data</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">HttpPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">(</span>
-        <span class="n">mode</span><span class="p">,</span>
-        <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">,</span>
-        <span class="n">errors</span><span class="o">=</span><span class="n">errors</span><span class="p">,</span>
-        <span class="n">max_concurrency</span><span class="o">=</span><span class="n">max_concurrency</span><span class="p">,</span>
-        <span class="n">max_buffer_size</span><span class="o">=</span><span class="n">max_buffer_size</span><span class="p">,</span>
-        <span class="n">forward_ratio</span><span class="o">=</span><span class="n">forward_ratio</span><span class="p">,</span>
-        <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span><span class="p">,</span>
-    <span class="p">)</span></div>
-
-
-
 <div class="viewcode-block" id="HttpPath">
 <a class="viewcode-back" href="../../megfile.http_path.html#megfile.http.HttpPath">[docs]</a>
 <span class="nd">@SmartPath</span><span class="o">.</span><span class="n">register</span>
@@ -278,10 +240,10 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;rb&quot;</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
-        <span class="n">max_concurrency</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">max_buffer_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_MAX_BUFFER_SIZE</span><span class="p">,</span>
-        <span class="n">forward_ratio</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">block_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_BLOCK_SIZE</span><span class="p">,</span>
+        <span class="n">max_workers</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">max_buffer_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">READER_MAX_BUFFER_SIZE</span><span class="p">,</span>
+        <span class="n">block_forward</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">block_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">READER_BLOCK_SIZE</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">BufferedReader</span><span class="p">,</span> <span class="n">HttpPrefetchReader</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Open a BytesIO to read binary data of given http(s) url</span>
@@ -291,16 +253,19 @@
 <span class="sd">            Essentially, it reads data of http(s) url to memory by requests,</span>
 <span class="sd">            and then return BytesIO to user.</span>
 
-<span class="sd">        :param mode: Only supports &#39;rb&#39; mode now</span>
+<span class="sd">        :param mode: Only supports &#39;r&#39; or &#39;rb&#39; mode now</span>
 <span class="sd">        :param encoding: encoding is the name of the encoding used to decode or encode</span>
 <span class="sd">            the file. This should only be used in text mode.</span>
 <span class="sd">        :param errors: errors is an optional string that specifies how encoding and</span>
 <span class="sd">            decoding errors are to be handled—this cannot be used in binary mode.</span>
-<span class="sd">        :param max_concurrency: Max download thread number, None by default</span>
-<span class="sd">        :param max_buffer_size: Max cached buffer size in memory, 128MB by default</span>
+<span class="sd">        :param max_workers: Max download thread number, `None` by default,</span>
+<span class="sd">            will use global thread pool with 8 threads.</span>
+<span class="sd">        :param max_buffer_size: Max cached buffer size in memory, 128MB by default.</span>
+<span class="sd">            Set to `0` will disable cache.</span>
+<span class="sd">        :param block_forward: How many blocks of data cached from offset position</span>
 <span class="sd">        :param block_size: Size of single block, 8MB by default. Each block will</span>
 <span class="sd">            be uploaded or downloaded by single thread.</span>
-<span class="sd">        :return: BytesIO initialized with http(s) data</span>
+<span class="sd">        :return: A file-like object with http(s) data</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;rb&quot;</span><span class="p">,):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;unacceptable mode: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span>
@@ -327,20 +292,14 @@
         <span class="p">):</span>
             <span class="n">response</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
-            <span class="n">block_capacity</span> <span class="o">=</span> <span class="n">max_buffer_size</span> <span class="o">//</span> <span class="n">block_size</span>
-            <span class="k">if</span> <span class="n">forward_ratio</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">block_forward</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">block_forward</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">block_capacity</span> <span class="o">*</span> <span class="n">forward_ratio</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
-
             <span class="n">reader</span> <span class="o">=</span> <span class="n">HttpPrefetchReader</span><span class="p">(</span>
                 <span class="bp">self</span><span class="p">,</span>
                 <span class="n">content_size</span><span class="o">=</span><span class="n">content_size</span><span class="p">,</span>
-                <span class="n">max_retries</span><span class="o">=</span><span class="n">max_retries</span><span class="p">,</span>
-                <span class="n">max_workers</span><span class="o">=</span><span class="n">max_concurrency</span><span class="p">,</span>
-                <span class="n">block_capacity</span><span class="o">=</span><span class="n">block_capacity</span><span class="p">,</span>
-                <span class="n">block_forward</span><span class="o">=</span><span class="n">block_forward</span><span class="p">,</span>
                 <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span><span class="p">,</span>
+                <span class="n">max_buffer_size</span><span class="o">=</span><span class="n">max_buffer_size</span><span class="p">,</span>
+                <span class="n">block_forward</span><span class="o">=</span><span class="n">block_forward</span><span class="p">,</span>
+                <span class="n">max_retries</span><span class="o">=</span><span class="n">HTTP_MAX_RETRY_TIMES</span><span class="p">,</span>
+                <span class="n">max_workers</span><span class="o">=</span><span class="n">max_workers</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="k">if</span> <span class="n">_is_pickle</span><span class="p">(</span><span class="n">reader</span><span class="p">):</span>
                 <span class="n">reader</span> <span class="o">=</span> <span class="n">BufferedReader</span><span class="p">(</span><span class="n">reader</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
