@@ -1,3 +1,12 @@
+## 4.0.1 - 2024.12.12
+- feat
+    - support kubernetes canonical form quantity in environment variable
+    - support add host key for sftp 
+- perf
+    - use `head_object` to get file size in prefetch reader when no cache 
+- fix
+    - fix `smart_load_content` bug when only end is not None
+
 ## 4.0.0.post1 - 2024.12.09
 - fix s3 part upload size being too small caused by autoscaling block size
 
@@ -40,6 +49,10 @@
 
 - feat
     - Added the `MEGFILE_WRITER_BLOCK_AUTOSCALE` environment variable to enable S3 block autoscaling. Default is `true`. However, if you set `MEGFILE_WRITER_BLOCK_SIZE`, default will be `false`.
+
+## 3.1.7 - 2024.12.12
+- fix
+    - fix `smart_load_content` bug when only end is not None
 
 ## 3.1.6.post1 - 2024.11.18
 - fix
