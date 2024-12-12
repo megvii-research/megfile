@@ -16,6 +16,7 @@ Welcome to megfile's documentation!
    megfile
    cli
    advanced
+   speed_test
    changelog
    GitHub <https://github.com/megvii-research/megfile>
 
