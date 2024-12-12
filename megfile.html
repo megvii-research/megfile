@@ -332,7 +332,6 @@
 <li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.owner"><code class="docutils literal notranslate"><span class="pre">FSPath.owner()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.parts"><code class="docutils literal notranslate"><span class="pre">FSPath.parts</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.path_with_protocol"><code class="docutils literal notranslate"><span class="pre">FSPath.path_with_protocol</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.path_without_protocol"><code class="docutils literal notranslate"><span class="pre">FSPath.path_without_protocol</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.protocol"><code class="docutils literal notranslate"><span class="pre">FSPath.protocol</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.readlink"><code class="docutils literal notranslate"><span class="pre">FSPath.readlink()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html#megfile.fs_path.FSPath.realpath"><code class="docutils literal notranslate"><span class="pre">FSPath.realpath()</span></code></a></li>
@@ -358,6 +357,27 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="megfile.s3.html">megfile.s3 module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.S3BufferedWriter"><code class="docutils literal notranslate"><span class="pre">S3BufferedWriter</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3.html#megfile.s3.S3BufferedWriter.mode"><code class="docutils literal notranslate"><span class="pre">S3BufferedWriter.mode</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3.html#megfile.s3.S3BufferedWriter.name"><code class="docutils literal notranslate"><span class="pre">S3BufferedWriter.name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3.html#megfile.s3.S3BufferedWriter.tell"><code class="docutils literal notranslate"><span class="pre">S3BufferedWriter.tell()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3.html#megfile.s3.S3BufferedWriter.write"><code class="docutils literal notranslate"><span class="pre">S3BufferedWriter.write()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.S3Cacher"><code class="docutils literal notranslate"><span class="pre">S3Cacher</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3.html#megfile.s3.S3Cacher.cache_path"><code class="docutils literal notranslate"><span class="pre">S3Cacher.cache_path</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.S3LimitedSeekableWriter"><code class="docutils literal notranslate"><span class="pre">S3LimitedSeekableWriter</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3.html#megfile.s3.S3LimitedSeekableWriter.seek"><code class="docutils literal notranslate"><span class="pre">S3LimitedSeekableWriter.seek()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3.html#megfile.s3.S3LimitedSeekableWriter.write"><code class="docutils literal notranslate"><span class="pre">S3LimitedSeekableWriter.write()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.S3PrefetchReader"><code class="docutils literal notranslate"><span class="pre">S3PrefetchReader</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="megfile.s3.html#megfile.s3.S3PrefetchReader.name"><code class="docutils literal notranslate"><span class="pre">S3PrefetchReader.name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.S3ShareCacheReader"><code class="docutils literal notranslate"><span class="pre">S3ShareCacheReader</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.get_endpoint_url"><code class="docutils literal notranslate"><span class="pre">get_endpoint_url()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.get_s3_client"><code class="docutils literal notranslate"><span class="pre">get_s3_client()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="megfile.s3.html#megfile.s3.get_s3_session"><code class="docutils literal notranslate"><span class="pre">get_s3_session()</span></code></a></li>
@@ -537,7 +557,6 @@
 <li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.chmod"><code class="docutils literal notranslate"><span class="pre">SftpPath.chmod()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.copy"><code class="docutils literal notranslate"><span class="pre">SftpPath.copy()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.cwd"><code class="docutils literal notranslate"><span class="pre">SftpPath.cwd()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.default_policy"><code class="docutils literal notranslate"><span class="pre">SftpPath.default_policy</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.exists"><code class="docutils literal notranslate"><span class="pre">SftpPath.exists()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.getmtime"><code class="docutils literal notranslate"><span class="pre">SftpPath.getmtime()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html#megfile.sftp_path.SftpPath.getsize"><code class="docutils literal notranslate"><span class="pre">SftpPath.getsize()</span></code></a></li>

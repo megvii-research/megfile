@@ -547,7 +547,7 @@ If on s3, it actually check if target exists, and check if bucket has WRITE acce
 
 <dl class="py function">
 <dt class="sig sig-object py" id="megfile.smart.smart_open">
-<span class="sig-prename descclassname"><span class="pre">megfile.smart.</span></span><span class="sig-name descname"><span class="pre">smart_open</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">path:</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">~megfile.pathlike.BasePath</span> <span class="pre">|</span> <span class="pre">~os.PathLike,</span> <span class="pre">mode:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'r',</span> <span class="pre">encoding:</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">errors:</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">*,</span> <span class="pre">s3_open_func:</span> <span class="pre">~typing.Callable[[str,</span> <span class="pre">str],</span> <span class="pre">~typing.BinaryIO]</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">s3_buffered_open&gt;,</span> <span class="pre">**options</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">IO</span></span></span><a class="reference internal" href="_modules/megfile/smart.html#smart_open"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.smart.smart_open" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">megfile.smart.</span></span><span class="sig-name descname"><span class="pre">smart_open</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">path:</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">~megfile.pathlike.BasePath</span> <span class="pre">|</span> <span class="pre">~os.PathLike,</span> <span class="pre">mode:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'r',</span> <span class="pre">s3_open_func:</span> <span class="pre">~typing.Callable[[str,</span> <span class="pre">str],</span> <span class="pre">~typing.BinaryIO]</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">s3_buffered_open&gt;,</span> <span class="pre">encoding:</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">errors:</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">**options</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">IO</span></span></span><a class="reference internal" href="_modules/megfile/smart.html#smart_open"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.smart.smart_open" title="Link to this definition"></a></dt>
 <dd><p>Open a file on the path</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -555,6 +555,13 @@ If on s3, it actually check if target exists, and check if bucket has WRITE acce
 this function create directories automatically, instead of
 raising FileNotFoundError</p>
 </div>
+<p>Currently, supported protocols are:</p>
+<ol class="arabic simple">
+<li><p>s3:      “s3://&lt;bucket&gt;/&lt;key&gt;”</p></li>
+<li><p>http(s): http(s) url</p></li>
+<li><p>stdio:   “stdio://-”</p></li>
+<li><p>FS file: Besides above mentioned protocols, other path are considered fs path</p></li>
+</ol>
 <p>Here are a few examples:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">cv2</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -571,23 +578,12 @@ raising FileNotFoundError</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>path</strong> – Given path</p></li>
 <li><p><strong>mode</strong> – Mode to open file, supports r’[rwa][tb]?+?’</p></li>
+<li><p><strong>s3_open_func</strong> – Function used to open s3_url. Require the function includes 2
+necessary parameters, file path and mode</p></li>
 <li><p><strong>encoding</strong> – encoding is the name of the encoding used to decode or encode
 the file. This should only be used in text mode.</p></li>
 <li><p><strong>errors</strong> – errors is an optional string that specifies how encoding and decoding
 errors are to be handled—this cannot be used in binary mode.</p></li>
-<li><p><strong>buffering</strong> – buffering is an optional integer used to
-set the buffering policy. Only be used when support.</p></li>
-<li><p><strong>followlinks</strong> – follow symbolic link, default <cite>False</cite>. Only be used when support</p></li>
-<li><p><strong>s3_open_func</strong> – Function used to open s3_url. Require the function includes
-2 necessary parameters, file path and mode. only be used in s3 path.</p></li>
-<li><p><strong>max_workers</strong> – Max download / upload thread number, <cite>None</cite> by default,
-will use global thread pool with 8 threads. Only be used in s3, http, hdfs.</p></li>
-<li><p><strong>max_buffer_size</strong> – Max cached buffer size in memory, 128MB by default.
-Set to <cite>0</cite> will disable cache. Only be used in s3, http, hdfs.</p></li>
-<li><p><strong>block_forward</strong> – How many blocks of data cached from offset position, only for
-read mode. Only be used in s3, http, hdfs.</p></li>
-<li><p><strong>block_size</strong> – Size of single block. Each block will be uploaded by single
-thread. Only be used in s3, http, hdfs.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>

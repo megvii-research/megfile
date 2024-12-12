@@ -86,11 +86,6 @@
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">cached_property</span><span class="p">,</span> <span class="n">lru_cache</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">IO</span><span class="p">,</span> <span class="n">BinaryIO</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
 
-<span class="kn">from</span> <span class="nn">megfile.config</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">HDFS_MAX_RETRY_TIMES</span><span class="p">,</span>
-    <span class="n">READER_BLOCK_SIZE</span><span class="p">,</span>
-    <span class="n">READER_MAX_BUFFER_SIZE</span><span class="p">,</span>
-<span class="p">)</span>
 <span class="kn">from</span> <span class="nn">megfile.errors</span> <span class="kn">import</span> <span class="n">_create_missing_ok_generator</span><span class="p">,</span> <span class="n">raise_hdfs_error</span>
 <span class="kn">from</span> <span class="nn">megfile.interfaces</span> <span class="kn">import</span> <span class="n">FileEntry</span><span class="p">,</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">StatResult</span><span class="p">,</span> <span class="n">URIPath</span>
 <span class="kn">from</span> <span class="nn">megfile.lib.compat</span> <span class="kn">import</span> <span class="n">fspath</span>
@@ -104,13 +99,17 @@
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">&quot;HdfsPath&quot;</span><span class="p">,</span>
     <span class="s2">&quot;is_hdfs&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;hdfs_glob&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;hdfs_glob_stat&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;hdfs_iglob&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;hdfs_makedirs&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
 <span class="n">HDFS_USER</span> <span class="o">=</span> <span class="s2">&quot;HDFS_USER&quot;</span>
 <span class="n">HDFS_URL</span> <span class="o">=</span> <span class="s2">&quot;HDFS_URL&quot;</span>
 <span class="n">HDFS_ROOT</span> <span class="o">=</span> <span class="s2">&quot;HDFS_ROOT&quot;</span>
 <span class="n">HDFS_TIMEOUT</span> <span class="o">=</span> <span class="s2">&quot;HDFS_TIMEOUT&quot;</span>
-<span class="n">HDFS_TOKEN</span> <span class="o">=</span> <span class="s2">&quot;HDFS_TOKEN&quot;</span>  <span class="c1"># nosec B105</span>
+<span class="n">HDFS_TOKEN</span> <span class="o">=</span> <span class="s2">&quot;HDFS_TOKEN&quot;</span>
 <span class="n">HDFS_CONFIG_PATH</span> <span class="o">=</span> <span class="s2">&quot;HDFS_CONFIG_PATH&quot;</span>
 <span class="n">MAX_RETRIES</span> <span class="o">=</span> <span class="mi">10</span>
 <span class="n">DEFAULT_HDFS_TIMEOUT</span> <span class="o">=</span> <span class="mi">10</span>
@@ -179,6 +178,91 @@
         <span class="k">return</span> <span class="n">hdfs_api</span><span class="o">.</span><span class="n">TokenClient</span><span class="p">(</span><span class="o">**</span><span class="n">config</span><span class="p">)</span>
     <span class="n">config</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;token&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">hdfs_api</span><span class="o">.</span><span class="n">InsecureClient</span><span class="p">(</span><span class="o">**</span><span class="n">config</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="hdfs_glob">
+<a class="viewcode-back" href="../../megfile.hdfs.html#megfile.hdfs.hdfs_glob">[docs]</a>
+<span class="k">def</span> <span class="nf">hdfs_glob</span><span class="p">(</span>
+    <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return hdfs path list in ascending alphabetical order,</span>
+<span class="sd">    in which path matches glob pattern</span>
+
+<span class="sd">    Notes: Only glob in bucket. If trying to match bucket with wildcard characters,</span>
+<span class="sd">    raise UnsupportedError</span>
+
+<span class="sd">    :param recursive: If False, `**` will not search directory recursively</span>
+<span class="sd">    :param missing_ok: If False and target path doesn&#39;t match any file,</span>
+<span class="sd">        raise FileNotFoundError</span>
+<span class="sd">    :raises: UnsupportedError, when bucket part contains wildcard characters</span>
+<span class="sd">    :returns: A list contains paths match `path`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">hdfs_iglob</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">,</span> <span class="n">missing_ok</span><span class="o">=</span><span class="n">missing_ok</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="hdfs_glob_stat">
+<a class="viewcode-back" href="../../megfile.hdfs.html#megfile.hdfs.hdfs_glob_stat">[docs]</a>
+<span class="k">def</span> <span class="nf">hdfs_glob_stat</span><span class="p">(</span>
+    <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">FileEntry</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a generator contains tuples of path and file stat,</span>
+<span class="sd">    in ascending alphabetical order, in which path matches glob pattern</span>
+
+<span class="sd">    Notes: Only glob in bucket. If trying to match bucket with wildcard characters,</span>
+<span class="sd">    raise UnsupportedError</span>
+
+<span class="sd">    :param recursive: If False, `**` will not search directory recursively</span>
+<span class="sd">    :param missing_ok: If False and target path doesn&#39;t match any file,</span>
+<span class="sd">        raise FileNotFoundError</span>
+<span class="sd">    :raises: UnsupportedError, when bucket part contains wildcard characters</span>
+<span class="sd">    :returns: A generator contains tuples of path and file stat,</span>
+<span class="sd">        in which paths match `path`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">HdfsPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">glob_stat</span><span class="p">(</span>
+        <span class="n">pattern</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">,</span> <span class="n">missing_ok</span><span class="o">=</span><span class="n">missing_ok</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="hdfs_iglob">
+<a class="viewcode-back" href="../../megfile.hdfs.html#megfile.hdfs.hdfs_iglob">[docs]</a>
+<span class="k">def</span> <span class="nf">hdfs_iglob</span><span class="p">(</span>
+    <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return hdfs path iterator in ascending alphabetical order,</span>
+<span class="sd">    in which path matches glob pattern</span>
+
+<span class="sd">    Notes: Only glob in bucket. If trying to match bucket with wildcard characters,</span>
+<span class="sd">    raise UnsupportedError</span>
+
+<span class="sd">    :param recursive: If False, `**` will not search directory recursively</span>
+<span class="sd">    :param missing_ok: If False and target path doesn&#39;t match any file,</span>
+<span class="sd">        raise FileNotFoundError</span>
+<span class="sd">    :raises: UnsupportedError, when bucket part contains wildcard characters</span>
+<span class="sd">    :returns: An iterator contains paths match `path`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">path_obj</span> <span class="ow">in</span> <span class="n">HdfsPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">iglob</span><span class="p">(</span>
+        <span class="n">pattern</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">,</span> <span class="n">missing_ok</span><span class="o">=</span><span class="n">missing_ok</span>
+    <span class="p">):</span>
+        <span class="k">yield</span> <span class="n">path_obj</span><span class="o">.</span><span class="n">path_with_protocol</span></div>
+
+
+
+<div class="viewcode-block" id="hdfs_makedirs">
+<a class="viewcode-back" href="../../megfile.hdfs.html#megfile.hdfs.hdfs_makedirs">[docs]</a>
+<span class="k">def</span> <span class="nf">hdfs_makedirs</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">exist_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create an hdfs directory.</span>
+<span class="sd">    Purely creating directory is invalid because it&#39;s unavailable on OSS.</span>
+<span class="sd">    This function is to test the target bucket have WRITE access.</span>
+
+<span class="sd">    :param path: Given path</span>
+<span class="sd">    :param exist_ok: If False and target directory exists, raise S3FileExistsError</span>
+<span class="sd">    :raises: FileExistsError</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">HdfsPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="n">exist_ok</span><span class="p">)</span></div>
+
 
 
 <div class="viewcode-block" id="HdfsPath">
@@ -725,31 +809,8 @@
         <span class="n">buffering</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">encoding</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">errors</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">max_workers</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">max_buffer_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">READER_MAX_BUFFER_SIZE</span><span class="p">,</span>
-        <span class="n">block_forward</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">block_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">READER_BLOCK_SIZE</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IO</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Open a file on the specified path.</span>
-
-<span class="sd">        :param mode: Mode to open the file. Supports &#39;r&#39;, &#39;rb&#39;, &#39;w&#39;, &#39;wb&#39;, &#39;a&#39;, &#39;ab&#39;.</span>
-<span class="sd">        :param buffering: Optional integer used to set the buffering policy.</span>
-<span class="sd">        :param encoding: Name of the encoding used to decode or encode the file.</span>
-<span class="sd">                        Should only be used in text mode.</span>
-<span class="sd">        :param errors: Optional string specifying how encoding and decoding errors are</span>
-<span class="sd">                    to be handled. Cannot be used in binary mode.</span>
-<span class="sd">        :param max_workers: Max download thread number, `None` by default,</span>
-<span class="sd">            will use global thread pool with 8 threads.</span>
-<span class="sd">        :param max_buffer_size: Max cached buffer size in memory, 128MB by default.</span>
-<span class="sd">            Set to `0` will disable cache.</span>
-<span class="sd">        :param block_forward: Number of blocks of data for reader cached from the</span>
-<span class="sd">            offset position.</span>
-<span class="sd">        :param block_size: Size of a single block for reader, default is 8MB.</span>
-<span class="sd">        :returns: A file-like object.</span>
-<span class="sd">        :raises ValueError: If an unacceptable mode is provided.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="s2">&quot;+&quot;</span> <span class="ow">in</span> <span class="n">mode</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;unacceptable mode: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span>
 
@@ -760,15 +821,22 @@
 
         <span class="k">with</span> <span class="n">raise_hdfs_error</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">mode</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">):</span>
+                <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="s2">&quot;block_size&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;block_capacity&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;block_forward&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;max_retries&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;max_workers&quot;</span><span class="p">,</span>
+                <span class="p">]</span>
+                <span class="n">input_kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                        <span class="n">input_kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
                 <span class="n">file_obj</span> <span class="o">=</span> <span class="n">HdfsPrefetchReader</span><span class="p">(</span>
                     <span class="n">hdfs_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span>
                     <span class="n">client</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="p">,</span>
                     <span class="n">profile_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_profile_name</span><span class="p">,</span>
-                    <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span><span class="p">,</span>
-                    <span class="n">max_buffer_size</span><span class="o">=</span><span class="n">max_buffer_size</span><span class="p">,</span>
-                    <span class="n">block_forward</span><span class="o">=</span><span class="n">block_forward</span><span class="p">,</span>
-                    <span class="n">max_retries</span><span class="o">=</span><span class="n">HDFS_MAX_RETRY_TIMES</span><span class="p">,</span>
-                    <span class="n">max_workers</span><span class="o">=</span><span class="n">max_workers</span><span class="p">,</span>
+                    <span class="o">**</span><span class="n">input_kwargs</span><span class="p">,</span>
                 <span class="p">)</span>
                 <span class="k">if</span> <span class="n">_is_pickle</span><span class="p">(</span><span class="n">file_obj</span><span class="p">):</span>
                     <span class="n">file_obj</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BufferedReader</span><span class="p">(</span><span class="n">file_obj</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
