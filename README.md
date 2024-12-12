@@ -178,6 +178,9 @@ You can get the configuration from `~/.config/megfile/aliases.conf`, like:
 protocol = s3+tos
 ```
 
+## Speed Test
+[![10GiB](scripts/speed_test/10GiB.png)](https://megvii-research.github.io/megfile/speed_test.html)
+[![10MiB](scripts/speed_test/10MiB.png)](https://megvii-research.github.io/megfile/speed_test.html)
 
 ## How to Contribute
 * We welcome everyone to contribute code to the `megfile` project, but the contributed code needs to meet the following conditions as much as possible:
