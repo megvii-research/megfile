@@ -1006,7 +1006,8 @@ def smart_load_content(
         offset = -1
         if stop is not None:
             offset = stop - (start or 0)  # start may be None
-            assert offset >= 0, "stop should be greater than start"
+            if offset < 0:
+                raise ValueError("stop should be greater than start")
         return fd.read(offset)  # pytype: disable=bad-return-type
 
 
