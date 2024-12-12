@@ -71,9 +71,7 @@ class S3PrefetchReader(BasePrefetchReader):
             start, end = 0, self._block_size - 1
             first_index_response = self._fetch_response(start=start, end=end)
             if "ContentRange" in first_index_response:
-                content_size = int(
-                    first_index_response["ContentRange"].split("/")[-1]
-                )
+                content_size = int(first_index_response["ContentRange"].split("/")[-1])
             else:
                 # usually when read a file only have one block
                 content_size = int(first_index_response["ContentLength"])
