@@ -6,7 +6,7 @@ from iopath.common.file_io import PathManager
 from iopath.common.s3 import S3PathHandler
 
 times = 10240
-s3_path = "s3://bucketA/large2.txt"
+s3_path = "s3://bucketA/large.txt"
 
 start = time.time()
 
@@ -25,6 +25,5 @@ path_manager.register_handler(handler)
 with path_manager.open(s3_path, "rb") as f:
     for i in range(times):
         f.read(1024 * 1024)
-        print(i, flush=True)
 
 print(time.time() - start)

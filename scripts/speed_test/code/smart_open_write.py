@@ -5,7 +5,7 @@ import boto3
 from smart_open import open
 
 times = 10240
-s3_path = "s3://bucketA/large1.txt"
+s3_path = "s3://bucketA/large.txt"
 block = b"1" * 1024 * 1024
 
 start = time.time()
@@ -22,6 +22,5 @@ with open(
 ) as f:
     for i in range(times):
         f.write(block)
-        print(i)
 
 print(time.time() - start)

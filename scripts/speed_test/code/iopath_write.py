@@ -6,7 +6,7 @@ from iopath.common.file_io import PathManager
 from iopath.common.s3 import S3PathHandler
 
 times = 10240
-s3_path = "s3://bucketA/large2.txt"
+s3_path = "s3://bucketA/large.txt"
 block = b"1" * 1024 * 1024
 
 start = time.time()
@@ -26,6 +26,5 @@ path_manager.register_handler(handler)
 with path_manager.open(s3_path, "wb") as f:
     for i in range(times):
         f.write(block)
-        print(i)
 
 print(time.time() - start)  # write 10GB 91.642
