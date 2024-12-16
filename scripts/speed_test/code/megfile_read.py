@@ -9,6 +9,5 @@ start = time.time()
 with smart_open(s3_path, "rb") as f:
     for i in range(times):
         f.read(1024 * 1024 * 1)
-        print(i)
 
 print(time.time() - start)

@@ -10,6 +10,5 @@ start = time.time()
 with smart_open(s3_path, "wb") as f:
     for i in range(times):
         f.write(block)
-        print(i)
 
 print(time.time() - start)
