@@ -1,5 +1,4 @@
 import configparser
-import logging
 import os
 import shutil
 import sys
@@ -10,7 +9,7 @@ from functools import partial
 import click
 from tqdm import tqdm
 
-from megfile.config import READER_BLOCK_SIZE, SFTP_HOST_KEY_POLICY
+from megfile.config import READER_BLOCK_SIZE, SFTP_HOST_KEY_POLICY, set_log_level
 from megfile.hdfs_path import DEFAULT_HDFS_TIMEOUT
 from megfile.interfaces import FileEntry
 from megfile.lib.glob import get_non_glob_dir, has_magic
@@ -45,29 +44,34 @@ from megfile.smart_path import SmartPath
 from megfile.utils import get_human_size
 from megfile.version import VERSION
 
-logging.basicConfig(level=logging.ERROR)
-logging.getLogger("megfile").setLevel(level=logging.INFO)
-DEBUG = False
+options = {}
+set_log_level()
 
 
 @click.group()
 @click.option("--debug", is_flag=True, help="Enable debug mode.")
-def cli(debug):
+@click.option(
+    "--log-level",
+    type=click.Choice(["DEBUG", "INFO", "WARNING", "ERROR"]),
+    help="Set logging level.",
+)
+def cli(debug, log_level):
     """
     Client for megfile.
 
     If you install megfile with ``--user``,
     you also need configure ``$HOME/.local/bin`` into ``$PATH``.
     """
-    global DEBUG
-    DEBUG = debug
+    options["debug"] = debug
+    options["log_level"] = log_level or ("DEBUG" if debug else "INFO")
+    set_log_level(options["log_level"])
 
 
 def safe_cli():  # pragma: no cover
     try:
         cli()
     except Exception as e:
-        if DEBUG:
+        if options.get("debug", False):
             raise
         else:
             click.echo(f"\n[{type(e).__name__}] {e}", err=True)

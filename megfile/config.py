@@ -1,3 +1,4 @@
+import logging
 import os
 import typing as T
 
@@ -61,8 +62,22 @@ def parse_quantity(quantity: T.Union[str, int]) -> int:
     return number * (base**exponent)  # pytype: disable=bad-return-type
 
 
-def to_boolean(value):
+def parse_boolean(value: T.Optional[str], default: bool = False):
+    if value is None:
+        return default
     return value.lower() in ("true", "yes", "1")
+
+
+def set_log_level(level: T.Optional[T.Union[int, str]] = None):
+    logging.basicConfig(
+        level=logging.ERROR,
+        format=(
+            "%(asctime)s | %(levelname)-8s | "
+            "%(name)s:%(funcName)s:%(lineno)d - %(message)s"
+        ),
+    )
+    level = level or os.getenv("MEGFILE_LOG_LEVEL") or logging.INFO
+    logging.getLogger("megfile").setLevel(level)
 
 
 READER_BLOCK_SIZE = parse_quantity(os.getenv("MEGFILE_READER_BLOCK_SIZE") or 8 * 2**20)
@@ -87,8 +102,8 @@ WRITER_MAX_BUFFER_SIZE = parse_quantity(
 )
 DEFAULT_WRITER_BLOCK_AUTOSCALE = not os.getenv("MEGFILE_WRITER_BLOCK_SIZE")
 if os.getenv("MEGFILE_WRITER_BLOCK_AUTOSCALE"):
-    DEFAULT_WRITER_BLOCK_AUTOSCALE = to_boolean(
-        os.environ["MEGFILE_WRITER_BLOCK_AUTOSCALE"].lower()
+    DEFAULT_WRITER_BLOCK_AUTOSCALE = parse_boolean(
+        os.environ["MEGFILE_WRITER_BLOCK_AUTOSCALE"]
     )
 
 GLOBAL_MAX_WORKERS = int(os.getenv("MEGFILE_MAX_WORKERS") or 8)
@@ -114,3 +129,6 @@ SFTP_MAX_RETRY_TIMES = int(
 SFTP_HOST_KEY_POLICY = os.getenv("MEGFILE_SFTP_HOST_KEY_POLICY")
 
 HTTP_AUTH_HEADERS = ("Authorization", "Www-Authenticate", "Cookie", "Cookie2")
+
+if os.getenv("MEGFILE_LOG_LEVEL"):
+    set_log_level()
