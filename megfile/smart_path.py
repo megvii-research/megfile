@@ -81,8 +81,9 @@ class SmartPath(BasePath):
             raise ProtocolNotFoundError("protocol not found: %r" % path)
         aliases: Dict[str, Dict[str, str]] = cls._aliases  # pyre-ignore[9]
         if protocol in aliases:
+            prefix = aliases[protocol].get("prefix", "")
             protocol = aliases[protocol]["protocol"]
-            path = "%s://%s" % (protocol, path_without_protocol)
+            path = "%s://%s%s" % (protocol, prefix, path_without_protocol)
         return protocol, path
 
     @classmethod
