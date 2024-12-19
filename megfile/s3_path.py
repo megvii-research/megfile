@@ -1003,13 +1003,15 @@ def s3_buffered_open(
                 profile_name=s3_url._profile_name,
             )
         else:
+            if max_buffer_size is None:
+                max_buffer_size = READER_MAX_BUFFER_SIZE
             reader = S3PrefetchReader(
                 bucket,
                 key,
                 s3_client=client,
                 max_retries=max_retries,
                 max_workers=max_workers,
-                max_buffer_size=max_buffer_size or READER_MAX_BUFFER_SIZE,
+                max_buffer_size=max_buffer_size,
                 block_forward=block_forward,
                 block_size=block_size or READER_BLOCK_SIZE,
                 profile_name=s3_url._profile_name,
@@ -1019,23 +1021,27 @@ def s3_buffered_open(
         return reader
 
     if limited_seekable:
+        if max_buffer_size is None:
+            max_buffer_size = WRITER_MAX_BUFFER_SIZE
         writer = S3LimitedSeekableWriter(
             bucket,
             key,
             s3_client=client,
             max_workers=max_workers,
             block_size=block_size or WRITER_BLOCK_SIZE,
-            max_buffer_size=max_buffer_size or WRITER_MAX_BUFFER_SIZE,
+            max_buffer_size=max_buffer_size,
             profile_name=s3_url._profile_name,
         )
     else:
+        if max_buffer_size is None:
+            max_buffer_size = WRITER_MAX_BUFFER_SIZE
         writer = S3BufferedWriter(
             bucket,
             key,
             s3_client=client,
             max_workers=max_workers,
             block_size=block_size or WRITER_BLOCK_SIZE,
-            max_buffer_size=max_buffer_size or WRITER_MAX_BUFFER_SIZE,
+            max_buffer_size=max_buffer_size,
             profile_name=s3_url._profile_name,
         )
     if buffered or _is_pickle(writer):
