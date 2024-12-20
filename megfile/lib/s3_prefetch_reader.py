@@ -64,7 +64,7 @@ class S3PrefetchReader(BasePrefetchReader):
     def _get_content_size(self):
         if self._block_capacity <= 0:
             response = self._client.head_object(Bucket=self._bucket, Key=self._key)
-            self._content_etag = response["ETag"]
+            self._content_etag = response.get("ETag")
             return int(response["ContentLength"])
 
         try:
@@ -84,7 +84,7 @@ class S3PrefetchReader(BasePrefetchReader):
         first_future = Future()
         first_future.set_result(first_index_response["Body"])
         self._insert_futures(index=0, future=first_future)
-        self._content_etag = first_index_response["ETag"]
+        self._content_etag = first_index_response.get('ETag')
         return content_size
 
     @property
