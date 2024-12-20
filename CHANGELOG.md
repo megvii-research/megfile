@@ -1,3 +1,10 @@
+## 4.0.2 - 2024.12.20
+- feat
+    - add env `MEGFILE_LOG_LEVEL` for set log level
+    - add `--log-level` in cli for set log level
+- fix
+    - fix `max_buffer_size` not work when is `0` in `smart_open`
+
 ## 4.0.1 - 2024.12.12
 - feat
     - support kubernetes canonical form quantity in environment variable
