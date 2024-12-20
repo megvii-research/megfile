@@ -52,7 +52,11 @@
 <li class="toctree-l1"><a class="reference internal" href="megfile.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cli.html">Command Line Interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="advanced.html">Advanced User Guide</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Speed Test</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Speed Test</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#version">version</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#result">Result</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">CHANGELOG</a></li>
 <li class="toctree-l1"><a class="reference external" href="https://github.com/megvii-research/megfile">GitHub</a></li>
 </ul>
@@ -85,8 +89,21 @@
 <h1>Speed Test<a class="headerlink" href="#speed-test" title="Link to this heading"></a></h1>
 <p>Benchmark was performed on an 8-core, 32G RAM virtual machine, using docker-compose to start MinIO with a rate limit of 100 MiB/s per connection.</p>
 <p><a class="reference external" href="https://github.com/megvii-research/megfile/tree/main/scripts/speed_test">Script and related files</a></p>
+<section id="version">
+<h2>version<a class="headerlink" href="#version" title="Link to this heading"></a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">megfile</span><span class="o">==</span><span class="mf">4.0.1</span>
+<span class="n">iopath</span><span class="o">==</span><span class="mf">0.1.10</span>
+<span class="n">pyarrow</span><span class="o">==</span><span class="mf">18.1.0</span>
+<span class="n">s3fs</span><span class="o">==</span><span class="mf">2024.10.0</span>
+<span class="n">smart_open</span><span class="o">==</span><span class="mf">7.0.5</span>
+</pre></div>
+</div>
+</section>
+<section id="result">
+<h2>Result<a class="headerlink" href="#result" title="Link to this heading"></a></h2>
 <a class="reference external image-reference" href="https://github.com/megvii-research/megfile/blob/main/scripts/speed_test/10GiB.png?raw=true"><img alt="10GiB" src="https://github.com/megvii-research/megfile/blob/main/scripts/speed_test/10GiB.png?raw=true" /></a>
 <a class="reference external image-reference" href="https://github.com/megvii-research/megfile/blob/main/scripts/speed_test/10MiB.png?raw=true"><img alt="10MiB" src="https://github.com/megvii-research/megfile/blob/main/scripts/speed_test/10MiB.png?raw=true" /></a>
+</section>
 </section>
 
 
