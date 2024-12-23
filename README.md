@@ -179,8 +179,8 @@ protocol = s3+tos
 ```
 
 ## Speed Test
-[![10GiB](https://github.com/megvii-research/megfile/blob/main/scripts/speed_test/10GiB.png?raw=true)](https://megvii-research.github.io/megfile/speed_test.html)
-[![10MiB](https://github.com/megvii-research/megfile/blob/main/scripts/speed_test/10MiB.png?raw=true)](https://megvii-research.github.io/megfile/speed_test.html)
+[![10GiB](https://github.com/megvii-research/megfile/blob/main/scripts/benchmark/10GiB.png?raw=true)](https://megvii-research.github.io/megfile/benchmark.html)
+[![10MiB](https://github.com/megvii-research/megfile/blob/main/scripts/benchmark/10MiB.png?raw=true)](https://megvii-research.github.io/megfile/benchmark.html)
 
 ## How to Contribute
 * We welcome everyone to contribute code to the `megfile` project, but the contributed code needs to meet the following conditions as much as possible:
