@@ -84,7 +84,7 @@ class S3PrefetchReader(BasePrefetchReader):
         first_future = Future()
         first_future.set_result(first_index_response["Body"])
         self._insert_futures(index=0, future=first_future)
-        self._content_etag = first_index_response.get('ETag')
+        self._content_etag = first_index_response.get("ETag")
         return content_size
 
     @property
