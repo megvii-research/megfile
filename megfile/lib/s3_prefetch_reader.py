@@ -120,7 +120,7 @@ class S3PrefetchReader(BasePrefetchReader):
         start, end = index * self._block_size, (index + 1) * self._block_size - 1
         response = self._fetch_response(start=start, end=end)
         etag = response.get("ETag", None)
-        if etag is not None and etag != self._content_etag:
+        if self._content_etag and etag and etag != self._content_etag:
             raise S3FileChangedError(
                 "File changed: %r, etag before: %s, after: %s"
                 % (self.name, self._content_etag, etag)
