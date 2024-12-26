@@ -1,3 +1,7 @@
+## 4.0.3 - 2024.12.26
+- perf
+    - keep reading file even if etag is not returned from s3 server
+
 ## 4.0.2 - 2024.12.20
 - feat
     - add env `MEGFILE_LOG_LEVEL` for set log level
