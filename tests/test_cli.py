@@ -1,12 +1,19 @@
 import configparser
 import os
+import signal
+import time
+from multiprocessing import Process, Queue
 
 import pytest
 from click.testing import CliRunner
 
 from megfile.cli import (
+    _sftp_prompt_host_key,
+    _tail_follow_content,
     alias,
     cat,
+    cli,
+    config,
     cp,
     hdfs,
     head,
@@ -42,7 +49,16 @@ def testdir(tmpdir):
     yield tmpdir
 
 
-def test_versin(runner):
+def test_cli(runner, mocker):
+    from megfile.cli import options
+
+    set_log_level = mocker.patch("megfile.cli.set_log_level")
+    runner.invoke(cli, ["--debug", "--log-level", "WARNING", "version"])
+    assert options == {"debug": True, "log_level": "WARNING"}
+    assert set_log_level.call_count == 1
+
+
+def test_version(runner):
     result = runner.invoke(version)
 
     assert result.exit_code == 0
@@ -105,11 +121,17 @@ def test_ls_hunman_readable(runner, testdir):
 
 def test_ls_symlink(runner, testdir):
     os.symlink(str(testdir / "text"), str(testdir / "symlink"))
+    os.symlink(str(testdir / "text1"), str(testdir / "symlink_err"))
     result = runner.invoke(ls, [str(testdir)])
 
     assert result.exit_code == 0
     assert sorted(result.output.split("\n")) == sorted(
-        ["text", f"symlink -> {testdir}/text", ""]
+        [
+            "text",
+            f"symlink -> {testdir}/text",
+            f"symlink_err -> {testdir}/text1",
+            "",
+        ]
     )
 
 
@@ -277,9 +299,12 @@ def test_cp(runner, testdir):
 
 
 def test_sync(runner, testdir):
-    result = runner.invoke(sync, [str(testdir / "text"), str(testdir / "newfile")])
+    result = runner.invoke(
+        sync, ["-q", str(testdir / "text"), str(testdir / "newfile")]
+    )
 
     assert result.exit_code == 0
+    assert "" == result.output
     assert "newfile\n" in runner.invoke(ls, [str(testdir)]).output
     assert "text\n" in runner.invoke(ls, [str(testdir)]).output
 
@@ -301,6 +326,39 @@ def test_sync(runner, testdir):
     assert "%" in glob_result.output
     assert "newfile\n" in runner.invoke(ls, [str(testdir / "newdir2")]).output
     assert "text\n" in runner.invoke(ls, [str(testdir / "newdir2")]).output
+
+    result = runner.invoke(
+        sync, [str(testdir / "not_exists"), str(testdir / "newfile")]
+    )
+
+    assert result.exit_code == 1
+    assert isinstance(result.exc_info[1], FileNotFoundError)
+
+    result = runner.invoke(
+        sync, [str(testdir / "not_exists" / "*"), str(testdir / "newfile")]
+    )
+
+    assert result.exit_code == 1
+    assert isinstance(result.exc_info[1], FileNotFoundError)
+
+
+def test_sync_progress_bar(runner, testdir, mocker):
+    mocker.patch("megfile.cli.max_file_object_catch_count", 1)
+    os.makedirs(str(testdir / "large_dir"), exist_ok=True)
+    for i in range(2):
+        with open(str(testdir / "large_dir" / str(i)), "w"):
+            pass
+
+    result = runner.invoke(
+        sync, ["-g", str(testdir / "large_dir"), str(testdir / "new_large_dir")]
+    )
+
+    assert result.exit_code == 0
+    assert "building progress bar" in result.output
+    assert "building progress bar, find" in result.output
+
+    runner.invoke(rm, [str(testdir / "large_dir")])
+    runner.invoke(rm, [str(testdir / "new_large_dir")])
 
 
 def test_head_and_tail(runner, tmpdir, mocker):
@@ -334,6 +392,52 @@ def test_head_and_tail(runner, tmpdir, mocker):
     assert result.output == "6\n7\n8\n9\n"
 
 
+def test_tail2(runner, tmpdir, mocker):
+    mocker.patch("megfile.cli.READER_BLOCK_SIZE", 1)
+    with open(str(tmpdir / "text"), "w") as f:
+        for i in range(10):
+            f.write(str(i))
+            f.write("\n")
+
+    result = runner.invoke(tail, ["-n", "2", str(tmpdir / "text")])
+
+    assert result.exit_code == 0
+    assert result.output == "9\n"
+
+    mocker.patch("megfile.config.READER_BLOCK_SIZE", 1)
+    result = runner.invoke(tail, ["-n", "5", str(tmpdir / "text")])
+
+    assert result.exit_code == 0
+    assert result.output == "6\n7\n8\n9\n"
+
+
+def test_tail_with_follow(runner, tmpdir, mocker):
+    with open(str(tmpdir / "text"), "w") as f:
+        for i in range(3):
+            f.write(str(i))
+            f.write("\n")
+
+    q = Queue()
+
+    def test(q):
+        result = runner.invoke(tail, ["-f", str(tmpdir / "text")])
+        q.put(result.output)
+
+    p = Process(target=test, args=(q,))
+    p.start()
+
+    with open(str(tmpdir / "text"), "a") as f:
+        for i in range(3, 6):
+            f.write(str(i))
+            f.write("\n")
+    time.sleep(1)
+    os.kill(p.pid, signal.SIGINT)
+    p.join()
+    output = q.get_nowait()
+
+    assert output == "0\n1\n2\n3\n4\n5\n\nAborted!\n"
+
+
 def test_to(runner, tmpdir):
     result = runner.invoke(to, ["-o", str(tmpdir / "text")], b"test")
     assert result.output == "test"
@@ -346,6 +450,18 @@ def test_to(runner, tmpdir):
 
     with open(str(tmpdir / "text"), "rb") as f:
         assert f.read() == b"testtest2"
+
+
+def test_config(runner):
+    @config.command()
+    def test():
+        pass
+
+    result = runner.invoke(
+        config,
+        ["test"],
+    )
+    assert result.exit_code == 0
 
 
 def test_config_s3(tmpdir, runner):
@@ -407,6 +523,26 @@ def test_config_s3(tmpdir, runner):
         text = fp.read()
         assert "[new_test]" in text
         assert "[nothing]" in text
+
+    result = runner.invoke(
+        s3,
+        [
+            "-p",
+            str(tmpdir / "oss_config"),
+            "-n",
+            "new_test",
+            "-e",
+            "end-point",
+            "-as",
+            "add",
+            "--no-cover",
+            "1345",
+            "2345",
+        ],
+    )
+
+    assert result.exit_code == 1
+    assert isinstance(result.exc_info[1], NameError)
 
 
 def test_config_hdfs(tmpdir, runner):
@@ -492,3 +628,47 @@ def test_config_alias(tmpdir, runner):
     config = configparser.ConfigParser()
     config.read(str(tmpdir / "config"))
     assert config["a"]["protocol"] == "b"
+
+    result = runner.invoke(
+        alias,
+        [
+            "-p",
+            str(tmpdir / "config"),
+            "--no-cover",
+            "a",
+            "b",
+        ],
+    )
+    assert result.exit_code == 1
+    assert isinstance(result.exc_info[1], NameError)
+
+
+def test_sftp_env(mocker):
+    mocker.patch("megfile.cli.SFTP_HOST_KEY_POLICY", "auto")
+    sftp_add_host_key = mocker.patch("megfile.cli.sftp_add_host_key")
+    _sftp_prompt_host_key("sftp://root@127.0.0.1//test")
+    assert sftp_add_host_key.call_count == 0
+
+
+def test__sftp_prompt_host_key(mocker):
+    sftp_add_host_key = mocker.patch("megfile.cli.sftp_add_host_key")
+    _sftp_prompt_host_key("sftp://root@127.0.0.1//test")
+    assert sftp_add_host_key.call_count == 1
+
+
+def test__tail_follow_content(tmpdir, mocker):
+    with open(str(tmpdir / "text"), "w") as f:
+        for i in range(3):
+            f.write(str(i))
+            f.write("\n")
+
+    assert _tail_follow_content(str(tmpdir / "text"), 0) == 6
+
+    with open(str(tmpdir / "text"), "a") as f:
+        for i in range(3, 6):
+            f.write(str(i))
+            f.write("\n")
+
+    assert _tail_follow_content(str(tmpdir / "text"), 6) == 12
+
+    assert _tail_follow_content(str(tmpdir / "text"), 12) == 12

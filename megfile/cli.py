@@ -46,6 +46,7 @@ from megfile.version import VERSION
 
 options = {}
 set_log_level()
+max_file_object_catch_count = 1024 * 128
 
 
 @click.group()
@@ -121,15 +122,14 @@ def _sftp_prompt_host_key(path):
 
     path = SmartPath(path)
     if path.protocol == "sftp":
-        hostname = (
-            path.pathlike._urlsplit_parts.hostname  # pytype: disable=attribute-error
-        )
-        port = path.pathlike._urlsplit_parts.port  # pytype: disable=attribute-error
-        sftp_add_host_key(
-            hostname=hostname,
-            port=port,
-            prompt=True,
-        )
+        hostname = path.pathlike._urlsplit_parts.hostname
+        if hostname:
+            port = path.pathlike._urlsplit_parts.port or 22
+            sftp_add_host_key(
+                hostname=hostname,
+                port=port,
+                prompt=True,
+            )
 
 
 def _ls(path: str, long: bool, recursive: bool, human_readable: bool):
@@ -161,11 +161,7 @@ def _ls(path: str, long: bool, recursive: bool, human_readable: bool):
         total_count += 1
         output = echo_func(file_stat, base_path, full_path=full_path)
         if file_stat.is_symlink():
-            try:
-                link = smart_readlink(file_stat.path)
-            except FileNotFoundError as e:
-                link = repr(e)
-            output += " -> %s" % link
+            output += " -> %s" % smart_readlink(file_stat.path)
         click.echo(output)
     if long:
         click.echo(f"total({total_count}): {get_human_size(total_size)}")
@@ -417,7 +413,7 @@ def sync(
             file_entries = []
             total_count = total_size = 0
             for total_count, file_entry in enumerate(scan_func(src_path), start=1):
-                if total_count > 1024 * 128:
+                if total_count > max_file_object_catch_count:
                     file_entries = []
                 else:
                     file_entries.append(file_entry)
@@ -506,13 +502,19 @@ def head(path: str, lines: int):
 
     with smart_open(path, "rb") as f:
         for _ in range(lines):
-            try:
-                content = f.readline()
-                if not content:
-                    break
-            except EOFError:
+            content = f.readline()
+            if not content:
                 break
             click.echo(content.strip(b"\n"))
+
+
+def _tail_follow_content(path, offset):
+    with smart_open(path, "rb") as f:
+        f.seek(offset)
+        for line in f.readlines():
+            click.echo(line, nl=False)
+        offset = f.tell()
+    return offset
 
 
 @cli.command(
@@ -554,17 +556,14 @@ def tail(path: str, lines: int, follow: bool):
     if line_list:
         click.echo(line_list[-1], nl=False)
 
-    if follow:
+    if follow:  # pragma: no cover
         offset = file_size
         while True:
-            with smart_open(path, "rb") as f:
-                f.seek(offset)
-                line = f.readline()
-                offset = f.tell()
-                if not line:
-                    time.sleep(1)
-                    continue
-                click.echo(line, nl=False)
+            new_offset = _tail_follow_content(path, offset)
+            if new_offset == offset:
+                time.sleep(1)
+            else:
+                offset = new_offset
 
 
 @cli.command(short_help="Write bytes from stdin to file.")
