@@ -1,4 +1,5 @@
 import hashlib
+import logging
 import os
 import pickle
 import sys
@@ -1166,57 +1167,58 @@ def test_s3_remove_slashes(s3_empty_client):
 
 
 def test_s3_remove_with_error(s3_empty_client, caplog):
-    response = {
-        "Deleted": [
-            {
-                "Key": "string",
-                "VersionId": "string",
-                "DeleteMarker": True,
-                "DeleteMarkerVersionId": "string",
-            }
-        ],
-        "RequestCharged": "requester",
-        "Errors": [
-            {
-                "Key": "error1",
-                "VersionId": "test1",
-                "Code": "InternalError",
-                "Message": "test InternalError",
-            },
-            {
-                "Key": "error2",
-                "VersionId": "test2",
-                "Code": "TestError",
-                "Message": "test InternalError",
-            },
-        ],
-    }
-    s3_empty_client.delete_objects = lambda *args, **kwargs: response
-    s3_empty_client.create_bucket(Bucket="bucket")
-    s3_empty_client.put_object(Bucket="bucket", Key="1/test.txt", Body="test")
-    path = "s3://bucket/1/"
-    with pytest.raises(S3UnknownError) as error:
-        s3.s3_remove(path)
-    for error_info in response["Errors"]:
-        if error_info["Code"] == "InternalError":
-            for i in range(2):
-                log = "retry %s times, removing file: %s, with error %s: %s" % (
-                    i + 1,
+    with caplog.at_level(logging.INFO, logger="megfile"):
+        response = {
+            "Deleted": [
+                {
+                    "Key": "string",
+                    "VersionId": "string",
+                    "DeleteMarker": True,
+                    "DeleteMarkerVersionId": "string",
+                }
+            ],
+            "RequestCharged": "requester",
+            "Errors": [
+                {
+                    "Key": "error1",
+                    "VersionId": "test1",
+                    "Code": "InternalError",
+                    "Message": "test InternalError",
+                },
+                {
+                    "Key": "error2",
+                    "VersionId": "test2",
+                    "Code": "TestError",
+                    "Message": "test InternalError",
+                },
+            ],
+        }
+        s3_empty_client.delete_objects = lambda *args, **kwargs: response
+        s3_empty_client.create_bucket(Bucket="bucket")
+        s3_empty_client.put_object(Bucket="bucket", Key="1/test.txt", Body="test")
+        path = "s3://bucket/1/"
+        with pytest.raises(S3UnknownError) as error:
+            s3.s3_remove(path)
+        for error_info in response["Errors"]:
+            if error_info["Code"] == "InternalError":
+                for i in range(2):
+                    log = "retry %s times, removing file: %s, with error %s: %s" % (
+                        i + 1,
+                        error_info["Key"],
+                        error_info["Code"],
+                        error_info["Message"],
+                    )
+                    assert log in caplog.text
+            else:
+                log = "failed remove file: %s, with error %s: %s" % (
                     error_info["Key"],
                     error_info["Code"],
                     error_info["Message"],
                 )
                 assert log in caplog.text
-        else:
-            log = "failed remove file: %s, with error %s: %s" % (
-                error_info["Key"],
-                error_info["Code"],
-                error_info["Message"],
-            )
-            assert log in caplog.text
-    assert "failed remove path: %s, total file count: 1, failed count: 2" % path in str(
-        error.value
-    )
+        assert (
+            "failed remove path: %s, total file count: 1, failed count: 2" % path
+        ) in str(error.value)
 
 
 def test_s3_move(truncating_client):
