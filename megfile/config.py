@@ -46,16 +46,11 @@ def parse_quantity(quantity: T.Union[str, int]) -> int:
 
     if suffix.endswith("i"):
         base = 1024
-    elif len(suffix) == 1:
-        base = 1000
     else:
-        raise ValueError("{} has unknown suffix".format(quantity))
+        base = 1000
 
     # handle SI inconsistency
     if suffix == "ki":
-        raise ValueError("{} has unknown suffix".format(quantity))
-
-    if suffix[0] not in exponents:
         raise ValueError("{} has unknown suffix".format(quantity))
 
     exponent = int(exponents[suffix[0]])
