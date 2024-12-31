@@ -229,6 +229,18 @@ def test_hdfs_move(http_mocker, mocker):
     remove_func.call_count == 2
 
 
+def test_hdfs_move_dir(http_mocker, mocker):
+    http_mocker.put(
+        "http://127.0.0.1:8000/webhdfs/v1/root/a/2.txt?op=RENAME&destination=%2Froot%2Fb%2F2.txt",
+        json={"boolean": True},
+    )
+    remove_func = mocker.patch("megfile.hdfs_path.HdfsPath.remove")
+
+    hdfs.hdfs_move("hdfs://root/a/", "hdfs://root/b/")
+
+    remove_func.call_count == 2
+
+
 def test_hdfs_remove(http_mocker):
     hdfs.hdfs_remove("hdfs://root")
 
@@ -408,7 +420,19 @@ def test_hdfs_open(http_mocker):
             "Content-Length": "0",
         },
     )
+    http_mocker.post(
+        "http://127.0.0.1:8000/webhdfs/v1/root/2.txt?delegation=token&op=APPEND",
+        status_code=201,
+        headers={
+            "Location": "http://127.0.0.1:8000/webhdfs/v1/root/2.txt?delegation=token&op=APPEND",
+            "Content-Length": "0",
+        },
+    )
+
     with hdfs.hdfs_open("hdfs://root/2.txt", "wb") as f:
+        f.write(b"")
+
+    with hdfs.hdfs_open("hdfs://root/2.txt", "ab") as f:
         f.write(b"")
 
     with pytest.raises(ValueError):
