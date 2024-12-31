@@ -373,7 +373,7 @@ class HdfsPath(URIPath):
         if self.is_dir():
             for filename in self.iterdir():
                 filename.rename(
-                    dst_path.joinpath(filename.relative_to(self)),
+                    dst_path.joinpath(filename.relative_to(self.path_with_protocol)),
                     overwrite=overwrite,
                 )
         else:
