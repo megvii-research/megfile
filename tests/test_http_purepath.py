@@ -1,4 +1,5 @@
 import io
+import logging
 from copy import deepcopy
 
 import pytest
@@ -322,6 +323,16 @@ def test_http_retry(requests_mock, mocker):
     with pytest.raises(requests.exceptions.HTTPError):
         session.post(
             "http://foo",
+            files={"foo": ("filename", b"bar", "application/vnd.ms-excel")},
+        )
+    for _ in range(max_retries):
+        assert b'name="filename"' in requests_mock.request_history[history_index].body
+        assert b"bar" in requests_mock.request_history[history_index].body
+        history_index += 1
+
+    with pytest.raises(requests.exceptions.HTTPError):
+        session.post(
+            "http://foo",
             files={
                 "foo": (
                     "filename",
@@ -347,6 +358,66 @@ def test_http_retry(requests_mock, mocker):
     with pytest.raises(requests.exceptions.HTTPError):
         session.post("http://foo", data=(s for s in ["a"]))
     assert history_index + 1 == len(requests_mock.request_history)
+
+
+def test_http_retry_fileobj_without_seek(requests_mock, mocker, fs):
+    max_retries = 2
+    mocker.patch("megfile.http_path.HTTP_MAX_RETRY_TIMES", max_retries)
+    requests_mock.post("http://foo", status_code=500)
+    session = get_http_session()
+    history_index = 0
+
+    with open("foo.txt", "wb") as f:
+        f.write(b"bar")
+
+    class FakeFile:
+        def __init__(self):
+            self.name = "foo.txt"
+
+        def read(self, size=-1, **kwargs):
+            return b"bar"
+
+    with pytest.raises(requests.exceptions.HTTPError):
+        session.post(
+            "http://foo",
+            files={"foo": ("filename", FakeFile(), "application/vnd.ms-excel")},
+        )
+    for _ in range(max_retries):
+        assert b'name="filename"' in requests_mock.request_history[history_index].body
+        assert b"bar" in requests_mock.request_history[history_index].body
+        history_index += 1
+
+
+def test_http_retry_fileobj_without_name(requests_mock, mocker, fs, caplog):
+    with caplog.at_level(logging.INFO, logger="megfile"):
+        max_retries = 2
+        mocker.patch("megfile.http_path.HTTP_MAX_RETRY_TIMES", max_retries)
+        requests_mock.post("http://foo", status_code=500)
+        session = get_http_session()
+
+        class FakeFileWithoutName:
+            def __init__(self):
+                pass
+
+            def read(self, size=-1, **kwargs):
+                return b"bar"
+
+        with pytest.raises(requests.exceptions.HTTPError):
+            session.post(
+                "http://foo",
+                files={
+                    "foo": (
+                        "filename",
+                        FakeFileWithoutName(),
+                        "application/vnd.ms-excel",
+                    )
+                },
+            )
+        assert len(requests_mock.request_history) == 1
+        assert (
+            "Can not retry http request, because the file object "
+            'is not seekable and not support "name"'
+        ) in caplog.text
 
 
 def test_response():
@@ -432,3 +503,7 @@ def test_open_with_headers(requests_mock):
 
     for key, value in headers.items():
         assert requests_mock.request_history[0].headers[key] == value
+
+
+def test_https_path():
+    assert HttpPath("https://foo").protocol == "https"

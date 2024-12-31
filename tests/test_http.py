@@ -231,6 +231,20 @@ def test_http_getstat(mocker):
     with pytest.raises(HttpFileNotFoundError):
         http_stat("http://test")
 
+    class FakeResponseWithoutStat(FakeResponse):
+        status_code = 200
+
+        @property
+        def headers(self):
+            return {
+                "Content-Type": "test/test",
+            }
+
+    requests_get_func.return_value = FakeResponseWithoutStat()
+    stat = http_stat("http://test")
+    assert stat.size == 0
+    assert stat.st_mtime == 0.0
+
 
 def test_get_http_session(mocker):
     requests_request_func = mocker.patch("requests.Session.request")
