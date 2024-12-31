@@ -1173,7 +1173,11 @@ class SftpPath(URIPath):
             ):
                 continue
 
-            self.from_path(src_file_path).copy(dst_file_path, followlinks=followlinks)
+            src_path.copy(
+                dst_file_path,
+                followlinks=followlinks,
+                overwrite=True,
+            )
 
     def utime(self, atime: Union[float, int], mtime: Union[float, int]) -> None:
         """

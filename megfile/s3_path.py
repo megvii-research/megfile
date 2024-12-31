@@ -2362,7 +2362,11 @@ class S3Path(URIPath):
             ):
                 continue
 
-            src_file_path.copy(dst_file_path, followlinks=followlinks)
+            src_file_path.copy(
+                dst_file_path,
+                followlinks=followlinks,
+                overwrite=True,
+            )
 
     def symlink(self, dst_path: PathLike) -> None:
         """
