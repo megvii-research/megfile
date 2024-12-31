@@ -280,24 +280,8 @@ class classproperty(property):
         # apply the __get__ on the class
         return super(classproperty, self).__get__(cls)
 
-    def __set__(self, cls_or_obj, value: object) -> None:
-        """
-        This method gets called when a property value should be set.
-        @param cls_or_obj: The class or instance of which the property should be
-            changed.
-        @param value: The new value.
-        """
-        # call this method only on the class, not the instance
-        super(classproperty, self).__set__(_get_class(cls_or_obj), value)
-
-    def __delete__(self, cls_or_obj) -> None:
-        """
-        This method gets called when a property should be deleted.
-        @param cls_or_obj: The class or instance of which the property should be
-            deleted.
-        """
-        # call this method only on the class, not the instance
-        super(classproperty, self).__delete__(_get_class(cls_or_obj))
+    # __set__ and __delete__ only work for instance
+    # classproperty only support __get__
 
 
 class cached_classproperty(cached_property):
@@ -333,7 +317,7 @@ class cached_classproperty(cached_property):
         @return: The value of the property.
         """
         if self.attrname is None:
-            raise TypeError(
+            raise TypeError(  # pragma: no cover
                 "Cannot use cached_classproperty instance without calling "
                 "__set_name__ on it."
             )

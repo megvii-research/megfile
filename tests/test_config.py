@@ -1,4 +1,5 @@
 import importlib
+import logging
 import os
 
 import pytest
@@ -12,6 +13,8 @@ from mock import patch
         "MEGFILE_WRITER_BLOCK_SIZE": str(2**20),
         "MEGFILE_WRITER_MAX_BUFFER_SIZE": "500Mi",
         "AWS_SECRET_ACCESS_KEY": "test",
+        "MEGFILE_WRITER_BLOCK_AUTOSCALE": "true",
+        "MEGFILE_LOG_LEVEL": "ERROR",
     },
 )
 def test_config():
@@ -22,6 +25,8 @@ def test_config():
     assert config.READER_MAX_BUFFER_SIZE // 2**20 == 4 * 8
     assert config.WRITER_BLOCK_SIZE == 2**20
     assert config.WRITER_MAX_BUFFER_SIZE == 500 * 2**20
+    assert config.DEFAULT_WRITER_BLOCK_AUTOSCALE is True
+    assert logging.getLogger("megfile").level == logging.ERROR
 
 
 @patch.dict(
@@ -66,3 +71,11 @@ def test_parse_quantity():
 
     with pytest.raises(ValueError):
         parse_quantity("Mi")
+
+
+def test_parse_boolean():
+    from megfile.config import parse_boolean
+
+    assert parse_boolean("true") is True
+    assert parse_boolean("false") is False
+    assert parse_boolean(None, default=True) is True

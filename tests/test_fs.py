@@ -839,6 +839,8 @@ def test_fs_scan_stat(filesystem, mocker):
     with pytest.raises(FileNotFoundError):
         list(fs.fs_scan_stat("/B", missing_ok=False))
 
+    assert list(fs.fs_scan_stat("/B", missing_ok=True)) == []
+
 
 def test_fs_scandir(filesystem):
     """
@@ -1071,6 +1073,9 @@ def test_fs_rename(filesystem):
     fs.fs_rename(src, dst, overwrite=False)
     with open(dst, "r") as f:
         assert f.read() == "test1"
+
+    with open(src, "w") as f:
+        f.write("test")
 
     fs.fs_rename(src, dst, overwrite=True)
     with open(dst, "r") as f:

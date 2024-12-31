@@ -96,14 +96,7 @@ def get_http_session(
                     file_info.seek(0)
                 elif isinstance(file_info, (tuple, list)) and len(file_info) >= 2:
                     file_info = list(file_info)
-                    if (
-                        isinstance(file_info[1], (tuple, list))
-                        and len(file_info[1]) >= 2
-                    ):
-                        file_info[1] = list(file_info[1])
-                        file_info[1] = seek_or_reopen(file_info[1])
-                    else:
-                        file_info[1] = seek_or_reopen(file_info[1])
+                    file_info[1] = seek_or_reopen(file_info[1])
                     files[key] = file_info
 
     session.request = patch_method(
