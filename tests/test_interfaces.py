@@ -1,8 +1,15 @@
-from io import BytesIO
+from io import BytesIO, UnsupportedOperation
 
 import pytest
 
-from megfile.interfaces import BasePath, Closable, Readable, URIPath, Writable, fullname
+from megfile.interfaces import (
+    BasePath,
+    Closable,
+    Readable,
+    URIPath,
+    Writable,
+    fullname,
+)
 
 
 class Klass1(Closable):
@@ -82,6 +89,7 @@ class Klass4(Readable[bytes]):
 def test_readable(mocker):
     r = Klass4(b"")
     assert r.readlines() == []
+    assert r.isatty() is False
 
     r = Klass4(b"1\n2\n")
     assert r.readlines() == [b"1\n", b"2\n"]
@@ -92,6 +100,21 @@ def test_readable(mocker):
 
     r = Klass4(b"1\n2\n")
     assert r.readinto(bytearray(b"123")) == 3
+
+    r = Klass4(b"1\n2\n")
+    r.mode = "r"
+
+    with pytest.raises(OSError):
+        r.readinto(bytearray(b"123"))
+
+    with pytest.raises(OSError):
+        r.truncate()
+
+    with pytest.raises(OSError):
+        r.write(b"123")
+
+    with pytest.raises(OSError):
+        r.writelines([b"123"])
 
 
 class Klass5(Writable[bytes]):
@@ -118,6 +141,18 @@ def test_writable(mocker):
     w = Klass5()
     w.writelines([b"1", b"2"])
     assert w.getvalue() == b"12"
+
+    with pytest.raises(UnsupportedOperation):
+        w.truncate()
+
+    with pytest.raises(OSError):
+        w.read()
+
+    with pytest.raises(OSError):
+        w.readline()
+
+    with pytest.raises(OSError):
+        w.readlines()
 
 
 TEST_PATH = "test/file"

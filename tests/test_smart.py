@@ -1094,6 +1094,8 @@ def test_smart_cache(mocker):
     cacher = megfile.smart_cache("s3://path/to/file")
     assert isinstance(cacher, SmartCacher)
     assert smart_copy.called is True
+    cacher.close()
+    assert cacher.closed is True
 
 
 def test_smart_symlink(mocker, s3_empty_client, filesystem):
