@@ -569,3 +569,16 @@ def test_get_no_glob_root_path():
     assert glob.get_non_glob_dir("/**/*.py") == "/"
     assert glob.get_non_glob_dir("./**/*.py") == "."
     assert glob.get_non_glob_dir("**/*.py") == "."
+
+
+def test__iglob():
+    with pytest.raises(OSError):
+        list(glob._iglob("/root", True, dironly=True, fs=glob.DEFAULT_FILESYSTEM_FUNC))
+
+
+def test__glob2():
+    with pytest.raises(OSError):
+        list(glob._glob2("/root", "", dironly=True, fs=glob.DEFAULT_FILESYSTEM_FUNC))
+
+
+# def test_has_magic_ignore_brace():

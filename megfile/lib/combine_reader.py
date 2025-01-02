@@ -36,7 +36,7 @@ class CombineReader(Readable, Seekable):
         for index, size in enumerate(self._blocks_sizes):
             if self._offset < size:
                 return index - 1, self._offset - self._blocks_sizes[index - 1]
-        raise IOError("offset out of range: %d" % self._offset)
+        raise IOError("offset out of range: %d" % self._offset)  # pragma: no cover
 
     @property
     def name(self) -> str:

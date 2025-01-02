@@ -60,6 +60,39 @@ def test_s3_prefetch_reader(client):
         BUCKET, KEY, s3_client=client, max_workers=2, block_size=7
     ) as reader:
         assert reader.read() == CONTENT
+        buffer = bytearray(1)
+        assert reader.readinto(buffer) == 0
+
+    with S3PrefetchReader(BUCKET, KEY, s3_client=client, block_forward=0) as reader:
+        assert reader.read() == CONTENT
+
+    with pytest.raises(ValueError):
+        with S3PrefetchReader(
+            BUCKET,
+            KEY,
+            s3_client=client,
+            max_buffer_size=2,
+            block_size=1,
+            block_forward=5,
+        ) as reader:
+            pass
+
+
+def test_s3_prefetch_reader_random_read(client):
+    with S3PrefetchReader(
+        BUCKET,
+        KEY,
+        s3_client=client,
+        block_size=1,
+        max_buffer_size=6,
+    ) as reader:
+        assert reader._block_capacity == 6
+        assert reader._block_forward == 5
+        for i in range(len(CONTENT) - 1, -1, -2):
+            reader.seek(i)
+            reader.read(1)
+        assert reader._block_forward == 0
+        assert reader._is_auto_scaling is False
 
 
 def test_s3_prefetch_reader_readline(s3_empty_client):

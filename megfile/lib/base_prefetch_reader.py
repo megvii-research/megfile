@@ -5,7 +5,6 @@ from concurrent.futures import Future, ThreadPoolExecutor
 from io import BytesIO
 from logging import getLogger as get_logger
 from math import ceil
-from statistics import mean
 from typing import Optional
 
 from megfile.config import (
@@ -92,7 +91,7 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
 
     @abstractmethod
     def _get_content_size(self):
-        pass
+        pass  # pragma: no cover
 
     @property
     def _futures(self) -> "LRUCacheFutureManager":
@@ -104,7 +103,7 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
     @property
     @abstractmethod
     def name(self) -> str:
-        pass
+        pass  # pragma: no cover
 
     @property
     def mode(self) -> str:
@@ -238,13 +237,7 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
 
         if self._block_forward == 0:
             block_index = self._offset // self._block_size
-            if len(self._seek_history) > 0:
-                mean_read_count = mean(item.read_count for item in self._seek_history)
-            else:
-                mean_read_count = 0
-            if block_index not in self._futures and mean_read_count < 3:
-                # No using LRP will be better if read() are always called less than 3
-                # times after seek()
+            if block_index not in self._futures:
                 buffer[:size] = self._read(size)
                 return size
 
@@ -329,8 +322,9 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
                 history.append(item)
             history.append(SeekRecord(index))
             self._seek_history = history
-            self._block_forward = max(
-                self._block_capacity // len(self._seek_history), 0
+            self._block_forward = min(
+                max(self._block_capacity // len(self._seek_history), 0),
+                self._block_capacity - 1,
             )
             if self._block_forward == 0:
                 self._is_auto_scaling = False
@@ -343,7 +337,7 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
     def _fetch_response(
         self, start: Optional[int] = None, end: Optional[int] = None
     ) -> dict:
-        pass
+        pass  # pragma: no cover
 
     def _fetch_buffer(self, index: int) -> BytesIO:
         start, end = index * self._block_size, (index + 1) * self._block_size - 1

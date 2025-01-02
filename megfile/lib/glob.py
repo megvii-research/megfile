@@ -5,22 +5,15 @@
 import os
 import re
 from collections import OrderedDict
-from collections import namedtuple as NamedTuple
-from typing import Iterator, List, Tuple
+from typing import Callable, Iterator, List, NamedTuple, Tuple
 
 from megfile.lib import fnmatch
 
-# Python 3.5+ Compatible
-"""
+
 class FSFunc(NamedTuple):
     exists: Callable[[str], bool]
     isdir: Callable[[str], bool]
-    scandir: Callable[[str], Iterator[Tuple[str, bool]]]  # name, isdir
-
-in Python 3.6+
-"""
-
-FSFunc = NamedTuple("FSFunc", ["exists", "isdir", "scandir"])
+    scandir: Callable[[str], Iterator[Tuple[str, bool]]]
 
 
 def _exists(path: str) -> bool:
@@ -72,7 +65,7 @@ def iglob(
     if recursive and _isrecursive(pathname):
         s = next(it)  # skip empty string
         if s:
-            raise OSError("iglob with recursive=True error")
+            raise OSError("iglob with recursive=True error")  # pragma: no cover
     return it
 
 
@@ -161,11 +154,8 @@ def _iterdir(dirname: str, dironly: bool, fs: FSFunc) -> Iterator[str]:
     try:
         # dirname may be non-existent, raise OSError
         for name, isdir in fs.scandir(dirname):
-            try:
-                if not dironly or isdir:
-                    yield name
-            except OSError:
-                pass
+            if not dironly or isdir:
+                yield name
     except OSError:
         return
 
