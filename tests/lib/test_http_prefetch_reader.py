@@ -1,3 +1,4 @@
+import logging
 import os
 import time
 from io import BytesIO
@@ -6,6 +7,7 @@ import pytest
 import requests
 
 from megfile.config import READER_BLOCK_SIZE
+from megfile.errors import UnsupportedError
 from megfile.lib.http_prefetch_reader import HttpPrefetchReader
 
 URL = "http://test"
@@ -555,3 +557,52 @@ def test_http_prefetch_reader_no_buffer(http_patch):
         reader.read()
 
         assert list(reader._futures.keys()) == []
+
+
+def test_http_prefetch_reader_headers(mocker):
+    class FakeResponse200WithoutAcceptRange(FakeResponse200):
+        @property
+        def headers(self):
+            headers = super().headers
+            headers.pop("Accept-Ranges", None)
+            return headers
+
+    mocker.patch(
+        "megfile.http_path.requests.get",
+        return_value=FakeResponse200WithoutAcceptRange(),
+    )
+
+    with pytest.raises(UnsupportedError):
+        HttpPrefetchReader(
+            URL,
+        )
+
+
+def test_http_prefetch_reader_retry(mocker, caplog):
+    with caplog.at_level(logging.INFO, logger="megfile"):
+
+        class FakeResponse200Retry(FakeResponse200):
+            def __init__(self, content=CONTENT) -> None:
+                super().__init__(content)
+                self.times = 0
+
+            @property
+            def content(self):
+                if self.times < 1:
+                    self.times += 1
+                    return b""
+                return super().content
+
+        fake_response = FakeResponse200Retry()
+
+        mocker.patch(
+            "megfile.http_path.requests.get",
+            return_value=fake_response,
+        )
+
+        with HttpPrefetchReader(
+            URL,
+            max_retries=2,
+        ) as f:
+            f.read()
+        assert "The downloaded content is incomplete" in caplog.text
