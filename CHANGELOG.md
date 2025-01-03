@@ -1,3 +1,7 @@
+## 4.0.4 - 2024.01.03
+- perf
+    - reduce the use of `is_dir` in S3 to decrease the number of requests
+
 ## 4.0.3 - 2024.12.26
 - perf
     - keep reading file even if etag is not returned from s3 server
