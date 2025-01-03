@@ -51,7 +51,6 @@ from megfile.errors import (
 )
 from megfile.interfaces import (
     Access,
-    ContextIterator,
     FileCacher,
     FileEntry,
     PathLike,
@@ -2008,7 +2007,9 @@ class S3Path(URIPath):
             S3FileNotFoundError("No match any file in: %r" % self.path_with_protocol),
         )
 
-    def scandir(self, followlinks: bool = False) -> Iterator[FileEntry]:
+    def scandir(
+        self, missing_ok: bool = True, followlinks: bool = False
+    ) -> Iterator[FileEntry]:
         """
         Get all contents of given s3_url, the order of result is not guaranteed.
 
@@ -2023,15 +2024,13 @@ class S3Path(URIPath):
 
         if self.is_file():
             raise S3NotADirectoryError("Not a directory: %r" % self.path_with_protocol)
-        elif not self.is_dir():
-            raise S3FileNotFoundError("No such directory: %r" % self.path_with_protocol)
-        prefix = _become_prefix(key)
-        client = self._client
 
         # In order to do check on creation,
         # we need to wrap the iterator in another function
         def create_generator() -> Iterator[FileEntry]:
             with raise_s3_error(self.path_with_protocol):
+                prefix = _become_prefix(key)
+                client = self._client
 
                 def generate_s3_path(protocol: str, bucket: str, key: str) -> str:
                     return "%s://%s/%s" % (protocol, bucket, key)
@@ -2082,7 +2081,11 @@ class S3Path(URIPath):
                             content["Key"][len(prefix) :], src_url, _make_stat(content)
                         )
 
-        return ContextIterator(create_generator())
+        return _create_missing_ok_generator(
+            create_generator(),
+            missing_ok,
+            S3FileNotFoundError("No such directory: %r" % self.path_with_protocol),
+        )
 
     def _get_dir_stat(self) -> StatResult:
         """
