@@ -1702,18 +1702,18 @@ class S3Path(URIPath):
             return False
         return True
 
-    def listdir(self, missing_ok: bool = True, followlinks: bool = False) -> List[str]:
+    def listdir(self, followlinks: bool = False, missing_ok: bool = True) -> List[str]:
         """
         Get all contents of given s3_url. The result is in ascending alphabetical order.
 
         :returns: All contents have prefix of s3_url in ascending alphabetical order
         :raises: S3FileNotFoundError, S3NotADirectoryError
         """
-        entries = list(self.scandir(missing_ok=missing_ok, followlinks=followlinks))
+        entries = list(self.scandir(followlinks=followlinks, missing_ok=missing_ok))
         return sorted([entry.name for entry in entries])
 
     def iterdir(
-        self, missing_ok: bool = True, followlinks: bool = False
+        self, followlinks: bool = False, missing_ok: bool = True
     ) -> Iterator["S3Path"]:
         """
         Get all contents of given s3_url. The result is in ascending alphabetical order.
@@ -1721,7 +1721,7 @@ class S3Path(URIPath):
         :returns: All contents have prefix of s3_url in ascending alphabetical order
         :raises: S3FileNotFoundError, S3NotADirectoryError
         """
-        for path in self.listdir(missing_ok=missing_ok, followlinks=followlinks):
+        for path in self.listdir(followlinks=followlinks, missing_ok=missing_ok):
             yield self.joinpath(path)
 
     def load(self, followlinks: bool = False) -> BinaryIO:
@@ -2003,7 +2003,7 @@ class S3Path(URIPath):
         )
 
     def scandir(
-        self, missing_ok: bool = False, followlinks: bool = False
+        self, followlinks: bool = False, missing_ok: bool = False
     ) -> Iterator[FileEntry]:
         """
         Get all contents of given s3_url, the order of result is not guaranteed.
