@@ -611,6 +611,13 @@ def test_get_access_token():
 def test_s3_scandir_internal(truncating_client, mocker):
     mocker.patch("megfile.s3.s3_islink", return_value=False)
 
+    # walk the dir that is not exist
+    # expect: empty generator
+    assert list(s3.s3_scandir("s3://notExistBucket")) == []
+    assert list(s3.s3_scandir("s3://bucketA/notExistFile")) == []
+    assert list(s3.s3_scandir("s3+test://notExistBucket")) == []
+    assert list(s3.s3_scandir("s3+test://bucketA/notExistFile")) == []
+
     def dir_entrys_to_tuples(entries: Iterable[FileEntry]) -> List[Tuple[str, bool]]:
         return sorted([(entry.name, entry.is_dir()) for entry in entries])
 
@@ -649,7 +656,7 @@ def test_s3_scandir_internal(truncating_client, mocker):
         s3.s3_scandir("s3://notExistBucket", missing_ok=False)
     with pytest.raises(FileNotFoundError):
         s3.s3_scandir("s3://bucketA/notExistFolder", missing_ok=False)
-    with pytest.raises(FileNotFoundError):
+    with pytest.raises(S3BucketNotFoundError):
         s3.s3_scandir("s3:///notExistFolder", missing_ok=False)
 
 

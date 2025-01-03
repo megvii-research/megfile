@@ -2023,7 +2023,8 @@ class S3Path(URIPath):
         # In order to do check on creation,
         # we need to wrap the iterator in another function
         def create_generator() -> Iterator[FileEntry]:
-            with raise_s3_error(self.path_with_protocol):
+            suppress_errors = S3BucketNotFoundError if missing_ok else ()
+            with raise_s3_error(self.path_with_protocol, suppress_errors):
                 prefix = _become_prefix(key)
                 client = self._client
 
