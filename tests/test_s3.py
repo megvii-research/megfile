@@ -611,6 +611,13 @@ def test_get_access_token():
 def test_s3_scandir_internal(truncating_client, mocker):
     mocker.patch("megfile.s3.s3_islink", return_value=False)
 
+    # walk the dir that is not exist
+    # expect: empty generator
+    assert list(s3.s3_scandir("s3://notExistBucket")) == []
+    assert list(s3.s3_scandir("s3://bucketA/notExistFile")) == []
+    assert list(s3.s3_scandir("s3+test://notExistBucket")) == []
+    assert list(s3.s3_scandir("s3+test://bucketA/notExistFile")) == []
+
     def dir_entrys_to_tuples(entries: Iterable[FileEntry]) -> List[Tuple[str, bool]]:
         return sorted([(entry.name, entry.is_dir()) for entry in entries])
 
@@ -646,11 +653,11 @@ def test_s3_scandir_internal(truncating_client, mocker):
     with pytest.raises(NotADirectoryError):
         s3.s3_scandir("s3://bucketA/fileAA")
     with pytest.raises(FileNotFoundError):
-        s3.s3_scandir("s3://notExistBucket")
+        s3.s3_scandir("s3://notExistBucket", missing_ok=False)
     with pytest.raises(FileNotFoundError):
-        s3.s3_scandir("s3://bucketA/notExistFolder")
+        s3.s3_scandir("s3://bucketA/notExistFolder", missing_ok=False)
     with pytest.raises(S3BucketNotFoundError):
-        s3.s3_scandir("s3:///notExistFolder")
+        s3.s3_scandir("s3:///notExistFolder", missing_ok=False)
 
 
 def test_s3_scandir(truncating_client, mocker):
@@ -688,9 +695,9 @@ def test_s3_scandir(truncating_client, mocker):
     with pytest.raises(NotADirectoryError):
         s3.s3_scandir("s3://bucketA/fileAA")
     with pytest.raises(FileNotFoundError):
-        s3.s3_scandir("s3://notExistBucket")
+        s3.s3_scandir("s3://notExistBucket", missing_ok=False)
     with pytest.raises(FileNotFoundError):
-        s3.s3_scandir("s3://bucketA/notExistFolder")
+        s3.s3_scandir("s3://bucketA/notExistFolder", missing_ok=False)
 
 
 def test_s3_listdir(truncating_client, mocker):
@@ -718,9 +725,9 @@ def test_s3_listdir(truncating_client, mocker):
     with pytest.raises(NotADirectoryError):
         s3.s3_listdir("s3://bucketA/fileAA")
     with pytest.raises(FileNotFoundError):
-        s3.s3_listdir("s3://notExistBucket")
+        s3.s3_listdir("s3://notExistBucket", missing_ok=False)
     with pytest.raises(FileNotFoundError):
-        s3.s3_listdir("s3://bucketA/notExistFolder")
+        s3.s3_listdir("s3://bucketA/notExistFolder", missing_ok=False)
 
 
 def test_s3_isfile(s3_setup):
@@ -1523,6 +1530,8 @@ def test_s3_scan(truncating_client):
 
     with pytest.raises(UnsupportedError) as error:
         s3.s3_scan("s3://")
+    with pytest.raises(S3BucketNotFoundError) as error:
+        s3.s3_scan("s3://notExistBucket", missing_ok=False)
 
 
 def test_s3_scan_stat(truncating_client, mocker):
