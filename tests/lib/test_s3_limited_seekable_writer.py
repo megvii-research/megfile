@@ -88,6 +88,9 @@ def test_write(client):
     with pytest.raises(OSError):
         writer.seek(5)
 
+    with pytest.raises(OSError):
+        writer.seek(5, 3)
+
 
 def test_s3_buffered_writer_write_large_bytes(client):
     with S3LimitedSeekableWriter(BUCKET, KEY, s3_client=client) as writer:
