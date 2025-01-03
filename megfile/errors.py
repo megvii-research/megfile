@@ -177,16 +177,18 @@ def patch_method(
 
 def _create_missing_ok_generator(generator, missing_ok: bool, error: Exception):
     if missing_ok:
-        yield from generator
-        return
+        return generator
 
-    zero_elem = True
-    for item in generator:
-        zero_elem = False
-        yield item
-
-    if zero_elem:
+    try:
+        first = next(generator)
+    except StopIteration:
         raise error
+
+    def create_generator():
+        yield first
+        yield from generator
+
+    return create_generator()
 
 
 class UnknownError(Exception):
@@ -411,11 +413,14 @@ def translate_http_error(http_error: Exception, http_url: str) -> Exception:
 
 
 @contextmanager
-def raise_s3_error(s3_url: PathLike):
+def raise_s3_error(s3_url: PathLike, suppress_errors=()):
     try:
         yield
     except Exception as error:
-        raise translate_s3_error(error, s3_url)
+        error = translate_s3_error(error, s3_url)
+        if suppress_errors and isinstance(error, suppress_errors):
+            return
+        raise error
 
 
 def s3_error_code_should_retry(error: str) -> bool:

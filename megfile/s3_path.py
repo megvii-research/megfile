@@ -51,6 +51,7 @@ from megfile.errors import (
 )
 from megfile.interfaces import (
     Access,
+    ContextIterator,
     FileCacher,
     FileEntry,
     PathLike,
@@ -1701,24 +1702,26 @@ class S3Path(URIPath):
             return False
         return True
 
-    def listdir(self, followlinks: bool = False) -> List[str]:
+    def listdir(self, missing_ok: bool = True, followlinks: bool = False) -> List[str]:
         """
         Get all contents of given s3_url. The result is in ascending alphabetical order.
 
         :returns: All contents have prefix of s3_url in ascending alphabetical order
         :raises: S3FileNotFoundError, S3NotADirectoryError
         """
-        entries = list(self.scandir(followlinks=followlinks))
+        entries = list(self.scandir(missing_ok=missing_ok, followlinks=followlinks))
         return sorted([entry.name for entry in entries])
 
-    def iterdir(self, followlinks: bool = False) -> Iterator["S3Path"]:
+    def iterdir(
+        self, missing_ok: bool = True, followlinks: bool = False
+    ) -> Iterator["S3Path"]:
         """
         Get all contents of given s3_url. The result is in ascending alphabetical order.
 
         :returns: All contents have prefix of s3_url in ascending alphabetical order
         :raises: S3FileNotFoundError, S3NotADirectoryError
         """
-        for path in self.listdir(followlinks=followlinks):
+        for path in self.listdir(missing_ok=missing_ok, followlinks=followlinks):
             yield self.joinpath(path)
 
     def load(self, followlinks: bool = False) -> BinaryIO:
@@ -1958,17 +1961,8 @@ class S3Path(URIPath):
             raise UnsupportedError("Scan whole s3", self.path_with_protocol)
 
         def create_generator() -> Iterator[FileEntry]:
-            if not self.is_dir():
-                if self.is_file():
-                    # On s3, file and directory may be of same name and level, so need
-                    # to test the path is file or directory
-                    yield FileEntry(
-                        self.name,
-                        fspath(self.path_with_protocol),
-                        self.stat(follow_symlinks=followlinks),
-                    )
-                return
-
+            # On s3, file and directory may be of same name and level, so need
+            # to test the path is file or directory
             if not key.endswith("/") and self.is_file():
                 yield FileEntry(
                     self.name,
@@ -1978,7 +1972,8 @@ class S3Path(URIPath):
 
             prefix = _become_prefix(key)
             client = self._client
-            with raise_s3_error(self.path_with_protocol):
+            suppress_errors = S3BucketNotFoundError if missing_ok else ()
+            with raise_s3_error(self.path_with_protocol, suppress_errors):
                 for resp in _list_objects_recursive(client, bucket, prefix):
                     for content in resp.get("Contents", []):
                         full_path = s3_path_join(
@@ -2008,7 +2003,7 @@ class S3Path(URIPath):
         )
 
     def scandir(
-        self, missing_ok: bool = True, followlinks: bool = False
+        self, missing_ok: bool = False, followlinks: bool = False
     ) -> Iterator[FileEntry]:
         """
         Get all contents of given s3_url, the order of result is not guaranteed.
@@ -2081,10 +2076,12 @@ class S3Path(URIPath):
                             content["Key"][len(prefix) :], src_url, _make_stat(content)
                         )
 
-        return _create_missing_ok_generator(
-            create_generator(),
-            missing_ok,
-            S3FileNotFoundError("No such directory: %r" % self.path_with_protocol),
+        return ContextIterator(
+            _create_missing_ok_generator(
+                create_generator(),
+                missing_ok,
+                S3FileNotFoundError("No such directory: %r" % self.path_with_protocol),
+            )
         )
 
     def _get_dir_stat(self) -> StatResult:
