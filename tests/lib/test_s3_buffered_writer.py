@@ -201,3 +201,26 @@ def test_s3_buffered_writer_write_multipart_autoscale(client, mocker):
 
     content_read = client.get_object(Bucket=BUCKET, Key=KEY)["Body"].read()
     assert content_read == (content + b"\n") * content_repeat
+
+
+def test_s3_buffered_writer_autoscale_block_size(client, mocker):
+    with S3BufferedWriter(
+        BUCKET,
+        KEY,
+        s3_client=client,
+        block_size=1,
+        max_buffer_size=12,
+    ) as writer:
+        writer._block_autoscale = True
+
+        writer._part_number = 999
+        assert writer._block_size == 4
+
+        writer._part_number = 9999
+        assert writer._block_size == 8
+
+        writer._part_number = 10000
+        assert writer._block_size == 12
+
+        writer._block_autoscale = False
+        assert writer._block_size == 1

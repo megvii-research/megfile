@@ -21,14 +21,14 @@ class S3MemoryHandler(Readable[bytes], Seekable, Writable[bytes]):
         s3_client,
         profile_name: Optional[str] = None,
     ):
-        if mode not in ("rb", "wb", "ab", "rb+", "wb+", "ab+"):
-            raise ValueError("unacceptable mode: %r" % mode)
-
         self._bucket = bucket
         self._key = key
         self._mode = mode
         self._client = s3_client
         self._profile_name = profile_name
+
+        if mode not in ("rb", "wb", "ab", "rb+", "wb+", "ab+"):
+            raise ValueError("unacceptable mode: %r" % mode)
 
         self._fileobj = BytesIO()
         self._download_fileobj()

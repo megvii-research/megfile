@@ -137,7 +137,7 @@ class S3LimitedSeekableWriter(S3BufferedWriter, Seekable):
     def _submit_futures(self):
         content = self._buffer.getvalue()
         if len(content) == 0:
-            return
+            return  # pragma: no cover
         offset = len(content) - self._tail_block_size
         self._buffer = BytesIO(content[offset:])
         self._buffer.seek(0, os.SEEK_END)

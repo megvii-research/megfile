@@ -18,14 +18,14 @@ class S3CachedHandler(S3MemoryHandler):
         remove_cache_when_open: bool = True,
         profile_name: Optional[str] = None,
     ):
-        if mode not in ("rb", "wb", "ab", "rb+", "wb+", "ab+"):
-            raise ValueError("unacceptable mode: %r" % mode)
-
         self._bucket = bucket
         self._key = key
         self._mode = mode
         self._client = s3_client
         self._profile_name = profile_name
+
+        if mode not in ("rb", "wb", "ab", "rb+", "wb+", "ab+"):
+            raise ValueError("unacceptable mode: %r" % mode)
 
         if cache_path is None:
             cache_path = generate_cache_path(self.name)
