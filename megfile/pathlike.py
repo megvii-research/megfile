@@ -412,7 +412,7 @@ class BasePath:
         raw_suffix = self.suffix
         return self.from_path(path[: len(path) - len(raw_suffix)] + suffix)
 
-    def relpath(self, start=None):
+    def relpath(self, start: Optional[str] = None):
         """Return the relative path."""
         if start is None:
             raise TypeError("start is required")
@@ -485,7 +485,7 @@ class BasePath:
         """Return the canonical path of the path."""
         return self.path_with_protocol
 
-    def resolve(self):
+    def resolve(self, strict=False):
         """Alias of realpath."""
         return self.path_with_protocol
 
@@ -622,11 +622,11 @@ class BasePath:
         """
         raise NotImplementedError('method "scandir" not implemented: %r' % self)
 
-    def getsize(self, follow_symlinks: bool = True) -> int:
+    def getsize(self, follow_symlinks: bool = False) -> int:
         """Return the size, in bytes."""
         raise NotImplementedError('method "getsize" not implemented: %r' % self)
 
-    def getmtime(self, follow_symlinks: bool = True) -> float:
+    def getmtime(self, follow_symlinks: bool = False) -> float:
         """Return the time of last modification."""
         raise NotImplementedError('method "getmtime" not implemented: %r' % self)
 

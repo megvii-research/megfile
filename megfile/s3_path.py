@@ -540,6 +540,40 @@ def _make_stat(content: Dict[str, Any]):
     )
 
 
+class StatResultForIsLink:
+    def __init__(self, path: "S3Path", *args, **kwargs):
+        self._islnk = None
+        self._path = path
+        self._stat_result = StatResult(*args, **kwargs)
+
+    def __getattr__(self, name):
+        return getattr(self._stat_result, name)
+
+    @property
+    def islnk(self) -> bool:
+        if self._islnk is None:
+            self._islnk = self._path.is_symlink()
+        return self._islnk
+
+    def is_file(self) -> bool:
+        return not self._stat_result.isdir or self.islnk
+
+    def is_dir(self) -> bool:
+        return self._stat_result.isdir and not self.islnk
+
+    def is_symlink(self) -> bool:
+        return self.islnk
+
+
+def _make_stat_without_metadata(content, path):
+    return StatResultForIsLink(
+        path=path,
+        size=content["Size"],
+        mtime=content["LastModified"].timestamp(),
+        extra=content,
+    )
+
+
 def _s3_glob_stat_single_path(
     s3_pathname: PathLike,
     recursive: bool = True,
@@ -1215,7 +1249,6 @@ def s3_load_content(
     s3_url,
     start: Optional[int] = None,
     stop: Optional[int] = None,
-    followlinks: bool = False,
 ) -> bytes:
     """
     Get specified file from [start, stop) in bytes
@@ -1230,11 +1263,6 @@ def s3_load_content(
         return client.get_object(Bucket=bucket, Key=key, Range=range_str)["Body"].read()
 
     s3_url = S3Path(s3_url)
-    if followlinks:
-        try:
-            s3_url = s3_url.readlink()
-        except S3NotALinkError:
-            pass
 
     bucket, key = parse_s3_url(s3_url.path_with_protocol)
     if not bucket:
@@ -1424,7 +1452,7 @@ class S3Path(URIPath):
                 raise error
             return {}
 
-    def access(self, mode: Access = Access.READ, followlinks: bool = False) -> bool:
+    def access(self, mode: Access = Access.READ) -> bool:
         """
         Test if path has access permission described by mode
 
@@ -1432,11 +1460,6 @@ class S3Path(URIPath):
         :returns: bool, if the bucket of s3_url has read/write access.
         """
         s3_url = self.path_with_protocol
-        if followlinks:
-            try:
-                s3_url = self.readlink().path_with_protocol
-            except S3NotALinkError:
-                pass
         bucket, key = parse_s3_url(s3_url)  # only check bucket accessibility
         if not bucket:
             raise Exception("No available bucket")
@@ -1531,7 +1554,6 @@ class S3Path(URIPath):
         pattern,
         recursive: bool = True,
         missing_ok: bool = True,
-        followlinks: bool = False,
     ) -> List["S3Path"]:
         """Return s3 path list in ascending alphabetical order,
         in which path matches glob pattern
@@ -1552,7 +1574,6 @@ class S3Path(URIPath):
                 pattern=pattern,
                 recursive=recursive,
                 missing_ok=missing_ok,
-                followlinks=followlinks,
             )
         )
 
@@ -1561,7 +1582,6 @@ class S3Path(URIPath):
         pattern,
         recursive: bool = True,
         missing_ok: bool = True,
-        followlinks: bool = False,
     ) -> Iterator[FileEntry]:
         """Return a generator contains tuples of path and file stat,
         in ascending alphabetical order, in which path matches glob pattern
@@ -1592,7 +1612,6 @@ class S3Path(URIPath):
                         group_s3_pathname_2,
                         recursive,
                         missing_ok,
-                        followlinks=followlinks,
                         profile_name=self._profile_name,
                     ):
                         if self._profile_name:
@@ -1612,7 +1631,6 @@ class S3Path(URIPath):
         pattern,
         recursive: bool = True,
         missing_ok: bool = True,
-        followlinks: bool = False,
     ) -> Iterator["S3Path"]:
         """Return s3 path iterator in ascending alphabetical order,
         in which path matches glob pattern
@@ -1632,7 +1650,6 @@ class S3Path(URIPath):
             pattern=pattern,
             recursive=recursive,
             missing_ok=missing_ok,
-            followlinks=followlinks,
         ):
             yield self.from_path(file_entry.path)
 
@@ -1706,7 +1723,7 @@ class S3Path(URIPath):
         :raises: S3FileNotFoundError, S3NotADirectoryError
         """
         try:
-            entries = list(self.scandir(followlinks=False, missing_ok=False))
+            entries = list(self.scandir())
         except S3BucketNotFoundError:
             raise
         except S3FileNotFoundError:
@@ -1724,10 +1741,10 @@ class S3Path(URIPath):
         :returns: All contents have prefix of s3_url
         :raises: S3FileNotFoundError, S3NotADirectoryError
         """
-        for entry in self.scandir(followlinks=False, missing_ok=False):
+        for entry in self.scandir():
             yield self.joinpath(entry.name)
 
-    def load(self, followlinks: bool = False) -> BinaryIO:
+    def load(self) -> BinaryIO:
         """Read all content in binary on specified path and write into memory
 
         User should close the BinaryIO manually
@@ -1735,11 +1752,6 @@ class S3Path(URIPath):
         :returns: BinaryIO
         """
         s3_url = self.path_with_protocol
-        if followlinks:
-            try:
-                s3_url = self.readlink().path_with_protocol
-            except S3NotALinkError:
-                pass
         bucket, key = parse_s3_url(s3_url)
         if not bucket:
             raise S3BucketNotFoundError("Empty bucket name: %r" % s3_url)
@@ -1973,8 +1985,13 @@ class S3Path(URIPath):
 
             prefix = _become_prefix(key)
             client = self._client
-            suppress_errors = S3BucketNotFoundError if missing_ok else ()
-            with raise_s3_error(self.path_with_protocol, suppress_errors):
+
+            def suppress_error_callback(e):
+                if missing_ok and isinstance(e, S3BucketNotFoundError):
+                    return True
+                return False
+
+            with raise_s3_error(self.path_with_protocol, suppress_error_callback):
                 for resp in _list_objects_recursive(client, bucket, prefix):
                     for content in resp.get("Contents", []):
                         full_path = s3_path_join(
@@ -2003,9 +2020,7 @@ class S3Path(URIPath):
             S3FileNotFoundError("No match any file in: %r" % self.path_with_protocol),
         )
 
-    def scandir(
-        self, followlinks: bool = False, missing_ok: bool = False
-    ) -> Iterator[FileEntry]:
+    def scandir(self) -> Iterator[FileEntry]:
         """
         Get all contents of given s3_url, the order of result is in arbitrary order.
 
@@ -2024,67 +2039,65 @@ class S3Path(URIPath):
         # In order to do check on creation,
         # we need to wrap the iterator in another function
         def create_generator() -> Iterator[FileEntry]:
-            suppress_errors = S3BucketNotFoundError if missing_ok else ()
-            with raise_s3_error(self.path_with_protocol, suppress_errors):
-                prefix = _become_prefix(key)
-                client = self._client
+            prefix = _become_prefix(key)
+            client = self._client
 
-                def generate_s3_path(protocol: str, bucket: str, key: str) -> str:
-                    return "%s://%s/%s" % (protocol, bucket, key)
+            def generate_s3_path(protocol: str, bucket: str, key: str) -> str:
+                return "%s://%s/%s" % (protocol, bucket, key)
 
-                if not bucket and not key:  # list buckets
-                    response = client.list_buckets()
-                    for content in response["Buckets"]:
-                        yield FileEntry(
-                            content["Name"],
-                            f"s3://{content['Name']}",
-                            StatResult(
-                                ctime=content["CreationDate"].timestamp(),
-                                isdir=True,
-                                extra=content,
-                            ),
-                        )
-                    return
+            if not bucket and not key:  # list buckets
+                response = client.list_buckets()
+                for content in response["Buckets"]:
+                    yield FileEntry(
+                        content["Name"],
+                        f"s3://{content['Name']}",
+                        StatResult(
+                            ctime=content["CreationDate"].timestamp(),
+                            isdir=True,
+                            extra=content,
+                        ),
+                    )
+                return
 
-                for resp in _list_objects_recursive(client, bucket, prefix, "/"):
-                    for common_prefix in resp.get("CommonPrefixes", []):
-                        yield FileEntry(
-                            common_prefix["Prefix"][len(prefix) : -1],
-                            generate_s3_path(
-                                self._protocol_with_profile,
-                                bucket,
-                                common_prefix["Prefix"],
-                            ),
-                            StatResult(isdir=True, extra=common_prefix),
-                        )
-                    for content in resp.get("Contents", []):
-                        src_url = generate_s3_path(
-                            self._protocol_with_profile, bucket, content["Key"]
-                        )
+            for resp in _list_objects_recursive(client, bucket, prefix, "/"):
+                for common_prefix in resp.get("CommonPrefixes", []):
+                    yield FileEntry(
+                        common_prefix["Prefix"][len(prefix) : -1],
+                        generate_s3_path(
+                            self._protocol_with_profile,
+                            bucket,
+                            common_prefix["Prefix"],
+                        ),
+                        StatResult(isdir=True, extra=common_prefix),
+                    )
+                for content in resp.get("Contents", []):
+                    src_url = generate_s3_path(
+                        self._protocol_with_profile, bucket, content["Key"]
+                    )
+                    yield FileEntry(
+                        content["Key"][len(prefix) :],
+                        src_url,
+                        _make_stat_without_metadata(content, self.from_path(src_url)),
+                    )
 
-                        if followlinks:
-                            try:
-                                origin_path = self.from_path(src_url).readlink()
-                                yield FileEntry(
-                                    origin_path.name,
-                                    origin_path.path_with_protocol,
-                                    origin_path.lstat(),
-                                )
-                                continue
-                            except S3NotALinkError:
-                                pass
+        def missing_ok_generator():
+            def suppress_error_callback(e):
+                if isinstance(e, S3BucketNotFoundError):
+                    return False
+                elif not key and isinstance(e, S3FileNotFoundError):
+                    return True
+                return False
 
-                        yield FileEntry(
-                            content["Key"][len(prefix) :], src_url, _make_stat(content)
-                        )
+            with raise_s3_error(self.path_with_protocol, suppress_error_callback):
+                yield from _create_missing_ok_generator(
+                    create_generator(),
+                    missing_ok=False,
+                    error=S3FileNotFoundError(
+                        "No such directory: %r" % self.path_with_protocol
+                    ),
+                )
 
-        return ContextIterator(
-            _create_missing_ok_generator(
-                create_generator(),
-                missing_ok,
-                S3FileNotFoundError("No such directory: %r" % self.path_with_protocol),
-            )
-        )
+        return ContextIterator(missing_ok_generator())
 
     def _get_dir_stat(self) -> StatResult:
         """

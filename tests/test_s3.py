@@ -613,10 +613,15 @@ def test_s3_scandir_internal(truncating_client, mocker):
 
     # walk the dir that is not exist
     # expect: empty generator
-    assert list(s3.s3_scandir("s3://notExistBucket")) == []
-    assert list(s3.s3_scandir("s3://bucketA/notExistFile")) == []
-    assert list(s3.s3_scandir("s3+test://notExistBucket")) == []
-    assert list(s3.s3_scandir("s3+test://bucketA/notExistFile")) == []
+    with pytest.raises(FileNotFoundError):
+        list(s3.s3_scandir("s3://notExistBucket"))
+    with pytest.raises(FileNotFoundError):
+        list(s3.s3_scandir("s3://bucketA/notExistFile"))
+    assert list(s3.s3_scandir("s3://bucketB/")) == []
+    with pytest.raises(FileNotFoundError):
+        list(s3.s3_scandir("s3+test://notExistBucket"))
+    with pytest.raises(FileNotFoundError):
+        list(s3.s3_scandir("s3+test://bucketA/notExistFile"))
 
     def dir_entrys_to_tuples(entries: Iterable[FileEntry]) -> List[Tuple[str, bool]]:
         return sorted([(entry.name, entry.is_dir()) for entry in entries])
@@ -652,12 +657,6 @@ def test_s3_scandir_internal(truncating_client, mocker):
 
     with pytest.raises(NotADirectoryError):
         s3.s3_scandir("s3://bucketA/fileAA")
-    with pytest.raises(FileNotFoundError):
-        s3.s3_scandir("s3://notExistBucket", missing_ok=False)
-    with pytest.raises(FileNotFoundError):
-        s3.s3_scandir("s3://bucketA/notExistFolder", missing_ok=False)
-    with pytest.raises(S3BucketNotFoundError):
-        s3.s3_scandir("s3:///notExistFolder", missing_ok=False)
 
 
 def test_s3_scandir(truncating_client, mocker):
@@ -694,10 +693,6 @@ def test_s3_scandir(truncating_client, mocker):
 
     with pytest.raises(NotADirectoryError):
         s3.s3_scandir("s3://bucketA/fileAA")
-    with pytest.raises(FileNotFoundError):
-        s3.s3_scandir("s3://notExistBucket", missing_ok=False)
-    with pytest.raises(FileNotFoundError):
-        s3.s3_scandir("s3://bucketA/notExistFolder", missing_ok=False)
 
 
 def test_s3_listdir(truncating_client, mocker):
@@ -2715,7 +2710,7 @@ def test_s3_save_as_invalid(s3_empty_client):
 def test_s3_load_from(s3_empty_client):
     s3_empty_client.create_bucket(Bucket="bucket")
     s3_empty_client.put_object(Bucket="bucket", Key="key", Body=b"value")
-    content = s3.s3_load_from("s3://bucket/key", followlinks=True)
+    content = s3.s3_load_from("s3://bucket/key")
     assert content.read() == b"value"
 
 
@@ -3445,7 +3440,6 @@ def test_symlink_relevant_functions(s3_empty_client, fs):
     assert s3_path.S3Path("s3://bucket")._s3_get_metadata() == {}
     assert s3.s3_islink(dst_url) is True
     assert s3.s3_exists(A_dst_dst_url) is True
-    assert s3.s3_access(A_dst_url, Access.READ, followlinks=True) is True
     assert s3.s3_getsize(dst_url, follow_symlinks=False) == 0
     assert s3.s3_getsize(dst_url, follow_symlinks=True) == s3.s3_getsize(
         src_url, follow_symlinks=True
@@ -3457,11 +3451,8 @@ def test_symlink_relevant_functions(s3_empty_client, fs):
         src_url, followlinks=True
     )
 
-    assert s3.s3_load_from(dst_url, followlinks=True).read() == content
-    assert s3.s3_load_from(dst_url, followlinks=False).read() == b""
-    assert s3.s3_load_content(dst_url, followlinks=True) == content
-    assert s3.s3_load_content(dst_url, followlinks=False) == b""
-    assert s3.s3_load_content(copy_url, followlinks=True) == content
+    assert s3.s3_load_from(dst_url).read() == b""
+    assert s3.s3_load_content(dst_url) == b""
 
     assert list(s3.s3_scan_stat(A_dst_url))[0].is_symlink() is True
     s3.s3_sync(A_dst_url, sync_url)
@@ -3488,7 +3479,7 @@ def test_symlink_relevant_functions(s3_empty_client, fs):
         elif scan_entry.name == A_dst_dst_url:
             scan_entry.stat.is_symlink() is True
 
-    file_entries = list(s3.s3_scandir("s3://bucketA/pass/", followlinks=True))
+    file_entries = list(s3.s3_scandir("s3://bucketA/pass/"))
     assert len(file_entries) == 3
     for file_entry in file_entries:
         if file_entry.name == "src":
@@ -3539,16 +3530,7 @@ def test_symlink_relevant_functions(s3_empty_client, fs):
     )
 
     assert list(s3.s3_glob_stat(dst_url))[0].is_symlink() is True
-    assert list(s3.s3_glob_stat(dst_url, followlinks=True))[0].is_symlink() is True
     assert list(s3.s3_glob_stat(src_url))[0].is_symlink() is False
-    assert (
-        list(s3.s3_glob_stat(dst_url, followlinks=True))[0].stat.size
-        == list(s3.s3_glob_stat(src_url))[0].stat.size
-    )
-    assert (
-        list(s3.s3_glob_stat(dst_url, followlinks=True))[0].stat.mtime
-        == list(s3.s3_glob_stat(src_url))[0].stat.mtime
-    )
 
     s3.s3_rename(A_dst_url, A_rename_url)
     s3.s3_islink(A_rename_url)
@@ -3558,15 +3540,12 @@ def test_symlink_relevant_functions(s3_empty_client, fs):
     s3.s3_remove(A_src_url)
     s3.s3_exists(A_dst_url) is True
     s3.s3_exists(A_dst_url, followlinks=True) is False
-    assert s3.s3_access(A_dst_url, Access.READ, followlinks=True) == s3.s3_access(
-        A_src_url, Access.READ, followlinks=True
-    )
 
     s3.s3_remove(A_rename_url)
     s3.s3_remove(A_dst_dst_url)
     s3.s3_remove(sync_url)
     s3_empty_client.delete_bucket(Bucket="bucketA")
-    assert s3.s3_access(A_dst_dst_url, Access.READ, followlinks=True) is False
+    assert s3.s3_access(A_dst_dst_url, Access.READ) is False
 
 
 def test_s3_concat_small_file(s3_empty_client):

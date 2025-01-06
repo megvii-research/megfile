@@ -136,7 +136,7 @@ def hdfs_listdir(path: PathLike) -> List[str]:
     return HdfsPath(path).listdir()
 
 
-def hdfs_load_from(path: PathLike, followlinks: bool = False) -> BinaryIO:
+def hdfs_load_from(path: PathLike) -> BinaryIO:
     """Read all content in binary on specified path and write into memory
 
     User should close the BinaryIO manually
@@ -144,7 +144,7 @@ def hdfs_load_from(path: PathLike, followlinks: bool = False) -> BinaryIO:
     :param path: Given path
     :returns: BinaryIO
     """
-    return HdfsPath(path).load(followlinks)
+    return HdfsPath(path).load()
 
 
 def hdfs_move(src_path: PathLike, dst_path: PathLike, overwrite: bool = True) -> None:
@@ -209,7 +209,7 @@ def hdfs_scan_stat(
     return HdfsPath(path).scan_stat(missing_ok, followlinks)
 
 
-def hdfs_scandir(path: PathLike, followlinks: bool = False) -> Iterator[FileEntry]:
+def hdfs_scandir(path: PathLike) -> Iterator[FileEntry]:
     """
     Get all contents of given path, the order of result is in arbitrary order.
 
@@ -217,7 +217,7 @@ def hdfs_scandir(path: PathLike, followlinks: bool = False) -> Iterator[FileEntr
     :returns: All contents have prefix of path
     :raises: FileNotFoundError, NotADirectoryError
     """
-    return HdfsPath(path).scandir(followlinks)
+    return HdfsPath(path).scandir()
 
 
 def hdfs_unlink(path: PathLike, missing_ok: bool = False) -> None:

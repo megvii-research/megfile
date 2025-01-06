@@ -706,7 +706,7 @@ class FSPath(URIPath):
             )
         )
 
-    def md5(self, recalculate: bool = False, followlinks: bool = True):
+    def md5(self, recalculate: bool = False, followlinks: bool = False):
         """
         Calculate the md5 value of the file
 

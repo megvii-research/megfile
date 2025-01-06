@@ -341,7 +341,7 @@ class HdfsPath(URIPath):
         for filename in self.listdir():
             yield self.joinpath(filename)
 
-    def load(self, followlinks: bool = False) -> BinaryIO:
+    def load(self) -> BinaryIO:
         """Read all content in binary on specified path and write into memory
 
         User should close the BinaryIO manually
@@ -476,7 +476,7 @@ class HdfsPath(URIPath):
                         ),
                     )
 
-    def scandir(self, followlinks: bool = False) -> Iterator[FileEntry]:
+    def scandir(self) -> Iterator[FileEntry]:
         """
         Get all contents of given path, the order of result is in arbitrary order.
 

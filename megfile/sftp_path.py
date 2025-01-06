@@ -922,7 +922,7 @@ class SftpPath(URIPath):
         path = self._client.normalize(self._real_path)
         return self._generate_path_object(path, resolve=True)
 
-    def md5(self, recalculate: bool = False, followlinks: bool = True):
+    def md5(self, recalculate: bool = False, followlinks: bool = False):
         """
         Calculate the md5 value of the file
 
@@ -997,6 +997,7 @@ class SftpPath(URIPath):
     def open(
         self,
         mode: str = "r",
+        *,
         buffering=-1,
         encoding: Optional[str] = None,
         errors: Optional[str] = None,
@@ -1027,7 +1028,7 @@ class SftpPath(URIPath):
             )  # pytype: disable=wrong-arg-types
         return fileobj  # pytype: disable=bad-return-type
 
-    def chmod(self, mode: int, follow_symlinks: bool = True):
+    def chmod(self, mode: int, *, follow_symlinks: bool = True):
         """
         Change the file mode and permissions, like os.chmod().
 
