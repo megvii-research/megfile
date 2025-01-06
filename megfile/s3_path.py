@@ -564,11 +564,6 @@ def _s3_glob_stat_single_path(
         return False
 
     def create_generator(_s3_pathname) -> Iterator[FileEntry]:
-        top_dir_with_profile = top_dir
-        if profile_name:
-            top_dir_with_profile = f"s3+{profile_name}://{top_dir[5:]}"
-        if not S3Path(top_dir_with_profile).exists():
-            return
         if not has_magic(_s3_pathname):
             _s3_pathname_obj = S3Path(_s3_pathname)
             if _s3_pathname_obj.is_file():
@@ -589,7 +584,7 @@ def _s3_glob_stat_single_path(
         bucket, key = parse_s3_url(top_dir)
         prefix = _become_prefix(key)
         client = get_s3_client_with_cache(profile_name=profile_name)
-        with raise_s3_error(_s3_pathname):
+        with raise_s3_error(_s3_pathname, S3BucketNotFoundError):
             for resp in _list_objects_recursive(client, bucket, prefix, delimiter):
                 for content in resp.get("Contents", []):
                     path = s3_path_join("s3://", bucket, content["Key"])
@@ -1123,10 +1118,9 @@ def s3_download(
             "Empty bucket name: %r" % src_url.path_with_protocol
         )
 
-    if not src_url.exists():
-        raise S3FileNotFoundError("File not found: %r" % src_url.path_with_protocol)
-
     if not src_url.is_file():
+        if not src_url.is_dir():
+            raise S3FileNotFoundError("File not found: %r" % src_url.path_with_protocol)
         raise S3IsADirectoryError("Is a directory: %r" % src_url.path_with_protocol)
 
     dst_directory = os.path.dirname(dst_path.path_without_protocol)  # pyre-ignore[6]
@@ -1702,24 +1696,26 @@ class S3Path(URIPath):
             return False
         return True
 
-    def listdir(self, followlinks: bool = False) -> List[str]:
+    def listdir(self, followlinks: bool = False, missing_ok: bool = True) -> List[str]:
         """
         Get all contents of given s3_url. The result is in ascending alphabetical order.
 
         :returns: All contents have prefix of s3_url in ascending alphabetical order
         :raises: S3FileNotFoundError, S3NotADirectoryError
         """
-        entries = list(self.scandir(followlinks=followlinks))
+        entries = list(self.scandir(followlinks=followlinks, missing_ok=missing_ok))
         return sorted([entry.name for entry in entries])
 
-    def iterdir(self, followlinks: bool = False) -> Iterator["S3Path"]:
+    def iterdir(
+        self, followlinks: bool = False, missing_ok: bool = True
+    ) -> Iterator["S3Path"]:
         """
         Get all contents of given s3_url. The result is in ascending alphabetical order.
 
         :returns: All contents have prefix of s3_url in ascending alphabetical order
         :raises: S3FileNotFoundError, S3NotADirectoryError
         """
-        for path in self.listdir(followlinks=followlinks):
+        for path in self.listdir(followlinks=followlinks, missing_ok=missing_ok):
             yield self.joinpath(path)
 
     def load(self, followlinks: bool = False) -> BinaryIO:
@@ -1959,17 +1955,8 @@ class S3Path(URIPath):
             raise UnsupportedError("Scan whole s3", self.path_with_protocol)
 
         def create_generator() -> Iterator[FileEntry]:
-            if not self.is_dir():
-                if self.is_file():
-                    # On s3, file and directory may be of same name and level, so need
-                    # to test the path is file or directory
-                    yield FileEntry(
-                        self.name,
-                        fspath(self.path_with_protocol),
-                        self.stat(follow_symlinks=followlinks),
-                    )
-                return
-
+            # On s3, file and directory may be of same name and level, so need
+            # to test the path is file or directory
             if not key.endswith("/") and self.is_file():
                 yield FileEntry(
                     self.name,
@@ -1979,7 +1966,8 @@ class S3Path(URIPath):
 
             prefix = _become_prefix(key)
             client = self._client
-            with raise_s3_error(self.path_with_protocol):
+            suppress_errors = S3BucketNotFoundError if missing_ok else ()
+            with raise_s3_error(self.path_with_protocol, suppress_errors):
                 for resp in _list_objects_recursive(client, bucket, prefix):
                     for content in resp.get("Contents", []):
                         full_path = s3_path_join(
@@ -2008,7 +1996,9 @@ class S3Path(URIPath):
             S3FileNotFoundError("No match any file in: %r" % self.path_with_protocol),
         )
 
-    def scandir(self, followlinks: bool = False) -> Iterator[FileEntry]:
+    def scandir(
+        self, followlinks: bool = False, missing_ok: bool = False
+    ) -> Iterator[FileEntry]:
         """
         Get all contents of given s3_url, the order of result is not guaranteed.
 
@@ -2023,15 +2013,14 @@ class S3Path(URIPath):
 
         if self.is_file():
             raise S3NotADirectoryError("Not a directory: %r" % self.path_with_protocol)
-        elif not self.is_dir():
-            raise S3FileNotFoundError("No such directory: %r" % self.path_with_protocol)
-        prefix = _become_prefix(key)
-        client = self._client
 
         # In order to do check on creation,
         # we need to wrap the iterator in another function
         def create_generator() -> Iterator[FileEntry]:
-            with raise_s3_error(self.path_with_protocol):
+            suppress_errors = S3BucketNotFoundError if missing_ok else ()
+            with raise_s3_error(self.path_with_protocol, suppress_errors):
+                prefix = _become_prefix(key)
+                client = self._client
 
                 def generate_s3_path(protocol: str, bucket: str, key: str) -> str:
                     return "%s://%s/%s" % (protocol, bucket, key)
@@ -2082,7 +2071,13 @@ class S3Path(URIPath):
                             content["Key"][len(prefix) :], src_url, _make_stat(content)
                         )
 
-        return ContextIterator(create_generator())
+        return ContextIterator(
+            _create_missing_ok_generator(
+                create_generator(),
+                missing_ok,
+                S3FileNotFoundError("No such directory: %r" % self.path_with_protocol),
+            )
+        )
 
     def _get_dir_stat(self) -> StatResult:
         """
@@ -2097,23 +2092,23 @@ class S3Path(URIPath):
 
         :returns: An int indicates size in Bytes
         """
-        if not self.is_dir():
-            raise S3FileNotFoundError(
-                "No such file or directory: %r" % self.path_with_protocol
-            )
-
         bucket, key = parse_s3_url(self.path_with_protocol)
         prefix = _become_prefix(key)
         client = self._client
-        size = 0
-        mtime = 0.0
+        count, size, mtime = 0, 0, 0.0
         with raise_s3_error(self.path_with_protocol):
             for resp in _list_objects_recursive(client, bucket, prefix):
                 for content in resp.get("Contents", []):
+                    count += 1
                     size += content["Size"]
                     last_modified = content["LastModified"].timestamp()
                     if mtime < last_modified:
                         mtime = last_modified
+
+        if count == 0:
+            raise S3FileNotFoundError(
+                "No such file or directory: %r" % self.path_with_protocol
+            )
 
         return StatResult(size=size, mtime=mtime, isdir=True)
 
@@ -2219,29 +2214,28 @@ class S3Path(URIPath):
         if not bucket:
             raise UnsupportedError("Walk whole s3", self.path_with_protocol)
 
-        if not self.is_dir():
-            return
+        with raise_s3_error(self.path_with_protocol, S3BucketNotFoundError):
+            stack = [key]
+            client = self._client
+            while len(stack) > 0:
+                current = _become_prefix(stack.pop())
+                dirs, files = [], []
+                for resp in _list_objects_recursive(client, bucket, current, "/"):
+                    for common_prefix in resp.get("CommonPrefixes", []):
+                        dirs.append(common_prefix["Prefix"][:-1])
+                    for content in resp.get("Contents", []):
+                        files.append(content["Key"])
 
-        stack = [key]
-        client = self._client
-        while len(stack) > 0:
-            current = _become_prefix(stack.pop())
-            dirs, files = [], []
-            for resp in _list_objects_recursive(client, bucket, current, "/"):
-                for common_prefix in resp.get("CommonPrefixes", []):
-                    dirs.append(common_prefix["Prefix"][:-1])
-                for content in resp.get("Contents", []):
-                    files.append(content["Key"])
+                dirs = sorted(dirs)
+                stack.extend(reversed(dirs))
 
-            dirs = sorted(dirs)
-            stack.extend(reversed(dirs))
-
-            root = s3_path_join(f"{self._protocol_with_profile}://", bucket, current)[
-                :-1
-            ]
-            dirs = [path[len(current) :] for path in dirs]
-            files = sorted(path[len(current) :] for path in files)
-            yield root, dirs, files
+                root = s3_path_join(
+                    f"{self._protocol_with_profile}://", bucket, current
+                )[:-1]
+                dirs = [path[len(current) :] for path in dirs]
+                files = sorted(path[len(current) :] for path in files)
+                if files or dirs or not current:
+                    yield root, dirs, files
 
     def md5(self, recalculate: bool = False, followlinks: bool = False) -> str:
         """
@@ -2308,9 +2302,6 @@ class S3Path(URIPath):
 
         if not src_bucket:
             raise S3BucketNotFoundError("Empty bucket name: %r" % src_url)
-        if self.is_dir():
-            raise S3IsADirectoryError("Is a directory: %r" % src_url)
-
         if not dst_bucket:
             raise S3BucketNotFoundError("Empty bucket name: %r" % dst_url)
         if not dst_key or dst_key.endswith("/"):
@@ -2323,13 +2314,18 @@ class S3Path(URIPath):
             except S3NotALinkError:
                 pass
 
-        with raise_s3_error(f"'{src_url}' or '{dst_url}'"):
-            self._client.copy(
-                {"Bucket": src_bucket, "Key": src_key},
-                Bucket=dst_bucket,
-                Key=dst_key,
-                Callback=callback,
-            )
+        try:
+            with raise_s3_error(f"'{src_url}' or '{dst_url}'"):
+                self._client.copy(
+                    {"Bucket": src_bucket, "Key": src_key},
+                    Bucket=dst_bucket,
+                    Key=dst_key,
+                    Callback=callback,
+                )
+        except S3FileNotFoundError:
+            if self.is_dir():
+                raise S3IsADirectoryError("Is a directory: %r" % src_url)
+            raise
 
     def sync(
         self,
