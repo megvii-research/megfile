@@ -596,20 +596,21 @@ class SftpPath(URIPath):
 
         :returns: All contents have in the path in ascending alphabetical order
         """
-        if not self.is_dir():
+        stat = self.stat(follow_symlinks=False)
+        if not S_ISDIR(stat.st_mode):
             raise NotADirectoryError(f"Not a directory: '{self.path_with_protocol}'")
         return sorted(self._client.listdir(self._real_path))
 
     def iterdir(self) -> Iterator["SftpPath"]:
         """
-        Get all contents of given sftp path.
-        The result is in ascending alphabetical order.
+        Get all contents of given sftp path. The order of result is in arbitrary order..
 
-        :returns: All contents have in the path in ascending alphabetical order
+        :returns: All contents have in the path.
         """
-        if not self.is_dir():
+        stat = self.stat(follow_symlinks=False)
+        if not S_ISDIR(stat.st_mode):
             raise NotADirectoryError(f"Not a directory: '{self.path_with_protocol}'")
-        for path in self.listdir():
+        for path in self._client.listdir(self._real_path):
             yield self.joinpath(path)
 
     def load(self) -> BinaryIO:

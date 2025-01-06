@@ -725,9 +725,9 @@ def test_s3_listdir(truncating_client, mocker):
     with pytest.raises(NotADirectoryError):
         s3.s3_listdir("s3://bucketA/fileAA")
     with pytest.raises(FileNotFoundError):
-        s3.s3_listdir("s3://notExistBucket", missing_ok=False)
+        s3.s3_listdir("s3://notExistBucket")
     with pytest.raises(FileNotFoundError):
-        s3.s3_listdir("s3://bucketA/notExistFolder", missing_ok=False)
+        s3.s3_listdir("s3://bucketA/notExistFolder")
 
 
 def test_s3_isfile(s3_setup):
@@ -1345,10 +1345,6 @@ def test_s3_makedirs(mocker, s3_setup):
     assert "s3://bucketA/folderAB" in str(error.value)
 
     s3.s3_makedirs("s3://bucketA/folderAB", exist_ok=True)
-
-    with pytest.raises(FileExistsError) as error:
-        s3.s3_makedirs("s3://bucketA/fileAA", exist_ok=True)
-    assert "s3://bucketA/fileAA" in str(error.value)
 
 
 def test_s3_makedirs_no_bucket(mocker, s3_empty_client):

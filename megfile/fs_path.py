@@ -388,17 +388,21 @@ class FSPath(URIPath):
         :returns: All contents have in the path in ascending alphabetical order
         """
         self._check_int_path()
+        if not self.exists():
+            raise FileNotFoundError("No such directory: %r" % self.path)
+        elif not self.is_dir():
+            raise NotADirectoryError("Not a directory: %r" % self.path)
         return sorted(os.listdir(self.path_without_protocol))  # pyre-ignore[6]
 
     def iterdir(self) -> Iterator["FSPath"]:
         """
-        Get all contents of given fs path.
-        The result is in ascending alphabetical order.
+        Get all contents of given fs path. The order of result is in arbitrary order..
 
-        :returns: All contents have in the path in ascending alphabetical order
+        :returns: All contents have in the path.
         """
-        for path in self.listdir():
-            yield self.joinpath(path)
+        self._check_int_path()
+        for path in pathlib.Path(self.path_without_protocol).iterdir():
+            yield self.from_path(fspath(path))
 
     def load(self) -> BinaryIO:
         """Read all content on specified path and write into memory

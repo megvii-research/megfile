@@ -299,7 +299,12 @@ class HdfsPath(URIPath):
             Because hdfs symlink not support dir.
         :returns: True if path is hdfs directory, else False
         """
-        return self.stat().is_dir()
+        try:
+            stat = self.stat(follow_symlinks=followlinks)
+            return stat.is_dir()
+        except FileNotFoundError:
+            pass
+        return False
 
     def is_file(self, followlinks: bool = False) -> bool:
         """
@@ -307,28 +312,33 @@ class HdfsPath(URIPath):
 
         :returns: True if path is hdfs file, else False
         """
-        return self.stat().is_file()
+        try:
+            stat = self.stat(follow_symlinks=followlinks)
+            return stat.is_file()
+        except FileNotFoundError:
+            pass
+        return False
 
-    def listdir(self, followlinks: bool = False) -> List[str]:
+    def listdir(self) -> List[str]:
         """
         Get all contents of given path.
 
         :returns: All contents have prefix of path.
         :raises: FileNotFoundError, NotADirectoryError
         """
-        if not self.is_dir():
+        if not self.stat().is_dir():
             raise NotADirectoryError("Not a directory: %r" % self.path)
         with raise_hdfs_error(self.path_with_protocol):
-            return self._client.list(self.path_without_protocol)
+            return sorted(self._client.list(self.path_without_protocol))
 
-    def iterdir(self, followlinks: bool = False) -> Iterator["HdfsPath"]:
+    def iterdir(self) -> Iterator["HdfsPath"]:
         """
         Get all contents of given path.
 
         :returns: All contents have prefix of path.
         :raises: FileNotFoundError, NotADirectoryError
         """
-        for filename in self.listdir(followlinks=followlinks):
+        for filename in self.listdir():
             yield self.joinpath(filename)
 
     def load(self, followlinks: bool = False) -> BinaryIO:
@@ -468,7 +478,7 @@ class HdfsPath(URIPath):
 
     def scandir(self, followlinks: bool = False) -> Iterator[FileEntry]:
         """
-        Get all contents of given path, the order of result is not guaranteed.
+        Get all contents of given path, the order of result is in arbitrary order..
 
         :returns: All contents have prefix of path
         :raises: FileNotFoundError, NotADirectoryError

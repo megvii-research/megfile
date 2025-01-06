@@ -125,7 +125,7 @@ def hdfs_isfile(path: PathLike, followlinks: bool = False) -> bool:
     return HdfsPath(path).is_file(followlinks)
 
 
-def hdfs_listdir(path: PathLike, followlinks: bool = False) -> List[str]:
+def hdfs_listdir(path: PathLike) -> List[str]:
     """
     Get all contents of given path.
 
@@ -133,7 +133,7 @@ def hdfs_listdir(path: PathLike, followlinks: bool = False) -> List[str]:
     :returns: All contents have prefix of path.
     :raises: FileNotFoundError, NotADirectoryError
     """
-    return HdfsPath(path).listdir(followlinks)
+    return HdfsPath(path).listdir()
 
 
 def hdfs_load_from(path: PathLike, followlinks: bool = False) -> BinaryIO:
@@ -211,7 +211,7 @@ def hdfs_scan_stat(
 
 def hdfs_scandir(path: PathLike, followlinks: bool = False) -> Iterator[FileEntry]:
     """
-    Get all contents of given path, the order of result is not guaranteed.
+    Get all contents of given path, the order of result is in arbitrary order..
 
     :param path: Given path
     :returns: All contents have prefix of path

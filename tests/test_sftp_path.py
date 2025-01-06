@@ -86,7 +86,7 @@ def test_iterdir(sftp_mocker):
     with sftp.sftp_open("sftp://username@host//A/1.json", "w") as f:
         f.write("1.json")
 
-    assert list(SftpPath("sftp://username@host//A").iterdir()) == [
+    assert sorted(list(SftpPath("sftp://username@host//A").iterdir())) == [
         SftpPath("sftp://username@host//A/1.json"),
         SftpPath("sftp://username@host//A/a"),
         SftpPath("sftp://username@host//A/b"),

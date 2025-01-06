@@ -161,9 +161,7 @@ def s3_isfile(path: PathLike, followlinks: bool = False) -> bool:
     return S3Path(path).is_file(followlinks)
 
 
-def s3_listdir(
-    path: PathLike, followlinks: bool = False, missing_ok: bool = True
-) -> List[str]:
+def s3_listdir(path: PathLike) -> List[str]:
     """
     Get all contents of given s3_url. The result is in ascending alphabetical order.
 
@@ -171,7 +169,7 @@ def s3_listdir(
     :returns: All contents have prefix of s3_url in ascending alphabetical order
     :raises: S3FileNotFoundError, S3NotADirectoryError
     """
-    return S3Path(path).listdir(followlinks, missing_ok)
+    return S3Path(path).listdir()
 
 
 def s3_load_from(path: PathLike, followlinks: bool = False) -> BinaryIO:
@@ -266,7 +264,7 @@ def s3_scandir(
     path: PathLike, followlinks: bool = False, missing_ok: bool = True
 ) -> Iterator[FileEntry]:
     """
-    Get all contents of given s3_url, the order of result is not guaranteed.
+    Get all contents of given s3_url, the order of result is in arbitrary order..
 
     :param path: Given path
     :returns: All contents have prefix of s3_url

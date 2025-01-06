@@ -1696,27 +1696,36 @@ class S3Path(URIPath):
             return False
         return True
 
-    def listdir(self, followlinks: bool = False, missing_ok: bool = True) -> List[str]:
+    def listdir(self) -> List[str]:
         """
         Get all contents of given s3_url. The result is in ascending alphabetical order.
 
+        :param missing_ok: if True and target directory not exists return empty list,
+            default is True.
         :returns: All contents have prefix of s3_url in ascending alphabetical order
         :raises: S3FileNotFoundError, S3NotADirectoryError
         """
-        entries = list(self.scandir(followlinks=followlinks, missing_ok=missing_ok))
+        try:
+            entries = list(self.scandir(followlinks=False, missing_ok=False))
+        except S3BucketNotFoundError:
+            raise
+        except S3FileNotFoundError:
+            _, key = parse_s3_url(self.path_with_protocol)
+            if not key:
+                return []
+            raise
+
         return sorted([entry.name for entry in entries])
 
-    def iterdir(
-        self, followlinks: bool = False, missing_ok: bool = True
-    ) -> Iterator["S3Path"]:
+    def iterdir(self) -> Iterator["S3Path"]:
         """
-        Get all contents of given s3_url. The result is in ascending alphabetical order.
+        Get all contents of given s3_url. The order of result is in arbitrary order..
 
-        :returns: All contents have prefix of s3_url in ascending alphabetical order
+        :returns: All contents have prefix of s3_url
         :raises: S3FileNotFoundError, S3NotADirectoryError
         """
-        for path in self.listdir(followlinks=followlinks, missing_ok=missing_ok):
-            yield self.joinpath(path)
+        for entry in self.scandir(followlinks=False, missing_ok=False):
+            yield self.joinpath(entry.name)
 
     def load(self, followlinks: bool = False) -> BinaryIO:
         """Read all content in binary on specified path and write into memory
@@ -1796,8 +1805,6 @@ class S3Path(URIPath):
         if not self.hasbucket():
             raise S3BucketNotFoundError("No such bucket: %r" % self.path_with_protocol)
         if exist_ok:
-            if self.is_file():
-                raise S3FileExistsError("File exists: %r" % self.path_with_protocol)
             return
         if self.exists():
             raise S3FileExistsError("File exists: %r" % self.path_with_protocol)
@@ -2000,10 +2007,10 @@ class S3Path(URIPath):
         self, followlinks: bool = False, missing_ok: bool = False
     ) -> Iterator[FileEntry]:
         """
-        Get all contents of given s3_url, the order of result is not guaranteed.
+        Get all contents of given s3_url, the order of result is in arbitrary order..
 
         :returns: All contents have prefix of s3_url
-        :raises: S3FileNotFoundError, S3NotADirectoryError
+        :raises: S3BucketNotFoundError, S3FileNotFoundError, S3NotADirectoryError
         """
         bucket, key = parse_s3_url(self.path_with_protocol)
         if not bucket and key:
