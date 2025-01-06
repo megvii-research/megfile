@@ -397,7 +397,9 @@ class FSPath(URIPath):
         :returns: All contents have in the path.
         """
         self._check_int_path()
-        for path in pathlib.Path(self.path_without_protocol).iterdir():
+        for path in pathlib.Path(
+            self.path_without_protocol  # pyre-ignore[6]
+        ).iterdir():
             yield self.from_path(fspath(path))
 
     def load(self) -> BinaryIO:
