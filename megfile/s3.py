@@ -264,7 +264,7 @@ def s3_scandir(
     path: PathLike, followlinks: bool = False, missing_ok: bool = True
 ) -> Iterator[FileEntry]:
     """
-    Get all contents of given s3_url, the order of result is in arbitrary order..
+    Get all contents of given s3_url, the order of result is in arbitrary order.
 
     :param path: Given path
     :returns: All contents have prefix of s3_url

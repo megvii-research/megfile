@@ -605,7 +605,7 @@ class SftpPath(URIPath):
 
     def iterdir(self) -> Iterator["SftpPath"]:
         """
-        Get all contents of given sftp path. The order of result is in arbitrary order..
+        Get all contents of given sftp path. The order of result is in arbitrary order.
 
         :returns: All contents have in the path.
         """

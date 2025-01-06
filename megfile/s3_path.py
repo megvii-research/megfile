@@ -1719,7 +1719,7 @@ class S3Path(URIPath):
 
     def iterdir(self) -> Iterator["S3Path"]:
         """
-        Get all contents of given s3_url. The order of result is in arbitrary order..
+        Get all contents of given s3_url. The order of result is in arbitrary order.
 
         :returns: All contents have prefix of s3_url
         :raises: S3FileNotFoundError, S3NotADirectoryError
@@ -2007,7 +2007,7 @@ class S3Path(URIPath):
         self, followlinks: bool = False, missing_ok: bool = False
     ) -> Iterator[FileEntry]:
         """
-        Get all contents of given s3_url, the order of result is in arbitrary order..
+        Get all contents of given s3_url, the order of result is in arbitrary order.
 
         :returns: All contents have prefix of s3_url
         :raises: S3BucketNotFoundError, S3FileNotFoundError, S3NotADirectoryError

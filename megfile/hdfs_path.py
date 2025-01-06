@@ -478,7 +478,7 @@ class HdfsPath(URIPath):
 
     def scandir(self, followlinks: bool = False) -> Iterator[FileEntry]:
         """
-        Get all contents of given path, the order of result is in arbitrary order..
+        Get all contents of given path, the order of result is in arbitrary order.
 
         :returns: All contents have prefix of path
         :raises: FileNotFoundError, NotADirectoryError

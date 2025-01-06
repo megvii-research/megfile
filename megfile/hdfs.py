@@ -211,7 +211,7 @@ def hdfs_scan_stat(
 
 def hdfs_scandir(path: PathLike, followlinks: bool = False) -> Iterator[FileEntry]:
     """
-    Get all contents of given path, the order of result is in arbitrary order..
+    Get all contents of given path, the order of result is in arbitrary order.
 
     :param path: Given path
     :returns: All contents have prefix of path

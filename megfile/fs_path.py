@@ -392,7 +392,7 @@ class FSPath(URIPath):
 
     def iterdir(self) -> Iterator["FSPath"]:
         """
-        Get all contents of given fs path. The order of result is in arbitrary order..
+        Get all contents of given fs path. The order of result is in arbitrary order.
 
         :returns: All contents have in the path.
         """
