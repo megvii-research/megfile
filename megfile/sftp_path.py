@@ -597,7 +597,9 @@ class SftpPath(URIPath):
         :returns: All contents have in the path in ascending alphabetical order
         """
         stat = self.stat(follow_symlinks=False)
-        if not S_ISDIR(stat.st_mode):
+        if stat.is_symlink():
+            return self.readlink().listdir()
+        if not stat.is_dir():
             raise NotADirectoryError(f"Not a directory: '{self.path_with_protocol}'")
         return sorted(self._client.listdir(self._real_path))
 
@@ -608,7 +610,9 @@ class SftpPath(URIPath):
         :returns: All contents have in the path.
         """
         stat = self.stat(follow_symlinks=False)
-        if not S_ISDIR(stat.st_mode):
+        if stat.is_symlink():
+            return self.readlink().iterdir()
+        if not stat.is_dir():
             raise NotADirectoryError(f"Not a directory: '{self.path_with_protocol}'")
         for path in self._client.listdir(self._real_path):
             yield self.joinpath(path)

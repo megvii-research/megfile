@@ -388,10 +388,6 @@ class FSPath(URIPath):
         :returns: All contents have in the path in ascending alphabetical order
         """
         self._check_int_path()
-        if not self.exists():
-            raise FileNotFoundError("No such directory: %r" % self.path)
-        elif not self.is_dir():
-            raise NotADirectoryError("Not a directory: %r" % self.path)
         return sorted(os.listdir(self.path_without_protocol))  # pyre-ignore[6]
 
     def iterdir(self) -> Iterator["FSPath"]:
