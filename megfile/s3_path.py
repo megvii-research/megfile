@@ -2012,7 +2012,7 @@ class S3Path(URIPath):
             S3FileNotFoundError("No match any file in: %r" % self.path_with_protocol),
         )
 
-    def scandir(self) -> Iterator[FileEntry]:
+    def scandir(self) -> ContextIterator:
         """
         Get all contents of given s3_url, the order of result is in arbitrary order.
 

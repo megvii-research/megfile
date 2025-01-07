@@ -12,7 +12,7 @@ from megfile.config import (
     READER_MAX_BUFFER_SIZE,
 )
 from megfile.errors import _create_missing_ok_generator, raise_hdfs_error
-from megfile.interfaces import FileEntry, PathLike, StatResult, URIPath
+from megfile.interfaces import ContextIterator, FileEntry, PathLike, StatResult, URIPath
 from megfile.lib.compat import fspath
 from megfile.lib.glob import FSFunc, iglob
 from megfile.lib.hdfs_prefetch_reader import HdfsPrefetchReader
@@ -476,28 +476,32 @@ class HdfsPath(URIPath):
                         ),
                     )
 
-    def scandir(self) -> Iterator[FileEntry]:
+    def scandir(self) -> ContextIterator:
         """
         Get all contents of given path, the order of result is in arbitrary order.
 
         :returns: All contents have prefix of path
         :raises: FileNotFoundError, NotADirectoryError
         """
-        with raise_hdfs_error(self.path_with_protocol):
-            for filename, stat_data in self._client.list(
-                self.path_without_protocol, status=True
-            ):
-                yield FileEntry(
-                    name=filename,
-                    path=self.joinpath(filename).path_with_protocol,
-                    stat=StatResult(
-                        size=stat_data["length"],
-                        mtime=stat_data["modificationTime"] / 1000,
-                        isdir=stat_data["type"] == "DIRECTORY",
-                        islnk=False,
-                        extra=stat_data,
-                    ),
-                )
+
+        def create_generator():
+            with raise_hdfs_error(self.path_with_protocol):
+                for filename, stat_data in self._client.list(
+                    self.path_without_protocol, status=True
+                ):
+                    yield FileEntry(
+                        name=filename,
+                        path=self.joinpath(filename).path_with_protocol,
+                        stat=StatResult(
+                            size=stat_data["length"],
+                            mtime=stat_data["modificationTime"] / 1000,
+                            isdir=stat_data["type"] == "DIRECTORY",
+                            islnk=False,
+                            extra=stat_data,
+                        ),
+                    )
+
+        return ContextIterator(create_generator())
 
     def unlink(self, missing_ok: bool = False) -> None:
         """

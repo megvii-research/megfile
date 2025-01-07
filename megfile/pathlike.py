@@ -615,7 +615,7 @@ class BasePath:
         """Return the names of the entries in the directory the path points to."""
         raise NotImplementedError('method "listdir" not implemented: %r' % self)
 
-    def scandir(self) -> Iterator[FileEntry]:
+    def scandir(self):
         """
         Return an iterator of FileEntry objects corresponding to the entries
         in the directory.

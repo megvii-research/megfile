@@ -570,7 +570,7 @@ class FSPath(URIPath):
                 "No match any file in: %r" % self.path_without_protocol
             )
 
-    def scandir(self) -> Iterator[FileEntry]:
+    def scandir(self) -> ContextIterator:
         """
         Get all content of given file path.
 

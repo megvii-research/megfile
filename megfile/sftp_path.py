@@ -807,7 +807,7 @@ class SftpPath(URIPath):
             FileNotFoundError("No match any file in: %r" % self.path_with_protocol),
         )
 
-    def scandir(self) -> Iterator[FileEntry]:
+    def scandir(self) -> ContextIterator:
         """
         Get all content of given file path.
 
