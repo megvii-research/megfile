@@ -2271,7 +2271,7 @@ class S3Path(URIPath):
             hash_md5 = hashlib.md5()  # nosec
             for file_name in self.listdir():
                 chunk = (
-                    S3Path(s3_path_join(self.path_with_protocol, file_name))
+                    self.joinpath(file_name)
                     .md5(recalculate=recalculate, followlinks=followlinks)
                     .encode()
                 )

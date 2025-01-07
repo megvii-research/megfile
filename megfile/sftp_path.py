@@ -610,7 +610,7 @@ class SftpPath(URIPath):
         """
         with self.scandir() as entries:
             for entry in entries:
-                yield self.from_path(entry.path)
+                yield self.joinpath(entry.name)
 
     def load(self) -> BinaryIO:
         """Read all content on specified path and write into memory
