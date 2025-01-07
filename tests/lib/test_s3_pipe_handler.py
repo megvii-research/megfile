@@ -46,6 +46,9 @@ def test_s3_pipe_handler_read(client):
         assert reader.tell() == 22
         assert reader.read() == b""
 
+    with pytest.raises(ValueError):
+        S3PipeHandler(BUCKET, KEY, "ab", s3_client=client)
+
 
 def test_s3_pipe_handler_write(client):
     with S3PipeHandler(BUCKET, KEY, "wb", s3_client=client) as writer:

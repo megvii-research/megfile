@@ -1,3 +1,5 @@
+import pathlib
+
 import pytest
 
 from megfile.fs_path import FSPath
@@ -59,6 +61,9 @@ def test_operators():
     assert FSPath("file://foo") / "bar" / "baz" == FSPath("file://foo/bar/baz")
     assert FSPath("foo") / "bar" / "baz" == FSPath("foo/bar/baz")
     assert FSPath("file://foo") / "bar" / "baz" in {FSPath("file://foo/bar/baz")}
+    assert FSPath("file://foo") / pathlib.Path("bar") / "baz" in {
+        FSPath("file://foo/bar/baz")
+    }
 
 
 def test_parts():

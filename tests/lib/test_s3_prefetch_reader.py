@@ -639,3 +639,23 @@ def test_s3_prefetch_reader_no_buffer(client_for_get_object):
         reader.read()
 
         assert list(reader._futures.keys()) == []
+
+
+def test_s3_prefetch_reader_size(client_for_get_object, mocker):
+    def fake_fetch_response(*args, **kwargs):
+        return {
+            "ContentLength": 123,
+            "Body": None,
+            "ETag": "test",
+        }
+
+    mocker.patch(
+        "megfile.lib.s3_prefetch_reader.S3PrefetchReader._fetch_response",
+        fake_fetch_response,
+    )
+    with S3PrefetchReader(
+        BUCKET,
+        KEY,
+        s3_client=client_for_get_object,
+    ) as reader:
+        assert reader._content_size == 123
