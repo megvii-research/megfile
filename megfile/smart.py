@@ -285,8 +285,6 @@ def register_copy_func(
         dst_dict = _copy_funcs.get(src_protocol, {})
         dst_dict[dst_protocol] = copy_func
         _copy_funcs[src_protocol] = dst_dict
-    except Exception as error:
-        raise error
     else:
         raise ValueError(
             "Copy Function has already existed: {}->{}".format(
