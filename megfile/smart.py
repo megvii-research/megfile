@@ -1081,13 +1081,14 @@ def smart_touch(path: PathLike):
         pass
 
 
-def smart_getmd5(path: PathLike, recalculate: bool = False):
+def smart_getmd5(path: PathLike, recalculate: bool = False, followlinks: bool = False):
     """Get md5 value of file
 
     param path: File path
     param recalculate: calculate md5 in real-time or not return s3 etag when path is s3
+    param followlinks: If is True, calculate md5 for real file
     """
-    return SmartPath(path).md5(recalculate=recalculate)
+    return SmartPath(path).md5(recalculate=recalculate, followlinks=followlinks)
 
 
 _concat_funcs = {"s3": s3_concat, "sftp": sftp_concat}

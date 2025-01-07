@@ -72,6 +72,7 @@ class StdioPath(BasePath):
     def open(
         self,
         mode: str = "rb",
+        *,
         encoding: Optional[str] = None,
         errors: Optional[str] = None,
         **kwargs,

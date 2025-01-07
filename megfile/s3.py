@@ -73,9 +73,7 @@ __all__ = [
 ]
 
 
-def s3_access(
-    path: PathLike, mode: Access = Access.READ, followlinks: bool = False
-) -> bool:
+def s3_access(path: PathLike, mode: Access = Access.READ) -> bool:
     """
     Test if path has access permission described by mode
 
@@ -83,7 +81,7 @@ def s3_access(
     :param mode: access mode
     :returns: bool, if the bucket of s3_url has read/write access.
     """
-    return S3Path(path).access(mode, followlinks)
+    return S3Path(path).access(mode)
 
 
 def s3_exists(path: PathLike, followlinks: bool = False) -> bool:
@@ -161,9 +159,7 @@ def s3_isfile(path: PathLike, followlinks: bool = False) -> bool:
     return S3Path(path).is_file(followlinks)
 
 
-def s3_listdir(
-    path: PathLike, followlinks: bool = False, missing_ok: bool = True
-) -> List[str]:
+def s3_listdir(path: PathLike) -> List[str]:
     """
     Get all contents of given s3_url. The result is in ascending alphabetical order.
 
@@ -171,10 +167,10 @@ def s3_listdir(
     :returns: All contents have prefix of s3_url in ascending alphabetical order
     :raises: S3FileNotFoundError, S3NotADirectoryError
     """
-    return S3Path(path).listdir(followlinks, missing_ok)
+    return S3Path(path).listdir()
 
 
-def s3_load_from(path: PathLike, followlinks: bool = False) -> BinaryIO:
+def s3_load_from(path: PathLike) -> BinaryIO:
     """Read all content in binary on specified path and write into memory
 
     User should close the BinaryIO manually
@@ -182,7 +178,7 @@ def s3_load_from(path: PathLike, followlinks: bool = False) -> BinaryIO:
     :param path: Given path
     :returns: BinaryIO
     """
-    return S3Path(path).load(followlinks)
+    return S3Path(path).load()
 
 
 def s3_hasbucket(path: PathLike) -> bool:
@@ -262,17 +258,15 @@ def s3_scan_stat(
     return S3Path(path).scan_stat(missing_ok, followlinks)
 
 
-def s3_scandir(
-    path: PathLike, followlinks: bool = False, missing_ok: bool = True
-) -> Iterator[FileEntry]:
+def s3_scandir(path: PathLike) -> Iterator[FileEntry]:
     """
-    Get all contents of given s3_url, the order of result is not guaranteed.
+    Get all contents of given s3_url, the order of result is in arbitrary order.
 
     :param path: Given path
     :returns: All contents have prefix of s3_url
     :raises: S3FileNotFoundError, S3NotADirectoryError
     """
-    return S3Path(path).scandir(followlinks, missing_ok)
+    return S3Path(path).scandir()
 
 
 def s3_stat(path: PathLike, follow_symlinks=True) -> StatResult:
@@ -457,7 +451,6 @@ def s3_glob(
     path: PathLike,
     recursive: bool = True,
     missing_ok: bool = True,
-    followlinks: bool = False,
 ) -> List[str]:
     """Return s3 path list in ascending alphabetical order,
     in which path matches glob pattern
@@ -476,7 +469,6 @@ def s3_glob(
             path=path,
             recursive=recursive,
             missing_ok=missing_ok,
-            followlinks=followlinks,
         )
     )
 
@@ -485,7 +477,6 @@ def s3_glob_stat(
     path: PathLike,
     recursive: bool = True,
     missing_ok: bool = True,
-    followlinks: bool = False,
 ) -> Iterator[FileEntry]:
     """Return a generator contains tuples of path and file stat,
     in ascending alphabetical order, in which path matches glob pattern
@@ -501,7 +492,7 @@ def s3_glob_stat(
         in which paths match `s3_pathname`
     """
     return S3Path(path).glob_stat(
-        pattern="", recursive=recursive, missing_ok=missing_ok, followlinks=followlinks
+        pattern="", recursive=recursive, missing_ok=missing_ok
     )
 
 
@@ -509,7 +500,6 @@ def s3_iglob(
     path: PathLike,
     recursive: bool = True,
     missing_ok: bool = True,
-    followlinks: bool = False,
 ) -> Iterator[str]:
     """Return s3 path iterator in ascending alphabetical order,
     in which path matches glob pattern
@@ -524,7 +514,7 @@ def s3_iglob(
     :returns: An iterator contains paths match `s3_pathname`
     """
     for path_obj in S3Path(path).iglob(
-        pattern="", recursive=recursive, missing_ok=missing_ok, followlinks=followlinks
+        pattern="", recursive=recursive, missing_ok=missing_ok
     ):
         yield path_obj.path_with_protocol
 

@@ -179,15 +179,41 @@ def test_hdfs_stat(http_mocker):
 
 
 def test_hdfs_isdir(http_mocker):
+    http_mocker.get(
+        "http://127.0.0.1:8000/webhdfs/v1/root/2?op=GETFILESTATUS",
+        status_code=404,
+        json={
+            "RemoteException": {
+                "exception": "FileNotFoundException",
+                "javaClassName": "java.io.FileNotFoundException",
+                "message": "File does not exist: /unknown",
+            }
+        },
+    )
+
     assert hdfs.hdfs_isdir("hdfs://root") is True
     assert hdfs.hdfs_isdir("hdfs://root/a") is True
     assert hdfs.hdfs_isdir("hdfs://root/1.txt") is False
+    assert hdfs.hdfs_isdir("hdfs://root/2") is False
 
 
 def test_hdfs_isfile(http_mocker):
+    http_mocker.get(
+        "http://127.0.0.1:8000/webhdfs/v1/root/2.txt?op=GETFILESTATUS",
+        status_code=404,
+        json={
+            "RemoteException": {
+                "exception": "FileNotFoundException",
+                "javaClassName": "java.io.FileNotFoundException",
+                "message": "File does not exist: /unknown",
+            }
+        },
+    )
+
     assert hdfs.hdfs_isfile("hdfs://root") is False
     assert hdfs.hdfs_isfile("hdfs://root/a") is False
     assert hdfs.hdfs_isfile("hdfs://root/a/2.txt") is True
+    assert hdfs.hdfs_isfile("hdfs://root/2.txt") is False
 
 
 def test_hdfs_listdir(http_mocker):

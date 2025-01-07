@@ -12,6 +12,7 @@ __all__ = [
 def stdio_open(
     path: PathLike,
     mode: str = "rb",
+    *,
     encoding: Optional[str] = None,
     errors: Optional[str] = None,
     **kwargs,
@@ -26,4 +27,4 @@ def stdio_open(
     :param mode: Only supports 'rb' and 'wb' now
     :return: STDReader, STDWriter
     """
-    return StdioPath(path).open(mode, encoding, errors)
+    return StdioPath(path).open(mode, encoding=encoding, errors=errors)

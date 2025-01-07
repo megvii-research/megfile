@@ -613,7 +613,7 @@ def sftp_walk(
     return SftpPath(path).walk(followlinks)
 
 
-def sftp_getmd5(path: PathLike, recalculate: bool = False, followlinks: bool = True):
+def sftp_getmd5(path: PathLike, recalculate: bool = False, followlinks: bool = False):
     """
     Calculate the md5 value of the file
 
@@ -659,6 +659,7 @@ def sftp_save_as(file_object: BinaryIO, path: PathLike):
 def sftp_open(
     path: PathLike,
     mode: str = "r",
+    *,
     buffering=-1,
     encoding: Optional[str] = None,
     errors: Optional[str] = None,
@@ -676,10 +677,12 @@ def sftp_open(
         decoding errors are to be handled—this cannot be used in binary mode.
     :returns: File-Like object
     """
-    return SftpPath(path).open(mode, buffering, encoding, errors)
+    return SftpPath(path).open(
+        mode, buffering=buffering, encoding=encoding, errors=errors
+    )
 
 
-def sftp_chmod(path: PathLike, mode: int, follow_symlinks: bool = True):
+def sftp_chmod(path: PathLike, mode: int, *, follow_symlinks: bool = True):
     """
     Change the file mode and permissions, like os.chmod().
 
@@ -687,7 +690,7 @@ def sftp_chmod(path: PathLike, mode: int, follow_symlinks: bool = True):
     :param mode: the file mode you want to change
     :param followlinks: Ignore this parameter, just for compatibility
     """
-    return SftpPath(path).chmod(mode, follow_symlinks)
+    return SftpPath(path).chmod(mode, follow_symlinks=follow_symlinks)
 
 
 def sftp_absolute(path: PathLike) -> "SftpPath":

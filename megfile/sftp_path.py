@@ -530,8 +530,11 @@ class SftpPath(URIPath):
             glob_path = self.joinpath(pattern).path_with_protocol
 
         def _scandir(dirname: str) -> Iterator[Tuple[str, bool]]:
+            result = []
             for entry in self.from_path(dirname).scandir():
-                yield entry.name, entry.is_dir()
+                result.append((entry.name, entry.is_dir()))
+            for name, is_dir in sorted(result):
+                yield name, is_dir
 
         def _exist(path: PathLike, followlinks: bool = False):
             return self.from_path(path).exists(followlinks=followlinks)
@@ -596,21 +599,18 @@ class SftpPath(URIPath):
 
         :returns: All contents have in the path in ascending alphabetical order
         """
-        if not self.is_dir():
-            raise NotADirectoryError(f"Not a directory: '{self.path_with_protocol}'")
-        return sorted(self._client.listdir(self._real_path))
+        with self.scandir() as entries:
+            return sorted([entry.name for entry in entries])
 
     def iterdir(self) -> Iterator["SftpPath"]:
         """
-        Get all contents of given sftp path.
-        The result is in ascending alphabetical order.
+        Get all contents of given sftp path. The order of result is in arbitrary order.
 
-        :returns: All contents have in the path in ascending alphabetical order
+        :returns: All contents have in the path.
         """
-        if not self.is_dir():
-            raise NotADirectoryError(f"Not a directory: '{self.path_with_protocol}'")
-        for path in self.listdir():
-            yield self.joinpath(path)
+        with self.scandir() as entries:
+            for entry in entries:
+                yield self.joinpath(entry.name)
 
     def load(self) -> BinaryIO:
         """Read all content on specified path and write into memory
@@ -807,20 +807,21 @@ class SftpPath(URIPath):
             FileNotFoundError("No match any file in: %r" % self.path_with_protocol),
         )
 
-    def scandir(self) -> Iterator[FileEntry]:
+    def scandir(self) -> ContextIterator:
         """
         Get all content of given file path.
 
         :returns: An iterator contains all contents have prefix path
         """
-        if not self.exists():
-            raise FileNotFoundError("No such directory: %r" % self.path_with_protocol)
-
-        if not self.is_dir():
-            raise NotADirectoryError("Not a directory: %r" % self.path_with_protocol)
+        real_path = self._real_path
+        stat = self.stat(follow_symlinks=False)
+        if stat.is_symlink():
+            real_path = self.readlink()._real_path
+        elif not stat.is_dir():
+            raise NotADirectoryError(f"Not a directory: '{self.path_with_protocol}'")
 
         def create_generator():
-            for name in self.listdir():
+            for name in self._client.listdir(real_path):
                 current_path = self.joinpath(name)
                 yield FileEntry(
                     current_path.name,
@@ -917,7 +918,7 @@ class SftpPath(URIPath):
         path = self._client.normalize(self._real_path)
         return self._generate_path_object(path, resolve=True)
 
-    def md5(self, recalculate: bool = False, followlinks: bool = True):
+    def md5(self, recalculate: bool = False, followlinks: bool = False):
         """
         Calculate the md5 value of the file
 
@@ -992,6 +993,7 @@ class SftpPath(URIPath):
     def open(
         self,
         mode: str = "r",
+        *,
         buffering=-1,
         encoding: Optional[str] = None,
         errors: Optional[str] = None,
@@ -1022,7 +1024,7 @@ class SftpPath(URIPath):
             )  # pytype: disable=wrong-arg-types
         return fileobj  # pytype: disable=bad-return-type
 
-    def chmod(self, mode: int, follow_symlinks: bool = True):
+    def chmod(self, mode: int, *, follow_symlinks: bool = True):
         """
         Change the file mode and permissions, like os.chmod().
 

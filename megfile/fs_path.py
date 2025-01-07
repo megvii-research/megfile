@@ -392,13 +392,15 @@ class FSPath(URIPath):
 
     def iterdir(self) -> Iterator["FSPath"]:
         """
-        Get all contents of given fs path.
-        The result is in ascending alphabetical order.
+        Get all contents of given fs path. The order of result is in arbitrary order.
 
-        :returns: All contents have in the path in ascending alphabetical order
+        :returns: All contents have in the path.
         """
-        for path in self.listdir():
-            yield self.joinpath(path)
+        self._check_int_path()
+        for path in pathlib.Path(
+            self.path_without_protocol  # pyre-ignore[6]
+        ).iterdir():
+            yield self.from_path(fspath(path))
 
     def load(self) -> BinaryIO:
         """Read all content on specified path and write into memory
@@ -568,7 +570,7 @@ class FSPath(URIPath):
                 "No match any file in: %r" % self.path_without_protocol
             )
 
-    def scandir(self) -> Iterator[FileEntry]:
+    def scandir(self) -> ContextIterator:
         """
         Get all content of given file path.
 
@@ -704,7 +706,7 @@ class FSPath(URIPath):
             )
         )
 
-    def md5(self, recalculate: bool = False, followlinks: bool = True):
+    def md5(self, recalculate: bool = False, followlinks: bool = False):
         """
         Calculate the md5 value of the file
 
@@ -713,11 +715,11 @@ class FSPath(URIPath):
 
         returns: md5 of file
         """
-        if os.path.isdir(self.path_without_protocol):
+        if self.is_dir():
             hash_md5 = hashlib.md5()  # nosec
             for file_name in self.listdir():
                 chunk = (
-                    FSPath(self.path_without_protocol, file_name)
+                    self.joinpath(file_name)
                     .md5(recalculate=recalculate, followlinks=followlinks)
                     .encode()
                 )

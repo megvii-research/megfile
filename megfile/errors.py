@@ -413,12 +413,12 @@ def translate_http_error(http_error: Exception, http_url: str) -> Exception:
 
 
 @contextmanager
-def raise_s3_error(s3_url: PathLike, suppress_errors=()):
+def raise_s3_error(s3_url: PathLike, suppress_error_callback=None):
     try:
         yield
     except Exception as error:
         error = translate_s3_error(error, s3_url)
-        if suppress_errors and isinstance(error, suppress_errors):
+        if suppress_error_callback and suppress_error_callback(error):
             return
         raise error
 
