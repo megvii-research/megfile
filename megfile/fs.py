@@ -323,7 +323,7 @@ def fs_getmd5(path: PathLike, recalculate: bool = False, followlinks: bool = Fal
 
     :param path: Given path
     :param recalculate: Ignore this parameter, just for compatibility
-    :param followlinks: If is True, calculate md5 for real file
+    :param followlinks: Ignore this parameter, just for compatibility
 
     returns: md5 of file
     """
