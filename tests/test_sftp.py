@@ -338,6 +338,15 @@ def test_sftp_scandir(sftp_mocker):
         "sftp://username@host//A/b",
     ]
 
+    sftp.sftp_symlink("sftp://username@host//A", "sftp://username@host//B")
+    assert sorted(
+        [file_entry.path for file_entry in sftp.sftp_scandir("sftp://username@host//B")]
+    ) == [
+        "sftp://username@host//B/1.json",
+        "sftp://username@host//B/a",
+        "sftp://username@host//B/b",
+    ]
+
     with pytest.raises(FileNotFoundError):
         list(sftp.sftp_scandir("sftp://username@host//A/not_found"))
 
