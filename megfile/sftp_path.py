@@ -530,8 +530,11 @@ class SftpPath(URIPath):
             glob_path = self.joinpath(pattern).path_with_protocol
 
         def _scandir(dirname: str) -> Iterator[Tuple[str, bool]]:
+            result = []
             for entry in self.from_path(dirname).scandir():
-                yield entry.name, entry.is_dir()
+                result.append((entry.name, entry.is_dir()))
+            for name, is_dir in sorted(result):
+                yield name, is_dir
 
         def _exist(path: PathLike, followlinks: bool = False):
             return self.from_path(path).exists(followlinks=followlinks)
@@ -596,12 +599,8 @@ class SftpPath(URIPath):
 
         :returns: All contents have in the path in ascending alphabetical order
         """
-        stat = self.stat(follow_symlinks=False)
-        if stat.is_symlink():
-            return self.readlink().listdir()
-        if not stat.is_dir():
-            raise NotADirectoryError(f"Not a directory: '{self.path_with_protocol}'")
-        return sorted(self._client.listdir(self._real_path))
+        with self.scandir() as entries:
+            return sorted([entry.name for entry in entries])
 
     def iterdir(self) -> Iterator["SftpPath"]:
         """
@@ -609,13 +608,9 @@ class SftpPath(URIPath):
 
         :returns: All contents have in the path.
         """
-        stat = self.stat(follow_symlinks=False)
-        if stat.is_symlink():
-            return self.readlink().iterdir()
-        if not stat.is_dir():
-            raise NotADirectoryError(f"Not a directory: '{self.path_with_protocol}'")
-        for path in self._client.listdir(self._real_path):
-            yield self.joinpath(path)
+        with self.scandir() as entries:
+            for entry in entries:
+                yield self.from_path(entry.path)
 
     def load(self) -> BinaryIO:
         """Read all content on specified path and write into memory
@@ -818,14 +813,15 @@ class SftpPath(URIPath):
 
         :returns: An iterator contains all contents have prefix path
         """
-        if not self.exists():
-            raise FileNotFoundError("No such directory: %r" % self.path_with_protocol)
-
-        if not self.is_dir():
-            raise NotADirectoryError("Not a directory: %r" % self.path_with_protocol)
+        real_path = self._real_path
+        stat = self.stat(follow_symlinks=False)
+        if stat.is_symlink():
+            real_path = self.readlink()._real_path
+        elif not stat.is_dir():
+            raise NotADirectoryError(f"Not a directory: '{self.path_with_protocol}'")
 
         def create_generator():
-            for name in self.listdir():
+            for name in self._client.listdir(real_path):
                 current_path = self.joinpath(name)
                 yield FileEntry(
                     current_path.name,

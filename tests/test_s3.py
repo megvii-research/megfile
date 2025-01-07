@@ -717,6 +717,7 @@ def test_s3_listdir(truncating_client, mocker):
     assert s3.s3_listdir("s3://bucketA/folderAA") == ["folderAAA"]
     assert s3.s3_listdir("s3://bucketA/folderAB") == ["fileAB", "fileAC"]
     assert s3.s3_listdir("s3://bucketA/folderAB/") == ["fileAB", "fileAC"]
+    assert list(s3.s3_listdir("s3://bucketB/")) == []
     with pytest.raises(NotADirectoryError):
         s3.s3_listdir("s3://bucketA/fileAA")
     with pytest.raises(FileNotFoundError):
@@ -3488,6 +3489,7 @@ def test_symlink_relevant_functions(s3_empty_client, fs):
             assert file_entry.is_symlink() is False
         else:
             assert file_entry.stat.islnk is True
+            assert file_entry.stat.is_file() is True
             assert file_entry.stat.is_symlink() is True
             assert file_entry.is_symlink() is True
 

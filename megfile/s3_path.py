@@ -1722,17 +1722,8 @@ class S3Path(URIPath):
         :returns: All contents have prefix of s3_url in ascending alphabetical order
         :raises: S3FileNotFoundError, S3NotADirectoryError
         """
-        try:
-            entries = list(self.scandir())
-        except S3BucketNotFoundError:
-            raise
-        except S3FileNotFoundError:
-            _, key = parse_s3_url(self.path_with_protocol)
-            if not key:
-                return []
-            raise
-
-        return sorted([entry.name for entry in entries])
+        with self.scandir() as entries:
+            return sorted([entry.name for entry in entries])
 
     def iterdir(self) -> Iterator["S3Path"]:
         """
@@ -1741,8 +1732,9 @@ class S3Path(URIPath):
         :returns: All contents have prefix of s3_url
         :raises: S3FileNotFoundError, S3NotADirectoryError
         """
-        for entry in self.scandir():
-            yield self.joinpath(entry.name)
+        with self.scandir() as entries:
+            for entry in entries:
+                yield self.joinpath(entry.name)
 
     def load(self) -> BinaryIO:
         """Read all content in binary on specified path and write into memory

@@ -330,9 +330,9 @@ def test_sftp_scandir(sftp_mocker):
     with sftp.sftp_open("sftp://username@host//A/b/file.json", "w") as f:
         f.write("file")
 
-    assert [
-        file_entry.path for file_entry in sftp.sftp_scandir("sftp://username@host//A")
-    ] == [
+    assert sorted(
+        [file_entry.path for file_entry in sftp.sftp_scandir("sftp://username@host//A")]
+    ) == [
         "sftp://username@host//A/1.json",
         "sftp://username@host//A/a",
         "sftp://username@host//A/b",

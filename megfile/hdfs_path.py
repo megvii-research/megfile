@@ -326,7 +326,7 @@ class HdfsPath(URIPath):
         :returns: All contents have prefix of path.
         :raises: FileNotFoundError, NotADirectoryError
         """
-        if not self.stat().is_dir():
+        if not self.is_dir():
             raise NotADirectoryError("Not a directory: %r" % self.path)
         with raise_hdfs_error(self.path_with_protocol):
             return sorted(self._client.list(self.path_without_protocol))
