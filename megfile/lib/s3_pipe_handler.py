@@ -34,9 +34,6 @@ class S3PipeHandler(Readable[bytes], Writable[bytes]):
         join_thread: bool = True,
         profile_name: Optional[str] = None,
     ):
-        if mode not in ("rb", "wb"):
-            raise ValueError("unacceptable mode: %r" % mode)
-
         self._bucket = bucket
         self._key = key
         self._mode = mode
@@ -44,6 +41,9 @@ class S3PipeHandler(Readable[bytes], Writable[bytes]):
         self._join_thread = join_thread
         self._offset = 0
         self._profile_name = profile_name
+
+        if mode not in ("rb", "wb"):
+            raise ValueError("unacceptable mode: %r" % mode)
 
         self._exc = None
         self._pipe = os.pipe()
