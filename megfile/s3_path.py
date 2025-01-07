@@ -2074,7 +2074,7 @@ class S3Path(URIPath):
                     src_url = generate_s3_path(
                         self._protocol_with_profile, bucket, content["Key"]
                     )
-                    yield FileEntry(
+                    yield FileEntry(  # pytype: disable=wrong-arg-types
                         content["Key"][len(prefix) :],
                         src_url,
                         _make_stat_without_metadata(content, self.from_path(src_url)),
