@@ -706,19 +706,16 @@ class FSPath(URIPath):
             )
         )
 
-    def md5(self, recalculate: bool = False, followlinks: bool = True):
+    def md5(self, recalculate: bool = False, followlinks: bool = False):
         """
         Calculate the md5 value of the file
 
         :param recalculate: Ignore this parameter, just for compatibility
-        :param followlinks: If is True, calculate md5 for real file
+        :param followlinks: Ignore this parameter, just for compatibility
 
         returns: md5 of file
         """
-        stat = self.stat(follow_symlinks=False)
-        if followlinks and stat.is_symlink():
-            return self.readlink().md5(recalculate=recalculate, followlinks=followlinks)
-        elif stat.is_dir():
+        if self.is_dir():
             hash_md5 = hashlib.md5()  # nosec
             for file_name in self.listdir():
                 chunk = (

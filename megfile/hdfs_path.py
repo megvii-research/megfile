@@ -547,7 +547,7 @@ class HdfsPath(URIPath):
             ):
                 yield f"{self._protocol_with_profile}://{path.lstrip('/')}", dirs, files
 
-    def md5(self, recalculate: bool = False, followlinks: bool = True) -> str:
+    def md5(self, recalculate: bool = False, followlinks: bool = False) -> str:
         """
         Get checksum of the file or dir.
 

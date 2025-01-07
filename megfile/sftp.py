@@ -613,13 +613,13 @@ def sftp_walk(
     return SftpPath(path).walk(followlinks)
 
 
-def sftp_getmd5(path: PathLike, recalculate: bool = False, followlinks: bool = True):
+def sftp_getmd5(path: PathLike, recalculate: bool = False, followlinks: bool = False):
     """
     Calculate the md5 value of the file
 
     :param path: Given path
     :param recalculate: Ignore this parameter, just for compatibility
-    :param followlinks: Ignore this parameter, just for compatibility
+    :param followlinks: If is True, calculate md5 for real file
 
     returns: md5 of file
     """

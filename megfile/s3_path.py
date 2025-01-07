@@ -2257,7 +2257,7 @@ class S3Path(URIPath):
                 if files or dirs or not current:
                     yield root, dirs, files
 
-    def md5(self, recalculate: bool = False, followlinks: bool = True) -> str:
+    def md5(self, recalculate: bool = False, followlinks: bool = False) -> str:
         """
         Get md5 meta info in files that uploaded/copied via megfile
 
