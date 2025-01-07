@@ -738,7 +738,7 @@ class BasePath:
         """
         return self.rename(dst_path=dst_path, overwrite=overwrite)
 
-    def md5(self, recalculate: bool = False, followlinks: bool = False) -> str:
+    def md5(self, recalculate: bool = False, followlinks: bool = True) -> str:
         raise NotImplementedError(f"'md5' is unsupported on '{type(self)}'")
 
     def symlink(self, dst_path: "PathLike") -> None:

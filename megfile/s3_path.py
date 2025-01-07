@@ -2257,7 +2257,7 @@ class S3Path(URIPath):
                 if files or dirs or not current:
                     yield root, dirs, files
 
-    def md5(self, recalculate: bool = False, followlinks: bool = False) -> str:
+    def md5(self, recalculate: bool = False, followlinks: bool = True) -> str:
         """
         Get md5 meta info in files that uploaded/copied via megfile
 
@@ -2272,13 +2272,15 @@ class S3Path(URIPath):
             raise S3BucketNotFoundError(
                 "Empty bucket name: %r" % self.path_with_protocol
             )
-        stat = self.stat(follow_symlinks=followlinks)
-        if stat.isdir:
+        stat = self.stat(follow_symlinks=False)
+        if followlinks and stat.is_symlink():
+            return self.readlink().md5(recalculate=recalculate, followlinks=followlinks)
+        elif stat.is_dir():
             hash_md5 = hashlib.md5()  # nosec
             for file_name in self.listdir():
                 chunk = (
                     S3Path(s3_path_join(self.path_with_protocol, file_name))
-                    .md5(recalculate=recalculate)
+                    .md5(recalculate=recalculate, followlinks=followlinks)
                     .encode()
                 )
                 hash_md5.update(chunk)
