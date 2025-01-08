@@ -796,8 +796,13 @@ class FSPath(URIPath):
         except FileNotFoundError as error:
             # Prevent the dst_path directory from being created when src_path does not
             # exist
-            if dst_path == error.filename:
-                FSPath(os.path.dirname(dst_path)).mkdir(parents=True, exist_ok=True)
+            dst_parent_dir = os.path.dirname(dst_path)
+            if (
+                dst_parent_dir
+                and dst_parent_dir != "."
+                and error.filename in (dst_path, dst_parent_dir)
+            ):
+                self.from_path(dst_parent_dir).mkdir(parents=True, exist_ok=True)
                 self._copyfile(dst_path, callback=callback, followlinks=followlinks)
             else:
                 raise
