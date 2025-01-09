@@ -1,4 +1,4 @@
-## 4.1.0 - 2024.01.09
+## 4.1.0 - 2025.01.09
 - **breaking change**
     - Remove the `followlinks` parameter from `hdfs_listdir`, `hdfs_load_from`, `hdfs_scandir`, `HdfsPath.load`, `HdfsPath.scandir`, and keep the behavior as `followlinks=False`.
     - Remove the `followlinks` parameter from `s3_access`, `s3_listdir`, `s3_load_from`, `s3_scandir`, `s3_glob`, `s3_glob_stat`, `s3_iglob`, `s3_load_content`, `S3Path.access`, `S3Path.listdir`, `S3Path.load`, `S3Path.scandir`, `S3Path.glob`, `S3Path.glob_stat`, `S3Path.iglob`, `S3Path.iterdir`, and keep the behavior as `followlinks=False`.
@@ -11,7 +11,7 @@
     - Fix `SftpPath.listdir` throwing an error when the input is a symbolic link.
     - Fix an issue that `S3PermissionError` is raised when performing a `mkdir` operation without sufficient permissions on S3.
 
-## 4.0.4 - 2024.01.03
+## 4.0.4 - 2025.01.03
 - perf
     - reduce the use of `is_dir` in S3 to decrease the number of requests
 
