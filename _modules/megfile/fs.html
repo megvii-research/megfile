@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>megfile.fs &mdash; megfile  documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
 
   
@@ -79,16 +79,16 @@
            <div itemprop="articleBody">
              
   <h1>Source code for megfile.fs</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">BinaryIO</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">BinaryIO</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
 
-<span class="kn">from</span> <span class="nn">megfile.fs_path</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">megfile.fs_path</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">FSPath</span><span class="p">,</span>
     <span class="n">_make_stat</span><span class="p">,</span>
     <span class="n">fs_path_join</span><span class="p">,</span>
     <span class="n">is_fs</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">megfile.interfaces</span> <span class="kn">import</span> <span class="n">Access</span><span class="p">,</span> <span class="n">FileEntry</span><span class="p">,</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">StatResult</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">megfile.interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">Access</span><span class="p">,</span> <span class="n">FileEntry</span><span class="p">,</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">StatResult</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">&quot;is_fs&quot;</span><span class="p">,</span>
@@ -136,7 +136,7 @@
 
 <div class="viewcode-block" id="fs_isabs">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_isabs">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_isabs</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fs_isabs</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Test whether a path is absolute</span>
 
 <span class="sd">    :param path: Given path</span>
@@ -148,7 +148,7 @@
 
 <div class="viewcode-block" id="fs_abspath">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_abspath">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_abspath</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fs_abspath</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the absolute path of given path</span>
 
 <span class="sd">    :param path: Given path</span>
@@ -160,7 +160,7 @@
 
 <div class="viewcode-block" id="fs_access">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_access">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_access</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="n">Access</span> <span class="o">=</span> <span class="n">Access</span><span class="o">.</span><span class="n">READ</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fs_access</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="n">Access</span> <span class="o">=</span> <span class="n">Access</span><span class="o">.</span><span class="n">READ</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Test if path has access permission described by mode</span>
 <span class="sd">    Using ``os.access``</span>
@@ -175,7 +175,7 @@
 
 <div class="viewcode-block" id="fs_exists">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_exists">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_exists</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fs_exists</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Test if the path exists</span>
 
@@ -196,7 +196,7 @@
 
 <div class="viewcode-block" id="fs_getmtime">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_getmtime">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_getmtime</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fs_getmtime</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get last-modified time of the file on the given path (in Unix timestamp format).</span>
 <span class="sd">    If the path is an existent directory,</span>
@@ -211,7 +211,7 @@
 
 <div class="viewcode-block" id="fs_getsize">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_getsize">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_getsize</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fs_getsize</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get file size on the given file path (in bytes).</span>
 <span class="sd">    If the path in a directory, return the sum of all file size in it,</span>
@@ -229,7 +229,7 @@
 
 <div class="viewcode-block" id="fs_expanduser">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_expanduser">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_expanduser</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fs_expanduser</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Expand ~ and ~user constructions.  If user or $HOME is unknown,</span>
 <span class="sd">    do nothing.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -239,7 +239,7 @@
 
 <div class="viewcode-block" id="fs_isdir">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_isdir">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_isdir</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fs_isdir</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Test if a path is directory</span>
 
@@ -259,7 +259,7 @@
 
 <div class="viewcode-block" id="fs_isfile">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_isfile">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_isfile</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fs_isfile</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Test if a path is file</span>
 
@@ -279,7 +279,7 @@
 
 <div class="viewcode-block" id="fs_listdir">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_listdir">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_listdir</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fs_listdir</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get all contents of given fs path.</span>
 <span class="sd">    The result is in ascending alphabetical order.</span>
@@ -293,7 +293,7 @@
 
 <div class="viewcode-block" id="fs_load_from">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_load_from">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_load_from</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BinaryIO</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fs_load_from</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BinaryIO</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Read all content on specified path and write into memory</span>
 
 <span class="sd">    User should close the BinaryIO manually</span>
@@ -307,7 +307,7 @@
 
 <div class="viewcode-block" id="fs_realpath">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_realpath">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_realpath</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fs_realpath</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the real path of given path</span>
 
 <span class="sd">    :param path: Given path</span>
@@ -319,7 +319,7 @@
 
 <div class="viewcode-block" id="fs_relpath">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_relpath">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_relpath</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fs_relpath</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the relative path of given path</span>
 
 <span class="sd">    :param path: Given path</span>
@@ -332,7 +332,7 @@
 
 <div class="viewcode-block" id="fs_remove">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_remove">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_remove</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fs_remove</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Remove the file or directory on fs</span>
 
@@ -346,7 +346,7 @@
 
 <div class="viewcode-block" id="fs_scan">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_scan">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_scan</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fs_scan</span><span class="p">(</span>
     <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -368,7 +368,7 @@
 
 <div class="viewcode-block" id="fs_scan_stat">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_scan_stat">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_scan_stat</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fs_scan_stat</span><span class="p">(</span>
     <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">FileEntry</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -386,7 +386,7 @@
 
 <div class="viewcode-block" id="fs_scandir">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_scandir">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_scandir</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">FileEntry</span><span class="p">]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fs_scandir</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">FileEntry</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get all content of given file path.</span>
 
@@ -399,7 +399,7 @@
 
 <div class="viewcode-block" id="fs_stat">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_stat">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_stat</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StatResult</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fs_stat</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StatResult</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get StatResult of file on fs, including file size and mtime,</span>
 <span class="sd">    referring to fs_getsize and fs_getmtime</span>
@@ -413,7 +413,7 @@
 
 <div class="viewcode-block" id="fs_unlink">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_unlink">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_unlink</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fs_unlink</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Remove the file on fs</span>
 
@@ -426,7 +426,7 @@
 
 <div class="viewcode-block" id="fs_walk">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_walk">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_walk</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fs_walk</span><span class="p">(</span>
     <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -460,7 +460,7 @@
 
 <div class="viewcode-block" id="fs_getmd5">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_getmd5">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_getmd5</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">recalculate</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fs_getmd5</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">recalculate</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculate the md5 value of the file</span>
 
@@ -476,7 +476,7 @@
 
 <div class="viewcode-block" id="fs_copy">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_copy">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_copy</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fs_copy</span><span class="p">(</span>
     <span class="n">src_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
     <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
     <span class="n">callback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">],</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -512,7 +512,7 @@
 
 <div class="viewcode-block" id="fs_sync">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_sync">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_sync</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fs_sync</span><span class="p">(</span>
     <span class="n">src_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
     <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
     <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
@@ -534,7 +534,7 @@
 
 <div class="viewcode-block" id="fs_symlink">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_symlink">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_symlink</span><span class="p">(</span><span class="n">src_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fs_symlink</span><span class="p">(</span><span class="n">src_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Create a symbolic link pointing to src_path named dst_path.</span>
 
@@ -547,7 +547,7 @@
 
 <div class="viewcode-block" id="fs_islink">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_islink">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_islink</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fs_islink</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Test whether a path is a symbolic link</span>
 
 <span class="sd">    :param path: Given path</span>
@@ -560,7 +560,7 @@
 
 <div class="viewcode-block" id="fs_ismount">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_ismount">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_ismount</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fs_ismount</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Test whether a path is a mount point</span>
 
 <span class="sd">    :param path: Given path</span>
@@ -572,7 +572,7 @@
 
 <div class="viewcode-block" id="fs_save_as">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_save_as">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_save_as</span><span class="p">(</span><span class="n">file_object</span><span class="p">:</span> <span class="n">BinaryIO</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fs_save_as</span><span class="p">(</span><span class="n">file_object</span><span class="p">:</span> <span class="n">BinaryIO</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Write the opened binary stream to path</span>
 <span class="sd">    If parent directory of path doesn&#39;t exist, it will be created.</span>
 
@@ -585,7 +585,7 @@
 
 <div class="viewcode-block" id="fs_readlink">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_readlink">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_readlink</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fs_readlink</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Return a string representing the path to which the symbolic link points.</span>
 <span class="sd">    :returns: Return a string representing the path to which the symbolic link points.</span>
@@ -596,7 +596,7 @@
 
 <div class="viewcode-block" id="fs_cwd">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_cwd">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_cwd</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fs_cwd</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return current working directory</span>
 
 <span class="sd">    returns: Current working directory</span>
@@ -607,7 +607,7 @@
 
 <div class="viewcode-block" id="fs_home">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_home">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_home</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fs_home</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the home directory</span>
 
 <span class="sd">    returns: Home directory path</span>
@@ -618,7 +618,7 @@
 
 <div class="viewcode-block" id="fs_iglob">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_iglob">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_iglob</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fs_iglob</span><span class="p">(</span>
     <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return path iterator in ascending alphabetical order,</span>
@@ -652,7 +652,7 @@
 
 <div class="viewcode-block" id="fs_glob">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_glob">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_glob</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fs_glob</span><span class="p">(</span>
     <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return path list in ascending alphabetical order,</span>
@@ -683,7 +683,7 @@
 
 <div class="viewcode-block" id="fs_glob_stat">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_glob_stat">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_glob_stat</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fs_glob_stat</span><span class="p">(</span>
     <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">FileEntry</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a list contains tuples of path and file stat,</span>
@@ -716,7 +716,7 @@
 
 <div class="viewcode-block" id="fs_resolve">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_resolve">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_resolve</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fs_resolve</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Equal to fs_realpath, return the real path of given path</span>
 
 <span class="sd">    :param path: Given path</span>
@@ -728,7 +728,7 @@
 
 <div class="viewcode-block" id="fs_makedirs">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_makedirs">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_makedirs</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">exist_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fs_makedirs</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">exist_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    make a directory on fs, including parent directory</span>
 
@@ -744,7 +744,7 @@
 
 <div class="viewcode-block" id="fs_lstat">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_lstat">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_lstat</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StatResult</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fs_lstat</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StatResult</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Like Path.stat() but, if the path points to a symbolic link,</span>
 <span class="sd">    return the symbolic link’s information rather than its target’s.</span>
@@ -758,7 +758,7 @@
 
 <div class="viewcode-block" id="fs_rename">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_rename">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_rename</span><span class="p">(</span><span class="n">src_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fs_rename</span><span class="p">(</span><span class="n">src_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    rename file on fs</span>
 
@@ -772,7 +772,7 @@
 
 <div class="viewcode-block" id="fs_move">
 <a class="viewcode-back" href="../../megfile.fs.html#megfile.fs.fs_move">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_move</span><span class="p">(</span><span class="n">src_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fs_move</span><span class="p">(</span><span class="n">src_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    rename file on fs</span>
 

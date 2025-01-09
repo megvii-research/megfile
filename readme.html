@@ -5,7 +5,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Getting Started &mdash; megfile  documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
   
@@ -152,7 +152,7 @@
 Here’s an example of writing a file to s3 / fs, syncing to local, reading and finally deleting it.</p>
 <section id="functional-interface">
 <h3>Functional Interface<a class="headerlink" href="#functional-interface" title="Link to this heading"></a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">megfile</span> <span class="kn">import</span> <span class="n">smart_open</span><span class="p">,</span> <span class="n">smart_exists</span><span class="p">,</span> <span class="n">smart_sync</span><span class="p">,</span> <span class="n">smart_remove</span><span class="p">,</span> <span class="n">smart_glob</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">megfile</span><span class="w"> </span><span class="kn">import</span> <span class="n">smart_open</span><span class="p">,</span> <span class="n">smart_exists</span><span class="p">,</span> <span class="n">smart_sync</span><span class="p">,</span> <span class="n">smart_remove</span><span class="p">,</span> <span class="n">smart_glob</span>
 
 <span class="c1"># open a file in s3 bucket</span>
 <span class="k">with</span> <span class="n">smart_open</span><span class="p">(</span><span class="s1">&#39;s3://playground/megfile-test&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
@@ -178,7 +178,7 @@ Here’s an example of writing a file to s3 / fs, syncing to local, reading and 
 <section id="smartpath-interface">
 <h3>SmartPath Interface<a class="headerlink" href="#smartpath-interface" title="Link to this heading"></a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">SmartPath</span></code> has a similar interface with pathlib.Path.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">megfile.smart_path</span> <span class="kn">import</span> <span class="n">SmartPath</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">megfile.smart_path</span><span class="w"> </span><span class="kn">import</span> <span class="n">SmartPath</span>
 
 <span class="n">path</span> <span class="o">=</span> <span class="n">SmartPath</span><span class="p">(</span><span class="s1">&#39;s3://playground/megfile-test&#39;</span><span class="p">)</span>
 <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>

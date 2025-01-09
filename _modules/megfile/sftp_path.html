@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>megfile.sftp_path &mdash; megfile  documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
 
   
@@ -79,32 +79,32 @@
            <div itemprop="articleBody">
              
   <h1>Source code for megfile.sftp_path</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">atexit</span>
-<span class="kn">import</span> <span class="nn">fcntl</span>
-<span class="kn">import</span> <span class="nn">hashlib</span>
-<span class="kn">import</span> <span class="nn">io</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">random</span>
-<span class="kn">import</span> <span class="nn">shlex</span>
-<span class="kn">import</span> <span class="nn">socket</span>
-<span class="kn">import</span> <span class="nn">subprocess</span>  <span class="c1"># nosec B404</span>
-<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">cached_property</span>
-<span class="kn">from</span> <span class="nn">logging</span> <span class="kn">import</span> <span class="n">getLogger</span> <span class="k">as</span> <span class="n">get_logger</span>
-<span class="kn">from</span> <span class="nn">stat</span> <span class="kn">import</span> <span class="n">S_ISDIR</span><span class="p">,</span> <span class="n">S_ISLNK</span><span class="p">,</span> <span class="n">S_ISREG</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">IO</span><span class="p">,</span> <span class="n">BinaryIO</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span> <span class="n">Union</span>
-<span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="kn">import</span> <span class="n">urlsplit</span><span class="p">,</span> <span class="n">urlunsplit</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">atexit</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">fcntl</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">shlex</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">socket</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>  <span class="c1"># nosec B404</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">cached_property</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">getLogger</span> <span class="k">as</span> <span class="n">get_logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">stat</span><span class="w"> </span><span class="kn">import</span> <span class="n">S_ISDIR</span><span class="p">,</span> <span class="n">S_ISLNK</span><span class="p">,</span> <span class="n">S_ISREG</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">IO</span><span class="p">,</span> <span class="n">BinaryIO</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">urllib.parse</span><span class="w"> </span><span class="kn">import</span> <span class="n">urlsplit</span><span class="p">,</span> <span class="n">urlunsplit</span>
 
-<span class="kn">import</span> <span class="nn">paramiko</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">paramiko</span>
 
-<span class="kn">from</span> <span class="nn">megfile.config</span> <span class="kn">import</span> <span class="n">SFTP_HOST_KEY_POLICY</span><span class="p">,</span> <span class="n">SFTP_MAX_RETRY_TIMES</span>
-<span class="kn">from</span> <span class="nn">megfile.errors</span> <span class="kn">import</span> <span class="n">SameFileError</span><span class="p">,</span> <span class="n">_create_missing_ok_generator</span><span class="p">,</span> <span class="n">patch_method</span>
-<span class="kn">from</span> <span class="nn">megfile.interfaces</span> <span class="kn">import</span> <span class="n">ContextIterator</span><span class="p">,</span> <span class="n">FileEntry</span><span class="p">,</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">StatResult</span>
-<span class="kn">from</span> <span class="nn">megfile.lib.compare</span> <span class="kn">import</span> <span class="n">is_same_file</span>
-<span class="kn">from</span> <span class="nn">megfile.lib.compat</span> <span class="kn">import</span> <span class="n">fspath</span>
-<span class="kn">from</span> <span class="nn">megfile.lib.glob</span> <span class="kn">import</span> <span class="n">FSFunc</span><span class="p">,</span> <span class="n">iglob</span>
-<span class="kn">from</span> <span class="nn">megfile.pathlike</span> <span class="kn">import</span> <span class="n">URIPath</span>
-<span class="kn">from</span> <span class="nn">megfile.smart_path</span> <span class="kn">import</span> <span class="n">SmartPath</span>
-<span class="kn">from</span> <span class="nn">megfile.utils</span> <span class="kn">import</span> <span class="n">calculate_md5</span><span class="p">,</span> <span class="n">thread_local</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">megfile.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">SFTP_HOST_KEY_POLICY</span><span class="p">,</span> <span class="n">SFTP_MAX_RETRY_TIMES</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">megfile.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">SameFileError</span><span class="p">,</span> <span class="n">_create_missing_ok_generator</span><span class="p">,</span> <span class="n">patch_method</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">megfile.interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">ContextIterator</span><span class="p">,</span> <span class="n">FileEntry</span><span class="p">,</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">StatResult</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">megfile.lib.compare</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_same_file</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">megfile.lib.compat</span><span class="w"> </span><span class="kn">import</span> <span class="n">fspath</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">megfile.lib.glob</span><span class="w"> </span><span class="kn">import</span> <span class="n">FSFunc</span><span class="p">,</span> <span class="n">iglob</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">megfile.pathlike</span><span class="w"> </span><span class="kn">import</span> <span class="n">URIPath</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">megfile.smart_path</span><span class="w"> </span><span class="kn">import</span> <span class="n">SmartPath</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">megfile.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">calculate_md5</span><span class="p">,</span> <span class="n">thread_local</span>
 
 <span class="n">_logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -124,7 +124,7 @@
 <span class="n">DEFAULT_SSH_KEEPALIVE_INTERVAL</span> <span class="o">=</span> <span class="mi">15</span>
 
 
-<span class="k">def</span> <span class="nf">_make_stat</span><span class="p">(</span><span class="n">stat</span><span class="p">:</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">SFTPAttributes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StatResult</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_make_stat</span><span class="p">(</span><span class="n">stat</span><span class="p">:</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">SFTPAttributes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StatResult</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">StatResult</span><span class="p">(</span>
         <span class="n">size</span><span class="o">=</span><span class="n">stat</span><span class="o">.</span><span class="n">st_size</span> <span class="ow">or</span> <span class="mi">0</span><span class="p">,</span>
         <span class="n">mtime</span><span class="o">=</span><span class="n">stat</span><span class="o">.</span><span class="n">st_mtime</span> <span class="ow">or</span> <span class="mf">0.0</span><span class="p">,</span>
@@ -134,7 +134,7 @@
     <span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">get_private_key</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_private_key</span><span class="p">():</span>
     <span class="n">key_with_types</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s2">&quot;DSA&quot;</span><span class="p">:</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">DSSKey</span><span class="p">,</span>
         <span class="s2">&quot;RSA&quot;</span><span class="p">:</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">RSAKey</span><span class="p">,</span>
@@ -154,7 +154,7 @@
     <span class="k">return</span> <span class="kc">None</span>
 
 
-<span class="k">def</span> <span class="nf">provide_connect_info</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">provide_connect_info</span><span class="p">(</span>
     <span class="n">hostname</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">port</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">username</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -170,7 +170,7 @@
     <span class="k">return</span> <span class="n">hostname</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">,</span> <span class="n">private_key</span>
 
 
-<span class="k">def</span> <span class="nf">sftp_should_retry</span><span class="p">(</span><span class="n">error</span><span class="p">:</span> <span class="ne">Exception</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">sftp_should_retry</span><span class="p">(</span><span class="n">error</span><span class="p">:</span> <span class="ne">Exception</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
     <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">error</span><span class="p">)</span> <span class="ow">is</span> <span class="ne">EOFError</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">False</span>
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span>
@@ -184,7 +184,7 @@
     <span class="k">return</span> <span class="kc">False</span>
 
 
-<span class="k">def</span> <span class="nf">_patch_sftp_client_request</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_patch_sftp_client_request</span><span class="p">(</span>
     <span class="n">client</span><span class="p">:</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">SFTPClient</span><span class="p">,</span>
     <span class="n">hostname</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">port</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -192,15 +192,17 @@
     <span class="n">password</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">default_policy</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">paramiko</span><span class="o">.</span><span class="n">MissingHostKeyPolicy</span><span class="p">]</span> <span class="o">=</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">RejectPolicy</span><span class="p">,</span>
 <span class="p">):</span>
-    <span class="k">def</span> <span class="nf">retry_callback</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">retry_callback</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">client</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
         <span class="n">ssh_client</span> <span class="o">=</span> <span class="n">get_ssh_client</span><span class="p">(</span><span class="n">hostname</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">,</span> <span class="n">default_policy</span><span class="p">)</span>
         <span class="n">ssh_client</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
         <span class="n">atexit</span><span class="o">.</span><span class="n">unregister</span><span class="p">(</span><span class="n">ssh_client</span><span class="o">.</span><span class="n">close</span><span class="p">)</span>
-        <span class="n">ssh_key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;ssh_client:</span><span class="si">{</span><span class="n">hostname</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">port</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">username</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">password</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">ssh_key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;ssh_client:</span><span class="si">{</span><span class="n">hostname</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">port</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">username</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">password</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">default_policy</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="k">if</span> <span class="n">thread_local</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ssh_key</span><span class="p">):</span>
             <span class="k">del</span> <span class="n">thread_local</span><span class="p">[</span><span class="n">ssh_key</span><span class="p">]</span>
-        <span class="n">sftp_key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;sftp_client:</span><span class="si">{</span><span class="n">hostname</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">port</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">username</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">password</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">sftp_key</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;sftp_client:</span><span class="si">{</span><span class="n">hostname</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">port</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">username</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">password</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">default_policy</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
         <span class="k">if</span> <span class="n">thread_local</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">sftp_key</span><span class="p">):</span>
             <span class="k">del</span> <span class="n">thread_local</span><span class="p">[</span><span class="n">sftp_key</span><span class="p">]</span>
 
@@ -222,7 +224,7 @@
     <span class="k">return</span> <span class="n">client</span>
 
 
-<span class="k">def</span> <span class="nf">_get_sftp_client</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_sftp_client</span><span class="p">(</span>
     <span class="n">hostname</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">port</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">username</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -248,7 +250,7 @@
     <span class="k">return</span> <span class="n">sftp_client</span>
 
 
-<span class="k">def</span> <span class="nf">get_sftp_client</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_sftp_client</span><span class="p">(</span>
     <span class="n">hostname</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">port</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">username</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -260,7 +262,7 @@
 <span class="sd">    :returns: sftp client</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">thread_local</span><span class="p">(</span>
-        <span class="sa">f</span><span class="s2">&quot;sftp_client:</span><span class="si">{</span><span class="n">hostname</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">port</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">username</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">password</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">&quot;sftp_client:</span><span class="si">{</span><span class="n">hostname</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">port</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">username</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">password</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">default_policy</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
         <span class="n">_get_sftp_client</span><span class="p">,</span>
         <span class="n">hostname</span><span class="p">,</span>
         <span class="n">port</span><span class="p">,</span>
@@ -270,7 +272,7 @@
     <span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_get_ssh_client</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_ssh_client</span><span class="p">(</span>
     <span class="n">hostname</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">port</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">username</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -300,7 +302,7 @@
             <span class="p">),</span>
             <span class="n">os</span><span class="o">.</span><span class="n">O_WRONLY</span> <span class="o">|</span> <span class="n">os</span><span class="o">.</span><span class="n">O_CREAT</span> <span class="o">|</span> <span class="n">os</span><span class="o">.</span><span class="n">O_TRUNC</span><span class="p">,</span>
         <span class="p">)</span>
-    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
         <span class="n">_logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
             <span class="s2">&quot;Can&#39;t create file lock in &#39;/tmp&#39;, &quot;</span>
             <span class="s2">&quot;please control the SFTP concurrency count by yourself.&quot;</span>
@@ -325,7 +327,7 @@
     <span class="k">return</span> <span class="n">ssh_client</span>
 
 
-<span class="k">def</span> <span class="nf">get_ssh_client</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_ssh_client</span><span class="p">(</span>
     <span class="n">hostname</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">port</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">username</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -333,7 +335,7 @@
     <span class="n">default_policy</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">paramiko</span><span class="o">.</span><span class="n">MissingHostKeyPolicy</span><span class="p">]</span> <span class="o">=</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">RejectPolicy</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">SSHClient</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">thread_local</span><span class="p">(</span>
-        <span class="sa">f</span><span class="s2">&quot;ssh_client:</span><span class="si">{</span><span class="n">hostname</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">port</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">username</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">password</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">&quot;ssh_client:</span><span class="si">{</span><span class="n">hostname</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">port</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">username</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">password</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">default_policy</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
         <span class="n">_get_ssh_client</span><span class="p">,</span>
         <span class="n">hostname</span><span class="p">,</span>
         <span class="n">port</span><span class="p">,</span>
@@ -343,21 +345,23 @@
     <span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">get_ssh_session</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_ssh_session</span><span class="p">(</span>
     <span class="n">hostname</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">port</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">username</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">password</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">default_policy</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">paramiko</span><span class="o">.</span><span class="n">MissingHostKeyPolicy</span><span class="p">]</span> <span class="o">=</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">RejectPolicy</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">Channel</span><span class="p">:</span>
-    <span class="k">def</span> <span class="nf">retry_callback</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">retry_callback</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">ssh_client</span> <span class="o">=</span> <span class="n">get_ssh_client</span><span class="p">(</span><span class="n">hostname</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">,</span> <span class="n">default_policy</span><span class="p">)</span>
         <span class="n">ssh_client</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
         <span class="n">atexit</span><span class="o">.</span><span class="n">unregister</span><span class="p">(</span><span class="n">ssh_client</span><span class="o">.</span><span class="n">close</span><span class="p">)</span>
-        <span class="n">ssh_key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;ssh_client:</span><span class="si">{</span><span class="n">hostname</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">port</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">username</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">password</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">ssh_key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;ssh_client:</span><span class="si">{</span><span class="n">hostname</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">port</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">username</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">password</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">default_policy</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="k">if</span> <span class="n">thread_local</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ssh_key</span><span class="p">):</span>
             <span class="k">del</span> <span class="n">thread_local</span><span class="p">[</span><span class="n">ssh_key</span><span class="p">]</span>
-        <span class="n">sftp_key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;sftp_client:</span><span class="si">{</span><span class="n">hostname</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">port</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">username</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">password</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">sftp_key</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;sftp_client:</span><span class="si">{</span><span class="n">hostname</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">port</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">username</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">password</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">default_policy</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
         <span class="k">if</span> <span class="n">thread_local</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">sftp_key</span><span class="p">):</span>
             <span class="k">del</span> <span class="n">thread_local</span><span class="p">[</span><span class="n">sftp_key</span><span class="p">]</span>
 
@@ -369,7 +373,7 @@
     <span class="p">)(</span><span class="n">hostname</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">,</span> <span class="n">default_policy</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_open_session</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_open_session</span><span class="p">(</span>
     <span class="n">hostname</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">port</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">username</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -390,7 +394,7 @@
 
 <div class="viewcode-block" id="is_sftp">
 <a class="viewcode-back" href="../../megfile.sftp.html#megfile.sftp.is_sftp">[docs]</a>
-<span class="k">def</span> <span class="nf">is_sftp</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">is_sftp</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Test if a path is sftp path</span>
 
 <span class="sd">    :param path: Path to be tested</span>
@@ -402,7 +406,7 @@
 
 
 
-<span class="k">def</span> <span class="nf">_sftp_scan_pairs</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_sftp_scan_pairs</span><span class="p">(</span>
     <span class="n">src_url</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">dst_url</span><span class="p">:</span> <span class="n">PathLike</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">PathLike</span><span class="p">,</span> <span class="n">PathLike</span><span class="p">]]:</span>
     <span class="k">for</span> <span class="n">src_file_path</span> <span class="ow">in</span> <span class="n">SftpPath</span><span class="p">(</span><span class="n">src_url</span><span class="p">)</span><span class="o">.</span><span class="n">scan</span><span class="p">():</span>
@@ -417,7 +421,7 @@
 <div class="viewcode-block" id="SftpPath">
 <a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.sftp.SftpPath">[docs]</a>
 <span class="nd">@SmartPath</span><span class="o">.</span><span class="n">register</span>
-<span class="k">class</span> <span class="nc">SftpPath</span><span class="p">(</span><span class="n">URIPath</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SftpPath</span><span class="p">(</span><span class="n">URIPath</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;sftp protocol</span>
 
 <span class="sd">    uri format:</span>
@@ -430,7 +434,7 @@
     <span class="n">protocol</span> <span class="o">=</span> <span class="s2">&quot;sftp&quot;</span>
     <span class="n">default_policy</span> <span class="o">=</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">RejectPolicy</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="s2">&quot;PathLike&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">other_paths</span><span class="p">:</span> <span class="s2">&quot;PathLike&quot;</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="s2">&quot;PathLike&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">other_paths</span><span class="p">:</span> <span class="s2">&quot;PathLike&quot;</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="o">*</span><span class="n">other_paths</span><span class="p">)</span>
         <span class="n">parts</span> <span class="o">=</span> <span class="n">urlsplit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_urlsplit_parts</span> <span class="o">=</span> <span class="n">parts</span>
@@ -442,7 +446,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_real_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_root_dir</span><span class="p">,</span> <span class="n">parts</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">))</span>
 
     <span class="nd">@cached_property</span>
-    <span class="k">def</span> <span class="nf">parts</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">parts</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;A tuple giving access to the path’s various components&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_urlsplit_parts</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;//&quot;</span><span class="p">):</span>
             <span class="n">new_parts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_urlsplit_parts</span><span class="o">.</span><span class="n">_replace</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">&quot;//&quot;</span><span class="p">)</span>
@@ -455,7 +459,7 @@
         <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span>  <span class="c1"># pyre-ignore[7]</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">_client</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_client</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">get_sftp_client</span><span class="p">(</span>
             <span class="n">hostname</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_urlsplit_parts</span><span class="o">.</span><span class="n">hostname</span><span class="p">,</span>
             <span class="n">port</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_urlsplit_parts</span><span class="o">.</span><span class="n">port</span><span class="p">,</span>
@@ -464,7 +468,7 @@
             <span class="n">default_policy</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">default_policy</span><span class="p">,</span>
         <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_generate_path_object</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sftp_local_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">resolve</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_generate_path_object</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sftp_local_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">resolve</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">resolve</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_root_dir</span> <span class="o">==</span> <span class="s2">&quot;/&quot;</span><span class="p">:</span>
             <span class="n">sftp_local_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;//</span><span class="si">{</span><span class="n">sftp_local_path</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="k">else</span><span class="p">:</span>
@@ -476,7 +480,7 @@
 
 <div class="viewcode-block" id="SftpPath.exists">
 <a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.sftp.SftpPath.exists">[docs]</a>
-    <span class="k">def</span> <span class="nf">exists</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">exists</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Test if the path exists</span>
 
@@ -496,7 +500,7 @@
 
 <div class="viewcode-block" id="SftpPath.getmtime">
 <a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.sftp.SftpPath.getmtime">[docs]</a>
-    <span class="k">def</span> <span class="nf">getmtime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">getmtime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get last-modified time of the file on the given path (in Unix timestamp format).</span>
 
@@ -510,7 +514,7 @@
 
 <div class="viewcode-block" id="SftpPath.getsize">
 <a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.sftp.SftpPath.getsize">[docs]</a>
-    <span class="k">def</span> <span class="nf">getsize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">getsize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get file size on the given file path (in bytes).</span>
 
@@ -528,7 +532,7 @@
 
 <div class="viewcode-block" id="SftpPath.glob">
 <a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.sftp.SftpPath.glob">[docs]</a>
-    <span class="k">def</span> <span class="nf">glob</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">glob</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;SftpPath&quot;</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return path list in ascending alphabetical order,</span>
@@ -563,7 +567,7 @@
 
 <div class="viewcode-block" id="SftpPath.glob_stat">
 <a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.sftp.SftpPath.glob_stat">[docs]</a>
-    <span class="k">def</span> <span class="nf">glob_stat</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">glob_stat</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">FileEntry</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a list contains tuples of path and file stat,</span>
@@ -600,7 +604,7 @@
 
 <div class="viewcode-block" id="SftpPath.iglob">
 <a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.sftp.SftpPath.iglob">[docs]</a>
-    <span class="k">def</span> <span class="nf">iglob</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">iglob</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="s2">&quot;SftpPath&quot;</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return path iterator in ascending alphabetical order,</span>
@@ -632,14 +636,17 @@
         <span class="k">if</span> <span class="n">pattern</span><span class="p">:</span>
             <span class="n">glob_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span><span class="o">.</span><span class="n">path_with_protocol</span>
 
-        <span class="k">def</span> <span class="nf">_scandir</span><span class="p">(</span><span class="n">dirname</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]]:</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">_scandir</span><span class="p">(</span><span class="n">dirname</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]]:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">dirname</span><span class="p">)</span><span class="o">.</span><span class="n">scandir</span><span class="p">():</span>
-                <span class="k">yield</span> <span class="n">entry</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">entry</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()</span>
+                <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">entry</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">entry</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()))</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">is_dir</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">result</span><span class="p">):</span>
+                <span class="k">yield</span> <span class="n">name</span><span class="p">,</span> <span class="n">is_dir</span>
 
-        <span class="k">def</span> <span class="nf">_exist</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">_exist</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span>
 
-        <span class="k">def</span> <span class="nf">_is_dir</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">_is_dir</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">is_dir</span><span class="p">(</span><span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span>
 
         <span class="n">fs</span> <span class="o">=</span> <span class="n">FSFunc</span><span class="p">(</span><span class="n">_exist</span><span class="p">,</span> <span class="n">_is_dir</span><span class="p">,</span> <span class="n">_scandir</span><span class="p">)</span>
@@ -653,7 +660,7 @@
 
 <div class="viewcode-block" id="SftpPath.is_dir">
 <a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.sftp.SftpPath.is_dir">[docs]</a>
-    <span class="k">def</span> <span class="nf">is_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Test if a path is directory</span>
 
@@ -677,7 +684,7 @@
 
 <div class="viewcode-block" id="SftpPath.is_file">
 <a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.sftp.SftpPath.is_file">[docs]</a>
-    <span class="k">def</span> <span class="nf">is_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Test if a path is file</span>
 
@@ -701,36 +708,33 @@
 
 <div class="viewcode-block" id="SftpPath.listdir">
 <a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.sftp.SftpPath.listdir">[docs]</a>
-    <span class="k">def</span> <span class="nf">listdir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">listdir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get all contents of given sftp path.</span>
 <span class="sd">        The result is in ascending alphabetical order.</span>
 
 <span class="sd">        :returns: All contents have in the path in ascending alphabetical order</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
-            <span class="k">raise</span> <span class="ne">NotADirectoryError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Not a directory: &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_real_path</span><span class="p">))</span></div>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">scandir</span><span class="p">()</span> <span class="k">as</span> <span class="n">entries</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">entry</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">entries</span><span class="p">])</span></div>
 
 
 <div class="viewcode-block" id="SftpPath.iterdir">
 <a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.sftp.SftpPath.iterdir">[docs]</a>
-    <span class="k">def</span> <span class="nf">iterdir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="s2">&quot;SftpPath&quot;</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">iterdir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="s2">&quot;SftpPath&quot;</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get all contents of given sftp path.</span>
-<span class="sd">        The result is in ascending alphabetical order.</span>
+<span class="sd">        Get all contents of given sftp path. The order of result is in arbitrary order.</span>
 
-<span class="sd">        :returns: All contents have in the path in ascending alphabetical order</span>
+<span class="sd">        :returns: All contents have in the path.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
-            <span class="k">raise</span> <span class="ne">NotADirectoryError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Not a directory: &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">listdir</span><span class="p">():</span>
-            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">scandir</span><span class="p">()</span> <span class="k">as</span> <span class="n">entries</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">entries</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">name</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="SftpPath.load">
 <a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.sftp.SftpPath.load">[docs]</a>
-    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BinaryIO</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BinaryIO</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Read all content on specified path and write into memory</span>
 
 <span class="sd">        User should close the BinaryIO manually</span>
@@ -744,7 +748,7 @@
 
 <div class="viewcode-block" id="SftpPath.mkdir">
 <a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.sftp.SftpPath.mkdir">[docs]</a>
-    <span class="k">def</span> <span class="nf">mkdir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="mo">0o777</span><span class="p">,</span> <span class="n">parents</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">exist_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">mkdir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="mo">0o777</span><span class="p">,</span> <span class="n">parents</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">exist_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        make a directory on sftp, including parent directory.</span>
 <span class="sd">        If there exists a file on the path, raise FileExistsError</span>
@@ -782,7 +786,7 @@
 
 <div class="viewcode-block" id="SftpPath.realpath">
 <a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.sftp.SftpPath.realpath">[docs]</a>
-    <span class="k">def</span> <span class="nf">realpath</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">realpath</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the real path of given path</span>
 
 <span class="sd">        :returns: Real path of given path</span>
@@ -790,7 +794,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">path_with_protocol</span></div>
 
 
-    <span class="k">def</span> <span class="nf">_is_same_backend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;SftpPath&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_is_same_backend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;SftpPath&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_urlsplit_parts</span><span class="o">.</span><span class="n">hostname</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">_urlsplit_parts</span><span class="o">.</span><span class="n">hostname</span>
             <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_urlsplit_parts</span><span class="o">.</span><span class="n">username</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">_urlsplit_parts</span><span class="o">.</span><span class="n">username</span>
@@ -798,12 +802,12 @@
             <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_urlsplit_parts</span><span class="o">.</span><span class="n">port</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">_urlsplit_parts</span><span class="o">.</span><span class="n">port</span>
         <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_is_same_protocol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_is_same_protocol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">is_sftp</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
 
 <div class="viewcode-block" id="SftpPath.rename">
 <a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.sftp.SftpPath.rename">[docs]</a>
-    <span class="k">def</span> <span class="nf">rename</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SftpPath&quot;</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">rename</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SftpPath&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        rename file on sftp</span>
 
@@ -850,7 +854,7 @@
 
 <div class="viewcode-block" id="SftpPath.replace">
 <a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.sftp.SftpPath.replace">[docs]</a>
-    <span class="k">def</span> <span class="nf">replace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SftpPath&quot;</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">replace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SftpPath&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        move file on sftp</span>
 
@@ -862,7 +866,7 @@
 
 <div class="viewcode-block" id="SftpPath.remove">
 <a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.sftp.SftpPath.remove">[docs]</a>
-    <span class="k">def</span> <span class="nf">remove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">remove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Remove the file or directory on sftp</span>
 
@@ -881,7 +885,7 @@
 
 <div class="viewcode-block" id="SftpPath.scan">
 <a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.sftp.SftpPath.scan">[docs]</a>
-    <span class="k">def</span> <span class="nf">scan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">scan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Iteratively traverse only files in given directory, in alphabetical order.</span>
 <span class="sd">        Every iteration on generator yields a path string.</span>
@@ -902,7 +906,7 @@
 
 <div class="viewcode-block" id="SftpPath.scan_stat">
 <a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.sftp.SftpPath.scan_stat">[docs]</a>
-    <span class="k">def</span> <span class="nf">scan_stat</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">scan_stat</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">FileEntry</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -914,7 +918,7 @@
 <span class="sd">        :returns: A file path generator</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">def</span> <span class="nf">create_generator</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">FileEntry</span><span class="p">]:</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">create_generator</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">FileEntry</span><span class="p">]:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">stat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">follow_symlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
@@ -949,20 +953,21 @@
 
 <div class="viewcode-block" id="SftpPath.scandir">
 <a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.sftp.SftpPath.scandir">[docs]</a>
-    <span class="k">def</span> <span class="nf">scandir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">FileEntry</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">scandir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ContextIterator</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get all content of given file path.</span>
 
 <span class="sd">        :returns: An iterator contains all contents have prefix path</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s2">&quot;No such directory: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">)</span>
+        <span class="n">real_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_real_path</span>
+        <span class="n">stat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">follow_symlinks</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">stat</span><span class="o">.</span><span class="n">is_symlink</span><span class="p">():</span>
+            <span class="n">real_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">readlink</span><span class="p">()</span><span class="o">.</span><span class="n">_real_path</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">stat</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">NotADirectoryError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Not a directory: &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
-            <span class="k">raise</span> <span class="ne">NotADirectoryError</span><span class="p">(</span><span class="s2">&quot;Not a directory: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">)</span>
-
-        <span class="k">def</span> <span class="nf">create_generator</span><span class="p">():</span>
-            <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">listdir</span><span class="p">():</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">create_generator</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">real_path</span><span class="p">):</span>
                 <span class="n">current_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
                 <span class="k">yield</span> <span class="n">FileEntry</span><span class="p">(</span>
                     <span class="n">current_path</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
@@ -975,7 +980,7 @@
 
 <div class="viewcode-block" id="SftpPath.stat">
 <a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.sftp.SftpPath.stat">[docs]</a>
-    <span class="k">def</span> <span class="nf">stat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StatResult</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">stat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StatResult</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get StatResult of file on sftp, including file size and mtime,</span>
 <span class="sd">        referring to fs_getsize and fs_getmtime</span>
@@ -991,7 +996,7 @@
 
 <div class="viewcode-block" id="SftpPath.unlink">
 <a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.sftp.SftpPath.unlink">[docs]</a>
-    <span class="k">def</span> <span class="nf">unlink</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">unlink</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Remove the file on sftp</span>
 
@@ -1004,7 +1009,7 @@
 
 <div class="viewcode-block" id="SftpPath.walk">
 <a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.sftp.SftpPath.walk">[docs]</a>
-    <span class="k">def</span> <span class="nf">walk</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">walk</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -1060,7 +1065,7 @@
 
 <div class="viewcode-block" id="SftpPath.resolve">
 <a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.sftp.SftpPath.resolve">[docs]</a>
-    <span class="k">def</span> <span class="nf">resolve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SftpPath&quot;</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">resolve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SftpPath&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Equal to sftp_realpath</span>
 
 <span class="sd">        :param strict: Ignore this parameter, just for compatibility</span>
@@ -1074,7 +1079,7 @@
 
 <div class="viewcode-block" id="SftpPath.md5">
 <a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.sftp.SftpPath.md5">[docs]</a>
-    <span class="k">def</span> <span class="nf">md5</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">recalculate</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">md5</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">recalculate</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculate the md5 value of the file</span>
 
@@ -1100,7 +1105,7 @@
 
 <div class="viewcode-block" id="SftpPath.symlink">
 <a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.sftp.SftpPath.symlink">[docs]</a>
-    <span class="k">def</span> <span class="nf">symlink</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">symlink</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create a symbolic link pointing to src_path named dst_path.</span>
 
@@ -1114,7 +1119,7 @@
 
 <div class="viewcode-block" id="SftpPath.readlink">
 <a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.sftp.SftpPath.readlink">[docs]</a>
-    <span class="k">def</span> <span class="nf">readlink</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SftpPath&quot;</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">readlink</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SftpPath&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a SftpPath instance representing the path to</span>
 <span class="sd">        which the symbolic link points.</span>
@@ -1131,7 +1136,7 @@
 
 <div class="viewcode-block" id="SftpPath.is_symlink">
 <a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.sftp.SftpPath.is_symlink">[docs]</a>
-    <span class="k">def</span> <span class="nf">is_symlink</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_symlink</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Test whether a path is a symbolic link</span>
 
 <span class="sd">        :return: If path is a symbolic link return True, else False</span>
@@ -1142,7 +1147,7 @@
 
 <div class="viewcode-block" id="SftpPath.cwd">
 <a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.sftp.SftpPath.cwd">[docs]</a>
-    <span class="k">def</span> <span class="nf">cwd</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SftpPath&quot;</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cwd</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SftpPath&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return current working directory</span>
 
 <span class="sd">        returns: Current working directory</span>
@@ -1152,7 +1157,7 @@
 
 <div class="viewcode-block" id="SftpPath.save">
 <a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.sftp.SftpPath.save">[docs]</a>
-    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_object</span><span class="p">:</span> <span class="n">BinaryIO</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_object</span><span class="p">:</span> <span class="n">BinaryIO</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Write the opened binary stream to path</span>
 <span class="sd">        If parent directory of path doesn&#39;t exist, it will be created.</span>
 
@@ -1164,9 +1169,10 @@
 
 <div class="viewcode-block" id="SftpPath.open">
 <a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.sftp.SftpPath.open">[docs]</a>
-    <span class="k">def</span> <span class="nf">open</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">open</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;r&quot;</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
         <span class="n">buffering</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
         <span class="n">encoding</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">errors</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -1200,7 +1206,7 @@
 
 <div class="viewcode-block" id="SftpPath.chmod">
 <a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.sftp.SftpPath.chmod">[docs]</a>
-    <span class="k">def</span> <span class="nf">chmod</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">chmod</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Change the file mode and permissions, like os.chmod().</span>
 
@@ -1212,7 +1218,7 @@
 
 <div class="viewcode-block" id="SftpPath.absolute">
 <a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.sftp.SftpPath.absolute">[docs]</a>
-    <span class="k">def</span> <span class="nf">absolute</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SftpPath&quot;</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">absolute</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SftpPath&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Make the path absolute, without normalization or resolving symlinks.</span>
 <span class="sd">        Returns a new path object</span>
@@ -1222,7 +1228,7 @@
 
 <div class="viewcode-block" id="SftpPath.rmdir">
 <a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.sftp.SftpPath.rmdir">[docs]</a>
-    <span class="k">def</span> <span class="nf">rmdir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">rmdir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Remove this directory. The directory must be empty.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1231,7 +1237,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">rmdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_real_path</span><span class="p">)</span></div>
 
 
-    <span class="k">def</span> <span class="nf">_exec_command</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_exec_command</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">command</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
         <span class="n">bufsize</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
@@ -1264,7 +1270,7 @@
 
 <div class="viewcode-block" id="SftpPath.copy">
 <a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.sftp.SftpPath.copy">[docs]</a>
-    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">copy</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
         <span class="n">callback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">],</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -1330,7 +1336,7 @@
 
 <div class="viewcode-block" id="SftpPath.sync">
 <a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.sftp.SftpPath.sync">[docs]</a>
-    <span class="k">def</span> <span class="nf">sync</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sync</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
         <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
@@ -1363,12 +1369,16 @@
             <span class="p">):</span>
                 <span class="k">continue</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">src_file_path</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">dst_file_path</span><span class="p">,</span> <span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span></div>
+            <span class="n">src_path</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span>
+                <span class="n">dst_file_path</span><span class="p">,</span>
+                <span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">,</span>
+                <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="SftpPath.utime">
 <a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.sftp.SftpPath.utime">[docs]</a>
-    <span class="k">def</span> <span class="nf">utime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">atime</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">mtime</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">utime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">atime</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">mtime</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set the access and modified times of the file specified by path.</span>
 

@@ -5,7 +5,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Path Format &mdash; megfile  documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
   
@@ -117,7 +117,7 @@
 <section id="set-cookies-headers-and-other-parameters">
 <h3>set cookies, headers and other parameters<a class="headerlink" href="#set-cookies-headers-and-other-parameters" title="Link to this heading"></a></h3>
 <p>You can set <code class="docutils literal notranslate"><span class="pre">cookies</span></code>, <code class="docutils literal notranslate"><span class="pre">headers</span></code> and other parameters of <code class="docutils literal notranslate"><span class="pre">requests.request</span></code> in <code class="docutils literal notranslate"><span class="pre">HttpPath</span></code>‘s property <code class="docutils literal notranslate"><span class="pre">request_kwargs</span></code>, like:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">megfile</span> <span class="kn">import</span> <span class="n">HttpPath</span><span class="p">,</span> <span class="n">smart_copy</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">megfile</span><span class="w"> </span><span class="kn">import</span> <span class="n">HttpPath</span><span class="p">,</span> <span class="n">smart_copy</span>
 
 <span class="n">url</span> <span class="o">=</span> <span class="n">HttpPath</span><span class="p">(</span><span class="s1">&#39;https://megvii-research.github.io/megfile/&#39;</span><span class="p">)</span>
 <span class="n">url</span><span class="o">.</span><span class="n">request_kwargs</span> <span class="o">=</span> <span class="p">{</span>

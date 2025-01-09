@@ -5,7 +5,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>S3 Configuration &mdash; megfile  documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
 
   
@@ -153,7 +153,7 @@ $<span class="w"> </span>megfile<span class="w"> </span>config<span class="w"> <
 <h2>Config for different s3 server or authentications<a class="headerlink" href="#config-for-different-s3-server-or-authentications" title="Link to this heading"></a></h2>
 <p>You can operate s3 files with different endpoint urls, access keys and secret keys.
 For example, you have two s3 server with different endpoint_url, access_key and secret key. With configuration, you can use path with profile name like <code class="docutils literal notranslate"><span class="pre">s3+profile_name://bucket/key</span></code> to operate different s3 server:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">megfile</span> <span class="kn">import</span> <span class="n">smart_sync</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">megfile</span><span class="w"> </span><span class="kn">import</span> <span class="n">smart_sync</span>
 
 <span class="n">smart_sync</span><span class="p">(</span><span class="s1">&#39;s3+profile1://bucket/key&#39;</span><span class="p">,</span> <span class="s1">&#39;s3+profile2://bucket/key&#39;</span><span class="p">)</span>
 </pre></div>

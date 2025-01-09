@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>megfile.http &mdash; megfile  documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
 
   
@@ -79,12 +79,12 @@
            <div itemprop="articleBody">
              
   <h1>Source code for megfile.http</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">BufferedReader</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">io</span><span class="w"> </span><span class="kn">import</span> <span class="n">BufferedReader</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
 
-<span class="kn">from</span> <span class="nn">megfile.config</span> <span class="kn">import</span> <span class="n">READER_BLOCK_SIZE</span><span class="p">,</span> <span class="n">READER_MAX_BUFFER_SIZE</span>
-<span class="kn">from</span> <span class="nn">megfile.http_path</span> <span class="kn">import</span> <span class="n">HttpPath</span><span class="p">,</span> <span class="n">HttpPrefetchReader</span><span class="p">,</span> <span class="n">get_http_session</span><span class="p">,</span> <span class="n">is_http</span>
-<span class="kn">from</span> <span class="nn">megfile.interfaces</span> <span class="kn">import</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">StatResult</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">megfile.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">READER_BLOCK_SIZE</span><span class="p">,</span> <span class="n">READER_MAX_BUFFER_SIZE</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">megfile.http_path</span><span class="w"> </span><span class="kn">import</span> <span class="n">HttpPath</span><span class="p">,</span> <span class="n">HttpPrefetchReader</span><span class="p">,</span> <span class="n">get_http_session</span><span class="p">,</span> <span class="n">is_http</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">megfile.interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">StatResult</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">&quot;get_http_session&quot;</span><span class="p">,</span>
@@ -99,7 +99,7 @@
 
 <div class="viewcode-block" id="http_open">
 <a class="viewcode-back" href="../../megfile.http.html#megfile.http.http_open">[docs]</a>
-<span class="k">def</span> <span class="nf">http_open</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">http_open</span><span class="p">(</span>
     <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
     <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;rb&quot;</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
@@ -147,7 +147,7 @@
 
 <div class="viewcode-block" id="http_stat">
 <a class="viewcode-back" href="../../megfile.http.html#megfile.http.http_stat">[docs]</a>
-<span class="k">def</span> <span class="nf">http_stat</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StatResult</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">http_stat</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StatResult</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get StatResult of http_url response, including size and mtime,</span>
 <span class="sd">    referring to http_getsize and http_getmtime</span>
@@ -163,7 +163,7 @@
 
 <div class="viewcode-block" id="http_getsize">
 <a class="viewcode-back" href="../../megfile.http.html#megfile.http.http_getsize">[docs]</a>
-<span class="k">def</span> <span class="nf">http_getsize</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">http_getsize</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get file size on the given http_url path.</span>
 
@@ -180,7 +180,7 @@
 
 <div class="viewcode-block" id="http_getmtime">
 <a class="viewcode-back" href="../../megfile.http.html#megfile.http.http_getmtime">[docs]</a>
-<span class="k">def</span> <span class="nf">http_getmtime</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">http_getmtime</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get Last-Modified time of the http request on the given http_url path.</span>
 
@@ -197,7 +197,7 @@
 
 <div class="viewcode-block" id="http_exists">
 <a class="viewcode-back" href="../../megfile.http.html#megfile.http.http_exists">[docs]</a>
-<span class="k">def</span> <span class="nf">http_exists</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">http_exists</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Test if http path exists</span>
 
 <span class="sd">    :param path: Given path</span>
