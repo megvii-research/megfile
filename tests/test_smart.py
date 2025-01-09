@@ -9,6 +9,7 @@ from moto import mock_aws
 
 import megfile
 from megfile import smart
+from megfile.errors import S3UnknownError
 from megfile.interfaces import Access, FileEntry, StatResult
 from megfile.s3_path import _s3_binary_mode
 from megfile.smart_path import SmartPath
@@ -283,6 +284,34 @@ def test_smart_copy(mocker):
         s3path_open.call_count == 2
 
 
+def test_smart_copy_raise_error(mocker):
+    def s3_upload_raise_error(*args, **kwargs):
+        raise S3UnknownError(
+            Exception("cannot schedule new futures after interpreter shutdown"),
+            "s3://a/b",
+        )
+
+    _default_copy_func = mocker.patch("megfile.smart._default_copy_func")
+    patch_dict = {
+        "file": {"s3": s3_upload_raise_error},
+    }
+
+    with patch("megfile.smart._copy_funcs", patch_dict) as _:
+        smart.smart_copy("/data/a", "s3://a/b")
+        assert _default_copy_func.call_count == 1
+
+    def s3_upload_raise_error(*args, **kwargs):
+        raise S3UnknownError(Exception("test"), "s3://a/b")
+
+    patch_dict = {
+        "file": {"s3": s3_upload_raise_error},
+    }
+
+    with patch("megfile.smart._copy_funcs", patch_dict) as _:
+        with pytest.raises(S3UnknownError):
+            smart.smart_copy("/data/a", "s3://a/b")
+
+
 def test_smart_copy_overwrite(fs, mocker):
     with open("file", "wb") as f:
         f.write(b"")
@@ -295,31 +324,6 @@ def test_smart_copy_overwrite(fs, mocker):
     smart.smart_copy("/file", "/file1", overwrite=True)
     with open("/file1", "rb") as f:
         assert f.read() == b""
-
-
-def test_smart_copy_fs2fs(mocker):
-    fs_makedirs = mocker.patch(
-        "megfile.fs_path.FSPath.mkdir", side_effect=lambda *args, **kwargs: ...
-    )
-
-    class fake_copy:
-        flag = False
-
-        def __call__(self, *args, **kwargs):
-            if self.flag:
-                return
-            else:
-                error = FileNotFoundError()
-                error.filename = "fs/a/b/c"
-                self.flag = True
-                raise error
-
-    copyfile = mocker.patch("megfile.fs_path.FSPath._copyfile")
-    copyfile.side_effect = fake_copy()
-    smart.smart_copy("fs", "fs/a/b/c")
-    fs_makedirs.call_count == 1
-    fs_makedirs.assert_called_once_with(parents=True, exist_ok=True)
-    fs_makedirs.reset_mock()
 
 
 def test_smart_copy_UP2UP(filesystem):
@@ -398,6 +402,24 @@ def test_smart_sync(mocker):
     smart_copy.assert_any_call("a", "dst", callback=None, followlinks=True)
     smart_copy.assert_any_call("a/b/c", "dst/b/c", callback=None, followlinks=True)
     smart_copy.assert_any_call("a/d", "dst/d", callback=None, followlinks=True)
+
+    with pytest.raises(FileNotFoundError):
+        smart.smart_sync("not_exists", "dst")
+
+
+def test_smart_sync_with_progress(mocker, fs):
+    with pytest.raises(FileNotFoundError):
+        smart.smart_sync_with_progress("not_exists", "dst")
+
+    os.makedirs("/test")
+    with open("/test/a", "w") as f:
+        f.write("123")
+
+    def callback(path, length):
+        assert path == "/test/a"
+        assert length == 3
+
+    smart.smart_sync_with_progress("/test", "/test1", callback=callback)
 
 
 def test_smart_sync_overwrite(fs):
@@ -1034,6 +1056,9 @@ def test_smart_load_content(funcA, fs):
     smart.smart_load_content("s3://bucket/test.txt")
     funcA.assert_called_once()
 
+    with pytest.raises(ValueError):
+        smart.smart_load_content(path, 5, 3)
+
 
 def test_smart_save_content(mocker):
     content = b"test data for smart_save_content"
@@ -1079,7 +1104,7 @@ def test_register_copy_func():
     assert error.value.args[0] == "Copy Function has already existed: a->b"
 
 
-def test_smart_cache(mocker):
+def test_smart_cache(mocker, s3_empty_client):
     smart_copy = mocker.patch("megfile.smart.smart_copy")
     smart_copy.return_value = None
 
@@ -1093,9 +1118,22 @@ def test_smart_cache(mocker):
 
     cacher = megfile.smart_cache("s3://path/to/file")
     assert isinstance(cacher, SmartCacher)
-    assert smart_copy.called is True
+    assert smart_copy.call_count == 1
     cacher.close()
     assert cacher.closed is True
+
+    cacher = megfile.smart_cache("s3://path/to/save", mode="w")
+    assert isinstance(cacher, SmartCacher)
+    assert smart_copy.call_count == 1
+    with cacher as path:
+        with open(path, "w") as f:
+            f.write("test")
+    assert cacher.closed is True
+    assert smart_copy.call_count == 2
+    assert os.path.exists(path) is False
+
+    with pytest.raises(ValueError):
+        megfile.smart_cache("s3://path/to/file", mode="x")
 
 
 def test_smart_symlink(mocker, s3_empty_client, filesystem):
@@ -1138,6 +1176,19 @@ def test_default_copy_func(filesystem):
         f.write(content)
 
     smart._default_copy_func("a.txt", "b.txt", callback=callback_func)
+
+    with open("b.txt", "r") as f:
+        assert f.read() == content
+
+    with open("c.txt", "w") as f:
+        f.write("12345")
+
+    smart._default_copy_func(
+        "c.txt",
+        "b.txt",
+        callback=callback_func,
+        overwrite=False,
+    )
 
     with open("b.txt", "r") as f:
         assert f.read() == content
