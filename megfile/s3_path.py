@@ -200,10 +200,9 @@ def parse_s3_url(s3_url: PathLike) -> Tuple[str, str]:
 
 def get_scoped_config(profile_name: Optional[str] = None) -> Dict:
     try:
-        session = get_s3_session(profile_name=profile_name)
+        return get_s3_session(profile_name=profile_name)._session.get_scoped_config()
     except botocore.exceptions.ProfileNotFound:
-        session = get_s3_session()
-    return session._session.get_scoped_config()
+        return {}
 
 
 @lru_cache()
@@ -225,15 +224,12 @@ def get_endpoint_url(profile_name: Optional[str] = None) -> str:
         if environ_endpoint_url:
             warning_endpoint_url(environ_key, environ_endpoint_url)
             return environ_endpoint_url
-    try:
-        config = get_scoped_config(profile_name=profile_name)
-        config_endpoint_url = config.get("s3", {}).get("endpoint_url")
-        config_endpoint_url = config_endpoint_url or config.get("endpoint_url")
-        if config_endpoint_url:
-            warning_endpoint_url("~/.aws/config", config_endpoint_url)
-            return config_endpoint_url
-    except botocore.exceptions.ProfileNotFound:
-        pass
+    config = get_scoped_config(profile_name=profile_name)
+    config_endpoint_url = config.get("s3", {}).get("endpoint_url")
+    config_endpoint_url = config_endpoint_url or config.get("endpoint_url")
+    if config_endpoint_url:
+        warning_endpoint_url("~/.aws/config", config_endpoint_url)
+        return config_endpoint_url
     return endpoint_url
 
 
