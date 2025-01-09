@@ -47,6 +47,7 @@ from megfile.s3_path import (
     _s3_split_magic,
     _s3_split_magic_ignore_brace,
 )
+from megfile.utils import process_local, thread_local
 
 from . import Any, FakeStatResult, Now
 
@@ -270,9 +271,8 @@ def test_retry(s3_empty_client, mocker):
     assert sleep.call_count == s3_path.max_retries - 1
 
 
-def test_get_endpoint_url(mocker):
-    mocker.patch("megfile.s3_path.get_scoped_config", return_value={})
-    assert s3.get_endpoint_url() == "https://s3.amazonaws.com"
+def test_get_endpoint_url():
+    assert s3.get_endpoint_url(profile_name="unknown") == "https://s3.amazonaws.com"
 
 
 def test_get_endpoint_url_from_env(mocker):
@@ -328,7 +328,13 @@ def test_get_endpoint_url_from_scoped_config(mocker):
 def test_get_s3_client(mocker):
     mock_session = mocker.Mock(spec=boto3.Session)
     mocker.patch("megfile.s3_path.get_scoped_config", return_value={})
-    mocker.patch("megfile.s3_path.get_s3_session", return_value=mock_session)
+
+    def fake_get_s3_session(profile_name=None):
+        if profile_name == "unknown":
+            raise botocore.exceptions.ProfileNotFound(profile=profile_name)
+        return mock_session
+
+    mocker.patch("megfile.s3_path.get_s3_session", side_effect=fake_get_s3_session)
 
     client = s3.get_s3_client()
     access_key, secret_key, session_token = s3_path.get_access_token()
@@ -346,8 +352,12 @@ def test_get_s3_client(mocker):
     # assert _send is not patched
     assert "_send" not in client._endpoint.__dict__
 
-    client = s3.get_s3_client(cache_key="test")
-    assert client is s3.get_s3_client(cache_key="test")
+    client = s3.get_s3_client(cache_key="test", profile_name="unknown")
+    assert "test:unknown" in thread_local
+
+    mocker.patch("megfile.s3_path.S3_CLIENT_CACHE_MODE", "process_local")
+    client = s3.get_s3_client(cache_key="test", profile_name="test")
+    assert "test:test" in process_local
 
 
 @patch.dict(
@@ -3484,10 +3494,12 @@ def test_symlink_relevant_functions(s3_empty_client, fs):
     assert len(file_entries) == 3
     for file_entry in file_entries:
         if file_entry.name == "src":
+            assert file_entry.stat.isdir is False
             assert file_entry.stat.islnk is False
             assert file_entry.stat.is_symlink() is False
             assert file_entry.is_symlink() is False
         else:
+            assert file_entry.stat.isdir is False
             assert file_entry.stat.islnk is True
             assert file_entry.stat.is_file() is True
             assert file_entry.stat.is_symlink() is True

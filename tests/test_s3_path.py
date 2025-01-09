@@ -1,6 +1,11 @@
+import os
+
 import pytest
 
-from megfile.s3_path import S3Path
+from megfile.s3_path import (
+    S3Path,
+    get_access_token,
+)
 
 
 def test_absolute():
@@ -75,3 +80,25 @@ def test_with_suffix():
 def test_utime():
     with pytest.raises(NotImplementedError):
         S3Path("s3://foo/bar.tar.gz").utime(0, 0)
+
+
+def test_get_access_token(fs):
+    credentials_path = os.path.expanduser("~/.aws/credentials")
+    os.makedirs(os.path.dirname(credentials_path), exist_ok=True)
+
+    with open(credentials_path, "w") as f:
+        f.write("""[default]
+aws_access_key_id = test_key
+aws_secret_access_key = test_secret
+
+[kubebrain]
+aws_access_key_id = test_key_kubebrain
+aws_secret_access_key = test_secret_kubebrain""")
+
+    assert get_access_token() == ("test_key", "test_secret", None)
+    assert get_access_token("kubebrain") == (
+        "test_key_kubebrain",
+        "test_secret_kubebrain",
+        None,
+    )
+    assert get_access_token("unknown") == (None, None, None)
