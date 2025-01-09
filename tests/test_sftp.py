@@ -1,4 +1,5 @@
 import io
+import logging
 import os
 import shutil
 import stat
@@ -10,6 +11,7 @@ import paramiko
 import pytest
 
 from megfile import sftp, sftp_path
+from megfile.errors import SameFileError
 
 
 class FakeSFTPClient:
@@ -89,7 +91,10 @@ class FakeSFTPClient:
         os.truncate(path, size)
 
     def readlink(self, path):
-        return os.readlink(path)
+        path = os.readlink(path)
+        if not os.path.exists(path):
+            return None
+        return path
 
     def normalize(self, path):
         return os.path.realpath(path)
@@ -109,7 +114,7 @@ class FakeSFTPClient:
                         break
                     fdst.write(buf)
                     if callback:
-                        callback(len(buf))
+                        callback(len(buf), len(buf))
             else:
                 buf = fl.read()
                 fdst.write(buf)
@@ -124,7 +129,7 @@ class FakeSFTPClient:
             buf = fr.read()
             fl.write(buf)
             if callback:
-                callback(len(buf))
+                callback(len(buf), len(buf))
 
     def get(self, remotepath, localpath, callback=None, prefetch=True):
         with io.open(localpath, "wb") as fl:
@@ -202,6 +207,12 @@ def test_sftp_readlink(sftp_mocker):
 
     with pytest.raises(OSError):
         sftp.sftp_readlink("sftp://username@host//file")
+
+    path = "sftp://username@host//notFound"
+    link_path = "sftp://username@host//notFound.lnk"
+    sftp.sftp_symlink(path, link_path)
+    with pytest.raises(OSError):
+        sftp.sftp_readlink("sftp://username@host//notFound.lnk")
 
 
 def test_sftp_readlink_relative_path(fs, mocker):
@@ -708,15 +719,6 @@ def test_sftp_copy(sftp_mocker):
         "sftp://username@host//A/1.json", "sftp://username@host//A/1.json.lnk"
     )
 
-    with pytest.raises(IsADirectoryError):
-        sftp.sftp_copy("sftp://username@host//A", "sftp://username@host//A2")
-
-    with pytest.raises(IsADirectoryError):
-        sftp.sftp_copy("sftp://username@host//A/1.json", "sftp://username@host//A2/")
-
-    with pytest.raises(OSError):
-        sftp.sftp_copy("sftp://username@host//A", "/A2")
-
     def callback(length):
         assert length == len("1.json")
 
@@ -753,6 +755,40 @@ def test_sftp_copy(sftp_mocker):
         sftp.sftp_stat("sftp://username@host//A/2.json").size
         == sftp.sftp_stat("sftp://username@host//A2/1.json.bak").size
     )
+
+
+def test_sftp_copy_error(sftp_mocker, mocker):
+    sftp.sftp_makedirs("sftp://username@host//A")
+    with sftp.sftp_open("sftp://username@host//A/1.json", "w") as f:
+        f.write("1.json")
+
+    with pytest.raises(IsADirectoryError):
+        sftp.sftp_copy("sftp://username@host//A", "sftp://username@host//A2")
+
+    with pytest.raises(IsADirectoryError):
+        sftp.sftp_copy("sftp://username@host//A/1.json", "sftp://username@host//A2/")
+
+    with pytest.raises(OSError):
+        sftp.sftp_copy("sftp://username@host//A", "/A2")
+
+    with pytest.raises(SameFileError):
+        sftp.sftp_copy(
+            "sftp://username@host//A/1.json", "sftp://username@host//A/1.json"
+        )
+
+    def _exec_command_error(*args, **kwargs):
+        return subprocess.CompletedProcess(
+            args=[], returncode=1, stdout=b"", stderr=b""
+        )
+
+    mocker.patch(
+        "megfile.sftp_path.SftpPath._exec_command", side_effect=_exec_command_error
+    )
+
+    with pytest.raises(OSError):
+        sftp.sftp_copy(
+            "sftp://username@host//A/1.json", "sftp://username@host//A2/2.json"
+        )
 
 
 def test_sftp_copy_with_different_host(sftp_mocker):
@@ -796,10 +832,16 @@ def test_sftp_sync(sftp_mocker, mocker):
         "sftp://username@host//A", "sftp://username@host//A2", overwrite=False
     )
     assert sftp.sftp_stat("sftp://username@host//A2/1.json").size == 6
+
+    sftp.sftp_sync("sftp://username@host//A", "sftp://username@host//A2", force=True)
+    assert sftp.sftp_stat("sftp://username@host//A2/1.json").size == 1
+
+    with sftp.sftp_open("sftp://username@host//A/1.json", "w") as f:
+        f.write("22")
     sftp.sftp_sync(
         "sftp://username@host//A", "sftp://username@host//A2", overwrite=True
     )
-    assert sftp.sftp_stat("sftp://username@host//A2/1.json").size == 1
+    assert sftp.sftp_stat("sftp://username@host//A2/1.json").size == 2
 
     sftp.sftp_sync(
         "sftp://username@host//A/1.json", "sftp://username@host//A/1.json.bak"
@@ -835,9 +877,20 @@ def test_sftp_download(sftp_mocker):
 
     with sftp.sftp_open("sftp://username@host//A/1.json", "w") as f:
         f.write("2")
-    sftp.sftp_download("sftp://username@host//A/1.json", "/A2/1.json", overwrite=False)
+    sftp.sftp_download(
+        sftp.SftpPath("sftp://username@host//A/1.json"), "/A2/1.json", overwrite=False
+    )
     assert 6 == os.stat("/A2/1.json").st_size
-    sftp.sftp_download("sftp://username@host//A/1.json", "/A2/1.json", overwrite=True)
+
+    def callback(length):
+        assert length == 1
+
+    sftp.sftp_download(
+        sftp.SftpPath("sftp://username@host//A/1.json"),
+        "/A2/1.json",
+        overwrite=True,
+        callback=callback,
+    )
     assert 1 == os.stat("/A2/1.json").st_size
 
     sftp.sftp_download(
@@ -878,7 +931,16 @@ def test_sftp_upload(sftp_mocker):
         f.write("2")
     sftp.sftp_upload("/1.json.lnk", "sftp://username@host//A/1.json", overwrite=False)
     assert sftp.sftp_stat("sftp://username@host//A/1.json").size == 6
-    sftp.sftp_upload("/1.json.lnk", "sftp://username@host//A/1.json", overwrite=True)
+
+    def callback(length):
+        assert length == 1
+
+    sftp.sftp_upload(
+        "/1.json.lnk",
+        sftp.SftpPath("sftp://username@host//A/1.json"),
+        overwrite=True,
+        callback=callback,
+    )
     assert sftp.sftp_stat("sftp://username@host//A/1.json").size == 1
 
     sftp.sftp_upload("file:///1.json", "sftp://username@host//A/2.json")
@@ -955,6 +1017,8 @@ def test_sftp_concat(sftp_mocker, mocker):
 
 
 def test_sftp_add_host_key(fs, mocker):
+    connect_times = 0
+
     class FakeKey:
         def get_name(self):
             return "ssh-ed25519"
@@ -970,7 +1034,8 @@ def test_sftp_add_host_key(fs, mocker):
             pass
 
         def connect(self):
-            pass
+            nonlocal connect_times
+            connect_times += 1
 
         def get_remote_server_key(self):
             return FakeKey()
@@ -980,13 +1045,32 @@ def test_sftp_add_host_key(fs, mocker):
 
     mocker.patch("paramiko.Transport", return_value=FakeTransport())
 
-    host_key_path = ".ssh/known_hosts"
-    sftp.sftp_add_host_key("127.0.0.1", host_key_path=host_key_path)
+    host_key_path = os.path.expanduser("~/.ssh/known_hosts")
 
+    mocker.patch("builtins.input", return_value="no")
+    sftp.sftp_add_host_key("127.0.0.1", prompt=True)
+    with open(host_key_path, "r") as f:
+        assert "" == f.read()
+    assert connect_times == 1
+
+    mocker.patch("builtins.input", return_value="yes")
+    sftp.sftp_add_host_key("127.0.0.1", prompt=True)
     with open(host_key_path, "r") as f:
         assert "127.0.0.1 ssh-ed25519 test\n" == f.read()
+    assert connect_times == 2
+
     file_stat = os.stat(host_key_path)
     assert stat.S_IMODE(file_stat.st_mode) == 0o600
-
     dir_stat = os.stat(os.path.dirname(host_key_path))
     assert stat.S_IMODE(dir_stat.st_mode) == 0o700
+
+    mocker.patch("paramiko.hostkeys.HostKeys.lookup", return_value="ssh-rsa")
+    sftp.sftp_add_host_key("127.0.0.1")
+    assert connect_times == 2
+
+
+def test__check_input(mocker, caplog):
+    mocker.patch("builtins.input", return_value="xxx")
+    with caplog.at_level(logging.WARNING, logger="megfile"):
+        sftp._check_input("xxx", "fingerprint", times=9)
+    assert "Retried more than 10 times, give up" in caplog.text

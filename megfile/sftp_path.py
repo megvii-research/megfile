@@ -116,10 +116,12 @@ def _patch_sftp_client_request(
         ssh_client = get_ssh_client(hostname, port, username, password, default_policy)
         ssh_client.close()
         atexit.unregister(ssh_client.close)
-        ssh_key = f"ssh_client:{hostname},{port},{username},{password}"
+        ssh_key = f"ssh_client:{hostname},{port},{username},{password},{default_policy}"
         if thread_local.get(ssh_key):
             del thread_local[ssh_key]
-        sftp_key = f"sftp_client:{hostname},{port},{username},{password}"
+        sftp_key = (
+            f"sftp_client:{hostname},{port},{username},{password},{default_policy}"
+        )
         if thread_local.get(sftp_key):
             del thread_local[sftp_key]
 
@@ -179,7 +181,7 @@ def get_sftp_client(
     :returns: sftp client
     """
     return thread_local(
-        f"sftp_client:{hostname},{port},{username},{password}",
+        f"sftp_client:{hostname},{port},{username},{password},{default_policy}",
         _get_sftp_client,
         hostname,
         port,
@@ -219,7 +221,7 @@ def _get_ssh_client(
             ),
             os.O_WRONLY | os.O_CREAT | os.O_TRUNC,
         )
-    except Exception:
+    except Exception:  # pragma: no cover
         _logger.warning(
             "Can't create file lock in '/tmp', "
             "please control the SFTP concurrency count by yourself."
@@ -252,7 +254,7 @@ def get_ssh_client(
     default_policy: Type[paramiko.MissingHostKeyPolicy] = paramiko.RejectPolicy,
 ) -> paramiko.SSHClient:
     return thread_local(
-        f"ssh_client:{hostname},{port},{username},{password}",
+        f"ssh_client:{hostname},{port},{username},{password},{default_policy}",
         _get_ssh_client,
         hostname,
         port,
@@ -273,10 +275,12 @@ def get_ssh_session(
         ssh_client = get_ssh_client(hostname, port, username, password, default_policy)
         ssh_client.close()
         atexit.unregister(ssh_client.close)
-        ssh_key = f"ssh_client:{hostname},{port},{username},{password}"
+        ssh_key = f"ssh_client:{hostname},{port},{username},{password},{default_policy}"
         if thread_local.get(ssh_key):
             del thread_local[ssh_key]
-        sftp_key = f"sftp_client:{hostname},{port},{username},{password}"
+        sftp_key = (
+            f"sftp_client:{hostname},{port},{username},{password},{default_policy}"
+        )
         if thread_local.get(sftp_key):
             del thread_local[sftp_key]
 
