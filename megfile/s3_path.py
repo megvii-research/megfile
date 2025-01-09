@@ -1802,8 +1802,13 @@ class S3Path(URIPath):
             raise S3BucketNotFoundError(
                 "Empty bucket name: %r" % self.path_with_protocol
             )
-        if not self.hasbucket():
-            raise S3BucketNotFoundError("No such bucket: %r" % self.path_with_protocol)
+        try:
+            if not self.hasbucket():
+                raise S3BucketNotFoundError(
+                    "No such bucket: %r" % self.path_with_protocol
+                )
+        except S3PermissionError:
+            pass
         if exist_ok:
             return
         if self.exists():
