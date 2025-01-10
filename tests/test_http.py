@@ -280,8 +280,7 @@ def test_http_exists(mocker):
     mocker.patch("requests.Session.get", return_value=FakeResponse404())
     assert http_exists("http://test") is False
 
-    def fake_get(*args, **kwargs):
-        raise requests.exceptions.ConnectionError
-
-    mocker.patch("requests.Session.get", side_effect=fake_get)
+    mocker.patch(
+        "requests.Session.get", side_effect=requests.exceptions.ConnectionError()
+    )
     assert http_exists("http://test") is False
