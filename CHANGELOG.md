@@ -1,3 +1,7 @@
+## 4.1.0.post1 - 2025.01.10
+- fix
+    - fix `pickle.load` `S3UnknownError` bug
+
 ## 4.1.0 - 2025.01.09
 - **breaking change**
     - Remove the `followlinks` parameter from `hdfs_listdir`, `hdfs_load_from`, `hdfs_scandir`, `HdfsPath.load`, `HdfsPath.scandir`, and keep the behavior as `followlinks=False`.
