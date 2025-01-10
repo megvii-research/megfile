@@ -1,9 +1,11 @@
+import io
 import os
 
 import pytest
 
 from megfile.s3_path import (
     S3Path,
+    _patch_make_request,
     get_access_token,
 )
 
@@ -102,3 +104,70 @@ aws_secret_access_key = test_secret_kubebrain""")
         None,
     )
     assert get_access_token("unknown") == (None, None, None)
+
+
+def test__patch_make_request(mocker):
+    from botocore.awsrequest import AWSPreparedRequest, AWSResponse
+
+    mocker.patch("megfile.s3_path.max_retries", 2)
+    mocker.patch("megfile.s3_path.s3_should_retry", return_value=True)
+
+    class FakeEndpoint:
+        def __init__(self):
+            self.status = "start"
+
+        def _send(self, request):
+            if self.status == "start":
+                self.status = "redirected"
+                return AWSResponse(
+                    url="http://redirect",
+                    status_code=301,
+                    headers={"Location": "http://real/path"},
+                    raw=b"",
+                )
+            assert request.url == "http://real/path"
+            return AWSResponse(
+                url="http://real/path",
+                status_code=200,
+                headers={},
+                raw=b"",
+            )
+
+    class FakeClient:
+        def __init__(self):
+            self._endpoint = FakeEndpoint()
+            self.times = 0
+
+        def _make_request(self, operation_model, request_dict, request_context):
+            if self.times > 0:
+                return
+            self.times += 1
+            raise Exception("test")
+
+    class FakeOperationModel:
+        def __init__(self):
+            self.name = "test"
+
+    body = io.BytesIO(b"test")
+    body.seek(3)
+    client = _patch_make_request(
+        FakeClient(),
+        redirect=True,
+    )
+    client._make_request(
+        FakeOperationModel(),
+        {"body": body},
+        None,
+    )
+    assert body.tell() == 0
+
+    client._endpoint._send(
+        AWSPreparedRequest(
+            method="GET",
+            url="http://redirect",
+            headers={},
+            body=b"",
+            stream_output=b"",
+        )
+    )
+    assert client._endpoint.status == "redirected"
