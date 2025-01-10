@@ -1313,14 +1313,14 @@ def _group_src_paths_by_block(
             if len(groups) == 0:
                 if current_group_size + current_file_size > 2 * block_size:
                     group_lack_size = block_size - current_group_size
-                    current_group.append((src_path, f"bytes=0-{group_lack_size-1}"))
+                    current_group.append((src_path, f"bytes=0-{group_lack_size - 1}"))
                     groups.extend(
                         [
                             current_group,
                             [
                                 (
                                     src_path,
-                                    f"bytes={group_lack_size}-{current_file_size-1}",
+                                    f"bytes={group_lack_size}-{current_file_size - 1}",
                                 )
                             ],
                         ]
@@ -1386,7 +1386,7 @@ class S3Path(URIPath):
         if protocol.startswith("s3+"):
             self._protocol_with_profile = protocol
             self._profile_name = protocol[3:]
-            self._s3_path = f"s3://{self.path[len(protocol)+3:]}"
+            self._s3_path = f"s3://{self.path[len(protocol) + 3 :]}"
         elif not protocol:
             self._s3_path = f"s3://{self.path.lstrip('/')}"
         else:
