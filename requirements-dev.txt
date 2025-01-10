@@ -22,7 +22,7 @@ sphinxcontrib-jquery
 sphinx_click
 
 # format
-ruff ~= 0.9.0
+ruff
 black  # for E501
 
 # static check
