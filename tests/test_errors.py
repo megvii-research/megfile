@@ -265,3 +265,9 @@ def test_patch_method(caplog):
         times = 1
         patched_test()
         assert "Error already fixed by retry" in caplog.text
+
+
+def test_pickle_error():
+    e = S3UnknownError(Exception(), "")
+    d = pickle.dumps(e)
+    pickle.loads(d)
