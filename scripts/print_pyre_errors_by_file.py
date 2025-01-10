@@ -9,7 +9,7 @@ if __name__ == "__main__":
     index = 1
     for run in data["runs"]:
         for result in run["results"]:
-            print(f'[{index}] {result["message"]["text"]}')
+            print(f"[{index}] {result['message']['text']}")
             for location in result["locations"]:
                 print(
                     ":".join(

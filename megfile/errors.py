@@ -273,8 +273,8 @@ class S3InvalidRangeError(S3Exception):
 
 
 class S3UnknownError(S3Exception, UnknownError):
-    def __init__(self, error: Exception, path: PathLike):
-        super().__init__(error, path, "endpoint: %r" % s3_endpoint_url(path))
+    def __init__(self, error: Exception, path: PathLike, extra: Optional[str] = None):
+        super().__init__(error, path, extra or "endpoint: %r" % s3_endpoint_url(path))
 
 
 class HttpException(Exception):

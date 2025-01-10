@@ -924,7 +924,7 @@ def test_fs_glob_returns_lexicographical_result(create_glob_fake_dirtree):
 def test_fs_glob_ascending_alphabetical_order(filesystem):
     files = []
     for i in range(0, 4001, 500):
-        files.append(f"range_{str(i).zfill(4)}_{str(i+500).zfill(4)}.meta.json")
+        files.append(f"range_{str(i).zfill(4)}_{str(i + 500).zfill(4)}.meta.json")
     for filename in files:
         with open(filename, "w"):
             pass
