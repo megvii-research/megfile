@@ -106,16 +106,17 @@ def test_get_access_token():
     assert get_access_token("test") == ("test-key", "test-secret", "test-token")
 
 
+@patch.dict(
+    os.environ,
+    {
+        "AWS_ACCESS_KEY_ID": "",
+        "AWS_SECRET_ACCESS_KEY": "",
+    },
+)
 def test_get_access_token_from_file(mocker):
     with tempfile.TemporaryDirectory() as tmpdir:
         credentials_path = os.path.join(tmpdir, "credentials")
-        mocker.patch(
-            "os.environ",
-            {
-                "AWS_SHARED_CREDENTIALS_FILE": credentials_path,
-            },
-        )
-
+        os.environ["AWS_SHARED_CREDENTIALS_FILE"] = credentials_path
         os.makedirs(os.path.dirname(credentials_path), exist_ok=True)
 
         with open(credentials_path, "w") as f:
