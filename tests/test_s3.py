@@ -602,26 +602,6 @@ def test_parse_s3_url():
         s3.parse_s3_url("s3test://test")
 
 
-@patch.dict(
-    os.environ,
-    {
-        "AWS_ACCESS_KEY_ID": "default-key",
-        "AWS_SECRET_ACCESS_KEY": "default-secret",
-        "AWS_SESSION_TOKEN": "default-token",
-        "TEST__AWS_ACCESS_KEY_ID": "test-key",
-        "TEST__AWS_SECRET_ACCESS_KEY": "test-secret",
-        "TEST__AWS_SESSION_TOKEN": "test-token",
-    },
-)
-def test_get_access_token():
-    assert s3_path.get_access_token() == (
-        "default-key",
-        "default-secret",
-        "default-token",
-    )
-    assert s3_path.get_access_token("test") == ("test-key", "test-secret", "test-token")
-
-
 def test_s3_scandir_internal(truncating_client, mocker):
     mocker.patch("megfile.s3.s3_islink", return_value=False)
 

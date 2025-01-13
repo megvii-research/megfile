@@ -93,7 +93,7 @@ def test_s3_buffered_writer_write_multipart(client, mocker):
     complete_multipart_upload_func = mocker.spy(client, "complete_multipart_upload")
 
     with S3BufferedWriter(
-        BUCKET, KEY, s3_client=client, block_size=block_size
+        BUCKET, KEY, s3_client=client, block_size=block_size, max_workers=1
     ) as writer:
         writer.write(content)
         writer.write(b"\n")
@@ -180,7 +180,7 @@ def test_s3_buffered_writer_write_multipart_autoscale(client, mocker):
     complete_multipart_upload_func = mocker.spy(client, "complete_multipart_upload")
 
     with S3BufferedWriter(
-        BUCKET, KEY, s3_client=client, block_size=block_size
+        BUCKET, KEY, s3_client=client, block_size=block_size, max_workers=1
     ) as writer:
         for _ in range(content_repeat):
             writer.write(content)

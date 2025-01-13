@@ -38,6 +38,8 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
         max_workers: Optional[int] = None,
         **kwargs,
     ):
+        self._is_global_executor = False
+
         if max_buffer_size == 0:
             block_capacity = block_forward = 0
         else:
@@ -75,7 +77,6 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
         self._block_index = None  # Current block index
         self._seek_history = []
 
-        self._is_global_executor = False
         if max_workers is None:
             self._executor = process_local(
                 f"{self.__class__.__name__}.executor",

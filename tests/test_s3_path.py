@@ -1,5 +1,7 @@
 import io
 import os
+import tempfile
+from unittest.mock import patch
 
 import pytest
 
@@ -84,26 +86,54 @@ def test_utime():
         S3Path("s3://foo/bar.tar.gz").utime(0, 0)
 
 
-def test_get_access_token(fs):
-    credentials_path = os.path.expanduser("~/.aws/credentials")
-    os.makedirs(os.path.dirname(credentials_path), exist_ok=True)
-
-    with open(credentials_path, "w") as f:
-        f.write("""[default]
-aws_access_key_id = test_key
-aws_secret_access_key = test_secret
-
-[kubebrain]
-aws_access_key_id = test_key_kubebrain
-aws_secret_access_key = test_secret_kubebrain""")
-
-    assert get_access_token() == ("test_key", "test_secret", None)
-    assert get_access_token("kubebrain") == (
-        "test_key_kubebrain",
-        "test_secret_kubebrain",
-        None,
+@patch.dict(
+    os.environ,
+    {
+        "AWS_ACCESS_KEY_ID": "default-key",
+        "AWS_SECRET_ACCESS_KEY": "default-secret",
+        "AWS_SESSION_TOKEN": "default-token",
+        "TEST__AWS_ACCESS_KEY_ID": "test-key",
+        "TEST__AWS_SECRET_ACCESS_KEY": "test-secret",
+        "TEST__AWS_SESSION_TOKEN": "test-token",
+    },
+)
+def test_get_access_token():
+    assert get_access_token() == (
+        "default-key",
+        "default-secret",
+        "default-token",
     )
-    assert get_access_token("unknown") == (None, None, None)
+    assert get_access_token("test") == ("test-key", "test-secret", "test-token")
+
+
+def test_get_access_token_from_file(mocker):
+    with tempfile.TemporaryDirectory() as tmpdir:
+        credentials_path = os.path.join(tmpdir, "credentials")
+        mocker.patch(
+            "os.environ",
+            {
+                "AWS_SHARED_CREDENTIALS_FILE": credentials_path,
+            },
+        )
+
+        os.makedirs(os.path.dirname(credentials_path), exist_ok=True)
+
+        with open(credentials_path, "w") as f:
+            f.write("""[default]
+    aws_access_key_id = test_key
+    aws_secret_access_key = test_secret
+
+    [kubebrain]
+    aws_access_key_id = test_key_kubebrain
+    aws_secret_access_key = test_secret_kubebrain""")
+
+        assert get_access_token() == ("test_key", "test_secret", None)
+        assert get_access_token("kubebrain") == (
+            "test_key_kubebrain",
+            "test_secret_kubebrain",
+            None,
+        )
+        assert get_access_token("unknown") == (None, None, None)
 
 
 def test__patch_make_request(mocker):
