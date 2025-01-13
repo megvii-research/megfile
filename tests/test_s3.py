@@ -602,15 +602,18 @@ def test_parse_s3_url():
         s3.parse_s3_url("s3test://test")
 
 
+@patch.dict(
+    os.environ,
+    {
+        "AWS_ACCESS_KEY_ID": "default-key",
+        "AWS_SECRET_ACCESS_KEY": "default-secret",
+        "AWS_SESSION_TOKEN": "default-token",
+        "TEST__AWS_ACCESS_KEY_ID": "test-key",
+        "TEST__AWS_SECRET_ACCESS_KEY": "test-secret",
+        "TEST__AWS_SESSION_TOKEN": "test-token",
+    },
+)
 def test_get_access_token():
-    os.environ["AWS_ACCESS_KEY_ID"] = "default-key"
-    os.environ["AWS_SECRET_ACCESS_KEY"] = "default-secret"
-    os.environ["AWS_SESSION_TOKEN"] = "default-token"
-
-    os.environ["TEST__AWS_ACCESS_KEY_ID"] = "test-key"
-    os.environ["TEST__AWS_SECRET_ACCESS_KEY"] = "test-secret"
-    os.environ["TEST__AWS_SESSION_TOKEN"] = "test-token"
-
     assert s3_path.get_access_token() == (
         "default-key",
         "default-secret",
