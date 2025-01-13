@@ -366,8 +366,8 @@ def test_get_s3_client(mocker):
     {
         "AWS_S3_ADDRESSING_STYLE": "virtual",
         "TEST__AWS_S3_ADDRESSING_STYLE": "auto",
-        "AWS_ACCESS_KEY_ID": "test",
-        "AWS_SECRET_ACCESS_KEY": "test",
+        "AWS_ACCESS_KEY_ID": "test1",
+        "AWS_SECRET_ACCESS_KEY": "test1",
         "AWS_S3_VERIFY": "false",
         "AWS_S3_REDIRECT": "true",
     },

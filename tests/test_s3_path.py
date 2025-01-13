@@ -113,7 +113,7 @@ def test_get_access_token():
         "AWS_SECRET_ACCESS_KEY": "",
     },
 )
-def test_get_access_token_from_file(mocker):
+def test_get_access_token_from_file():
     with tempfile.TemporaryDirectory() as tmpdir:
         credentials_path = os.path.join(tmpdir, "credentials")
         os.environ["AWS_SHARED_CREDENTIALS_FILE"] = credentials_path
