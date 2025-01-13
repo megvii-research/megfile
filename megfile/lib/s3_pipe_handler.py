@@ -91,7 +91,7 @@ class S3PipeHandler(Readable[bytes], Writable[bytes]):
             self._exc = error
 
     def _raise_exception(self):
-        if self._exc is not None:
+        if getattr(self, "_exc", None) is not None:
             raise translate_s3_error(self._exc, self.name)
 
     def readable(self) -> bool:
@@ -121,8 +121,10 @@ class S3PipeHandler(Readable[bytes], Writable[bytes]):
         return self._fileobj.write(data)
 
     def _close(self):
-        self._fileobj.close()
-        if self._join_thread:
+        if hasattr(self, "_fileobj"):
+            self._fileobj.close()
+        if self._join_thread and hasattr(self, "_async_task"):
             self._async_task.join()
-        _s3_opened_pipes.remove(self._pipe)
+        if hasattr(self, "_pipe"):
+            _s3_opened_pipes.remove(self._pipe)
         self._raise_exception()
