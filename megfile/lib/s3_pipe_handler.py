@@ -125,6 +125,6 @@ class S3PipeHandler(Readable[bytes], Writable[bytes]):
             self._fileobj.close()
         if self._join_thread and hasattr(self, "_async_task"):
             self._async_task.join()
-        if hasattr(self, "_pipe"):
+        if hasattr(self, "_pipe") and self._pipe in _s3_opened_pipes:
             _s3_opened_pipes.remove(self._pipe)
         self._raise_exception()

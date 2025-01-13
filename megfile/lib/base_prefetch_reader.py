@@ -48,6 +48,7 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
             self._is_global_executor = True
         else:
             self._executor = ThreadPoolExecutor(max_workers=max_workers)
+        self._process_local = ProcessLocal()
 
         if max_buffer_size == 0:
             block_capacity = block_forward = 0
@@ -75,8 +76,6 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
 
         # Number of blocks every prefetch, which should be smaller than block_capacity
         self._block_forward = block_forward
-
-        self._process_local = ProcessLocal()
 
         self._content_size = self._get_content_size()
         self._block_stop = ceil(self._content_size / block_size)
