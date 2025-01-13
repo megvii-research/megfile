@@ -406,12 +406,14 @@ def _group_s3path_by_bucket(
             if len(split_bucket_name) == 2:
                 bucket_name, path_part = split_bucket_name
             pattern = re.compile(translate(re.sub(r"\*{2,}", "*", bucket_name)))
-
-            for bucket in all_bucket(profile_name):
-                if pattern.fullmatch(bucket) is not None:
+            for current_bucket in all_bucket(profile_name):
+                if pattern.fullmatch(current_bucket) is not None:
                     if path_part is not None:
-                        bucket = "%s/%s" % (bucket, path_part)
-                    grouped_path.append(generate_s3_path(bucket, key))
+                        # FIXME: The `*` inside `{}` will be translated into `[*]`,
+                        # which means the glob syntax within `{}` is considered
+                        # non-glob. As a result, this code might never be executed.
+                        current_bucket = "%s/%s" % (current_bucket, path_part)
+                    grouped_path.append(generate_s3_path(current_bucket, key))
         else:
             grouped_path.append(generate_s3_path(bucket_name, key))
 
@@ -1293,7 +1295,9 @@ class S3Cacher(FileCacher):
         self.cache_path = cache_path
 
     def _close(self):
-        if self.cache_path is not None and os.path.exists(self.cache_path):
+        if getattr(self, "cache_path", None) is not None and os.path.exists(
+            self.cache_path
+        ):
             if self.mode in ("w", "a"):
                 s3_upload(self.cache_path, self.name)
             os.unlink(self.cache_path)

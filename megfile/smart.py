@@ -1052,7 +1052,9 @@ class SmartCacher(FileCacher):
         self.cache_path = cache_path
 
     def _close(self):
-        if self.cache_path is not None and os.path.exists(self.cache_path):
+        if getattr(self, "cache_path", None) is not None and os.path.exists(
+            self.cache_path
+        ):
             if self.mode in ("w", "a"):
                 smart_copy(self.cache_path, self.name)
             os.unlink(self.cache_path)

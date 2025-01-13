@@ -130,6 +130,7 @@ class S3MemoryHandler(Readable[bytes], Seekable, Writable[bytes]):
             self._client.upload_fileobj(self._fileobj, self._bucket, self._key)
 
     def _close(self, need_upload: bool = True):
-        if need_upload:
-            self._upload_fileobj()
-        self._fileobj.close()
+        if hasattr(self, "_fileobj"):
+            if need_upload:
+                self._upload_fileobj()
+            self._fileobj.close()

@@ -38,6 +38,18 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
         max_workers: Optional[int] = None,
         **kwargs,
     ):
+        self._is_global_executor = False
+        if max_workers is None:
+            self._executor = process_local(
+                f"{self.__class__.__name__}.executor",
+                ThreadPoolExecutor,
+                max_workers=GLOBAL_MAX_WORKERS,
+            )
+            self._is_global_executor = True
+        else:
+            self._executor = ThreadPoolExecutor(max_workers=max_workers)
+        self._process_local = ProcessLocal()
+
         if max_buffer_size == 0:
             block_capacity = block_forward = 0
         else:
@@ -65,8 +77,6 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
         # Number of blocks every prefetch, which should be smaller than block_capacity
         self._block_forward = block_forward
 
-        self._process_local = ProcessLocal()
-
         self._content_size = self._get_content_size()
         self._block_stop = ceil(self._content_size / block_size)
 
@@ -75,16 +85,6 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
         self._block_index = None  # Current block index
         self._seek_history = []
 
-        self._is_global_executor = False
-        if max_workers is None:
-            self._executor = process_local(
-                f"{self.__class__.__name__}.executor",
-                ThreadPoolExecutor,
-                max_workers=GLOBAL_MAX_WORKERS,
-            )
-            self._is_global_executor = True
-        else:
-            self._executor = ThreadPoolExecutor(max_workers=max_workers)
         self._seek_buffer(0)
 
         _logger.debug("open file: %r, mode: %s" % (self.name, self.mode))
