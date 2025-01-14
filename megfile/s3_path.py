@@ -409,9 +409,6 @@ def _group_s3path_by_bucket(
             for current_bucket in all_bucket(profile_name):
                 if pattern.fullmatch(current_bucket) is not None:
                     if path_part is not None:
-                        # FIXME: The `*` inside `{}` will be translated into `[*]`,
-                        # which means the glob syntax within `{}` is considered
-                        # non-glob. As a result, this code might never be executed.
                         current_bucket = "%s/%s" % (current_bucket, path_part)
                     grouped_path.append(generate_s3_path(current_bucket, key))
         else:
