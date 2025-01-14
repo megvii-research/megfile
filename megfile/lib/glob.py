@@ -176,6 +176,7 @@ def _rlistdir(dirname: str, dironly: bool, fs: FSFunc) -> Iterator[str]:
 
 
 magic_check = re.compile(r"([*?[{])")
+magic_check_only_brace = re.compile(r"([{])")
 magic_decheck = re.compile(r"\[(.)\]")
 brace_check = re.compile(r"(\{.*\})")
 unbrace_check = re.compile(r"([*?[])")
@@ -212,6 +213,13 @@ def unescape(pathname):
     """Unescape all special characters."""
     drive, pathname = os.path.splitdrive(pathname)
     pathname = magic_decheck.sub(r"\1", pathname)
+    return drive + pathname
+
+
+def escape_brace(pathname):
+    """Escape brace."""
+    drive, pathname = os.path.splitdrive(pathname)
+    pathname = magic_check_only_brace.sub(r"[\1]", pathname)
     return drive + pathname
 
 
@@ -275,13 +283,15 @@ def ungloblize(glob: str) -> List[str]:
     while True:
         temp_path = path_list[0]
         begin = temp_path.find("{")
+        while temp_path[begin - 1 : begin + 2] == "[{]":
+            begin = temp_path.find("{", begin + 1)
         end = temp_path.find("}", begin)
         if end == -1:
             break
         path_list.pop(0)
         subpath_list = temp_path[begin + 1 : end].split(",")
         for subpath in subpath_list:
-            path = temp_path[:begin] + escape(subpath) + temp_path[end + 1 :]
+            path = temp_path[:begin] + escape_brace(subpath) + temp_path[end + 1 :]
             path_list.append(path)
     return path_list
 

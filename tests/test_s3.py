@@ -2490,7 +2490,8 @@ def test_s3_glob_stat(truncating_client, mocker):
     assert_glob_stat(
         "s3://{bucket*/fileAB,bucketC/folder/file}",
         [
-            ("file", "s3://bucketC/folder/file", make_stat(size=4))  # 同名文件
+            ("fileAB", "s3://bucketA/fileAB", make_stat(size=6)),
+            ("file", "s3://bucketC/folder/file", make_stat(size=4)),
         ],
     )
 
