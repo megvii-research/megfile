@@ -1,4 +1,5 @@
 from concurrent.futures import wait
+from io import UnsupportedOperation
 from threading import Event
 
 import moto
@@ -37,6 +38,9 @@ def test_s3_buffered_writer_write(client):
         writer.write(CONTENT)
         writer.write(b"\n")
         writer.write(CONTENT)
+
+        with pytest.raises(UnsupportedOperation):
+            writer.fileno()
 
     content = client.get_object(Bucket=BUCKET, Key=KEY)["Body"].read()
     assert content == CONTENT + b"\n" + CONTENT

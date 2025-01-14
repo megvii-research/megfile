@@ -523,7 +523,7 @@ def test_ungloblize():
 
     test_glob = "s3://bu-oss/a,b{a*,b,c}.json"
     assert [
-        "s3://bu-oss/a,ba[*].json",
+        "s3://bu-oss/a,ba*.json",
         "s3://bu-oss/a,bb.json",
         "s3://bu-oss/a,bc.json",
     ] == glob.ungloblize(test_glob)
@@ -562,6 +562,8 @@ def test_ungloblize():
         "/bucketForGlobTest/",
     ]
     assert sorted(path_list) == sorted(glob.ungloblize(glob.globlize(path_list)))
+
+    assert glob.ungloblize("s3://{a*{},b*}/1/2/*") == ["s3://a*[{],b*}/1/2/*"]
 
 
 def test_get_no_glob_root_path():
