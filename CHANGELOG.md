@@ -1,3 +1,7 @@
+## 4.1.0.post2 - 2025.01.17
+- fix
+    - fix `s3_glob` bug when bucket in path with `*` in `{}` 
+
 ## 4.1.0.post1 - 2025.01.10
 - fix
     - fix `pickle.load` `S3UnknownError` bug
