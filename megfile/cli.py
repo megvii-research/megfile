@@ -246,7 +246,7 @@ def cp(
                     dst_path,
                     followlinks=True,
                     map_func=executor.map,
-                    force=True,
+                    force=False,
                     overwrite=not skip,
                 )
             else:
@@ -255,7 +255,7 @@ def cp(
                     dst_path,
                     followlinks=True,
                     map_func=executor.map,
-                    force=True,
+                    force=False,
                     overwrite=not skip,
                 )
     else:
