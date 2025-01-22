@@ -1806,6 +1806,13 @@ def _s3_glob_with_common_wildcard():
     assert_glob(
         "s3://bucketForGlobTest/1/a/b/*/A.msg", ["s3://bucketForGlobTest/1/a/b/c/A.msg"]
     )
+    assert_glob(
+        "s3://bucketForGlobTest/1/a/b/c/*.{json,msg}",
+        [
+            "s3://bucketForGlobTest/1/a/b/c/1.json",
+            "s3://bucketForGlobTest/1/a/b/c/A.msg",
+        ],
+    )
 
     with pytest.raises(FileNotFoundError):
         list(s3.s3_glob("s3://notExistsBucketForGlobTest/*", missing_ok=False))
