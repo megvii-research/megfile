@@ -1,3 +1,7 @@
+## 4.1.0.post3 - 2025.01.23
+- fix
+    - fix `--skip` not work in `cp` command when path is dir.
+
 ## 4.1.0.post2 - 2025.01.17
 - fix
     - fix `s3_glob` bug when bucket in path with `*` in `{}` 
