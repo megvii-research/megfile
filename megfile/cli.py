@@ -366,7 +366,7 @@ def rm(path: str, recursive: bool):
 @click.argument("dst_path")
 @click.option("-g", "--progress-bar", is_flag=True, help="Show progress bar.")
 @click.option(
-    "-w", "--worker", type=click.INT, default=8, help="Number of concurrent workers."
+    "-w", "--worker", type=click.INT, default=-1, help="Number of concurrent workers."
 )
 @click.option(
     "-f", "--force", is_flag=True, help="Copy files forcible, ignore same files."
@@ -388,7 +388,8 @@ def sync(
     if not smart_exists(dst_path):
         force = True
 
-    with ThreadPoolExecutor(max_workers=worker) as executor:
+    max_workers = worker if worker > 0 else (os.cpu_count() or 1) * 2
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
         if has_magic(src_path):
             src_root_path = get_non_glob_dir(src_path)
             if not smart_exists(src_root_path):
