@@ -114,6 +114,8 @@ s3_retry_exceptions = tuple(s3_retry_exceptions)  # pyre-ignore[9]
 def s3_should_retry(error: Exception) -> bool:
     if isinstance(error, s3_retry_exceptions):  # pyre-ignore[6]
         return True
+    if isinstance(error, botocore.exceptions.SSLError):
+        return "EOF" in str(error)
     if isinstance(error, botocore.exceptions.ClientError):
         return client_error_code(error) in (
             "429",  # noqa: E501 # TOS ExceedAccountQPSLimit
