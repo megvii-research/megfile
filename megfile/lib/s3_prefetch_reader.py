@@ -5,7 +5,6 @@ from typing import Optional
 from megfile.config import (
     READER_BLOCK_SIZE,
     READER_MAX_BUFFER_SIZE,
-    S3_MAX_RETRY_TIMES,
 )
 from megfile.errors import (
     S3FileChangedError,
@@ -41,7 +40,6 @@ class S3PrefetchReader(BasePrefetchReader):
         block_size: int = READER_BLOCK_SIZE,
         max_buffer_size: int = READER_MAX_BUFFER_SIZE,
         block_forward: Optional[int] = None,
-        max_retries: int = S3_MAX_RETRY_TIMES,
         max_workers: Optional[int] = None,
         profile_name: Optional[str] = None,
     ):
@@ -55,7 +53,6 @@ class S3PrefetchReader(BasePrefetchReader):
             block_size=block_size,
             max_buffer_size=max_buffer_size,
             block_forward=block_forward,
-            max_retries=max_retries,
             max_workers=max_workers,
         )
 

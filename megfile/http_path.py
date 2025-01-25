@@ -177,14 +177,18 @@ class HttpPath(URIPath):
         request_kwargs = deepcopy(self.request_kwargs)
         timeout = request_kwargs.pop("timeout", DEFAULT_TIMEOUT)
         stream = request_kwargs.pop("stream", True)
+        session = get_http_session(timeout=timeout, status_forcelist=())
         try:
-            response = get_http_session(timeout=timeout, status_forcelist=()).get(
-                self.path_with_protocol, stream=stream, **request_kwargs
+            response = session.get(
+                self.path_with_protocol,
+                stream=stream,
+                **request_kwargs,
             )
             response.raise_for_status()
         except Exception as error:
             if response:
                 response.close()
+            session.close()
             raise translate_http_error(error, self.path_with_protocol)
 
         content_size = int(response.headers["Content-Length"])
@@ -197,11 +201,11 @@ class HttpPath(URIPath):
 
             reader = HttpPrefetchReader(
                 self,
+                session=session,
                 content_size=content_size,
                 block_size=block_size,
                 max_buffer_size=max_buffer_size,
                 block_forward=block_forward,
-                max_retries=HTTP_MAX_RETRY_TIMES,
                 max_workers=max_workers,
             )
             if _is_pickle(reader):

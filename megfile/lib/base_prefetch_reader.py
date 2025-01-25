@@ -8,7 +8,6 @@ from math import ceil
 from typing import Optional
 
 from megfile.config import (
-    DEFAULT_MAX_RETRY_TIMES,
     GLOBAL_MAX_WORKERS,
     NEWLINE,
     READER_BLOCK_SIZE,
@@ -34,7 +33,6 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
         block_size: int = READER_BLOCK_SIZE,
         max_buffer_size: int = READER_MAX_BUFFER_SIZE,
         block_forward: Optional[int] = None,
-        max_retries: int = DEFAULT_MAX_RETRY_TIMES,
         max_workers: Optional[int] = None,
         **kwargs,
     ):
@@ -70,7 +68,6 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
         # user maybe put block_size with 'numpy.uint64' type
         block_size = int(block_size)
 
-        self._max_retries = max_retries
         self._block_size = block_size
         self._block_capacity = block_capacity  # Max number of blocks
 
