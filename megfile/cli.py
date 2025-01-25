@@ -1,7 +1,7 @@
 import configparser
 import os
-import signal
 import shutil
+import signal
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor

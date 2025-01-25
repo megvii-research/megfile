@@ -308,9 +308,18 @@ def test_sync(runner, testdir):
     assert "newfile\n" in runner.invoke(ls, [str(testdir)]).output
     assert "text\n" in runner.invoke(ls, [str(testdir)]).output
 
+    result = runner.invoke(
+        sync, ["-v", str(testdir / "text"), str(testdir / "newfile")]
+    )
+
+    assert result.exit_code == 0
+    assert "done" in result.output
+    assert "newfile\n" in runner.invoke(ls, [str(testdir)]).output
+    assert "text\n" in runner.invoke(ls, [str(testdir)]).output
+
     runner.invoke(mkdir, [str(testdir / "newdir")])
     result = runner.invoke(
-        sync, ["-g", str(testdir / "text"), str(testdir / "newdir" / "newfile")]
+        sync, [str(testdir / "text"), str(testdir / "newdir" / "newfile")]
     )
 
     assert result.exit_code == 0
@@ -318,9 +327,7 @@ def test_sync(runner, testdir):
     assert "newfile\n" in runner.invoke(ls, [str(testdir / "newdir")]).output
 
     runner.invoke(mkdir, [str(testdir / "newdir2")])
-    glob_result = runner.invoke(
-        sync, ["-g", str(testdir / "*"), str(testdir / "newdir2")]
-    )
+    glob_result = runner.invoke(sync, [str(testdir / "*"), str(testdir / "newdir2")])
 
     assert glob_result.exit_code == 0
     assert "%" in glob_result.output
@@ -350,12 +357,12 @@ def test_sync_progress_bar(runner, testdir, mocker):
             pass
 
     result = runner.invoke(
-        sync, ["-g", str(testdir / "large_dir"), str(testdir / "new_large_dir")]
+        sync, ["-v", str(testdir / "large_dir"), str(testdir / "new_large_dir")]
     )
 
     assert result.exit_code == 0
-    assert "building progress bar" in result.output
-    assert "building progress bar, find" in result.output
+    assert "100%" in result.output
+    assert result.output.count("done") == 2
 
     runner.invoke(rm, [str(testdir / "large_dir")])
     runner.invoke(rm, [str(testdir / "new_large_dir")])
