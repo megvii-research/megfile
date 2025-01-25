@@ -10,9 +10,7 @@ from megfile.config import (
 from megfile.errors import (
     S3FileChangedError,
     S3InvalidRangeError,
-    patch_method,
     raise_s3_error,
-    s3_should_retry,
 )
 from megfile.lib.base_prefetch_reader import BasePrefetchReader, LRUCacheFutureManager
 
@@ -98,7 +96,7 @@ class S3PrefetchReader(BasePrefetchReader):
     def _fetch_response(
         self, start: Optional[int] = None, end: Optional[int] = None
     ) -> dict:
-        def fetch_response() -> dict:
+        with raise_s3_error(self.name):
             if start is None or end is None:
                 return self._client.get_object(Bucket=self._bucket, Key=self._key)
 
@@ -108,13 +106,6 @@ class S3PrefetchReader(BasePrefetchReader):
             )
             response["Body"] = BytesIO(response["Body"].read())
             return response
-
-        fetch_response = patch_method(
-            fetch_response, max_retries=self._max_retries, should_retry=s3_should_retry
-        )
-
-        with raise_s3_error(self.name):
-            return fetch_response()
 
     def _fetch_buffer(self, index: int) -> BytesIO:
         start, end = index * self._block_size, (index + 1) * self._block_size - 1
