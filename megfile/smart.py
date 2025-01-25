@@ -404,7 +404,7 @@ def _smart_sync_single_file(items: dict):
     force = items["force"]
     overwrite = items["overwrite"]
 
-    content_path = os.path.relpath(src_file_path, start=src_root_path)
+    content_path = smart_relpath(src_file_path, start=src_root_path)
     if len(content_path) and content_path != ".":
         content_path = content_path.lstrip("/")
         dst_abs_file_path = smart_path_join(dst_root_path, content_path)
@@ -438,6 +438,8 @@ def _smart_sync_single_file(items: dict):
             callback=copy_callback,
             followlinks=followlinks,
         )
+    elif callback:
+        callback(src_file_path, src_file_stat.size)
     if callback_after_copy_file:
         callback_after_copy_file(src_file_path, dst_abs_file_path)
     return should_sync
