@@ -14,7 +14,12 @@ from megfile.config import (
     READER_BLOCK_SIZE,
     READER_MAX_BUFFER_SIZE,
 )
-from megfile.errors import http_should_retry, patch_method, translate_http_error
+from megfile.errors import (
+    HttpBodyIncompleteError,
+    http_should_retry,
+    patch_method,
+    translate_http_error,
+)
 from megfile.interfaces import PathLike, Readable, StatResult, URIPath
 from megfile.lib.compat import fspath
 from megfile.lib.http_prefetch_reader import DEFAULT_TIMEOUT, HttpPrefetchReader
@@ -35,12 +40,24 @@ _logger = get_logger(__name__)
 def get_http_session(
     timeout: Optional[Union[int, Tuple[int, int]]] = DEFAULT_TIMEOUT,
     status_forcelist: Iterable[int] = (500, 502, 503, 504),
+    check_content_length: bool = False,
 ) -> requests.Session:
     session = requests.Session()
 
     def after_callback(response, *args, **kwargs):
         if response.status_code in status_forcelist:
             response.raise_for_status()
+        if check_content_length and len(response.content) != int(
+            response.headers["Content-Length"]
+        ):
+            raise HttpBodyIncompleteError(
+                "The downloaded content is incomplete, "
+                "expected size: %s, actual size: %d"
+                % (
+                    response.headers["Content-Length"],
+                    len(response.content),
+                )
+            )
         return response
 
     def before_callback(method, url, **kwargs):
@@ -177,7 +194,9 @@ class HttpPath(URIPath):
         request_kwargs = deepcopy(self.request_kwargs)
         timeout = request_kwargs.pop("timeout", DEFAULT_TIMEOUT)
         stream = request_kwargs.pop("stream", True)
-        session = get_http_session(timeout=timeout, status_forcelist=())
+        session = get_http_session(
+            timeout=timeout, status_forcelist=(), check_content_length=True
+        )
         try:
             response = session.get(
                 self.path_with_protocol,

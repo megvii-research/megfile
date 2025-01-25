@@ -7,10 +7,7 @@ from megfile.config import (
     READER_BLOCK_SIZE,
     READER_MAX_BUFFER_SIZE,
 )
-from megfile.errors import (
-    HttpBodyIncompleteError,
-    UnsupportedError,
-)
+from megfile.errors import UnsupportedError
 from megfile.lib.base_prefetch_reader import BasePrefetchReader
 from megfile.lib.compat import fspath
 from megfile.pathlike import PathLike
@@ -100,15 +97,6 @@ class HttpPrefetchReader(BasePrefetchReader):
                 stream=stream,
                 **request_kwargs,
             ) as response:
-                if len(response.content) != int(response.headers["Content-Length"]):
-                    raise HttpBodyIncompleteError(
-                        "The downloaded content is incomplete, "
-                        "expected size: %s, actual size: %d"
-                        % (
-                            response.headers["Content-Length"],
-                            len(response.content),
-                        )
-                    )
                 return {
                     "Body": BytesIO(response.content),
                     "Headers": response.headers,
