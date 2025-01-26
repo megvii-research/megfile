@@ -1,8 +1,6 @@
 import os
 from collections import defaultdict
 from functools import partial
-from stat import S_ISDIR as stat_isdir
-from stat import S_ISLNK as stat_islnk
 from typing import (
     IO,
     Any,
@@ -18,10 +16,14 @@ from typing import (
 from tqdm import tqdm
 
 from megfile.errors import S3UnknownError
-from megfile.fs import fs_copy, is_fs
+from megfile.fs import (
+    fs_copy,
+    fs_listdir,
+    fs_scandir,
+    is_fs,
+)
 from megfile.interfaces import (
     Access,
-    ContextIterator,
     FileCacher,
     FileEntry,
     NullCacher,
@@ -170,7 +172,7 @@ def smart_listdir(path: Optional[PathLike] = None) -> List[str]:
     :raises: FileNotFoundError, NotADirectoryError
     """
     if path is None:
-        return sorted(os.listdir(path))
+        return fs_listdir()
     return SmartPath(path).listdir()
 
 
@@ -183,25 +185,7 @@ def smart_scandir(path: Optional[PathLike] = None) -> Iterator[FileEntry]:
     :raises: FileNotFoundError, NotADirectoryError
     """
     if path is None:
-
-        def create_generator():
-            with os.scandir(None) as entries:
-                for entry in entries:
-                    stat = entry.stat()
-                    yield FileEntry(
-                        entry.name,
-                        entry.path,
-                        StatResult(
-                            size=stat.st_size,
-                            ctime=stat.st_ctime,
-                            mtime=stat.st_mtime,
-                            isdir=stat_isdir(stat.st_mode),
-                            islnk=stat_islnk(stat.st_mode),
-                            extra=stat,
-                        ),
-                    )
-
-        return ContextIterator(create_generator())
+        return fs_scandir()
     return SmartPath(path).scandir()
 
 
@@ -580,19 +564,21 @@ def smart_sync_with_progress(
     def callback_after_copy_file(src_file_path, dst_file_path):
         tbar.update(1)
 
-    smart_sync(
-        src_path,
-        dst_path,
-        callback=tqdm_callback,
-        followlinks=followlinks,
-        callback_after_copy_file=callback_after_copy_file,
-        src_file_stats=file_stats,
-        map_func=map_func,
-        force=force,
-        overwrite=overwrite,
-    )
-    tbar.close()
-    sbar.close()
+    try:
+        smart_sync(
+            src_path,
+            dst_path,
+            callback=tqdm_callback,
+            followlinks=followlinks,
+            callback_after_copy_file=callback_after_copy_file,
+            src_file_stats=file_stats,
+            map_func=map_func,
+            force=force,
+            overwrite=overwrite,
+        )
+    finally:
+        tbar.close()
+        sbar.close()
 
 
 def smart_remove(path: PathLike, missing_ok: bool = False) -> None:
