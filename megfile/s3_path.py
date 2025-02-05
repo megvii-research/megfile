@@ -1909,7 +1909,9 @@ class S3Path(URIPath):
                 )
                 raise S3UnknownError(Exception(error_msg), self.path_with_protocol)
 
-    def rename(self, dst_path: PathLike, overwrite: bool = True, recursive: bool = False) -> "S3Path":
+    def rename(
+        self, dst_path: PathLike, overwrite: bool = True, recursive: bool = False
+    ) -> "S3Path":
         """
         Move s3 file path from src_url to dst_url
 
@@ -2192,7 +2194,9 @@ class S3Path(URIPath):
             if missing_ok:
                 return
             if self.is_dir():
-                raise S3IsADirectoryError("Is a directory: %r" % self.path_with_protocol)
+                raise S3IsADirectoryError(
+                    "Is a directory: %r" % self.path_with_protocol
+                )
             raise
 
     def walk(

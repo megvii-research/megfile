@@ -600,7 +600,7 @@ def fs_rename(src_path: PathLike, dst_path: PathLike, overwrite: bool = True) ->
     :param dst_path: Given destination path
     :param overwrite: whether or not overwrite file when exists
     """
-    FSPath(src_path).rename(dst_path, overwrite)
+    FSPath(src_path).rename(dst_path, overwrite, recursive=False)
 
 
 def fs_move(src_path: PathLike, dst_path: PathLike, overwrite: bool = True) -> None:
@@ -611,4 +611,4 @@ def fs_move(src_path: PathLike, dst_path: PathLike, overwrite: bool = True) -> N
     :param dst_path: Given destination path
     :param overwrite: whether or not overwrite file when exists
     """
-    return fs_rename(src_path, dst_path, overwrite)
+    FSPath(src_path).rename(dst_path, overwrite, recursive=True)
