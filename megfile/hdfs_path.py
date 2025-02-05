@@ -372,7 +372,9 @@ class HdfsPath(URIPath):
         with raise_hdfs_error(self.path_with_protocol):
             self._client.makedirs(self.path_without_protocol, permission=mode)
 
-    def rename(self, dst_path: PathLike, overwrite: bool = True) -> "HdfsPath":
+    def rename(
+        self, dst_path: PathLike, overwrite: bool = True, recursive: bool = True
+    ) -> "HdfsPath":
         """
         Move hdfs file path from src_path to dst_path
 
@@ -397,6 +399,7 @@ class HdfsPath(URIPath):
         self.remove(missing_ok=True)
         return dst_path
 
+    # TODO: remove this method in 4.2.0
     def move(self, dst_path: PathLike, overwrite: bool = True) -> None:
         """
         Move file/directory path from src_path to dst_path
@@ -417,8 +420,8 @@ class HdfsPath(URIPath):
         try:
             with raise_hdfs_error(self.path_with_protocol):
                 self._client.delete(self.path_without_protocol, recursive=True)
-        except Exception as e:
-            if not missing_ok or not isinstance(e, FileNotFoundError):
+        except FileNotFoundError:
+            if not missing_ok:
                 raise
 
     def scan(self, missing_ok: bool = True, followlinks: bool = False) -> Iterator[str]:
@@ -510,9 +513,12 @@ class HdfsPath(URIPath):
         :param missing_ok: if False and target file not exists, raise FileNotFoundError
         :raises: FileNotFoundError, IsADirectoryError
         """
-        if self.is_dir():
-            raise IsADirectoryError("Path is a directory: %r" % self.path)
-        self.remove(missing_ok=missing_ok)
+        try:
+            with raise_hdfs_error(self.path_with_protocol):
+                self._client.delete(self.path_without_protocol, recursive=False)
+        except FileNotFoundError:
+            if not missing_ok:
+                raise
 
     def walk(
         self, followlinks: bool = False

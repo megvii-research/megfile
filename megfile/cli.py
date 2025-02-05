@@ -643,18 +643,18 @@ def to(path: str, append: bool, stdout: bool):
     if append:
         mode = "ab"
     with (
-        smart_open("stdio://0", "rb") as stdin,
-        smart_open(path, mode) as f,
-        smart_open("stdio://1", "wb") as stdout_fd,
+        smart_open("stdio://0", "rb") as fin,
+        smart_open("stdio://1", "wb") as fout,
+        smart_open(path, mode) as fd,
     ):
         length = 16 * 1024
         while True:
-            buf = stdin.read(length)
+            buf = fin.read(length)
             if not buf:
                 break
-            f.write(buf)
+            fd.write(buf)
             if stdout:
-                stdout_fd.write(buf)
+                fout.write(buf)
 
 
 @cli.command(short_help="Produce an md5sum file for all the objects in the path.")

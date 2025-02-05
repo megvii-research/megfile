@@ -491,7 +491,7 @@ def sftp_rename(
     :param dst_path: Given destination path
     :param overwrite: whether or not overwrite file when exists
     """
-    return SftpPath(src_path).rename(dst_path, overwrite)
+    return SftpPath(src_path).rename(dst_path, overwrite, recursive=False)
 
 
 def sftp_move(
@@ -504,7 +504,7 @@ def sftp_move(
     :param dst_path: Given destination path
     :param overwrite: whether or not overwrite file when exists
     """
-    return SftpPath(src_path).replace(dst_path, overwrite)
+    return SftpPath(src_path).rename(dst_path, overwrite, recursive=True)
 
 
 def sftp_remove(path: PathLike, missing_ok: bool = False) -> None:

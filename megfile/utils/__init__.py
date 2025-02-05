@@ -337,3 +337,16 @@ def is_domain_or_subdomain(sub, parent):
     if sub.endswith(f".{parent}"):
         return True
     return False
+
+
+def copy_fileobj(fsrc, fdst, length=None, callback=None):
+    if length is None:
+        # This magic number is copied from copyfileobj
+        length = 16 * 1024
+    while True:
+        buf = fsrc.read(length)
+        if not buf:
+            break
+        fdst.write(buf)
+        if callback:
+            callback(len(buf))

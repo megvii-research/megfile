@@ -21,6 +21,7 @@ __all__ = [
     "hdfs_isfile",
     "hdfs_listdir",
     "hdfs_load_from",
+    "hdfs_rename",
     "hdfs_move",
     "hdfs_remove",
     "hdfs_scan",
@@ -147,14 +148,28 @@ def hdfs_load_from(path: PathLike) -> BinaryIO:
     return HdfsPath(path).load()
 
 
+def hdfs_rename(
+    src_path: PathLike, dst_path: PathLike, overwrite: bool = True
+) -> None:
+    """
+    Rename file on hdfs
+
+    :param src_path: Given path
+    :param dst_path: Given destination path
+    :param overwrite: whether or not overwrite file when exists
+    """
+    return HdfsPath(src_path).rename(dst_path, overwrite, recursive=False)
+
+
 def hdfs_move(src_path: PathLike, dst_path: PathLike, overwrite: bool = True) -> None:
     """
     Move file/directory path from src_path to dst_path
 
     :param src_path: Given path
     :param dst_path: Given destination path
+    :param overwrite: whether or not overwrite file when exists
     """
-    return HdfsPath(src_path).move(dst_path, overwrite)
+    return HdfsPath(src_path).rename(dst_path, overwrite, recursive=True)
 
 
 def hdfs_remove(path: PathLike, missing_ok: bool = False) -> None:

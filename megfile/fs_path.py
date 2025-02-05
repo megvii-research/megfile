@@ -27,7 +27,7 @@ from megfile.lib.glob import iglob
 from megfile.lib.joinpath import path_join
 from megfile.lib.url import get_url_scheme
 from megfile.smart_path import SmartPath
-from megfile.utils import calculate_md5
+from megfile.utils import calculate_md5, copy_fileobj
 
 __all__ = [
     "FSPath",
@@ -66,7 +66,7 @@ def fs_path_join(path: PathLike, *other_paths: PathLike) -> str:
 
 def _fs_rename_file(
     src_path: PathLike, dst_path: PathLike, overwrite: bool = True
-) -> None:
+) -> bool:
     """
     rename file on fs
 
@@ -77,12 +77,25 @@ def _fs_rename_file(
     src_path, dst_path = fspath(src_path), fspath(dst_path)
 
     if not overwrite and os.path.exists(dst_path):
-        return
+        return False
 
     dst_dir = os.path.dirname(dst_path)
     if dst_dir and dst_dir != ".":
         os.makedirs(dst_dir, exist_ok=True)
-    shutil.move(src_path, dst_path)
+    try:
+        os.rename(src_path, dst_path)
+    except OSError:
+        if os.path.islink(src_path):
+            linkto = os.readlink(src_path)
+            os.symlink(linkto, dst_path)
+            os.unlink(src_path)
+        elif os.path.isdir(src_path):
+            raise IsADirectoryError("Is a directory: %r" % src_path)
+        else:
+            shutil.copyfile(src_path, dst_path)
+            shutil.copystat(src_path, dst_path)
+            os.unlink(src_path)
+    return True
 
 
 @SmartPath.register
@@ -459,7 +472,9 @@ class FSPath(URIPath):
             )
         )
 
-    def rename(self, dst_path: PathLike, overwrite: bool = True) -> "FSPath":
+    def rename(
+        self, dst_path: PathLike, overwrite: bool = True, recursive: bool = True
+    ) -> "FSPath":
         """
         rename file on fs
 
@@ -469,14 +484,12 @@ class FSPath(URIPath):
         self._check_int_path()
 
         src_path, dst_path = fspath(self.path_without_protocol), fspath(dst_path)
-        if os.path.isfile(src_path):
-            _fs_rename_file(src_path, dst_path, overwrite)
-            if os.path.exists(src_path):
-                os.remove(src_path)
+        if not recursive or os.path.isfile(src_path):
+            if not _fs_rename_file(src_path, dst_path, overwrite):
+                os.unlink(src_path)
             return self.from_path(dst_path)
-        else:
-            os.makedirs(dst_path, exist_ok=True)
 
+        os.makedirs(dst_path, exist_ok=True)
         with os.scandir(src_path) as entries:
             for file_entry in entries:
                 src_file_path = file_entry.path
@@ -700,9 +713,9 @@ class FSPath(URIPath):
         self._check_int_path()
         return self.from_path(
             fspath(
-                pathlib.Path(
-                    self.path_without_protocol  # pyre-ignore[6]
-                ).resolve(strict=strict)
+                pathlib.Path(self.path_without_protocol).resolve(  # pyre-ignore[6]
+                    strict=strict
+                )
             )
         )
 
@@ -735,23 +748,16 @@ class FSPath(URIPath):
         callback: Optional[Callable[[int], None]] = None,
         followlinks: bool = False,
     ):
-        if isinstance(self.path_without_protocol, int):
-            with open(fspath(dst_path), "wb") as fdst:
-                # This magic number is copied from  copyfileobj
-                length = 16 * 1024
-                while True:
-                    buf = os.read(self.path_without_protocol, length)  # pyre-ignore[6]
-                    if not buf:
-                        break
-                    fdst.write(buf)
-                    if callback:
-                        callback(len(buf))
+        src_path, dst_path = self.path_without_protocol, fspath(
+            dst_path
+        )  # pyre-ignore[6]
+
+        if isinstance(src_path, int):
+            with os.fdopen(src_path, "rb") as fsrc, open(dst_path, "wb") as fdst:
+                copy_fileobj(fsrc, fdst, callback=callback)
         else:
-            shutil.copy2(
-                self.path_without_protocol,  # pyre-ignore[6]
-                fspath(dst_path),
-                follow_symlinks=followlinks,
-            )
+            shutil.copyfile(src_path, dst_path, follow_symlinks=followlinks)
+            shutil.copystat(src_path, dst_path, follow_symlinks=followlinks)
 
             # After python3.8, patch `shutil.copyfile` is not a good way,
             # because `shutil.copy2` will not call it in some cases.
@@ -865,11 +871,7 @@ class FSPath(URIPath):
             the symbolic link points.
         """
         self._check_int_path()
-        return self.from_path(
-            os.readlink(
-                self.path_without_protocol  # pyre-ignore[6]
-            )
-        )
+        return self.from_path(os.readlink(self.path_without_protocol))  # pyre-ignore[6]
 
     def is_symlink(self) -> bool:
         """Test whether a path is a symbolic link
@@ -914,11 +916,9 @@ class FSPath(URIPath):
 
         :param file_object: stream to be read
         """
-        FSPath(
-            os.path.dirname(
-                self.path_without_protocol  # pyre-ignore[6]
-            )
-        ).mkdir(parents=True, exist_ok=True)
+        FSPath(os.path.dirname(self.path_without_protocol)).mkdir(  # pyre-ignore[6]
+            parents=True, exist_ok=True
+        )
         with open(self.path_without_protocol, "wb") as output:
             output.write(file_object.read())
 
@@ -935,11 +935,9 @@ class FSPath(URIPath):
         if not isinstance(self.path_without_protocol, int) and (
             "w" in mode or "x" in mode or "a" in mode
         ):
-            FSPath(
-                os.path.dirname(
-                    self.path_without_protocol  # pyre-ignore[6]
-                )
-            ).mkdir(parents=True, exist_ok=True)
+            FSPath(os.path.dirname(self.path_without_protocol)).mkdir(  # pyre-ignore[6]
+                parents=True, exist_ok=True
+            )
         return io.open(
             self.path_without_protocol,
             mode,
@@ -1046,9 +1044,7 @@ class FSPath(URIPath):
         """
         self._check_int_path()
         return self.from_path(
-            os.path.abspath(
-                self.path_without_protocol  # pyre-ignore[6]
-            )
+            os.path.abspath(self.path_without_protocol)  # pyre-ignore[6]
         )
 
     def rmdir(self):
