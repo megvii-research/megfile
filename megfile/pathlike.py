@@ -720,7 +720,7 @@ class BasePath:
         """
         return self.chmod(mode=mode, follow_symlinks=False)
 
-    def rename(self: Self, dst_path: "PathLike", overwrite: bool = True) -> Self:
+    def rename(self: Self, dst_path: "PathLike", overwrite: bool = True, recursive: bool = True) -> Self:
         """
         rename file
 

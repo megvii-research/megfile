@@ -1802,6 +1802,7 @@ class S3Path(URIPath):
         if self.exists():
             raise S3FileExistsError("File exists: %r" % self.path_with_protocol)
 
+    # TODO: remove this method in 4.2.0
     def move(self, dst_url: PathLike, overwrite: bool = True) -> None:
         """
         Move file/directory path from src_url to dst_url
@@ -1895,18 +1896,19 @@ class S3Path(URIPath):
                 )
                 raise S3UnknownError(Exception(error_msg), self.path_with_protocol)
 
-    def rename(self, dst_path: PathLike, overwrite: bool = True) -> "S3Path":
+    def rename(self, dst_path: PathLike, overwrite: bool = True, recursive: bool = False) -> "S3Path":
         """
         Move s3 file path from src_url to dst_url
 
         :param dst_path: Given destination path
         :param overwrite: whether or not overwrite file when exists
         """
-        if self.is_file():
+        if not recursive or self.is_file():
             self.copy(dst_path, overwrite=overwrite)
+            self.unlink()
         else:
             self.sync(dst_path, overwrite=overwrite)
-        self.remove(missing_ok=True)
+            self.remove(missing_ok=True)
         return self.from_path(dst_path)
 
     def scan(self, missing_ok: bool = True, followlinks: bool = False) -> Iterator[str]:
@@ -2169,13 +2171,16 @@ class S3Path(URIPath):
         bucket, key = parse_s3_url(self.path_with_protocol)
         if not bucket or not key or key.endswith("/"):
             raise S3IsADirectoryError("Is a directory: %r" % self.path_with_protocol)
-        if not self.is_file():
+
+        try:
+            with raise_s3_error(self.path_with_protocol):
+                self._client.delete_object(Bucket=bucket, Key=key)
+        except S3FileNotFoundError:
             if missing_ok:
                 return
-            raise S3FileNotFoundError("No such file: %r" % self.path_with_protocol)
-
-        with raise_s3_error(self.path_with_protocol):
-            self._client.delete_object(Bucket=bucket, Key=key)
+            if self.is_dir():
+                raise S3IsADirectoryError("Is a directory: %r" % self.path_with_protocol)
+            raise
 
     def walk(
         self, followlinks: bool = False
