@@ -168,7 +168,7 @@ jobs:
       - name: Expose SARIF Results
         uses: actions/upload-artifact@v4
         with:
-          name: SARIF Results
+          name: Security SARIF Results
           path: bandit-sarif.json
 
       - name: Upload SARIF file
