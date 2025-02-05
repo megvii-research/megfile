@@ -130,6 +130,7 @@ def s3_should_retry(error: Exception) -> bool:
             "ContextCanceled",
             "Timeout",  # noqa: E501 # TOS Timeout
             "RequestTimeout",
+            "RequestTimeTooSkewed",
             "ExceedAccountQPSLimit",
             "ExceedAccountRateLimit",
             "ExceedBucketQPSLimit",
