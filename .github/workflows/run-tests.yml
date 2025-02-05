@@ -166,7 +166,7 @@ jobs:
           make bandit_check
 
       - name: Expose SARIF Results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: SARIF Results
           path: bandit-sarif.json
@@ -215,7 +215,7 @@ jobs:
           make pyre_check
 
       - name: Expose SARIF Results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: SARIF Results
           path: pyre-sarif.json
