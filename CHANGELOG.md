@@ -1,3 +1,12 @@
+## 4.1.1 - 2025.02.05
+- perf
+    - update the default worker number for the `sync` command
+    - optimize the performance of the `sync` command
+- feat
+    - support retrying more errors
+- fix
+    - fix `smart_move` bug when path with alias of s3 protocol
+
 ## 4.1.0.post3 - 2025.01.23
 - fix
     - fix `--skip` not work in `cp` command when path is dir.
