@@ -376,7 +376,7 @@ def rm(path: str, recursive: bool):
 @click.option(
     "-w", "--worker", type=click.INT, default=-1, help="Number of concurrent workers."
 )
-@click.option("-G", "--no-progress-bar", is_flag=True, help="Do not show progress bar.")
+@click.option("-g", "--progress-bar", is_flag=True, help="Show progress bar.")
 @click.option("-v", "--verbose", is_flag=True, help="Show more progress log.")
 @click.option("-q", "--quiet", is_flag=True, help="Not show any progress log.")
 def sync(
@@ -385,7 +385,7 @@ def sync(
     force: bool,
     skip: bool,
     worker: int,
-    no_progress_bar: bool,
+    progress_bar: bool,
     verbose: bool,
     quiet: bool,
 ):
@@ -419,10 +419,10 @@ def sync(
             scan_func = partial(smart_scan_stat, followlinks=True)
 
         if quiet:
-            no_progress_bar = True
+            progress_bar = False
             verbose = False
 
-        if no_progress_bar:
+        if not progress_bar:
             callback = callback_after_copy_file = None
 
             if verbose:
@@ -493,7 +493,7 @@ def sync(
         )
         list(executor.map(_smart_sync_single_file, params_iter))
 
-    if not no_progress_bar:
+    if progress_bar:
         sbar.update(sbar.total - sbar.n)
         tbar.close()
         sbar.close()

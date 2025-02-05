@@ -319,7 +319,7 @@ def test_sync(runner, testdir):
 
     runner.invoke(mkdir, [str(testdir / "newdir")])
     result = runner.invoke(
-        sync, [str(testdir / "text"), str(testdir / "newdir" / "newfile")]
+        sync, ["-g", str(testdir / "text"), str(testdir / "newdir" / "newfile")]
     )
 
     assert result.exit_code == 0
@@ -327,7 +327,9 @@ def test_sync(runner, testdir):
     assert "newfile\n" in runner.invoke(ls, [str(testdir / "newdir")]).output
 
     runner.invoke(mkdir, [str(testdir / "newdir2")])
-    glob_result = runner.invoke(sync, [str(testdir / "*"), str(testdir / "newdir2")])
+    glob_result = runner.invoke(
+        sync, ["-g", str(testdir / "*"), str(testdir / "newdir2")]
+    )
 
     assert glob_result.exit_code == 0
     assert "%" in glob_result.output
@@ -357,7 +359,7 @@ def test_sync_progress_bar(runner, testdir, mocker):
             pass
 
     result = runner.invoke(
-        sync, ["-v", str(testdir / "large_dir"), str(testdir / "new_large_dir")]
+        sync, ["-vg", str(testdir / "large_dir"), str(testdir / "new_large_dir")]
     )
 
     assert result.exit_code == 0
