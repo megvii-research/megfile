@@ -52,20 +52,8 @@ def get_http_session(
         error,
         method,
         url,
-        params=None,
         data=None,
-        headers=None,
-        cookies=None,
         files=None,
-        auth=None,
-        timeout=None,
-        allow_redirects=True,
-        proxies=None,
-        hooks=None,
-        stream=None,
-        verify=None,
-        cert=None,
-        json=None,
         **kwargs,
     ):
         if data and hasattr(data, "seek"):
@@ -178,7 +166,7 @@ class HttpPath(URIPath):
         timeout = request_kwargs.pop("timeout", DEFAULT_TIMEOUT)
         stream = request_kwargs.pop("stream", True)
         try:
-            response = get_http_session(timeout=timeout, status_forcelist=()).get(
+            response = get_http_session(timeout=timeout).get(
                 self.path_with_protocol, stream=stream, **request_kwargs
             )
             response.raise_for_status()
@@ -231,7 +219,7 @@ class HttpPath(URIPath):
         stream = request_kwargs.pop("stream", True)
 
         try:
-            with get_http_session(timeout=timeout, status_forcelist=()).get(
+            with get_http_session(timeout=timeout).get(
                 self.path_with_protocol, stream=stream, **request_kwargs
             ) as response:
                 response.raise_for_status()
@@ -294,7 +282,7 @@ class HttpPath(URIPath):
         stream = request_kwargs.pop("stream", True)
 
         try:
-            with get_http_session(timeout=timeout, status_forcelist=()).get(
+            with get_http_session(timeout=timeout).get(
                 self.path_with_protocol, stream=stream, **request_kwargs
             ) as response:
                 if response.status_code == 404:
