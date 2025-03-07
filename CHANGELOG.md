@@ -1,3 +1,7 @@
+## 4.1.2 - 2025.03.07
+- feat
+    - support retrying S3 request with more error codes of aliyun oss
+
 ## 4.1.1 - 2025.02.05
 - perf
     - update the default worker number for the `sync` command
