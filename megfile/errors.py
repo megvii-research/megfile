@@ -110,6 +110,33 @@ if hasattr(botocore.exceptions, "ResponseStreamingError"):  # backport botocore=
     )
 s3_retry_exceptions = tuple(s3_retry_exceptions)  # pyre-ignore[9]
 
+s3_retry_error_codes = (
+    "429",  # noqa: E501 # TOS ExceedAccountQPSLimit
+    "499",  # noqa: E501 # Some cloud providers may send response with http code 499 if the connection not send data in 1 min.
+    "500",
+    "501",
+    "502",
+    "503",
+    "InternalError",
+    "ServiceUnavailable",
+    "SlowDown",
+    "ContextCanceled",
+    "Timeout",  # noqa: E501 # TOS Timeout
+    "RequestTimeout",
+    "RequestTimeTooSkewed",
+    "ExceedAccountQPSLimit",
+    "ExceedAccountRateLimit",
+    "ExceedBucketQPSLimit",
+    "ExceedBucketRateLimit",
+    "DownloadTrafficRateLimitExceeded",  # noqa: E501 # OSS RateLimitExceeded
+    "UploadTrafficRateLimitExceeded",
+    "MetaOperationQpsLimitExceeded",
+    "TotalQpsLimitExceeded",
+    "ActiveRequestLimitExceeded",
+    "CpuLimitExceeded",
+    "QpsLimitExceeded",
+)
+
 
 def s3_should_retry(error: Exception) -> bool:
     if isinstance(error, s3_retry_exceptions):  # pyre-ignore[6]
@@ -117,25 +144,7 @@ def s3_should_retry(error: Exception) -> bool:
     if isinstance(error, botocore.exceptions.SSLError):
         return "EOF" in str(error)
     if isinstance(error, botocore.exceptions.ClientError):
-        return client_error_code(error) in (
-            "429",  # noqa: E501 # TOS ExceedAccountQPSLimit
-            "499",  # noqa: E501 # Some cloud providers may send response with http code 499 if the connection not send data in 1 min.
-            "500",
-            "501",
-            "502",
-            "503",
-            "InternalError",
-            "ServiceUnavailable",
-            "SlowDown",
-            "ContextCanceled",
-            "Timeout",  # noqa: E501 # TOS Timeout
-            "RequestTimeout",
-            "RequestTimeTooSkewed",
-            "ExceedAccountQPSLimit",
-            "ExceedAccountRateLimit",
-            "ExceedBucketQPSLimit",
-            "ExceedBucketRateLimit",
-        )
+        return client_error_code(error) in s3_retry_error_codes
     return False
 
 
@@ -427,7 +436,7 @@ def raise_s3_error(s3_url: PathLike, suppress_error_callback=None):
 
 
 def s3_error_code_should_retry(error: str) -> bool:
-    if error in ["InternalError", "ServiceUnavailable", "SlowDown"]:
+    if error in s3_retry_error_codes:
         return True
     return False
 
