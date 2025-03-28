@@ -6,15 +6,19 @@ import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
+from itertools import islice
 from queue import Queue
 
 import click
+from click import ParamType
+from click.shell_completion import CompletionItem, ZshComplete
 from tqdm import tqdm
 
 from megfile.config import READER_BLOCK_SIZE, SFTP_HOST_KEY_POLICY, set_log_level
 from megfile.hdfs_path import DEFAULT_HDFS_TIMEOUT
 from megfile.interfaces import FileEntry
 from megfile.lib.glob import get_non_glob_dir, has_magic
+from megfile.s3_path import get_s3_session
 from megfile.sftp import sftp_add_host_key
 from megfile.smart import (
     _smart_sync_single_file,
@@ -47,7 +51,6 @@ from megfile.utils import get_human_size
 from megfile.version import VERSION
 
 options = {}
-set_log_level()
 max_file_object_catch_count = 1024 * 128
 
 
@@ -176,8 +179,37 @@ def _ls(path: str, long: bool, recursive: bool, human_readable: bool):
         click.echo(f"total({total_count}): {get_human_size(total_size)}")
 
 
+class PathType(ParamType):
+    name = "path"
+
+    def shell_complete(self, ctx, param, incomplete):
+        if "://" not in incomplete and not incomplete.startswith("/"):
+            completions = [
+                CompletionItem(f"{protocol}://")
+                for protocol in SmartPath._registered_protocols
+            ]
+            for name in get_s3_session().available_profiles:
+                if name == "default":
+                    continue
+                completions.append(CompletionItem(f"s3+{name}://"))
+            return completions
+        try:
+            return [
+                CompletionItem(f"{entry.path}/" if entry.is_dir() else entry.path)
+                for entry in islice(smart_glob_stat(incomplete + "*"), 128)
+            ]
+        except Exception:
+            return []
+
+
+# Some magic, remove trailing spaces in completion
+ZshComplete.source_template = ZshComplete.source_template.replace(
+    "compadd -U -V", "compadd -S '' -U -V"
+)
+
+
 @cli.command(short_help="List all the objects in the path.")
-@click.argument("path")
+@click.argument("path", type=PathType())
 @click.option(
     "-l",
     "--long",
@@ -202,7 +234,7 @@ def ls(path: str, long: bool, recursive: bool, human_readable: bool):
 
 
 @cli.command(short_help="List all the objects in the path.")
-@click.argument("path")
+@click.argument("path", type=PathType())
 @click.option(
     "-r",
     "--recursive",
@@ -215,8 +247,8 @@ def ll(path: str, recursive: bool):
 
 
 @cli.command(short_help="Copy files from source to dest, skipping already copied.")
-@click.argument("src_path")
-@click.argument("dst_path")
+@click.argument("src_path", type=PathType())
+@click.argument("dst_path", type=PathType())
 @click.option(
     "-r",
     "--recursive",
@@ -282,8 +314,8 @@ def cp(
 
 
 @cli.command(short_help="Move files from source to dest.")
-@click.argument("src_path")
-@click.argument("dst_path")
+@click.argument("src_path", type=PathType())
+@click.argument("dst_path", type=PathType())
 @click.option(
     "-r",
     "--recursive",
@@ -351,7 +383,7 @@ def mv(
 
 
 @cli.command(short_help="Remove files from path.")
-@click.argument("path")
+@click.argument("path", type=PathType())
 @click.option(
     "-r",
     "--recursive",
@@ -367,8 +399,8 @@ def rm(path: str, recursive: bool):
 
 
 @cli.command(short_help="Make source and dest identical, modifying destination only.")
-@click.argument("src_path")
-@click.argument("dst_path")
+@click.argument("src_path", type=PathType())
+@click.argument("dst_path", type=PathType())
 @click.option(
     "-f", "--force", is_flag=True, help="Copy files forcible, ignore same files."
 )
@@ -500,7 +532,7 @@ def sync(
 
 
 @cli.command(short_help="Make the path if it doesn't already exist.")
-@click.argument("path")
+@click.argument("path", type=PathType())
 def mkdir(path: str):
     _sftp_prompt_host_key(path)
 
@@ -508,7 +540,7 @@ def mkdir(path: str):
 
 
 @cli.command(short_help="Make the file if it doesn't already exist.")
-@click.argument("path")
+@click.argument("path", type=PathType())
 def touch(path: str):
     _sftp_prompt_host_key(path)
 
@@ -516,7 +548,7 @@ def touch(path: str):
 
 
 @cli.command(short_help="Concatenate any files and send them to stdout.")
-@click.argument("path")
+@click.argument("path", type=PathType())
 def cat(path: str):
     _sftp_prompt_host_key(path)
 
@@ -527,7 +559,7 @@ def cat(path: str):
 @cli.command(
     short_help="Concatenate any files and send first n lines of them to stdout."
 )
-@click.argument("path")
+@click.argument("path", type=PathType())
 @click.option(
     "-n", "--lines", type=click.INT, default=10, help="print the first NUM lines"
 )
@@ -554,7 +586,7 @@ def _tail_follow_content(path, offset):
 @cli.command(
     short_help="Concatenate any files and send last n lines of them to stdout."
 )
-@click.argument("path")
+@click.argument("path", type=PathType())
 @click.option(
     "-n", "--lines", type=click.INT, default=10, help="print the last NUM lines"
 )
@@ -601,7 +633,7 @@ def tail(path: str, lines: int, follow: bool):
 
 
 @cli.command(short_help="Write bytes from stdin to file.")
-@click.argument("path")
+@click.argument("path", type=PathType())
 @click.option("-a", "--append", is_flag=True, help="Append to the given file")
 @click.option("-o", "--stdout", is_flag=True, help="File content to standard output")
 def to(path: str, append: bool, stdout: bool):
@@ -626,7 +658,7 @@ def to(path: str, append: bool, stdout: bool):
 
 
 @cli.command(short_help="Produce an md5sum file for all the objects in the path.")
-@click.argument("path")
+@click.argument("path", type=PathType())
 def md5sum(path: str):
     _sftp_prompt_host_key(path)
 
@@ -634,7 +666,7 @@ def md5sum(path: str):
 
 
 @cli.command(short_help="Return the total size and number of objects in remote:path.")
-@click.argument("path")
+@click.argument("path", type=PathType())
 def size(path: str):
     _sftp_prompt_host_key(path)
 
@@ -642,7 +674,7 @@ def size(path: str):
 
 
 @cli.command(short_help="Return the mtime and number of objects in remote:path.")
-@click.argument("path")
+@click.argument("path", type=PathType())
 def mtime(path: str):
     _sftp_prompt_host_key(path)
 
@@ -650,7 +682,7 @@ def mtime(path: str):
 
 
 @cli.command(short_help="Return the stat and number of objects in remote:path.")
-@click.argument("path")
+@click.argument("path", type=PathType())
 def stat(path: str):
     _sftp_prompt_host_key(path)
 
@@ -842,6 +874,49 @@ def alias(path, name, protocol, no_cover):
     with open(path, "w") as fp:
         config.write(fp)
     click.echo(f"Your alias config has been saved into {path}")
+
+
+@cli.group(short_help="Return the completion file")
+def completion():
+    pass
+
+
+@completion.command(short_help="Update the config file for bash")
+def bash():
+    script_name = os.path.basename(sys.argv[0])
+    command = f'eval "$(_{script_name.upper()}_COMPLETE=bash_source {script_name})"'
+    config_path = os.path.expanduser("~/.bashrc")
+    with open(config_path, "r") as fp:
+        if command in fp.read():
+            click.echo("Your bashrc has already been updated.")
+            return
+    with open(config_path, "a") as fp:
+        fp.write("\n" + command + "\n")
+    click.echo("Your bashrc has been updated.")
+
+
+@completion.command(short_help="Update the config file for zsh")
+def zsh():
+    script_name = os.path.basename(sys.argv[0])
+    command = f'eval "$(_{script_name.upper()}_COMPLETE=zsh_source {script_name})"'
+    config_path = os.path.expanduser("~/.zshrc")
+    with open(config_path, "r") as fp:
+        if command in fp.read():
+            click.echo("Your zshrc has already been updated.")
+            return
+    with open(config_path, "a") as fp:
+        fp.write("\n" + command + "\n")
+    click.echo("Your zshrc has been updated.")
+
+
+@completion.command(short_help="Update the config file for fish")
+def fish():
+    script_name = os.path.basename(sys.argv[0])
+    command = f"_{script_name.upper()}_COMPLETE=fish_source {script_name} | source"
+    config_path = os.path.expanduser(f"~/.config/fish/completions/{script_name}.fish")
+    with open(config_path, "w") as fp:
+        fp.write(command)
+    click.echo(f"Your fish config has been saved into {config_path}.")
 
 
 if __name__ == "__main__":
