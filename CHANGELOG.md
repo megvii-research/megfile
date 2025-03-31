@@ -1,3 +1,9 @@
+## 4.1.3 - 2025.03.31
+- feat
+    - support auto complete paths of most protocols in cli
+    - `alias` command in cli support setting path prefix
+    - support retrying `botocore.exceptions.SSLError` in s3 
+
 ## 4.1.2 - 2025.03.07
 - feat
     - support retrying S3 request with more error codes of aliyun oss
