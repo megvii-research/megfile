@@ -825,18 +825,26 @@ def hdfs(path, url, profile_name, user, root, token, timeout, no_cover):
     help="alias config file, default is $HOME/.config/megfile/aliases.conf",
 )
 @click.argument("name")
-@click.argument("protocol")
+@click.argument("protocol_or_path")
 @click.option("--no-cover", is_flag=True, help="Not cover the same-name config")
-def alias(path, name, protocol, no_cover):
+def alias(path, name, protocol_or_path, no_cover):
     path = os.path.expanduser(path)
     config = configparser.ConfigParser()
     if os.path.exists(path):
         config.read(path)
     if name in config.sections() and no_cover:
         raise NameError(f"alias-name has been used: {name}")
-    config[name] = {
-        "protocol": protocol,
-    }
+
+    if "://" in protocol_or_path:
+        protocol, prefix = protocol_or_path.split("://", maxsplit=1)
+        config[name] = {
+            "protocol": protocol,
+            "prefix": prefix,
+        }
+    else:
+        config[name] = {
+            "protocol": protocol_or_path,
+        }
 
     _safe_makedirs(os.path.dirname(path))  # make sure dirpath exist
     with open(path, "w") as fp:
