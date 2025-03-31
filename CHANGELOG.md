@@ -1,3 +1,8 @@
+## 4.1.3 - 2025.03.31
+- feat
+    - support auto complete paths of most protocols in cli
+    - support retrying `SSLError` in s3 
+
 ## 4.1.2 - 2025.03.07
 - feat
     - support retrying S3 request with more error codes of aliyun oss
