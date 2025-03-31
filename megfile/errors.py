@@ -97,6 +97,7 @@ s3_retry_exceptions = [
     botocore.exceptions.ConnectTimeoutError,
     botocore.exceptions.ProxyConnectionError,
     botocore.exceptions.ConnectionClosedError,
+    botocore.exceptions.SSLError,
     requests.exceptions.ReadTimeout,
     requests.exceptions.ConnectTimeout,
     urllib3.exceptions.IncompleteRead,
@@ -110,29 +111,39 @@ if hasattr(botocore.exceptions, "ResponseStreamingError"):  # backport botocore=
     )
 s3_retry_exceptions = tuple(s3_retry_exceptions)  # pyre-ignore[9]
 
+s3_retry_error_codes = (
+    "429",  # noqa: E501 # TOS ExceedAccountQPSLimit
+    "499",  # noqa: E501 # Some cloud providers may send response with http code 499 if the connection not send data in 1 min.
+    "500",
+    "501",
+    "502",
+    "503",
+    "InternalError",
+    "ServiceUnavailable",
+    "SlowDown",
+    "ContextCanceled",
+    "Timeout",  # noqa: E501 # TOS Timeout
+    "RequestTimeout",
+    "RequestTimeTooSkewed",
+    "ExceedAccountQPSLimit",
+    "ExceedAccountRateLimit",
+    "ExceedBucketQPSLimit",
+    "ExceedBucketRateLimit",
+    "DownloadTrafficRateLimitExceeded",  # noqa: E501 # OSS RateLimitExceeded
+    "UploadTrafficRateLimitExceeded",
+    "MetaOperationQpsLimitExceeded",
+    "TotalQpsLimitExceeded",
+    "ActiveRequestLimitExceeded",
+    "CpuLimitExceeded",
+    "QpsLimitExceeded",
+)
+
 
 def s3_should_retry(error: Exception) -> bool:
     if isinstance(error, s3_retry_exceptions):  # pyre-ignore[6]
         return True
     if isinstance(error, botocore.exceptions.ClientError):
-        return client_error_code(error) in (
-            "429",  # noqa: E501 # TOS ExceedAccountQPSLimit
-            "499",  # noqa: E501 # Some cloud providers may send response with http code 499 if the connection not send data in 1 min.
-            "500",
-            "501",
-            "502",
-            "503",
-            "InternalError",
-            "ServiceUnavailable",
-            "SlowDown",
-            "ContextCanceled",
-            "Timeout",  # noqa: E501 # TOS Timeout
-            "RequestTimeout",
-            "ExceedAccountQPSLimit",
-            "ExceedAccountRateLimit",
-            "ExceedBucketQPSLimit",
-            "ExceedBucketRateLimit",
-        )
+        return client_error_code(error) in s3_retry_error_codes
     return False
 
 
@@ -177,16 +188,18 @@ def patch_method(
 
 def _create_missing_ok_generator(generator, missing_ok: bool, error: Exception):
     if missing_ok:
-        yield from generator
-        return
+        return generator
 
-    zero_elem = True
-    for item in generator:
-        zero_elem = False
-        yield item
-
-    if zero_elem:
+    try:
+        first = next(generator)
+    except StopIteration:
         raise error
+
+    def create_generator():
+        yield first
+        yield from generator
+
+    return create_generator()
 
 
 class UnknownError(Exception):
@@ -271,8 +284,8 @@ class S3InvalidRangeError(S3Exception):
 
 
 class S3UnknownError(S3Exception, UnknownError):
-    def __init__(self, error: Exception, path: PathLike):
-        super().__init__(error, path, "endpoint: %r" % s3_endpoint_url(path))
+    def __init__(self, error: Exception, path: PathLike, extra: Optional[str] = None):
+        super().__init__(error, path, extra or "endpoint: %r" % s3_endpoint_url(path))
 
 
 class HttpException(Exception):
@@ -411,15 +424,18 @@ def translate_http_error(http_error: Exception, http_url: str) -> Exception:
 
 
 @contextmanager
-def raise_s3_error(s3_url: PathLike):
+def raise_s3_error(s3_url: PathLike, suppress_error_callback=None):
     try:
         yield
     except Exception as error:
-        raise translate_s3_error(error, s3_url)
+        error = translate_s3_error(error, s3_url)
+        if suppress_error_callback and suppress_error_callback(error):
+            return
+        raise error
 
 
 def s3_error_code_should_retry(error: str) -> bool:
-    if error in ["InternalError", "ServiceUnavailable", "SlowDown"]:
+    if error in s3_retry_error_codes:
         return True
     return False
 

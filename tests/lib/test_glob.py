@@ -523,7 +523,7 @@ def test_ungloblize():
 
     test_glob = "s3://bu-oss/a,b{a*,b,c}.json"
     assert [
-        "s3://bu-oss/a,ba[*].json",
+        "s3://bu-oss/a,ba*.json",
         "s3://bu-oss/a,bb.json",
         "s3://bu-oss/a,bc.json",
     ] == glob.ungloblize(test_glob)
@@ -563,9 +563,24 @@ def test_ungloblize():
     ]
     assert sorted(path_list) == sorted(glob.ungloblize(glob.globlize(path_list)))
 
+    assert glob.ungloblize("s3://{a*{},b*}/1/2/*") == ["s3://a*[{],b*}/1/2/*"]
+
 
 def test_get_no_glob_root_path():
     assert glob.get_non_glob_dir("/data/**/*.py") == "/data"
     assert glob.get_non_glob_dir("/**/*.py") == "/"
     assert glob.get_non_glob_dir("./**/*.py") == "."
     assert glob.get_non_glob_dir("**/*.py") == "."
+
+
+def test__iglob():
+    with pytest.raises(OSError):
+        list(glob._iglob("/root", True, dironly=True, fs=glob.DEFAULT_FILESYSTEM_FUNC))
+
+
+def test__glob2():
+    with pytest.raises(OSError):
+        list(glob._glob2("/root", "", dironly=True, fs=glob.DEFAULT_FILESYSTEM_FUNC))
+
+
+# def test_has_magic_ignore_brace():

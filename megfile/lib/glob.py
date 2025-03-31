@@ -5,22 +5,15 @@
 import os
 import re
 from collections import OrderedDict
-from collections import namedtuple as NamedTuple
-from typing import Iterator, List, Tuple
+from typing import Callable, Iterator, List, NamedTuple, Tuple
 
 from megfile.lib import fnmatch
 
-# Python 3.5+ Compatible
-"""
+
 class FSFunc(NamedTuple):
     exists: Callable[[str], bool]
     isdir: Callable[[str], bool]
-    scandir: Callable[[str], Iterator[Tuple[str, bool]]]  # name, isdir
-
-in Python 3.6+
-"""
-
-FSFunc = NamedTuple("FSFunc", ["exists", "isdir", "scandir"])
+    scandir: Callable[[str], Iterator[Tuple[str, bool]]]
 
 
 def _exists(path: str) -> bool:
@@ -72,7 +65,7 @@ def iglob(
     if recursive and _isrecursive(pathname):
         s = next(it)  # skip empty string
         if s:
-            raise OSError("iglob with recursive=True error")
+            raise OSError("iglob with recursive=True error")  # pragma: no cover
     return it
 
 
@@ -161,11 +154,8 @@ def _iterdir(dirname: str, dironly: bool, fs: FSFunc) -> Iterator[str]:
     try:
         # dirname may be non-existent, raise OSError
         for name, isdir in fs.scandir(dirname):
-            try:
-                if not dironly or isdir:
-                    yield name
-            except OSError:
-                pass
+            if not dironly or isdir:
+                yield name
     except OSError:
         return
 
@@ -186,6 +176,7 @@ def _rlistdir(dirname: str, dironly: bool, fs: FSFunc) -> Iterator[str]:
 
 
 magic_check = re.compile(r"([*?[{])")
+magic_check_only_brace = re.compile(r"([{])")
 magic_decheck = re.compile(r"\[(.)\]")
 brace_check = re.compile(r"(\{.*\})")
 unbrace_check = re.compile(r"([*?[])")
@@ -222,6 +213,13 @@ def unescape(pathname):
     """Unescape all special characters."""
     drive, pathname = os.path.splitdrive(pathname)
     pathname = magic_decheck.sub(r"\1", pathname)
+    return drive + pathname
+
+
+def escape_brace(pathname):
+    """Escape brace."""
+    drive, pathname = os.path.splitdrive(pathname)
+    pathname = magic_check_only_brace.sub(r"[\1]", pathname)
     return drive + pathname
 
 
@@ -285,13 +283,15 @@ def ungloblize(glob: str) -> List[str]:
     while True:
         temp_path = path_list[0]
         begin = temp_path.find("{")
+        while temp_path[begin - 1 : begin + 2] == "[{]":
+            begin = temp_path.find("{", begin + 1)
         end = temp_path.find("}", begin)
         if end == -1:
             break
         path_list.pop(0)
         subpath_list = temp_path[begin + 1 : end].split(",")
         for subpath in subpath_list:
-            path = temp_path[:begin] + escape(subpath) + temp_path[end + 1 :]
+            path = temp_path[:begin] + escape_brace(subpath) + temp_path[end + 1 :]
             path_list.append(path)
     return path_list
 

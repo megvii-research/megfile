@@ -33,7 +33,6 @@ __all__ = [
     "FSPath",
     "is_fs",
     "fs_path_join",
-    "_make_stat",
 ]
 
 
@@ -393,13 +392,15 @@ class FSPath(URIPath):
 
     def iterdir(self) -> Iterator["FSPath"]:
         """
-        Get all contents of given fs path.
-        The result is in ascending alphabetical order.
+        Get all contents of given fs path. The order of result is in arbitrary order.
 
-        :returns: All contents have in the path in ascending alphabetical order
+        :returns: All contents have in the path.
         """
-        for path in self.listdir():
-            yield self.joinpath(path)
+        self._check_int_path()
+        for path in pathlib.Path(
+            self.path_without_protocol  # pyre-ignore[6]
+        ).iterdir():
+            yield self.from_path(fspath(path))
 
     def load(self) -> BinaryIO:
         """Read all content on specified path and write into memory
@@ -470,6 +471,8 @@ class FSPath(URIPath):
         src_path, dst_path = fspath(self.path_without_protocol), fspath(dst_path)
         if os.path.isfile(src_path):
             _fs_rename_file(src_path, dst_path, overwrite)
+            if os.path.exists(src_path):
+                os.remove(src_path)
             return self.from_path(dst_path)
         else:
             os.makedirs(dst_path, exist_ok=True)
@@ -486,10 +489,7 @@ class FSPath(URIPath):
                 else:
                     _fs_rename_file(src_file_path, dst_file_path, overwrite)
 
-            if os.path.isdir(src_path):
-                shutil.rmtree(src_path)
-            else:
-                os.remove(src_path)
+            shutil.rmtree(src_path, ignore_errors=True)
 
         return self.from_path(dst_path)
 
@@ -519,6 +519,8 @@ class FSPath(URIPath):
     def _scan(
         self, missing_ok: bool = True, followlinks: bool = False
     ) -> Iterator[str]:
+        self._check_int_path()
+
         if self.is_file(followlinks=followlinks):
             path = fspath(self.path_without_protocol)
             yield path
@@ -568,12 +570,13 @@ class FSPath(URIPath):
                 "No match any file in: %r" % self.path_without_protocol
             )
 
-    def scandir(self) -> Iterator[FileEntry]:
+    def scandir(self) -> ContextIterator:
         """
         Get all content of given file path.
 
         :returns: An iterator contains all contents have prefix path
         """
+        self._check_int_path()
 
         def create_generator():
             with os.scandir(self.path_without_protocol) as entries:
@@ -703,7 +706,7 @@ class FSPath(URIPath):
             )
         )
 
-    def md5(self, recalculate: bool = False, followlinks: bool = True):
+    def md5(self, recalculate: bool = False, followlinks: bool = False):
         """
         Calculate the md5 value of the file
 
@@ -712,11 +715,11 @@ class FSPath(URIPath):
 
         returns: md5 of file
         """
-        if os.path.isdir(self.path_without_protocol):
+        if self.is_dir():
             hash_md5 = hashlib.md5()  # nosec
             for file_name in self.listdir():
                 chunk = (
-                    FSPath(self.path_without_protocol, file_name)
+                    self.joinpath(file_name)
                     .md5(recalculate=recalculate, followlinks=followlinks)
                     .encode()
                 )
@@ -741,9 +744,8 @@ class FSPath(URIPath):
                     if not buf:
                         break
                     fdst.write(buf)
-                    if callback is None:
-                        continue
-                    callback(len(buf))
+                    if callback:
+                        callback(len(buf))
         else:
             shutil.copy2(
                 self.path_without_protocol,  # pyre-ignore[6]
@@ -794,8 +796,13 @@ class FSPath(URIPath):
         except FileNotFoundError as error:
             # Prevent the dst_path directory from being created when src_path does not
             # exist
-            if dst_path == error.filename:
-                FSPath(os.path.dirname(dst_path)).mkdir(parents=True, exist_ok=True)
+            dst_parent_dir = os.path.dirname(dst_path)
+            if (
+                dst_parent_dir
+                and dst_parent_dir != "."
+                and error.filename in (dst_path, dst_parent_dir)
+            ):
+                self.from_path(dst_parent_dir).mkdir(parents=True, exist_ok=True)
                 self._copyfile(dst_path, callback=callback, followlinks=followlinks)
             else:
                 raise
@@ -815,15 +822,15 @@ class FSPath(URIPath):
             priority is higher than 'overwrite', default is False
         :param overwrite: whether or not overwrite file when exists, default is True
         """
+        self._check_int_path()
+
         if self.is_dir(followlinks=followlinks):
 
             def ignore_same_file(src: str, names: List[str]) -> List[str]:
                 ignore_files = []
                 for name in names:
                     dst_obj = self.from_path(dst_path).joinpath(name)
-                    if force:
-                        pass
-                    elif not overwrite and dst_obj.exists():
+                    if not overwrite and dst_obj.exists():
                         ignore_files.append(name)
                     elif dst_obj.exists() and is_same_file(
                         self.joinpath(name).stat(), dst_obj.stat(), "copy"
@@ -834,11 +841,11 @@ class FSPath(URIPath):
             shutil.copytree(
                 self.path_without_protocol,  # pyre-ignore[6]
                 dst_path,
-                ignore=ignore_same_file,
+                ignore=None if force else ignore_same_file,
                 dirs_exist_ok=True,
             )
         else:
-            self.copy(dst_path, followlinks=followlinks, overwrite=overwrite)
+            self.copy(dst_path, followlinks=followlinks, overwrite=force or overwrite)
 
     def symlink(self, dst_path: PathLike) -> None:
         """
@@ -894,6 +901,8 @@ class FSPath(URIPath):
         return self.from_path(os.path.expanduser("~"))
 
     def joinpath(self, *other_paths: PathLike) -> "FSPath":
+        self._check_int_path()
+
         path = fspath(self)
         if path == ".":
             path = ""

@@ -34,9 +34,6 @@ class S3PipeHandler(Readable[bytes], Writable[bytes]):
         join_thread: bool = True,
         profile_name: Optional[str] = None,
     ):
-        if mode not in ("rb", "wb"):
-            raise ValueError("unacceptable mode: %r" % mode)
-
         self._bucket = bucket
         self._key = key
         self._mode = mode
@@ -44,6 +41,9 @@ class S3PipeHandler(Readable[bytes], Writable[bytes]):
         self._join_thread = join_thread
         self._offset = 0
         self._profile_name = profile_name
+
+        if mode not in ("rb", "wb"):
+            raise ValueError("unacceptable mode: %r" % mode)
 
         self._exc = None
         self._pipe = os.pipe()
@@ -76,7 +76,7 @@ class S3PipeHandler(Readable[bytes], Writable[bytes]):
         try:
             with os.fdopen(self._pipe[1], "wb") as buffer:
                 self._client.download_fileobj(self._bucket, self._key, buffer)
-        except BrokenPipeError:
+        except BrokenPipeError:  # pragma: no cover
             if self._fileobj.closed:
                 return
             raise
@@ -91,7 +91,7 @@ class S3PipeHandler(Readable[bytes], Writable[bytes]):
             self._exc = error
 
     def _raise_exception(self):
-        if self._exc is not None:
+        if getattr(self, "_exc", None) is not None:
             raise translate_s3_error(self._exc, self.name)
 
     def readable(self) -> bool:
@@ -121,8 +121,10 @@ class S3PipeHandler(Readable[bytes], Writable[bytes]):
         return self._fileobj.write(data)
 
     def _close(self):
-        self._fileobj.close()
-        if self._join_thread:
+        if hasattr(self, "_fileobj"):
+            self._fileobj.close()
+        if self._join_thread and hasattr(self, "_async_task"):
             self._async_task.join()
-        _s3_opened_pipes.remove(self._pipe)
+        if hasattr(self, "_pipe") and self._pipe in _s3_opened_pipes:
+            _s3_opened_pipes.remove(self._pipe)
         self._raise_exception()

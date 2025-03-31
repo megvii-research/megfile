@@ -211,4 +211,4 @@ class SmartPath(BasePath):
 
 
 def get_traditional_path(path: PathLike) -> str:
-    return fspath(SmartPath(path).path)
+    return fspath(SmartPath(path).pathlike.path)

@@ -1,19 +1,21 @@
 import configparser
-import logging
 import os
 import shutil
+import signal
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
+from queue import Queue
 
 import click
 from tqdm import tqdm
 
-from megfile.config import READER_BLOCK_SIZE
+from megfile.config import READER_BLOCK_SIZE, SFTP_HOST_KEY_POLICY, set_log_level
 from megfile.hdfs_path import DEFAULT_HDFS_TIMEOUT
 from megfile.interfaces import FileEntry
 from megfile.lib.glob import get_non_glob_dir, has_magic
+from megfile.sftp import sftp_add_host_key
 from megfile.smart import (
     _smart_sync_single_file,
     smart_copy,
@@ -44,29 +46,38 @@ from megfile.smart_path import SmartPath
 from megfile.utils import get_human_size
 from megfile.version import VERSION
 
-logging.basicConfig(level=logging.ERROR)
-logging.getLogger("megfile").setLevel(level=logging.INFO)
-DEBUG = False
+options = {}
+set_log_level()
+max_file_object_catch_count = 1024 * 128
 
 
 @click.group()
 @click.option("--debug", is_flag=True, help="Enable debug mode.")
-def cli(debug):
+@click.option(
+    "--log-level",
+    type=click.Choice(["DEBUG", "INFO", "WARNING", "ERROR"]),
+    help="Set logging level.",
+)
+def cli(debug, log_level):
     """
     Client for megfile.
 
     If you install megfile with ``--user``,
     you also need configure ``$HOME/.local/bin`` into ``$PATH``.
     """
-    global DEBUG
-    DEBUG = debug
+    options["debug"] = debug
+    options["log_level"] = log_level or ("DEBUG" if debug else "INFO")
+    set_log_level(options["log_level"])
 
 
 def safe_cli():  # pragma: no cover
+    debug = options.get("debug", False)
+    if not debug:
+        signal.signal(signal.SIGINT, signal.SIG_DFL)
     try:
         cli()
     except Exception as e:
-        if DEBUG:
+        if debug:
             raise
         else:
             click.echo(f"\n[{type(e).__name__}] {e}", err=True)
@@ -110,6 +121,26 @@ def smart_list_stat(path):
         yield from smart_scandir(path)
 
 
+def _sftp_prompt_host_key(path):
+    if SFTP_HOST_KEY_POLICY == "auto":
+        return
+
+    path = SmartPath(path)
+    if path.protocol == "sftp":
+        hostname = (
+            path.pathlike._urlsplit_parts.hostname  # pytype: disable=attribute-error
+        )
+        port = (
+            path.pathlike._urlsplit_parts.port or 22  # pytype: disable=attribute-error
+        )
+        if hostname:
+            sftp_add_host_key(
+                hostname=hostname,
+                port=port,
+                prompt=True,
+            )
+
+
 def _ls(path: str, long: bool, recursive: bool, human_readable: bool):
     base_path = path
     full_path = False
@@ -121,6 +152,9 @@ def _ls(path: str, long: bool, recursive: bool, human_readable: bool):
         scan_func = smart_scan_stat
     else:
         scan_func = smart_list_stat
+
+    _sftp_prompt_host_key(base_path)
+
     if long:
         if human_readable:
             echo_func = human_echo
@@ -136,11 +170,7 @@ def _ls(path: str, long: bool, recursive: bool, human_readable: bool):
         total_count += 1
         output = echo_func(file_stat, base_path, full_path=full_path)
         if file_stat.is_symlink():
-            try:
-                link = smart_readlink(file_stat.path)
-            except FileNotFoundError as e:
-                link = repr(e)
-            output += " -> %s" % link
+            output += " -> %s" % smart_readlink(file_stat.path)
         click.echo(output)
     if long:
         click.echo(f"total({total_count}): {get_human_size(total_size)}")
@@ -209,6 +239,10 @@ def cp(
 ):
     if not no_target_directory and (dst_path.endswith("/") or smart_isdir(dst_path)):
         dst_path = smart_path_join(dst_path, os.path.basename(src_path))
+
+    _sftp_prompt_host_key(src_path)
+    _sftp_prompt_host_key(dst_path)
+
     if recursive:
         with ThreadPoolExecutor(max_workers=(os.cpu_count() or 1) * 2) as executor:
             if progress_bar:
@@ -217,7 +251,6 @@ def cp(
                     dst_path,
                     followlinks=True,
                     map_func=executor.map,
-                    force=True,
                     overwrite=not skip,
                 )
             else:
@@ -226,7 +259,6 @@ def cp(
                     dst_path,
                     followlinks=True,
                     map_func=executor.map,
-                    force=True,
                     overwrite=not skip,
                 )
     else:
@@ -274,6 +306,10 @@ def mv(
 ):
     if not no_target_directory and (dst_path.endswith("/") or smart_isdir(dst_path)):
         dst_path = smart_path_join(dst_path, os.path.basename(src_path))
+
+    _sftp_prompt_host_key(src_path)
+    _sftp_prompt_host_key(dst_path)
+
     if progress_bar:
         src_protocol, _ = SmartPath._extract_protocol(src_path)
         dst_protocol, _ = SmartPath._extract_protocol(dst_path)
@@ -324,6 +360,8 @@ def mv(
     "under the specified directory or prefix.",
 )
 def rm(path: str, recursive: bool):
+    _sftp_prompt_host_key(path)
+
     remove_func = smart_remove if recursive else smart_unlink
     remove_func(path)
 
@@ -331,28 +369,34 @@ def rm(path: str, recursive: bool):
 @cli.command(short_help="Make source and dest identical, modifying destination only.")
 @click.argument("src_path")
 @click.argument("dst_path")
-@click.option("-g", "--progress-bar", is_flag=True, help="Show progress bar.")
-@click.option(
-    "-w", "--worker", type=click.INT, default=8, help="Number of concurrent workers."
-)
 @click.option(
     "-f", "--force", is_flag=True, help="Copy files forcible, ignore same files."
 )
-@click.option("-q", "--quiet", is_flag=True, help="Not show any progress log.")
 @click.option("--skip", is_flag=True, help="Skip existed files.")
+@click.option(
+    "-w", "--worker", type=click.INT, default=-1, help="Number of concurrent workers."
+)
+@click.option("-g", "--progress-bar", is_flag=True, help="Show progress bar.")
+@click.option("-v", "--verbose", is_flag=True, help="Show more progress log.")
+@click.option("-q", "--quiet", is_flag=True, help="Not show any progress log.")
 def sync(
     src_path: str,
     dst_path: str,
-    progress_bar: bool,
-    worker: int,
     force: bool,
-    quiet: bool,
     skip: bool,
+    worker: int,
+    progress_bar: bool,
+    verbose: bool,
+    quiet: bool,
 ):
+    _sftp_prompt_host_key(src_path)
+    _sftp_prompt_host_key(dst_path)
+
     if not smart_exists(dst_path):
         force = True
 
-    with ThreadPoolExecutor(max_workers=worker) as executor:
+    max_workers = worker if worker > 0 else (os.cpu_count() or 1) * 2
+    with ThreadPoolExecutor(max_workers=max_workers + 1) as executor:  # +1 for scan
         if has_magic(src_path):
             src_root_path = get_non_glob_dir(src_path)
             if not smart_exists(src_root_path):
@@ -374,41 +418,65 @@ def sync(
             src_root_path = src_path
             scan_func = partial(smart_scan_stat, followlinks=True)
 
-        if progress_bar and not quiet:
-            print("building progress bar", end="\r")
-            file_entries = []
-            total_count = total_size = 0
-            for total_count, file_entry in enumerate(scan_func(src_path), start=1):
-                if total_count > 1024 * 128:
-                    file_entries = []
-                else:
-                    file_entries.append(file_entry)
-                total_size += file_entry.stat.size
-                print(f"building progress bar, find {total_count} files", end="\r")
-
-            if not file_entries:
-                file_entries = scan_func(src_path)
-        else:
-            total_count = total_size = None
-            file_entries = scan_func(src_path)
-
         if quiet:
+            progress_bar = False
+            verbose = False
+
+        if not progress_bar:
             callback = callback_after_copy_file = None
+
+            if verbose:
+
+                def callback_after_copy_file(src_file_path, dst_file_path):
+                    print(f"copy {src_file_path} to {dst_file_path} done")
+
+            file_entries = scan_func(src_path)
         else:
-            tbar = tqdm(total=total_count, ascii=True)
-            sbar = tqdm(
-                unit="B",
+            tbar = tqdm(
+                total=0,
                 ascii=True,
+                desc="Files (scaning)",
+            )
+            sbar = tqdm(
+                total=0,
+                ascii=True,
+                unit="B",
                 unit_scale=True,
                 unit_divisor=1024,
-                total=total_size,
+                desc="File size (scaning)",
             )
 
-            def callback(_filename: str, length: int):
+            def callback_after_copy_file(src_file_path, dst_file_path):
+                if verbose:
+                    tqdm.write(f"copy {src_file_path} to {dst_file_path} done")
+                tbar.update(1)
+
+            def callback(src_file_path: str, length: int):
                 sbar.update(length)
 
-            def callback_after_copy_file(src_file_path, dst_file_path):
-                tbar.update(1)
+            file_entry_queue = Queue(maxsize=max_file_object_catch_count)
+
+            def scan_and_put_file_entry_to_queue():
+                for file_entry in scan_func(src_path):
+                    tbar.total += 1
+                    sbar.total += file_entry.stat.size
+                    tbar.refresh()
+                    sbar.refresh()
+                    file_entry_queue.put(file_entry)
+                file_entry_queue.put(None)
+                tbar.set_description_str("Files")
+                sbar.set_description_str("File size")
+
+            executor.submit(scan_and_put_file_entry_to_queue)
+
+            def get_file_entry_from_queue():
+                while True:
+                    file_entry = file_entry_queue.get()
+                    if file_entry is None:
+                        break
+                    yield file_entry
+
+            file_entries = get_file_entry_from_queue()
 
         params_iter = (
             dict(
@@ -424,28 +492,34 @@ def sync(
             for file_entry in file_entries
         )
         list(executor.map(_smart_sync_single_file, params_iter))
-    if not quiet:
+
+    if progress_bar:
+        sbar.update(sbar.total - sbar.n)
         tbar.close()
-        if progress_bar:
-            sbar.update(sbar.total - sbar.n)
         sbar.close()
 
 
 @cli.command(short_help="Make the path if it doesn't already exist.")
 @click.argument("path")
 def mkdir(path: str):
+    _sftp_prompt_host_key(path)
+
     smart_makedirs(path)
 
 
 @cli.command(short_help="Make the file if it doesn't already exist.")
 @click.argument("path")
 def touch(path: str):
+    _sftp_prompt_host_key(path)
+
     smart_touch(path)
 
 
 @cli.command(short_help="Concatenate any files and send them to stdout.")
 @click.argument("path")
 def cat(path: str):
+    _sftp_prompt_host_key(path)
+
     with smart_open(path, "rb") as f:
         shutil.copyfileobj(f, sys.stdout.buffer)  # pytype: disable=wrong-arg-types
 
@@ -458,15 +532,23 @@ def cat(path: str):
     "-n", "--lines", type=click.INT, default=10, help="print the first NUM lines"
 )
 def head(path: str, lines: int):
+    _sftp_prompt_host_key(path)
+
     with smart_open(path, "rb") as f:
         for _ in range(lines):
-            try:
-                content = f.readline()
-                if not content:
-                    break
-            except EOFError:
+            content = f.readline()
+            if not content:
                 break
             click.echo(content.strip(b"\n"))
+
+
+def _tail_follow_content(path, offset):
+    with smart_open(path, "rb") as f:
+        f.seek(offset)
+        for line in f.readlines():
+            click.echo(line, nl=False)
+        offset = f.tell()
+    return offset
 
 
 @cli.command(
@@ -480,6 +562,8 @@ def head(path: str, lines: int):
     "-f", "--follow", is_flag=True, help="output appended data as the file grows"
 )
 def tail(path: str, lines: int, follow: bool):
+    _sftp_prompt_host_key(path)
+
     line_list = []
     with smart_open(path, "rb") as f:
         f.seek(0, os.SEEK_END)
@@ -506,17 +590,14 @@ def tail(path: str, lines: int, follow: bool):
     if line_list:
         click.echo(line_list[-1], nl=False)
 
-    if follow:
+    if follow:  # pragma: no cover
         offset = file_size
         while True:
-            with smart_open(path, "rb") as f:
-                f.seek(offset)
-                line = f.readline()
-                offset = f.tell()
-                if not line:
-                    time.sleep(1)
-                    continue
-                click.echo(line, nl=False)
+            new_offset = _tail_follow_content(path, offset)
+            if new_offset == offset:
+                time.sleep(1)
+            else:
+                offset = new_offset
 
 
 @cli.command(short_help="Write bytes from stdin to file.")
@@ -524,6 +605,8 @@ def tail(path: str, lines: int, follow: bool):
 @click.option("-a", "--append", is_flag=True, help="Append to the given file")
 @click.option("-o", "--stdout", is_flag=True, help="File content to standard output")
 def to(path: str, append: bool, stdout: bool):
+    _sftp_prompt_host_key(path)
+
     mode = "wb"
     if append:
         mode = "ab"
@@ -545,24 +628,32 @@ def to(path: str, append: bool, stdout: bool):
 @cli.command(short_help="Produce an md5sum file for all the objects in the path.")
 @click.argument("path")
 def md5sum(path: str):
+    _sftp_prompt_host_key(path)
+
     click.echo(smart_getmd5(path, recalculate=True))
 
 
 @cli.command(short_help="Return the total size and number of objects in remote:path.")
 @click.argument("path")
 def size(path: str):
+    _sftp_prompt_host_key(path)
+
     click.echo(smart_getsize(path))
 
 
 @cli.command(short_help="Return the mtime and number of objects in remote:path.")
 @click.argument("path")
 def mtime(path: str):
+    _sftp_prompt_host_key(path)
+
     click.echo(smart_getmtime(path))
 
 
 @cli.command(short_help="Return the stat and number of objects in remote:path.")
 @click.argument("path")
 def stat(path: str):
+    _sftp_prompt_host_key(path)
+
     click.echo(smart_stat(path))
 
 

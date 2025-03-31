@@ -2,11 +2,14 @@ import pickle
 import resource
 from io import BytesIO, TextIOWrapper
 
+import pytest
+
 from megfile.utils import (
     _get_class,
     _is_pickle,
     binary_open,
     cached_classproperty,
+    classproperty,
     combine,
     get_human_size,
     is_domain_or_subdomain,
@@ -42,6 +45,9 @@ def test_get_human_size():
     assert get_human_size(0) == "0 B"
     assert get_human_size(1024**2) == "1.0 MB"
 
+    with pytest.raises(ValueError):
+        get_human_size(-1)
+
 
 def test_necessary_params():
     def func(a, b, c=None, **kwargs):
@@ -55,6 +61,17 @@ def test_get_class():
         pass
 
     assert _get_class(Test) == _get_class(Test())
+
+
+def test_classproperty():
+    class Test1:
+        count = 0
+
+        @classproperty
+        def test(cls):
+            return cls.count
+
+    assert Test1.test == 0
 
 
 def test_cached_classproperty():

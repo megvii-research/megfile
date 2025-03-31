@@ -1,8 +1,6 @@
 import os
 from collections import defaultdict
 from functools import partial
-from stat import S_ISDIR as stat_isdir
-from stat import S_ISLNK as stat_islnk
 from typing import (
     IO,
     Any,
@@ -18,10 +16,14 @@ from typing import (
 from tqdm import tqdm
 
 from megfile.errors import S3UnknownError
-from megfile.fs import fs_copy, is_fs
+from megfile.fs import (
+    fs_copy,
+    fs_listdir,
+    fs_scandir,
+    is_fs,
+)
 from megfile.interfaces import (
     Access,
-    ContextIterator,
     FileCacher,
     FileEntry,
     NullCacher,
@@ -170,7 +172,7 @@ def smart_listdir(path: Optional[PathLike] = None) -> List[str]:
     :raises: FileNotFoundError, NotADirectoryError
     """
     if path is None:
-        return sorted(os.listdir(path))
+        return fs_listdir()
     return SmartPath(path).listdir()
 
 
@@ -183,25 +185,7 @@ def smart_scandir(path: Optional[PathLike] = None) -> Iterator[FileEntry]:
     :raises: FileNotFoundError, NotADirectoryError
     """
     if path is None:
-
-        def create_generator():
-            with os.scandir(None) as entries:
-                for entry in entries:
-                    stat = entry.stat()
-                    yield FileEntry(
-                        entry.name,
-                        entry.path,
-                        StatResult(
-                            size=stat.st_size,
-                            ctime=stat.st_ctime,
-                            mtime=stat.st_mtime,
-                            isdir=stat_isdir(stat.st_mode),
-                            islnk=stat_islnk(stat.st_mode),
-                            extra=stat,
-                        ),
-                    )
-
-        return ContextIterator(create_generator())
+        return fs_scandir()
     return SmartPath(path).scandir()
 
 
@@ -285,8 +269,6 @@ def register_copy_func(
         dst_dict = _copy_funcs.get(src_protocol, {})
         dst_dict[dst_protocol] = copy_func
         _copy_funcs[src_protocol] = dst_dict
-    except Exception as error:
-        raise error
     else:
         raise ValueError(
             "Copy Function has already existed: {}->{}".format(
@@ -406,7 +388,7 @@ def _smart_sync_single_file(items: dict):
     force = items["force"]
     overwrite = items["overwrite"]
 
-    content_path = os.path.relpath(src_file_path, start=src_root_path)
+    content_path = smart_relpath(src_file_path, start=src_root_path)
     if len(content_path) and content_path != ".":
         content_path = content_path.lstrip("/")
         dst_abs_file_path = smart_path_join(dst_root_path, content_path)
@@ -440,6 +422,8 @@ def _smart_sync_single_file(items: dict):
             callback=copy_callback,
             followlinks=followlinks,
         )
+    elif callback:
+        callback(src_file_path, src_file_stat.size)
     if callback_after_copy_file:
         callback_after_copy_file(src_file_path, dst_abs_file_path)
     return should_sync
@@ -582,19 +566,21 @@ def smart_sync_with_progress(
     def callback_after_copy_file(src_file_path, dst_file_path):
         tbar.update(1)
 
-    smart_sync(
-        src_path,
-        dst_path,
-        callback=tqdm_callback,
-        followlinks=followlinks,
-        callback_after_copy_file=callback_after_copy_file,
-        src_file_stats=file_stats,
-        map_func=map_func,
-        force=force,
-        overwrite=overwrite,
-    )
-    tbar.close()
-    sbar.close()
+    try:
+        smart_sync(
+            src_path,
+            dst_path,
+            callback=tqdm_callback,
+            followlinks=followlinks,
+            callback_after_copy_file=callback_after_copy_file,
+            src_file_stats=file_stats,
+            map_func=map_func,
+            force=force,
+            overwrite=overwrite,
+        )
+    finally:
+        tbar.close()
+        sbar.close()
 
 
 def smart_remove(path: PathLike, missing_ok: bool = False) -> None:
@@ -1001,11 +987,13 @@ def smart_load_content(
         return s3_load_content(path, start, stop)
 
     with smart_open(path, "rb") as fd:
-        if start:
+        if start is not None:
             fd.seek(start)
         offset = -1
-        if start and stop:
-            offset = stop - start
+        if stop is not None:
+            offset = stop - (start or 0)  # start may be None
+            if offset < 0:
+                raise ValueError("stop should be greater than start")
         return fd.read(offset)  # pytype: disable=bad-return-type
 
 
@@ -1052,7 +1040,9 @@ class SmartCacher(FileCacher):
         self.cache_path = cache_path
 
     def _close(self):
-        if self.cache_path is not None and os.path.exists(self.cache_path):
+        if getattr(self, "cache_path", None) is not None and os.path.exists(
+            self.cache_path
+        ):
             if self.mode in ("w", "a"):
                 smart_copy(self.cache_path, self.name)
             os.unlink(self.cache_path)
@@ -1079,13 +1069,14 @@ def smart_touch(path: PathLike):
         pass
 
 
-def smart_getmd5(path: PathLike, recalculate: bool = False):
+def smart_getmd5(path: PathLike, recalculate: bool = False, followlinks: bool = False):
     """Get md5 value of file
 
     param path: File path
     param recalculate: calculate md5 in real-time or not return s3 etag when path is s3
+    param followlinks: If is True, calculate md5 for real file
     """
-    return SmartPath(path).md5(recalculate=recalculate)
+    return SmartPath(path).md5(recalculate=recalculate, followlinks=followlinks)
 
 
 _concat_funcs = {"s3": s3_concat, "sftp": sftp_concat}

@@ -116,10 +116,12 @@ def _patch_sftp_client_request(
         ssh_client = get_ssh_client(hostname, port, username, password, default_policy)
         ssh_client.close()
         atexit.unregister(ssh_client.close)
-        ssh_key = f"ssh_client:{hostname},{port},{username},{password}"
+        ssh_key = f"ssh_client:{hostname},{port},{username},{password},{default_policy}"
         if thread_local.get(ssh_key):
             del thread_local[ssh_key]
-        sftp_key = f"sftp_client:{hostname},{port},{username},{password}"
+        sftp_key = (
+            f"sftp_client:{hostname},{port},{username},{password},{default_policy}"
+        )
         if thread_local.get(sftp_key):
             del thread_local[sftp_key]
 
@@ -179,7 +181,7 @@ def get_sftp_client(
     :returns: sftp client
     """
     return thread_local(
-        f"sftp_client:{hostname},{port},{username},{password}",
+        f"sftp_client:{hostname},{port},{username},{password},{default_policy}",
         _get_sftp_client,
         hostname,
         port,
@@ -208,6 +210,7 @@ def _get_ssh_client(
     policy = policies.get(SFTP_HOST_KEY_POLICY, default_policy)()  # pyre-ignore[29]
 
     ssh_client = paramiko.SSHClient()
+    ssh_client.load_system_host_keys()
     ssh_client.set_missing_host_key_policy(policy)
     max_unauth_connections = int(os.getenv(SFTP_MAX_UNAUTH_CONN, 10))
     try:
@@ -218,7 +221,7 @@ def _get_ssh_client(
             ),
             os.O_WRONLY | os.O_CREAT | os.O_TRUNC,
         )
-    except Exception:
+    except Exception:  # pragma: no cover
         _logger.warning(
             "Can't create file lock in '/tmp', "
             "please control the SFTP concurrency count by yourself."
@@ -251,7 +254,7 @@ def get_ssh_client(
     default_policy: Type[paramiko.MissingHostKeyPolicy] = paramiko.RejectPolicy,
 ) -> paramiko.SSHClient:
     return thread_local(
-        f"ssh_client:{hostname},{port},{username},{password}",
+        f"ssh_client:{hostname},{port},{username},{password},{default_policy}",
         _get_ssh_client,
         hostname,
         port,
@@ -272,10 +275,12 @@ def get_ssh_session(
         ssh_client = get_ssh_client(hostname, port, username, password, default_policy)
         ssh_client.close()
         atexit.unregister(ssh_client.close)
-        ssh_key = f"ssh_client:{hostname},{port},{username},{password}"
+        ssh_key = f"ssh_client:{hostname},{port},{username},{password},{default_policy}"
         if thread_local.get(ssh_key):
             del thread_local[ssh_key]
-        sftp_key = f"sftp_client:{hostname},{port},{username},{password}"
+        sftp_key = (
+            f"sftp_client:{hostname},{port},{username},{password},{default_policy}"
+        )
         if thread_local.get(sftp_key):
             del thread_local[sftp_key]
 
@@ -529,8 +534,11 @@ class SftpPath(URIPath):
             glob_path = self.joinpath(pattern).path_with_protocol
 
         def _scandir(dirname: str) -> Iterator[Tuple[str, bool]]:
+            result = []
             for entry in self.from_path(dirname).scandir():
-                yield entry.name, entry.is_dir()
+                result.append((entry.name, entry.is_dir()))
+            for name, is_dir in sorted(result):
+                yield name, is_dir
 
         def _exist(path: PathLike, followlinks: bool = False):
             return self.from_path(path).exists(followlinks=followlinks)
@@ -595,21 +603,18 @@ class SftpPath(URIPath):
 
         :returns: All contents have in the path in ascending alphabetical order
         """
-        if not self.is_dir():
-            raise NotADirectoryError(f"Not a directory: '{self.path_with_protocol}'")
-        return sorted(self._client.listdir(self._real_path))
+        with self.scandir() as entries:
+            return sorted([entry.name for entry in entries])
 
     def iterdir(self) -> Iterator["SftpPath"]:
         """
-        Get all contents of given sftp path.
-        The result is in ascending alphabetical order.
+        Get all contents of given sftp path. The order of result is in arbitrary order.
 
-        :returns: All contents have in the path in ascending alphabetical order
+        :returns: All contents have in the path.
         """
-        if not self.is_dir():
-            raise NotADirectoryError(f"Not a directory: '{self.path_with_protocol}'")
-        for path in self.listdir():
-            yield self.joinpath(path)
+        with self.scandir() as entries:
+            for entry in entries:
+                yield self.joinpath(entry.name)
 
     def load(self) -> BinaryIO:
         """Read all content on specified path and write into memory
@@ -806,20 +811,21 @@ class SftpPath(URIPath):
             FileNotFoundError("No match any file in: %r" % self.path_with_protocol),
         )
 
-    def scandir(self) -> Iterator[FileEntry]:
+    def scandir(self) -> ContextIterator:
         """
         Get all content of given file path.
 
         :returns: An iterator contains all contents have prefix path
         """
-        if not self.exists():
-            raise FileNotFoundError("No such directory: %r" % self.path_with_protocol)
-
-        if not self.is_dir():
-            raise NotADirectoryError("Not a directory: %r" % self.path_with_protocol)
+        real_path = self._real_path
+        stat = self.stat(follow_symlinks=False)
+        if stat.is_symlink():
+            real_path = self.readlink()._real_path
+        elif not stat.is_dir():
+            raise NotADirectoryError(f"Not a directory: '{self.path_with_protocol}'")
 
         def create_generator():
-            for name in self.listdir():
+            for name in self._client.listdir(real_path):
                 current_path = self.joinpath(name)
                 yield FileEntry(
                     current_path.name,
@@ -916,7 +922,7 @@ class SftpPath(URIPath):
         path = self._client.normalize(self._real_path)
         return self._generate_path_object(path, resolve=True)
 
-    def md5(self, recalculate: bool = False, followlinks: bool = True):
+    def md5(self, recalculate: bool = False, followlinks: bool = False):
         """
         Calculate the md5 value of the file
 
@@ -991,6 +997,7 @@ class SftpPath(URIPath):
     def open(
         self,
         mode: str = "r",
+        *,
         buffering=-1,
         encoding: Optional[str] = None,
         errors: Optional[str] = None,
@@ -1021,7 +1028,7 @@ class SftpPath(URIPath):
             )  # pytype: disable=wrong-arg-types
         return fileobj  # pytype: disable=bad-return-type
 
-    def chmod(self, mode: int, follow_symlinks: bool = True):
+    def chmod(self, mode: int, *, follow_symlinks: bool = True):
         """
         Change the file mode and permissions, like os.chmod().
 
@@ -1172,7 +1179,11 @@ class SftpPath(URIPath):
             ):
                 continue
 
-            self.from_path(src_file_path).copy(dst_file_path, followlinks=followlinks)
+            src_path.copy(
+                dst_file_path,
+                followlinks=followlinks,
+                overwrite=True,
+            )
 
     def utime(self, atime: Union[float, int], mtime: Union[float, int]) -> None:
         """

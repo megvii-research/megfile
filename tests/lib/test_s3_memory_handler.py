@@ -28,6 +28,11 @@ def test_s3_memory_handler_close(client):
     assert reader.closed is True
 
 
+def test_s3_memory_handler_mode(client):
+    with pytest.raises(ValueError):
+        S3MemoryHandler(BUCKET, KEY, "w", s3_client=client)
+
+
 def test_s3_memory_handler_read(client):
     client.put_object(Bucket=BUCKET, Key=KEY, Body=CONTENT)
 

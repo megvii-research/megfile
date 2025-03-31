@@ -88,6 +88,9 @@ def test_write(client):
     with pytest.raises(OSError):
         writer.seek(5)
 
+    with pytest.raises(OSError):
+        writer.seek(5, 3)
+
 
 def test_s3_buffered_writer_write_large_bytes(client):
     with S3LimitedSeekableWriter(BUCKET, KEY, s3_client=client) as writer:
@@ -279,6 +282,17 @@ def test_write_random(client):
     data = (random.choice(ascii_letters) * random.randint(1, 100 * 1024 * 1024)).encode(
         "ascii"
     )
+
+    writer.write(data)
+    writer.close()
+
+    body = client.get_object(Bucket=BUCKET, Key=KEY)["Body"]
+    assert body.read() == data
+
+
+def test_write_for_autoscaling_block(client):
+    writer = S3LimitedSeekableWriter(BUCKET, KEY, s3_client=client)
+    data = (random.choice(ascii_letters) * 97 * 1024 * 1024).encode("ascii")
 
     writer.write(data)
     writer.close()

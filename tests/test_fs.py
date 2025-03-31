@@ -839,6 +839,8 @@ def test_fs_scan_stat(filesystem, mocker):
     with pytest.raises(FileNotFoundError):
         list(fs.fs_scan_stat("/B", missing_ok=False))
 
+    assert list(fs.fs_scan_stat("/B", missing_ok=True)) == []
+
 
 def test_fs_scandir(filesystem):
     """
@@ -922,7 +924,7 @@ def test_fs_glob_returns_lexicographical_result(create_glob_fake_dirtree):
 def test_fs_glob_ascending_alphabetical_order(filesystem):
     files = []
     for i in range(0, 4001, 500):
-        files.append(f"range_{str(i).zfill(4)}_{str(i+500).zfill(4)}.meta.json")
+        files.append(f"range_{str(i).zfill(4)}_{str(i + 500).zfill(4)}.meta.json")
     for filename in files:
         with open(filename, "w"):
             pass
@@ -1071,6 +1073,9 @@ def test_fs_rename(filesystem):
     fs.fs_rename(src, dst, overwrite=False)
     with open(dst, "r") as f:
         assert f.read() == "test1"
+
+    with open(src, "w") as f:
+        f.write("test")
 
     fs.fs_rename(src, dst, overwrite=True)
     with open(dst, "r") as f:

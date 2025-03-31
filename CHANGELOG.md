@@ -1,3 +1,68 @@
+## 4.1.2 - 2025.03.07
+- feat
+    - support retrying S3 request with more error codes of aliyun oss
+
+## 4.1.1 - 2025.02.05
+- perf
+    - update the default worker number for the `sync` command
+    - optimize the performance of the `sync` command
+- feat
+    - support retrying more errors
+- fix
+    - fix `smart_move` bug when path with alias of s3 protocol
+
+## 4.1.0.post3 - 2025.01.23
+- fix
+    - fix `--skip` not work in `cp` command when path is dir.
+
+## 4.1.0.post2 - 2025.01.17
+- fix
+    - fix `s3_glob` bug when bucket in path with `*` in `{}` 
+
+## 4.1.0.post1 - 2025.01.10
+- fix
+    - fix `pickle.load` `S3UnknownError` bug
+
+## 4.1.0 - 2025.01.09
+- **breaking change**
+    - Remove the `followlinks` parameter from `hdfs_listdir`, `hdfs_load_from`, `hdfs_scandir`, `HdfsPath.load`, `HdfsPath.scandir`, and keep the behavior as `followlinks=False`.
+    - Remove the `followlinks` parameter from `s3_access`, `s3_listdir`, `s3_load_from`, `s3_scandir`, `s3_glob`, `s3_glob_stat`, `s3_iglob`, `s3_load_content`, `S3Path.access`, `S3Path.listdir`, `S3Path.load`, `S3Path.scandir`, `S3Path.glob`, `S3Path.glob_stat`, `S3Path.iglob`, `S3Path.iterdir`, and keep the behavior as `followlinks=False`.
+    - Remove the `missing_ok` parameter from `s3_listdir`, `s3_scandir`, `S3Path.listdir`, `S3Path.scandir`, and set the default behavior to `missing_ok=False`.
+    - `Path.iterdir` and `Path.scandir` no longer guarantees dictionary order. If order is required, please use `Path.listdir`.
+- perf
+    - reduce the use of `is_dir` in S3 to decrease the number of requests
+- fix
+    - Fix `is_symlink` in the `StatResult` returned by `S3Path.scandir` is incorrect.
+    - Fix `SftpPath.listdir` throwing an error when the input is a symbolic link.
+    - Fix an issue that `S3PermissionError` is raised when performing a `mkdir` operation without sufficient permissions on S3.
+
+## 4.0.4 - 2025.01.03
+- perf
+    - reduce the use of `is_dir` in S3 to decrease the number of requests
+
+## 4.0.3 - 2024.12.26
+- perf
+    - keep reading file even if etag is not returned from s3 server
+
+## 4.0.2 - 2024.12.20
+- feat
+    - add env `MEGFILE_LOG_LEVEL` for set log level
+    - add `--log-level` in cli for set log level
+- fix
+    - fix `max_buffer_size` not work when is `0` in `smart_open`
+
+## 4.0.1 - 2024.12.12
+- feat
+    - support kubernetes canonical form quantity in environment variable
+    - support add host key for sftp 
+- perf
+    - use `head_object` to get file size in prefetch reader when no cache 
+- fix
+    - fix `smart_load_content` bug when only end is not None
+
+## 4.0.0.post1 - 2024.12.09
+- fix s3 part upload size being too small caused by autoscaling block size
+
 ## 4.0.0 - 2024.12.06
 
 - **breaking change**
@@ -5,6 +70,9 @@
     - Removed the deprecated methods `is_link` and `get_protocol` from `BasePath`.
     - The `__del__` method in `Filelike` now closes file handles.
     - Removed `BaseURIPath`.
+    - Changed the default SFTP missing host key policy from `auto` to `reject`.  
+        You can set the default policy using the `MEGFILE_SFTP_HOST_KEY_POLICY` environment.  
+        Available values: `auto`, `reject`, `warning`.
     - Environment variable changes:
         - **Removed**:
             - `MEGFILE_BLOCK_SIZE`
@@ -34,6 +102,10 @@
 
 - feat
     - Added the `MEGFILE_WRITER_BLOCK_AUTOSCALE` environment variable to enable S3 block autoscaling. Default is `true`. However, if you set `MEGFILE_WRITER_BLOCK_SIZE`, default will be `false`.
+
+## 3.1.7 - 2024.12.12
+- fix
+    - fix `smart_load_content` bug when only end is not None
 
 ## 3.1.6.post1 - 2024.11.18
 - fix

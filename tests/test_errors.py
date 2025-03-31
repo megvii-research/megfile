@@ -1,6 +1,8 @@
+import logging
 import pickle
 
 import botocore.exceptions
+import pytest
 import urllib3.exceptions
 
 from megfile.errors import (
@@ -22,10 +24,12 @@ from megfile.errors import (
     UnsupportedError,
     http_retry_exceptions,
     http_should_retry,
+    patch_method,
     s3_endpoint_url,
     s3_retry_exceptions,
     s3_should_retry,
     translate_fs_error,
+    translate_hdfs_error,
     translate_http_error,
     translate_s3_error,
 )
@@ -178,6 +182,8 @@ def test_s3_should_retry():
             assert s3_should_retry(Error(proxy_url="test")) is True
         elif Error is botocore.exceptions.ConnectionClosedError:
             assert s3_should_retry(Error(endpoint_url="test")) is True
+        elif Error is botocore.exceptions.SSLError:
+            assert s3_should_retry(Error(endpoint_url="test", error="test")) is True
         elif Error is urllib3.exceptions.HeaderParsingError:
             assert s3_should_retry(Error("", "")) is True
         else:
@@ -210,3 +216,60 @@ def test_s3_endpoint_url(mocker):
     assert s3_endpoint_url() == "test"
     assert s3_endpoint_url("s3+test1://") == "test1"
     assert s3_endpoint_url("s3+test2://") == "test2"
+
+
+def test_translate_hdfs_error():
+    from megfile.hdfs_path import HdfsPath
+    from megfile.lib.hdfs_tools import hdfs_api
+
+    assert isinstance(
+        translate_hdfs_error(
+            hdfs_api.HdfsError(
+                message="Path is not a file",
+            ),
+            hdfs_path=HdfsPath("hdfs://A/B/C"),
+        ),
+        IsADirectoryError,
+    )
+
+    assert isinstance(
+        translate_hdfs_error(
+            hdfs_api.HdfsError(
+                message="Path is not a directory",
+            ),
+            hdfs_path=HdfsPath("hdfs://A/B/C"),
+        ),
+        NotADirectoryError,
+    )
+
+
+def test_patch_method(caplog):
+    with caplog.at_level(logging.INFO, logger="megfile"):
+        times = 0
+
+        def test():
+            nonlocal times
+            if times >= 2:
+                return
+
+            times += 1
+            raise ValueError("test")
+
+        patched_test = patch_method(
+            test,
+            max_retries=2,
+            should_retry=lambda e: True,
+        )
+
+        with pytest.raises(ValueError):
+            patched_test()
+
+        times = 1
+        patched_test()
+        assert "Error already fixed by retry" in caplog.text
+
+
+def test_pickle_error():
+    e = S3UnknownError(Exception(), "")
+    d = pickle.dumps(e)
+    pickle.loads(d)

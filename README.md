@@ -166,10 +166,10 @@ s3 =
 $ megfile config s3 accesskey secretkey \
 --addressing-style virtual \
 --endpoint-url https://tos-s3-cn-beijing.ivolces.com \
---profile tos
+--profile-name tos
 
 # create alias
-$ megfile alias tos s3+tos
+$ megfile config alias tos s3+tos
 ```
 
 You can get the configuration from `~/.config/megfile/aliases.conf`, like:
@@ -178,6 +178,9 @@ You can get the configuration from `~/.config/megfile/aliases.conf`, like:
 protocol = s3+tos
 ```
 
+## Benchmark
+[![10GiB](https://github.com/megvii-research/megfile/blob/main/scripts/benchmark/10GiB.png?raw=true)](https://megvii-research.github.io/megfile/benchmark.html)
+[![10MiB](https://github.com/megvii-research/megfile/blob/main/scripts/benchmark/10MiB.png?raw=true)](https://megvii-research.github.io/megfile/benchmark.html)
 
 ## How to Contribute
 * We welcome everyone to contribute code to the `megfile` project, but the contributed code needs to meet the following conditions as much as possible:

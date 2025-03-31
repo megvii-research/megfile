@@ -179,15 +179,41 @@ def test_hdfs_stat(http_mocker):
 
 
 def test_hdfs_isdir(http_mocker):
+    http_mocker.get(
+        "http://127.0.0.1:8000/webhdfs/v1/root/2?op=GETFILESTATUS",
+        status_code=404,
+        json={
+            "RemoteException": {
+                "exception": "FileNotFoundException",
+                "javaClassName": "java.io.FileNotFoundException",
+                "message": "File does not exist: /unknown",
+            }
+        },
+    )
+
     assert hdfs.hdfs_isdir("hdfs://root") is True
     assert hdfs.hdfs_isdir("hdfs://root/a") is True
     assert hdfs.hdfs_isdir("hdfs://root/1.txt") is False
+    assert hdfs.hdfs_isdir("hdfs://root/2") is False
 
 
 def test_hdfs_isfile(http_mocker):
+    http_mocker.get(
+        "http://127.0.0.1:8000/webhdfs/v1/root/2.txt?op=GETFILESTATUS",
+        status_code=404,
+        json={
+            "RemoteException": {
+                "exception": "FileNotFoundException",
+                "javaClassName": "java.io.FileNotFoundException",
+                "message": "File does not exist: /unknown",
+            }
+        },
+    )
+
     assert hdfs.hdfs_isfile("hdfs://root") is False
     assert hdfs.hdfs_isfile("hdfs://root/a") is False
     assert hdfs.hdfs_isfile("hdfs://root/a/2.txt") is True
+    assert hdfs.hdfs_isfile("hdfs://root/2.txt") is False
 
 
 def test_hdfs_listdir(http_mocker):
@@ -225,6 +251,18 @@ def test_hdfs_move(http_mocker, mocker):
     remove_func = mocker.patch("megfile.hdfs_path.HdfsPath.remove")
 
     hdfs.hdfs_move("hdfs://a", "hdfs://b")
+
+    remove_func.call_count == 2
+
+
+def test_hdfs_move_dir(http_mocker, mocker):
+    http_mocker.put(
+        "http://127.0.0.1:8000/webhdfs/v1/root/a/2.txt?op=RENAME&destination=%2Froot%2Fb%2F2.txt",
+        json={"boolean": True},
+    )
+    remove_func = mocker.patch("megfile.hdfs_path.HdfsPath.remove")
+
+    hdfs.hdfs_move("hdfs://root/a/", "hdfs://root/b/")
 
     remove_func.call_count == 2
 
@@ -408,7 +446,19 @@ def test_hdfs_open(http_mocker):
             "Content-Length": "0",
         },
     )
+    http_mocker.post(
+        "http://127.0.0.1:8000/webhdfs/v1/root/2.txt?delegation=token&op=APPEND",
+        status_code=201,
+        headers={
+            "Location": "http://127.0.0.1:8000/webhdfs/v1/root/2.txt?delegation=token&op=APPEND",
+            "Content-Length": "0",
+        },
+    )
+
     with hdfs.hdfs_open("hdfs://root/2.txt", "wb") as f:
+        f.write(b"")
+
+    with hdfs.hdfs_open("hdfs://root/2.txt", "ab") as f:
         f.write(b"")
 
     with pytest.raises(ValueError):

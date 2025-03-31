@@ -155,7 +155,7 @@ class S3BufferedWriter(Writable[bytes]):
                 len(content),
             )
 
-    def _submit_upload_buffer(self, part_number, content):
+    def _submit_upload_buffer(self, part_number: int, content: bytes):
         self._uploading_futures.add(
             self._executor.submit(self._upload_buffer, part_number, content)
         )
@@ -176,13 +176,16 @@ class S3BufferedWriter(Writable[bytes]):
         # so we need to divide content into equal-size parts,
         # and give last part more size.
         # e.g. 257MB can be divided into 2 parts, 128MB and 129MB
-        while len(content) - self._block_size > self.MIN_BLOCK_SIZE:
+        block_size = self._block_size
+        while len(content) - block_size > self.MIN_BLOCK_SIZE:
             self._part_number += 1
             current_content, content = (
-                content[: self._block_size],
-                content[self._block_size :],
+                content[:block_size],
+                content[block_size:],
             )
             self._submit_upload_buffer(self._part_number, current_content)
+            block_size = self._block_size
+
         if content:
             self._part_number += 1
             self._submit_upload_buffer(self._part_number, content)

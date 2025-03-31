@@ -138,3 +138,6 @@ def test_hdfs_glob(http_mocker):
         path.path_with_protocol
         for path in HdfsPath("hdfs://root").glob(pattern="**/*.json")
     ] == ["hdfs://root/b/4.json"]
+    assert [
+        path.path_with_protocol for path in HdfsPath("hdfs://root").glob(pattern="*/")
+    ] == ["hdfs://root/a/", "hdfs://root/b/"]

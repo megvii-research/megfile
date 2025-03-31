@@ -1,6 +1,10 @@
+import base64
+import hashlib
 import os
 from logging import getLogger as get_logger
 from typing import IO, BinaryIO, Callable, Iterator, List, Optional, Tuple
+
+import paramiko
 
 from megfile.interfaces import FileEntry, PathLike, StatResult
 from megfile.lib.compat import fspath
@@ -52,6 +56,7 @@ __all__ = [
     "sftp_rmdir",
     "sftp_copy",
     "sftp_sync",
+    "sftp_add_host_key",
 ]
 
 
@@ -608,7 +613,7 @@ def sftp_walk(
     return SftpPath(path).walk(followlinks)
 
 
-def sftp_getmd5(path: PathLike, recalculate: bool = False, followlinks: bool = True):
+def sftp_getmd5(path: PathLike, recalculate: bool = False, followlinks: bool = False):
     """
     Calculate the md5 value of the file
 
@@ -654,6 +659,7 @@ def sftp_save_as(file_object: BinaryIO, path: PathLike):
 def sftp_open(
     path: PathLike,
     mode: str = "r",
+    *,
     buffering=-1,
     encoding: Optional[str] = None,
     errors: Optional[str] = None,
@@ -671,10 +677,12 @@ def sftp_open(
         decoding errors are to be handled—this cannot be used in binary mode.
     :returns: File-Like object
     """
-    return SftpPath(path).open(mode, buffering, encoding, errors)
+    return SftpPath(path).open(
+        mode, buffering=buffering, encoding=encoding, errors=errors
+    )
 
 
-def sftp_chmod(path: PathLike, mode: int, follow_symlinks: bool = True):
+def sftp_chmod(path: PathLike, mode: int, *, follow_symlinks: bool = True):
     """
     Change the file mode and permissions, like os.chmod().
 
@@ -682,7 +690,7 @@ def sftp_chmod(path: PathLike, mode: int, follow_symlinks: bool = True):
     :param mode: the file mode you want to change
     :param followlinks: Ignore this parameter, just for compatibility
     """
-    return SftpPath(path).chmod(mode, follow_symlinks)
+    return SftpPath(path).chmod(mode, follow_symlinks=follow_symlinks)
 
 
 def sftp_absolute(path: PathLike) -> "SftpPath":
@@ -739,3 +747,75 @@ def sftp_sync(
     :param overwrite: whether or not overwrite file when exists, default is True
     """
     return SftpPath(src_path).sync(dst_path, followlinks, force, overwrite)
+
+
+def _check_input(input_str: str, fingerprint: str, times: int = 0) -> bool:
+    answers = input_str.strip()
+    if answers.lower() in ("yes", "y") or answers == fingerprint:
+        return True
+    elif answers.lower() in ("no", "n"):
+        return False
+    elif times >= 10:
+        _logger.warning("Retried more than 10 times, give up")
+        return False
+    else:
+        input_str = input("Please type 'yes', 'no' or the fingerprint: ")
+        return _check_input(input_str, fingerprint, times=times + 1)
+
+
+def _prompt_add_to_known_hosts(hostname, key) -> bool:
+    fingerprint = hashlib.sha256(key.asbytes()).digest()
+    fingerprint = f"SHA256:{base64.b64encode(fingerprint).decode('utf-8')}"
+    answers = input(f"""The authenticity of host '{hostname}' can't be established.
+{key.get_name().upper()} key fingerprint is {fingerprint}.
+This key is not known by any other names.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? """)
+    return _check_input(answers, fingerprint)
+
+
+def sftp_add_host_key(
+    hostname: str,
+    port: int = 22,
+    prompt: bool = False,
+    host_key_path: Optional["str"] = None,
+):
+    """Add a host key to known_hosts.
+
+    :param hostname: hostname
+    :param port: port, default is 22
+    :param prompt: If True, requires user input of 'yes' or 'no' to decide whether to
+        add this host key
+    :param host_key_path: path of known_hosts, default is ~/.ssh/known_hosts
+    """
+    if not host_key_path:
+        host_key_path = os.path.expanduser("~/.ssh/known_hosts")
+
+    if not os.path.exists(host_key_path):
+        dirname = os.path.dirname(host_key_path)
+        if dirname and dirname != ".":
+            os.makedirs(dirname, exist_ok=True, mode=0o700)
+        with open(host_key_path, "w"):
+            pass
+        os.chmod(host_key_path, 0o600)
+
+    host_key = paramiko.hostkeys.HostKeys(host_key_path)
+    if host_key.lookup(hostname):
+        return
+
+    transport = paramiko.Transport(
+        (
+            hostname,
+            port,
+        )
+    )
+    transport.connect()
+    key = transport.get_remote_server_key()
+    transport.close()
+
+    if prompt:
+        result = _prompt_add_to_known_hosts(hostname, key)
+        if not result:
+            return
+
+    host_key.add(hostname, key.get_name(), key)
+    host_key.save(host_key_path)

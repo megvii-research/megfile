@@ -1,4 +1,6 @@
 import os
+from stat import S_ISDIR as stat_isdir
+from stat import S_ISLNK as stat_islnk
 from typing import BinaryIO, Callable, Iterator, List, Optional, Tuple
 
 from megfile.fs_path import (
@@ -7,12 +9,11 @@ from megfile.fs_path import (
     fs_path_join,
     is_fs,
 )
-from megfile.interfaces import Access, FileEntry, PathLike, StatResult
+from megfile.interfaces import Access, ContextIterator, FileEntry, PathLike, StatResult
 
 __all__ = [
     "is_fs",
     "fs_path_join",
-    "_make_stat",
     "fs_readlink",
     "fs_cwd",
     "fs_home",
@@ -170,7 +171,7 @@ def fs_isfile(path: PathLike, followlinks: bool = False) -> bool:
     return FSPath(path).is_file(followlinks)
 
 
-def fs_listdir(path: PathLike) -> List[str]:
+def fs_listdir(path: Optional[PathLike] = None) -> List[str]:
     """
     Get all contents of given fs path.
     The result is in ascending alphabetical order.
@@ -178,6 +179,8 @@ def fs_listdir(path: PathLike) -> List[str]:
     :param path: Given path
     :returns: All contents have in the path in ascending alphabetical order
     """
+    if path is None:
+        return sorted(os.listdir(path))
     return FSPath(path).listdir()
 
 
@@ -256,13 +259,34 @@ def fs_scan_stat(
     return FSPath(path).scan_stat(missing_ok, followlinks)
 
 
-def fs_scandir(path: PathLike) -> Iterator[FileEntry]:
+def fs_scandir(path: Optional[PathLike] = None) -> Iterator[FileEntry]:
     """
     Get all content of given file path.
 
     :param path: Given path
     :returns: An iterator contains all contents have prefix path
     """
+    if path is None:
+
+        def create_generator():
+            with os.scandir(None) as entries:
+                for entry in entries:
+                    stat = entry.stat()
+                    yield FileEntry(
+                        entry.name,
+                        entry.path,
+                        StatResult(
+                            size=stat.st_size,
+                            ctime=stat.st_ctime,
+                            mtime=stat.st_mtime,
+                            isdir=stat_isdir(stat.st_mode),
+                            islnk=stat_islnk(stat.st_mode),
+                            extra=stat,
+                        ),
+                    )
+
+        return ContextIterator(create_generator())
+
     return FSPath(path).scandir()
 
 
@@ -318,7 +342,7 @@ def fs_walk(
     return FSPath(path).walk(followlinks)
 
 
-def fs_getmd5(path: PathLike, recalculate: bool = False, followlinks: bool = True):
+def fs_getmd5(path: PathLike, recalculate: bool = False, followlinks: bool = False):
     """
     Calculate the md5 value of the file
 

@@ -12,7 +12,7 @@ from megfile.config import (
     READER_MAX_BUFFER_SIZE,
 )
 from megfile.errors import _create_missing_ok_generator, raise_hdfs_error
-from megfile.interfaces import FileEntry, PathLike, StatResult, URIPath
+from megfile.interfaces import ContextIterator, FileEntry, PathLike, StatResult, URIPath
 from megfile.lib.compat import fspath
 from megfile.lib.glob import FSFunc, iglob
 from megfile.lib.hdfs_prefetch_reader import HdfsPrefetchReader
@@ -299,7 +299,12 @@ class HdfsPath(URIPath):
             Because hdfs symlink not support dir.
         :returns: True if path is hdfs directory, else False
         """
-        return self.stat().is_dir()
+        try:
+            stat = self.stat(follow_symlinks=followlinks)
+            return stat.is_dir()
+        except FileNotFoundError:
+            pass
+        return False
 
     def is_file(self, followlinks: bool = False) -> bool:
         """
@@ -307,9 +312,14 @@ class HdfsPath(URIPath):
 
         :returns: True if path is hdfs file, else False
         """
-        return self.stat().is_file()
+        try:
+            stat = self.stat(follow_symlinks=followlinks)
+            return stat.is_file()
+        except FileNotFoundError:
+            pass
+        return False
 
-    def listdir(self, followlinks: bool = False) -> List[str]:
+    def listdir(self) -> List[str]:
         """
         Get all contents of given path.
 
@@ -319,19 +329,19 @@ class HdfsPath(URIPath):
         if not self.is_dir():
             raise NotADirectoryError("Not a directory: %r" % self.path)
         with raise_hdfs_error(self.path_with_protocol):
-            return self._client.list(self.path_without_protocol)
+            return sorted(self._client.list(self.path_without_protocol))
 
-    def iterdir(self, followlinks: bool = False) -> Iterator["HdfsPath"]:
+    def iterdir(self) -> Iterator["HdfsPath"]:
         """
         Get all contents of given path.
 
         :returns: All contents have prefix of path.
         :raises: FileNotFoundError, NotADirectoryError
         """
-        for filename in self.listdir(followlinks=followlinks):
+        for filename in self.listdir():
             yield self.joinpath(filename)
 
-    def load(self, followlinks: bool = False) -> BinaryIO:
+    def load(self) -> BinaryIO:
         """Read all content in binary on specified path and write into memory
 
         User should close the BinaryIO manually
@@ -372,7 +382,10 @@ class HdfsPath(URIPath):
         dst_path = self.from_path(dst_path)
         if self.is_dir():
             for filename in self.iterdir():
-                self.joinpath(filename).rename(dst_path.joinpath(filename))
+                filename.rename(
+                    dst_path.joinpath(filename.relative_to(self.path_with_protocol)),
+                    overwrite=overwrite,
+                )
         else:
             if overwrite:
                 dst_path.remove(missing_ok=True)
@@ -463,28 +476,32 @@ class HdfsPath(URIPath):
                         ),
                     )
 
-    def scandir(self, followlinks: bool = False) -> Iterator[FileEntry]:
+    def scandir(self) -> ContextIterator:
         """
-        Get all contents of given path, the order of result is not guaranteed.
+        Get all contents of given path, the order of result is in arbitrary order.
 
         :returns: All contents have prefix of path
         :raises: FileNotFoundError, NotADirectoryError
         """
-        with raise_hdfs_error(self.path_with_protocol):
-            for filename, stat_data in self._client.list(
-                self.path_without_protocol, status=True
-            ):
-                yield FileEntry(
-                    name=filename,
-                    path=self.joinpath(filename).path_with_protocol,
-                    stat=StatResult(
-                        size=stat_data["length"],
-                        mtime=stat_data["modificationTime"] / 1000,
-                        isdir=stat_data["type"] == "DIRECTORY",
-                        islnk=False,
-                        extra=stat_data,
-                    ),
-                )
+
+        def create_generator():
+            with raise_hdfs_error(self.path_with_protocol):
+                for filename, stat_data in self._client.list(
+                    self.path_without_protocol, status=True
+                ):
+                    yield FileEntry(
+                        name=filename,
+                        path=self.joinpath(filename).path_with_protocol,
+                        stat=StatResult(
+                            size=stat_data["length"],
+                            mtime=stat_data["modificationTime"] / 1000,
+                            isdir=stat_data["type"] == "DIRECTORY",
+                            islnk=False,
+                            extra=stat_data,
+                        ),
+                    )
+
+        return ContextIterator(create_generator())
 
     def unlink(self, missing_ok: bool = False) -> None:
         """
