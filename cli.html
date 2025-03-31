@@ -53,6 +53,12 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Command Line Interface</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#megfile">megfile</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#megfile-cat">cat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#megfile-completion">completion</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#megfile-completion-bash">bash</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile-completion-fish">fish</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile-completion-zsh">zsh</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#megfile-config">config</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#megfile-config-alias">alias</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#megfile-config-hdfs">hdfs</a></li>
@@ -151,6 +157,34 @@ you also need configure <code class="docutils literal notranslate"><span class="
 </dd></dl>
 
 </section>
+<section id="megfile-completion">
+<h3>completion<a class="headerlink" href="#megfile-completion" title="Link to this heading"></a></h3>
+<p>Return the completion file</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>megfile<span class="w"> </span>completion<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>COMMAND<span class="w"> </span><span class="o">[</span>ARGS<span class="o">]</span>...
+</pre></div>
+</div>
+<section id="megfile-completion-bash">
+<h4>bash<a class="headerlink" href="#megfile-completion-bash" title="Link to this heading"></a></h4>
+<p>Update the config file for bash</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>megfile<span class="w"> </span>completion<span class="w"> </span>bash<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</pre></div>
+</div>
+</section>
+<section id="megfile-completion-fish">
+<h4>fish<a class="headerlink" href="#megfile-completion-fish" title="Link to this heading"></a></h4>
+<p>Update the config file for fish</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>megfile<span class="w"> </span>completion<span class="w"> </span>fish<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</pre></div>
+</div>
+</section>
+<section id="megfile-completion-zsh">
+<h4>zsh<a class="headerlink" href="#megfile-completion-zsh" title="Link to this heading"></a></h4>
+<p>Update the config file for zsh</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>megfile<span class="w"> </span>completion<span class="w"> </span>zsh<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</pre></div>
+</div>
+</section>
+</section>
 <section id="megfile-config">
 <h3>config<a class="headerlink" href="#megfile-config" title="Link to this heading"></a></h3>
 <p>Return the config file</p>
@@ -160,7 +194,7 @@ you also need configure <code class="docutils literal notranslate"><span class="
 <section id="megfile-config-alias">
 <h4>alias<a class="headerlink" href="#megfile-config-alias" title="Link to this heading"></a></h4>
 <p>Update the config file for aliases</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>megfile<span class="w"> </span>config<span class="w"> </span><span class="nb">alias</span><span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>NAME<span class="w"> </span>PROTOCOL
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>megfile<span class="w"> </span>config<span class="w"> </span><span class="nb">alias</span><span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>NAME<span class="w"> </span>PROTOCOL_OR_PATH
 </pre></div>
 </div>
 <p class="rubric">Options</p>
@@ -184,8 +218,8 @@ you also need configure <code class="docutils literal notranslate"><span class="
 </dd></dl>
 
 <dl class="std option">
-<dt class="sig sig-object std" id="cmdoption-megfile-config-alias-arg-PROTOCOL">
-<span class="sig-name descname"><span class="pre">PROTOCOL</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-megfile-config-alias-arg-PROTOCOL" title="Link to this definition"></a></dt>
+<dt class="sig sig-object std" id="cmdoption-megfile-config-alias-arg-PROTOCOL_OR_PATH">
+<span class="sig-name descname"><span class="pre">PROTOCOL_OR_PATH</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-megfile-config-alias-arg-PROTOCOL_OR_PATH" title="Link to this definition"></a></dt>
 <dd><p>Required argument</p>
 </dd></dl>
 
