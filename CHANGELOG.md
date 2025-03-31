@@ -1,6 +1,7 @@
 ## 4.1.3 - 2025.03.31
 - feat
     - support auto complete paths of most protocols in cli
+    - `alias` command in cli support setting path prefix
     - support retrying `SSLError` in s3 
 
 ## 4.1.2 - 2025.03.07
