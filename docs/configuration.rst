@@ -9,3 +9,4 @@ Configuration
    configuration/hdfs
    configuration/sftp
    configuration/http
+   configuration/completion
