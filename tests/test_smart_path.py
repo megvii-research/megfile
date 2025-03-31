@@ -102,6 +102,14 @@ def test_aliases(fs, sftp_mocker):
             == SmartPath("sftp://ubuntu@host//dir/file").pathlike
         )
 
+    aliases = {"dev": {"protocol": "sftp", "prefix": "ubuntu@host/"}}
+    with patch.object(SmartPath, "_aliases", new_callable=PropertyMock) as mock_aliases:
+        mock_aliases.return_value = aliases
+        assert (
+            SmartPath("dev:///dir/file").pathlike
+            == SmartPath("sftp://ubuntu@host//dir/file").pathlike
+        )
+
 
 @patch.object(SmartPath, "_create_pathlike")
 def test_init(funcA):
