@@ -97,6 +97,7 @@ s3_retry_exceptions = [
     botocore.exceptions.ConnectTimeoutError,
     botocore.exceptions.ProxyConnectionError,
     botocore.exceptions.ConnectionClosedError,
+    botocore.exceptions.SSLError,
     requests.exceptions.ReadTimeout,
     requests.exceptions.ConnectTimeout,
     urllib3.exceptions.IncompleteRead,
@@ -141,8 +142,6 @@ s3_retry_error_codes = (
 def s3_should_retry(error: Exception) -> bool:
     if isinstance(error, s3_retry_exceptions):  # pyre-ignore[6]
         return True
-    if isinstance(error, botocore.exceptions.SSLError):
-        return "EOF" in str(error)
     if isinstance(error, botocore.exceptions.ClientError):
         return client_error_code(error) in s3_retry_error_codes
     return False
