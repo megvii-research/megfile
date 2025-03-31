@@ -2,7 +2,7 @@
 - feat
     - support auto complete paths of most protocols in cli
     - `alias` command in cli support setting path prefix
-    - support retrying `SSLError` in s3 
+    - support retrying `botocore.exceptions.SSLError` in s3 
 
 ## 4.1.2 - 2025.03.07
 - feat
