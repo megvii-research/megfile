@@ -44,6 +44,7 @@ from megfile.s3_path import (
     _group_s3path_by_prefix,
     _list_objects_recursive,
     _parse_s3_url_ignore_brace,
+    _parse_s3_url_profile,
     _patch_make_request,
     _s3_split_magic,
     _s3_split_magic_ignore_brace,
@@ -217,8 +218,22 @@ def s3_empty_client_with_patch_make_request(mocker):
 
 
 def test_parse_s3_url_ignore_brace():
-    with pytest.raises(ValueError):
-        _parse_s3_url_ignore_brace("/test")
+    assert _parse_s3_url_ignore_brace("s3://bucket") == ("bucket", "")
+    assert _parse_s3_url_ignore_brace("s3+test://bucket") == ("bucket", "")
+    assert _parse_s3_url_ignore_brace("s3+test://bucket/key") == ("bucket", "key")
+    assert _parse_s3_url_ignore_brace("s3://bucket/{a/b,c}*/d") == (
+        "bucket",
+        "{a/b,c}*/d",
+    )
+    assert _parse_s3_url_ignore_brace("s3+test://{bucket1,bucket2}/{a/b,c}*/d") == (
+        "{bucket1,bucket2}",
+        "{a/b,c}*/d",
+    )
+
+
+def test_parse_s3_url_profile():
+    assert _parse_s3_url_profile("s3://bucket") == ("s3", None)
+    assert _parse_s3_url_profile("s3+test://bucket") == ("s3+test", "test")
 
 
 def test_patch_make_request(s3_empty_client_with_patch_make_request, mocker):
@@ -2663,6 +2678,14 @@ def test_s3_glob_stat_cross_bucket(truncating_client, mocker):
 
 def test_s3_split_magic():
     assert _s3_split_magic("s3://bucketA/{a/b,c}*/d") == ("s3://bucketA", "{a/b,c}*/d")
+    assert _s3_split_magic("s3+test://bucketA/{a/b,c}*/d") == (
+        "s3+test://bucketA",
+        "{a/b,c}*/d",
+    )
+    assert _s3_split_magic("s3+test://bucketA/{a/b,c}*/d//") == (
+        "s3+test://bucketA",
+        "{a/b,c}*/d//",
+    )
 
 
 def test_group_s3path_by_bucket(truncating_client):
@@ -3304,14 +3327,42 @@ def test_list_objects_recursive(s3_empty_client_with_patch):
 
 
 def test_s3_split_magic_ignore_brace():
-    with pytest.raises(ValueError):
-        _s3_split_magic_ignore_brace("")
-
-    assert _s3_split_magic_ignore_brace("s3://bucket*") == ("", "s3://bucket*")
+    assert _s3_split_magic_ignore_brace("s3://bucketA/{a/b,c}*/d") == (
+        "s3://bucketA",
+        "{a/b,c}*/d",
+    )
+    assert _s3_split_magic_ignore_brace("s3+test://bucketA/{a/b,c}*/d") == (
+        "s3+test://bucketA",
+        "{a/b,c}*/d",
+    )
+    assert _s3_split_magic_ignore_brace("s3+test://bucketA/{a/b,c}*/d//") == (
+        "s3+test://bucketA",
+        "{a/b,c}*/d//",
+    )
+    assert _s3_split_magic_ignore_brace("s3://bucketA/{a/b,c}/*/d") == (
+        "s3://bucketA/{a/b,c}",
+        "*/d",
+    )
+    assert _s3_split_magic_ignore_brace("s3+test://bucketA/{a/b,c}/*/d") == (
+        "s3+test://bucketA/{a/b,c}",
+        "*/d",
+    )
+    assert _s3_split_magic_ignore_brace("s3+test://bucketA/{a/b,c}/*/d//") == (
+        "s3+test://bucketA/{a/b,c}",
+        "*/d//",
+    )
 
 
 def test_group_s3path_by_prefix():
     assert _group_s3path_by_prefix("s3://bucket*/test*") == ["s3://bucket*/test*"]
+    assert _group_s3path_by_prefix("s3://bucket/{test,test1/test2}/*") == [
+        "s3://bucket/test/*",
+        "s3://bucket/test1/test2/*",
+    ]
+    assert _group_s3path_by_prefix("s3://bucket/{test,test1/test2}/*//") == [
+        "s3://bucket/test/*//",
+        "s3://bucket/test1/test2/*//",
+    ]
 
 
 @pytest.fixture

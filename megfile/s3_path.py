@@ -366,12 +366,9 @@ def _list_all_buckets(profile_name: Optional[str] = None) -> List[str]:
     return [content["Name"] for content in response["Buckets"]]
 
 
-def _parse_s3_url_ignore_brace(s3_url: str) -> Tuple[str, str]:
-    s3_url = fspath(s3_url)
-    s3_scheme, right_part = s3_url[:5], s3_url[5:]
-    if s3_scheme != "s3://":
-        raise ValueError("Not a s3 url: %r" % s3_url)
+def _parse_s3_url_ignore_brace(s3_pathname: str) -> Tuple[str, str]:
     left_brace = False
+    right_part = s3_pathname.split("://", maxsplit=1)[1]
     for current_index, current_character in enumerate(right_part):
         if current_character == "/" and left_brace is False:
             return right_part[:current_index], right_part[current_index + 1 :]
@@ -382,9 +379,14 @@ def _parse_s3_url_ignore_brace(s3_url: str) -> Tuple[str, str]:
     return right_part, ""
 
 
-def _group_s3path_by_bucket(
-    s3_pathname: str, profile_name: Optional[str] = None
-) -> List[str]:
+def _parse_s3_url_profile(s3_pathname: str) -> Tuple[str, Optional[str]]:
+    protocol = s3_pathname.split("://", maxsplit=1)[0]
+    profile_name = protocol[3:] if protocol.startswith("s3+") else None
+    return protocol, profile_name
+
+
+def _group_s3path_by_bucket(s3_pathname: str) -> List[str]:
+    protocol, profile_name = _parse_s3_url_profile(s3_pathname)
     bucket, key = _parse_s3_url_ignore_brace(s3_pathname)
     if not bucket:
         if not key:
@@ -395,8 +397,8 @@ def _group_s3path_by_bucket(
 
     def generate_s3_path(bucket: str, key: str) -> str:
         if key:
-            return "s3://%s/%s" % (bucket, key)
-        return "s3://%s%s" % (bucket, "/" if s3_pathname.endswith("/") else "")
+            return f"{protocol}://{bucket}/{key}"
+        return f"{protocol}://{bucket}{'/' if s3_pathname.endswith('/') else ''}"
 
     all_bucket = lru_cache(maxsize=1)(_list_all_buckets)
     for bucket_name in ungloblize(bucket):
@@ -418,23 +420,11 @@ def _group_s3path_by_bucket(
 
 
 def _s3_split_magic_ignore_brace(s3_pathname: str) -> Tuple[str, str]:
-    if not s3_pathname:
-        raise ValueError("s3_pathname: %s", s3_pathname)
-
-    has_protocol = False
-    if s3_pathname.startswith("s3://"):
-        has_protocol = True
-        s3_pathname = s3_pathname[5:]
-
-    has_delimiter = False
-    if s3_pathname.endswith("/"):
-        has_delimiter = True
-        s3_pathname = s3_pathname[:-1]
-
-    normal_parts = []
-    magic_parts = []
-    left_brace = False
-    left_index = 0
+    left_brace, left_index = False, 0
+    normal_parts, magic_parts = [], []
+    s3_pathname_with_suffix = s3_pathname
+    s3_pathname = s3_pathname.rstrip("/")
+    suffix = (len(s3_pathname_with_suffix) - len(s3_pathname)) * "/"
     for current_index, current_character in enumerate(s3_pathname):
         if current_character == "/" and left_brace is False:
             if has_magic_ignore_brace(s3_pathname[left_index:current_index]):
@@ -454,18 +444,13 @@ def _s3_split_magic_ignore_brace(s3_pathname: str) -> Tuple[str, str]:
             magic_parts.append(s3_pathname[left_index:])
         else:
             normal_parts.append(s3_pathname[left_index:])
-
-    if has_protocol and normal_parts:
-        normal_parts.insert(0, "s3:/")
-    elif has_protocol:
-        magic_parts.insert(0, "s3:/")
-
-    if has_delimiter and magic_parts:
-        magic_parts.append("")
-    elif has_delimiter:
-        normal_parts.append("")
-
-    return "/".join(normal_parts), "/".join(magic_parts)
+    top_dir, magic_part = "/".join(normal_parts), "/".join(magic_parts)
+    if suffix:
+        if magic_part:
+            magic_part += suffix
+        else:
+            top_dir += suffix
+    return top_dir, magic_part
 
 
 def _group_s3path_by_prefix(s3_pathname: str) -> List[str]:
@@ -493,17 +478,15 @@ def _become_prefix(prefix: str) -> str:
 def _s3_split_magic(s3_pathname: str) -> Tuple[str, str]:
     if not has_magic(s3_pathname):
         return s3_pathname, ""
-    delimiter = "/"
     normal_parts = []
     magic_parts = []
-    all_parts = s3_pathname.split(delimiter)
+    all_parts = s3_pathname.split("/")
     for i, part in enumerate(all_parts):
-        if not has_magic(part):
-            normal_parts.append(part)
-        else:
+        if has_magic(part):
             magic_parts = all_parts[i:]
             break
-    return delimiter.join(normal_parts), delimiter.join(magic_parts)
+        normal_parts.append(part)
+    return "/".join(normal_parts), "/".join(magic_parts)
 
 
 def _list_objects_recursive(s3_client, bucket: str, prefix: str, delimiter: str = ""):
@@ -574,12 +557,12 @@ def _s3_glob_stat_single_path(
     recursive: bool = True,
     missing_ok: bool = True,
     followlinks: bool = False,
-    profile_name: Optional[str] = None,
 ) -> Iterator[FileEntry]:
     s3_pathname = fspath(s3_pathname)
     if not recursive:
         # If not recursive, replace ** with *
         s3_pathname = re.sub(r"\*{2,}", "*", s3_pathname)
+    protocol, profile_name = _parse_s3_url_profile(s3_pathname)
     top_dir, wildcard_part = _s3_split_magic(s3_pathname)
     search_dir = wildcard_part.endswith("/")
 
@@ -596,7 +579,7 @@ def _s3_glob_stat_single_path(
         if not has_magic(_s3_pathname):
             _s3_pathname_obj = S3Path(_s3_pathname)
             if _s3_pathname_obj.is_file():
-                stat = S3Path(_s3_pathname).stat(follow_symlinks=followlinks)
+                stat = _s3_pathname_obj.stat(follow_symlinks=followlinks)
                 yield FileEntry(_s3_pathname_obj.name, _s3_pathname_obj.path, stat)
             if _s3_pathname_obj.is_dir():
                 yield FileEntry(
@@ -616,7 +599,7 @@ def _s3_glob_stat_single_path(
         with raise_s3_error(_s3_pathname, S3BucketNotFoundError):
             for resp in _list_objects_recursive(client, bucket, prefix, delimiter):
                 for content in resp.get("Contents", []):
-                    path = s3_path_join("s3://", bucket, content["Key"])
+                    path = s3_path_join(f"{protocol}://", bucket, content["Key"])
                     if not search_dir and pattern.match(path):
                         yield FileEntry(S3Path(path).name, path, _make_stat(content))
                     dirname = os.path.dirname(path)
@@ -629,7 +612,9 @@ def _s3_glob_stat_single_path(
                             )
                         dirname = os.path.dirname(dirname)
                 for common_prefix in resp.get("CommonPrefixes", []):
-                    path = s3_path_join("s3://", bucket, common_prefix["Prefix"])
+                    path = s3_path_join(
+                        f"{protocol}://", bucket, common_prefix["Prefix"]
+                    )
                     dirname = os.path.dirname(path)
                     if dirname not in dirnames and dirname != top_dir:
                         dirnames.add(dirname)
@@ -1595,26 +1580,19 @@ class S3Path(URIPath):
         :returns: A generator contains tuples of path and file stat,
             in which paths match `s3_pathname`
         """
-        glob_path = self._s3_path
+        glob_path = self.path_with_protocol
         if pattern:
-            glob_path = self.joinpath(pattern)._s3_path
+            glob_path = self.joinpath(pattern).path_with_protocol
         s3_pathname = fspath(glob_path)
 
         def create_generator():
-            for group_s3_pathname_1 in _group_s3path_by_bucket(
-                s3_pathname, self._profile_name
-            ):
+            for group_s3_pathname_1 in _group_s3path_by_bucket(s3_pathname):
                 for group_s3_pathname_2 in _group_s3path_by_prefix(group_s3_pathname_1):
                     for file_entry in _s3_glob_stat_single_path(
                         group_s3_pathname_2,
                         recursive,
                         missing_ok,
-                        profile_name=self._profile_name,
                     ):
-                        if self._profile_name:
-                            file_entry = file_entry._replace(
-                                path=f"{self._protocol_with_profile}://{file_entry.path[5:]}"
-                            )
                         yield file_entry
 
         return _create_missing_ok_generator(
@@ -2044,7 +2022,7 @@ class S3Path(URIPath):
                 for content in response["Buckets"]:
                     yield FileEntry(
                         content["Name"],
-                        f"s3://{content['Name']}",
+                        f"{self._protocol_with_profile}://{content['Name']}",
                         StatResult(
                             ctime=content["CreationDate"].timestamp(),
                             isdir=True,
