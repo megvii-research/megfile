@@ -1,3 +1,7 @@
+## 4.1.3.post2 - 2025.04.10
+- fix
+    - fix `s3_glob` with profile
+
 ## 4.1.3.post1 - 2025.03.31
 - fix
     - remove redundant files in the whl
