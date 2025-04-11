@@ -45,7 +45,7 @@ from megfile.s3 import (
 )
 from megfile.sftp import sftp_concat, sftp_copy, sftp_download, sftp_upload
 from megfile.smart_path import SmartPath, get_traditional_path
-from megfile.utils import combine, generate_cache_path
+from megfile.utils import combine, copy_fileobj, generate_cache_path
 
 __all__ = [
     "smart_access",
@@ -289,16 +289,7 @@ def _default_copy_func(
 
     with smart_open(src_path, "rb", followlinks=followlinks) as fsrc:
         with smart_open(dst_path, "wb") as fdst:
-            # This magic number is copied from  copyfileobj
-            length = 16 * 1024
-            while True:
-                buf = fsrc.read(length)
-                if not buf:
-                    break
-                fdst.write(buf)
-                if callback is None:
-                    continue
-                callback(len(buf))
+            copy_fileobj(fsrc, fdst, callback=callback)
     try:
         src_stat = smart_stat(src_path)
         dst_path = SmartPath(dst_path)
@@ -611,7 +602,7 @@ def smart_rename(
     src_protocol, _ = SmartPath._extract_protocol(src_path)
     dst_protocol, _ = SmartPath._extract_protocol(dst_path)
     if src_protocol == dst_protocol:
-        SmartPath(src_path).rename(dst_path, overwrite=overwrite)
+        SmartPath(src_path).rename(dst_path, overwrite=overwrite, recursive=False)
         return
     smart_copy(src_path, dst_path, overwrite=overwrite)
     smart_unlink(src_path)
@@ -628,7 +619,7 @@ def smart_move(src_path: PathLike, dst_path: PathLike, overwrite: bool = True) -
     src_protocol, _ = SmartPath._extract_protocol(src_path)
     dst_protocol, _ = SmartPath._extract_protocol(dst_path)
     if src_protocol == dst_protocol:
-        SmartPath(src_path).rename(dst_path, overwrite=overwrite)
+        SmartPath(src_path).rename(dst_path, overwrite=overwrite, recursive=True)
         return
     smart_sync(src_path, dst_path, followlinks=True, overwrite=overwrite)
     smart_remove(src_path)
