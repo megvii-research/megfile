@@ -290,14 +290,23 @@ def get_s3_client(
             profile_name=profile_name,
         )
 
-    if config:
-        config = botocore.config.Config(
-            connect_timeout=5, max_pool_connections=GLOBAL_MAX_WORKERS
-        ).merge(config)
-    else:
-        config = botocore.config.Config(
-            connect_timeout=5, max_pool_connections=GLOBAL_MAX_WORKERS
+    try:
+        default_config = botocore.config.Config(
+            connect_timeout=5,
+            max_pool_connections=GLOBAL_MAX_WORKERS,
+            request_checksum_calculation="when_required",
+            response_checksum_validation="when_required",
         )
+    except TypeError:  # botocore < 1.36.0
+        default_config = botocore.config.Config(
+            connect_timeout=5,
+            max_pool_connections=GLOBAL_MAX_WORKERS,
+        )
+
+    if config:
+        config = default_config.merge(config)
+    else:
+        config = default_config
 
     addressing_style = get_env_var("AWS_S3_ADDRESSING_STYLE", profile_name=profile_name)
     if addressing_style:

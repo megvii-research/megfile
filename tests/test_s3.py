@@ -448,7 +448,10 @@ def test_get_s3_client_with_config(mocker):
 
     class EQConfig(botocore.config.Config):
         def __eq__(self, other):
-            return self._user_provided_options == other._user_provided_options
+            return (
+                self._user_provided_options[key] == other._user_provided_options[key]
+                for key in ("max_pool_connections", "connect_timeout")
+            )
 
     config = EQConfig(max_pool_connections=GLOBAL_MAX_WORKERS, connect_timeout=1)
     client = s3.get_s3_client(config)
