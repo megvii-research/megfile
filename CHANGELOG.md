@@ -1,3 +1,7 @@
+## 4.1.4 - 2025.04.14
+- fix
+    - Modify the default configuration to make the third party OSS support boto3 >= 1.36
+
 ## 4.1.3.post2 - 2025.04.10
 - fix
     - fix `s3_glob` with profile
