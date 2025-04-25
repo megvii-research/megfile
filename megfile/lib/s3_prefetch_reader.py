@@ -117,7 +117,8 @@ class S3PrefetchReader(BasePrefetchReader):
             return fetch_response()
 
     def _fetch_buffer(self, index: int) -> BytesIO:
-        start, end = index * self._block_size, (index + 1) * self._block_size - 1
+        start = index * self._block_size
+        end = min((index + 1) * self._block_size - 1, self._content_size - 1)
         response = self._fetch_response(start=start, end=end)
         etag = response.get("ETag", None)
         if self._content_etag and etag and etag != self._content_etag:
