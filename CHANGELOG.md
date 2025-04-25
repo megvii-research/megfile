@@ -1,3 +1,7 @@
+## 4.1.4.post1 - 2025.04.25
+- fix
+    - fix incorrect read when OSS presigned URL with Range end exceeds file size.
+
 ## 4.1.4 - 2025.04.14
 - fix
     - Modify the default configuration to make the third party OSS support boto3 >= 1.36
