@@ -215,7 +215,10 @@ def get_human_size(size_bytes: float) -> str:
     size_name = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
     index = int(math.floor(math.log(size_bytes, 1024)))
     base = math.pow(1024, index)
-    size = round(size_bytes / base, 2)
+    if base == 1:
+        size = int(size_bytes)
+    else:
+        size = round(size_bytes / base, 2)
     return "%s %s" % (size, size_name[index])
 
 
