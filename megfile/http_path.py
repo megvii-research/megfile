@@ -4,7 +4,7 @@ from functools import partial
 from io import BufferedReader, BytesIO
 from logging import getLogger as get_logger
 from threading import Lock
-from typing import Iterable, Iterator, Optional, Tuple, Union
+from typing import Dict, Iterable, Iterator, Optional, Tuple, Union
 
 import requests
 from urllib3 import HTTPResponse
@@ -39,9 +39,17 @@ DEFAULT_REQUEST_KWARGS = {
 def get_http_session(
     timeout: Optional[Union[int, Tuple[int, int]]] = DEFAULT_TIMEOUT,
     status_forcelist: Iterable[int] = (500, 502, 503, 504),
+    params: Optional[Dict[str, str]] = None,
+    headers: Optional[Dict[str, str]] = None,
+    cookies: Optional[Dict[str, str]] = None,
+    trust_env: bool = True,
     **kwargs,
 ) -> requests.Session:
     session = requests.Session()
+    session.params.update(params or {})  # type: ignore
+    session.headers.update(headers or {})
+    session.cookies.update(cookies or {})
+    session.trust_env = trust_env
 
     def after_callback(response, *args, **kwargs):
         if response.status_code in status_forcelist:
@@ -57,20 +65,8 @@ def get_http_session(
         error,
         method,
         url,
-        params=None,
         data=None,
-        headers=None,
-        cookies=None,
         files=None,
-        auth=None,
-        timeout=None,
-        allow_redirects=True,
-        proxies=None,
-        hooks=None,
-        stream=None,
-        verify=None,
-        cert=None,
-        json=None,
         **kwargs,
     ):
         if data and hasattr(data, "seek"):
