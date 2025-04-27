@@ -38,6 +38,7 @@ class HttpPrefetchReader(BasePrefetchReader):
         self,
         url: PathLike,
         *,
+        session: Optional[requests.Session] = None,
         content_size: Optional[int] = None,
         block_size: int = READER_BLOCK_SIZE,
         max_buffer_size: int = READER_MAX_BUFFER_SIZE,
@@ -47,6 +48,7 @@ class HttpPrefetchReader(BasePrefetchReader):
     ):
         self._url = url
         self._content_size = content_size
+        self._session = session or requests.Session()
 
         super().__init__(
             block_size=block_size,
@@ -76,16 +78,8 @@ class HttpPrefetchReader(BasePrefetchReader):
         self, start: Optional[int] = None, end: Optional[int] = None
     ) -> dict:
         def fetch_response() -> dict:
-            request_kwargs = {}
-            if hasattr(self._url, "request_kwargs"):
-                request_kwargs = self._url.request_kwargs  # pyre-ignore[16]
-            timeout = request_kwargs.pop("timeout", DEFAULT_TIMEOUT)
-            stream = request_kwargs.pop("stream", True)
-
             if start is None or end is None:
-                with requests.get(
-                    fspath(self._url), timeout=timeout, stream=stream, **request_kwargs
-                ) as response:
+                with self._session.get(fspath(self._url), stream=True) as response:
                     return {
                         "Headers": response.headers,
                         "Cookies": response.cookies,
@@ -95,14 +89,9 @@ class HttpPrefetchReader(BasePrefetchReader):
                 range_end = end
                 if self._content_size is not None:
                     range_end = min(range_end, self._content_size - 1)
-                headers = request_kwargs.pop("headers", {})
-                headers["Range"] = f"bytes={start}-{range_end}"
-                with requests.get(
-                    fspath(self._url),
-                    timeout=timeout,
-                    headers=headers,
-                    stream=stream,
-                    **request_kwargs,
+                headers = {"Range": f"bytes={start}-{range_end}"}
+                with self._session.get(
+                    fspath(self._url), headers=headers, stream=True
                 ) as response:
                     if len(response.content) != int(response.headers["Content-Length"]):
                         raise HttpBodyIncompleteError(

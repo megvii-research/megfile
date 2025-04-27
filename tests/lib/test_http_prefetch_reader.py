@@ -78,7 +78,8 @@ def _fake_get(*args, headers=None, **kwargs):
 @pytest.fixture
 def http_patch(mocker):
     requests_get_func = mocker.patch(
-        "megfile.http_path.requests.get", side_effect=_fake_get
+        "megfile.lib.http_prefetch_reader.requests.Session.get",
+        side_effect=_fake_get,
     )
     return requests_get_func
 
@@ -127,7 +128,8 @@ def test_http_prefetch_reader(http_patch):
 def test_http_prefetch_reader_readline(mocker):
     content = b"1\n2\n3\n\n4444\n5"
     mocker.patch(
-        "megfile.http_path.requests.get", return_value=FakeResponse200(content)
+        "megfile.lib.http_prefetch_reader.requests.Session.get",
+        return_value=FakeResponse200(content),
     )
     with HttpPrefetchReader(URL, max_workers=2, block_size=3) as reader:
         # within block
@@ -160,7 +162,8 @@ def test_http_prefetch_reader_readline_without_line_break_at_all(http_patch):
 
 def test_http_prefetch_reader_readline_tailing_block(mocker):
     mocker.patch(
-        "megfile.http_path.requests.get", return_value=FakeResponse200(b"123456")
+        "megfile.lib.http_prefetch_reader.requests.Session.get",
+        return_value=FakeResponse200(b"123456"),
     )
     with HttpPrefetchReader(URL, content_size=6, max_workers=2, block_size=3) as reader:
         # next block is empty
@@ -170,7 +173,8 @@ def test_http_prefetch_reader_readline_tailing_block(mocker):
 def test_http_prefetch_reader_read_readline_mix(mocker):
     content = b"1\n2\n3\n4\n"
     mocker.patch(
-        "megfile.http_path.requests.get", return_value=FakeResponse200(content)
+        "megfile.lib.http_prefetch_reader.requests.Session.get",
+        return_value=FakeResponse200(content),
     )
     with HttpPrefetchReader(
         URL, content_size=len(content), max_workers=2, block_size=3
@@ -186,7 +190,8 @@ def test_http_prefetch_reader_read_readline_mix(mocker):
 def test_http_prefetch_reader_seek_out_of_range(mocker):
     content = b"1\n2\n3\n4\n"
     mocker.patch(
-        "megfile.http_path.requests.get", return_value=FakeResponse200(b"1\n2\n3\n4\n")
+        "megfile.lib.http_prefetch_reader.requests.Session.get",
+        return_value=FakeResponse200(b"1\n2\n3\n4\n"),
     )
     with HttpPrefetchReader(
         URL, content_size=len(content), max_workers=2, block_size=3
@@ -568,7 +573,7 @@ def test_http_prefetch_reader_headers(mocker):
             return headers
 
     mocker.patch(
-        "megfile.http_path.requests.get",
+        "megfile.lib.http_prefetch_reader.requests.Session.get",
         return_value=FakeResponse200WithoutAcceptRange(),
     )
 
@@ -596,7 +601,7 @@ def test_http_prefetch_reader_retry(mocker, caplog):
         fake_response = FakeResponse200Retry()
 
         mocker.patch(
-            "megfile.http_path.requests.get",
+            "megfile.lib.http_prefetch_reader.requests.Session.get",
             return_value=fake_response,
         )
 
