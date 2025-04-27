@@ -17,10 +17,10 @@ from megfile.config import (
 from megfile.errors import http_should_retry, patch_method, translate_http_error
 from megfile.interfaces import PathLike, Readable, StatResult, URIPath
 from megfile.lib.compat import fspath
-from megfile.lib.http_prefetch_reader import DEFAULT_TIMEOUT, HttpPrefetchReader
+from megfile.lib.http_prefetch_reader import HttpPrefetchReader
 from megfile.lib.url import get_url_scheme
 from megfile.smart_path import SmartPath
-from megfile.utils import _is_pickle, binary_open
+from megfile.utils import _is_pickle, binary_open, cached_property
 
 __all__ = [
     "HttpPath",
@@ -31,12 +31,19 @@ __all__ = [
 
 _logger = get_logger(__name__)
 
+DEFAULT_TIMEOUT = (60, 60 * 60 * 24)
+DEFAULT_REQUEST_KWARGS = {
+    "timeout": DEFAULT_TIMEOUT,
+}
+
 
 def get_http_session(
     timeout: Optional[Union[int, Tuple[int, int]]] = DEFAULT_TIMEOUT,
     status_forcelist: Iterable[int] = (500, 502, 503, 504),
+    **kwargs,
 ) -> requests.Session:
     session = requests.Session()
+    session.__dict__.update(kwargs)  # auth, headers, proxies, etc.
 
     def after_callback(response, *args, **kwargs):
         if response.status_code in status_forcelist:
@@ -136,7 +143,11 @@ class HttpPath(URIPath):
 
         if fspath(path).startswith("https://"):
             self.protocol = "https"
-        self.request_kwargs = {}
+        self.request_kwargs = deepcopy(DEFAULT_REQUEST_KWARGS)
+
+    @cached_property
+    def session(self):
+        return get_http_session(status_forcelist=(), **self.request_kwargs)
 
     @binary_open
     def open(
@@ -174,13 +185,8 @@ class HttpPath(URIPath):
             raise ValueError("unacceptable mode: %r" % mode)
 
         response = None
-        request_kwargs = deepcopy(self.request_kwargs)
-        timeout = request_kwargs.pop("timeout", DEFAULT_TIMEOUT)
-        stream = request_kwargs.pop("stream", True)
         try:
-            response = get_http_session(timeout=timeout, status_forcelist=()).get(
-                self.path_with_protocol, stream=stream, **request_kwargs
-            )
+            response = self.session.get(self.path_with_protocol, stream=True)
             response.raise_for_status()
         except Exception as error:
             if response:
@@ -197,6 +203,7 @@ class HttpPath(URIPath):
 
             reader = HttpPrefetchReader(
                 self,
+                session=self.session,
                 content_size=content_size,
                 block_size=block_size,
                 max_buffer_size=max_buffer_size,
@@ -225,15 +232,8 @@ class HttpPath(URIPath):
         :returns: StatResult
         :raises: HttpPermissionError, HttpFileNotFoundError
         """
-
-        request_kwargs = deepcopy(self.request_kwargs)
-        timeout = request_kwargs.pop("timeout", DEFAULT_TIMEOUT)
-        stream = request_kwargs.pop("stream", True)
-
         try:
-            with get_http_session(timeout=timeout, status_forcelist=()).get(
-                self.path_with_protocol, stream=stream, **request_kwargs
-            ) as response:
+            with self.session.get(self.path_with_protocol, stream=True) as response:
                 response.raise_for_status()
                 headers = response.headers
         except Exception as error:
@@ -254,7 +254,11 @@ class HttpPath(URIPath):
             last_modified = 0.0
 
         return StatResult(
-            size=size, mtime=last_modified, isdir=False, islnk=False, extra=headers
+            size=size,
+            mtime=last_modified,
+            isdir=False,
+            islnk=False,
+            extra=headers,
         )
 
     def getsize(self, follow_symlinks: bool = False) -> int:
@@ -281,7 +285,7 @@ class HttpPath(URIPath):
         """
         return self.stat().mtime
 
-    def exists(self, followlinks: bool = False) -> bool:
+    def is_file(self, followlinks: bool = False) -> bool:
         """Test if http path exists
 
         :param followlinks: ignore this parameter, just for compatibility
@@ -289,19 +293,15 @@ class HttpPath(URIPath):
         :return: return True if exists
         :rtype: bool
         """
-        request_kwargs = deepcopy(self.request_kwargs)
-        timeout = request_kwargs.pop("timeout", DEFAULT_TIMEOUT)
-        stream = request_kwargs.pop("stream", True)
-
         try:
-            with get_http_session(timeout=timeout, status_forcelist=()).get(
-                self.path_with_protocol, stream=stream, **request_kwargs
-            ) as response:
+            with self.session.get(self.path_with_protocol, stream=True) as response:
                 if response.status_code == 404:
                     return False
                 return True
         except requests.exceptions.ConnectionError:
             return False
+
+    exists = is_file
 
 
 @SmartPath.register
