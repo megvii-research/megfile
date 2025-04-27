@@ -18,6 +18,8 @@ from megfile.lib.base_prefetch_reader import BasePrefetchReader
 from megfile.lib.compat import fspath
 from megfile.pathlike import PathLike
 
+DEFAULT_TIMEOUT = (60, 60 * 60 * 24)
+
 
 class HttpPrefetchReader(BasePrefetchReader):
     """

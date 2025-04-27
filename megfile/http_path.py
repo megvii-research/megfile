@@ -17,7 +17,7 @@ from megfile.config import (
 from megfile.errors import http_should_retry, patch_method, translate_http_error
 from megfile.interfaces import PathLike, Readable, StatResult, URIPath
 from megfile.lib.compat import fspath
-from megfile.lib.http_prefetch_reader import HttpPrefetchReader
+from megfile.lib.http_prefetch_reader import DEFAULT_TIMEOUT, HttpPrefetchReader
 from megfile.lib.url import get_url_scheme
 from megfile.smart_path import SmartPath
 from megfile.utils import _is_pickle, binary_open, cached_property
@@ -31,7 +31,6 @@ __all__ = [
 
 _logger = get_logger(__name__)
 
-DEFAULT_TIMEOUT = (60, 60 * 60 * 24)
 DEFAULT_REQUEST_KWARGS = {
     "timeout": DEFAULT_TIMEOUT,
 }
@@ -43,7 +42,6 @@ def get_http_session(
     **kwargs,
 ) -> requests.Session:
     session = requests.Session()
-    session.__dict__.update(kwargs)  # auth, headers, proxies, etc.
 
     def after_callback(response, *args, **kwargs):
         if response.status_code in status_forcelist:
@@ -107,7 +105,7 @@ def get_http_session(
                     files[key] = file_info
 
     session.request = patch_method(
-        partial(session.request, timeout=timeout),
+        partial(session.request, timeout=timeout, **kwargs),
         max_retries=HTTP_MAX_RETRY_TIMES,
         should_retry=http_should_retry,
         before_callback=before_callback,
