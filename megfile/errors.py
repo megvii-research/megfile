@@ -154,7 +154,6 @@ def patch_method(
     before_callback: Optional[Callable] = None,
     after_callback: Optional[Callable] = None,
     retry_callback: Optional[Callable] = None,
-    verbose: bool = True,
 ):
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -166,8 +165,7 @@ def patch_method(
                 result = func(*args, **kwargs)
                 if after_callback is not None:
                     result = after_callback(result, *args, **kwargs)
-                if verbose and retries > 1:
-                    _logger.info(f"Error already fixed by retry {retries - 1} times")
+                _logger.info(f"Error already fixed by retry {retries - 1} times")
                 return result
             except Exception as error:
                 if not should_retry(error):
@@ -177,12 +175,11 @@ def patch_method(
                 if retries == max_retries:
                     raise
                 retry_interval = min(0.1 * 2**retries, 30)
-                if verbose:
-                    _logger.info(
-                        "unknown error encountered: %s, retry in %0.1f seconds "
-                        "after %d tries"
-                        % (full_error_message(error), retry_interval, retries)
-                    )
+                _logger.info(
+                    "unknown error encountered: %s, retry in %0.1f seconds "
+                    "after %d tries"
+                    % (full_error_message(error), retry_interval, retries)
+                )
                 time.sleep(retry_interval)
 
     return wrapper
