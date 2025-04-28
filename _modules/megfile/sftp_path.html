@@ -80,7 +80,6 @@
              
   <h1>Source code for megfile.sftp_path</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span><span class="w"> </span><span class="nn">atexit</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">fcntl</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
@@ -279,6 +278,8 @@
     <span class="n">password</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">default_policy</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">paramiko</span><span class="o">.</span><span class="n">MissingHostKeyPolicy</span><span class="p">]</span> <span class="o">=</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">RejectPolicy</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">SSHClient</span><span class="p">:</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">fcntl</span>
+
     <span class="n">hostname</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">,</span> <span class="n">private_key</span> <span class="o">=</span> <span class="n">provide_connect_info</span><span class="p">(</span>
         <span class="n">hostname</span><span class="o">=</span><span class="n">hostname</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="n">port</span><span class="p">,</span> <span class="n">username</span><span class="o">=</span><span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="n">password</span>
     <span class="p">)</span>
