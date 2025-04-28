@@ -165,7 +165,8 @@ def patch_method(
                 result = func(*args, **kwargs)
                 if after_callback is not None:
                     result = after_callback(result, *args, **kwargs)
-                _logger.info(f"Error already fixed by retry {retries - 1} times")
+                if retries > 1:
+                    _logger.info(f"Error already fixed by retry {retries - 1} times")
                 return result
             except Exception as error:
                 if not should_retry(error):
@@ -173,12 +174,15 @@ def patch_method(
                 if retry_callback is not None:
                     retry_callback(error, *args, **kwargs)
                 if retries == max_retries:
+                    _logger.error(
+                        f"Cannot handle error {full_error_message(error)} "
+                        f"after {retries} tries"
+                    )
                     raise
                 retry_interval = min(0.1 * 2**retries, 30)
                 _logger.info(
-                    "unknown error encountered: %s, retry in %0.1f seconds "
-                    "after %d tries"
-                    % (full_error_message(error), retry_interval, retries)
+                    f"unknown error encountered: {full_error_message(error)}, "
+                    f"retry in {retry_interval:.1f}s after {retries} tries"
                 )
                 time.sleep(retry_interval)
 
