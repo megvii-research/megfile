@@ -1,3 +1,10 @@
+## 4.1.5 - 2025.04.28
+- perf
+    - Optimize `HTTPPath` with `requests.Session`
+    - Enable S3 on Windows; testing incomplete, bugs may exist
+- fix
+    - fix `get_human_size` when input `size_bytes` is lower than 1KB
+
 ## 4.1.4.post1 - 2025.04.25
 - fix
     - fix incorrect read when OSS presigned URL with Range end exceeds file size.
