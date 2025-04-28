@@ -1,5 +1,4 @@
 import pickle
-import resource
 from io import BytesIO, TextIOWrapper
 
 import pytest
@@ -19,6 +18,8 @@ from megfile.utils import (
 
 
 def test_patch_rlimit(mocker):
+    import resource
+
     funcA = mocker.patch("resource.getrlimit", return_value=("soft", "hard"))
     funcB = mocker.patch("resource.setrlimit")
     patch_rlimit()

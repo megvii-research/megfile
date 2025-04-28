@@ -1,5 +1,4 @@
 import atexit
-import fcntl
 import hashlib
 import io
 import os
@@ -198,6 +197,8 @@ def _get_ssh_client(
     password: Optional[str] = None,
     default_policy: Type[paramiko.MissingHostKeyPolicy] = paramiko.RejectPolicy,
 ) -> paramiko.SSHClient:
+    import fcntl
+
     hostname, port, username, password, private_key = provide_connect_info(
         hostname=hostname, port=port, username=username, password=password
     )
