@@ -22,7 +22,7 @@ from megfile.lib.compat import fspath
 from megfile.lib.glob import FSFunc, iglob
 from megfile.pathlike import URIPath
 from megfile.smart_path import SmartPath
-from megfile.utils import calculate_md5, thread_local
+from megfile.utils import calculate_md5, copy_fileobj, thread_local
 
 _logger = get_logger(__name__)
 
@@ -681,7 +681,9 @@ class SftpPath(URIPath):
     def _is_same_protocol(self, path):
         return is_sftp(path)
 
-    def rename(self, dst_path: PathLike, overwrite: bool = True) -> "SftpPath":
+    def rename(
+        self, dst_path: PathLike, overwrite: bool = True, recursive: bool = True
+    ) -> "SftpPath":
         """
         rename file on sftp
 
@@ -694,7 +696,6 @@ class SftpPath(URIPath):
         dst_path = self.from_path(str(dst_path).rstrip("/"))
 
         src_stat = self.stat()
-
         if self._is_same_backend(dst_path):
             if overwrite:
                 dst_path.remove(missing_ok=True)
@@ -703,7 +704,7 @@ class SftpPath(URIPath):
                 self.sync(dst_path, overwrite=overwrite)
                 self.remove(missing_ok=True)
         else:
-            if self.is_dir():
+            if src_stat.is_dir():
                 for file_entry in self.scandir():
                     self.from_path(file_entry.path).rename(
                         dst_path.joinpath(file_entry.name)
@@ -711,14 +712,8 @@ class SftpPath(URIPath):
                 self._client.rmdir(self._real_path)
             else:
                 if overwrite or not dst_path.exists():
-                    with self.open("rb") as fsrc:
-                        with dst_path.open("wb") as fdst:
-                            length = 16 * 1024
-                            while True:
-                                buf = fsrc.read(length)
-                                if not buf:
-                                    break
-                                fdst.write(buf)
+                    with self.open("rb") as fsrc, dst_path.open("wb") as fdst:
+                        copy_fileobj(fsrc, fdst)
                 self.unlink()
 
         dst_path.utime(src_stat.st_atime, src_stat.st_mtime)
@@ -741,14 +736,12 @@ class SftpPath(URIPath):
         :param missing_ok: if False and target file/directory not exists,
             raise FileNotFoundError
         """
-        if missing_ok and not self.exists():
-            return
         if self.is_dir():
             for file_entry in self.scandir():
                 self.from_path(file_entry.path).remove(missing_ok=missing_ok)
             self._client.rmdir(self._real_path)
         else:
-            self._client.unlink(self._real_path)
+            self.unlink(missing_ok=missing_ok)
 
     def scan(self, missing_ok: bool = True, followlinks: bool = False) -> Iterator[str]:
         """
@@ -855,9 +848,11 @@ class SftpPath(URIPath):
 
         :param missing_ok: if False and target file not exists, raise FileNotFoundError
         """
-        if missing_ok and not self.exists():
-            return
-        self._client.unlink(self._real_path)
+        try:
+            self._client.unlink(self._real_path)
+        except FileNotFoundError:
+            if not missing_ok:
+                raise
 
     def walk(
         self, followlinks: bool = False
@@ -1070,7 +1065,9 @@ class SftpPath(URIPath):
             chan.settimeout(timeout)
             if environment:
                 chan.update_environment(environment)
-            chan.exec_command(" ".join([shlex.quote(arg) for arg in command]))  # nosec B601
+            chan.exec_command(
+                " ".join([shlex.quote(arg) for arg in command])
+            )  # nosec B601
             stdout = (
                 chan.makefile("r", bufsize).read().decode(errors="backslashreplace")
             )
@@ -1132,16 +1129,8 @@ class SftpPath(URIPath):
             if callback:
                 callback(self.stat(follow_symlinks=followlinks).size)
         else:
-            with self.open("rb") as fsrc:
-                with dst_path.open("wb") as fdst:
-                    length = 16 * 1024
-                    while True:
-                        buf = fsrc.read(length)
-                        if not buf:
-                            break
-                        fdst.write(buf)
-                        if callback:
-                            callback(len(buf))
+            with self.open("rb") as fsrc, dst_path.open("wb") as fdst:
+                copy_fileobj(fsrc, fdst, callback=callback)
 
         src_stat = self.stat()
         dst_path.utime(src_stat.st_atime, src_stat.st_mtime)
