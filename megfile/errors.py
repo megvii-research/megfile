@@ -316,7 +316,7 @@ class HttpBodyIncompleteError(HttpException):
 
 http_retry_exceptions = (
     requests.exceptions.ReadTimeout,
-    requests.exceptions.ConnectTimeout,
+    requests.exceptions.ConnectionError,
     requests.exceptions.ChunkedEncodingError,
     requests.exceptions.HTTPError,
     requests.exceptions.ProxyError,
