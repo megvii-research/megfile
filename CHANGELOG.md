@@ -1,3 +1,9 @@
+## 4.1.6 - 2025.04.30
+- feat
+    - support retry `requests.exceptions.ConnectionError` in http
+- fix
+    - fix error log
+
 ## 4.1.5 - 2025.04.28
 - perf
     - Optimize `HTTPPath` with `requests.Session`
