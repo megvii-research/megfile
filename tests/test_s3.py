@@ -2689,6 +2689,10 @@ def test_s3_split_magic():
         "s3+test://bucketA/",
         "{a/b,c}*/d//",
     )
+    assert _s3_split_magic("s3://bucketA/a{/b,c}*") == (
+        "s3://bucketA/a",
+        "{/b,c}*",
+    )
 
 
 def test_group_s3path_by_bucket(truncating_client):
