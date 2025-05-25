@@ -2680,13 +2680,13 @@ def test_s3_glob_stat_cross_bucket(truncating_client, mocker):
 
 
 def test_s3_split_magic():
-    assert _s3_split_magic("s3://bucketA/{a/b,c}*/d") == ("s3://bucketA", "{a/b,c}*/d")
+    assert _s3_split_magic("s3://bucketA/{a/b,c}*/d") == ("s3://bucketA/", "{a/b,c}*/d")
     assert _s3_split_magic("s3+test://bucketA/{a/b,c}*/d") == (
-        "s3+test://bucketA",
+        "s3+test://bucketA/",
         "{a/b,c}*/d",
     )
     assert _s3_split_magic("s3+test://bucketA/{a/b,c}*/d//") == (
-        "s3+test://bucketA",
+        "s3+test://bucketA/",
         "{a/b,c}*/d//",
     )
 

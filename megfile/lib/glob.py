@@ -247,19 +247,8 @@ def globlize(path_list: List[str]) -> str:
     path_list = sorted(path_list)
     if path_list[0] == path_list[-1]:
         return path_list[0]
-    first_path = path_list[0].split("/")
-    last_path = path_list[-1].split("/")
-    prefix = []
 
-    for i in range(0, min(len(first_path), len(last_path))):
-        if first_path[i] == last_path[i]:
-            prefix.append(first_path[i])
-        else:
-            break
-    if len(prefix) == 0:
-        prefix = ""
-    else:
-        prefix = "/".join(prefix) + "/"
+    prefix = os.path.commonprefix(path_list)
     suffix = _find_suffix(path_list, prefix, "/")
 
     if len(suffix) == 0:
