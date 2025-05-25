@@ -751,7 +751,7 @@ class FSPath(URIPath):
         src_path, dst_path = (
             self.path_without_protocol,
             fspath(dst_path),
-        )  # pyre-ignore[6]
+        )
 
         if isinstance(src_path, int):
             with os.fdopen(src_path, "rb") as fsrc, open(dst_path, "wb") as fdst:

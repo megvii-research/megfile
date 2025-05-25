@@ -199,7 +199,7 @@ def s3_move(src_url: PathLike, dst_url: PathLike, overwrite: bool = True) -> Non
     :param dst_url: Given destination path
     :param overwrite: whether or not overwrite file when exists
     """
-    return S3Path(src_url).rename(dst_url, overwrite, recursive=True)
+    S3Path(src_url).rename(dst_url, overwrite, recursive=True)
 
 
 def s3_remove(path: PathLike, missing_ok: bool = False) -> None:

@@ -100,8 +100,18 @@ def http_mocker(mocker, requests_mock, config_mocker):
             },
         )
         requests_mock.delete(
-            f"http://127.0.0.1:8000/webhdfs/v1/{path}?op=DELETE&recursive=true",
+            f"http://127.0.0.1:8000/webhdfs/v1/{path}?op=DELETE&recursive=True",
             json={"boolean": True},
+        )
+        requests_mock.delete(
+            f"http://127.0.0.1:8000/webhdfs/v1/{path}?op=DELETE&recursive=False",
+            json={
+                "RemoteException": {
+                    "exception": "FileNotFoundException",
+                    "message": f"Path is not a file: /{path}",
+                }
+            },
+            status_code=404,
         )
         for name, content in sub_files.items():
             if isinstance(content, dict):
@@ -141,7 +151,7 @@ def http_mocker(mocker, requests_mock, config_mocker):
             },
         )
         requests_mock.delete(
-            f"http://127.0.0.1:8000/webhdfs/v1/{path}?op=DELETE&recursive=true",
+            f"http://127.0.0.1:8000/webhdfs/v1/{path}?op=DELETE&recursive=False",
             json={"boolean": True},
         )
 

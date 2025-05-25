@@ -156,7 +156,7 @@ def hdfs_rename(src_path: PathLike, dst_path: PathLike, overwrite: bool = True) 
     :param dst_path: Given destination path
     :param overwrite: whether or not overwrite file when exists
     """
-    return HdfsPath(src_path).rename(dst_path, overwrite, recursive=False)
+    HdfsPath(src_path).rename(dst_path, overwrite, recursive=False)
 
 
 def hdfs_move(src_path: PathLike, dst_path: PathLike, overwrite: bool = True) -> None:
@@ -167,7 +167,7 @@ def hdfs_move(src_path: PathLike, dst_path: PathLike, overwrite: bool = True) ->
     :param dst_path: Given destination path
     :param overwrite: whether or not overwrite file when exists
     """
-    return HdfsPath(src_path).rename(dst_path, overwrite, recursive=True)
+    HdfsPath(src_path).rename(dst_path, overwrite, recursive=True)
 
 
 def hdfs_remove(path: PathLike, missing_ok: bool = False) -> None:

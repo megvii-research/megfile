@@ -1275,6 +1275,12 @@ def test_s3_move(truncating_client):
     assert s3.s3_exists("s3://bucketA/folderAA/folderAAA") is False
     assert s3.s3_exists("s3://bucketA/folderAA/folderAAA1/fileAAAA")
 
+    s3.s3_move("s3://bucketA/folderAB", "s3://bucketA/folderAB1")
+    assert s3.s3_exists("s3://bucketA/folderAB/fileAB") is False
+    assert s3.s3_exists("s3://bucketA/folderAB/fileAC") is False
+    assert s3.s3_exists("s3://bucketA/folderAB1/fileAB")
+    assert s3.s3_exists("s3://bucketA/folderAB1/fileAC")
+
     with s3.s3_open("s3://bucketA/folderAA/folderAAA2/fileAAAA", "w") as f:
         f.write("fileAAAA")
     s3.s3_move(
@@ -1344,12 +1350,6 @@ def test_s3_rename(truncating_client):
     assert s3.s3_exists("s3://bucketA/folderAA/folderAAA/fileAAAA") is False
     assert s3.s3_exists("s3://bucketA/folderAA/folderAAA/fileAAAA1")
 
-    s3.s3_rename("s3://bucketA/folderAB", "s3://bucketA/folderAB1")
-    assert s3.s3_exists("s3://bucketA/folderAB/fileAB") is False
-    assert s3.s3_exists("s3://bucketA/folderAB/fileAC") is False
-    assert s3.s3_exists("s3://bucketA/folderAB1/fileAB")
-    assert s3.s3_exists("s3://bucketA/folderAB1/fileAC")
-
     with s3.s3_open("s3://bucketA/folderAA/folderAAA/fileAAAA2", "w") as f:
         f.write("fileAAAA2")
 
@@ -1373,6 +1373,10 @@ def test_s3_rename(truncating_client):
     with s3.s3_open("s3://bucketA/folderAA/folderAAA/fileAAAA1", "r") as f:
         assert f.read() == "fileAAAA2"
     assert s3.s3_exists("s3://bucketA/folderAA/folderAAA/fileAAAA2") is False
+
+    with pytest.raises(IsADirectoryError) as error:
+        s3.s3_rename("s3://bucketA/folderAB", "s3://bucketA/folderAB1")
+    assert "s3://bucketA/folderAB" in str(error.value)
 
 
 def test_s3_unlink(s3_setup):

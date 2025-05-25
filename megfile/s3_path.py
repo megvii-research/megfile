@@ -2173,18 +2173,13 @@ class S3Path(URIPath):
         bucket, key = parse_s3_url(self.path_with_protocol)
         if not bucket or not key or key.endswith("/"):
             raise S3IsADirectoryError("Is a directory: %r" % self.path_with_protocol)
-
-        try:
-            with raise_s3_error(self.path_with_protocol):
-                self._client.delete_object(Bucket=bucket, Key=key)
-        except S3FileNotFoundError:
+        if not self.is_file():
             if missing_ok:
                 return
-            if self.is_dir():
-                raise S3IsADirectoryError(
-                    "Is a directory: %r" % self.path_with_protocol
-                )
-            raise
+            raise S3FileNotFoundError("No such file: %r" % self.path_with_protocol)
+
+        with raise_s3_error(self.path_with_protocol):
+            self._client.delete_object(Bucket=bucket, Key=key)
 
     def walk(
         self, followlinks: bool = False
