@@ -148,9 +148,7 @@ def hdfs_load_from(path: PathLike) -> BinaryIO:
     return HdfsPath(path).load()
 
 
-def hdfs_rename(
-    src_path: PathLike, dst_path: PathLike, overwrite: bool = True
-) -> None:
+def hdfs_rename(src_path: PathLike, dst_path: PathLike, overwrite: bool = True) -> None:
     """
     Rename file on hdfs
 

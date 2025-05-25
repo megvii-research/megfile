@@ -1065,9 +1065,7 @@ class SftpPath(URIPath):
             chan.settimeout(timeout)
             if environment:
                 chan.update_environment(environment)
-            chan.exec_command(
-                " ".join([shlex.quote(arg) for arg in command])
-            )  # nosec B601
+            chan.exec_command(" ".join([shlex.quote(arg) for arg in command]))  # nosec B601
             stdout = (
                 chan.makefile("r", bufsize).read().decode(errors="backslashreplace")
             )

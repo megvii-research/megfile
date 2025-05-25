@@ -748,8 +748,9 @@ class FSPath(URIPath):
         callback: Optional[Callable[[int], None]] = None,
         followlinks: bool = False,
     ):
-        src_path, dst_path = self.path_without_protocol, fspath(
-            dst_path
+        src_path, dst_path = (
+            self.path_without_protocol,
+            fspath(dst_path),
         )  # pyre-ignore[6]
 
         if isinstance(src_path, int):
