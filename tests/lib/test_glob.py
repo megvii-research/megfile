@@ -402,7 +402,7 @@ def test_globlize():
         "/bucketForGlobTest/1/a/1.json",
     ]
     new_path_list = list(fnmatch.filter(path_list, glob.globlize(path_list)))
-    assert "/bucketForGlobTest/{1,1/1,1/a/1}.json" == glob.globlize(path_list)
+    assert "/bucketForGlobTest/1{,/1,/a/1}.json" == glob.globlize(path_list)
     assert path_list == new_path_list
 
     path_list = [
@@ -420,10 +420,7 @@ def test_globlize():
         "/bucketForGlobTest/1/a/1.json",
     ]
     new_path_list = list(fnmatch.filter(path_list, glob.globlize(path_list)))
-    assert (
-        "/{bucketForGlobTest/1/1,bucketForGlobTest/1/a/1,bucketForGlobTest1/b1}.json"
-        == glob.globlize(path_list)
-    )
+    assert "/bucketForGlobTest{/1/1,/1/a/1,1/b1}.json" == glob.globlize(path_list)
     assert path_list == new_path_list
 
     path_list = [

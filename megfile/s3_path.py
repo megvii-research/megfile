@@ -485,17 +485,10 @@ def _become_prefix(prefix: str) -> str:
 
 
 def _s3_split_magic(s3_pathname: str) -> Tuple[str, str]:
-    if not has_magic(s3_pathname):
-        return s3_pathname, ""
-    normal_parts = []
-    magic_parts = []
-    all_parts = s3_pathname.split("/")
-    for i, part in enumerate(all_parts):
-        if has_magic(part):
-            magic_parts = all_parts[i:]
-            break
-        normal_parts.append(part)
-    return "/".join(normal_parts), "/".join(magic_parts)
+    for i in range(len(s3_pathname) - 1, 0, -1):
+        if not has_magic(s3_pathname[:i]):
+            return s3_pathname[:i], s3_pathname[i:]
+    return s3_pathname, ""
 
 
 def _list_objects_recursive(s3_client, bucket: str, prefix: str, delimiter: str = ""):
@@ -572,7 +565,8 @@ def _s3_glob_stat_single_path(
         # If not recursive, replace ** with *
         s3_pathname = re.sub(r"\*{2,}", "*", s3_pathname)
     protocol, profile_name = _parse_s3_url_profile(s3_pathname)
-    top_dir, wildcard_part = _s3_split_magic(s3_pathname)
+    top_prefix, wildcard_part = _s3_split_magic(s3_pathname)
+    top_dir = os.path.dirname(top_prefix) if wildcard_part else top_prefix
     search_dir = wildcard_part.endswith("/")
 
     def should_recursive(wildcard_part: str) -> bool:
@@ -602,8 +596,7 @@ def _s3_glob_stat_single_path(
 
         dirnames = set()
         pattern = re.compile(translate(_s3_pathname))
-        bucket, key = parse_s3_url(top_dir)
-        prefix = _become_prefix(key)
+        bucket, prefix = parse_s3_url(top_prefix)
         client = get_s3_client_with_cache(profile_name=profile_name)
         with raise_s3_error(_s3_pathname, S3BucketNotFoundError):
             for resp in _list_objects_recursive(client, bucket, prefix, delimiter):

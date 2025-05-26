@@ -22,7 +22,7 @@ bandit_check:
 	bandit --format=sarif --recursive megfile/ > bandit-sarif.json || echo
 
 pyre_check:
-	pyre --output=json check > pyre-errors.json || echo
+	pyre --version=none --output=json check > pyre-errors.json || echo
 	cat pyre-errors.json | ./scripts/convert_results_to_sarif.py > pyre-sarif.json
 
 mut:

@@ -172,7 +172,7 @@ jobs:
           path: bandit-sarif.json
 
       - name: Upload SARIF file
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: bandit-sarif.json
 
@@ -221,6 +221,6 @@ jobs:
           path: pyre-sarif.json
 
       - name: Upload SARIF file
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: pyre-sarif.json
