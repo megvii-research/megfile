@@ -215,10 +215,12 @@ def get_endpoint_url(profile_name: Optional[str] = None) -> str:
 
     :returns: S3 endpoint url
     """
+    profile_name = profile_name or os.environ.get("AWS_PROFILE")
+    environ_keys = ("OSS_ENDPOINT", "AWS_ENDPOINT_URL_S3", "AWS_ENDPOINT_URL")
     if profile_name:
-        environ_keys = (f"{profile_name}__OSS_ENDPOINT".upper(),)
-    else:
-        environ_keys = ("OSS_ENDPOINT", "AWS_ENDPOINT_URL_S3", "AWS_ENDPOINT_URL")
+        environ_keys = tuple(
+            f"{profile_name}__{environ_key}".upper() for environ_key in environ_keys
+        )
     for environ_key in environ_keys:
         environ_endpoint_url = os.environ.get(environ_key)
         if environ_endpoint_url:
@@ -244,6 +246,7 @@ def get_s3_session(profile_name=None) -> boto3.Session:
 
 
 def get_env_var(env_name: str, profile_name=None):
+    profile_name = profile_name or os.environ.get("AWS_PROFILE")
     if profile_name:
         return os.getenv(f"{profile_name}__{env_name}".upper())
     return os.getenv(env_name.upper())
@@ -257,16 +260,15 @@ def get_access_token(profile_name=None):
         return access_key, secret_key, session_token
 
     try:
-        credentials = get_s3_session(profile_name=profile_name).get_credentials()
-    except botocore.exceptions.ProfileNotFound:
-        credentials = None
-    if credentials:
+        config = get_scoped_config(profile_name=profile_name)
         if not access_key:
-            access_key = credentials.access_key
+            access_key = config.get("aws_access_key_id")
         if not secret_key:
-            secret_key = credentials.secret_key
+            secret_key = config.get("aws_secret_access_key")
         if not session_token:
-            session_token = credentials.token
+            session_token = config.get("aws_session_token")
+    except botocore.exceptions.ProfileNotFound:
+        pass
     return access_key, secret_key, session_token
 
 
