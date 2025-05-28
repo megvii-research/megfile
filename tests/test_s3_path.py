@@ -10,6 +10,7 @@ from megfile.s3_path import (
     S3Path,
     _patch_make_request,
     get_access_token,
+    get_endpoint_url,
 )
 
 
@@ -98,7 +99,7 @@ def test_utime():
         "TEST__AWS_SESSION_TOKEN": "test-token",
     },
 )
-def test_get_access_token():
+def test_get_access_token_from_env():
     assert get_access_token() == (
         "default-key",
         "default-secret",
@@ -107,7 +108,24 @@ def test_get_access_token():
     assert get_access_token("test") == ("test-key", "test-secret", "test-token")
 
 
-def test_get_access_token_from_file(mocker):
+@patch.dict(
+    os.environ,
+    {
+        "AWS_PROFILE": "test",
+        "AWS_ACCESS_KEY_ID": "default-key",
+        "AWS_SECRET_ACCESS_KEY": "default-secret",
+        "AWS_SESSION_TOKEN": "default-token",
+        "TEST__AWS_ACCESS_KEY_ID": "test-key",
+        "TEST__AWS_SECRET_ACCESS_KEY": "test-secret",
+        "TEST__AWS_SESSION_TOKEN": "test-token",
+    },
+)
+def test_get_access_token_from_env2():
+    assert get_access_token() == ("test-key", "test-secret", "test-token")
+
+
+@pytest.fixture
+def s3_session(mocker):
     def get_s3_session_without_cache(profile_name=None) -> boto3.Session:
         return boto3.Session(profile_name=profile_name)
 
@@ -115,19 +133,23 @@ def test_get_access_token_from_file(mocker):
         "megfile.s3_path.get_s3_session", side_effect=get_s3_session_without_cache
     )
 
-    with tempfile.TemporaryDirectory() as tmpdir:
-        credentials_path = os.path.join(tmpdir, "credentials")
-        mocker.patch("os.environ", {"AWS_SHARED_CREDENTIALS_FILE": credentials_path})
-        os.makedirs(os.path.dirname(credentials_path), exist_ok=True)
 
-        with open(credentials_path, "w") as f:
-            f.write("""[default]
+def test_get_access_token_from_file(mocker, s3_session):
+    with tempfile.TemporaryDirectory() as tmpdir:
+        config_path = os.path.join(tmpdir, "config")
+        mocker.patch("os.environ", {"AWS_CONFIG_FILE": config_path})
+        os.makedirs(os.path.dirname(config_path), exist_ok=True)
+
+        with open(config_path, "w") as f:
+            f.write(
+                """[default]
 aws_access_key_id = test_key
 aws_secret_access_key = test_secret
 
-[kubebrain]
+[profile kubebrain]
 aws_access_key_id = test_key_kubebrain
-aws_secret_access_key = test_secret_kubebrain""")
+aws_secret_access_key = test_secret_kubebrain"""
+            )
 
         assert get_access_token() == ("test_key", "test_secret", None)
         assert get_access_token("kubebrain") == (
@@ -136,6 +158,174 @@ aws_secret_access_key = test_secret_kubebrain""")
             None,
         )
         assert get_access_token("unknown") == (None, None, None)
+
+        mocker.patch(
+            "os.environ", {"AWS_PROFILE": "kubebrain", "AWS_CONFIG_FILE": config_path}
+        )
+        assert get_access_token() == (
+            "test_key_kubebrain",
+            "test_secret_kubebrain",
+            None,
+        )
+
+
+def test_get_access_token_from_file2(mocker, s3_session):
+    with tempfile.TemporaryDirectory() as tmpdir:
+        credentials_path = os.path.join(tmpdir, "credentials")
+        mocker.patch("os.environ", {"AWS_SHARED_CREDENTIALS_FILE": credentials_path})
+        os.makedirs(os.path.dirname(credentials_path), exist_ok=True)
+
+        with open(credentials_path, "w") as f:
+            f.write(
+                """[default]
+aws_access_key_id = test_key
+aws_secret_access_key = test_secret
+
+[kubebrain]
+aws_access_key_id = test_key_kubebrain
+aws_secret_access_key = test_secret_kubebrain"""
+            )
+
+        assert get_access_token() == ("test_key", "test_secret", None)
+        assert get_access_token("kubebrain") == (
+            "test_key_kubebrain",
+            "test_secret_kubebrain",
+            None,
+        )
+        assert get_access_token("unknown") == (None, None, None)
+
+        mocker.patch(
+            "os.environ",
+            {
+                "AWS_PROFILE": "kubebrain",
+                "AWS_SHARED_CREDENTIALS_FILE": credentials_path,
+            },
+        )
+        assert get_access_token() == (
+            "test_key_kubebrain",
+            "test_secret_kubebrain",
+            None,
+        )
+
+
+def test_get_access_token_from_file3(mocker, s3_session):
+    with tempfile.TemporaryDirectory() as tmpdir:
+        config_path = os.path.join(tmpdir, "config")
+        credentials_path = os.path.join(tmpdir, "credentials")
+        mocker.patch(
+            "os.environ",
+            {
+                "AWS_CONFIG_FILE": config_path,
+                "AWS_SHARED_CREDENTIALS_FILE": credentials_path,
+            },
+        )
+        os.makedirs(os.path.dirname(credentials_path), exist_ok=True)
+
+        with open(config_path, "w") as f:
+            f.write(
+                """[default]
+aws_access_key_id = test_key
+aws_secret_access_key = test_secret
+
+[profile kubebrain]
+aws_access_key_id = test_key_kubebrain
+aws_secret_access_key = test_secret_kubebrain"""
+            )
+
+        with open(credentials_path, "w") as f:
+            f.write(
+                """[default]
+aws_access_key_id = test_key_2
+aws_secret_access_key = test_secret_2
+
+[kubebrain]
+aws_access_key_id = test_key_kubebrain_2
+aws_secret_access_key = test_secret_kubebrain_2"""
+            )
+
+        assert get_access_token() == ("test_key_2", "test_secret_2", None)
+        assert get_access_token("kubebrain") == (
+            "test_key_kubebrain_2",
+            "test_secret_kubebrain_2",
+            None,
+        )
+        assert get_access_token("unknown") == (None, None, None)
+
+        mocker.patch(
+            "os.environ",
+            {
+                "AWS_PROFILE": "kubebrain",
+                "AWS_CONFIG_FILE": config_path,
+                "AWS_SHARED_CREDENTIALS_FILE": credentials_path,
+            },
+        )
+        assert get_access_token() == (
+            "test_key_kubebrain_2",
+            "test_secret_kubebrain_2",
+            None,
+        )
+
+
+def test_get_endpoint_url():
+    assert get_endpoint_url(profile_name="unknown") == "https://s3.amazonaws.com"
+
+
+def test_get_endpoint_url_from_env(mocker):
+    mocker.patch("megfile.s3_path.get_scoped_config", return_value={})
+    mocker.patch.dict(os.environ, {"OSS_ENDPOINT": "oss-endpoint"})
+    assert get_endpoint_url() == "oss-endpoint"
+
+
+def test_get_endpoint_url_from_env2(mocker):
+    mocker.patch("megfile.s3_path.get_scoped_config", return_value={})
+    mocker.patch.dict(os.environ, {"AWS_ENDPOINT_URL": "oss-endpoint2"})
+    assert get_endpoint_url() == "oss-endpoint2"
+
+
+def test_get_endpoint_url_from_env3(mocker):
+    mocker.patch("megfile.s3_path.get_scoped_config", return_value={})
+    mocker.patch.dict(
+        os.environ,
+        {"OSS_ENDPOINT": "oss-endpoint", "AWS_ENDPOINT_URL": "oss-endpoint2"},
+    )
+    assert get_endpoint_url() == "oss-endpoint"
+
+
+def test_get_endpoint_url_from_env4(mocker):
+    mocker.patch("megfile.s3_path.get_scoped_config", return_value={})
+    mocker.patch.dict(os.environ, {"AWS_ENDPOINT_URL_S3": "oss-endpoint3"})
+    assert get_endpoint_url() == "oss-endpoint3"
+
+
+def test_get_endpoint_url_from_env5(mocker):
+    mocker.patch("megfile.s3_path.get_scoped_config", return_value={})
+    mocker.patch.dict(
+        os.environ, {"AWS_PROFILE": "test", "TEST__OSS_ENDPOINT": "oss-endpoint"}
+    )
+    assert get_endpoint_url() == "oss-endpoint"
+
+
+def test_get_endpoint_url_from_scoped_config(mocker):
+    mocker.patch(
+        "megfile.s3_path.get_scoped_config",
+        return_value={"s3": {"endpoint_url": "test_endpoint_url"}},
+    )
+    assert get_endpoint_url() == "test_endpoint_url"
+
+    mocker.patch(
+        "megfile.s3_path.get_scoped_config",
+        return_value={"endpoint_url": "test_endpoint_url2"},
+    )
+    assert get_endpoint_url() == "test_endpoint_url2"
+
+    mocker.patch(
+        "megfile.s3_path.get_scoped_config",
+        return_value={
+            "s3": {"endpoint_url": "test_endpoint_url"},
+            "endpoint_url": "test_endpoint_url2",
+        },
+    )
+    assert get_endpoint_url() == "test_endpoint_url"
 
 
 def test__patch_make_request(mocker):
