@@ -40,7 +40,6 @@ jobs:
 
       - name: Run build-sphinx
         run: |
-          pip3 install -e .
           make doc
 
       - name: Deploy gh-pages
