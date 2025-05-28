@@ -1,3 +1,11 @@
+## 4.1.7 - 2025.05.28
+- feat
+    - support `AWS_PROFILE`, `[PROFILE__]AWS_ENDPOINT_URL` and `[PROFILE__]AWS_ENDPOINT_URL_S3` environments
+- perf
+    - speedup `s3_glob` when too many files in a directory
+- fix
+    - fix the issue where permissions are lost after 1 hour when using STS token
+
 ## 4.1.6 - 2025.04.30
 - feat
     - support retry `requests.exceptions.ConnectionError` in http
