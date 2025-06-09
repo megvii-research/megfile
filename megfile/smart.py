@@ -307,6 +307,16 @@ def _default_copy_func(
         pass
 
 
+def _get_copy_func(src_protocol, dst_protocol):
+    if src_protocol.startswith("s3+") and src_protocol == dst_protocol:
+        src_protocol = dst_protocol = "s3"
+
+    try:
+        return _copy_funcs[src_protocol][dst_protocol]
+    except KeyError:
+        return _default_copy_func
+
+
 def smart_copy(
     src_path: PathLike,
     dst_path: PathLike,
@@ -351,10 +361,8 @@ def smart_copy(
     src_protocol, _ = SmartPath._extract_protocol(src_path)
     dst_protocol, _ = SmartPath._extract_protocol(dst_path)
 
-    try:
-        copy_func = _copy_funcs[src_protocol][dst_protocol]
-    except KeyError:
-        copy_func = _default_copy_func
+    copy_func = _get_copy_func(src_protocol, dst_protocol)
+
     try:
         copy_func(
             src_path,
