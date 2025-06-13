@@ -1,3 +1,7 @@
+## 4.1.8 - 2025.06.13
+- perf
+    - optimize `smart_open` for S3-to-S3 transfers using s3+protocol in path
+
 ## 4.1.7 - 2025.05.28
 - feat
     - support `AWS_PROFILE`, `[PROFILE__]AWS_ENDPOINT_URL` and `[PROFILE__]AWS_ENDPOINT_URL_S3` environments
