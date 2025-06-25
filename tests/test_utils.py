@@ -125,18 +125,15 @@ def test_shadow_copy_pickle_file(fs):
         assert isinstance(shadow_copy(f), ShadowHandler)
 
     with open("test.pkl", "wb") as f:
-        f.mode = "wb"
         assert isinstance(shadow_copy(f), io.BufferedWriter)
 
     with open("test", "wb") as f:
         f.write(pickle.dumps(b"test"))
 
     with open("test", "rb") as f:
-        f.mode = "rb"
         assert isinstance(shadow_copy(f), io.BufferedReader)
 
     with open("test", "rb+") as f:
-        f.mode = "rb+"
         assert isinstance(shadow_copy(f), io.BufferedRandom)
 
 

@@ -200,23 +200,6 @@ class FakeOperateMode:
         pass
 
 
-@pytest.fixture
-def s3_empty_client_with_patch_make_request(mocker):
-    def patch_make_request(
-        operation_model, request_dict, request_context, *args, **kwargs
-    ):
-        if operation_model.name == "test_error":
-            raise S3UnknownError(error=Exception(), path="test")
-        return request_context
-
-    with mock_aws():
-        client = boto3.client("s3")
-        client._make_request = patch_make_request
-        _patch_make_request(client)
-        mocker.patch("megfile.s3_path.get_s3_client", return_value=client)
-        yield client
-
-
 def test_parse_s3_url_ignore_brace():
     assert _parse_s3_url_ignore_brace("s3://bucket") == ("bucket", "")
     assert _parse_s3_url_ignore_brace("s3+test://bucket") == ("bucket", "")
@@ -234,43 +217,6 @@ def test_parse_s3_url_ignore_brace():
 def test_parse_s3_url_profile():
     assert _parse_s3_url_profile("s3://bucket") == ("s3", None)
     assert _parse_s3_url_profile("s3+test://bucket") == ("s3+test", "test")
-
-
-def test_patch_make_request(s3_empty_client_with_patch_make_request, mocker):
-    mocker.patch("megfile.s3_path.max_retries", 1)
-    body = BytesIO(b"test")
-    body.seek(4)
-    assert body.tell() == 4
-    with pytest.raises(S3UnknownError):
-        s3_empty_client_with_patch_make_request._make_request(
-            FakeOperateMode(name="test_error"), dict(body=body), "result"
-        )
-        assert body.tell() == 1
-
-    s3_empty_client_with_patch_make_request._make_request(
-        FakeOperateMode(name="test_result"), dict(body=body), "test_result"
-    ) == "test_result"
-
-    from botocore.awsrequest import AWSResponse
-
-    test_result_tuple = (
-        AWSResponse(url="http://test", status_code=200, headers={}, raw=b""),
-        {},
-    )
-    s3_empty_client_with_patch_make_request._make_request(
-        FakeOperateMode(name="test_result"), dict(body=body), test_result_tuple
-    ) == test_result_tuple
-
-    test_error_result_tuple = (
-        AWSResponse(url="http://test", status_code=500, headers={}, raw=b""),
-        {"Error": {"Code": 500}},
-    )
-    with pytest.raises(botocore.exceptions.ClientError):
-        s3_empty_client_with_patch_make_request._make_request(
-            FakeOperateMode(name="test_result"),
-            dict(body=body),
-            test_error_result_tuple,
-        )
 
 
 def test_retry(s3_empty_client, mocker):
@@ -3080,6 +3026,11 @@ def test_s3_memory_open(s3_empty_client):
         writer.write(content)
     body = s3_empty_client.get_object(Bucket="bucket", Key="key")["Body"].read()
     assert body == content
+
+    fileobj = BytesIO()
+    s3_empty_client.download_fileobj("bucket", "key", fileobj)
+    assert fileobj.getvalue() == content
+
     s3.s3_symlink("s3://bucket/key", "s3://bucket/symlink")
 
     with s3.s3_memory_open("s3://bucket/key", "rb") as reader:
