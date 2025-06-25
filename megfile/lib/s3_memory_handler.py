@@ -115,6 +115,7 @@ class S3MemoryHandler(Readable[bytes], Seekable, Writable[bytes]):
         # directly download to the file handle
         try:
             self._client.download_fileobj(self._bucket, self._key, self._fileobj)
+            print(self._fileobj.getvalue())
         except Exception as error:
             raise self._translate_error(error)
         if self._mode[0] == "r":
