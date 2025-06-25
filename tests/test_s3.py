@@ -3080,6 +3080,11 @@ def test_s3_memory_open(s3_empty_client):
         writer.write(content)
     body = s3_empty_client.get_object(Bucket="bucket", Key="key")["Body"].read()
     assert body == content
+
+    fileobj = BytesIO()
+    s3_empty_client.download_fileobj("bucket", "key", fileobj)
+    assert fileobj.getvalue() == content
+
     s3.s3_symlink("s3://bucket/key", "s3://bucket/symlink")
 
     with s3.s3_memory_open("s3://bucket/key", "rb") as reader:
