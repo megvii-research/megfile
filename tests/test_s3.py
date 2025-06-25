@@ -201,7 +201,7 @@ class FakeOperateMode:
 
 
 @pytest.fixture
-def s3_empty_client_with_patch_make_request(mocker):
+def s3_empty_client_with_patch_make_request(s3_empty_client):
     def patch_make_request(
         operation_model, request_dict, request_context, *args, **kwargs
     ):
@@ -209,12 +209,8 @@ def s3_empty_client_with_patch_make_request(mocker):
             raise S3UnknownError(error=Exception(), path="test")
         return request_context
 
-    with mock_aws():
-        client = boto3.client("s3")
-        client._make_request = patch_make_request
-        _patch_make_request(client)
-        # mocker.patch("megfile.s3_path.get_s3_client", return_value=client)
-        yield client
+    s3_empty_client._make_request = patch_make_request
+    yield s3_empty_client
 
 
 def test_parse_s3_url_ignore_brace():
@@ -271,7 +267,6 @@ def test_patch_make_request(s3_empty_client_with_patch_make_request, mocker):
             dict(body=body),
             test_error_result_tuple,
         )
-    body.close()
 
 
 def test_retry(s3_empty_client, mocker):
