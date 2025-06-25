@@ -32,7 +32,7 @@ mut:
 	mutmut junitxml > mutmut.xml
 
 doc:
-	sphinx-build --fresh-env docs html_doc
+	PYTHONPATH=. sphinx-build --fresh-env docs html_doc
 
 release:
 	git tag ${VERSION}
