@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>megfile.smart_path &mdash; megfile  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            megfile
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../readme.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../path_format.html">Path Format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../megfile.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../advanced.html">Advanced User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../benchmark.html">Benchmark</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">CHANGELOG</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/megvii-research/megfile">GitHub</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">megfile</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">megfile.smart_path</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for megfile.smart_path</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">configparser</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConfigParser</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">PurePath</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">megfile.lib.compat</span><span class="w"> </span><span class="kn">import</span> <span class="n">fspath</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">megfile.lib.url</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_url_scheme</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">megfile.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">cached_classproperty</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">ProtocolExistsError</span><span class="p">,</span> <span class="n">ProtocolNotFoundError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">BasePath</span><span class="p">,</span> <span class="n">PathLike</span>
+
+<span class="n">aliases_config</span> <span class="o">=</span> <span class="s2">&quot;~/.config/megfile/aliases.conf&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_bind_function</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">smart_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pathlike</span><span class="p">,</span> <span class="n">name</span><span class="p">)(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="n">smart_method</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="n">name</span>
+
+    <span class="k">return</span> <span class="n">smart_method</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_bind_property</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">smart_property</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pathlike</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">smart_property</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_load_aliases_config</span><span class="p">(</span><span class="n">config_path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">config_path</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{}</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">ConfigParser</span><span class="p">()</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">config_path</span><span class="p">)</span>
+    <span class="n">configs</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">section</span> <span class="ow">in</span> <span class="n">parser</span><span class="o">.</span><span class="n">sections</span><span class="p">():</span>
+        <span class="n">configs</span><span class="p">[</span><span class="n">section</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">parser</span><span class="o">.</span><span class="n">items</span><span class="p">(</span><span class="n">section</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">configs</span>
+
+
+<div class="viewcode-block" id="SmartPath">
+<a class="viewcode-back" href="../../megfile.smart_path.html#megfile.smart_path.SmartPath">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SmartPath</span><span class="p">(</span><span class="n">BasePath</span><span class="p">):</span>
+    <span class="n">_registered_protocols</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">PathLike</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="o">*</span><span class="n">other_paths</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">else</span> <span class="n">path</span>
+        <span class="n">pathlike</span> <span class="o">=</span> <span class="n">path</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pathlike</span><span class="p">,</span> <span class="n">BasePath</span><span class="p">):</span>
+            <span class="n">pathlike</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_pathlike</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">other_paths</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">pathlike</span> <span class="o">=</span> <span class="n">pathlike</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="o">*</span><span class="n">other_paths</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">pathlike</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pathlike</span> <span class="o">=</span> <span class="n">pathlike</span>
+
+    <span class="nd">@cached_classproperty</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_aliases</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+        <span class="n">config_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">aliases_config</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_load_aliases_config</span><span class="p">(</span><span class="n">config_path</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_extract_protocol</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">PathLike</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">protocol</span> <span class="o">=</span> <span class="s2">&quot;file&quot;</span>
+            <span class="n">path_without_protocol</span> <span class="o">=</span> <span class="n">path</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">protocol</span> <span class="o">=</span> <span class="n">get_url_scheme</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">protocol</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+                <span class="n">protocol</span> <span class="o">=</span> <span class="s2">&quot;file&quot;</span>
+                <span class="n">path_without_protocol</span> <span class="o">=</span> <span class="n">path</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">path_without_protocol</span> <span class="o">=</span> <span class="n">path</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span> <span class="o">+</span> <span class="mi">3</span> <span class="p">:]</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="p">(</span><span class="n">BasePath</span><span class="p">,</span> <span class="n">SmartPath</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">protocol</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="p">(</span><span class="n">PurePath</span><span class="p">,</span> <span class="n">BasePath</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="n">SmartPath</span><span class="o">.</span><span class="n">_extract_protocol</span><span class="p">(</span><span class="n">fspath</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ProtocolNotFoundError</span><span class="p">(</span><span class="s2">&quot;protocol not found: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">path</span><span class="p">)</span>
+        <span class="n">aliases</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_aliases</span>  <span class="c1"># pyre-ignore[9]</span>
+        <span class="k">if</span> <span class="n">protocol</span> <span class="ow">in</span> <span class="n">aliases</span><span class="p">:</span>
+            <span class="n">prefix</span> <span class="o">=</span> <span class="n">aliases</span><span class="p">[</span><span class="n">protocol</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;prefix&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="n">protocol</span> <span class="o">=</span> <span class="n">aliases</span><span class="p">[</span><span class="n">protocol</span><span class="p">][</span><span class="s2">&quot;protocol&quot;</span><span class="p">]</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">://</span><span class="si">%s%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">path_without_protocol</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">path</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_create_pathlike</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">PathLike</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">BasePath</span><span class="p">:</span>
+        <span class="n">protocol</span><span class="p">,</span> <span class="n">un_aliased_path</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_extract_protocol</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">protocol</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;s3+&quot;</span><span class="p">):</span>
+            <span class="n">protocol</span> <span class="o">=</span> <span class="s2">&quot;s3&quot;</span>
+        <span class="k">if</span> <span class="n">protocol</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_registered_protocols</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ProtocolNotFoundError</span><span class="p">(</span><span class="s2">&quot;protocol </span><span class="si">%r</span><span class="s2"> not found: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">path</span><span class="p">))</span>
+        <span class="n">path_class</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_registered_protocols</span><span class="p">[</span><span class="n">protocol</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">path_class</span><span class="p">(</span><span class="n">un_aliased_path</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SmartPath.register">
+<a class="viewcode-back" href="../../megfile.smart_path.html#megfile.smart_path.SmartPath.register">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">register</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path_class</span><span class="p">,</span> <span class="n">override_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="n">protocol</span> <span class="o">=</span> <span class="n">path_class</span><span class="o">.</span><span class="n">protocol</span>
+        <span class="k">if</span> <span class="n">protocol</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_registered_protocols</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">override_ok</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ProtocolExistsError</span><span class="p">(</span><span class="s2">&quot;protocol already exists: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">protocol</span><span class="p">)</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_registered_protocols</span><span class="p">[</span><span class="n">protocol</span><span class="p">]</span> <span class="o">=</span> <span class="n">path_class</span>
+        <span class="k">return</span> <span class="n">path_class</span></div>
+
+
+    <span class="n">symlink</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;symlink&quot;</span><span class="p">)</span>
+    <span class="n">symlink_to</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;symlink_to&quot;</span><span class="p">)</span>
+    <span class="n">hardlink_to</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;hardlink_to&quot;</span><span class="p">)</span>
+    <span class="n">readlink</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;readlink&quot;</span><span class="p">)</span>
+    <span class="n">is_dir</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;is_dir&quot;</span><span class="p">)</span>
+    <span class="n">is_file</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;is_file&quot;</span><span class="p">)</span>
+    <span class="n">is_symlink</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;is_symlink&quot;</span><span class="p">)</span>
+    <span class="n">access</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;access&quot;</span><span class="p">)</span>
+    <span class="n">exists</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;exists&quot;</span><span class="p">)</span>
+    <span class="n">listdir</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;listdir&quot;</span><span class="p">)</span>
+    <span class="n">scandir</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;scandir&quot;</span><span class="p">)</span>
+    <span class="n">getsize</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;getsize&quot;</span><span class="p">)</span>
+    <span class="n">getmtime</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;getmtime&quot;</span><span class="p">)</span>
+    <span class="n">stat</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;stat&quot;</span><span class="p">)</span>
+    <span class="n">lstat</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;lstat&quot;</span><span class="p">)</span>
+    <span class="n">remove</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;remove&quot;</span><span class="p">)</span>
+    <span class="n">rename</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;rename&quot;</span><span class="p">)</span>
+    <span class="n">replace</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;replace&quot;</span><span class="p">)</span>
+    <span class="n">unlink</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;unlink&quot;</span><span class="p">)</span>
+    <span class="n">mkdir</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;mkdir&quot;</span><span class="p">)</span>
+    <span class="nb">open</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;open&quot;</span><span class="p">)</span>
+    <span class="n">touch</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;touch&quot;</span><span class="p">)</span>
+    <span class="n">walk</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;walk&quot;</span><span class="p">)</span>
+    <span class="n">scan</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;scan&quot;</span><span class="p">)</span>
+    <span class="n">scan_stat</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;scan_stat&quot;</span><span class="p">)</span>
+    <span class="n">glob</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;glob&quot;</span><span class="p">)</span>
+    <span class="n">iglob</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;iglob&quot;</span><span class="p">)</span>
+    <span class="n">glob_stat</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;glob_stat&quot;</span><span class="p">)</span>
+    <span class="n">load</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;load&quot;</span><span class="p">)</span>
+    <span class="n">save</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;save&quot;</span><span class="p">)</span>
+    <span class="n">joinpath</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;joinpath&quot;</span><span class="p">)</span>
+    <span class="n">abspath</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;abspath&quot;</span><span class="p">)</span>
+    <span class="n">realpath</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;realpath&quot;</span><span class="p">)</span>
+    <span class="n">is_absolute</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;is_absolute&quot;</span><span class="p">)</span>
+    <span class="n">is_mount</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;is_mount&quot;</span><span class="p">)</span>
+    <span class="n">md5</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;md5&quot;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">protocol</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pathlike</span><span class="o">.</span><span class="n">protocol</span>
+
+<div class="viewcode-block" id="SmartPath.from_uri">
+<a class="viewcode-back" href="../../megfile.smart_path.html#megfile.smart_path.SmartPath.from_uri">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_uri</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SmartPath.relpath">
+<a class="viewcode-back" href="../../megfile.smart_path.html#megfile.smart_path.SmartPath.relpath">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">relpath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the relative path of given path</span>
+
+<span class="sd">        :param start: Given start directory</span>
+<span class="sd">        :returns: Relative path from start</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">start</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">start</span> <span class="o">=</span> <span class="n">SmartPath</span><span class="o">.</span><span class="n">_extract_protocol</span><span class="p">(</span><span class="n">fspath</span><span class="p">(</span><span class="n">start</span><span class="p">))</span>  <span class="c1"># pyre-ignore[9]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pathlike</span><span class="o">.</span><span class="n">relpath</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">)</span></div>
+
+
+    <span class="n">as_uri</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;as_uri&quot;</span><span class="p">)</span>
+    <span class="n">as_posix</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;as_posix&quot;</span><span class="p">)</span>
+    <span class="fm">__lt__</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;__lt__&quot;</span><span class="p">)</span>
+    <span class="fm">__le__</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;__le__&quot;</span><span class="p">)</span>
+    <span class="fm">__gt__</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;__gt__&quot;</span><span class="p">)</span>
+    <span class="fm">__ge__</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;__ge__&quot;</span><span class="p">)</span>
+    <span class="n">__fspath__</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;__fspath__&quot;</span><span class="p">)</span>
+    <span class="fm">__truediv__</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;__truediv__&quot;</span><span class="p">)</span>
+
+    <span class="n">is_reserved</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;is_reserved&quot;</span><span class="p">)</span>
+    <span class="n">match</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;match&quot;</span><span class="p">)</span>
+    <span class="n">relative_to</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;relative_to&quot;</span><span class="p">)</span>
+    <span class="n">with_name</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;with_name&quot;</span><span class="p">)</span>
+    <span class="n">with_suffix</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;with_suffix&quot;</span><span class="p">)</span>
+    <span class="n">with_stem</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;with_stem&quot;</span><span class="p">)</span>
+    <span class="n">iterdir</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;iterdir&quot;</span><span class="p">)</span>
+    <span class="n">cwd</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;cwd&quot;</span><span class="p">)</span>
+    <span class="n">home</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;home&quot;</span><span class="p">)</span>
+    <span class="n">expanduser</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;expanduser&quot;</span><span class="p">)</span>
+    <span class="n">resolve</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;resolve&quot;</span><span class="p">)</span>
+    <span class="n">chmod</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;chmod&quot;</span><span class="p">)</span>
+    <span class="n">lchmod</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;lchmod&quot;</span><span class="p">)</span>
+    <span class="n">group</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;group&quot;</span><span class="p">)</span>
+    <span class="n">is_socket</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;is_socket&quot;</span><span class="p">)</span>
+    <span class="n">is_fifo</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;is_fifo&quot;</span><span class="p">)</span>
+    <span class="n">is_block_device</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;is_block_device&quot;</span><span class="p">)</span>
+    <span class="n">is_char_device</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;is_char_device&quot;</span><span class="p">)</span>
+    <span class="n">owner</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;owner&quot;</span><span class="p">)</span>
+    <span class="n">absolute</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;absolute&quot;</span><span class="p">)</span>
+    <span class="n">rmdir</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;rmdir&quot;</span><span class="p">)</span>
+    <span class="n">is_relative_to</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;is_relative_to&quot;</span><span class="p">)</span>
+    <span class="n">read_bytes</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;read_bytes&quot;</span><span class="p">)</span>
+    <span class="n">read_text</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;read_text&quot;</span><span class="p">)</span>
+    <span class="n">rglob</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;rglob&quot;</span><span class="p">)</span>
+    <span class="n">samefile</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;samefile&quot;</span><span class="p">)</span>
+    <span class="n">write_bytes</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;write_bytes&quot;</span><span class="p">)</span>
+    <span class="n">write_text</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;write_text&quot;</span><span class="p">)</span>
+    <span class="n">utime</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;utime&quot;</span><span class="p">)</span>
+
+    <span class="n">drive</span> <span class="o">=</span> <span class="n">_bind_property</span><span class="p">(</span><span class="s2">&quot;drive&quot;</span><span class="p">)</span>
+    <span class="n">root</span> <span class="o">=</span> <span class="n">_bind_property</span><span class="p">(</span><span class="s2">&quot;root&quot;</span><span class="p">)</span>
+    <span class="n">anchor</span> <span class="o">=</span> <span class="n">_bind_property</span><span class="p">(</span><span class="s2">&quot;anchor&quot;</span><span class="p">)</span>
+    <span class="n">parts</span> <span class="o">=</span> <span class="n">_bind_property</span><span class="p">(</span><span class="s2">&quot;parts&quot;</span><span class="p">)</span>
+    <span class="n">parents</span> <span class="o">=</span> <span class="n">_bind_property</span><span class="p">(</span><span class="s2">&quot;parents&quot;</span><span class="p">)</span>
+    <span class="n">parent</span> <span class="o">=</span> <span class="n">_bind_property</span><span class="p">(</span><span class="s2">&quot;parent&quot;</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">_bind_property</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
+    <span class="n">suffix</span> <span class="o">=</span> <span class="n">_bind_property</span><span class="p">(</span><span class="s2">&quot;suffix&quot;</span><span class="p">)</span>
+    <span class="n">suffixes</span> <span class="o">=</span> <span class="n">_bind_property</span><span class="p">(</span><span class="s2">&quot;suffixes&quot;</span><span class="p">)</span>
+    <span class="n">stem</span> <span class="o">=</span> <span class="n">_bind_property</span><span class="p">(</span><span class="s2">&quot;stem&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="get_traditional_path">
+<a class="viewcode-back" href="../../megfile.smart_path.html#megfile.smart_path.get_traditional_path">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_traditional_path</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">fspath</span><span class="p">(</span><span class="n">SmartPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">pathlike</span><span class="o">.</span><span class="n">path</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, r-eng.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

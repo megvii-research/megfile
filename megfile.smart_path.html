@@ -51,7 +51,94 @@
 <li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="megfile.html">API Reference</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="megfile.smart.html">megfile.smart module</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">megfile.smart_path module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">megfile.smart_path module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#megfile.smart_path.SmartPath"><code class="docutils literal notranslate"><span class="pre">SmartPath</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.absolute"><code class="docutils literal notranslate"><span class="pre">SmartPath.absolute()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.abspath"><code class="docutils literal notranslate"><span class="pre">SmartPath.abspath()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.access"><code class="docutils literal notranslate"><span class="pre">SmartPath.access()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.anchor"><code class="docutils literal notranslate"><span class="pre">SmartPath.anchor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.as_posix"><code class="docutils literal notranslate"><span class="pre">SmartPath.as_posix()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.as_uri"><code class="docutils literal notranslate"><span class="pre">SmartPath.as_uri()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.chmod"><code class="docutils literal notranslate"><span class="pre">SmartPath.chmod()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.cwd"><code class="docutils literal notranslate"><span class="pre">SmartPath.cwd()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.drive"><code class="docutils literal notranslate"><span class="pre">SmartPath.drive</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.exists"><code class="docutils literal notranslate"><span class="pre">SmartPath.exists()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.expanduser"><code class="docutils literal notranslate"><span class="pre">SmartPath.expanduser()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.from_uri"><code class="docutils literal notranslate"><span class="pre">SmartPath.from_uri()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.getmtime"><code class="docutils literal notranslate"><span class="pre">SmartPath.getmtime()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.getsize"><code class="docutils literal notranslate"><span class="pre">SmartPath.getsize()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.glob"><code class="docutils literal notranslate"><span class="pre">SmartPath.glob()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.glob_stat"><code class="docutils literal notranslate"><span class="pre">SmartPath.glob_stat()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.group"><code class="docutils literal notranslate"><span class="pre">SmartPath.group()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.hardlink_to"><code class="docutils literal notranslate"><span class="pre">SmartPath.hardlink_to()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.home"><code class="docutils literal notranslate"><span class="pre">SmartPath.home()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.iglob"><code class="docutils literal notranslate"><span class="pre">SmartPath.iglob()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.is_absolute"><code class="docutils literal notranslate"><span class="pre">SmartPath.is_absolute()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.is_block_device"><code class="docutils literal notranslate"><span class="pre">SmartPath.is_block_device()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.is_char_device"><code class="docutils literal notranslate"><span class="pre">SmartPath.is_char_device()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.is_dir"><code class="docutils literal notranslate"><span class="pre">SmartPath.is_dir()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.is_fifo"><code class="docutils literal notranslate"><span class="pre">SmartPath.is_fifo()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.is_file"><code class="docutils literal notranslate"><span class="pre">SmartPath.is_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.is_mount"><code class="docutils literal notranslate"><span class="pre">SmartPath.is_mount()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.is_relative_to"><code class="docutils literal notranslate"><span class="pre">SmartPath.is_relative_to()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.is_reserved"><code class="docutils literal notranslate"><span class="pre">SmartPath.is_reserved()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.is_socket"><code class="docutils literal notranslate"><span class="pre">SmartPath.is_socket()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.is_symlink"><code class="docutils literal notranslate"><span class="pre">SmartPath.is_symlink()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.iterdir"><code class="docutils literal notranslate"><span class="pre">SmartPath.iterdir()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.joinpath"><code class="docutils literal notranslate"><span class="pre">SmartPath.joinpath()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.lchmod"><code class="docutils literal notranslate"><span class="pre">SmartPath.lchmod()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.listdir"><code class="docutils literal notranslate"><span class="pre">SmartPath.listdir()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.load"><code class="docutils literal notranslate"><span class="pre">SmartPath.load()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.lstat"><code class="docutils literal notranslate"><span class="pre">SmartPath.lstat()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.match"><code class="docutils literal notranslate"><span class="pre">SmartPath.match()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.md5"><code class="docutils literal notranslate"><span class="pre">SmartPath.md5()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.mkdir"><code class="docutils literal notranslate"><span class="pre">SmartPath.mkdir()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.name"><code class="docutils literal notranslate"><span class="pre">SmartPath.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.open"><code class="docutils literal notranslate"><span class="pre">SmartPath.open()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.owner"><code class="docutils literal notranslate"><span class="pre">SmartPath.owner()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.parent"><code class="docutils literal notranslate"><span class="pre">SmartPath.parent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.parents"><code class="docutils literal notranslate"><span class="pre">SmartPath.parents</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.parts"><code class="docutils literal notranslate"><span class="pre">SmartPath.parts</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.protocol"><code class="docutils literal notranslate"><span class="pre">SmartPath.protocol</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.read_bytes"><code class="docutils literal notranslate"><span class="pre">SmartPath.read_bytes()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.read_text"><code class="docutils literal notranslate"><span class="pre">SmartPath.read_text()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.readlink"><code class="docutils literal notranslate"><span class="pre">SmartPath.readlink()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.realpath"><code class="docutils literal notranslate"><span class="pre">SmartPath.realpath()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.register"><code class="docutils literal notranslate"><span class="pre">SmartPath.register()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.relative_to"><code class="docutils literal notranslate"><span class="pre">SmartPath.relative_to()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.relpath"><code class="docutils literal notranslate"><span class="pre">SmartPath.relpath()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.remove"><code class="docutils literal notranslate"><span class="pre">SmartPath.remove()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.rename"><code class="docutils literal notranslate"><span class="pre">SmartPath.rename()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.replace"><code class="docutils literal notranslate"><span class="pre">SmartPath.replace()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.resolve"><code class="docutils literal notranslate"><span class="pre">SmartPath.resolve()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.rglob"><code class="docutils literal notranslate"><span class="pre">SmartPath.rglob()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.rmdir"><code class="docutils literal notranslate"><span class="pre">SmartPath.rmdir()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.root"><code class="docutils literal notranslate"><span class="pre">SmartPath.root</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.samefile"><code class="docutils literal notranslate"><span class="pre">SmartPath.samefile()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.save"><code class="docutils literal notranslate"><span class="pre">SmartPath.save()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.scan"><code class="docutils literal notranslate"><span class="pre">SmartPath.scan()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.scan_stat"><code class="docutils literal notranslate"><span class="pre">SmartPath.scan_stat()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.scandir"><code class="docutils literal notranslate"><span class="pre">SmartPath.scandir()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.stat"><code class="docutils literal notranslate"><span class="pre">SmartPath.stat()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.stem"><code class="docutils literal notranslate"><span class="pre">SmartPath.stem</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.suffix"><code class="docutils literal notranslate"><span class="pre">SmartPath.suffix</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.suffixes"><code class="docutils literal notranslate"><span class="pre">SmartPath.suffixes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.symlink"><code class="docutils literal notranslate"><span class="pre">SmartPath.symlink()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.symlink_to"><code class="docutils literal notranslate"><span class="pre">SmartPath.symlink_to()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.touch"><code class="docutils literal notranslate"><span class="pre">SmartPath.touch()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.unlink"><code class="docutils literal notranslate"><span class="pre">SmartPath.unlink()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.utime"><code class="docutils literal notranslate"><span class="pre">SmartPath.utime()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.walk"><code class="docutils literal notranslate"><span class="pre">SmartPath.walk()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.with_name"><code class="docutils literal notranslate"><span class="pre">SmartPath.with_name()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.with_stem"><code class="docutils literal notranslate"><span class="pre">SmartPath.with_stem()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.with_suffix"><code class="docutils literal notranslate"><span class="pre">SmartPath.with_suffix()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.write_bytes"><code class="docutils literal notranslate"><span class="pre">SmartPath.write_bytes()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.smart_path.SmartPath.write_text"><code class="docutils literal notranslate"><span class="pre">SmartPath.write_text()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#megfile.smart_path.get_traditional_path"><code class="docutils literal notranslate"><span class="pre">get_traditional_path()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="megfile.html#submodules">Submodules</a></li>
 </ul>
 </li>
@@ -87,8 +174,600 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="megfile-smart-path-module">
-<h1>megfile.smart_path module<a class="headerlink" href="#megfile-smart-path-module" title="Link to this heading"></a></h1>
+  <section id="module-megfile.smart_path">
+<span id="megfile-smart-path-module"></span><h1>megfile.smart_path module<a class="headerlink" href="#module-megfile.smart_path" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">megfile.smart_path.</span></span><span class="sig-name descname"><span class="pre">SmartPath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">other_paths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/smart_path.html#SmartPath"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.smart_path.SmartPath" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BasePath</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.absolute">
+<span class="sig-name descname"><span class="pre">absolute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.absolute" title="Link to this definition"></a></dt>
+<dd><p>Make the path absolute, without normalization or resolving symlinks.
+Returns a new path object</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.abspath">
+<span class="sig-name descname"><span class="pre">abspath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.abspath" title="Link to this definition"></a></dt>
+<dd><p>Return a normalized absolute version of the path.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.access">
+<span class="sig-name descname"><span class="pre">access</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.access" title="Link to this definition"></a></dt>
+<dd><p>Return True if the path has access permission described by mode.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.anchor">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">anchor</span></span><a class="headerlink" href="#megfile.smart_path.SmartPath.anchor" title="Link to this definition"></a></dt>
+<dd><p>str(object=’’) -&gt; str
+str(bytes_or_buffer[, encoding[, errors]]) -&gt; str</p>
+<p>Create a new string object from the given object. If encoding or
+errors is specified, then the object must expose a data buffer
+that will be decoded using the given encoding and error handler.
+Otherwise, returns the result of object.__str__() (if defined)
+or repr(object).
+encoding defaults to sys.getdefaultencoding().
+errors defaults to ‘strict’.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.as_posix">
+<span class="sig-name descname"><span class="pre">as_posix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.as_posix" title="Link to this definition"></a></dt>
+<dd><p>Return a string representation of the path with forward slashes (/)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.as_uri">
+<span class="sig-name descname"><span class="pre">as_uri</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.as_uri" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.chmod">
+<span class="sig-name descname"><span class="pre">chmod</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.chmod" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.cwd">
+<span class="sig-name descname"><span class="pre">cwd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.cwd" title="Link to this definition"></a></dt>
+<dd><p>Return current working directory</p>
+<p>returns: Current working directory</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.drive">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">drive</span></span><a class="headerlink" href="#megfile.smart_path.SmartPath.drive" title="Link to this definition"></a></dt>
+<dd><p>str(object=’’) -&gt; str
+str(bytes_or_buffer[, encoding[, errors]]) -&gt; str</p>
+<p>Create a new string object from the given object. If encoding or
+errors is specified, then the object must expose a data buffer
+that will be decoded using the given encoding and error handler.
+Otherwise, returns the result of object.__str__() (if defined)
+or repr(object).
+encoding defaults to sys.getdefaultencoding().
+errors defaults to ‘strict’.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.exists">
+<span class="sig-name descname"><span class="pre">exists</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.exists" title="Link to this definition"></a></dt>
+<dd><p>Whether the path points to an existing file or directory.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.expanduser">
+<span class="sig-name descname"><span class="pre">expanduser</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.expanduser" title="Link to this definition"></a></dt>
+<dd><p>Return a new path with expanded ~ and ~user constructs, as returned by
+os.path.expanduser().</p>
+<p>Only fs path support this method.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.from_uri">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_uri</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/smart_path.html#SmartPath.from_uri"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.smart_path.SmartPath.from_uri" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.getmtime">
+<span class="sig-name descname"><span class="pre">getmtime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.getmtime" title="Link to this definition"></a></dt>
+<dd><p>Return the time of last modification.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.getsize">
+<span class="sig-name descname"><span class="pre">getsize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.getsize" title="Link to this definition"></a></dt>
+<dd><p>Return the size, in bytes.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.glob">
+<span class="sig-name descname"><span class="pre">glob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.glob" title="Link to this definition"></a></dt>
+<dd><p>Return files whose paths match the glob pattern.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.glob_stat">
+<span class="sig-name descname"><span class="pre">glob_stat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.glob_stat" title="Link to this definition"></a></dt>
+<dd><p>Return an iterator of files with stat whose paths match the glob pattern.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.group">
+<span class="sig-name descname"><span class="pre">group</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.group" title="Link to this definition"></a></dt>
+<dd><p>Return the name of the group owning the file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.hardlink_to">
+<span class="sig-name descname"><span class="pre">hardlink_to</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.hardlink_to" title="Link to this definition"></a></dt>
+<dd><p>Make this path a hard link to the same file as target.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.home">
+<span class="sig-name descname"><span class="pre">home</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.home" title="Link to this definition"></a></dt>
+<dd><p>Return the home directory</p>
+<p>returns: Home directory path</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.iglob">
+<span class="sig-name descname"><span class="pre">iglob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.iglob" title="Link to this definition"></a></dt>
+<dd><p>Return an iterator of files whose paths match the glob pattern.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.is_absolute">
+<span class="sig-name descname"><span class="pre">is_absolute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.is_absolute" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.is_block_device">
+<span class="sig-name descname"><span class="pre">is_block_device</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.is_block_device" title="Link to this definition"></a></dt>
+<dd><p>Return True if the path points to a block device (or a symbolic link pointing
+to a block device), False if it points to another kind of file.</p>
+<p>False is also returned if the path doesn’t exist or is a broken symlink;
+other errors (such as permission errors) are propagated.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.is_char_device">
+<span class="sig-name descname"><span class="pre">is_char_device</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.is_char_device" title="Link to this definition"></a></dt>
+<dd><p>Return True if the path points to a character device (or a symbolic link
+pointing to a character device), False if it points to another kind of file.</p>
+<p>False is also returned if the path doesn’t exist or is a broken symlink;
+other errors (such as permission errors) are propagated.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.is_dir">
+<span class="sig-name descname"><span class="pre">is_dir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.is_dir" title="Link to this definition"></a></dt>
+<dd><p>Return True if the path points to a directory.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.is_fifo">
+<span class="sig-name descname"><span class="pre">is_fifo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.is_fifo" title="Link to this definition"></a></dt>
+<dd><p>Return True if the path points to a FIFO (or a symbolic link pointing to a
+FIFO), False if it points to another kind of file.</p>
+<p>False is also returned if the path doesn’t exist or is a broken symlink;
+other errors (such as permission errors) are propagated.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.is_file">
+<span class="sig-name descname"><span class="pre">is_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.is_file" title="Link to this definition"></a></dt>
+<dd><p>Return True if the path points to a regular file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.is_mount">
+<span class="sig-name descname"><span class="pre">is_mount</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.is_mount" title="Link to this definition"></a></dt>
+<dd><p>Test whether a path is a mount point</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True if a path is a mount point, else False</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.is_relative_to">
+<span class="sig-name descname"><span class="pre">is_relative_to</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.is_relative_to" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.is_reserved">
+<span class="sig-name descname"><span class="pre">is_reserved</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.is_reserved" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.is_socket">
+<span class="sig-name descname"><span class="pre">is_socket</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.is_socket" title="Link to this definition"></a></dt>
+<dd><p>Return True if the path points to a Unix socket (or a symbolic link pointing
+to a Unix socket), False if it points to another kind of file.</p>
+<p>False is also returned if the path doesn’t exist or is a broken symlink;
+other errors (such as permission errors) are propagated.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.is_symlink">
+<span class="sig-name descname"><span class="pre">is_symlink</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.is_symlink" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.iterdir">
+<span class="sig-name descname"><span class="pre">iterdir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.iterdir" title="Link to this definition"></a></dt>
+<dd><p>Get all contents of given fs path.
+The result is in ascending alphabetical order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>All contents have in the path in ascending alphabetical order</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.joinpath">
+<span class="sig-name descname"><span class="pre">joinpath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.joinpath" title="Link to this definition"></a></dt>
+<dd><p>Calling this method is equivalent to combining the path
+with each of the other arguments in turn</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.lchmod">
+<span class="sig-name descname"><span class="pre">lchmod</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.lchmod" title="Link to this definition"></a></dt>
+<dd><p>Like chmod() but, if the path points to a symbolic link, the symbolic
+link’s mode is changed rather than its target’s.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.listdir">
+<span class="sig-name descname"><span class="pre">listdir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.listdir" title="Link to this definition"></a></dt>
+<dd><p>Return the names of the entries in the directory the path points to.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.load">
+<span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.load" title="Link to this definition"></a></dt>
+<dd><p>Read all content in binary.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.lstat">
+<span class="sig-name descname"><span class="pre">lstat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.lstat" title="Link to this definition"></a></dt>
+<dd><p>Like stat() but, if the path points to a symbolic link,
+return the symbolic link’s information rather than its target’s.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.match">
+<span class="sig-name descname"><span class="pre">match</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.match" title="Link to this definition"></a></dt>
+<dd><p>Match this path against the provided glob-style pattern.
+Return True if matching is successful, False otherwise</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.md5">
+<span class="sig-name descname"><span class="pre">md5</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.md5" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.mkdir">
+<span class="sig-name descname"><span class="pre">mkdir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.mkdir" title="Link to this definition"></a></dt>
+<dd><p>Create a directory.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.name">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#megfile.smart_path.SmartPath.name" title="Link to this definition"></a></dt>
+<dd><p>A string representing the final path component, excluding the drive and root</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.open">
+<span class="sig-name descname"><span class="pre">open</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.open" title="Link to this definition"></a></dt>
+<dd><p>Open the file with mode.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.owner">
+<span class="sig-name descname"><span class="pre">owner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.owner" title="Link to this definition"></a></dt>
+<dd><p>Return the name of the user owning the file.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.parent">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">parent</span></span><a class="headerlink" href="#megfile.smart_path.SmartPath.parent" title="Link to this definition"></a></dt>
+<dd><p>The logical parent of the path</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.parents">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">parents</span></span><a class="headerlink" href="#megfile.smart_path.SmartPath.parents" title="Link to this definition"></a></dt>
+<dd><p>An immutable sequence providing access to the logical ancestors of the path</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.parts">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">parts</span></span><a class="headerlink" href="#megfile.smart_path.SmartPath.parts" title="Link to this definition"></a></dt>
+<dd><p>A tuple giving access to the path’s various components</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.protocol">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">protocol</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#megfile.smart_path.SmartPath.protocol" title="Link to this definition"></a></dt>
+<dd><p>str(object=’’) -&gt; str
+str(bytes_or_buffer[, encoding[, errors]]) -&gt; str</p>
+<p>Create a new string object from the given object. If encoding or
+errors is specified, then the object must expose a data buffer
+that will be decoded using the given encoding and error handler.
+Otherwise, returns the result of object.__str__() (if defined)
+or repr(object).
+encoding defaults to sys.getdefaultencoding().
+errors defaults to ‘strict’.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.read_bytes">
+<span class="sig-name descname"><span class="pre">read_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.read_bytes" title="Link to this definition"></a></dt>
+<dd><p>Return the binary contents of the pointed-to file as a bytes object</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.read_text">
+<span class="sig-name descname"><span class="pre">read_text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.read_text" title="Link to this definition"></a></dt>
+<dd><p>Return the decoded contents of the pointed-to file as a string</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.readlink">
+<span class="sig-name descname"><span class="pre">readlink</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.readlink" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.realpath">
+<span class="sig-name descname"><span class="pre">realpath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.realpath" title="Link to this definition"></a></dt>
+<dd><p>Return the canonical path of the path.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.register">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_class</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">override_ok</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/smart_path.html#SmartPath.register"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.smart_path.SmartPath.register" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.relative_to">
+<span class="sig-name descname"><span class="pre">relative_to</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.relative_to" title="Link to this definition"></a></dt>
+<dd><p>Compute a version of this path relative to the path represented by other.
+If it’s impossible, ValueError is raised.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.relpath">
+<span class="sig-name descname"><span class="pre">relpath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/megfile/smart_path.html#SmartPath.relpath"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.smart_path.SmartPath.relpath" title="Link to this definition"></a></dt>
+<dd><p>Return the relative path of given path</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>start</strong> – Given start directory</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Relative path from start</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.remove">
+<span class="sig-name descname"><span class="pre">remove</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.remove" title="Link to this definition"></a></dt>
+<dd><p>Remove (delete) the file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.rename">
+<span class="sig-name descname"><span class="pre">rename</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.rename" title="Link to this definition"></a></dt>
+<dd><p>rename file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dst_path</strong> – Given destination path</p></li>
+<li><p><strong>overwrite</strong> – whether or not overwrite file when exists</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.replace" title="Link to this definition"></a></dt>
+<dd><p>move file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dst_path</strong> – Given destination path</p></li>
+<li><p><strong>overwrite</strong> – whether or not overwrite file when exists</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.resolve">
+<span class="sig-name descname"><span class="pre">resolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.resolve" title="Link to this definition"></a></dt>
+<dd><p>Alias of realpath.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.rglob">
+<span class="sig-name descname"><span class="pre">rglob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.rglob" title="Link to this definition"></a></dt>
+<dd><p>This is like calling Path.glob() with “<a href="#id1"><span class="problematic" id="id2">**</span></a>/” added in front of
+the given relative pattern</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.rmdir">
+<span class="sig-name descname"><span class="pre">rmdir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.rmdir" title="Link to this definition"></a></dt>
+<dd><p>Remove (delete) the directory.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.root">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">root</span></span><a class="headerlink" href="#megfile.smart_path.SmartPath.root" title="Link to this definition"></a></dt>
+<dd><p>str(object=’’) -&gt; str
+str(bytes_or_buffer[, encoding[, errors]]) -&gt; str</p>
+<p>Create a new string object from the given object. If encoding or
+errors is specified, then the object must expose a data buffer
+that will be decoded using the given encoding and error handler.
+Otherwise, returns the result of object.__str__() (if defined)
+or repr(object).
+encoding defaults to sys.getdefaultencoding().
+errors defaults to ‘strict’.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.samefile">
+<span class="sig-name descname"><span class="pre">samefile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.samefile" title="Link to this definition"></a></dt>
+<dd><p>Return whether this path points to the same file</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.save" title="Link to this definition"></a></dt>
+<dd><p>Write the opened binary stream to the path.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.scan">
+<span class="sig-name descname"><span class="pre">scan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.scan" title="Link to this definition"></a></dt>
+<dd><p>Iterate through the files in the directory.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.scan_stat">
+<span class="sig-name descname"><span class="pre">scan_stat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.scan_stat" title="Link to this definition"></a></dt>
+<dd><p>Iterate through the files in the directory, with file stat.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.scandir">
+<span class="sig-name descname"><span class="pre">scandir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.scandir" title="Link to this definition"></a></dt>
+<dd><p>Return an iterator of FileEntry objects corresponding to the entries
+in the directory.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.stat">
+<span class="sig-name descname"><span class="pre">stat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.stat" title="Link to this definition"></a></dt>
+<dd><p>Get the status of the path.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.stem">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">stem</span></span><a class="headerlink" href="#megfile.smart_path.SmartPath.stem" title="Link to this definition"></a></dt>
+<dd><p>The final path component, without its suffix</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.suffix">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">suffix</span></span><a class="headerlink" href="#megfile.smart_path.SmartPath.suffix" title="Link to this definition"></a></dt>
+<dd><p>The file extension of the final component</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.suffixes">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">suffixes</span></span><a class="headerlink" href="#megfile.smart_path.SmartPath.suffixes" title="Link to this definition"></a></dt>
+<dd><p>A list of the path’s file extensions</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.symlink">
+<span class="sig-name descname"><span class="pre">symlink</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.symlink" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.symlink_to">
+<span class="sig-name descname"><span class="pre">symlink_to</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.symlink_to" title="Link to this definition"></a></dt>
+<dd><p>Make this path a symbolic link to target.
+symlink_to’s arguments is the reverse of symlink’s.
+Target_is_directory’s value is ignored, only be compatible with pathlib.Path</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.touch">
+<span class="sig-name descname"><span class="pre">touch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.touch" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.unlink">
+<span class="sig-name descname"><span class="pre">unlink</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.unlink" title="Link to this definition"></a></dt>
+<dd><p>Remove (delete) the file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.utime">
+<span class="sig-name descname"><span class="pre">utime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.utime" title="Link to this definition"></a></dt>
+<dd><p>Sets the access and modified times of the file specified by path to
+the specified values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>atime</strong> (<em>Union</em><em>[</em><em>float</em><em>, </em><em>int</em><em>]</em>) – The access time to be set.</p></li>
+<li><p><strong>mtime</strong> (<em>Union</em><em>[</em><em>float</em><em>, </em><em>int</em><em>]</em>) – The modification time to be set.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>NotImplementedError</strong> – Always raised,
+since the functionality is unsupported.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.walk">
+<span class="sig-name descname"><span class="pre">walk</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.walk" title="Link to this definition"></a></dt>
+<dd><p>Generate the file names in a directory tree by walking the tree.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.with_name">
+<span class="sig-name descname"><span class="pre">with_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.with_name" title="Link to this definition"></a></dt>
+<dd><p>Return a new path with the name changed</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.with_stem">
+<span class="sig-name descname"><span class="pre">with_stem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.with_stem" title="Link to this definition"></a></dt>
+<dd><p>Return a new path with the stem changed</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.with_suffix">
+<span class="sig-name descname"><span class="pre">with_suffix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.with_suffix" title="Link to this definition"></a></dt>
+<dd><p>Return a new path with the suffix changed</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.write_bytes">
+<span class="sig-name descname"><span class="pre">write_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.write_bytes" title="Link to this definition"></a></dt>
+<dd><p>Open the file pointed to in bytes mode, write data to it, and close the file</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="megfile.smart_path.SmartPath.write_text">
+<span class="sig-name descname"><span class="pre">write_text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megfile.smart_path.SmartPath.write_text" title="Link to this definition"></a></dt>
+<dd><p>Open the file pointed to in text mode, write data to it, and close the file.
+The optional parameters have the same meaning as in open().</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="megfile.smart_path.get_traditional_path">
+<span class="sig-prename descclassname"><span class="pre">megfile.smart_path.</span></span><span class="sig-name descname"><span class="pre">get_traditional_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/megfile/smart_path.html#get_traditional_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.smart_path.get_traditional_path" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
 </section>
 
 

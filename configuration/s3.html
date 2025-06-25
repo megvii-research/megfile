@@ -101,7 +101,7 @@
              
   <section id="s3-configuration">
 <h1>S3 Configuration<a class="headerlink" href="#s3-configuration" title="Link to this heading"></a></h1>
-<p>Before using <code class="docutils literal notranslate"><span class="pre">megfile</span></code> to access files on s3, you need to set up authentication credentials for your s3 account. In addition to <a class="reference external" href="https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html">boto3</a>, <code class="docutils literal notranslate"><span class="pre">megfile</span></code> also supports some additional configuration items, and the following describes some common configurations.
+<p>Before using <code class="docutils literal notranslate"><span class="pre">megfile</span></code> to access files on s3, you need to set up authentication credentials for your s3 account. In addition to <a class="reference external" href="https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html">boto3 configuration</a>, <code class="docutils literal notranslate"><span class="pre">megfile</span></code> also supports some additional configuration items, and the following describes some common configurations.
 You can use environments and configuration file for configuration, and priority is that environment variables take precedence over configuration file.</p>
 <section id="use-environments">
 <h2>Use environments<a class="headerlink" href="#use-environments" title="Link to this heading"></a></h2>
@@ -117,7 +117,7 @@ You can use environments and configuration file for configuration, and priority 
 <li><p><code class="docutils literal notranslate"><span class="pre">AWS_S3_REDIRECT</span></code>: whether to support http redirect, it is a experimental feature and only support <code class="docutils literal notranslate"><span class="pre">GET</span></code> method now. default is <code class="docutils literal notranslate"><span class="pre">false</span></code>, set to <code class="docutils literal notranslate"><span class="pre">true</span></code> to enable</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_S3_CLIENT_CACHE_MODE</span></code>: s3 client cache mode, <code class="docutils literal notranslate"><span class="pre">thread_local</span></code> or <code class="docutils literal notranslate"><span class="pre">process_local</span></code>, default is <code class="docutils literal notranslate"><span class="pre">thread_local</span></code>, <strong>it’s a experimental feature.</strong></p></li>
 </ul>
-<p>More aws s3 environment variables can be found in <a class="reference external" href="https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html#using-environment-variables">boto3</a>.</p>
+<p>More aws s3 environment variables can be found in <a class="reference external" href="https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html#using-environment-variables">boto3 environment variables</a>.</p>
 </section>
 <section id="use-command">
 <h2>Use command<a class="headerlink" href="#use-command" title="Link to this heading"></a></h2>

@@ -1,7 +1,7 @@
 S3 Configuration
 ================
 
-Before using `megfile` to access files on s3, you need to set up authentication credentials for your s3 account. In addition to [boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html), `megfile` also supports some additional configuration items, and the following describes some common configurations.
+Before using `megfile` to access files on s3, you need to set up authentication credentials for your s3 account. In addition to [boto3 configuration](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html), `megfile` also supports some additional configuration items, and the following describes some common configurations.
 You can use environments and configuration file for configuration, and priority is that environment variables take precedence over configuration file.
 
 ### Use environments
@@ -16,7 +16,7 @@ You can use environments to setup authentication credentials for your s3 account
 - `AWS_S3_REDIRECT`: whether to support http redirect, it is a experimental feature and only support `GET` method now. default is `false`, set to `true` to enable
 - `MEGFILE_S3_CLIENT_CACHE_MODE`: s3 client cache mode, `thread_local` or `process_local`, default is `thread_local`, **it's a experimental feature.**
 
-More aws s3 environment variables can be found in [boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html#using-environment-variables).
+More aws s3 environment variables can be found in [boto3 environment variables](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html#using-environment-variables).
 
 ### Use command
 You can update config file with `megfile` command easyly:
