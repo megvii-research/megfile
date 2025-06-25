@@ -271,6 +271,7 @@ def test_patch_make_request(s3_empty_client_with_patch_make_request, mocker):
             dict(body=body),
             test_error_result_tuple,
         )
+    body.close()
 
 
 def test_retry(s3_empty_client, mocker):
