@@ -187,11 +187,12 @@ class HttpPath(URIPath):
                 response.close()
             raise translate_http_error(error, self.path_with_protocol)
 
-        content_size = int(response.headers["Content-Length"])
+        headers = response.headers
+        content_size = int(headers.get("Content-Length", 0))
         if (
-            response.headers.get("Accept-Ranges") == "bytes"
+            headers.get("Accept-Ranges") == "bytes"
             and content_size >= block_size * 2
-            and not response.headers.get("Content-Encoding")
+            and not headers.get("Content-Encoding")
         ):
             response.close()
 
