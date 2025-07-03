@@ -1,3 +1,6 @@
+## 4.1.8.post1 - 2025.07.03
+- fix `http_open` issue when `Content-Length` not in response header
+
 ## 4.1.8 - 2025.06.13
 - perf
     - optimize `smart_open` for S3-to-S3 transfers using s3+protocol in path
