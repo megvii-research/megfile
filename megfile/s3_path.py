@@ -605,6 +605,8 @@ def _s3_glob_stat_single_path(
                 for content in resp.get("Contents", []):
                     path = s3_path_join(f"{protocol}://", bucket, content["Key"])
                     if not search_dir and pattern.match(path):
+                        if path.endswith("/"):
+                            continue
                         yield FileEntry(S3Path(path).name, path, _make_stat(content))
                     dirname = os.path.dirname(path)
                     while dirname not in dirnames and dirname != top_dir:
@@ -1960,6 +1962,7 @@ class S3Path(URIPath):
                 )
 
             prefix = _become_prefix(key)
+            protocol = self._protocol_with_profile
             client = self._client
 
             def suppress_error_callback(e):
@@ -1970,13 +1973,13 @@ class S3Path(URIPath):
             with raise_s3_error(self.path_with_protocol, suppress_error_callback):
                 for resp in _list_objects_recursive(client, bucket, prefix):
                     for content in resp.get("Contents", []):
-                        full_path = s3_path_join(
-                            f"{self._protocol_with_profile}://", bucket, content["Key"]
-                        )
+                        if content["Key"].endswith("/"):
+                            continue
+                        path = s3_path_join(f"{protocol}://", bucket, content["Key"])
 
                         if followlinks:
                             try:
-                                origin_path = self.from_path(full_path).readlink()
+                                origin_path = self.from_path(path).readlink()
                                 yield FileEntry(
                                     origin_path.name,
                                     origin_path.path_with_protocol,
@@ -1986,9 +1989,7 @@ class S3Path(URIPath):
                             except S3NotALinkError:
                                 pass
 
-                        yield FileEntry(
-                            S3Path(full_path).name, full_path, _make_stat(content)
-                        )
+                        yield FileEntry(S3Path(path).name, path, _make_stat(content))
 
         return _create_missing_ok_generator(
             create_generator(),
@@ -2016,17 +2017,15 @@ class S3Path(URIPath):
         # we need to wrap the iterator in another function
         def create_generator() -> Iterator[FileEntry]:
             prefix = _become_prefix(key)
+            protocol = self._protocol_with_profile
             client = self._client
-
-            def generate_s3_path(protocol: str, bucket: str, key: str) -> str:
-                return "%s://%s/%s" % (protocol, bucket, key)
 
             if not bucket and not key:  # list buckets
                 response = client.list_buckets()
                 for content in response["Buckets"]:
                     yield FileEntry(
                         content["Name"],
-                        f"{self._protocol_with_profile}://{content['Name']}",
+                        f"{protocol}://{content['Name']}",
                         StatResult(
                             ctime=content["CreationDate"].timestamp(),
                             isdir=True,
@@ -2039,21 +2038,17 @@ class S3Path(URIPath):
                 for common_prefix in resp.get("CommonPrefixes", []):
                     yield FileEntry(
                         common_prefix["Prefix"][len(prefix) : -1],
-                        generate_s3_path(
-                            self._protocol_with_profile,
-                            bucket,
-                            common_prefix["Prefix"],
-                        ),
+                        f"{protocol}://{bucket}/{common_prefix['Prefix']}",
                         StatResult(isdir=True, extra=common_prefix),
                     )
                 for content in resp.get("Contents", []):
-                    src_url = generate_s3_path(
-                        self._protocol_with_profile, bucket, content["Key"]
-                    )
+                    if content["Key"].endswith("/"):
+                        continue
+                    path = f"{protocol}://{bucket}/{content['Key']}"
                     yield FileEntry(  # pytype: disable=wrong-arg-types
                         content["Key"][len(prefix) :],
-                        src_url,
-                        _make_stat_without_metadata(content, self.from_path(src_url)),
+                        path,
+                        _make_stat_without_metadata(content, self.from_path(path)),
                     )
 
         def missing_ok_generator():
@@ -2220,6 +2215,8 @@ class S3Path(URIPath):
                     for common_prefix in resp.get("CommonPrefixes", []):
                         dirs.append(common_prefix["Prefix"][:-1])
                     for content in resp.get("Contents", []):
+                        if content["Key"].endswith("/"):
+                            continue
                         files.append(content["Key"])
 
                 dirs = sorted(dirs)

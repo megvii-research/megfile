@@ -70,17 +70,16 @@ def cli(debug, log_level):
     """
     options["debug"] = debug
     options["log_level"] = log_level or ("DEBUG" if debug else "INFO")
+    if not debug:
+        signal.signal(signal.SIGINT, signal.SIG_DFL)
     set_log_level(options["log_level"])
 
 
 def safe_cli():  # pragma: no cover
-    debug = options.get("debug", False)
-    if not debug:
-        signal.signal(signal.SIGINT, signal.SIG_DFL)
     try:
         cli()
     except Exception as e:
-        if debug:
+        if options.get("debug", False):
             raise
         else:
             click.echo(f"\n[{type(e).__name__}] {e}", err=True)
