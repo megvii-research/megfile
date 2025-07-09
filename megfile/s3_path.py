@@ -1684,6 +1684,7 @@ class S3Path(URIPath):
         if followlinks:
             try:
                 s3_url = self.readlink().path_with_protocol
+                bucket, key = parse_s3_url(s3_url)
             except S3NotALinkError:
                 pass
 
