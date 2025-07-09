@@ -1829,18 +1829,18 @@ class S3Path(URIPath):
             )
         if not key:
             raise UnsupportedError("Remove bucket", self.path_with_protocol)
-        if not self.exists():
-            if missing_ok:
-                return
-            raise S3FileNotFoundError(
-                "No such file or directory: %r" % self.path_with_protocol
-            )
 
         client = self._client
+        if self.is_file():
+            try:
+                with raise_s3_error(self.path_with_protocol):
+                    client.delete_object(Bucket=bucket, Key=key)
+            except S3FileNotFoundError:
+                if not missing_ok:
+                    raise
+            return
+
         with raise_s3_error(self.path_with_protocol):
-            if self.is_file():
-                client.delete_object(Bucket=bucket, Key=key)
-                return
             prefix = _become_prefix(key)
             total_count, error_count = 0, 0
             for resp in _list_objects_recursive(client, bucket, prefix):
@@ -1891,6 +1891,10 @@ class S3Path(URIPath):
                     % (self.path_with_protocol, total_count, error_count)
                 )
                 raise S3UnknownError(Exception(error_msg), self.path_with_protocol)
+            if total_count == 0 and not missing_ok:
+                raise S3FileNotFoundError(
+                    "No such file or directory: %r" % self.path_with_protocol
+                )
 
     def rename(self, dst_path: PathLike, overwrite: bool = True) -> "S3Path":
         """
