@@ -1676,15 +1676,18 @@ class S3Path(URIPath):
         :returns: True if path is s3 file, else False
         """
         s3_url = self.path_with_protocol
-        if followlinks:
-            try:
-                s3_url = self.readlink().path_with_protocol
-            except S3NotALinkError:
-                pass
         bucket, key = parse_s3_url(s3_url)
         if not bucket or not key or key.endswith("/"):
             # s3://, s3:///key, s3://bucket, s3://bucket/prefix/
             return False
+
+        if followlinks:
+            try:
+                s3_url = self.readlink().path_with_protocol
+                bucket, key = parse_s3_url(s3_url)
+            except S3NotALinkError:
+                pass
+
         try:
             self._client.head_object(Bucket=bucket, Key=key)
         except Exception as error:

@@ -6,6 +6,7 @@ import sys
 import threading
 import time
 from collections import namedtuple
+from contextlib import contextmanager
 from enum import Enum
 from functools import partial
 from io import BufferedReader, BufferedWriter, BytesIO
@@ -3188,8 +3189,8 @@ def test_s3_cacher(s3_empty_client, fs, mocker):
             pass
 
 
-@pytest.fixture
-def s3_empty_client_with_patch(mocker):
+@contextmanager
+def s3_empty_client_with_patch(client):
     times = 0
 
     def list_objects_v2(*args, **kwargs):
@@ -3207,27 +3208,29 @@ def s3_empty_client_with_patch(mocker):
     def error_method(*args, **kwargs):
         raise S3UnknownError(Exception(), "")
 
-    with mock_aws():
-        client = boto3.client("s3")
-        client.list_objects_v2 = list_objects_v2
-        client.head_bucket = error_method
-        client.head_object = error_method
-        mocker.patch("megfile.s3_path.get_s3_client", return_value=client)
-        yield client
+    old_list_objects_v2 = client.list_objects_v2
+    old_head_bucket = client.head_bucket
+    old_head_object = client.head_object
+    client.list_objects_v2 = list_objects_v2
+    client.head_bucket = error_method
+    client.head_object = error_method
+    yield client
+    client.list_objects_v2 = old_list_objects_v2
+    client.head_bucket = old_head_bucket
+    client.head_object = old_head_object
 
 
-def test_list_objects_recursive(s3_empty_client_with_patch):
-    assert list(
-        _list_objects_recursive(
-            s3_empty_client_with_patch, "bucket", "prefix", "delimiter"
-        )
-    ) == [
-        {"IsTruncated": True, "Contents": ["test"], "NextContinuationToken": 1},
-        {"IsTruncated": True, "Contents": ["test"], "NextContinuationToken": 2},
-        {"IsTruncated": True, "Contents": ["test"], "NextContinuationToken": 3},
-        {"IsTruncated": True, "Contents": ["test"], "NextContinuationToken": 4},
-        {"IsTruncated": False, "Contents": ["test"], "NextContinuationToken": 5},
-    ]
+def test_list_objects_recursive(s3_empty_client):
+    with s3_empty_client_with_patch(s3_empty_client) as client:
+        assert list(
+            _list_objects_recursive(client, "bucket", "prefix", "delimiter")
+        ) == [
+            {"IsTruncated": True, "Contents": ["test"], "NextContinuationToken": 1},
+            {"IsTruncated": True, "Contents": ["test"], "NextContinuationToken": 2},
+            {"IsTruncated": True, "Contents": ["test"], "NextContinuationToken": 3},
+            {"IsTruncated": True, "Contents": ["test"], "NextContinuationToken": 4},
+            {"IsTruncated": False, "Contents": ["test"], "NextContinuationToken": 5},
+        ]
 
 
 def test_s3_split_magic_ignore_brace():
@@ -3323,25 +3326,27 @@ def test_s3_hasbucket(s3_empty_client_with_patch_for_has_bucket):
         s3.s3_hasbucket("s3://bucketA")
 
 
-def test_error(s3_empty_client_with_patch, mocker):
-    class FakeAccess(Enum):
-        READ = 1
-        WRITE = 2
-        ERROR = 3
+def test_error(s3_empty_client, mocker):
+    with s3_empty_client_with_patch(s3_empty_client):
 
-    mocker.patch("megfile.s3_path.Access", FakeAccess)
-    mocker.patch("megfile.s3.s3_islink", return_value=False)
-    with pytest.raises(Exception):
-        s3.s3_access("s3://")
-    with pytest.raises(TypeError):
-        s3.s3_access("s3://bucketA/fileAA", FakeAccess.ERROR)
-    with pytest.raises(S3UnknownError):
-        s3.s3_access("s3://bucketA/fileAA", FakeAccess.READ)
+        class FakeAccess(Enum):
+            READ = 1
+            WRITE = 2
+            ERROR = 3
 
-    with pytest.raises(S3UnknownError):
-        s3.s3_isfile("s3://bucketA/fileAA")
+        mocker.patch("megfile.s3_path.Access", FakeAccess)
+        mocker.patch("megfile.s3.s3_islink", return_value=False)
+        with pytest.raises(Exception):
+            s3.s3_access("s3://")
+        with pytest.raises(TypeError):
+            s3.s3_access("s3://bucketA/fileAA", FakeAccess.ERROR)
+        with pytest.raises(S3UnknownError):
+            s3.s3_access("s3://bucketA/fileAA", FakeAccess.READ)
 
-    assert s3.s3_isdir("s3://bucket/dir") is True
+        with pytest.raises(S3UnknownError):
+            s3.s3_isfile("s3://bucketA/fileAA")
+
+        assert s3.s3_isdir("s3://bucket/dir") is True
 
 
 def test_exists_with_symlink(s3_empty_client):
