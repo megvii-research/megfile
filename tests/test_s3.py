@@ -3189,7 +3189,7 @@ def test_s3_cacher(s3_empty_client, fs, mocker):
 
 
 @pytest.fixture
-def s3_empty_client_with_patch(mocker):
+def s3_empty_client_with_patch(mocker, s3_empty_client):
     times = 0
 
     def list_objects_v2(*args, **kwargs):
@@ -3207,13 +3207,16 @@ def s3_empty_client_with_patch(mocker):
     def error_method(*args, **kwargs):
         raise S3UnknownError(Exception(), "")
 
-    with mock_aws():
-        client = boto3.client("s3")
-        client.list_objects_v2 = list_objects_v2
-        client.head_bucket = error_method
-        client.head_object = error_method
-        mocker.patch("megfile.s3_path.get_s3_client", return_value=client)
-        yield client
+    old_list_objects_v2 = s3_empty_client.list_objects_v2
+    old_head_bucket = s3_empty_client.head_bucket
+    old_head_object = s3_empty_client.head_object
+    s3_empty_client.list_objects_v2 = list_objects_v2
+    s3_empty_client.head_bucket = error_method
+    s3_empty_client.head_object = error_method
+    yield s3_empty_client
+    s3_empty_client.list_objects_v2 = old_list_objects_v2
+    s3_empty_client.head_bucket = old_head_bucket
+    s3_empty_client.head_object = old_head_object
 
 
 def test_list_objects_recursive(s3_empty_client_with_patch):
