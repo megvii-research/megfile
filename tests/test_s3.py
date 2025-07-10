@@ -3019,7 +3019,10 @@ def test_s3_buffered_open_raises_exceptions(mocker, s3_empty_client, fs):
     assert "s3://bucket/keyy" in str(error.value)
 
 
-@pytest.mark.skipif(sys.version_info >= (3, 13), reason="Skip on Python 3.13 and above")
+@pytest.mark.skipif(
+    sys.version_info >= (3, 13),
+    reason="Skip on Python 3.13 because of python 3.13 on github not stabilize",
+)
 def test_s3_memory_open(s3_empty_client):
     content = b"test data for s3_memory_open"
     s3_empty_client.create_bucket(Bucket="bucket")

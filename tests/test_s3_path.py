@@ -134,39 +134,39 @@ def s3_session(mocker):
     )
 
 
-def test_get_access_token_from_file(mocker, s3_session):
-    with tempfile.TemporaryDirectory() as tmpdir:
-        config_path = os.path.join(tmpdir, "config")
-        mocker.patch("os.environ", {"AWS_CONFIG_FILE": config_path})
-        os.makedirs(os.path.dirname(config_path), exist_ok=True)
+def test_get_access_token_from_file(fs, mocker, s3_session):
+    tmpdir = "/"
+    config_path = os.path.join(tmpdir, "config")
+    mocker.patch("os.environ", {"AWS_CONFIG_FILE": config_path})
+    os.makedirs(os.path.dirname(config_path), exist_ok=True)
 
-        with open(config_path, "w") as f:
-            f.write(
-                """[default]
+    with open(config_path, "w") as f:
+        f.write(
+            """[default]
 aws_access_key_id = test_key
 aws_secret_access_key = test_secret
 
 [profile kubebrain]
 aws_access_key_id = test_key_kubebrain
 aws_secret_access_key = test_secret_kubebrain"""
-            )
+        )
 
-        assert get_access_token() == ("test_key", "test_secret", None)
-        assert get_access_token("kubebrain") == (
-            "test_key_kubebrain",
-            "test_secret_kubebrain",
-            None,
-        )
-        assert get_access_token("unknown") == (None, None, None)
+    assert get_access_token() == ("test_key", "test_secret", None)
+    assert get_access_token("kubebrain") == (
+        "test_key_kubebrain",
+        "test_secret_kubebrain",
+        None,
+    )
+    assert get_access_token("unknown") == (None, None, None)
 
-        mocker.patch(
-            "os.environ", {"AWS_PROFILE": "kubebrain", "AWS_CONFIG_FILE": config_path}
-        )
-        assert get_access_token() == (
-            "test_key_kubebrain",
-            "test_secret_kubebrain",
-            None,
-        )
+    mocker.patch(
+        "os.environ", {"AWS_PROFILE": "kubebrain", "AWS_CONFIG_FILE": config_path}
+    )
+    assert get_access_token() == (
+        "test_key_kubebrain",
+        "test_secret_kubebrain",
+        None,
+    )
 
 
 def test_get_access_token_from_file2(mocker, s3_session):
