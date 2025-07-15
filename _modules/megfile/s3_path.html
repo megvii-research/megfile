@@ -1833,15 +1833,18 @@
 <span class="sd">        :returns: True if path is s3 file, else False</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">s3_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span>
-        <span class="k">if</span> <span class="n">followlinks</span><span class="p">:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">s3_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">readlink</span><span class="p">()</span><span class="o">.</span><span class="n">path_with_protocol</span>
-            <span class="k">except</span> <span class="n">S3NotALinkError</span><span class="p">:</span>
-                <span class="k">pass</span>
         <span class="n">bucket</span><span class="p">,</span> <span class="n">key</span> <span class="o">=</span> <span class="n">parse_s3_url</span><span class="p">(</span><span class="n">s3_url</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">bucket</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">key</span> <span class="ow">or</span> <span class="n">key</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">):</span>
             <span class="c1"># s3://, s3:///key, s3://bucket, s3://bucket/prefix/</span>
             <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="n">followlinks</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">s3_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">readlink</span><span class="p">()</span><span class="o">.</span><span class="n">path_with_protocol</span>
+                <span class="n">bucket</span><span class="p">,</span> <span class="n">key</span> <span class="o">=</span> <span class="n">parse_s3_url</span><span class="p">(</span><span class="n">s3_url</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">S3NotALinkError</span><span class="p">:</span>
+                <span class="k">pass</span>
+
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">head_object</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span> <span class="n">Key</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
@@ -2007,18 +2010,18 @@
             <span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">key</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">UnsupportedError</span><span class="p">(</span><span class="s2">&quot;Remove bucket&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">missing_ok</span><span class="p">:</span>
-                <span class="k">return</span>
-            <span class="k">raise</span> <span class="n">S3FileNotFoundError</span><span class="p">(</span>
-                <span class="s2">&quot;No such file or directory: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span>
-            <span class="p">)</span>
 
         <span class="n">client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">with</span> <span class="n">raise_s3_error</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">):</span>
+                    <span class="n">client</span><span class="o">.</span><span class="n">delete_object</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span> <span class="n">Key</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">S3FileNotFoundError</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">missing_ok</span><span class="p">:</span>
+                    <span class="k">raise</span>
+            <span class="k">return</span>
+
         <span class="k">with</span> <span class="n">raise_s3_error</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">):</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
-                <span class="n">client</span><span class="o">.</span><span class="n">delete_object</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span> <span class="n">Key</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>
-                <span class="k">return</span>
             <span class="n">prefix</span> <span class="o">=</span> <span class="n">_become_prefix</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
             <span class="n">total_count</span><span class="p">,</span> <span class="n">error_count</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
             <span class="k">for</span> <span class="n">resp</span> <span class="ow">in</span> <span class="n">_list_objects_recursive</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">prefix</span><span class="p">):</span>
@@ -2068,7 +2071,11 @@
                     <span class="s2">&quot;failed remove path: </span><span class="si">%s</span><span class="s2">, total file count: </span><span class="si">%s</span><span class="s2">, failed count: </span><span class="si">%s</span><span class="s2">&quot;</span>
                     <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">,</span> <span class="n">total_count</span><span class="p">,</span> <span class="n">error_count</span><span class="p">)</span>
                 <span class="p">)</span>
-                <span class="k">raise</span> <span class="n">S3UnknownError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">(</span><span class="n">error_msg</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">)</span></div>
+                <span class="k">raise</span> <span class="n">S3UnknownError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">(</span><span class="n">error_msg</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">total_count</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">missing_ok</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">S3FileNotFoundError</span><span class="p">(</span>
+                    <span class="s2">&quot;No such file or directory: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span>
+                <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="S3Path.rename">
