@@ -1,3 +1,9 @@
+## 4.2.1 - 2025.07.15
+- fix
+    - fixed file deletion failure after enabling OSS versioning
+- perf
+    - optimize `is_file` in s3
+
 ## 4.2.0 - 2025.07.04
 - **breaking change**
     - In S3, the `scan`, `glob`, and `walk` functions skip files named `/`, as such files are typically used to mark an object as a directory. In Megfile, paths ending with a `/` are treated as directories.
