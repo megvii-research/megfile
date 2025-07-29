@@ -1,6 +1,7 @@
 import logging
 import pickle
 
+import boto3.exceptions
 import botocore.exceptions
 import pytest
 import urllib3.exceptions
@@ -18,6 +19,7 @@ from megfile.errors import (
     S3ConfigError,
     S3Exception,
     S3FileNotFoundError,
+    S3InvalidRangeError,
     S3PermissionError,
     S3UnknownError,
     UnknownError,
@@ -108,6 +110,29 @@ def test_translate_s3_error():
 
     exception_error = Exception()
     assert isinstance(translate_s3_error(exception_error, s3_url), S3UnknownError)
+
+    s3_upload_failed_error = boto3.exceptions.S3UploadFailedError("NoSuchBucket")
+    assert isinstance(
+        translate_s3_error(s3_upload_failed_error, s3_url), S3BucketNotFoundError
+    )
+
+    s3_transfer_failed_error = boto3.exceptions.S3TransferFailedError("NoSuchKey")
+    assert isinstance(
+        translate_s3_error(s3_transfer_failed_error, s3_url), S3FileNotFoundError
+    )
+
+    s3_upload_failed_error = boto3.exceptions.S3UploadFailedError("InvalidAccessKeyId")
+    assert isinstance(translate_s3_error(s3_upload_failed_error, s3_url), S3ConfigError)
+
+    s3_upload_failed_error = boto3.exceptions.S3UploadFailedError("InvalidRange")
+    assert isinstance(
+        translate_s3_error(s3_upload_failed_error, s3_url), S3InvalidRangeError
+    )
+
+    s3_upload_failed_error = boto3.exceptions.S3UploadFailedError("AccessDenied")
+    assert isinstance(
+        translate_s3_error(s3_upload_failed_error, s3_url), S3PermissionError
+    )
 
 
 def test_translate_http_error():

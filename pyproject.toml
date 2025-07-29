@@ -7,9 +7,9 @@ name = "megfile"
 dynamic = ["version", "dependencies", "optional-dependencies", "readme"]
 description = "Megvii file operation library"
 authors = [
-    { name="megvii", email="megfile@megvii.com" }
+    { name = "megvii", email = "megfile@megvii.com" }
 ]
-urls = { "Homepage" = "https://github.com/megvii-research/megfile" }
+urls = { Homepage = "https://github.com/megvii-research/megfile" }
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
