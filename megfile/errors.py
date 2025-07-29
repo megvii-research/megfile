@@ -9,6 +9,10 @@ from typing import Callable, Optional
 import botocore.exceptions
 import requests.exceptions
 import urllib3.exceptions
+from boto3.exceptions import (  # TODO: test different boto3 version
+    S3TransferFailedError,
+    S3UploadFailedError,
+)
 from botocore.exceptions import ClientError, NoCredentialsError, ParamValidationError
 from requests.exceptions import HTTPError
 
@@ -402,6 +406,19 @@ def translate_s3_error(s3_error: Exception, s3_url: PathLike) -> Exception:
         return S3UnknownError(s3_error, s3_url)
     elif isinstance(s3_error, NoCredentialsError):
         return S3ConfigError(str(s3_error))
+    elif isinstance(s3_error, (S3UploadFailedError, S3TransferFailedError)):
+        if "NoSuchBucket" in str(s3_error):
+            return S3BucketNotFoundError("No such bucket: %r" % s3_url)
+        elif "NoSuchKey" in str(s3_error):
+            return S3FileNotFoundError("No such file: %r" % s3_url)
+        elif "InvalidAccessKeyId" in str(s3_error) or "SignatureDoesNotMatch" in str(
+            s3_error
+        ):
+            return S3ConfigError("Invalid access key id: %r" % s3_url)
+        elif "InvalidRange" in str(s3_error):
+            return S3InvalidRangeError("Invalid range: %r" % s3_url)
+        elif "AccessDenied" in str(s3_error):
+            return S3PermissionError("Access denied: %r" % s3_url)
     return S3UnknownError(s3_error, s3_url)
 
 

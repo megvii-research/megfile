@@ -948,6 +948,11 @@ def test_s3_upload_invalid(s3_empty_client, fs):
 
 
 def test_s3_upload_is_directory(s3_empty_client, fs):
+    src_url = "/path/to"
+    fs.create_dir(src_url)
+    with open("/path/to/file", "w") as f:
+        f.write("test")
+
     with pytest.raises(IsADirectoryError) as error:
         s3.s3_upload("/path/to/file", "s3://bucket/prefix/")
     assert "s3://bucket/prefix/" in str(error.value)
@@ -955,9 +960,6 @@ def test_s3_upload_is_directory(s3_empty_client, fs):
     with pytest.raises(IsADirectoryError) as error:
         s3.s3_upload("/path/to/file", "s3://bucket")
     assert "s3://bucket" in str(error.value)
-
-    src_url = "/path/to/"
-    fs.create_dir(src_url)
 
     with pytest.raises(IsADirectoryError) as error:
         s3.s3_upload(src_url, "s3://bucket/key")
