@@ -1201,6 +1201,10 @@ def s3_upload(
     src_path = FSPath(src_url)
     if followlinks and src_path.is_symlink():
         src_path = src_path.readlink()
+    if not src_path.exists():
+        raise FileNotFoundError("No such file or directory: %r" % src_url)
+    elif src_path.is_dir():
+        raise IsADirectoryError("Is a directory: %r" % src_url)
 
     dst_bucket, dst_key = parse_s3_url(dst_url)
     if not dst_bucket:
@@ -1212,8 +1216,8 @@ def s3_upload(
         return
 
     client = get_s3_client_with_cache(profile_name=S3Path(dst_url)._profile_name)
-    upload_fileobj = patch_method(
-        client.upload_fileobj, max_retries=max_retries, should_retry=s3_should_retry
+    upload_file = patch_method(
+        client.upload_file, max_retries=max_retries, should_retry=s3_should_retry
     )
 
     transfer_config = TransferConfig(
@@ -1221,9 +1225,9 @@ def s3_upload(
         max_concurrency=GLOBAL_MAX_WORKERS,
         multipart_chunksize=WRITER_BLOCK_SIZE,
     )
-    with open(src_path.path_without_protocol, "rb") as src, raise_s3_error(dst_url):
-        upload_fileobj(
-            src,
+    with raise_s3_error(dst_url):
+        upload_file(
+            src_path.path_without_protocol,
             Bucket=dst_bucket,
             Key=dst_key,
             Callback=callback,
