@@ -1236,3 +1236,6 @@ def test_smart_concat(s3_empty_client, fs):
 
 def test__get_copy_func():
     assert smart._get_copy_func("s3+a", "s3+a") == smart._copy_funcs["s3"]["s3"]
+    assert smart._get_copy_func("s3", "s3+a") == smart._default_copy_func
+    assert smart._get_copy_func("s3", "file") == smart._copy_funcs["s3"]["file"]
+    assert smart._get_copy_func("s3+a", "file") == smart._copy_funcs["s3"]["file"]
