@@ -1,7 +1,7 @@
 ## 4.2.2 - 2025.08.04
 - fix
     - support custom copy method for s3 path with protocol
-    - fix incorrect offset in s3_upload when retrying
+    - fix incorrect offset in `s3_upload` when retrying
 - chore
     - pin paramiko < 4.0
 
