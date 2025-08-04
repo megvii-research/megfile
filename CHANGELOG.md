@@ -1,3 +1,10 @@
+## 4.2.2 - 2025.08.04
+- fix
+    - support custom copy method for s3 path with protocol
+    - fix incorrect offset in s3_upload when retrying
+- chore
+    - pin paramiko < 4.0
+
 ## 4.2.1 - 2025.07.15
 - fix
     - fixed file deletion failure after enabling OSS versioning
