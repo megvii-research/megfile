@@ -1323,6 +1323,10 @@
     <span class="n">src_path</span> <span class="o">=</span> <span class="n">FSPath</span><span class="p">(</span><span class="n">src_url</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">followlinks</span> <span class="ow">and</span> <span class="n">src_path</span><span class="o">.</span><span class="n">is_symlink</span><span class="p">():</span>
         <span class="n">src_path</span> <span class="o">=</span> <span class="n">src_path</span><span class="o">.</span><span class="n">readlink</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">src_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s2">&quot;No such file or directory: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">src_url</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">src_path</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">IsADirectoryError</span><span class="p">(</span><span class="s2">&quot;Is a directory: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">src_url</span><span class="p">)</span>
 
     <span class="n">dst_bucket</span><span class="p">,</span> <span class="n">dst_key</span> <span class="o">=</span> <span class="n">parse_s3_url</span><span class="p">(</span><span class="n">dst_url</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">dst_bucket</span><span class="p">:</span>
@@ -1334,8 +1338,8 @@
         <span class="k">return</span>
 
     <span class="n">client</span> <span class="o">=</span> <span class="n">get_s3_client_with_cache</span><span class="p">(</span><span class="n">profile_name</span><span class="o">=</span><span class="n">S3Path</span><span class="p">(</span><span class="n">dst_url</span><span class="p">)</span><span class="o">.</span><span class="n">_profile_name</span><span class="p">)</span>
-    <span class="n">upload_fileobj</span> <span class="o">=</span> <span class="n">patch_method</span><span class="p">(</span>
-        <span class="n">client</span><span class="o">.</span><span class="n">upload_fileobj</span><span class="p">,</span> <span class="n">max_retries</span><span class="o">=</span><span class="n">max_retries</span><span class="p">,</span> <span class="n">should_retry</span><span class="o">=</span><span class="n">s3_should_retry</span>
+    <span class="n">upload_file</span> <span class="o">=</span> <span class="n">patch_method</span><span class="p">(</span>
+        <span class="n">client</span><span class="o">.</span><span class="n">upload_file</span><span class="p">,</span> <span class="n">max_retries</span><span class="o">=</span><span class="n">max_retries</span><span class="p">,</span> <span class="n">should_retry</span><span class="o">=</span><span class="n">s3_should_retry</span>
     <span class="p">)</span>
 
     <span class="n">transfer_config</span> <span class="o">=</span> <span class="n">TransferConfig</span><span class="p">(</span>
@@ -1343,9 +1347,9 @@
         <span class="n">max_concurrency</span><span class="o">=</span><span class="n">GLOBAL_MAX_WORKERS</span><span class="p">,</span>
         <span class="n">multipart_chunksize</span><span class="o">=</span><span class="n">WRITER_BLOCK_SIZE</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">src_path</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">src</span><span class="p">,</span> <span class="n">raise_s3_error</span><span class="p">(</span><span class="n">dst_url</span><span class="p">):</span>
-        <span class="n">upload_fileobj</span><span class="p">(</span>
-            <span class="n">src</span><span class="p">,</span>
+    <span class="k">with</span> <span class="n">raise_s3_error</span><span class="p">(</span><span class="n">dst_url</span><span class="p">):</span>
+        <span class="n">upload_file</span><span class="p">(</span>
+            <span class="n">src_path</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span>
             <span class="n">Bucket</span><span class="o">=</span><span class="n">dst_bucket</span><span class="p">,</span>
             <span class="n">Key</span><span class="o">=</span><span class="n">dst_key</span><span class="p">,</span>
             <span class="n">Callback</span><span class="o">=</span><span class="n">callback</span><span class="p">,</span>
