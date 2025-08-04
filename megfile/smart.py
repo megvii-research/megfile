@@ -308,8 +308,18 @@ def _default_copy_func(
 
 
 def _get_copy_func(src_protocol, dst_protocol):
-    if src_protocol.startswith("s3+") and src_protocol == dst_protocol:
+    def _is_s3_plus(protocol: str):
+        return protocol.startswith("s3+")
+
+    def _is_s3_or_s3_plus(protocol: str):
+        return protocol.startswith("s3+") or protocol == "s3"
+
+    if _is_s3_plus(src_protocol) and src_protocol == dst_protocol:
         src_protocol = dst_protocol = "s3"
+    elif _is_s3_plus(src_protocol) and not _is_s3_or_s3_plus(dst_protocol):
+        src_protocol = "s3"
+    elif _is_s3_plus(dst_protocol) and not _is_s3_or_s3_plus(src_protocol):
+        dst_protocol = "s3"
 
     try:
         return _copy_funcs[src_protocol][dst_protocol]
