@@ -2,6 +2,6 @@ boto3
 botocore >= 1.13.0
 
 requests
-paramiko
+paramiko < 4.0.0
 tqdm
 pyyaml
