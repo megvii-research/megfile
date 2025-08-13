@@ -568,6 +568,7 @@ def test_get_no_glob_root_path():
     assert glob.get_non_glob_dir("/**/*.py") == "/"
     assert glob.get_non_glob_dir("./**/*.py") == "."
     assert glob.get_non_glob_dir("**/*.py") == "."
+    assert glob.get_non_glob_dir("s3://test/a*/**/*.py") == "s3://test"
 
 
 def test__iglob():
