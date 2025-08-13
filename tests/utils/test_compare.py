@@ -6,6 +6,10 @@ def test_get_sync_type():
     assert compare.get_sync_type("s3", "fs") == "download"
     assert compare.get_sync_type("fs", "s3") == "upload"
     assert compare.get_sync_type("sftp", "fs") == "copy"
+    assert compare.get_sync_type("s3", "s3") == "upload"
+    assert compare.get_sync_type("s3", "s3+test") == "upload"
+    assert compare.get_sync_type("s3+test", "s3") == "upload"
+    assert compare.get_sync_type("s3+test", "fs") == "download"
 
 
 def test_compare_time():

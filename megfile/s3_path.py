@@ -610,6 +610,7 @@ def _s3_glob_stat_single_path(
                         yield FileEntry(S3Path(path).name, path, _make_stat(content))
                     dirname = os.path.dirname(path)
                     while dirname not in dirnames and dirname != top_dir:
+                        # TODO: optimize memory usage and file path order
                         dirnames.add(dirname)
                         path = dirname + "/" if search_dir else dirname
                         if pattern.match(path):
