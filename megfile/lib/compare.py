@@ -5,10 +5,10 @@ from megfile.pathlike import StatResult
 
 
 def get_sync_type(src_protocol, dst_protocol):
-    if src_protocol == "s3" and dst_protocol != "s3":
-        return "download"
-    elif src_protocol != "s3" and dst_protocol == "s3":
+    if dst_protocol == "s3" or dst_protocol.startswith("s3+"):
         return "upload"
+    elif src_protocol == "s3" or src_protocol.startswith("s3+"):
+        return "download"
     else:
         return "copy"
 
