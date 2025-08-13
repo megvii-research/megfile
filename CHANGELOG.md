@@ -1,3 +1,8 @@
+## 4.2.3 - 2025.08.13
+- fix
+    - fix samefile logic error for s3+profile in sync 
+    - fix sync error in cli when glob path 
+
 ## 4.2.2 - 2025.08.04
 - fix
     - support custom copy method for s3 path with protocol
