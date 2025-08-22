@@ -133,8 +133,8 @@ class FakeSFTP2File:
             # Make sure data is flushed immediately for testing
             self._file.flush()
         except Exception:
-            return 0
-        return written
+            return (0, 0)  # ssh2-python returns (rc, bytes_written)
+        return (0, written)  # ssh2-python returns (rc, bytes_written)
 
     def flush(self):
         self._file.flush()

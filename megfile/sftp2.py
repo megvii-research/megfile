@@ -5,6 +5,9 @@ import shlex
 from logging import getLogger as get_logger
 from typing import IO, BinaryIO, Callable, Iterator, List, Optional, Tuple
 
+import ssh2.session
+import ssh2.utils
+
 from megfile.interfaces import FileEntry, PathLike, StatResult
 from megfile.lib.compat import fspath
 from megfile.lib.joinpath import uri_join
@@ -812,8 +815,6 @@ def sftp2_add_host_key(
         with open(host_key_path, "w"):
             pass
         os.chmod(host_key_path, 0o600)
-
-    import ssh2
 
     sock = ssh2.utils.Socket.open(hostname, port)
     session = ssh2.session.Session()

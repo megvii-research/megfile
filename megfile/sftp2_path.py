@@ -980,7 +980,7 @@ class Sftp2Path(URIPath):
         encoding: Optional[str] = None,
         errors: Optional[str] = None,
         **kwargs,
-    ) -> Union[IO, Sftp2RawFile]:
+    ) -> IO:
         """Open a file on the path"""
         if "w" in mode or "x" in mode or "a" in mode:
             if self.is_dir():
@@ -1028,7 +1028,7 @@ class Sftp2Path(URIPath):
                 buffered = io.BufferedWriter(raw_file, buffer_size=SFTP2_BUFFER_SIZE)
                 fileobj = io.TextIOWrapper(buffered, encoding=encoding, errors=errors)
         else:
-            fileobj = raw_file
+            raise ValueError(f"Invalid mode: {mode}")
 
         return fileobj
 
