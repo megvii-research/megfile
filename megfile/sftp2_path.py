@@ -43,10 +43,11 @@ DEFAULT_SSH_KEEPALIVE_INTERVAL = 15
 
 def _make_stat(stat) -> StatResult:
     """Convert ssh2.sftp stats to StatResult"""
-    # ssh2-python uses different attribute names
-    size = getattr(stat, "st_size", 0) if stat else 0
-    mtime = getattr(stat, "st_mtime", 0.0) if stat else 0.0
-    mode = getattr(stat, "st_mode", 0) if stat else 0
+    # ssh2-python uses different attribute names than paramiko
+    size = getattr(stat, "filesize", 0) if stat else 0
+    mtime = getattr(stat, "mtime", 0.0) if stat else 0.0
+    # ssh2-python uses 'permissions' instead of 'st_mode'
+    mode = getattr(stat, "permissions", 0) if stat else 0
 
     return StatResult(
         size=size,
@@ -702,25 +703,34 @@ class Sftp2Path(URIPath):
 
         def create_generator():
             try:
-                # Use directory listing from client
-                files = self._client.listdir(real_path)
-                for name in sorted(files):
-                    if name in (".", ".."):
-                        continue
-                    current_path = self.joinpath(name)
-                    try:
-                        stat_info = current_path.lstat()
-                        yield FileEntry(
-                            name,
-                            current_path.path_with_protocol,
-                            stat_info,
-                        )
-                    except Exception:
-                        continue
+                # Use opendir and readdir from ssh2-python
+                dir_handle = self._client.opendir(real_path)
+                try:
+                    # ssh2-python's readdir returns a generator
+                    # First call returns all entries, subsequent calls return empty
+                    entries_gen = dir_handle.readdir()
+                    entries = list(entries_gen) if entries_gen else []
+                    
+                    for name_len, name_bytes, stat_obj in entries:
+                        name = name_bytes.decode('utf-8')
+                        if name in (".", ".."):
+                            continue
+                        
+                        try:
+                            # Convert stat_obj to StatResult
+                            stat_info = _make_stat(stat_obj)
+                            yield FileEntry(
+                                name,
+                                self.joinpath(name).path_with_protocol,
+                                stat_info,
+                            )
+                        except Exception:
+                            continue
+                finally:
+                    dir_handle.close()
             except Exception:
                 # If directory listing fails, return empty
-                return
-                yield  # This makes it a generator
+                pass
 
         return ContextIterator(create_generator())
 
