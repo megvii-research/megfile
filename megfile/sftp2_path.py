@@ -11,7 +11,6 @@ from urllib.parse import urlsplit, urlunsplit
 
 import ssh2.session
 import ssh2.sftp
-import ssh2.utils
 
 from megfile.config import SFTP_MAX_RETRY_TIMES
 from megfile.errors import SameFileError, _create_missing_ok_generator
@@ -334,7 +333,8 @@ class Sftp2File:
             data = b""
             while True:
                 try:
-                    chunk, bytes_read = self.sftp_handle.read(8192)
+                    # ssh2-python returns (bytes_read, data) not (data, bytes_read)
+                    bytes_read, chunk = self.sftp_handle.read(8192)
                     if bytes_read == 0:
                         break
                     data += chunk[:bytes_read]
@@ -343,7 +343,8 @@ class Sftp2File:
             return data
         else:
             try:
-                chunk, bytes_read = self.sftp_handle.read(size)
+                # ssh2-python returns (bytes_read, data) not (data, bytes_read)
+                bytes_read, chunk = self.sftp_handle.read(size)
                 return chunk[:bytes_read] if bytes_read > 0 else b""
             except Exception:
                 return b""
@@ -710,12 +711,12 @@ class Sftp2Path(URIPath):
                     # First call returns all entries, subsequent calls return empty
                     entries_gen = dir_handle.readdir()
                     entries = list(entries_gen) if entries_gen else []
-                    
+
                     for name_len, name_bytes, stat_obj in entries:
-                        name = name_bytes.decode('utf-8')
+                        name = name_bytes.decode("utf-8")
                         if name in (".", ".."):
                             continue
-                        
+
                         try:
                             # Convert stat_obj to StatResult
                             stat_info = _make_stat(stat_obj)
