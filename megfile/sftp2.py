@@ -1,6 +1,7 @@
 import base64
 import hashlib
 import os
+import shlex
 from logging import getLogger as get_logger
 from typing import IO, BinaryIO, Callable, Iterator, List, Optional, Tuple
 
@@ -324,16 +325,15 @@ def sftp2_concat(src_paths: List[PathLike], dst_path: PathLike) -> None:
     if all_same_backend and len(src_paths) > 1:
         # Use server-side cat command for efficiency
         try:
-            src_paths_escaped = []
+            src_paths_quoted = []
             for src_path in src_paths:
                 src_obj = Sftp2Path(src_path)
-                escaped = src_obj._real_path.replace("'", "'\"'\"'")
-                src_paths_escaped.append(f"'{escaped}'")
+                src_paths_quoted.append(shlex.quote(src_obj._real_path))
 
-            dst_escaped = dst_path_obj._real_path.replace("'", "'\"'\"'")
+            dst_quoted = shlex.quote(dst_path_obj._real_path)
 
             # Use server-side cat command to avoid data transfer
-            cmd = f"cat {' '.join(src_paths_escaped)} > '{dst_escaped}'"
+            cmd = f"cat {' '.join(src_paths_quoted)} > {dst_quoted}"
             exit_code, stdout, stderr = dst_path_obj._execute_command(cmd)
 
             if exit_code == 0:

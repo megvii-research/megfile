@@ -88,35 +88,76 @@ class FakeSFTP2File:
             # This is an ssh2 mode flag, convert to string mode
             import ssh2.sftp
 
+            mode = ""
             if mode_str & ssh2.sftp.LIBSSH2_FXF_READ:
-                mode = "rb"
-            elif mode_str & ssh2.sftp.LIBSSH2_FXF_WRITE:
+                mode += "r"
+            if mode_str & ssh2.sftp.LIBSSH2_FXF_WRITE:
                 if mode_str & ssh2.sftp.LIBSSH2_FXF_APPEND:
-                    mode = "ab"
+                    mode = "a"
+                elif mode_str & ssh2.sftp.LIBSSH2_FXF_TRUNC:
+                    mode = "w"
                 else:
-                    mode = "wb"
-            else:
+                    mode += "w"
+            # Default to binary mode for consistency
+            if "r" in mode or "w" in mode or "a" in mode:
+                mode += "b"
+            if not mode:
                 mode = "rb"  # Default
         else:
             mode = mode_str
-            if "r" in mode and "b" not in mode:
-                mode = mode + "b"
+            # Keep original mode for string modes - this is key!
+            # Don't force binary mode for string modes
+
+        self.file_mode = mode  # Store the mode for our checks
         self._file = io.open(file=filename, mode=mode)
 
     def read(self, size=-1):
         data = self._file.read(size)
         if isinstance(data, str):
-            return data.encode("utf-8"), len(data)
-        return data, len(data)
+            encoded_data = data.encode("utf-8")
+            # ssh2-python format: (bytes_read, data)
+            return len(encoded_data), encoded_data
+        return len(data), data  # ssh2-python format: (bytes_read, data)
 
     def write(self, data):
-        if isinstance(data, str):
-            data = data.encode("utf-8")
-        self._file.write(data)
-        return len(data)
+        written = 0
+        try:
+            if isinstance(data, str):
+                written = self._file.write(data)
+            else:
+                # If we have bytes but file is in text mode, decode first
+                if "b" not in self.file_mode:
+                    if isinstance(data, bytes):
+                        data = data.decode("utf-8")
+                written = self._file.write(data)
+            # Make sure data is flushed immediately for testing
+            self._file.flush()
+        except Exception:
+            return 0
+        return written
+
+    def flush(self):
+        self._file.flush()
+
+    def tell(self):
+        """Return current position in file"""
+        return self._file.tell()
+
+    def tell64(self):
+        """Return current position in file (64-bit)"""
+        return self._file.tell()
+
+    def seek(self, offset, whence=0):
+        """Seek to position in file"""
+        return self._file.seek(offset, whence)
+
+    def seek64(self, offset, whence=0):
+        """Seek to position in file (64-bit)"""
+        return self._file.seek(offset, whence)
 
     def close(self):
-        self._file.close()
+        if hasattr(self, "_file") and not self._file.closed:
+            self._file.close()
 
 
 class FakeSFTP2DirHandle:
@@ -126,18 +167,34 @@ class FakeSFTP2DirHandle:
         self.index = 0
 
     def readdir(self):
-        if self.index >= len(self.files):
-            return None
-        filename = self.files[self.index]
-        self.index += 1
-        if filename in (".", ".."):
-            return self.readdir()
-        full_path = os.path.join(self.path, filename)
-        return filename, FakeSFTP2Stat(os.lstat(full_path))
+        """Return a generator that yields SSH2-python format entries"""
+
+        def gen():
+            for filename in self.files:
+                if filename in (".", ".."):
+                    continue
+                full_path = os.path.join(self.path, filename)
+                try:
+                    stat_obj = FakeSFTP2Stat(os.lstat(full_path))
+                    name_bytes = filename.encode("utf-8")
+                    # SSH2-python format: (name_len, name_bytes, stat_obj)
+                    yield (len(name_bytes), name_bytes, stat_obj)
+                except OSError:
+                    continue
+
+        return gen()
+
+    def close(self):
+        pass
 
 
 class FakeSFTP2Stat:
     def __init__(self, stat_result):
+        # SSH2-python uses different attribute names
+        self.filesize = stat_result.st_size
+        self.mtime = stat_result.st_mtime
+        self.permissions = stat_result.st_mode
+        # Also keep the original attributes for compatibility
         self.st_size = stat_result.st_size
         self.st_mtime = stat_result.st_mtime
         self.st_mode = stat_result.st_mode
@@ -169,6 +226,14 @@ def sftp2_mocker(fs, mocker):
     session = FakeSSH2Session()
     mocker.patch("megfile.sftp2_path.get_sftp2_client", return_value=client)
     mocker.patch("megfile.sftp2_path.get_ssh2_session", return_value=session)
+
+    # Mock _execute_command to simulate server-side operations but force fallback
+    def mock_execute_command(self, command):
+        """Mock _execute_command to test fallback behavior"""
+        # For testing, we always return failure to test fallback paths
+        return (1, "", "Mock: forcing fallback for testing")
+
+    mocker.patch("megfile.sftp2_path.Sftp2Path._execute_command", mock_execute_command)
     yield client
 
 

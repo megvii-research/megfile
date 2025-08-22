@@ -3,5 +3,6 @@ botocore >= 1.13.0
 
 requests
 paramiko < 4.0.0
+ssh2-python
 tqdm
 pyyaml

@@ -179,7 +179,7 @@ def test_get_ssh2_session(mocker):
 
 
 def test_sftp2_file_operations(sftp2_mocker):
-    from megfile.sftp2_path import Sftp2File
+    from megfile.sftp2_path import Sftp2RawFile
 
     # Test basic file operations without actual network calls
     # These tests verify the class structure is correct
@@ -194,7 +194,8 @@ def test_sftp2_file_operations(sftp2_mocker):
     class MockHandle:
         def read(self, size):
             data = fake_handle.read(size)
-            return data, len(data)
+            # SSH2-python format: (bytes_read, data)
+            return len(data), data
 
         def write(self, data):
             return len(data)
@@ -202,7 +203,7 @@ def test_sftp2_file_operations(sftp2_mocker):
         def close(self):
             fake_handle.close()
 
-    file_wrapper = Sftp2File(MockHandle(), "/tmp/test_file", "r")
+    file_wrapper = Sftp2RawFile(MockHandle(), "/tmp/test_file", "r")
     assert hasattr(file_wrapper, "read")
     assert hasattr(file_wrapper, "write")
     assert hasattr(file_wrapper, "close")
