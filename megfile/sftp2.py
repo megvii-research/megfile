@@ -341,14 +341,10 @@ def sftp2_concat(src_paths: List[PathLike], dst_path: PathLike) -> None:
                 return
             else:
                 # Log the failure but fall back to SFTP method
-                from megfile.sftp2_path import _logger
-
                 _logger.debug(f"Server-side concat failed (exit {exit_code}): {stderr}")
 
         except Exception as e:
             # Log the exception but fall back to SFTP method
-            from megfile.sftp2_path import _logger
-
             _logger.debug(f"Server-side concat failed with exception: {e}")
 
     # Fallback to traditional SFTP concat (download then upload)

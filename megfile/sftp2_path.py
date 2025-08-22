@@ -41,8 +41,7 @@ DEFAULT_SSH_CONNECT_TIMEOUT = 5
 DEFAULT_SSH_KEEPALIVE_INTERVAL = 15
 
 # SFTP2-specific buffer sizes and chunk sizes
-SFTP2_BUFFER_SIZE = 1048576  # 1MB buffer for file operations
-SFTP2_CHUNK_SIZE = 1048576  # 1MB chunk size for reading/writing
+SFTP2_BUFFER_SIZE = 8 * 2**20  # 8MB buffer for file operations
 
 
 def _make_stat(stat) -> StatResult:
@@ -339,21 +338,18 @@ class Sftp2RawFile(io.RawIOBase):
     def closed(self) -> bool:
         return self._closed
 
-    def readinto(self, b) -> int:
+    def readinto(self, buffer) -> int:
         """Read into a pre-allocated buffer. Required by BufferedReader."""
         if self._closed:
             raise ValueError("I/O operation on closed file")
 
-        try:
-            # ssh2-python returns (bytes_read, data)
-            bytes_read, chunk = self.sftp_handle.read(len(b))
-            if bytes_read > 0:
-                # Direct memory copy should be faster
-                b[:bytes_read] = chunk[:bytes_read]
-                return bytes_read
-            return 0
-        except Exception:
-            return 0
+        # ssh2-python returns (bytes_read, data)
+        bytes_read, chunk = self.sftp_handle.read(len(buffer))
+        if bytes_read > 0:
+            # Direct memory copy should be faster
+            buffer[:bytes_read] = chunk
+            return bytes_read
+        return 0
 
     def read(self, size: int = -1) -> bytes:
         """Fallback read method - optimized for direct use"""
@@ -363,7 +359,7 @@ class Sftp2RawFile(io.RawIOBase):
         if size <= 0:
             # For read-all, use readinto with BytesIO for consistency
             result = io.BytesIO()
-            buffer = bytearray(SFTP2_BUFFER_SIZE)  # 1MB buffer
+            buffer = bytearray(SFTP2_BUFFER_SIZE)
             while True:
                 n = self.readinto(buffer)
                 if n == 0:
@@ -379,18 +375,12 @@ class Sftp2RawFile(io.RawIOBase):
     def write(self, data: bytes) -> int:
         if self._closed:
             raise ValueError("I/O operation on closed file")
-        try:
-            bytes_written = self.sftp_handle.write(data)
-            return bytes_written
-        except Exception:
-            return 0
+        _, bytes_written = self.sftp_handle.write(bytes(data))
+        return bytes_written
 
     def close(self):
         if not self._closed:
-            try:
-                self.sftp_handle.close()
-            except Exception:
-                pass
+            self.sftp_handle.close()
             self._closed = True
 
     def flush(self):
@@ -526,45 +516,40 @@ class Sftp2Path(URIPath):
         Returns:
             Tuple of (exit_code, stdout, stderr)
         """
-        try:
-            session = self._session
-            channel = session.open_session()
+        session = self._session
+        channel = session.open_session()
 
-            # Execute the command
-            channel.execute(command)
+        # Execute the command
+        channel.execute(command)
 
-            # Read output
-            stdout = b""
-            stderr = b""
+        # Read output
+        stdout = b""
+        stderr = b""
 
-            while True:
-                # Read stdout
-                size, data = channel.read()
-                if size > 0:
-                    stdout += data
+        while True:
+            # Read stdout
+            size, data = channel.read()
+            if size > 0:
+                stdout += data
 
-                # Read stderr
-                size, data = channel.read_stderr()
-                if size > 0:
-                    stderr += data
+            # Read stderr
+            size, data = channel.read_stderr()
+            if size > 0:
+                stderr += data
 
-                # Check if finished
-                if channel.eof():
-                    break
+            # Check if finished
+            if channel.eof():
+                break
 
-            # Get exit status
-            exit_code = channel.get_exit_status()
-            channel.close()
+        # Get exit status
+        exit_code = channel.get_exit_status()
+        channel.close()
 
-            return (
-                exit_code,
-                stdout.decode("utf-8", errors="replace"),
-                stderr.decode("utf-8", errors="replace"),
-            )
-
-        except Exception as e:
-            _logger.debug(f"Command execution failed: {e}")
-            return (1, "", str(e))
+        return (
+            exit_code,
+            stdout.decode("utf-8", errors="replace"),
+            stderr.decode("utf-8", errors="replace"),
+        )
 
     def _generate_path_object(self, sftp_local_path: str, resolve: bool = False):
         if resolve or self._root_dir == "/":
@@ -1029,20 +1014,19 @@ class Sftp2Path(URIPath):
         if "r" in mode:
             if "b" in mode:
                 # Binary read mode - use BufferedReader for optimal performance
-                fileobj = io.BufferedReader(
-                    raw_file, buffer_size=SFTP2_BUFFER_SIZE
-                )  # 1MB buffer
+                fileobj = io.BufferedReader(raw_file, buffer_size=SFTP2_BUFFER_SIZE)
             else:
                 # Text read mode - wrap BufferedReader with TextIOWrapper
                 buffered = io.BufferedReader(raw_file, buffer_size=SFTP2_BUFFER_SIZE)
                 fileobj = io.TextIOWrapper(buffered, encoding=encoding, errors=errors)
         elif "w" in mode or "a" in mode:
-            # Write modes - for now just use raw file
-            # (could add BufferedWriter later)
             if "b" in mode:
-                fileobj = raw_file
+                # Binary write mode - use BufferedWriter for optimal performance
+                fileobj = io.BufferedWriter(raw_file, buffer_size=SFTP2_BUFFER_SIZE)
             else:
-                fileobj = io.TextIOWrapper(raw_file, encoding=encoding, errors=errors)
+                # Text write mode - wrap BufferedWriter with TextIOWrapper
+                buffered = io.BufferedWriter(raw_file, buffer_size=SFTP2_BUFFER_SIZE)
+                fileobj = io.TextIOWrapper(buffered, encoding=encoding, errors=errors)
         else:
             fileobj = raw_file
 
