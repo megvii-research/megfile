@@ -27,7 +27,7 @@ from megfile.lib.glob import iglob
 from megfile.lib.joinpath import path_join
 from megfile.lib.url import get_url_scheme
 from megfile.smart_path import SmartPath
-from megfile.utils import calculate_md5
+from megfile.utils import calculate_md5, copyfd
 
 __all__ = [
     "FSPath",
@@ -737,15 +737,7 @@ class FSPath(URIPath):
     ):
         if isinstance(self.path_without_protocol, int):
             with open(fspath(dst_path), "wb") as fdst:
-                # This magic number is copied from  copyfileobj
-                length = 16 * 1024
-                while True:
-                    buf = os.read(self.path_without_protocol, length)  # pyre-ignore[6]
-                    if not buf:
-                        break
-                    fdst.write(buf)
-                    if callback:
-                        callback(len(buf))
+                copyfd(self.path_without_protocol, fdst, callback)
         else:
             shutil.copy2(
                 self.path_without_protocol,  # pyre-ignore[6]

@@ -11,6 +11,7 @@ from megfile.sftp2_path import (
     Sftp2Path,
     is_sftp2,
 )
+from megfile.utils import copyfileobj
 
 _logger = get_logger(__name__)
 
@@ -228,16 +229,7 @@ def sftp2_download(
     dst_path.parent.makedirs(exist_ok=True)
 
     with src_path.open("rb") as src_file, dst_path.open("wb") as dst_file:
-        bytes_transferred = 0
-        chunk_size = 64 * 1024
-        while True:
-            chunk = src_file.read(chunk_size)
-            if not chunk:
-                break
-            dst_file.write(chunk)
-            bytes_transferred += len(chunk)
-            if callback:
-                callback(len(chunk))
+        copyfileobj(src_file, dst_file, callback)
 
     src_stat = src_path.stat()
     dst_path.utime(src_stat.st_atime, src_stat.st_mtime)
@@ -286,16 +278,7 @@ def sftp2_upload(
     dst_path.parent.makedirs(exist_ok=True)
 
     with src_path.open("rb") as src_file, dst_path.open("wb") as dst_file:
-        bytes_transferred = 0
-        chunk_size = 64 * 1024
-        while True:
-            chunk = src_file.read(chunk_size)
-            if not chunk:
-                break
-            dst_file.write(chunk)
-            bytes_transferred += len(chunk)
-            if callback:
-                callback(len(chunk))
+        copyfileobj(src_file, dst_file, callback)
 
     src_stat = src_path.stat()
     dst_path.utime(src_stat.st_atime, src_stat.st_mtime)
@@ -330,16 +313,51 @@ def sftp2_concat(src_paths: List[PathLike], dst_path: PathLike) -> None:
     """
     dst_path_obj = Sftp2Path(dst_path)
 
+    if len(src_paths) == 0:
+        return
+
+    # Check if all sources are on the same server as destination
+    all_same_backend = all(
+        dst_path_obj._is_same_backend(Sftp2Path(src_path)) for src_path in src_paths
+    )
+
+    if all_same_backend and len(src_paths) > 1:
+        # Use server-side cat command for efficiency
+        try:
+            src_paths_escaped = []
+            for src_path in src_paths:
+                src_obj = Sftp2Path(src_path)
+                escaped = src_obj._real_path.replace("'", "'\"'\"'")
+                src_paths_escaped.append(f"'{escaped}'")
+
+            dst_escaped = dst_path_obj._real_path.replace("'", "'\"'\"'")
+
+            # Use server-side cat command to avoid data transfer
+            cmd = f"cat {' '.join(src_paths_escaped)} > '{dst_escaped}'"
+            exit_code, stdout, stderr = dst_path_obj._execute_command(cmd)
+
+            if exit_code == 0:
+                # Server-side concat successful
+                return
+            else:
+                # Log the failure but fall back to SFTP method
+                from megfile.sftp2_path import _logger
+
+                _logger.debug(f"Server-side concat failed (exit {exit_code}): {stderr}")
+
+        except Exception as e:
+            # Log the exception but fall back to SFTP method
+            from megfile.sftp2_path import _logger
+
+            _logger.debug(f"Server-side concat failed with exception: {e}")
+
+    # Fallback to traditional SFTP concat (download then upload)
     with dst_path_obj.open("wb") as dst_file:
         for src_path in src_paths:
             src_path_obj = Sftp2Path(src_path)
             with src_path_obj.open("rb") as src_file:
-                chunk_size = 64 * 1024
-                while True:
-                    chunk = src_file.read(chunk_size)
-                    if not chunk:
-                        break
-                    dst_file.write(chunk)
+                # Use the copyfileobj utility function
+                copyfileobj(src_file, dst_file)
 
 
 def sftp2_lstat(path: PathLike) -> StatResult:

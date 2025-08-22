@@ -22,7 +22,7 @@ from megfile.lib.compat import fspath
 from megfile.lib.glob import FSFunc, iglob
 from megfile.pathlike import URIPath
 from megfile.smart_path import SmartPath
-from megfile.utils import calculate_md5, thread_local
+from megfile.utils import calculate_md5, copyfileobj, thread_local
 
 _logger = get_logger(__name__)
 
@@ -713,12 +713,7 @@ class SftpPath(URIPath):
                 if overwrite or not dst_path.exists():
                     with self.open("rb") as fsrc:
                         with dst_path.open("wb") as fdst:
-                            length = 16 * 1024
-                            while True:
-                                buf = fsrc.read(length)
-                                if not buf:
-                                    break
-                                fdst.write(buf)
+                            copyfileobj(fsrc, fdst)
                 self.unlink()
 
         dst_path.utime(src_stat.st_atime, src_stat.st_mtime)
@@ -1134,14 +1129,7 @@ class SftpPath(URIPath):
         else:
             with self.open("rb") as fsrc:
                 with dst_path.open("wb") as fdst:
-                    length = 16 * 1024
-                    while True:
-                        buf = fsrc.read(length)
-                        if not buf:
-                            break
-                        fdst.write(buf)
-                        if callback:
-                            callback(len(buf))
+                    copyfileobj(fsrc, fdst, callback)
 
         src_stat = self.stat()
         dst_path.utime(src_stat.st_atime, src_stat.st_mtime)

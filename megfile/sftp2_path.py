@@ -20,7 +20,7 @@ from megfile.lib.compat import fspath
 from megfile.lib.glob import FSFunc, iglob
 from megfile.pathlike import URIPath
 from megfile.smart_path import SmartPath
-from megfile.utils import calculate_md5, thread_local
+from megfile.utils import calculate_md5, copyfileobj, thread_local
 
 _logger = get_logger(__name__)
 
@@ -38,6 +38,10 @@ SFTP2_MAX_UNAUTH_CONN = "SFTP2_MAX_UNAUTH_CONN"
 MAX_RETRIES = SFTP_MAX_RETRY_TIMES
 DEFAULT_SSH_CONNECT_TIMEOUT = 5
 DEFAULT_SSH_KEEPALIVE_INTERVAL = 15
+
+# SFTP2-specific buffer sizes and chunk sizes
+SFTP2_BUFFER_SIZE = 1048576  # 1MB buffer for file operations
+SFTP2_CHUNK_SIZE = 1048576  # 1MB chunk size for reading/writing
 
 
 def _make_stat(stat) -> StatResult:
@@ -338,7 +342,7 @@ class Sftp2RawFile:
         """Read into a pre-allocated buffer. Required by BufferedReader."""
         if self._closed:
             raise ValueError("I/O operation on closed file")
-        
+
         try:
             # ssh2-python returns (bytes_read, data)
             bytes_read, chunk = self.sftp_handle.read(len(b))
@@ -354,11 +358,11 @@ class Sftp2RawFile:
         """Fallback read method - optimized for direct use"""
         if self._closed:
             raise ValueError("I/O operation on closed file")
-        
+
         if size <= 0:
             # For read-all, use readinto with BytesIO for consistency
             result = io.BytesIO()
-            buffer = bytearray(1048576)  # 1MB buffer
+            buffer = bytearray(SFTP2_BUFFER_SIZE)  # 1MB buffer
             while True:
                 n = self.readinto(buffer)
                 if n == 0:
@@ -418,10 +422,7 @@ class Sftp2File:
     def read(self, size: int = -1) -> bytes:
         if self._closed:
             raise ValueError("I/O operation on closed file")
-        
-        # Use 1MB chunks for maximum throughput
-        chunk_size = 1048576  # 1MB
-        
+
         if size == -1:
             # Read all data - optimized for large files
             chunks = []
@@ -429,7 +430,7 @@ class Sftp2File:
             while True:
                 try:
                     # ssh2-python returns (bytes_read, data) not (data, bytes_read)
-                    bytes_read, chunk = self.sftp_handle.read(chunk_size)
+                    bytes_read, chunk = self.sftp_handle.read(SFTP2_CHUNK_SIZE)
                     if bytes_read == 0:
                         break
                     chunks.append(chunk[:bytes_read])
@@ -440,7 +441,7 @@ class Sftp2File:
             return b"".join(chunks)
         else:
             # For specific size reads, use the requested size directly if reasonable
-            read_size = min(size, chunk_size) if size > 0 else chunk_size
+            read_size = min(size, SFTP2_CHUNK_SIZE) if size > 0 else SFTP2_CHUNK_SIZE
             try:
                 # ssh2-python returns (bytes_read, data) not (data, bytes_read)
                 bytes_read, chunk = self.sftp_handle.read(read_size)
@@ -538,6 +539,62 @@ class Sftp2Path(URIPath):
             username=self._urlsplit_parts.username,
             password=self._urlsplit_parts.password,
         )
+
+    @property
+    def _session(self):
+        """Get SSH session for executing server-side commands"""
+        return get_ssh2_session(
+            hostname=self._urlsplit_parts.hostname,
+            port=self._urlsplit_parts.port,
+            username=self._urlsplit_parts.username,
+            password=self._urlsplit_parts.password,
+        )
+
+    def _execute_command(self, command: str) -> Tuple[int, str, str]:
+        """Execute a command on the remote server via SSH
+
+        Returns:
+            Tuple of (exit_code, stdout, stderr)
+        """
+        try:
+            session = self._session
+            channel = session.open_session()
+
+            # Execute the command
+            channel.execute(command)
+
+            # Read output
+            stdout = b""
+            stderr = b""
+
+            while True:
+                # Read stdout
+                size, data = channel.read()
+                if size > 0:
+                    stdout += data
+
+                # Read stderr
+                size, data = channel.read_stderr()
+                if size > 0:
+                    stderr += data
+
+                # Check if finished
+                if channel.eof():
+                    break
+
+            # Get exit status
+            exit_code = channel.get_exit_status()
+            channel.close()
+
+            return (
+                exit_code,
+                stdout.decode("utf-8", errors="replace"),
+                stderr.decode("utf-8", errors="replace"),
+            )
+
+        except Exception as e:
+            _logger.debug(f"Command execution failed: {e}")
+            return (1, "", str(e))
 
     def _generate_path_object(self, sftp_local_path: str, resolve: bool = False):
         if resolve or self._root_dir == "/":
@@ -717,12 +774,7 @@ class Sftp2Path(URIPath):
                 if overwrite or not dst_path.exists():
                     with self.open("rb") as fsrc:
                         with dst_path.open("wb") as fdst:
-                            length = 16 * 1024
-                            while True:
-                                buf = fsrc.read(length)
-                                if not buf:
-                                    break
-                                fdst.write(buf)
+                            copyfileobj(fsrc, fdst)
                 self.unlink()
 
         dst_path.utime(src_stat.st_atime, src_stat.st_mtime)
@@ -1007,27 +1059,36 @@ class Sftp2Path(URIPath):
 
         try:
             sftp_handle = self._client.open(self._real_path, ssh2_mode, 0o644)
-            
+
             # Create raw file wrapper
             raw_file = Sftp2RawFile(sftp_handle, self.path, mode)
-            
+
             if "r" in mode:
                 if "b" in mode:
                     # Binary read mode - use BufferedReader for optimal performance
-                    fileobj = io.BufferedReader(raw_file, buffer_size=1048576)  # 1MB buffer
+                    fileobj = io.BufferedReader(
+                        raw_file, buffer_size=SFTP2_BUFFER_SIZE
+                    )  # 1MB buffer
                 else:
                     # Text read mode - wrap BufferedReader with TextIOWrapper
-                    buffered = io.BufferedReader(raw_file, buffer_size=1048576)
-                    fileobj = io.TextIOWrapper(buffered, encoding=encoding, errors=errors)
+                    buffered = io.BufferedReader(
+                        raw_file, buffer_size=SFTP2_BUFFER_SIZE
+                    )
+                    fileobj = io.TextIOWrapper(
+                        buffered, encoding=encoding, errors=errors
+                    )
             elif "w" in mode or "a" in mode:
-                # Write modes - for now just use raw file (could add BufferedWriter later)
+                # Write modes - for now just use raw file
+                # (could add BufferedWriter later)
                 if "b" in mode:
                     fileobj = raw_file
                 else:
-                    fileobj = io.TextIOWrapper(raw_file, encoding=encoding, errors=errors)
+                    fileobj = io.TextIOWrapper(
+                        raw_file, encoding=encoding, errors=errors
+                    )
             else:
                 fileobj = raw_file
-                
+
             return fileobj
         except Exception as e:
             # Fallback: try using mode string directly for compatibility
@@ -1084,17 +1145,35 @@ class Sftp2Path(URIPath):
                 raise SameFileError(
                     f"'{self.path}' and '{dst_path.path}' are the same file"
                 )
+            # Same server - use server-side copy command for efficiency
+            try:
+                # Escape paths for shell safety
+                src_escaped = self._real_path.replace("'", "'\"'\"'")
+                dst_escaped = dst_path._real_path.replace("'", "'\"'\"'")
 
+                # Use server-side cp command to avoid data transfer
+                cmd = f"cp '{src_escaped}' '{dst_escaped}'"
+                exit_code, stdout, stderr = self._execute_command(cmd)
+
+                if exit_code == 0:
+                    # Server-side copy successful, update metadata
+                    src_stat = self.stat()
+                    dst_path.utime(src_stat.st_atime, src_stat.st_mtime)
+                    dst_path.chmod(src_stat.st_mode)
+                    return
+                else:
+                    _logger.debug(
+                        f"Server-side copy failed (exit {exit_code}): {stderr}"
+                    )
+                    # Fall back to SFTP copy
+            except Exception as e:
+                _logger.debug(f"Server-side copy failed with exception: {e}")
+                # Fall back to SFTP copy
+
+        # Fallback to traditional SFTP copy (download then upload)
         with self.open("rb") as fsrc:
             with dst_path.open("wb") as fdst:
-                length = 16 * 1024
-                while True:
-                    buf = fsrc.read(length)
-                    if not buf:
-                        break
-                    fdst.write(buf)
-                    if callback:
-                        callback(len(buf))
+                copyfileobj(fsrc, fdst, callback)
 
         src_stat = self.stat()
         dst_path.utime(src_stat.st_atime, src_stat.st_mtime)

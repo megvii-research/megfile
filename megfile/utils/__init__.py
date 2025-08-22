@@ -16,8 +16,9 @@ from io import (
     TextIOWrapper,
 )
 from threading import RLock
-from typing import IO, Callable, Optional
+from typing import IO, Callable, List, Optional
 
+from megfile.config import DEFAULT_COPY_BUFFER_SIZE, DEFAULT_HASH_BUFFER_SIZE
 from megfile.utils.mutex import ProcessLocal, ThreadLocal
 
 
@@ -257,7 +258,7 @@ def _get_class(cls_or_obj) -> type:
 
 def calculate_md5(file_object):
     hash_md5 = hashlib.md5()  # nosec
-    for chunk in iter(lambda: file_object.read(4096), b""):
+    for chunk in iter(lambda: file_object.read(DEFAULT_HASH_BUFFER_SIZE), b""):
         hash_md5.update(chunk)
     return hash_md5.hexdigest()
 
@@ -337,3 +338,75 @@ def is_domain_or_subdomain(sub, parent):
     if sub.endswith(f".{parent}"):
         return True
     return False
+
+
+def copyfileobj(
+    fsrc: IO,
+    fdst: IO,
+    callback: Optional[Callable[[int], None]] = None,
+    length: int = DEFAULT_COPY_BUFFER_SIZE,
+) -> None:
+    """Copy data from fsrc to fdst with optional progress callback.
+
+    This is similar to shutil.copyfileobj but with callback support.
+
+    Args:
+        fsrc: Source file-like object (opened for reading)
+        fdst: Destination file-like object (opened for writing)
+        callback: Optional callback function called with number of bytes written
+        length: Buffer size for copying (default: DEFAULT_COPY_BUFFER_SIZE)
+    """
+    while True:
+        buf = fsrc.read(length)
+        if not buf:
+            break
+        fdst.write(buf)
+        if callback:
+            callback(len(buf))
+
+
+def copyfd(
+    src_fd: int,
+    fdst: IO,
+    callback: Optional[Callable[[int], None]] = None,
+    length: int = DEFAULT_COPY_BUFFER_SIZE,
+) -> None:
+    """Copy data from file descriptor to file object with optional progress callback.
+
+    Args:
+        src_fd: Source file descriptor (integer)
+        fdst: Destination file-like object (opened for writing)
+        callback: Optional callback function called with number of bytes written
+        length: Buffer size for copying (default: DEFAULT_COPY_BUFFER_SIZE)
+    """
+    while True:
+        buf = os.read(src_fd, length)
+        if not buf:
+            break
+        fdst.write(buf)
+        if callback:
+            callback(len(buf))
+
+
+def copyfileobj_multi(
+    fsrc: IO,
+    fdst_list: List[IO],
+    callback: Optional[Callable[[int], None]] = None,
+    length: int = DEFAULT_COPY_BUFFER_SIZE,
+) -> None:
+    """Copy data from fsrc to multiple destinations with optional progress callback.
+
+    Args:
+        fsrc: Source file-like object (opened for reading)
+        fdst_list: List of destination file-like objects (opened for writing)
+        callback: Optional callback function called with number of bytes written
+        length: Buffer size for copying (default: DEFAULT_COPY_BUFFER_SIZE)
+    """
+    while True:
+        buf = fsrc.read(length)
+        if not buf:
+            break
+        for fdst in fdst_list:
+            fdst.write(buf)
+        if callback:
+            callback(len(buf))
