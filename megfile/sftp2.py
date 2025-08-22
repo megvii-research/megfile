@@ -4,9 +4,6 @@ import os
 from logging import getLogger as get_logger
 from typing import IO, BinaryIO, Callable, Iterator, List, Optional, Tuple
 
-import ssh2.session
-import ssh2.sftp
-
 from megfile.interfaces import FileEntry, PathLike, StatResult
 from megfile.lib.compat import fspath
 from megfile.lib.joinpath import uri_join
@@ -112,7 +109,8 @@ def sftp2_glob_stat(
     1. If doesn't match any path, return empty list
        Notice:  ``glob.glob`` in standard library returns ['a/'] instead of empty list
        when pathname is like `a/**`, recursive is True and directory 'a' doesn't exist.
-       sftp2_glob behaves like ``glob.glob`` in standard library under such circumstance.
+       sftp2_glob behaves like ``glob.glob`` in standard library under such
+       circumstance.
     2. No guarantee that each path in result is different, which means:
        Assume there exists a path `/a/b/c/b/d.txt`
        use path pattern like `/**/b/**/*.txt` to glob,
@@ -767,10 +765,12 @@ def _check_input(input_str: str, fingerprint: str, times: int = 0) -> bool:
 def _prompt_add_to_known_hosts(hostname, key) -> bool:
     fingerprint = hashlib.sha256(key).digest()
     fingerprint = f"SHA256:{base64.b64encode(fingerprint).decode('utf-8')}"
-    answers = input(f"""The authenticity of host '{hostname}' can't be established.
+    answers = input(
+        f"""The authenticity of host '{hostname}' can't be established.
 SSH key fingerprint is {fingerprint}.
 This key is not known by any other names.
-Are you sure you want to continue connecting (yes/no/[fingerprint])? """)
+Are you sure you want to continue connecting (yes/no/[fingerprint])? """
+    )
     return _check_input(answers, fingerprint)
 
 
@@ -804,9 +804,9 @@ def sftp2_add_host_key(
     sock = ssh2.utils.Socket.open(hostname, port)
     session = ssh2.session.Session()
     session.handshake(sock)
-    
+
     hostkey = session.hostkey()
-    
+
     if prompt:
         result = _prompt_add_to_known_hosts(hostname, hostkey)
         if not result:

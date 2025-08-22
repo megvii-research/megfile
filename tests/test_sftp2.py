@@ -1,16 +1,11 @@
 import io
-import logging
 import os
-import shutil
 import stat
-import subprocess
 import time
-from typing import List, Optional
 
 import pytest
 
-from megfile import sftp2, sftp2_path
-from megfile.errors import SameFileError
+from megfile import sftp2
 
 
 class FakeSFTP2Client:
@@ -92,6 +87,7 @@ class FakeSFTP2File:
         if isinstance(mode_str, int):
             # This is an ssh2 mode flag, convert to string mode
             import ssh2.sftp
+
             if mode_str & ssh2.sftp.LIBSSH2_FXF_READ:
                 mode = "rb"
             elif mode_str & ssh2.sftp.LIBSSH2_FXF_WRITE:
@@ -110,12 +106,12 @@ class FakeSFTP2File:
     def read(self, size=-1):
         data = self._file.read(size)
         if isinstance(data, str):
-            return data.encode('utf-8'), len(data)
+            return data.encode("utf-8"), len(data)
         return data, len(data)
 
     def write(self, data):
         if isinstance(data, str):
-            data = data.encode('utf-8')
+            data = data.encode("utf-8")
         self._file.write(data)
         return len(data)
 
@@ -134,7 +130,7 @@ class FakeSFTP2DirHandle:
             return None
         filename = self.files[self.index]
         self.index += 1
-        if filename in ('.', '..'):
+        if filename in (".", ".."):
             return self.readdir()
         full_path = os.path.join(self.path, filename)
         return filename, FakeSFTP2Stat(os.lstat(full_path))
@@ -150,7 +146,7 @@ class FakeSFTP2Stat:
 class FakeSSH2Session:
     def __init__(self):
         pass
-    
+
     def sftp_init(self):
         return FakeSFTP2Client()
 
@@ -297,7 +293,10 @@ def test_sftp2_scandir(sftp2_mocker):
         f.write("file")
 
     assert sorted(
-        [file_entry.path for file_entry in sftp2.sftp2_scandir("sftp2://username@host//A")]
+        [
+            file_entry.path
+            for file_entry in sftp2.sftp2_scandir("sftp2://username@host//A")
+        ]
     ) == [
         "sftp2://username@host//A/1.json",
         "sftp2://username@host//A/a",
@@ -380,7 +379,9 @@ def test_sftp2_rename(sftp2_mocker):
     with sftp2.sftp2_open("sftp2://username@host//A/test", "w") as f:
         f.write("test")
 
-    sftp2.sftp2_rename("sftp2://username@host//A/test", "sftp2://username@host//A/test2")
+    sftp2.sftp2_rename(
+        "sftp2://username@host//A/test", "sftp2://username@host//A/test2"
+    )
     assert sftp2.sftp2_exists("sftp2://username@host//A/test") is False
     assert sftp2.sftp2_exists("sftp2://username@host//A/test2") is True
 
@@ -495,7 +496,9 @@ def test_sftp2_getmd5(sftp2_mocker):
     sftp2.sftp2_makedirs("sftp2://username@host//A")
     with sftp2.sftp2_open("sftp2://username@host//A/1.json", "w") as f:
         f.write("1.json")
-    assert sftp2.sftp2_getmd5("sftp2://username@host//A/1.json") == fs_getmd5("/A/1.json")
+    assert sftp2.sftp2_getmd5("sftp2://username@host//A/1.json") == fs_getmd5(
+        "/A/1.json"
+    )
     assert sftp2.sftp2_getmd5("sftp2://username@host//A") == fs_getmd5("/A")
 
 
@@ -590,9 +593,7 @@ def test_sftp2_download(sftp2_mocker):
     with sftp2.sftp2_open("sftp2://username@host//A/1.json", "w") as f:
         f.write("1.json")
 
-    sftp2.sftp2_download(
-        "sftp2://username@host//A/1.json", "/A2/1.json"
-    )
+    sftp2.sftp2_download("sftp2://username@host//A/1.json", "/A2/1.json")
     assert (
         sftp2.sftp2_stat("sftp2://username@host//A/1.json").size
         == os.stat("/A2/1.json").st_size
