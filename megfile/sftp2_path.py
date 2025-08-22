@@ -311,6 +311,96 @@ def _sftp2_scan_pairs(
         yield src_file_path, dst_file_path
 
 
+class Sftp2RawFile:
+    """Raw SFTP file wrapper - implements only readinto for BufferedReader"""
+
+    def __init__(self, sftp_handle, path: str, mode: str = "r"):
+        self.sftp_handle = sftp_handle
+        self.path = path
+        self.mode = mode
+        self.name = path
+        self._closed = False
+
+    def readable(self) -> bool:
+        return "r" in self.mode
+
+    def writable(self) -> bool:
+        return "w" in self.mode or "a" in self.mode or "x" in self.mode
+
+    def seekable(self) -> bool:
+        return True
+
+    @property
+    def closed(self) -> bool:
+        return self._closed
+
+    def readinto(self, b) -> int:
+        """Read into a pre-allocated buffer. Required by BufferedReader."""
+        if self._closed:
+            raise ValueError("I/O operation on closed file")
+        
+        try:
+            # ssh2-python returns (bytes_read, data)
+            bytes_read, chunk = self.sftp_handle.read(len(b))
+            if bytes_read > 0:
+                # Direct memory copy should be faster
+                b[:bytes_read] = chunk[:bytes_read]
+                return bytes_read
+            return 0
+        except Exception:
+            return 0
+
+    def read(self, size: int = -1) -> bytes:
+        """Fallback read method - optimized for direct use"""
+        if self._closed:
+            raise ValueError("I/O operation on closed file")
+        
+        if size <= 0:
+            # For read-all, use readinto with BytesIO for consistency
+            result = io.BytesIO()
+            buffer = bytearray(1048576)  # 1MB buffer
+            while True:
+                n = self.readinto(buffer)
+                if n == 0:
+                    break
+                result.write(buffer[:n])
+            return result.getvalue()
+        else:
+            # For fixed size reads, use readinto
+            buffer = bytearray(size)
+            n = self.readinto(buffer)
+            return bytes(buffer[:n])
+
+    def write(self, data: bytes) -> int:
+        if self._closed:
+            raise ValueError("I/O operation on closed file")
+        if isinstance(data, str):
+            data = data.encode("utf-8")
+        try:
+            bytes_written = self.sftp_handle.write(data)
+            return bytes_written
+        except Exception:
+            return 0
+
+    def close(self):
+        if not self._closed:
+            try:
+                self.sftp_handle.close()
+            except Exception:
+                pass
+            self._closed = True
+
+    def flush(self):
+        """Flush the file. This is a no-op for SFTP files."""
+        pass
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+
 class Sftp2File:
     """File-like object for SFTP2 operations"""
 
@@ -328,23 +418,32 @@ class Sftp2File:
     def read(self, size: int = -1) -> bytes:
         if self._closed:
             raise ValueError("I/O operation on closed file")
+        
+        # Use 1MB chunks for maximum throughput
+        chunk_size = 1048576  # 1MB
+        
         if size == -1:
-            # Read all data
-            data = b""
+            # Read all data - optimized for large files
+            chunks = []
+            total_size = 0
             while True:
                 try:
                     # ssh2-python returns (bytes_read, data) not (data, bytes_read)
-                    bytes_read, chunk = self.sftp_handle.read(8192)
+                    bytes_read, chunk = self.sftp_handle.read(chunk_size)
                     if bytes_read == 0:
                         break
-                    data += chunk[:bytes_read]
+                    chunks.append(chunk[:bytes_read])
+                    total_size += bytes_read
                 except Exception:
                     break
-            return data
+            # Use join for better memory efficiency
+            return b"".join(chunks)
         else:
+            # For specific size reads, use the requested size directly if reasonable
+            read_size = min(size, chunk_size) if size > 0 else chunk_size
             try:
                 # ssh2-python returns (bytes_read, data) not (data, bytes_read)
-                bytes_read, chunk = self.sftp_handle.read(size)
+                bytes_read, chunk = self.sftp_handle.read(read_size)
                 return chunk[:bytes_read] if bytes_read > 0 else b""
             except Exception:
                 return b""
@@ -908,18 +1007,38 @@ class Sftp2Path(URIPath):
 
         try:
             sftp_handle = self._client.open(self._real_path, ssh2_mode, 0o644)
-            fileobj = Sftp2File(sftp_handle, self.path, mode)
+            
+            # Create raw file wrapper
+            raw_file = Sftp2RawFile(sftp_handle, self.path, mode)
+            
+            if "r" in mode:
+                if "b" in mode:
+                    # Binary read mode - use BufferedReader for optimal performance
+                    fileobj = io.BufferedReader(raw_file, buffer_size=1048576)  # 1MB buffer
+                else:
+                    # Text read mode - wrap BufferedReader with TextIOWrapper
+                    buffered = io.BufferedReader(raw_file, buffer_size=1048576)
+                    fileobj = io.TextIOWrapper(buffered, encoding=encoding, errors=errors)
+            elif "w" in mode or "a" in mode:
+                # Write modes - for now just use raw file (could add BufferedWriter later)
+                if "b" in mode:
+                    fileobj = raw_file
+                else:
+                    fileobj = io.TextIOWrapper(raw_file, encoding=encoding, errors=errors)
+            else:
+                fileobj = raw_file
+                
+            return fileobj
         except Exception as e:
             # Fallback: try using mode string directly for compatibility
             try:
                 sftp_handle = self._client.open(self._real_path, mode, 0o644)
                 fileobj = Sftp2File(sftp_handle, self.path, mode)
+                if "r" in mode and "b" not in mode:
+                    return io.TextIOWrapper(fileobj, encoding=encoding, errors=errors)
+                return fileobj
             except Exception:
                 raise e
-
-        if "r" in mode and "b" not in mode:
-            return io.TextIOWrapper(fileobj, encoding=encoding, errors=errors)
-        return fileobj
 
     def chmod(self, mode: int, *, follow_symlinks: bool = True):
         """Change the file mode and permissions"""
