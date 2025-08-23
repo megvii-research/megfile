@@ -82,9 +82,7 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
 
         self._offset = 0
         self._cached_buffer = None
-        self._block_index = None  # Current block index
         self._seek_history = []
-
         self._seek_buffer(0)
 
         _logger.debug("open file: %r, mode: %s" % (self.name, self.mode))
@@ -98,7 +96,9 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
         return self._process_local("futures", self._get_futures)
 
     def _get_futures(self):
-        return LRUCacheFutureManager()
+        futures = LRUCacheFutureManager()
+        futures.register(self.name)
+        return futures
 
     @property
     @abstractmethod
@@ -207,9 +207,8 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
         if size == 0 or self._offset >= self._content_size:
             return b""
 
-        data = self._fetch_response(start=self._offset, end=self._offset + size - 1)[
-            "Body"
-        ].read()
+        resp = self._fetch_response(start=self._offset, end=self._offset + size - 1)
+        data = resp["Body"].read()
         self.seek(size, os.SEEK_CUR)
         return data
 
@@ -369,12 +368,17 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
 class LRUCacheFutureManager(OrderedDict):
     def __init__(self):
         super().__init__()
+        self._name = None
+
+    def register(self, name):
+        self._name = name
 
     def submit(self, executor, key, *args, **kwargs):
         if key in self:
             self.move_to_end(key, last=True)
             return
         self[key] = executor.submit(*args, **kwargs)
+        _logger.debug("submit future: %r, key: %r" % (self._name, key))
 
     @property
     def finished(self):
@@ -385,7 +389,12 @@ class LRUCacheFutureManager(OrderedDict):
         return self[key].result()
 
     def cleanup(self, block_capacity: int):
+        keys = []
         while len(self) > block_capacity:
-            _, future = self.popitem(last=False)
+            key, future = self.popitem(last=False)
+            keys.append(key)
             if not future.done():
                 future.cancel()
+        if keys:
+            _logger.debug("cleanup futures: %r, keys: %s" % (self._name, keys))
+        return keys

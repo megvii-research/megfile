@@ -101,16 +101,21 @@ class ShareCacheFutureManager(LRUCacheFutureManager):
         super().__init__()
         self._references = Counter()
 
-    def register(self, key):
-        self._references[key] += 1
+    def register(self, name):
+        self._references[name] += 1
+        _logger.debug("register reader: %r, count: %d" % (name, self._references[name]))
 
-    def unregister(self, key):
-        self._references[key] -= 1
-        if self._references[key] == 0:
-            self._references.pop(key)
-            for key_tuple in list(self):
-                if key_tuple[0] != key:
+    def unregister(self, name):
+        self._references[name] -= 1
+        _logger.debug(
+            "unregister reader: %r, count: %d" % (name, self._references[name])
+        )
+        if self._references[name] == 0:
+            self._references.pop(name)
+            for key in list(self):
+                if key[0] != name:
                     continue
-                future = self.pop(key_tuple)
+                future = self.pop(key)
                 if not future.done():
                     future.cancel()  # pragma: no cover
+            _logger.debug("cleanup all futures of reader: %r" % name)

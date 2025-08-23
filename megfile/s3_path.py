@@ -1000,6 +1000,7 @@ def s3_buffered_open(
         )
 
     if mode == "rb":
+        block_size = block_size or READER_BLOCK_SIZE
         if share_cache_key is not None:
             reader = S3ShareCacheReader(
                 bucket,
@@ -1008,7 +1009,7 @@ def s3_buffered_open(
                 s3_client=client,
                 max_retries=max_retries,
                 max_workers=max_workers,
-                block_size=block_size or READER_BLOCK_SIZE,
+                block_size=block_size,
                 block_forward=block_forward,
                 profile_name=s3_url._profile_name,
             )
@@ -1023,13 +1024,14 @@ def s3_buffered_open(
                 max_workers=max_workers,
                 max_buffer_size=max_buffer_size,
                 block_forward=block_forward,
-                block_size=block_size or READER_BLOCK_SIZE,
+                block_size=block_size,
                 profile_name=s3_url._profile_name,
             )
         if buffered or _is_pickle(reader):
-            reader = io.BufferedReader(reader)  # type: ignore
+            reader = io.BufferedReader(reader, buffer_size=block_size)  # type: ignore
         return reader
 
+    block_size = block_size or WRITER_BLOCK_SIZE
     if limited_seekable:
         if max_buffer_size is None:
             max_buffer_size = WRITER_MAX_BUFFER_SIZE
@@ -1038,7 +1040,7 @@ def s3_buffered_open(
             key,
             s3_client=client,
             max_workers=max_workers,
-            block_size=block_size or WRITER_BLOCK_SIZE,
+            block_size=block_size,
             max_buffer_size=max_buffer_size,
             profile_name=s3_url._profile_name,
         )
@@ -1050,12 +1052,12 @@ def s3_buffered_open(
             key,
             s3_client=client,
             max_workers=max_workers,
-            block_size=block_size or WRITER_BLOCK_SIZE,
+            block_size=block_size,
             max_buffer_size=max_buffer_size,
             profile_name=s3_url._profile_name,
         )
     if buffered or _is_pickle(writer):
-        writer = io.BufferedWriter(writer)  # type: ignore
+        writer = io.BufferedWriter(writer, buffer_size=block_size)  # type: ignore
     return writer
 
 

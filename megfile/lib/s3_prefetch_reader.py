@@ -4,6 +4,7 @@ from typing import Optional
 
 from megfile.config import (
     READER_BLOCK_SIZE,
+    READER_LAZY_PREFETCH,
     READER_MAX_BUFFER_SIZE,
     S3_MAX_RETRY_TIMES,
 )
@@ -62,7 +63,7 @@ class S3PrefetchReader(BasePrefetchReader):
         )
 
     def _get_content_size(self):
-        if self._block_capacity <= 0:
+        if self._block_capacity <= 0 or READER_LAZY_PREFETCH:
             response = self._client.head_object(Bucket=self._bucket, Key=self._key)
             self._content_etag = response.get("ETag")
             return int(response["ContentLength"])
