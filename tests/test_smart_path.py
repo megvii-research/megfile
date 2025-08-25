@@ -15,6 +15,7 @@ from megfile.hdfs_path import HdfsPath
 from megfile.http_path import HttpPath, HttpsPath
 from megfile.interfaces import Access
 from megfile.s3_path import S3Path
+from megfile.sftp2_path import Sftp2Path
 from megfile.sftp_path import SftpPath
 from megfile.smart_path import PurePath, SmartPath, _load_aliases_config, aliases_config
 from megfile.stdio_path import StdioPath
@@ -60,13 +61,14 @@ def s3_empty_client(mocker):
 
 
 def test_register_result():
-    assert len(SmartPath._registered_protocols) == 7
+    assert len(SmartPath._registered_protocols) == 8
     assert S3Path.protocol in SmartPath._registered_protocols
     assert FSPath.protocol in SmartPath._registered_protocols
     assert HttpPath.protocol in SmartPath._registered_protocols
     assert HttpsPath.protocol in SmartPath._registered_protocols
     assert StdioPath.protocol in SmartPath._registered_protocols
     assert SftpPath.protocol in SmartPath._registered_protocols
+    assert Sftp2Path.protocol in SmartPath._registered_protocols
     assert HdfsPath.protocol in SmartPath._registered_protocols
 
     assert SmartPath._registered_protocols[S3Path.protocol] == S3Path

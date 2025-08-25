@@ -206,6 +206,11 @@ from megfile.stdio import is_stdio, stdio_open
 from megfile.stdio_path import StdioPath
 from megfile.version import VERSION as __version__  # noqa: F401
 
+try:
+    from megfile.sftp2_path import Sftp2Path
+except ImportError:
+    Sftp2Path = None
+
 __all__ = [
     "smart_access",
     "smart_cache",

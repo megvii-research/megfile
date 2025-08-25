@@ -45,7 +45,7 @@ from megfile.s3 import (
 )
 from megfile.sftp import sftp_concat, sftp_copy, sftp_download, sftp_upload
 from megfile.smart_path import SmartPath, get_traditional_path
-from megfile.utils import combine, generate_cache_path
+from megfile.utils import combine, copyfileobj, generate_cache_path
 
 __all__ = [
     "smart_access",
@@ -289,16 +289,7 @@ def _default_copy_func(
 
     with smart_open(src_path, "rb", followlinks=followlinks) as fsrc:
         with smart_open(dst_path, "wb") as fdst:
-            # This magic number is copied from  copyfileobj
-            length = 16 * 1024
-            while True:
-                buf = fsrc.read(length)
-                if not buf:
-                    break
-                fdst.write(buf)
-                if callback is None:
-                    continue
-                callback(len(buf))
+            copyfileobj(fsrc, fdst, callback)
     try:
         src_stat = smart_stat(src_path)
         dst_path = SmartPath(dst_path)
@@ -1101,15 +1092,10 @@ _concat_funcs = {"s3": s3_concat, "sftp": sftp_concat}
 
 
 def _default_concat_func(src_paths: List[PathLike], dst_path: PathLike) -> None:
-    length = 16 * 1024
     with smart_open(dst_path, "wb") as dst_fd:
         for src_path in src_paths:
             with smart_open(src_path, "rb") as src_fd:
-                while True:
-                    buf = src_fd.read(length)
-                    if not buf:
-                        break
-                    dst_fd.write(buf)
+                copyfileobj(src_fd, dst_fd)
 
 
 def smart_concat(src_paths: List[PathLike], dst_path: PathLike) -> None:
