@@ -4,14 +4,16 @@ import io
 import os
 import shlex
 import socket
+import subprocess
 from functools import cached_property
 from logging import getLogger as get_logger
 from stat import S_ISDIR, S_ISLNK, S_ISREG
 from typing import IO, BinaryIO, Callable, Iterator, List, Optional, Tuple, Union
 from urllib.parse import urlsplit, urlunsplit
 
-import ssh2.session
-import ssh2.sftp
+import ssh2.session  # type: ignore
+import ssh2.sftp  # type: ignore
+from ssh2.exceptions import SFTPProtocolError  # type: ignore
 
 from megfile.config import SFTP_MAX_RETRY_TIMES
 from megfile.errors import SameFileError, _create_missing_ok_generator
@@ -41,7 +43,7 @@ DEFAULT_SSH_CONNECT_TIMEOUT = 5
 DEFAULT_SSH_KEEPALIVE_INTERVAL = 15
 
 # SFTP2-specific buffer sizes and chunk sizes
-SFTP2_BUFFER_SIZE = 8 * 2**20  # 8MB buffer for file operations
+SFTP2_BUFFER_SIZE = 1 * 2**20  # 1MB buffer for file operations
 
 
 def _make_stat(stat) -> StatResult:
@@ -67,8 +69,10 @@ def get_private_key():
     if private_key_path:
         if not os.path.exists(private_key_path):
             raise FileNotFoundError(f"Private key file not exist: '{private_key_path}'")
-        with open(private_key_path, "rb") as f:
-            return f.read()
+        private_key_password = os.getenv(SFTP2_PRIVATE_KEY_PASSWORD)
+        if private_key_password:
+            return private_key_path, private_key_password
+        return private_key_path, ""
     return None
 
 
@@ -128,25 +132,17 @@ def _get_ssh2_session(
     if private_key and username:
         try:
             # For ssh2-python, we need to handle key authentication differently
-            try:
-                result = session.userauth_publickey_frommemory(
-                    username,
-                    private_key,
-                    private_key_password=os.getenv(SFTP2_PRIVATE_KEY_PASSWORD, ""),
-                )
-                if result == 0:  # 0 indicates success in ssh2-python
-                    authenticated = True
-            except AttributeError:
-                # Fallback for different ssh2-python versions
-                result = session.userauth_publickey_fromstring(
-                    username,
-                    private_key,
-                    passphrase=os.getenv(SFTP2_PRIVATE_KEY_PASSWORD, ""),
-                )
-                if result == 0:
-                    authenticated = True
+            key_path, passphrase = private_key
+            result = session.userauth_publickey_fromfile(
+                username,
+                key_path,
+                passphrase=passphrase,
+            )
+            if result == 0:  # 0 indicates success in ssh2-python
+                authenticated = True
+                _logger.debug(f"Authentication successed with key: {key_path}")
         except Exception as e:
-            _logger.debug(f"Private key authentication failed: {e}")
+            _logger.debug(f"Private key authentication failed: {type(e).__name__}: {e}")
 
     # 2. 如果提供了密码，尝试密码认证
     if not authenticated and password and username:
@@ -154,8 +150,9 @@ def _get_ssh2_session(
             result = session.userauth_password(username, password)
             if result == 0:
                 authenticated = True
+                _logger.debug("Authentication successed with password")
         except Exception as e:
-            _logger.debug(f"Password authentication failed: {e}")
+            _logger.debug(f"Password authentication failed: {type(e).__name__}: {e}")
 
     # 3. 尝试使用 SSH agent 认证
     if not authenticated and username:
@@ -166,18 +163,7 @@ def _get_ssh2_session(
             authenticated = True
             _logger.debug("Successfully authenticated with SSH agent")
         except Exception as e:
-            _logger.debug(f"SSH agent authentication failed: {e}")
-            # 尝试旧的 API 作为备选
-            try:
-                if hasattr(session, "userauth_agent"):
-                    result = session.userauth_agent(username)
-                    if result == 0:
-                        authenticated = True
-                        _logger.debug(
-                            "Successfully authenticated with SSH agent (fallback)"
-                        )
-            except Exception as e2:
-                _logger.debug(f"SSH agent fallback authentication failed: {e2}")
+            _logger.debug(f"SSH agent authentication failed: {type(e).__name__}: {e}")
 
     # 4. 尝试使用默认的公钥认证 (~/.ssh/id_rsa, ~/.ssh/id_dsa 等)
     if not authenticated and username:
@@ -191,17 +177,9 @@ def _get_ssh2_session(
         for key_path in default_key_paths:
             if os.path.exists(key_path):
                 try:
-                    # ssh2-python 需要公钥和私钥文件路径
-                    pub_key_path = key_path + ".pub"
-                    if not os.path.exists(pub_key_path):
-                        # 如果没有 .pub 文件，尝试让 ssh2-python 自动推断
-                        pub_key_path = key_path
-
                     result = session.userauth_publickey_fromfile(
                         username,
-                        pub_key_path,  # 公钥文件路径
                         key_path,  # 私钥文件路径
-                        "",  # 私钥密码（空字符串表示无密码）
                     )
 
                     if result == 0:
@@ -214,26 +192,6 @@ def _get_ssh2_session(
                     _logger.debug(
                         f"Public key authentication with {key_path} failed: {e}"
                     )
-                    # 如果上面的方法失败，尝试只用私钥文件
-                    try:
-                        result = session.userauth_publickey_fromfile(
-                            username,
-                            key_path,  # 有时候公钥和私钥是同一个文件
-                            key_path,
-                            "",
-                        )
-                        if result == 0:
-                            authenticated = True
-                            _logger.debug(
-                                f"Successfully authenticated with key (single file): "
-                                f"{key_path}"
-                            )
-                            break
-                    except Exception as e2:
-                        _logger.debug(
-                            f"Fallback public key authentication with {key_path} "
-                            f"failed: {e2}"
-                        )
 
     if not authenticated:
         sock.close()
@@ -476,7 +434,7 @@ class Sftp2Path(URIPath):
             else parts.path[2:]
         )
         if not self._real_path.startswith("/"):
-            self._real_path = "/" + self._real_path
+            self._real_path = f"/{self._real_path}"
 
     @cached_property
     def parts(self) -> Tuple[str, ...]:
@@ -510,32 +468,32 @@ class Sftp2Path(URIPath):
             password=self._urlsplit_parts.password,
         )
 
-    def _execute_command(self, command: str) -> Tuple[int, str, str]:
+    def _exec_command(self, command: List[str]) -> subprocess.CompletedProcess:
         """Execute a command on the remote server via SSH
 
         Returns:
-            Tuple of (exit_code, stdout, stderr)
+            subprocess.CompletedProcess object
         """
         session = self._session
         channel = session.open_session()
 
         # Execute the command
-        channel.execute(command)
+        channel.execute(shlex.join(command))
 
         # Read output
-        stdout = b""
-        stderr = b""
+        stdout = io.BytesIO()
+        stderr = io.BytesIO()
 
         while True:
             # Read stdout
             size, data = channel.read()
             if size > 0:
-                stdout += data
+                stdout.write(data)
 
             # Read stderr
             size, data = channel.read_stderr()
             if size > 0:
-                stderr += data
+                stderr.write(data)
 
             # Check if finished
             if channel.eof():
@@ -545,10 +503,11 @@ class Sftp2Path(URIPath):
         exit_code = channel.get_exit_status()
         channel.close()
 
-        return (
-            exit_code,
-            stdout.decode("utf-8", errors="replace"),
-            stderr.decode("utf-8", errors="replace"),
+        return subprocess.CompletedProcess(
+            args=command,
+            returncode=exit_code,
+            stdout=stdout.getvalue().decode("utf-8", errors="replace"),
+            stderr=stderr.getvalue().decode("utf-8", errors="replace"),
         )
 
     def _generate_path_object(self, sftp_local_path: str, resolve: bool = False):
@@ -569,12 +528,9 @@ class Sftp2Path(URIPath):
         :returns: True if the path exists, else False
         """
         try:
-            if followlinks:
-                self._client.stat(self._real_path)
-            else:
-                self._client.lstat(self._real_path)
+            self.stat(follow_symlinks=followlinks)
             return True
-        except Exception:
+        except FileNotFoundError:
             return False
 
     def getmtime(self, follow_symlinks: bool = False) -> float:
@@ -627,7 +583,7 @@ class Sftp2Path(URIPath):
         for real_path in _create_missing_ok_generator(
             iglob(fspath(glob_path), recursive=recursive, fs=fs),
             missing_ok,
-            FileNotFoundError("No match any file: %r" % glob_path),
+            FileNotFoundError(f"No match any file: {glob_path!r}"),
         ):
             yield self.from_path(real_path)
 
@@ -636,7 +592,7 @@ class Sftp2Path(URIPath):
         try:
             stat = self.stat(follow_symlinks=followlinks)
             return stat.is_dir()
-        except Exception:
+        except FileNotFoundError:
             return False
 
     def is_file(self, followlinks: bool = False) -> bool:
@@ -646,7 +602,7 @@ class Sftp2Path(URIPath):
             return (
                 S_ISREG(stat.st_mode) if hasattr(stat, "st_mode") else not stat.is_dir()
             )
-        except Exception:
+        except FileNotFoundError:
             return False
 
     def listdir(self) -> List[str]:
@@ -684,7 +640,7 @@ class Sftp2Path(URIPath):
                 parent_path_object.mkdir(mode=mode, parents=False, exist_ok=True)
         try:
             self._client.mkdir(self._real_path, mode)
-        except Exception:
+        except OSError:
             if not self.exists():
                 raise
 
@@ -706,7 +662,7 @@ class Sftp2Path(URIPath):
     def rename(self, dst_path: PathLike, overwrite: bool = True) -> "Sftp2Path":
         """Rename file on sftp2"""
         if not self._is_same_protocol(dst_path):
-            raise OSError("Not a %s path: %r" % (self.protocol, dst_path))
+            raise OSError(f"Not a {self.protocol} path: {dst_path!r}")
 
         dst_path = self.from_path(str(dst_path).rstrip("/"))
         src_stat = self.stat()
@@ -791,7 +747,7 @@ class Sftp2Path(URIPath):
         return _create_missing_ok_generator(
             create_generator(),
             missing_ok,
-            FileNotFoundError("No match any file in: %r" % self.path_with_protocol),
+            FileNotFoundError(f"No match any file in: {self.path_with_protocol!r}"),
         )
 
     def scandir(self) -> ContextIterator:
@@ -809,35 +765,28 @@ class Sftp2Path(URIPath):
             raise NotADirectoryError(f"Not a directory: '{self.path_with_protocol}'")
 
         def create_generator():
+            # Use opendir and readdir from ssh2-python
+            dir_handle = self._client.opendir(real_path)
             try:
-                # Use opendir and readdir from ssh2-python
-                dir_handle = self._client.opendir(real_path)
-                try:
-                    # ssh2-python's readdir returns a generator
-                    # First call returns all entries, subsequent calls return empty
-                    entries_gen = dir_handle.readdir()
-                    entries = list(entries_gen) if entries_gen else []
+                # ssh2-python's readdir returns a generator
+                # First call returns all entries, subsequent calls return empty
+                entries_gen = dir_handle.readdir()
+                entries = list(entries_gen) if entries_gen else []
 
-                    for name_len, name_bytes, stat_obj in entries:
-                        name = name_bytes.decode("utf-8")
-                        if name in (".", ".."):
-                            continue
+                for name_len, name_bytes, stat_obj in entries:
+                    name = name_bytes.decode("utf-8")
+                    if name in (".", ".."):
+                        continue
 
-                        try:
-                            # Convert stat_obj to StatResult
-                            stat_info = _make_stat(stat_obj)
-                            yield FileEntry(
-                                name,
-                                self.joinpath(name).path_with_protocol,
-                                stat_info,
-                            )
-                        except Exception:
-                            continue
-                finally:
-                    dir_handle.close()
-            except Exception:
-                # If directory listing fails, return empty
-                pass
+                    # Convert stat_obj to StatResult
+                    stat_info = _make_stat(stat_obj)
+                    yield FileEntry(
+                        name,
+                        self.joinpath(name).path_with_protocol,
+                        stat_info,
+                    )
+            finally:
+                dir_handle.close()
 
         return ContextIterator(create_generator())
 
@@ -849,8 +798,10 @@ class Sftp2Path(URIPath):
             else:
                 stat = self._client.lstat(self._real_path)
             return _make_stat(stat)
-        except Exception as e:
-            raise FileNotFoundError(f"No such file: '{self.path_with_protocol}'") from e
+        except SFTPProtocolError as e:  # pytype: disable=mro-error
+            raise FileNotFoundError(
+                f"No such file or directory: {self.path_with_protocol!r}"
+            ) from e
 
     def lstat(self) -> StatResult:
         """Get StatResult without following symlinks"""
@@ -877,17 +828,14 @@ class Sftp2Path(URIPath):
             root = stack.pop()
             dirs, files = [], []
 
-            try:
-                # Use scandir instead of readdir for consistency
-                root_path = self._generate_path_object(root)
-                with root_path.scandir() as entries:
-                    for entry in entries:
-                        if entry.is_dir():
-                            dirs.append(entry.name)
-                        elif entry.is_file():
-                            files.append(entry.name)
-            except Exception:
-                pass
+            # Use scandir instead of readdir for consistency
+            root_path = self._generate_path_object(root)
+            with root_path.scandir() as entries:
+                for entry in entries:
+                    if entry.is_dir():
+                        dirs.append(entry.name)
+                    elif entry.is_file():
+                        files.append(entry.name)
 
             dirs = sorted(dirs)
             files = sorted(files)
@@ -900,11 +848,8 @@ class Sftp2Path(URIPath):
 
     def resolve(self, strict=False) -> "Sftp2Path":
         """Return the canonical path"""
-        try:
-            path = self._client.realpath(self._real_path)
-            return self._generate_path_object(path, resolve=True)
-        except Exception:
-            return self
+        path = self._client.realpath(self._real_path)
+        return self._generate_path_object(path, resolve=True)
 
     def md5(self, recalculate: bool = False, followlinks: bool = False):
         """Calculate the md5 value of the file"""
@@ -937,11 +882,11 @@ class Sftp2Path(URIPath):
                 f"No such file or directory: '{self.path_with_protocol}'"
             )
         if not self.is_symlink():
-            raise OSError("Not a symlink: %s" % self.path_with_protocol)
+            raise OSError(f"Not a symlink: {self.path_with_protocol!r}")
         try:
             path = self._client.readlink(self._real_path)
             if not path:
-                raise OSError("Not a symlink: %s" % self.path_with_protocol)
+                raise OSError(f"Not a symlink: {self.path_with_protocol!r}")
             if not path.startswith("/"):
                 return self.parent.joinpath(path)
             return self._generate_path_object(path)
@@ -950,22 +895,19 @@ class Sftp2Path(URIPath):
                 f"No such file or directory: '{self.path_with_protocol}'"
             )
         except Exception:
-            raise OSError("Not a symlink: %s" % self.path_with_protocol)
+            raise OSError(f"Not a symlink: {self.path_with_protocol!r}")
 
     def is_symlink(self) -> bool:
         """Test whether a path is a symbolic link"""
         try:
             return self.lstat().is_symlink()
-        except Exception:
+        except FileNotFoundError:
             return False
 
     def cwd(self) -> "Sftp2Path":
         """Return current working directory"""
-        try:
-            path = self._client.realpath(".")
-            return self._generate_path_object(path)
-        except Exception:
-            return self._generate_path_object("/")
+        path = self._client.realpath(".")
+        return self._generate_path_object(path)
 
     def save(self, file_object: BinaryIO):
         """Write the opened binary stream to path"""
@@ -984,10 +926,10 @@ class Sftp2Path(URIPath):
         """Open a file on the path"""
         if "w" in mode or "x" in mode or "a" in mode:
             if self.is_dir():
-                raise IsADirectoryError("Is a directory: %r" % self.path_with_protocol)
+                raise IsADirectoryError(f"Is a directory: {self.path_with_protocol!r}")
             self.parent.mkdir(parents=True, exist_ok=True)
         elif not self.exists():
-            raise FileNotFoundError("No such file: %r" % self.path_with_protocol)
+            raise FileNotFoundError(f"No such file: {self.path_with_protocol!r}")
 
         # Convert mode for ssh2-python
         ssh2_mode = 0
@@ -1058,12 +1000,12 @@ class Sftp2Path(URIPath):
             return self.readlink().copy(dst_path=dst_path, callback=callback)
 
         if not self._is_same_protocol(dst_path):
-            raise OSError("Not a %s path: %r" % (self.protocol, dst_path))
+            raise OSError(f"Not a {self.protocol} path: {dst_path!r}")
         if str(dst_path).endswith("/"):
-            raise IsADirectoryError("Is a directory: %r" % dst_path)
+            raise IsADirectoryError(f"Is a directory: {dst_path!r}")
 
         if self.is_dir():
-            raise IsADirectoryError("Is a directory: %r" % self.path_with_protocol)
+            raise IsADirectoryError(f"Is a directory: {self.path_with_protocol!r}")
 
         if not overwrite and self.from_path(dst_path).exists():
             return
@@ -1077,33 +1019,29 @@ class Sftp2Path(URIPath):
                     f"'{self.path}' and '{dst_path.path}' are the same file"
                 )
             # Same server - use server-side copy command for efficiency
-            try:
-                # Use server-side cp command to avoid data transfer
-                cmd = (
-                    f"cp {shlex.quote(self._real_path)} "
-                    f"{shlex.quote(dst_path._real_path)}"
+            exec_result = self._exec_command(
+                [
+                    "cp",
+                    self._real_path,
+                    dst_path._real_path,
+                ]
+            )
+
+            if exec_result.returncode != 0:
+                _logger.error(exec_result.stderr)
+                raise OSError(
+                    f"Failed to copy file, returncode: {exec_result.returncode}, "
+                    f"{exec_result.stderr}"
                 )
-                exit_code, stdout, stderr = self._execute_command(cmd)
 
-                if exit_code == 0:
-                    # Server-side copy successful, update metadata
-                    src_stat = self.stat()
-                    dst_path.utime(src_stat.st_atime, src_stat.st_mtime)
-                    dst_path.chmod(src_stat.st_mode)
-                    return
-                else:
-                    _logger.debug(
-                        f"Server-side copy failed (exit {exit_code}): {stderr}"
-                    )
-                    # Fall back to SFTP copy
-            except Exception as e:
-                _logger.debug(f"Server-side copy failed with exception: {e}")
-                # Fall back to SFTP copy
+            if callback:
+                callback(self.stat(follow_symlinks=followlinks).size)
 
-        # Fallback to traditional SFTP copy (download then upload)
-        with self.open("rb") as fsrc:
-            with dst_path.open("wb") as fdst:
-                copyfileobj(fsrc, fdst, callback)
+        else:
+            # Fallback to traditional SFTP copy (download then upload)
+            with self.open("rb") as fsrc:
+                with dst_path.open("wb") as fdst:
+                    copyfileobj(fsrc, fdst, callback)
 
         src_stat = self.stat()
         dst_path.utime(src_stat.st_atime, src_stat.st_mtime)
@@ -1118,7 +1056,7 @@ class Sftp2Path(URIPath):
     ):
         """Copy file/directory on src_url to dst_url"""
         if not self._is_same_protocol(dst_path):
-            raise OSError("Not a %s path: %r" % (self.protocol, dst_path))
+            raise OSError(f"Not a {self.protocol} path: {dst_path!r}")
 
         for src_file_path, dst_file_path in _sftp2_scan_pairs(
             self.path_with_protocol, dst_path
@@ -1143,8 +1081,4 @@ class Sftp2Path(URIPath):
 
     def utime(self, atime: Union[float, int], mtime: Union[float, int]) -> None:
         """Set the access and modified times of the file"""
-        try:
-            self._client.utime(self._real_path, (atime, mtime))
-        except Exception:
-            # ssh2-python may not support utime directly
-            pass
+        self._client.utime(self._real_path, (atime, mtime))

@@ -1,7 +1,10 @@
 import io
 import os
+import shutil
 import stat
+import subprocess
 import time
+from typing import List
 
 import pytest
 
@@ -220,6 +223,26 @@ class FakeSSH2Session:
         return True
 
 
+def _fake_exec_command(
+    command: List[str],
+) -> subprocess.CompletedProcess:
+    if command[0] == "cp":
+        shutil.copy(command[1], command[2])
+    elif command[0] == "cat":
+        with open(command[-1], "wb") as f:
+            for file_name in command[1:-2]:
+                with open(file_name, "rb") as f_src:
+                    f.write(f_src.read())
+            return subprocess.CompletedProcess(
+                args=command, returncode=0, stdout=b"", stderr=b""
+            )
+    else:
+        raise OSError("Nonsupport command")
+    return subprocess.CompletedProcess(
+        args=command, returncode=0, stdout=b"", stderr=b""
+    )
+
+
 @pytest.fixture
 def sftp2_mocker(fs, mocker):
     client = FakeSFTP2Client()
@@ -227,13 +250,10 @@ def sftp2_mocker(fs, mocker):
     mocker.patch("megfile.sftp2_path.get_sftp2_client", return_value=client)
     mocker.patch("megfile.sftp2_path.get_ssh2_session", return_value=session)
 
-    # Mock _execute_command to simulate server-side operations but force fallback
-    def mock_execute_command(self, command):
-        """Mock _execute_command to test fallback behavior"""
-        # For testing, we always return failure to test fallback paths
-        return (1, "", "Mock: forcing fallback for testing")
-
-    mocker.patch("megfile.sftp2_path.Sftp2Path._execute_command", mock_execute_command)
+    # Mock _exec_command to simulate server-side operations but force fallback
+    mocker.patch(
+        "megfile.sftp2_path.Sftp2Path._exec_command", side_effect=_fake_exec_command
+    )
     yield client
 
 

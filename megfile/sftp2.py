@@ -1,12 +1,11 @@
 import base64
 import hashlib
 import os
-import shlex
 from logging import getLogger as get_logger
 from typing import IO, BinaryIO, Callable, Iterator, List, Optional, Tuple
 
-import ssh2.session
-import ssh2.utils
+import ssh2.session  # type: ignore
+import ssh2.utils  # type: ignore
 
 from megfile.interfaces import FileEntry, PathLike, StatResult
 from megfile.lib.compat import fspath
@@ -226,9 +225,9 @@ def sftp2_download(
     if followlinks and src_path.is_symlink():
         src_path = src_path.readlink()
     if src_path.is_dir():
-        raise IsADirectoryError("Is a directory: %r" % src_url)
+        raise IsADirectoryError(f"Is a directory: {src_url!r}")
     if str(dst_url).endswith("/"):
-        raise IsADirectoryError("Is a directory: %r" % dst_url)
+        raise IsADirectoryError(f"Is a directory: {dst_url!r}")
 
     dst_path.parent.makedirs(exist_ok=True)
 
@@ -267,9 +266,9 @@ def sftp2_upload(
     if followlinks and os.path.islink(src_url):
         src_url = os.readlink(src_url)
     if os.path.isdir(src_url):
-        raise IsADirectoryError("Is a directory: %r" % src_url)
+        raise IsADirectoryError(f"Is a directory: {src_url!r}")
     if str(dst_url).endswith("/"):
-        raise IsADirectoryError("Is a directory: %r" % dst_url)
+        raise IsADirectoryError(f"Is a directory: {dst_url!r}")
 
     src_path = FSPath(src_url)
     if isinstance(dst_url, Sftp2Path):
@@ -327,28 +326,25 @@ def sftp2_concat(src_paths: List[PathLike], dst_path: PathLike) -> None:
 
     if all_same_backend and len(src_paths) > 1:
         # Use server-side cat command for efficiency
-        try:
-            src_paths_quoted = []
-            for src_path in src_paths:
-                src_obj = Sftp2Path(src_path)
-                src_paths_quoted.append(shlex.quote(src_obj._real_path))
+        def get_real_path(path: PathLike) -> str:
+            return Sftp2Path(path)._real_path
 
-            dst_quoted = shlex.quote(dst_path_obj._real_path)
+        exec_result = dst_path_obj._exec_command(
+            [
+                "cat",
+                *map(get_real_path, src_paths),
+                ">",
+                get_real_path(dst_path),
+            ]
+        )
 
-            # Use server-side cat command to avoid data transfer
-            cmd = f"cat {' '.join(src_paths_quoted)} > {dst_quoted}"
-            exit_code, stdout, stderr = dst_path_obj._execute_command(cmd)
-
-            if exit_code == 0:
-                # Server-side concat successful
-                return
-            else:
-                # Log the failure but fall back to SFTP method
-                _logger.debug(f"Server-side concat failed (exit {exit_code}): {stderr}")
-
-        except Exception as e:
-            # Log the exception but fall back to SFTP method
-            _logger.debug(f"Server-side concat failed with exception: {e}")
+        if exec_result.returncode != 0:
+            # Log the failure but fall back to SFTP method
+            _logger.error(exec_result.stderr)
+            raise OSError(
+                f"Failed to concat files, returncode: {exec_result.returncode}, "
+                f"{exec_result.stderr}"
+            )
 
     # Fallback to traditional SFTP concat (download then upload)
     with dst_path_obj.open("wb") as dst_file:
