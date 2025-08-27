@@ -42,5 +42,3 @@ release:
 	python3 -m build --wheel
 
 	twine upload dist/${PACKAGE}-${VERSION}-py3-none-any.whl --username='${PYPI_USERNAME}' --password='${PYPI_PASSWORD}' --repository-url 'http://pypi.i.brainpp.cn/r-eng/dev/'
-	twine upload dist/${PACKAGE}-${VERSION}-py3-none-any.whl --username='${PYPI_USERNAME_2}' --password='${PYPI_PASSWORD_2}' --repository-url 'https://pypi.megvii-inc.com/repository/pypi/'
-	twine upload dist/${PACKAGE}-${VERSION}-py3-none-any.whl --username=${PYPI_USERNAME_3} --password=${PYPI_PASSWORD_3}

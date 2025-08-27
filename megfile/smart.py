@@ -723,6 +723,8 @@ def smart_open(
         read mode. Only be used in s3, http, hdfs.
     :param block_size: Size of single block. Each block will be uploaded by single
         thread. Only be used in s3, http, hdfs.
+    :param buffered: If you are operating pickle file without .pkl or .pickle extension,
+        please set this to True to avoid the performance issue.
 
     :returns: File-Like object
     :raises: FileNotFoundError, IsADirectoryError, ValueError

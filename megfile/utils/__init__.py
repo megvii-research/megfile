@@ -88,13 +88,16 @@ def _is_pickle(fileobj) -> bool:
     if fileobj.name.endswith(".pkl") or fileobj.name.endswith(".pickle"):
         return True
 
-    if "r" in fileobj.mode and "b" in fileobj.mode:
-        offset = fileobj.tell()
-        fileobj.seek(0)
-        data = fileobj.read(2)
-        fileobj.seek(offset)
-        if len(data) >= 2 and data[0] == 128 and 2 <= data[1] <= 5:
-            return True
+    # XXX: read 2 bytes will trigger pre read in prefetch reader,
+    #      so comment out the code for now.
+    #
+    # if "r" in fileobj.mode and "b" in fileobj.mode:
+    #     offset = fileobj.tell()
+    #     fileobj.seek(0)
+    #     data = fileobj.read(2)
+    #     fileobj.seek(offset)
+    #     if len(data) >= 2 and data[0] == 128 and 2 <= data[1] <= 5:
+    #         return True
     return False
 
 

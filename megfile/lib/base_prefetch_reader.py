@@ -82,6 +82,7 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
 
         self._offset = 0
         self._cached_buffer = None
+        self._block_index = 0  # Current block index
         self._seek_history = []
         self._seek_buffer(0)
 

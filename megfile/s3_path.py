@@ -969,6 +969,8 @@ def s3_buffered_open(
         (both file head part and tail part can seek block_size).
         Notes: This parameter are valid only for write-handle.
         Read-handle support arbitrary seek
+    :param buffered: If you are operating pickle file without .pkl or .pickle extension,
+        please set this to True to avoid the performance issue.
     :returns: An opened File object
     :raises: S3FileNotFoundError
     """
@@ -1028,7 +1030,7 @@ def s3_buffered_open(
                 profile_name=s3_url._profile_name,
             )
         if buffered or _is_pickle(reader):
-            reader = io.BufferedReader(reader, buffer_size=block_size)  # type: ignore
+            reader = io.BufferedReader(reader)  # type: ignore
         return reader
 
     block_size = block_size or WRITER_BLOCK_SIZE
@@ -1057,7 +1059,7 @@ def s3_buffered_open(
             profile_name=s3_url._profile_name,
         )
     if buffered or _is_pickle(writer):
-        writer = io.BufferedWriter(writer, buffer_size=block_size)  # type: ignore
+        writer = io.BufferedWriter(writer)  # type: ignore
     return writer
 
 
