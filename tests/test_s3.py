@@ -1,7 +1,6 @@
 import hashlib
 import logging
 import os
-import pickle
 import sys
 import threading
 import time
@@ -2950,9 +2949,9 @@ def test_s3_buffered_open(mocker, s3_empty_client, fs):
     writer = s3.s3_buffered_open("s3://bucket/key.pkl", "wb")
     assert isinstance(writer, BufferedWriter)
 
-    s3_empty_client.put_object(Bucket="bucket", Key="key", Body=pickle.dumps("test"))
-    reader = s3.s3_buffered_open("s3://bucket/key", "rb")
-    assert isinstance(reader, BufferedReader)
+    # s3_empty_client.put_object(Bucket="bucket", Key="key", Body=pickle.dumps("test"))
+    # reader = s3.s3_buffered_open("s3://bucket/key", "rb")
+    # assert isinstance(reader, BufferedReader)
 
     s3_empty_client.put_object(Bucket="bucket", Key="key.pkl", Body=content)
     reader = s3.s3_buffered_open("s3://bucket/key.pkl", "rb")

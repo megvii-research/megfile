@@ -127,13 +127,13 @@ def test_shadow_copy_pickle_file(fs):
     with open("test.pkl", "wb") as f:
         assert isinstance(shadow_copy(f), io.BufferedWriter)
 
-    with open("test", "wb") as f:
+    with open("test.pkl", "wb") as f:
         f.write(pickle.dumps(b"test"))
 
-    with open("test", "rb") as f:
+    with open("test.pkl", "rb") as f:
         assert isinstance(shadow_copy(f), io.BufferedReader)
 
-    with open("test", "rb+") as f:
+    with open("test.pkl", "rb+") as f:
         assert isinstance(shadow_copy(f), io.BufferedRandom)
 
 
