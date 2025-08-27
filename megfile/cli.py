@@ -47,7 +47,7 @@ from megfile.smart import (
     smart_unlink,
 )
 from megfile.smart_path import SmartPath
-from megfile.utils import get_human_size
+from megfile.utils import copyfileobj_multi, get_human_size
 from megfile.version import VERSION
 
 options = {}
@@ -646,14 +646,10 @@ def to(path: str, append: bool, stdout: bool):
         smart_open(path, mode) as f,
         smart_open("stdio://1", "wb") as stdout_fd,
     ):
-        length = 16 * 1024
-        while True:
-            buf = stdin.read(length)
-            if not buf:
-                break
-            f.write(buf)
-            if stdout:
-                stdout_fd.write(buf)
+        destinations = [f]
+        if stdout:
+            destinations.append(stdout_fd)
+        copyfileobj_multi(stdin, destinations)
 
 
 @cli.command(short_help="Produce an md5sum file for all the objects in the path.")

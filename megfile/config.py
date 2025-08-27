@@ -106,6 +106,10 @@ GLOBAL_MAX_WORKERS = int(os.getenv("MEGFILE_MAX_WORKERS") or 8)
 
 NEWLINE = ord("\n")
 
+# Default buffer sizes for various operations
+DEFAULT_COPY_BUFFER_SIZE = 16 * 1024  # 16KB, same as shutil.copyfileobj
+DEFAULT_HASH_BUFFER_SIZE = 4 * 1024  # 4KB for hash calculations
+
 S3_CLIENT_CACHE_MODE = os.getenv("MEGFILE_S3_CLIENT_CACHE_MODE") or "thread_local"
 
 DEFAULT_MAX_RETRY_TIMES = int(os.getenv("MEGFILE_MAX_RETRY_TIMES") or 10)
