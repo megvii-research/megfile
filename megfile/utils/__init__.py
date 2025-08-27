@@ -18,7 +18,11 @@ from io import (
 from threading import RLock
 from typing import IO, Callable, List, Optional
 
-from megfile.config import DEFAULT_COPY_BUFFER_SIZE, DEFAULT_HASH_BUFFER_SIZE
+from megfile.config import (
+    DEFAULT_COPY_BUFFER_SIZE,
+    DEFAULT_HASH_BUFFER_SIZE,
+    READER_LAZY_PREFETCH,
+)
 from megfile.utils.mutex import ProcessLocal, ThreadLocal
 
 
@@ -82,6 +86,9 @@ def is_writable(fileobj: IO) -> bool:
 
 def _is_pickle(fileobj) -> bool:
     """Test if File Object is pickle"""
+    if READER_LAZY_PREFETCH:
+        return False
+
     if fileobj.name.endswith(".pkl") or fileobj.name.endswith(".pickle"):
         return True
 

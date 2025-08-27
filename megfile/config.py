@@ -83,6 +83,7 @@ if READER_BLOCK_SIZE <= 0:
 READER_MAX_BUFFER_SIZE = parse_quantity(
     os.getenv("MEGFILE_READER_MAX_BUFFER_SIZE") or 128 * 2**20
 )
+READER_LAZY_PREFETCH = parse_boolean(os.getenv("MEGFILE_READER_LAZY_PREFETCH"), False)
 
 # Multi-upload in aws s3 has a maximum of 10,000 parts,
 # so the maximum supported file size is MEGFILE_WRITE_BLOCK_SIZE * 10,000,
