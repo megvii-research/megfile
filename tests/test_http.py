@@ -139,7 +139,7 @@ def test_http_open_pickle(mocker):
     mocker.patch("requests.get", return_value=PickleResponse())
 
     requests_get_func.return_value = PickleResponse()
-    with http_open("http://test", "rb", block_size=1) as http_reader:
+    with http_open("http://test.pkl", "rb", block_size=1) as http_reader:
         assert isinstance(http_reader, BufferedReader)
 
 
