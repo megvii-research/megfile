@@ -1,3 +1,10 @@
+## 4.2.4 - 2025.09.01
+- feat
+    - Added the `sftp2` protocol, implemented using the ssh2-python library, which is faster.Please install it using `pip install 'megfile[sftp2]'`.
+- perf
+    - Added the `MEGFILE_READER_LAZY_PREFETCH` environment variable, which allows the reader to read in a lazy manner.
+    - For performance reasons, `_is_pickle` only determines based on the file extension. If your file extension is not `.pkl` or `.pickle`, please add the `buffered=True` parameter to improve pickle reading performance.
+
 ## 4.2.3 - 2025.08.13
 - fix
     - fix samefile logic error for s3+profile in sync 
