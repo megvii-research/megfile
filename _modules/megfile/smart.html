@@ -126,7 +126,7 @@
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">megfile.sftp</span><span class="w"> </span><span class="kn">import</span> <span class="n">sftp_concat</span><span class="p">,</span> <span class="n">sftp_copy</span><span class="p">,</span> <span class="n">sftp_download</span><span class="p">,</span> <span class="n">sftp_upload</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">megfile.smart_path</span><span class="w"> </span><span class="kn">import</span> <span class="n">SmartPath</span><span class="p">,</span> <span class="n">get_traditional_path</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">megfile.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">combine</span><span class="p">,</span> <span class="n">generate_cache_path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">megfile.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">combine</span><span class="p">,</span> <span class="n">copyfileobj</span><span class="p">,</span> <span class="n">generate_cache_path</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">&quot;smart_access&quot;</span><span class="p">,</span>
@@ -409,16 +409,7 @@
 
     <span class="k">with</span> <span class="n">smart_open</span><span class="p">(</span><span class="n">src_path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">,</span> <span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span> <span class="k">as</span> <span class="n">fsrc</span><span class="p">:</span>
         <span class="k">with</span> <span class="n">smart_open</span><span class="p">(</span><span class="n">dst_path</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fdst</span><span class="p">:</span>
-            <span class="c1"># This magic number is copied from  copyfileobj</span>
-            <span class="n">length</span> <span class="o">=</span> <span class="mi">16</span> <span class="o">*</span> <span class="mi">1024</span>
-            <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-                <span class="n">buf</span> <span class="o">=</span> <span class="n">fsrc</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">buf</span><span class="p">:</span>
-                    <span class="k">break</span>
-                <span class="n">fdst</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">callback</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="k">continue</span>
-                <span class="n">callback</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">buf</span><span class="p">))</span>
+            <span class="n">copyfileobj</span><span class="p">(</span><span class="n">fsrc</span><span class="p">,</span> <span class="n">fdst</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">src_stat</span> <span class="o">=</span> <span class="n">smart_stat</span><span class="p">(</span><span class="n">src_path</span><span class="p">)</span>
         <span class="n">dst_path</span> <span class="o">=</span> <span class="n">SmartPath</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span>
@@ -869,6 +860,8 @@
 <span class="sd">        read mode. Only be used in s3, http, hdfs.</span>
 <span class="sd">    :param block_size: Size of single block. Each block will be uploaded by single</span>
 <span class="sd">        thread. Only be used in s3, http, hdfs.</span>
+<span class="sd">    :param buffered: If you are operating pickle file without .pkl or .pickle extension,</span>
+<span class="sd">        please set this to True to avoid the performance issue.</span>
 
 <span class="sd">    :returns: File-Like object</span>
 <span class="sd">    :raises: FileNotFoundError, IsADirectoryError, ValueError</span>
@@ -1317,15 +1310,10 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_default_concat_func</span><span class="p">(</span><span class="n">src_paths</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">PathLike</span><span class="p">],</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="n">length</span> <span class="o">=</span> <span class="mi">16</span> <span class="o">*</span> <span class="mi">1024</span>
     <span class="k">with</span> <span class="n">smart_open</span><span class="p">(</span><span class="n">dst_path</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">dst_fd</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">src_path</span> <span class="ow">in</span> <span class="n">src_paths</span><span class="p">:</span>
             <span class="k">with</span> <span class="n">smart_open</span><span class="p">(</span><span class="n">src_path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">src_fd</span><span class="p">:</span>
-                <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-                    <span class="n">buf</span> <span class="o">=</span> <span class="n">src_fd</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="ow">not</span> <span class="n">buf</span><span class="p">:</span>
-                        <span class="k">break</span>
-                    <span class="n">dst_fd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span>
+                <span class="n">copyfileobj</span><span class="p">(</span><span class="n">src_fd</span><span class="p">,</span> <span class="n">dst_fd</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="smart_concat">

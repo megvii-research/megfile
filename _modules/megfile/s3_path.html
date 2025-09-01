@@ -1082,6 +1082,8 @@
 <span class="sd">        (both file head part and tail part can seek block_size).</span>
 <span class="sd">        Notes: This parameter are valid only for write-handle.</span>
 <span class="sd">        Read-handle support arbitrary seek</span>
+<span class="sd">    :param buffered: If you are operating pickle file without .pkl or .pickle extension,</span>
+<span class="sd">        please set this to True to avoid the performance issue.</span>
 <span class="sd">    :returns: An opened File object</span>
 <span class="sd">    :raises: S3FileNotFoundError</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -1113,6 +1115,7 @@
         <span class="p">)</span>
 
     <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;rb&quot;</span><span class="p">:</span>
+        <span class="n">block_size</span> <span class="o">=</span> <span class="n">block_size</span> <span class="ow">or</span> <span class="n">READER_BLOCK_SIZE</span>
         <span class="k">if</span> <span class="n">share_cache_key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">reader</span> <span class="o">=</span> <span class="n">S3ShareCacheReader</span><span class="p">(</span>
                 <span class="n">bucket</span><span class="p">,</span>
@@ -1121,7 +1124,7 @@
                 <span class="n">s3_client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span>
                 <span class="n">max_retries</span><span class="o">=</span><span class="n">max_retries</span><span class="p">,</span>
                 <span class="n">max_workers</span><span class="o">=</span><span class="n">max_workers</span><span class="p">,</span>
-                <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span> <span class="ow">or</span> <span class="n">READER_BLOCK_SIZE</span><span class="p">,</span>
+                <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span><span class="p">,</span>
                 <span class="n">block_forward</span><span class="o">=</span><span class="n">block_forward</span><span class="p">,</span>
                 <span class="n">profile_name</span><span class="o">=</span><span class="n">s3_url</span><span class="o">.</span><span class="n">_profile_name</span><span class="p">,</span>
             <span class="p">)</span>
@@ -1136,13 +1139,14 @@
                 <span class="n">max_workers</span><span class="o">=</span><span class="n">max_workers</span><span class="p">,</span>
                 <span class="n">max_buffer_size</span><span class="o">=</span><span class="n">max_buffer_size</span><span class="p">,</span>
                 <span class="n">block_forward</span><span class="o">=</span><span class="n">block_forward</span><span class="p">,</span>
-                <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span> <span class="ow">or</span> <span class="n">READER_BLOCK_SIZE</span><span class="p">,</span>
+                <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span><span class="p">,</span>
                 <span class="n">profile_name</span><span class="o">=</span><span class="n">s3_url</span><span class="o">.</span><span class="n">_profile_name</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="k">if</span> <span class="n">buffered</span> <span class="ow">or</span> <span class="n">_is_pickle</span><span class="p">(</span><span class="n">reader</span><span class="p">):</span>
             <span class="n">reader</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BufferedReader</span><span class="p">(</span><span class="n">reader</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
         <span class="k">return</span> <span class="n">reader</span>
 
+    <span class="n">block_size</span> <span class="o">=</span> <span class="n">block_size</span> <span class="ow">or</span> <span class="n">WRITER_BLOCK_SIZE</span>
     <span class="k">if</span> <span class="n">limited_seekable</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">max_buffer_size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">max_buffer_size</span> <span class="o">=</span> <span class="n">WRITER_MAX_BUFFER_SIZE</span>
@@ -1151,7 +1155,7 @@
             <span class="n">key</span><span class="p">,</span>
             <span class="n">s3_client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span>
             <span class="n">max_workers</span><span class="o">=</span><span class="n">max_workers</span><span class="p">,</span>
-            <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span> <span class="ow">or</span> <span class="n">WRITER_BLOCK_SIZE</span><span class="p">,</span>
+            <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span><span class="p">,</span>
             <span class="n">max_buffer_size</span><span class="o">=</span><span class="n">max_buffer_size</span><span class="p">,</span>
             <span class="n">profile_name</span><span class="o">=</span><span class="n">s3_url</span><span class="o">.</span><span class="n">_profile_name</span><span class="p">,</span>
         <span class="p">)</span>
@@ -1163,7 +1167,7 @@
             <span class="n">key</span><span class="p">,</span>
             <span class="n">s3_client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span>
             <span class="n">max_workers</span><span class="o">=</span><span class="n">max_workers</span><span class="p">,</span>
-            <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span> <span class="ow">or</span> <span class="n">WRITER_BLOCK_SIZE</span><span class="p">,</span>
+            <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span><span class="p">,</span>
             <span class="n">max_buffer_size</span><span class="o">=</span><span class="n">max_buffer_size</span><span class="p">,</span>
             <span class="n">profile_name</span><span class="o">=</span><span class="n">s3_url</span><span class="o">.</span><span class="n">_profile_name</span><span class="p">,</span>
         <span class="p">)</span>

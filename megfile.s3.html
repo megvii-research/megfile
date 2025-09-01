@@ -260,6 +260,8 @@ Each block will be uploaded by single thread.</p></li>
 (both file head part and tail part can seek block_size).
 Notes: This parameter are valid only for write-handle.
 Read-handle support arbitrary seek</p></li>
+<li><p><strong>buffered</strong> – If you are operating pickle file without .pkl or .pickle extension,
+please set this to True to avoid the performance issue.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -717,6 +719,8 @@ Each block will be uploaded by single thread.</p></li>
 (both file head part and tail part can seek block_size).
 Notes: This parameter are valid only for write-handle.
 Read-handle support arbitrary seek</p></li>
+<li><p><strong>buffered</strong> – If you are operating pickle file without .pkl or .pickle extension,
+please set this to True to avoid the performance issue.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>

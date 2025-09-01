@@ -590,6 +590,8 @@ Set to <cite>0</cite> will disable cache. Only be used in s3, http, hdfs.</p></l
 read mode. Only be used in s3, http, hdfs.</p></li>
 <li><p><strong>block_size</strong> – Size of single block. Each block will be uploaded by single
 thread. Only be used in s3, http, hdfs.</p></li>
+<li><p><strong>buffered</strong> – If you are operating pickle file without .pkl or .pickle extension,
+please set this to True to avoid the performance issue.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>

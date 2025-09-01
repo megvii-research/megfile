@@ -108,7 +108,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">megfile.lib.joinpath</span><span class="w"> </span><span class="kn">import</span> <span class="n">path_join</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">megfile.lib.url</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_url_scheme</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">megfile.smart_path</span><span class="w"> </span><span class="kn">import</span> <span class="n">SmartPath</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">megfile.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">calculate_md5</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">megfile.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">calculate_md5</span><span class="p">,</span> <span class="n">copyfd</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">&quot;FSPath&quot;</span><span class="p">,</span>
@@ -916,15 +916,7 @@
     <span class="p">):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fspath</span><span class="p">(</span><span class="n">dst_path</span><span class="p">),</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fdst</span><span class="p">:</span>
-                <span class="c1"># This magic number is copied from  copyfileobj</span>
-                <span class="n">length</span> <span class="o">=</span> <span class="mi">16</span> <span class="o">*</span> <span class="mi">1024</span>
-                <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-                    <span class="n">buf</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="n">length</span><span class="p">)</span>  <span class="c1"># pyre-ignore[6]</span>
-                    <span class="k">if</span> <span class="ow">not</span> <span class="n">buf</span><span class="p">:</span>
-                        <span class="k">break</span>
-                    <span class="n">fdst</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">callback</span><span class="p">:</span>
-                        <span class="n">callback</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">buf</span><span class="p">))</span>
+                <span class="n">copyfd</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="n">fdst</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span>  <span class="c1"># pyre-ignore[6]</span>
