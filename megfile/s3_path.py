@@ -230,7 +230,7 @@ def get_endpoint_url(profile_name: Optional[str] = None) -> str:
     config_endpoint_url = config.get("s3", {}).get("endpoint_url")
     config_endpoint_url = config_endpoint_url or config.get("endpoint_url")
     if config_endpoint_url:
-        warning_endpoint_url("~/.aws/config", config_endpoint_url)
+        warning_endpoint_url("~/.aws/config or ~/.aws/credentials", config_endpoint_url)
         return config_endpoint_url
     return endpoint_url
 
