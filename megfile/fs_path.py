@@ -17,6 +17,7 @@ from megfile.interfaces import (
     Access,
     ContextIterator,
     FileEntry,
+    FileLike,
     PathLike,
     StatResult,
     URIPath,
@@ -83,6 +84,34 @@ def _fs_rename_file(
     if dst_dir and dst_dir != ".":
         os.makedirs(dst_dir, exist_ok=True)
     shutil.move(src_path, dst_path)
+
+
+class WrapAtomic(FileLike):
+    __atomic__ = True
+
+    def __init__(self, fileobj):
+        self.fileobj = fileobj
+        self.temp_name = f"{self.name}.temp"
+        os.rename(self.name, self.temp_name)
+
+    @property
+    def name(self):
+        return self.fileobj.name
+
+    @property
+    def mode(self):
+        return self.fileobj.mode
+
+    def _close(self):
+        self.fileobj.close()
+        os.rename(self.temp_name, self.name)
+
+    def _clear(self):
+        if os.path.isfile(self.temp_name):
+            os.unlink(self.temp_name)
+
+    def __getattr__(self, name: str):
+        return getattr(self.fileobj, name)
 
 
 @SmartPath.register
@@ -917,11 +946,12 @@ class FSPath(URIPath):
     def open(
         self,
         mode: str = "r",
-        buffering=-1,
-        encoding=None,
-        errors=None,
-        newline=None,
-        closefd=True,
+        buffering: int = -1,
+        encoding: Optional[str] = None,
+        errors: Optional[str] = None,
+        newline: Optional[str] = None,
+        closefd: bool = True,
+        atomic: bool = False,
         **kwargs,
     ) -> IO:
         if not isinstance(self.path_without_protocol, int) and (
@@ -932,7 +962,7 @@ class FSPath(URIPath):
                     self.path_without_protocol  # pyre-ignore[6]
                 )
             ).mkdir(parents=True, exist_ok=True)
-        return io.open(
+        fp = io.open(
             self.path_without_protocol,
             mode,
             buffering=buffering,
@@ -941,6 +971,9 @@ class FSPath(URIPath):
             newline=newline,
             closefd=closefd,
         )
+        if atomic and ("w" in mode or "x" in mode or "a" in mode):
+            return WrapAtomic(fp)
+        return fp
 
     @cached_property
     def parts(self) -> Tuple[str, ...]:

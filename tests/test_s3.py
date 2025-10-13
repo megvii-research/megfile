@@ -3740,3 +3740,34 @@ def test_s3_concat_case4(s3_empty_client):
     s3.s3_concat([f"s3://bucket/{index}" for index in range(3)], "s3://bucket/all")
     assert s3.s3_stat("s3://bucket/all").size == 10 * 1024 * 1024 + 1
     assert s3.s3_load_content("s3://bucket/all", start=10 * 1024 * 1024) == b"9"
+
+
+def test_s3_atomic(s3_empty_client):
+    one_mb_block = b"0" * 1024 * 1024
+    s3_empty_client.create_bucket(Bucket="bucket")
+
+    with s3.s3_open("s3://bucket/00", "wb") as f:
+        f.write(one_mb_block)
+
+    with pytest.raises(RuntimeError):
+        with s3.s3_open("s3://bucket/01", "wb") as f:
+            f.write(one_mb_block)
+            raise RuntimeError
+
+    f = s3.s3_open("s3://bucket/02", "wb")
+    f.write(one_mb_block)
+    del f
+
+    with s3.s3_open("s3://bucket/10", "wb", atomic=True) as f:
+        f.write(one_mb_block)
+
+    with pytest.raises(RuntimeError):
+        with s3.s3_open("s3://bucket/11", "wb", atomic=True) as f:
+            f.write(one_mb_block)
+            raise RuntimeError
+
+    f = s3.s3_open("s3://bucket/12", "wb", atomic=True)
+    f.write(one_mb_block)
+    del f
+
+    assert s3.s3_listdir("s3://bucket") == ["00", "01", "02", "10"]
