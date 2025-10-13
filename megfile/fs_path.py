@@ -106,9 +106,11 @@ class WrapAtomic(FileLike):
         self.fileobj.close()
         os.rename(self.temp_name, self.name)
 
-    def _clear(self):
-        if os.path.isfile(self.temp_name):
+    def _abort(self):
+        try:
             os.unlink(self.temp_name)
+        except FileNotFoundError:
+            pass
 
     def __getattr__(self, name: str):
         return getattr(self.fileobj, name)
@@ -656,9 +658,11 @@ class FSPath(URIPath):
         """
         self._check_int_path()
 
-        if missing_ok and not self.exists():
-            return
-        os.unlink(self.path_without_protocol)  # pyre-ignore[6]
+        try:
+            os.unlink(self.path_without_protocol)  # pyre-ignore[6]
+        except FileNotFoundError:
+            if not missing_ok:
+                raise
 
     def walk(
         self, followlinks: bool = False

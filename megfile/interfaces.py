@@ -65,7 +65,7 @@ class Closable(ABC):
     def _close(self) -> None:
         pass  # pragma: no cover
 
-    def _clear(self) -> None:
+    def _abort(self) -> None:
         pass
 
     def close(self) -> None:
@@ -88,7 +88,7 @@ class Closable(ABC):
                 f"skip closing atomic file-like object: {self}, "
                 f"since error encountered: {full_error_message(value)}"
             )
-            self._clear()
+            self._abort()
             return
         self.close()
 
@@ -97,7 +97,7 @@ class Closable(ABC):
             _logger.warning(
                 f"skip closing atomic file-like object before deletion: {self}"
             )
-            self._clear()
+            self._abort()
             return
         self.close()
 

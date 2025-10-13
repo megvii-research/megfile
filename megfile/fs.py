@@ -52,6 +52,7 @@ __all__ = [
     "fs_islink",
     "fs_ismount",
     "fs_save_as",
+    "fs_open",
 ]
 
 

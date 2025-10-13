@@ -215,6 +215,17 @@ class S3BufferedWriter(Writable[bytes]):
         if not self._is_global_executor:
             self._executor.shutdown()
 
+    def _abort(self):
+        _logger.debug("abort file: %r" % self.name)
+
+        if self._is_multipart:
+            with raise_s3_error(self.name):
+                self._client.abort_multipart_upload(
+                    Bucket=self._bucket, Key=self._key, UploadId=self._upload_id
+                )
+
+        self._shutdown()
+
     def _close(self):
         _logger.debug("close file: %r" % self.name)
 
