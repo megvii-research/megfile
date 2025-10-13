@@ -66,12 +66,6 @@ class FakeSFTP2Client:
             times = (time.time(), time.time())
         os.utime(path, times)
 
-    def readlink(self, path):
-        path = os.readlink(path)
-        if not os.path.exists(path):
-            return None
-        return path
-
     def realpath(self, path):
         return os.path.realpath(path)
 
@@ -272,17 +266,16 @@ def test_sftp2_readlink(sftp2_mocker):
     sftp2.sftp2_symlink(path, link_path)
     assert sftp2.sftp2_readlink(link_path) == path
 
+    path = "sftp2://username@host//notFound"
+    link_path = "sftp2://username@host//notFound.lnk"
+    sftp2.sftp2_symlink(path, link_path)
+    assert sftp2.sftp2_readlink(link_path) == path
+
     with pytest.raises(FileNotFoundError):
         sftp2.sftp2_readlink("sftp2://username@host//notFound")
 
     with pytest.raises(OSError):
         sftp2.sftp2_readlink("sftp2://username@host//file")
-
-    path = "sftp2://username@host//notFound"
-    link_path = "sftp2://username@host//notFound.lnk"
-    sftp2.sftp2_symlink(path, link_path)
-    with pytest.raises(OSError):
-        sftp2.sftp2_readlink("sftp2://username@host//notFound.lnk")
 
 
 def test_sftp2_absolute(sftp2_mocker):

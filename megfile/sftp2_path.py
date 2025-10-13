@@ -884,7 +884,7 @@ class Sftp2Path(URIPath):
         if not self.is_symlink():
             raise OSError(f"Not a symlink: {self.path_with_protocol!r}")
         try:
-            path = self._client.readlink(self._real_path)
+            path = self._client.realpath(self._real_path)
             if not path:
                 raise OSError(f"Not a symlink: {self.path_with_protocol!r}")
             if not path.startswith("/"):
