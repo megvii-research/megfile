@@ -937,6 +937,7 @@ def s3_buffered_open(
     buffered: bool = False,
     share_cache_key: Optional[str] = None,
     cache_path: Optional[str] = None,
+    atomic: bool = False,
 ) -> IO:
     """Open an asynchronous prefetch reader, to support fast sequential read
 
@@ -1045,6 +1046,7 @@ def s3_buffered_open(
             block_size=block_size,
             max_buffer_size=max_buffer_size,
             profile_name=s3_url._profile_name,
+            atomic=atomic,
         )
     else:
         if max_buffer_size is None:
@@ -1057,6 +1059,7 @@ def s3_buffered_open(
             block_size=block_size,
             max_buffer_size=max_buffer_size,
             profile_name=s3_url._profile_name,
+            atomic=atomic,
         )
     if buffered or _is_pickle(writer):
         writer = io.BufferedWriter(writer)  # type: ignore

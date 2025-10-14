@@ -1,6 +1,7 @@
 import os
 from abc import ABC, abstractmethod
 from io import IOBase, UnsupportedOperation
+from logging import getLogger as get_logger
 from typing import IO, AnyStr, Iterable, List, Optional
 
 from megfile.pathlike import (
@@ -31,6 +32,8 @@ __all__ = [
     "URIPath",
 ]
 
+_logger = get_logger(__name__)
+
 
 def fullname(o):
     klass = o.__class__
@@ -43,15 +46,27 @@ def fullname(o):
 # 1. Default value of closed is False
 # 2. closed is set to True when close() are called
 # 3. close() will only be called once
+# 4. atomic means the file-like object should not be closed automatically
+#    when an exception is raised in the context manager or when the object is
+#    garbage collected.
+# 5. atomic is False by default
 class Closable(ABC):
     @property
     def closed(self) -> bool:
         """Return True if the file-like object is closed."""
         return getattr(self, "__closed__", False)
 
+    @property
+    def atomic(self) -> bool:
+        """Return True if the file-like object is atomic."""
+        return getattr(self, "__atomic__", False)
+
     @abstractmethod
     def _close(self) -> None:
         pass  # pragma: no cover
+
+    def _abort(self) -> None:
+        pass
 
     def close(self) -> None:
         """Flush and close the file-like object.
@@ -66,6 +81,24 @@ class Closable(ABC):
         return self
 
     def __exit__(self, type, value, traceback) -> None:
+        if self.atomic and value is not None:
+            from megfile.errors import full_error_message
+
+            _logger.warning(
+                f"skip closing atomic file-like object: {self}, "
+                f"since error encountered: {full_error_message(value)}"
+            )
+            self._abort()
+            return
+        self.close()
+
+    def __del__(self):
+        if self.atomic:
+            _logger.warning(
+                f"skip closing atomic file-like object before deletion: {self}"
+            )
+            self._abort()
+            return
         self.close()
 
 

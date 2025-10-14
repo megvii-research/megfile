@@ -1,7 +1,7 @@
 import os
 from stat import S_ISDIR as stat_isdir
 from stat import S_ISLNK as stat_islnk
-from typing import BinaryIO, Callable, Iterator, List, Optional, Tuple
+from typing import IO, BinaryIO, Callable, Iterator, List, Optional, Tuple
 
 from megfile.fs_path import (
     FSPath,
@@ -52,6 +52,7 @@ __all__ = [
     "fs_islink",
     "fs_ismount",
     "fs_save_as",
+    "fs_open",
 ]
 
 
@@ -612,3 +613,15 @@ def fs_move(src_path: PathLike, dst_path: PathLike, overwrite: bool = True) -> N
     :param overwrite: whether or not overwrite file when exists
     """
     return fs_rename(src_path, dst_path, overwrite)
+
+
+def fs_open(path: PathLike, mode: str = "r", **kwargs) -> IO:
+    """
+    Open file on fs
+
+    :param path: Given path
+    :param mode: File open mode, like built-in open function
+    :param buffering: Buffering policy, like built-in open function
+    :returns: A file-like object
+    """
+    return FSPath(path).open(mode, **kwargs)

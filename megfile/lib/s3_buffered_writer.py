@@ -53,11 +53,13 @@ class S3BufferedWriter(Writable[bytes]):
         max_buffer_size: int = WRITER_MAX_BUFFER_SIZE,
         max_workers: Optional[int] = None,
         profile_name: Optional[str] = None,
+        atomic: bool = False,
     ):
         self._bucket = bucket
         self._key = key
         self._client = s3_client
         self._profile_name = profile_name
+        self.__atomic__ = atomic
 
         # user maybe put block_size with 'numpy.uint64' type
         self._base_block_size = int(block_size)
@@ -212,6 +214,17 @@ class S3BufferedWriter(Writable[bytes]):
     def _shutdown(self):
         if not self._is_global_executor:
             self._executor.shutdown()
+
+    def _abort(self):
+        _logger.debug("abort file: %r" % self.name)
+
+        if self._is_multipart:
+            with raise_s3_error(self.name):
+                self._client.abort_multipart_upload(
+                    Bucket=self._bucket, Key=self._key, UploadId=self._upload_id
+                )
+
+        self._shutdown()
 
     def _close(self):
         _logger.debug("close file: %r" % self.name)

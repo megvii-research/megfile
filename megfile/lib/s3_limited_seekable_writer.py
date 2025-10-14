@@ -33,6 +33,7 @@ class S3LimitedSeekableWriter(S3BufferedWriter, Seekable):
         max_buffer_size: int = WRITER_MAX_BUFFER_SIZE,
         max_workers: Optional[int] = None,
         profile_name: Optional[str] = None,
+        atomic: bool = False,
     ):
         super().__init__(
             bucket,
@@ -42,6 +43,7 @@ class S3LimitedSeekableWriter(S3BufferedWriter, Seekable):
             max_buffer_size=max_buffer_size,
             max_workers=max_workers,
             profile_name=profile_name,
+            atomic=atomic,
         )
 
         self._head_block_size = head_block_size or block_size

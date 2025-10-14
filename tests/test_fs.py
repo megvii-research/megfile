@@ -1294,3 +1294,34 @@ def test_fs_resolve(filesystem):
     assert fs.fs_resolve("file") == "/test/a/file"
     assert fs.fs_resolve("/test/a/../a/file") == "/test/a/file"
     assert fs.fs_resolve("file.lnk") == "/test/a/file"
+
+
+def test_fs_atomic(filesystem):
+    one_mb_block = b"0" * 1024 * 1024
+    os.makedirs("/atomic")
+
+    with fs.fs_open("/atomic/00", "wb") as f:
+        f.write(one_mb_block)
+
+    with pytest.raises(RuntimeError):
+        with fs.fs_open("/atomic/01", "wb") as f:
+            f.write(one_mb_block)
+            raise RuntimeError
+
+    f = fs.fs_open("/atomic/02", "wb")
+    f.write(one_mb_block)
+    del f
+
+    with fs.fs_open("/atomic/10", "wb", atomic=True) as f:
+        f.write(one_mb_block)
+
+    with pytest.raises(RuntimeError):
+        with fs.fs_open("/atomic/11", "wb", atomic=True) as f:
+            f.write(one_mb_block)
+            raise RuntimeError
+
+    f = fs.fs_open("/atomic/12", "wb", atomic=True)
+    f.write(one_mb_block)
+    del f
+
+    assert fs.fs_listdir("/atomic") == ["00", "01", "02", "10"]
