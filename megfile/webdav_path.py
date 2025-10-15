@@ -524,6 +524,8 @@ class WebdavPath(URIPath):
 
         :returns: An iterator contains all contents
         """
+        if not self.exists():
+            raise FileNotFoundError(f"No such file or directory: '{self.path_with_protocol}'")
         if not self.is_dir():
             raise NotADirectoryError(f"Not a directory: '{self.path_with_protocol}'")
 
