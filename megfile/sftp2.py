@@ -263,6 +263,7 @@ def sftp2_upload(
     if not is_sftp2(dst_url) and not isinstance(dst_url, Sftp2Path):
         raise OSError(f"dst_url is not sftp2 path: {dst_url}")
 
+    src_url = fspath(src_url)
     if followlinks and os.path.islink(src_url):
         src_url = os.readlink(src_url)
     if os.path.isdir(src_url):

@@ -215,10 +215,17 @@ class FileEntry(NamedTuple):
         return self.stat.is_symlink()
 
 
-class BasePath:
+class _BasePath:
+    pass
+
+
+PathLike = Union[str, _BasePath, _PathLike]
+
+
+class BasePath(_BasePath):
     protocol = ""
 
-    def __init__(self, path: "PathLike"):
+    def __init__(self, path: PathLike):
         self.path = str(path)
 
     def __str__(self) -> str:
@@ -279,7 +286,7 @@ class BasePath:
             )
         return str(self) >= str(other_path)
 
-    def __truediv__(self: Self, other_path: "PathLike") -> Self:
+    def __truediv__(self: Self, other_path: PathLike) -> Self:
         raise NotImplementedError('method "__truediv__" not implemented: %r' % self)
 
     @cached_property
@@ -311,7 +318,7 @@ class BasePath:
         return self.path_with_protocol
 
     @classmethod
-    def from_path(cls: Type[Self], path: "PathLike") -> Self:
+    def from_path(cls: Type[Self], path: PathLike) -> Self:
         """Return new instance of this class
 
         :param path: new path
@@ -322,7 +329,7 @@ class BasePath:
         return cls(path)  # pyre-ignore[19]
 
     @classmethod
-    def from_uri(cls: Type[Self], path: "PathLike") -> Self:
+    def from_uri(cls: Type[Self], path: PathLike) -> Self:
         path = fspath(path)
         protocol_prefix = cls.protocol + "://"
         if path[: len(protocol_prefix)] != protocol_prefix:
@@ -568,7 +575,7 @@ class BasePath:
     def anchor(self) -> str:
         return self.root  # pyre-ignore[7]
 
-    def joinpath(self: Self, *other_paths: "PathLike") -> Self:
+    def joinpath(self: Self, *other_paths: PathLike) -> Self:
         """
         Calling this method is equivalent to combining the path
         with each of the other arguments in turn
@@ -720,7 +727,7 @@ class BasePath:
         """
         return self.chmod(mode=mode, follow_symlinks=False)
 
-    def rename(self: Self, dst_path: "PathLike", overwrite: bool = True) -> Self:
+    def rename(self: Self, dst_path: PathLike, overwrite: bool = True) -> Self:
         """
         rename file
 
@@ -729,7 +736,7 @@ class BasePath:
         """
         raise NotImplementedError(f"'rename' is unsupported on '{type(self)}'")
 
-    def replace(self: Self, dst_path: "PathLike", overwrite: bool = True) -> Self:
+    def replace(self: Self, dst_path: PathLike, overwrite: bool = True) -> Self:
         """
         move file
 
@@ -741,7 +748,7 @@ class BasePath:
     def md5(self, recalculate: bool = False, followlinks: bool = False) -> str:
         raise NotImplementedError(f"'md5' is unsupported on '{type(self)}'")
 
-    def symlink(self, dst_path: "PathLike") -> None:
+    def symlink(self, dst_path: PathLike) -> None:
         raise NotImplementedError(f"'symlink' is unsupported on '{type(self)}'")
 
     def symlink_to(self, target, target_is_directory=False):

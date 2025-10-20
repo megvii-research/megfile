@@ -371,7 +371,7 @@ class SftpPath(URIPath):
         path = self._urlsplit_parts.path.lstrip("/")
         if path != "":
             parts.extend(path.split("/"))
-        return tuple(parts)  # pyre-ignore[7]
+        return tuple(parts)
 
     @property
     def _client(self):
@@ -391,7 +391,7 @@ class SftpPath(URIPath):
             if sftp_local_path == ".":
                 sftp_local_path = "/"
         new_parts = self._urlsplit_parts._replace(path=sftp_local_path)
-        return self.from_path(urlunsplit(new_parts))  # pyre-ignore[6]
+        return self.from_path(urlunsplit(new_parts))
 
     def exists(self, followlinks: bool = False) -> bool:
         """

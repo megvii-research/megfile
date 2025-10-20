@@ -330,7 +330,7 @@ class Sftp2RawFile(io.RawIOBase):
             n = self.readinto(buffer)
             return bytes(buffer[:n])
 
-    def write(self, data: bytes) -> int:
+    def write(self, data: bytes) -> int:  # pyre-ignore[14]
         if self._closed:
             raise ValueError("I/O operation on closed file")
         _, bytes_written = self.sftp_handle.write(bytes(data))

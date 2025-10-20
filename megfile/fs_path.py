@@ -40,7 +40,7 @@ __all__ = [
 def _make_stat(stat: os.stat_result) -> StatResult:
     return StatResult(
         size=stat.st_size,
-        ctime=stat.st_ctime,  # pyre-ignore[16]
+        ctime=stat.st_ctime,
         mtime=stat.st_mtime,
         isdir=stat_isdir(stat.st_mode),
         islnk=stat_islnk(stat.st_mode),
@@ -48,7 +48,7 @@ def _make_stat(stat: os.stat_result) -> StatResult:
     )
 
 
-def is_fs(path: Union["PathLike", int]) -> bool:
+def is_fs(path: Union[PathLike, int]) -> bool:
     """Test if a path is fs path
 
     :param path: Path to be tested
@@ -644,7 +644,7 @@ class FSPath(URIPath):
                     canonical_path = os.path.join(root, filename)
                     stat = os.lstat(canonical_path)
                     size += stat.st_size
-                    if ctime > stat.st_ctime:  # pyre-ignore[16]
+                    if ctime > stat.st_ctime:
                         ctime = stat.st_ctime
                     if mtime < stat.st_mtime:
                         mtime = stat.st_mtime
@@ -769,8 +769,9 @@ class FSPath(URIPath):
         followlinks: bool = False,
     ):
         if isinstance(self.path_without_protocol, int):
+            fd: int = self.path_without_protocol
             with open(fspath(dst_path), "wb") as fdst:
-                copyfd(self.path_without_protocol, fdst, callback)
+                copyfd(fd, fdst, callback)
         else:
             shutil.copy2(
                 self.path_without_protocol,  # pyre-ignore[6]
@@ -865,7 +866,7 @@ class FSPath(URIPath):
 
             shutil.copytree(
                 self.path_without_protocol,  # pyre-ignore[6]
-                dst_path,
+                fspath(dst_path),
                 ignore=None if force else ignore_same_file,
                 dirs_exist_ok=True,
             )
