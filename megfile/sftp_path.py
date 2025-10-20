@@ -1133,7 +1133,7 @@ class SftpPath(URIPath):
 
         src_stat = self.stat()
         dst_path.utime(src_stat.st_atime, src_stat.st_mtime)
-        dst_path._client.chmod(dst_path._real_path, src_stat.st_mode)
+        dst_path.chmod(src_stat.st_mode)
 
     def sync(
         self,

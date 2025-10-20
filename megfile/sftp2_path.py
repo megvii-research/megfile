@@ -14,6 +14,7 @@ from urllib.parse import urlsplit, urlunsplit
 import ssh2.session  # type: ignore
 import ssh2.sftp  # type: ignore
 from ssh2.exceptions import SFTPProtocolError  # type: ignore
+from ssh2.sftp_handle import SFTPAttributes  # type: ignore
 
 from megfile.config import SFTP_MAX_RETRY_TIMES
 from megfile.errors import SameFileError, _create_missing_ok_generator
@@ -976,7 +977,9 @@ class Sftp2Path(URIPath):
 
     def chmod(self, mode: int, *, follow_symlinks: bool = True):
         """Change the file mode and permissions"""
-        return self._client.setstat(self._real_path, mode)
+        stat = SFTPAttributes()
+        stat.permissions = int(mode)
+        return self._client.setstat(self._real_path, stat)
 
     def absolute(self) -> "Sftp2Path":
         """Make the path absolute"""
@@ -1081,4 +1084,7 @@ class Sftp2Path(URIPath):
 
     def utime(self, atime: Union[float, int], mtime: Union[float, int]) -> None:
         """Set the access and modified times of the file"""
-        self._client.utime(self._real_path, (atime, mtime))
+        stat = SFTPAttributes()
+        stat.atime = int(atime)
+        stat.mtime = int(mtime)
+        self._client.setstat(self._real_path, stat)

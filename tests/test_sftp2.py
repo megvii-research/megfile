@@ -3,7 +3,6 @@ import os
 import shutil
 import stat
 import subprocess
-import time
 from typing import List
 
 import pytest
@@ -58,13 +57,11 @@ class FakeSFTP2Client:
     def symlink(self, source, dest):
         os.symlink(source, dest)
 
-    def setstat(self, path, mode):
-        os.chmod(path, mode)
-
-    def utime(self, path, times):
-        if times is None:
-            times = (time.time(), time.time())
-        os.utime(path, times)
+    def setstat(self, path, stat):
+        if stat.permissions != 0:
+            os.chmod(path, stat.permissions)
+        if stat.mtime != 0 or stat.atime != 0:
+            os.utime(path, (stat.atime, stat.mtime))
 
     def realpath(self, path):
         return os.path.realpath(path)
