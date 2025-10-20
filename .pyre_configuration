@@ -15,6 +15,9 @@
     },
     {
       "site-package": "hdfs"
+    },
+    {
+      "site-package": "webdav3"
     }
   ],
   "source_directories": [

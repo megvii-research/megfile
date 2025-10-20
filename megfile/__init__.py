@@ -211,6 +211,11 @@ try:
 except ImportError:
     Sftp2Path = None
 
+try:
+    from megfile.webdav_path import WebdavPath
+except ImportError:
+    WebdavPath = None
+
 __all__ = [
     "smart_access",
     "smart_cache",
