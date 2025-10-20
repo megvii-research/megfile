@@ -43,6 +43,7 @@ file = ["requirements.txt"]
 [tool.setuptools.dynamic.optional-dependencies]
 hdfs = { file = ["requirements-hdfs.txt"] }
 sftp2 = { file = ["requirements-sftp2.txt"] }
+webdav = { file = ["requirements-webdav.txt"] }
 cli = { file = ["requirements-cli.txt"] }
 
 [tool.ruff]
