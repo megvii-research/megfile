@@ -174,7 +174,7 @@ class WebdavPath(URIPath):
     def parts(self) -> Tuple[str, ...]:
         """A tuple giving access to the path's various components"""
         new_parts = self._urlsplit_parts._replace(path="/")
-        parts = [urlunsplit(new_parts)]
+        parts: List[str] = [urlunsplit(new_parts)]  # pyre-ignore[9]
         path = self._urlsplit_parts.path.lstrip("/")
         if path != "":
             parts.extend(unquote(path).split("/"))
@@ -198,7 +198,7 @@ class WebdavPath(URIPath):
             scheme=self._webdav_scheme,
             path=quote(webdav_path, safe="/")
         )
-        return self.from_path(urlunsplit(new_parts))
+        return self.from_path(urlunsplit(new_parts))  # pyre-ignore[6]
 
     def exists(self, followlinks: bool = False) -> bool:
         """
@@ -286,10 +286,14 @@ class WebdavPath(URIPath):
                 yield name, is_dir
 
         def _exist(path: PathLike, followlinks: bool = False):
-            return self.from_path(path).exists(followlinks=followlinks)
+            return self.from_path(path).exists(
+                followlinks=followlinks
+            )
 
         def _is_dir(path: PathLike, followlinks: bool = False):
-            return self.from_path(path).is_dir(followlinks=followlinks)
+            return self.from_path(path).is_dir(
+                followlinks=followlinks
+            )
 
         fs = FSFunc(_exist, _is_dir, _scandir)
         for real_path in _create_missing_ok_generator(

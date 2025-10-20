@@ -19,6 +19,7 @@ from megfile.sftp2_path import Sftp2Path
 from megfile.sftp_path import SftpPath
 from megfile.smart_path import PurePath, SmartPath, _load_aliases_config, aliases_config
 from megfile.stdio_path import StdioPath
+from megfile.webdav_path import WebdavPath, WebdavsPath
 
 from .test_sftp import sftp_mocker  # noqa: F401
 
@@ -61,7 +62,7 @@ def s3_empty_client(mocker):
 
 
 def test_register_result():
-    assert len(SmartPath._registered_protocols) == 8
+    assert len(SmartPath._registered_protocols) == 10
     assert S3Path.protocol in SmartPath._registered_protocols
     assert FSPath.protocol in SmartPath._registered_protocols
     assert HttpPath.protocol in SmartPath._registered_protocols
@@ -70,6 +71,8 @@ def test_register_result():
     assert SftpPath.protocol in SmartPath._registered_protocols
     assert Sftp2Path.protocol in SmartPath._registered_protocols
     assert HdfsPath.protocol in SmartPath._registered_protocols
+    assert WebdavPath.protocol in SmartPath._registered_protocols
+    assert WebdavsPath.protocol in SmartPath._registered_protocols
 
     assert SmartPath._registered_protocols[S3Path.protocol] == S3Path
     assert SmartPath._registered_protocols[FSPath.protocol] == FSPath
@@ -77,6 +80,8 @@ def test_register_result():
     assert SmartPath._registered_protocols[HttpsPath.protocol] == HttpsPath
     assert SmartPath._registered_protocols[StdioPath.protocol] == StdioPath
     assert SmartPath._registered_protocols[HdfsPath.protocol] == HdfsPath
+    assert SmartPath._registered_protocols[WebdavPath.protocol] == WebdavPath
+    assert SmartPath._registered_protocols[WebdavsPath.protocol] == WebdavsPath
     assert SmartPath.from_uri(FS_TEST_ABSOLUTE_PATH) == SmartPath(FS_TEST_ABSOLUTE_PATH)
 
 
