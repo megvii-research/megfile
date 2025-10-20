@@ -38,6 +38,7 @@ def _make_stat(info: dict) -> StatResult:
     mtime_str = info.get("modified", "")
     if mtime_str:
         from dateutil import parser
+
         try:
             mtime = parser.parse(mtime_str).timestamp()
         except Exception:
@@ -130,9 +131,11 @@ def _webdav_scan_pairs(
     src_url: PathLike, dst_url: PathLike
 ) -> Iterator[Tuple[PathLike, PathLike]]:
     for src_file_path in WebdavPath(src_url).scan():
-        content_path = src_file_path[len(fspath(src_url)):]
+        content_path = src_file_path[len(fspath(src_url)) :]
         if len(content_path) > 0:
-            dst_file_path = WebdavPath(dst_url).joinpath(content_path).path_with_protocol
+            dst_file_path = (
+                WebdavPath(dst_url).joinpath(content_path).path_with_protocol
+            )
         else:
             dst_file_path = dst_url
         yield src_file_path, dst_file_path
@@ -195,8 +198,7 @@ class WebdavPath(URIPath):
             webdav_path = "/" + webdav_path
 
         new_parts = self._urlsplit_parts._replace(
-            scheme=self._webdav_scheme,
-            path=quote(webdav_path, safe="/")
+            scheme=self._webdav_scheme, path=quote(webdav_path, safe="/")
         )
         return self.from_path(urlunsplit(new_parts))  # pyre-ignore[6]
 
@@ -286,14 +288,10 @@ class WebdavPath(URIPath):
                 yield name, is_dir
 
         def _exist(path: PathLike, followlinks: bool = False):
-            return self.from_path(path).exists(
-                followlinks=followlinks
-            )
+            return self.from_path(path).exists(followlinks=followlinks)
 
         def _is_dir(path: PathLike, followlinks: bool = False):
-            return self.from_path(path).is_dir(
-                followlinks=followlinks
-            )
+            return self.from_path(path).is_dir(followlinks=followlinks)
 
         fs = FSFunc(_exist, _is_dir, _scandir)
         for real_path in _create_missing_ok_generator(
@@ -486,6 +484,7 @@ class WebdavPath(URIPath):
         :param missing_ok: If False and there's no file, raise FileNotFoundError
         :returns: A file path generator yielding FileEntry objects
         """
+
         def create_generator() -> Iterator[FileEntry]:
             if not self.exists():
                 return

@@ -111,10 +111,7 @@ def test_sync(webdav_mocker):
 
 def test_webdav_resolve(webdav_mocker):
     # WebDAV doesn't resolve paths, just returns the path as-is
-    assert (
-        webdav.webdav_resolve("webdav://host/A/../B/C")
-        == "webdav://host/A/../B/C"
-    )
+    assert webdav.webdav_resolve("webdav://host/A/../B/C") == "webdav://host/A/../B/C"
 
 
 def test_parts(webdav_mocker):

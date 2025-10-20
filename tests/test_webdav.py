@@ -1,9 +1,8 @@
 import io
 import os
 import shutil
-import time
-from typing import Dict, List, Optional
 from datetime import datetime
+from typing import Dict, List
 
 import pytest
 
@@ -119,8 +118,12 @@ def webdav_mocker(fs, mocker):
     def fake_get_webdav_client(hostname, username=None, password=None, token=None):
         return FakeWebdavClient({"webdav_hostname": hostname})
 
-    mocker.patch("megfile.webdav_path._get_webdav_client", side_effect=fake_get_webdav_client)
-    mocker.patch("megfile.webdav_path.get_webdav_client", side_effect=fake_get_webdav_client)
+    mocker.patch(
+        "megfile.webdav_path._get_webdav_client", side_effect=fake_get_webdav_client
+    )
+    mocker.patch(
+        "megfile.webdav_path.get_webdav_client", side_effect=fake_get_webdav_client
+    )
     yield
 
 
@@ -229,7 +232,9 @@ def test_webdav_stat(webdav_mocker):
     assert stat.islnk is False  # WebDAV doesn't support symlinks
 
     # Use approximate comparison for mtime due to floating point precision
-    assert abs(webdav.webdav_getmtime("webdav://host/A/test") - os_stat.st_mtime) < 0.001
+    assert (
+        abs(webdav.webdav_getmtime("webdav://host/A/test") - os_stat.st_mtime) < 0.001
+    )
     assert webdav.webdav_getsize("webdav://host/A/test") == os_stat.st_size
 
 
@@ -264,9 +269,7 @@ def test_webdav_makedirs(webdav_mocker):
 
 def test_webdav_realpath(webdav_mocker):
     # WebDAV doesn't resolve paths like SFTP, just returns the path
-    assert (
-        webdav.webdav_realpath("webdav://host/A/../B/C") == "webdav://host/A/../B/C"
-    )
+    assert webdav.webdav_realpath("webdav://host/A/../B/C") == "webdav://host/A/../B/C"
 
 
 def test_webdav_rename(webdav_mocker):
@@ -514,9 +517,7 @@ def test_webdav_sync(webdav_mocker, mocker):
     webdav.webdav_sync("webdav://host/A", "webdav://host/A2", overwrite=True)
     assert webdav.webdav_stat("webdav://host/A2/1.json").size == 2
 
-    webdav.webdav_sync(
-        "webdav://host/A/1.json", "webdav://host/A/1.json.bak"
-    )
+    webdav.webdav_sync("webdav://host/A/1.json", "webdav://host/A/1.json.bak")
     assert (
         webdav.webdav_stat("webdav://host/A/1.json").size
         == webdav.webdav_stat("webdav://host/A/1.json.bak").size
@@ -553,9 +554,7 @@ def test_webdav_download(webdav_mocker):
     assert 1 == os.stat("/A2/1.json").st_size
 
     with pytest.raises(OSError):
-        webdav.webdav_download(
-            "webdav://host/A/1.json", "webdav://host/1.json"
-        )
+        webdav.webdav_download("webdav://host/A/1.json", "webdav://host/1.json")
 
     with pytest.raises(OSError):
         webdav.webdav_download("/1.json", "/1.json")
@@ -573,8 +572,7 @@ def test_webdav_upload(webdav_mocker):
 
     webdav.webdav_upload("/1.json", "webdav://host/A/1.json")
     assert (
-        webdav.webdav_stat("webdav://host/A/1.json").size
-        == os.stat("/1.json").st_size
+        webdav.webdav_stat("webdav://host/A/1.json").size == os.stat("/1.json").st_size
     )
 
     with open("/1.json", "w") as f:
@@ -608,6 +606,5 @@ def test_webdav_upload(webdav_mocker):
 
 def test_webdav_path_join():
     assert (
-        webdav.webdav_path_join("webdav://host/A/", "a", "b")
-        == "webdav://host/A/a/b"
+        webdav.webdav_path_join("webdav://host/A/", "a", "b") == "webdav://host/A/a/b"
     )

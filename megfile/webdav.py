@@ -187,9 +187,10 @@ def webdav_upload(
     :param followlinks: Follow symlinks for local files
     :param overwrite: whether or not overwrite file when exists, default is True
     """
+    import os
+
     from megfile.fs import is_fs
     from megfile.fs_path import FSPath
-    import os
 
     if not is_fs(src_url):
         raise OSError(f"src_url is not fs path: {src_url}")
