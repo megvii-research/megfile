@@ -77,6 +77,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#megfile.fs.fs_lstat"><code class="docutils literal notranslate"><span class="pre">fs_lstat()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#megfile.fs.fs_makedirs"><code class="docutils literal notranslate"><span class="pre">fs_makedirs()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#megfile.fs.fs_move"><code class="docutils literal notranslate"><span class="pre">fs_move()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.fs.fs_open"><code class="docutils literal notranslate"><span class="pre">fs_open()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#megfile.fs.fs_path_join"><code class="docutils literal notranslate"><span class="pre">fs_path_join()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#megfile.fs.fs_readlink"><code class="docutils literal notranslate"><span class="pre">fs_readlink()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#megfile.fs.fs_realpath"><code class="docutils literal notranslate"><span class="pre">fs_realpath()</span></code></a></li>
@@ -609,6 +610,24 @@ return the symbolic link’s information rather than its target’s.</p>
 <li><p><strong>dst_path</strong> – Given destination path</p></li>
 <li><p><strong>overwrite</strong> – whether or not overwrite file when exists</p></li>
 </ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="megfile.fs.fs_open">
+<span class="sig-prename descclassname"><span class="pre">megfile.fs.</span></span><span class="sig-name descname"><span class="pre">fs_open</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'r'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">IO</span></span></span><a class="reference internal" href="_modules/megfile/fs.html#fs_open"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs.fs_open" title="Link to this definition"></a></dt>
+<dd><p>Open file on fs</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> – Given path</p></li>
+<li><p><strong>mode</strong> – File open mode, like built-in open function</p></li>
+<li><p><strong>buffering</strong> – Buffering policy, like built-in open function</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A file-like object</p>
 </dd>
 </dl>
 </dd></dl>
