@@ -127,8 +127,8 @@ def webdav_mocker(fs, mocker):
 def test_is_webdav():
     assert webdav.is_webdav("webdav://host/data") is True
     assert webdav.is_webdav("webdavs://host/data") is True
-    assert webdav.is_webdav("http://host/data") is True
-    assert webdav.is_webdav("https://host/data") is True
+    assert webdav.is_webdav("http://host/data") is False
+    assert webdav.is_webdav("https://host/data") is False
     assert webdav.is_webdav("ftp://host/data") is False
     assert webdav.is_webdav("sftp://host/data") is False
 

@@ -208,7 +208,8 @@ class WebdavPath(URIPath):
         :returns: True if the path exists, else False
         """
         try:
-            return self._client.info(self._real_path)
+            self._client.info(self._real_path)
+            return True
         except RemoteResourceNotFound:
             return False
 
