@@ -307,7 +307,7 @@ class WebdavPath(URIPath):
         """
         try:
             return self._client.is_dir(self._real_path)
-        except Exception:
+        except RemoteResourceNotFound:
             return False
 
     def is_file(self, followlinks: bool = False) -> bool:
@@ -321,7 +321,7 @@ class WebdavPath(URIPath):
             if not self.exists():
                 return False
             return not self._client.is_dir(self._real_path)
-        except Exception:
+        except RemoteResourceNotFound:
             return False
 
     def listdir(self) -> List[str]:
@@ -415,7 +415,6 @@ class WebdavPath(URIPath):
             raise OSError("Not a %s path: %r" % (self.protocol, dst_path))
 
         dst_path = self.from_path(str(dst_path).rstrip("/"))
-        src_stat = self.stat()
 
         if self._is_same_backend(dst_path):
             if overwrite:
@@ -483,10 +482,7 @@ class WebdavPath(URIPath):
         :returns: A file path generator yielding FileEntry objects
         """
         def create_generator() -> Iterator[FileEntry]:
-            try:
-                if not self.exists():
-                    return
-            except Exception:
+            if not self.exists():
                 return
 
             if self.is_file():
@@ -523,7 +519,9 @@ class WebdavPath(URIPath):
         :returns: An iterator contains all contents
         """
         if not self.exists():
-            raise FileNotFoundError(f"No such file or directory: '{self.path_with_protocol}'")
+            raise FileNotFoundError(
+                f"No such file or directory: '{self.path_with_protocol}'"
+            )
         if not self.is_dir():
             raise NotADirectoryError(f"Not a directory: '{self.path_with_protocol}'")
 

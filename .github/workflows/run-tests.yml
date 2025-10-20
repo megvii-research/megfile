@@ -33,6 +33,7 @@ jobs:
           pip install -r requirements.txt
           pip install -r requirements-hdfs.txt
           pip install -r requirements-sftp2.txt
+          pip install -r requirements-webdav.txt
           pip install -r requirements-cli.txt
 
       - name: Run unit-test
@@ -74,6 +75,7 @@ jobs:
           pip install -r requirements.txt
           pip install -r requirements-hdfs.txt
           pip install -r requirements-sftp2.txt
+          pip install -r requirements-webdav.txt
           pip install -r requirements-cli.txt
 
       - name: Run style-check
@@ -106,6 +108,7 @@ jobs:
           pip install -r requirements.txt
           pip install -r requirements-hdfs.txt
           pip install -r requirements-sftp2.txt
+          pip install -r requirements-webdav.txt
           pip install -r requirements-cli.txt
 
       - name: Run static-check
@@ -138,6 +141,7 @@ jobs:
           pip install -r requirements.txt
           pip install -r requirements-hdfs.txt
           pip install -r requirements-sftp2.txt
+          pip install -r requirements-webdav.txt
           pip install -r requirements-cli.txt
 
       - name: Run bandit-check
@@ -182,6 +186,7 @@ jobs:
           pip install -r requirements.txt
           pip install -r requirements-hdfs.txt
           pip install -r requirements-sftp2.txt
+          pip install -r requirements-webdav.txt
           pip install -r requirements-cli.txt
 
       - name: Run pyre-check
