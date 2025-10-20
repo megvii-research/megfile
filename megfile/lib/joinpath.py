@@ -33,3 +33,16 @@ def uri_join(path: str, *other_paths: str) -> str:
 
     # Imp. 3
     # return '/'.join((path, *other_paths))
+
+
+def uri_norm(path: str) -> str:
+    parts = path.split("/")
+    new_parts = []
+    for part in parts:
+        if part == ".":
+            continue
+        if part == ".." and new_parts and new_parts[-1] != "..":
+            new_parts.pop()
+        else:
+            new_parts.append(part)
+    return "/".join(new_parts)

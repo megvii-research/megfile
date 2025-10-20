@@ -2,7 +2,7 @@ import io
 import os
 import shutil
 from datetime import datetime
-from typing import Dict, List
+from typing import Dict, Iterator, List
 
 import pytest
 
@@ -39,7 +39,7 @@ class FakeWebdavClient:
                     "path": item_path,
                     "size": stat.st_size,
                     "modified": datetime.fromtimestamp(stat.st_mtime).isoformat(),
-                    "isdir": os.path.isdir(item_path),
+                    "is_dir": os.path.isdir(item_path),
                 }
             )
         return items
@@ -56,7 +56,7 @@ class FakeWebdavClient:
             "path": path,
             "size": stat.st_size,
             "modified": datetime.fromtimestamp(stat.st_mtime).isoformat(),
-            "isdir": os.path.isdir(path),
+            "is_dir": os.path.isdir(path),
         }
 
     def mkdir(self, path: str):
@@ -118,12 +118,23 @@ def webdav_mocker(fs, mocker):
     def fake_get_webdav_client(hostname, username=None, password=None, token=None):
         return FakeWebdavClient({"webdav_hostname": hostname})
 
+    def fake_webdav_stat(client, path: str) -> Dict:
+        return client.info(path)
+
+    def fake_webdav_scan(client, path: str) -> Iterator[Dict]:
+        for info in client.list(path, get_info=True):
+            if info["is_dir"]:
+                yield from fake_webdav_scan(client, info["path"])
+            yield info
+
     mocker.patch(
         "megfile.webdav_path._get_webdav_client", side_effect=fake_get_webdav_client
     )
     mocker.patch(
         "megfile.webdav_path.get_webdav_client", side_effect=fake_get_webdav_client
     )
+    mocker.patch("megfile.webdav_path._webdav_stat", side_effect=fake_webdav_stat)
+    mocker.patch("megfile.webdav_path._webdav_scan", side_effect=fake_webdav_scan)
     yield
 
 
@@ -152,7 +163,7 @@ def test_webdav_glob(webdav_mocker):
         "webdav://host/A/a",
         "webdav://host/A/b",
     ]
-    assert list(webdav.webdav_iglob("webdav://host/A/*")) == [
+    assert list(sorted(webdav.webdav_iglob("webdav://host/A/*"))) == [
         "webdav://host/A/1.json",
         "webdav://host/A/a",
         "webdav://host/A/b",
@@ -162,7 +173,8 @@ def test_webdav_glob(webdav_mocker):
         "webdav://host/A/b/file.json",
     ]
     assert [
-        file_entry.path for file_entry in webdav.webdav_glob_stat("webdav://host/A/*")
+        file_entry.path
+        for file_entry in sorted(webdav.webdav_glob_stat("webdav://host/A/*"))
     ] == [
         "webdav://host/A/1.json",
         "webdav://host/A/a",
@@ -352,13 +364,14 @@ def test_webdav_scan(webdav_mocker):
     with webdav.webdav_open("webdav://host/A/b/file.json", "w") as f:
         f.write("file")
 
-    assert list(webdav.webdav_scan("webdav://host/A")) == [
+    assert list(sorted(webdav.webdav_scan("webdav://host/A"))) == [
         "webdav://host/A/1.json",
         "webdav://host/A/b/file.json",
     ]
 
     assert [
-        file_entry.path for file_entry in webdav.webdav_scan_stat("webdav://host/A")
+        file_entry.path
+        for file_entry in sorted(webdav.webdav_scan_stat("webdav://host/A"))
     ] == [
         "webdav://host/A/1.json",
         "webdav://host/A/b/file.json",

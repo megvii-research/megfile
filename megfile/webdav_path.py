@@ -1,22 +1,36 @@
 import hashlib
 import io
 import os
+import re
 from functools import cached_property
 from logging import getLogger as get_logger
-from typing import IO, BinaryIO, Callable, Iterator, List, Optional, Tuple
+from typing import IO, BinaryIO, Callable, Iterable, Iterator, List, Optional, Tuple
 from urllib.parse import quote, unquote, urlsplit, urlunsplit
 
+import dateutil.parser
 from webdav3.client import Client as WebdavClient
+from webdav3.client import WebDavXmlUtils
 from webdav3.exceptions import RemoteResourceNotFound, WebDavException
+from webdav3.urn import Urn
 
 from megfile.errors import SameFileError, _create_missing_ok_generator
-from megfile.interfaces import ContextIterator, FileEntry, PathLike, StatResult
+from megfile.interfaces import (
+    ContextIterator,
+    FileEntry,
+    PathLike,
+    Readable,
+    Seekable,
+    StatResult,
+    Writable,
+)
 from megfile.lib.compare import is_same_file
 from megfile.lib.compat import fspath
-from megfile.lib.glob import FSFunc, iglob
+from megfile.lib.fnmatch import translate
+from megfile.lib.glob import has_magic
+from megfile.lib.joinpath import uri_join, uri_norm
 from megfile.pathlike import URIPath
 from megfile.smart_path import SmartPath
-from megfile.utils import calculate_md5, copyfileobj, thread_local
+from megfile.utils import calculate_md5, copyfileobj, get_binary_mode, thread_local
 
 _logger = get_logger(__name__)
 
@@ -36,17 +50,12 @@ def _make_stat(info: dict) -> StatResult:
     size = int(info.get("size") or 0)
     # WebDAV returns datetime objects, convert to timestamp
     mtime_str = info.get("modified", "")
-    if mtime_str:
-        from dateutil import parser
-
-        try:
-            mtime = parser.parse(mtime_str).timestamp()
-        except Exception:
-            mtime = 0.0
-    else:
+    try:
+        mtime = dateutil.parser.parse(mtime_str).timestamp()
+    except Exception:
         mtime = 0.0
 
-    isdir = info.get("isdir", False)
+    isdir = info.get("is_dir", False)
 
     return StatResult(
         size=size,
@@ -54,6 +63,16 @@ def _make_stat(info: dict) -> StatResult:
         isdir=isdir,
         islnk=False,  # WebDAV doesn't support symlinks
         extra=info,
+    )
+
+
+def _make_entry(info: dict, root_relative: str, root_absolute: str) -> FileEntry:
+    path = info.get("path", "").rstrip("/")
+    name = os.path.basename(path)
+    return FileEntry(
+        name,
+        os.path.join(root_absolute, os.path.relpath(path, root_relative)),
+        _make_stat(info),
     )
 
 
@@ -141,6 +160,162 @@ def _webdav_scan_pairs(
         yield src_file_path, dst_file_path
 
 
+def _webdav_stat(client: WebdavClient, remote_path: str):
+    urn = Urn(remote_path)
+    client._check_remote_resource(remote_path, urn)
+
+    response = client.execute_request(
+        action="info", path=urn.quote(), headers_ext=["Depth: 0"]
+    )
+    path = client.get_full_path(urn)
+    info = WebDavXmlUtils.parse_info_response(
+        response.content, path, client.webdav.hostname
+    )
+    info["is_dir"] = WebDavXmlUtils.parse_is_dir_response(
+        response.content, path, client.webdav.hostname
+    )
+    return info
+
+
+def _webdav_scan(client: WebdavClient, remote_path: str) -> List[dict]:
+    directory_urn = Urn(remote_path, directory=True)
+    if directory_urn.path() != WebdavClient.root and not client.check(
+        directory_urn.path()
+    ):
+        raise RemoteResourceNotFound(directory_urn.path())
+
+    path = Urn.normalize_path(client.get_full_path(directory_urn))
+    response = client.execute_request(
+        action="list", path=directory_urn.quote(), headers_ext=["Depth: infinity"]
+    )
+    subfiles = WebDavXmlUtils.parse_get_list_info_response(response.content)
+    return [
+        subfile
+        for subfile in subfiles
+        if Urn.compare_path(path, subfile.get("path")) is False
+    ]
+
+
+def _webdav_scandir(client: WebdavClient, remote_path: str) -> List[dict]:
+    return client.list(remote_path, get_info=True)
+
+
+def _webdav_split_magic(path: str) -> Tuple[str, str]:
+    parts = path.split("/")
+    for i in range(0, len(parts)):
+        if has_magic(parts[i]):
+            return "/".join(parts[:i]), "/".join(parts[i:])
+    return path, ""
+
+
+class WebdavMemoryHandler(Readable[bytes], Seekable, Writable[bytes]):  # noqa: F821
+    def __init__(
+        self,
+        real_path: str,
+        mode: str,
+        *,
+        webdav_client: WebdavClient,
+        name: str,
+    ):
+        self._real_path = real_path
+        self._mode = mode
+        self._client = webdav_client
+        self._name = name
+
+        if mode not in ("rb", "wb", "ab", "rb+", "wb+", "ab+"):
+            raise ValueError("unacceptable mode: %r" % mode)
+
+        self._fileobj = io.BytesIO()
+        self._download_fileobj()
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def mode(self) -> str:
+        return self._mode
+
+    def tell(self) -> int:
+        return self._fileobj.tell()
+
+    def seek(self, offset: int, whence: int = os.SEEK_SET) -> int:
+        return self._fileobj.seek(offset, whence)
+
+    def readable(self) -> bool:
+        return self._mode[0] == "r" or self._mode[-1] == "+"
+
+    def read(self, size: Optional[int] = None) -> bytes:
+        if not self.readable():
+            raise io.UnsupportedOperation("not readable")
+        return self._fileobj.read(size)
+
+    def readline(self, size: Optional[int] = None) -> bytes:
+        if not self.readable():
+            raise io.UnsupportedOperation("not readable")
+        if size is None:
+            size = -1
+        return self._fileobj.readline(size)
+
+    def readlines(self, hint: Optional[int] = None) -> List[bytes]:
+        if not self.readable():
+            raise io.UnsupportedOperation("not readable")
+        if hint is None:
+            hint = -1
+        return self._fileobj.readlines(hint)
+
+    def writable(self) -> bool:
+        return self._mode[0] == "w" or self._mode[0] == "a" or self._mode[-1] == "+"
+
+    def flush(self):
+        self._fileobj.flush()
+
+    def write(self, data: bytes) -> int:
+        if not self.writable():
+            raise io.UnsupportedOperation("not writable")
+        if self._mode[0] == "a":
+            self.seek(0, os.SEEK_END)
+        return self._fileobj.write(data)
+
+    def writelines(self, lines: Iterable[bytes]):
+        if not self.writable():
+            raise io.UnsupportedOperation("not writable")
+        if self._mode[0] == "a":
+            self.seek(0, os.SEEK_END)
+        self._fileobj.writelines(lines)
+
+    def _file_exists(self) -> bool:
+        try:
+            return not self._client.is_dir(self._real_path)
+        except RemoteResourceNotFound:
+            return False
+
+    def _download_fileobj(self):
+        need_download = self._mode[0] == "r" or (
+            self._mode[0] == "a" and self._file_exists()
+        )
+        if not need_download:
+            return
+        # directly download to the file handle
+        self._client.download_from(self._fileobj, self._real_path)
+        if self._mode[0] == "r":
+            self.seek(0, os.SEEK_SET)
+
+    def _upload_fileobj(self):
+        need_upload = self.writable()
+        if not need_upload:
+            return
+        # directly upload from file handle
+        self.seek(0, os.SEEK_SET)
+        self._client.upload_to(self._fileobj, self._real_path)
+
+    def _close(self, need_upload: bool = True):
+        if hasattr(self, "_fileobj"):
+            if need_upload:
+                self._upload_fileobj()
+            self._fileobj.close()
+
+
 @SmartPath.register
 class WebdavPath(URIPath):
     """WebDAV protocol
@@ -210,7 +385,7 @@ class WebdavPath(URIPath):
         :returns: True if the path exists, else False
         """
         try:
-            self._client.info(self._real_path)
+            _webdav_stat(self._client, self._real_path)
             return True
         except RemoteResourceNotFound:
             return False
@@ -244,7 +419,9 @@ class WebdavPath(URIPath):
         :returns: A list contains paths match `pathname`
         """
         return list(
-            self.iglob(pattern=pattern, recursive=recursive, missing_ok=missing_ok)
+            sorted(
+                self.iglob(pattern=pattern, recursive=recursive, missing_ok=missing_ok)
+            )
         )
 
     def glob_stat(
@@ -259,10 +436,21 @@ class WebdavPath(URIPath):
             raise FileNotFoundError
         :returns: An iterator contains tuples of path and file stat
         """
-        for path_obj in self.iglob(
-            pattern=pattern, recursive=recursive, missing_ok=missing_ok
-        ):
-            yield FileEntry(path_obj.name, path_obj.path, path_obj.stat())
+        remote_path = self._real_path
+        if pattern:
+            remote_path = os.path.join(remote_path, pattern)
+        remote_path, pattern = _webdav_split_magic(remote_path)
+        root = os.path.relpath(remote_path, self._real_path)
+        root = uri_join(self.path_with_protocol, root)
+        root = uri_norm(root)
+        pattern = re.compile(translate(pattern))
+        scan_func = _webdav_scan if recursive else _webdav_scandir
+        for info in scan_func(self._client, remote_path):
+            entry = _make_entry(info, remote_path, root)
+            relative = os.path.relpath(entry.path, root)
+            if not pattern.match(relative):
+                continue
+            yield entry
 
     def iglob(
         self, pattern, recursive: bool = True, missing_ok: bool = True
@@ -276,30 +464,12 @@ class WebdavPath(URIPath):
             raise FileNotFoundError
         :returns: An iterator contains paths match `pathname`
         """
-        glob_path = self.path_with_protocol
-        if pattern:
-            glob_path = self.joinpath(pattern).path_with_protocol
-
-        def _scandir(dirname: str) -> Iterator[Tuple[str, bool]]:
-            result = []
-            for entry in self.from_path(dirname).scandir():
-                result.append((entry.name, entry.is_dir()))
-            for name, is_dir in sorted(result):
-                yield name, is_dir
-
-        def _exist(path: PathLike, followlinks: bool = False):
-            return self.from_path(path).exists(followlinks=followlinks)
-
-        def _is_dir(path: PathLike, followlinks: bool = False):
-            return self.from_path(path).is_dir(followlinks=followlinks)
-
-        fs = FSFunc(_exist, _is_dir, _scandir)
-        for real_path in _create_missing_ok_generator(
-            iglob(fspath(glob_path), recursive=recursive, fs=fs),
-            missing_ok,
-            FileNotFoundError("No match any file: %r" % glob_path),
+        for file_entry in self.glob_stat(
+            pattern=pattern,
+            recursive=recursive,
+            missing_ok=missing_ok,
         ):
-            yield self.from_path(real_path)
+            yield self.from_path(file_entry.path)
 
     def is_dir(self, followlinks: bool = False) -> bool:
         """
@@ -309,7 +479,7 @@ class WebdavPath(URIPath):
         :returns: True if the path is a directory, else False
         """
         try:
-            return self._client.is_dir(self._real_path)
+            return _webdav_stat(self._client, self._real_path)["is_dir"]
         except RemoteResourceNotFound:
             return False
 
@@ -321,9 +491,7 @@ class WebdavPath(URIPath):
         :returns: True if the path is a file, else False
         """
         try:
-            if not self.exists():
-                return False
-            return not self._client.is_dir(self._real_path)
+            return not _webdav_stat(self._client, self._real_path)["is_dir"]
         except RemoteResourceNotFound:
             return False
 
@@ -497,18 +665,11 @@ class WebdavPath(URIPath):
                 )
                 return
 
-            for name in self.listdir():
-                current_path = self.joinpath(name)
-                if current_path.is_dir():
-                    yield from current_path.scan_stat(
-                        missing_ok=missing_ok, followlinks=followlinks
-                    )
-                else:
-                    yield FileEntry(
-                        current_path.name,
-                        current_path.path_with_protocol,
-                        current_path.stat(),
-                    )
+            for info in _webdav_scan(self._client, self._real_path):
+                entry = _make_entry(info, self._real_path, self.path_with_protocol)
+                if entry.is_dir():
+                    continue
+                yield entry
 
         return _create_missing_ok_generator(
             create_generator(),
@@ -530,21 +691,8 @@ class WebdavPath(URIPath):
             raise NotADirectoryError(f"Not a directory: '{self.path_with_protocol}'")
 
         def create_generator():
-            file_list = self._client.list(self._real_path, get_info=True)
-            for item in file_list:
-                # Skip the directory itself
-                item_path = item.get("path", "").rstrip("/")
-                if item_path == self._real_path.rstrip("/"):
-                    continue
-
-                name = os.path.basename(item_path)
-                current_path = self.joinpath(name)
-
-                yield FileEntry(
-                    name,
-                    current_path.path_with_protocol,
-                    _make_stat(item),
-                )
+            for info in _webdav_scandir(self._client, self._real_path):
+                yield _make_entry(info, self._real_path, self.path_with_protocol)
 
         return ContextIterator(create_generator())
 
@@ -555,7 +703,7 @@ class WebdavPath(URIPath):
         :returns: StatResult
         """
         try:
-            info = self._client.info(self._real_path)
+            info = _webdav_stat(self._client, self._real_path)
             return _make_stat(info)
         except RemoteResourceNotFound:
             raise FileNotFoundError(f"No such file: '{self.path_with_protocol}'")
@@ -585,7 +733,6 @@ class WebdavPath(URIPath):
         """
         if not self.exists():
             return
-
         if self.is_file():
             return
 
@@ -680,6 +827,9 @@ class WebdavPath(URIPath):
         :param errors: error handling for text mode
         :returns: File-Like object
         """
+        if "x" in mode:
+            if self.exists():
+                raise FileExistsError("File exists: %r" % self.path_with_protocol)
         if "w" in mode or "x" in mode or "a" in mode:
             if self.is_dir():
                 raise IsADirectoryError("Is a directory: %r" % self.path_with_protocol)
@@ -687,36 +837,15 @@ class WebdavPath(URIPath):
         elif not self.exists():
             raise FileNotFoundError("No such file: %r" % self.path_with_protocol)
 
-        if "r" in mode:
-            # Download to BytesIO buffer
-            buffer = io.BytesIO()
-            self._client.download_from(buffer, self._real_path)
-            buffer.seek(0)
-
-            if "b" not in mode:
-                return io.TextIOWrapper(buffer, encoding=encoding, errors=errors)
-            return buffer
-        else:
-            # For write modes, create a buffer that uploads on close
-            class UploadBuffer(io.BytesIO):
-                def __init__(self, client, remote_path):
-                    super().__init__()
-                    self._client = client
-                    self._remote_path = remote_path
-                    self._closed = False
-
-                def close(self):
-                    if not self._closed:
-                        self.seek(0)
-                        self._client.upload_to(self, self._remote_path)
-                        self._closed = True
-                    super().close()
-
-            buffer = UploadBuffer(self._client, self._real_path)
-
-            if "b" not in mode:
-                return io.TextIOWrapper(buffer, encoding=encoding, errors=errors)
-            return buffer
+        buffer = WebdavMemoryHandler(
+            self._real_path,
+            get_binary_mode(mode),
+            webdav_client=self._client,
+            name=self.path_with_protocol,
+        )
+        if "b" not in mode:
+            return io.TextIOWrapper(buffer, encoding=encoding, errors=errors)
+        return buffer
 
     def chmod(self, mode: int, *, follow_symlinks: bool = True):
         """

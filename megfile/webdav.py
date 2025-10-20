@@ -60,7 +60,9 @@ def webdav_glob(
         raise FileNotFoundError
     :returns: A list contains paths match `pathname`
     """
-    return list(webdav_iglob(path=path, recursive=recursive, missing_ok=missing_ok))
+    return list(
+        sorted(webdav_iglob(path=path, recursive=recursive, missing_ok=missing_ok))
+    )
 
 
 def webdav_glob_stat(
@@ -76,11 +78,10 @@ def webdav_glob_stat(
     :returns: A list contains tuples of path and file stat,
         in which paths match `pathname`
     """
-    for path in webdav_iglob(path=path, recursive=recursive, missing_ok=missing_ok):
-        path_object = WebdavPath(path)
-        yield FileEntry(
-            path_object.name, path_object.path_with_protocol, path_object.stat()
-        )
+    for entry in WebdavPath(path).glob_stat(
+        pattern="", recursive=recursive, missing_ok=missing_ok
+    ):
+        yield entry
 
 
 def webdav_iglob(
