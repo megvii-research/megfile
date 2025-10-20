@@ -3,8 +3,7 @@ import io
 import os
 from functools import cached_property
 from logging import getLogger as get_logger
-from stat import S_ISDIR, S_ISREG
-from typing import IO, BinaryIO, Callable, Iterator, List, Optional, Tuple, Union
+from typing import IO, BinaryIO, Callable, Iterator, List, Optional, Tuple
 from urllib.parse import quote, unquote, urlsplit, urlunsplit
 
 from webdav3.client import Client as WebdavClient
@@ -34,7 +33,7 @@ WEBDAV_TIMEOUT = "WEBDAV_TIMEOUT"
 
 def _make_stat(info: dict) -> StatResult:
     """Convert WebDAV info dict to StatResult"""
-    size = int(info.get("size", 0))
+    size = int(info.get("size") or 0)
     # WebDAV returns datetime objects, convert to timestamp
     mtime_str = info.get("modified", "")
     if mtime_str:
@@ -76,6 +75,7 @@ def provide_connect_info(
     options = {
         "webdav_hostname": hostname,
         "webdav_timeout": timeout,
+        "webdav_disable_check": True,
     }
 
     if token:
@@ -123,7 +123,7 @@ def is_webdav(path: PathLike) -> bool:
     """
     path = fspath(path)
     parts = urlsplit(path)
-    return parts.scheme in ("webdav", "webdavs", "http", "https")
+    return parts.scheme in ("webdav", "webdavs")
 
 
 def _webdav_scan_pairs(
@@ -145,8 +145,6 @@ class WebdavPath(URIPath):
     uri format:
         - webdav://[username[:password]@]hostname[:port]/file_path
         - webdavs://[username[:password]@]hostname[:port]/file_path
-        - http://[username[:password]@]hostname[:port]/file_path
-        - https://[username[:password]@]hostname[:port]/file_path
     """
 
     protocol = "webdav"
@@ -210,8 +208,8 @@ class WebdavPath(URIPath):
         :returns: True if the path exists, else False
         """
         try:
-            return self._client.check(self._real_path)
-        except Exception:
+            return self._client.info(self._real_path)
+        except RemoteResourceNotFound:
             return False
 
     def getmtime(self, follow_symlinks: bool = False) -> float:
