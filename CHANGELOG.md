@@ -1,6 +1,15 @@
+## 4.2.5 - 2025.10.20
+- feat
+    - Added the `webdav` protocol, implemented using the webdavclient3 library. Please install it using `pip install 'megfile[webdav]'`.
+    - Added an atomic flag; when enabled, abnormal exits (including exceptions thrown within the with block or exiting without calling close) will not produce any file.
+- fix
+    - Fixed some interface errors in sftp2, including readlink, utime, and chmod.
+- chore
+    - update warning for the S3 config path
+
 ## 4.2.4 - 2025.09.01
 - feat
-    - Added the `sftp2` protocol, implemented using the ssh2-python library, which is faster.Please install it using `pip install 'megfile[sftp2]'`.
+    - Added the `sftp2` protocol, implemented using the ssh2-python library, which is faster. Please install it using `pip install 'megfile[sftp2]'`.
 - perf
     - Added the `MEGFILE_READER_LAZY_PREFETCH` environment variable, which allows the reader to read in a lazy manner.
     - For performance reasons, `_is_pickle` only determines based on the file extension. If your file extension is not `.pkl` or `.pickle`, please add the `buffered=True` parameter to improve pickle reading performance.
