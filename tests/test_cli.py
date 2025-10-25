@@ -128,11 +128,16 @@ def test_ls_symlink(runner, testdir):
     assert sorted(result.output.split("\n")) == sorted(
         [
             "text",
-            f"symlink -> {testdir}/text",
-            f"symlink_err -> {testdir}/text1",
+            "symlink",
+            "symlink_err",
             "",
         ]
     )
+
+    result = runner.invoke(ls, ["--long", str(testdir)])
+    assert result.exit_code == 0
+    assert f"symlink -> {testdir}/text" in result.output
+    assert f"symlink_err -> {testdir}/text1" in result.output
 
 
 def test_ll(runner, testdir):

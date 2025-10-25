@@ -117,12 +117,12 @@ def test_webdav_resolve(webdav_mocker):
 
 def test_parts(webdav_mocker):
     assert WebdavPath("webdav://host/A/B/C").parts == (
-        "webdav://host/",
+        "webdav://host",
         "A",
         "B",
         "C",
     )
-    assert WebdavPath("webdav://host/").parts == ("webdav://host/",)
+    assert WebdavPath("webdav://host/").parts == ("webdav://host",)
 
 
 def test_webdavs_path(webdav_mocker):

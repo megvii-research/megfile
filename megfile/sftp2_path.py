@@ -412,10 +412,7 @@ class Sftp2Path(URIPath):
     """sftp2 protocol
 
     uri format:
-        - absolute path
-            - sftp2://[username[:password]@]hostname[:port]//file_path
-        - relative path
-            - sftp2://[username[:password]@]hostname[:port]/file_path
+        - sftp2://[username[:password]@]hostname[:port]/file_path
     """
 
     protocol = "sftp2"
@@ -424,27 +421,12 @@ class Sftp2Path(URIPath):
         super().__init__(path, *other_paths)
         parts = urlsplit(self.path)
         self._urlsplit_parts = parts
-        self._real_path = parts.path
-        if parts.path.startswith("//"):
-            self._root_dir = "/"
-        else:
-            self._root_dir = "/"  # Default to absolute path for ssh2
-        self._real_path = (
-            parts.path.lstrip("/")
-            if not parts.path.startswith("//")
-            else parts.path[2:]
-        )
-        if not self._real_path.startswith("/"):
-            self._real_path = f"/{self._real_path}"
+        self._remote_path = parts.path or "/"
 
     @cached_property
     def parts(self) -> Tuple[str, ...]:
         """A tuple giving access to the path's various components"""
-        if self._urlsplit_parts.path.startswith("//"):
-            new_parts = self._urlsplit_parts._replace(path="//")
-        else:
-            new_parts = self._urlsplit_parts._replace(path="/")
-        parts = [urlunsplit(new_parts)]
+        parts = [urlunsplit(self._urlsplit_parts._replace(path=""))]
         path = self._urlsplit_parts.path.lstrip("/")
         if path != "":
             parts.extend(path.split("/"))
@@ -512,12 +494,6 @@ class Sftp2Path(URIPath):
         )
 
     def _generate_path_object(self, sftp_local_path: str, resolve: bool = False):
-        if resolve or self._root_dir == "/":
-            sftp_local_path = f"//{sftp_local_path.lstrip('/')}"
-        else:
-            sftp_local_path = os.path.relpath(sftp_local_path, start=self._root_dir)
-            if sftp_local_path == ".":
-                sftp_local_path = "/"
         new_parts = self._urlsplit_parts._replace(path=sftp_local_path)
         return self.from_path(urlunsplit(new_parts))
 
@@ -581,12 +557,12 @@ class Sftp2Path(URIPath):
             return self.from_path(path).is_dir(followlinks=followlinks)
 
         fs = FSFunc(_exist, _is_dir, _scandir)
-        for real_path in _create_missing_ok_generator(
+        for remote_path in _create_missing_ok_generator(
             iglob(fspath(glob_path), recursive=recursive, fs=fs),
             missing_ok,
             FileNotFoundError(f"No match any file: {glob_path!r}"),
         ):
-            yield self.from_path(real_path)
+            yield self.from_path(remote_path)
 
     def is_dir(self, followlinks: bool = False) -> bool:
         """Test if a path is directory"""
@@ -640,7 +616,7 @@ class Sftp2Path(URIPath):
             for parent_path_object in parent_path_objects[::-1]:
                 parent_path_object.mkdir(mode=mode, parents=False, exist_ok=True)
         try:
-            self._client.mkdir(self._real_path, mode)
+            self._client.mkdir(self._remote_path, mode)
         except OSError:
             if not self.exists():
                 raise
@@ -671,7 +647,7 @@ class Sftp2Path(URIPath):
         if self._is_same_backend(dst_path):
             if overwrite:
                 dst_path.remove(missing_ok=True)
-                self._client.rename(self._real_path, dst_path._real_path)
+                self._client.rename(self._remote_path, dst_path._remote_path)
             else:
                 self.sync(dst_path, overwrite=overwrite)
                 self.remove(missing_ok=True)
@@ -681,7 +657,7 @@ class Sftp2Path(URIPath):
                     self.from_path(file_entry.path).rename(
                         dst_path.joinpath(file_entry.name)
                     )
-                self._client.rmdir(self._real_path)
+                self._client.rmdir(self._remote_path)
             else:
                 if overwrite or not dst_path.exists():
                     with self.open("rb") as fsrc:
@@ -704,9 +680,9 @@ class Sftp2Path(URIPath):
         if self.is_dir():
             for file_entry in self.scandir():
                 self.from_path(file_entry.path).remove(missing_ok=missing_ok)
-            self._client.rmdir(self._real_path)
+            self._client.rmdir(self._remote_path)
         else:
-            self._client.unlink(self._real_path)
+            self._client.unlink(self._remote_path)
 
     def scan(self, missing_ok: bool = True, followlinks: bool = False) -> Iterator[str]:
         """Iteratively traverse only files in given directory"""
@@ -753,7 +729,7 @@ class Sftp2Path(URIPath):
 
     def scandir(self) -> ContextIterator:
         """Get all content of given file path"""
-        real_path = self._real_path
+        remote_path = self._remote_path
         stat_result = None
         try:
             stat_result = self.stat(follow_symlinks=False)
@@ -761,13 +737,13 @@ class Sftp2Path(URIPath):
             raise NotADirectoryError(f"Not a directory: '{self.path_with_protocol}'")
 
         if stat_result.is_symlink():
-            real_path = self.readlink()._real_path
+            remote_path = self.readlink()._remote_path
         elif not stat_result.is_dir():
             raise NotADirectoryError(f"Not a directory: '{self.path_with_protocol}'")
 
         def create_generator():
             # Use opendir and readdir from ssh2-python
-            dir_handle = self._client.opendir(real_path)
+            dir_handle = self._client.opendir(remote_path)
             try:
                 # ssh2-python's readdir returns a generator
                 # First call returns all entries, subsequent calls return empty
@@ -795,9 +771,9 @@ class Sftp2Path(URIPath):
         """Get StatResult of file on sftp2"""
         try:
             if follow_symlinks:
-                stat = self._client.stat(self._real_path)
+                stat = self._client.stat(self._remote_path)
             else:
-                stat = self._client.lstat(self._real_path)
+                stat = self._client.lstat(self._remote_path)
             return _make_stat(stat)
         except SFTPProtocolError as e:  # pytype: disable=mro-error
             raise FileNotFoundError(
@@ -812,7 +788,7 @@ class Sftp2Path(URIPath):
         """Remove the file on sftp2"""
         if missing_ok and not self.exists():
             return
-        self._client.unlink(self._real_path)
+        self._client.unlink(self._remote_path)
 
     def walk(
         self, followlinks: bool = False
@@ -824,7 +800,7 @@ class Sftp2Path(URIPath):
         if self.is_file(followlinks=followlinks):
             return
 
-        stack = [self._real_path]
+        stack = [self._remote_path]
         while stack:
             root = stack.pop()
             dirs, files = [], []
@@ -849,8 +825,8 @@ class Sftp2Path(URIPath):
 
     def resolve(self, strict=False) -> "Sftp2Path":
         """Return the canonical path"""
-        path = self._client.realpath(self._real_path)
-        return self._generate_path_object(path, resolve=True)
+        path = self._client.realpath(self._remote_path)
+        return self._generate_path_object(path)
 
     def md5(self, recalculate: bool = False, followlinks: bool = False):
         """Calculate the md5 value of the file"""
@@ -873,7 +849,7 @@ class Sftp2Path(URIPath):
         dst_path = self.from_path(dst_path)
         if dst_path.exists(followlinks=False):
             raise FileExistsError(f"File exists: '{dst_path.path_with_protocol}'")
-        return self._client.symlink(self._real_path, dst_path._real_path)
+        return self._client.symlink(self._remote_path, dst_path._remote_path)
 
     def readlink(self) -> "Sftp2Path":
         """Return a Sftp2Path instance representing the path to which the
@@ -885,7 +861,7 @@ class Sftp2Path(URIPath):
         if not self.is_symlink():
             raise OSError(f"Not a symlink: {self.path_with_protocol!r}")
         try:
-            path = self._client.realpath(self._real_path)
+            path = self._client.realpath(self._remote_path)
             if not path:
                 raise OSError(f"Not a symlink: {self.path_with_protocol!r}")
             if not path.startswith("/"):
@@ -949,7 +925,7 @@ class Sftp2Path(URIPath):
                 | ssh2.sftp.LIBSSH2_FXF_APPEND
             )
 
-        sftp_handle = self._client.open(self._real_path, ssh2_mode, 0o644)
+        sftp_handle = self._client.open(self._remote_path, ssh2_mode, 0o644)
 
         # Create raw file wrapper
         raw_file = Sftp2RawFile(sftp_handle, self.path, mode)
@@ -979,7 +955,7 @@ class Sftp2Path(URIPath):
         """Change the file mode and permissions"""
         stat = SFTPAttributes()
         stat.permissions = int(mode)
-        return self._client.setstat(self._real_path, stat)
+        return self._client.setstat(self._remote_path, stat)
 
     def absolute(self) -> "Sftp2Path":
         """Make the path absolute"""
@@ -989,7 +965,7 @@ class Sftp2Path(URIPath):
         """Remove this directory. The directory must be empty"""
         if len(self.listdir()) > 0:
             raise OSError(f"Directory not empty: '{self.path_with_protocol}'")
-        return self._client.rmdir(self._real_path)
+        return self._client.rmdir(self._remote_path)
 
     def copy(
         self,
@@ -1017,7 +993,7 @@ class Sftp2Path(URIPath):
         dst_path = self.from_path(dst_path)
 
         if self._is_same_backend(dst_path):
-            if self._real_path == dst_path._real_path:
+            if self._remote_path == dst_path._remote_path:
                 raise SameFileError(
                     f"'{self.path}' and '{dst_path.path}' are the same file"
                 )
@@ -1025,8 +1001,8 @@ class Sftp2Path(URIPath):
             exec_result = self._exec_command(
                 [
                     "cp",
-                    self._real_path,
-                    dst_path._real_path,
+                    self._remote_path,
+                    dst_path._remote_path,
                 ]
             )
 
@@ -1087,4 +1063,4 @@ class Sftp2Path(URIPath):
         stat = SFTPAttributes()
         stat.atime = int(atime)
         stat.mtime = int(mtime)
-        self._client.setstat(self._real_path, stat)
+        self._client.setstat(self._remote_path, stat)

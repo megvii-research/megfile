@@ -171,7 +171,7 @@ def _ls(path: str, long: bool, recursive: bool, human_readable: bool):
         total_size += file_stat.stat.size
         total_count += 1
         output = echo_func(file_stat, base_path, full_path=full_path)
-        if file_stat.is_symlink():
+        if long and file_stat.is_symlink():
             output += " -> %s" % smart_readlink(file_stat.path)
         click.echo(output)
     if long:

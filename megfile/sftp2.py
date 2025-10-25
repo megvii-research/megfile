@@ -326,15 +326,15 @@ def sftp2_concat(src_paths: List[PathLike], dst_path: PathLike) -> None:
 
     if all_same_backend and len(src_paths) > 1:
         # Use server-side cat command for efficiency
-        def get_real_path(path: PathLike) -> str:
-            return Sftp2Path(path)._real_path
+        def get_remote_path(path: PathLike) -> str:
+            return Sftp2Path(path)._remote_path
 
         exec_result = dst_path_obj._exec_command(
             [
                 "cat",
-                *map(get_real_path, src_paths),
+                *map(get_remote_path, src_paths),
                 ">",
-                get_real_path(dst_path),
+                get_remote_path(dst_path),
             ]
         )
 
