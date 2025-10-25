@@ -132,18 +132,18 @@ def test_generate_path_object(sftp2_mocker):
 
 def test_parts(sftp2_mocker):
     assert Sftp2Path("sftp2://username@host/A/B/C").parts == (
-        "sftp2://username@host/",
+        "sftp2://username@host",
         "A",
         "B",
         "C",
     )
     assert Sftp2Path("sftp2://username@host/A/B/C").parts == (
-        "sftp2://username@host/",
+        "sftp2://username@host",
         "A",
         "B",
         "C",
     )
-    assert Sftp2Path("sftp2://username@host/").parts == ("sftp2://username@host/",)
+    assert Sftp2Path("sftp2://username@host/").parts == ("sftp2://username@host",)
 
 
 def test_get_sftp2_client(mocker):

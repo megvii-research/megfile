@@ -421,13 +421,12 @@ class Sftp2Path(URIPath):
         super().__init__(path, *other_paths)
         parts = urlsplit(self.path)
         self._urlsplit_parts = parts
-        self._remote_path = parts.path
+        self._remote_path = parts.path or "/"
 
     @cached_property
     def parts(self) -> Tuple[str, ...]:
         """A tuple giving access to the path's various components"""
-        new_parts = self._urlsplit_parts._replace(path="/")
-        parts = [urlunsplit(new_parts)]
+        parts = [urlunsplit(self._urlsplit_parts._replace(path=""))]
         path = self._urlsplit_parts.path.lstrip("/")
         if path != "":
             parts.extend(path.split("/"))
@@ -558,12 +557,12 @@ class Sftp2Path(URIPath):
             return self.from_path(path).is_dir(followlinks=followlinks)
 
         fs = FSFunc(_exist, _is_dir, _scandir)
-        for real_path in _create_missing_ok_generator(
+        for remote_path in _create_missing_ok_generator(
             iglob(fspath(glob_path), recursive=recursive, fs=fs),
             missing_ok,
             FileNotFoundError(f"No match any file: {glob_path!r}"),
         ):
-            yield self.from_path(real_path)
+            yield self.from_path(remote_path)
 
     def is_dir(self, followlinks: bool = False) -> bool:
         """Test if a path is directory"""
@@ -730,7 +729,7 @@ class Sftp2Path(URIPath):
 
     def scandir(self) -> ContextIterator:
         """Get all content of given file path"""
-        real_path = self._remote_path
+        remote_path = self._remote_path
         stat_result = None
         try:
             stat_result = self.stat(follow_symlinks=False)
@@ -738,13 +737,13 @@ class Sftp2Path(URIPath):
             raise NotADirectoryError(f"Not a directory: '{self.path_with_protocol}'")
 
         if stat_result.is_symlink():
-            real_path = self.readlink()._remote_path
+            remote_path = self.readlink()._remote_path
         elif not stat_result.is_dir():
             raise NotADirectoryError(f"Not a directory: '{self.path_with_protocol}'")
 
         def create_generator():
             # Use opendir and readdir from ssh2-python
-            dir_handle = self._client.opendir(real_path)
+            dir_handle = self._client.opendir(remote_path)
             try:
                 # ssh2-python's readdir returns a generator
                 # First call returns all entries, subsequent calls return empty
