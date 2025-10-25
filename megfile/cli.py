@@ -86,33 +86,33 @@ def safe_cli():  # pragma: no cover
             sys.exit(1)
 
 
-def get_echo_path(file_stat, base_path: str = "", full_path: bool = False):
+def get_echo_path(file_stat, base_path: str = "", full: bool = False):
     if base_path == file_stat.path:
         path = file_stat.name
-    elif full_path:
+    elif full:
         path = file_stat.path
     else:
         path = smart_relpath(file_stat.path, start=base_path)
     return path
 
 
-def simple_echo(file_stat, base_path: str = "", full_path: bool = False):
-    return get_echo_path(file_stat, base_path, full_path)
+def simple_echo(file_stat, base_path: str = "", full: bool = False):
+    return get_echo_path(file_stat, base_path, full)
 
 
-def long_echo(file_stat, base_path: str = "", full_path: bool = False):
+def long_echo(file_stat, base_path: str = "", full: bool = False):
     return "%12d %s %s" % (
         file_stat.stat.size,
         time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(file_stat.stat.mtime)),
-        get_echo_path(file_stat, base_path, full_path),
+        get_echo_path(file_stat, base_path, full),
     )
 
 
-def human_echo(file_stat, base_path: str = "", full_path: bool = False):
+def human_echo(file_stat, base_path: str = "", full: bool = False):
     return "%10s %s %s" % (
         get_human_size(file_stat.stat.size),
         time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(file_stat.stat.mtime)),
-        get_echo_path(file_stat, base_path, full_path),
+        get_echo_path(file_stat, base_path, full),
     )
 
 
@@ -143,13 +143,12 @@ def _sftp_prompt_host_key(path):
             )
 
 
-def _ls(path: str, long: bool, recursive: bool, human_readable: bool):
+def _ls(path: str, long: bool, full: bool, recursive: bool, human_readable: bool):
     base_path = path
-    full_path = False
     if has_magic(path):
         scan_func = smart_glob_stat
         base_path = get_non_glob_dir(path)
-        full_path = True
+        full = True
     elif recursive:
         scan_func = smart_scan_stat
     else:
@@ -170,7 +169,7 @@ def _ls(path: str, long: bool, recursive: bool, human_readable: bool):
     for file_stat in scan_func(path):
         total_size += file_stat.stat.size
         total_count += 1
-        output = echo_func(file_stat, base_path, full_path=full_path)
+        output = echo_func(file_stat, base_path, full=full)
         if long and file_stat.is_symlink():
             output += " -> %s" % smart_readlink(file_stat.path)
         click.echo(output)
@@ -216,6 +215,12 @@ ZshComplete.source_template = ZshComplete.source_template.replace(
     help="List all the objects in the path with size, modification time and path.",
 )
 @click.option(
+    "-f",
+    "--full",
+    is_flag=True,
+    help="Displays the full path of each file.",
+)
+@click.option(
     "-r",
     "--recursive",
     is_flag=True,
@@ -228,12 +233,24 @@ ZshComplete.source_template = ZshComplete.source_template.replace(
     is_flag=True,
     help="Displays file sizes in human readable format.",
 )
-def ls(path: str, long: bool, recursive: bool, human_readable: bool):
-    _ls(path, long=long, recursive=recursive, human_readable=human_readable)
+def ls(path: str, long: bool, full: bool, recursive: bool, human_readable: bool):
+    _ls(
+        path,
+        long=long,
+        full=full,
+        recursive=recursive,
+        human_readable=human_readable,
+    )
 
 
 @cli.command(short_help="List all the objects in the path.")
 @click.argument("path", type=PathType())
+@click.option(
+    "-f",
+    "--full",
+    is_flag=True,
+    help="Displays the full path of each file.",
+)
 @click.option(
     "-r",
     "--recursive",
@@ -241,8 +258,8 @@ def ls(path: str, long: bool, recursive: bool, human_readable: bool):
     help="Command is performed on all files or objects under "
     "the specified directory or prefix.",
 )
-def ll(path: str, recursive: bool):
-    _ls(path, long=True, recursive=recursive, human_readable=True)
+def ll(path: str, recursive: bool, full: bool):
+    _ls(path, long=True, full=full, recursive=recursive, human_readable=True)
 
 
 @cli.command(short_help="Copy files from source to dest, skipping already copied.")
