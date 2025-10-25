@@ -673,10 +673,17 @@ def test_glob(s3_empty_client, fs, oss_alias):
 
     SmartPath("s3+oss://bucket/B/1").write_text("1")
     SmartPath("s3+oss://bucket/B/2.json").write_text("2")
+    SmartPath("s3+oss://bucket/B/3/4.json").write_text("4")
 
     assert SmartPath("s3+oss://bucket/B").glob("*") == [
         SmartPath("s3+oss://bucket/B/1"),
         SmartPath("s3+oss://bucket/B/2.json"),
+        SmartPath("s3+oss://bucket/B/3"),
+    ]
+
+    assert SmartPath("s3+oss://bucket/B").rglob("*.json") == [
+        SmartPath("s3+oss://bucket/B/2.json"),
+        SmartPath("s3+oss://bucket/B/3/4.json"),
     ]
 
     assert [
@@ -684,14 +691,22 @@ def test_glob(s3_empty_client, fs, oss_alias):
     ] == [
         SmartPath("s3+oss://bucket/B/1"),
         SmartPath("s3+oss://bucket/B/2.json"),
+        SmartPath("s3+oss://bucket/B/3"),
     ]
 
     SmartPath("oss://bucket/C/1").write_text("1")
     SmartPath("oss://bucket/C/2.json").write_text("2")
+    SmartPath("oss://bucket/C/3/4.json").write_text("4")
 
     assert SmartPath("oss://bucket/C").glob("*") == [
         SmartPath("oss://bucket/C/1"),
         SmartPath("oss://bucket/C/2.json"),
+        SmartPath("oss://bucket/C/3"),
+    ]
+
+    assert SmartPath("oss://bucket/C").rglob("*.json") == [
+        SmartPath("oss://bucket/C/2.json"),
+        SmartPath("oss://bucket/C/3/4.json"),
     ]
 
     assert [
@@ -699,6 +714,7 @@ def test_glob(s3_empty_client, fs, oss_alias):
     ] == [
         SmartPath("oss://bucket/C/1"),
         SmartPath("oss://bucket/C/2.json"),
+        SmartPath("oss://bucket/C/3"),
     ]
     pass
 
@@ -1041,6 +1057,35 @@ def test_resolve(fs, oss_alias):
     assert SmartPath("file").resolve() == "/test/a/file"
     assert SmartPath("/test/a/../a/file").resolve() == "/test/a/file"
     assert SmartPath("file.lnk").resolve() == "/test/a/file"
+
+
+def test_abspath(fs, oss_alias):
+    os.makedirs("/test/a")
+    SmartPath("/test/a/file").touch()
+    os.chdir("/test/a")
+    assert SmartPath("file").abspath() == "/test/a/file"
+    assert SmartPath("/test/a/file").abspath() == "/test/a/file"
+
+
+def test_realpath(fs, oss_alias):
+    os.makedirs("/test/a")
+    SmartPath("/test/a/file").touch()
+    os.chdir("/test/a")
+    os.symlink("/test/a/file", "/test/a/file.lnk")
+    assert SmartPath("file").realpath() == "/test/a/file"
+    assert SmartPath("/test/a/../a/file").realpath() == "/test/a/file"
+    assert SmartPath("file.lnk").realpath() == "/test/a/file"
+
+
+def test_as_posix(oss_alias):
+    # For file paths
+    assert SmartPath("/foo/bar").as_posix() == "file:///foo/bar"
+    assert SmartPath("file://foo/bar").as_posix() == "file://foo/bar"
+
+    # For S3 paths
+    assert SmartPath("s3://bucket/key").as_posix() == "s3://bucket/key"
+    assert SmartPath("s3+oss://bucket/key").as_posix() == "s3+oss://bucket/key"
+    assert SmartPath("oss://bucket/key").as_posix() == "oss://bucket/key"
 
 
 def test_rmdir(fs):
