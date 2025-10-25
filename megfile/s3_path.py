@@ -1399,11 +1399,9 @@ class S3Path(URIPath):
     @cached_property
     def path_with_protocol(self) -> str:
         """Return path with protocol, like file:///root, s3://bucket/key"""
-        path = self.path
-        protocol_prefix = self._protocol_with_profile + "://"
-        if path.startswith(protocol_prefix):
-            return path
-        return protocol_prefix + path.lstrip("/")
+        if self.path.startswith(self.root):
+            return self.path
+        return self.root + self.path.lstrip("/")
 
     @cached_property
     def path_without_protocol(self) -> str:
@@ -1411,21 +1409,14 @@ class S3Path(URIPath):
         Return path without protocol, example: if path is s3://bucket/key,
         return bucket/key
         """
-        path = self.path
-        protocol_prefix = self._protocol_with_profile + "://"
-        if path.startswith(protocol_prefix):
-            path = path[len(protocol_prefix) :]
-        return path
+        if self.path.startswith(self.root):
+            return self.path[len(self.root) :]
+        return self.path
 
     @cached_property
-    def parts(self) -> Tuple[str, ...]:
-        """A tuple giving access to the path’s various components"""
-        parts = [f"{self._protocol_with_profile}://"]
-        path = self.path_without_protocol
-        path = path.lstrip("/")
-        if path != "":
-            parts.extend(path.split("/"))
-        return tuple(parts)
+    def root(self) -> str:
+        """Return root of the path, like s3://"""
+        return f"{self._protocol_with_profile}://"
 
     @cached_property
     def _client(self):
@@ -2241,9 +2232,7 @@ class S3Path(URIPath):
                 dirs = sorted(dirs)
                 stack.extend(reversed(dirs))
 
-                root = s3_path_join(
-                    f"{self._protocol_with_profile}://", bucket, current
-                )[:-1]
+                root = s3_path_join(self.root, bucket, current)[:-1]
                 dirs = [path[len(current) :] for path in dirs]
                 files = sorted(path[len(current) :] for path in files)
                 if files or dirs or not current:

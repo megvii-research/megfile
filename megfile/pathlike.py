@@ -22,7 +22,6 @@ from megfile.lib.compat import PathLike as _PathLike
 from megfile.lib.compat import fspath
 from megfile.lib.fnmatch import _compile_pattern
 from megfile.lib.joinpath import uri_join
-from megfile.utils import classproperty
 
 Self = TypeVar("Self")
 
@@ -556,15 +555,15 @@ class BasePath:
         ) as f:
             return f.write(data)
 
-    @classproperty
+    @cached_property
     def drive(self) -> str:
         return ""
 
-    @classproperty
+    @cached_property
     def root(self) -> str:
         return self.protocol + "://"
 
-    @classproperty
+    @cached_property
     def anchor(self) -> str:
         return self.root  # pyre-ignore[7]
 
