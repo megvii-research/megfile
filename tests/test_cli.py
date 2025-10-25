@@ -139,6 +139,17 @@ def test_ls_symlink(runner, testdir):
     assert f"symlink -> {testdir}/text" in result.output
     assert f"symlink_err -> {testdir}/text1" in result.output
 
+    result = runner.invoke(ls, ["--full", str(testdir)])
+    assert result.exit_code == 0
+    assert sorted(result.output.split("\n")) == sorted(
+        [
+            f"{testdir}/text",
+            f"{testdir}/symlink",
+            f"{testdir}/symlink_err",
+            "",
+        ]
+    )
+
 
 def test_ll(runner, testdir):
     result_ls = runner.invoke(ls, ["--long", "--human-readable", str(testdir)])
