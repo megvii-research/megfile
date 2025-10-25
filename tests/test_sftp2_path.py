@@ -52,59 +52,59 @@ def test_provide_connect_info(fs, mocker):
 
 
 def test_sftp2_glob(sftp2_mocker):
-    sftp2.sftp2_makedirs("sftp2://username@host//A")
-    sftp2.sftp2_makedirs("sftp2://username@host//A/a")
-    sftp2.sftp2_makedirs("sftp2://username@host//A/b")
-    sftp2.sftp2_makedirs("sftp2://username@host//A/b/c")
-    with sftp2.sftp2_open("sftp2://username@host//A/1.json", "w") as f:
+    sftp2.sftp2_makedirs("sftp2://username@host/A")
+    sftp2.sftp2_makedirs("sftp2://username@host/A/a")
+    sftp2.sftp2_makedirs("sftp2://username@host/A/b")
+    sftp2.sftp2_makedirs("sftp2://username@host/A/b/c")
+    with sftp2.sftp2_open("sftp2://username@host/A/1.json", "w") as f:
         f.write("1.json")
 
-    with sftp2.sftp2_open("sftp2://username@host//A/b/file.json", "w") as f:
+    with sftp2.sftp2_open("sftp2://username@host/A/b/file.json", "w") as f:
         f.write("file")
 
-    assert Sftp2Path("sftp2://username@host//A/").glob("*") == [
-        "sftp2://username@host//A/1.json",
-        "sftp2://username@host//A/a",
-        "sftp2://username@host//A/b",
+    assert Sftp2Path("sftp2://username@host/A/").glob("*") == [
+        "sftp2://username@host/A/1.json",
+        "sftp2://username@host/A/a",
+        "sftp2://username@host/A/b",
     ]
-    assert list(Sftp2Path("sftp2://username@host//A").iglob("*")) == [
-        "sftp2://username@host//A/1.json",
-        "sftp2://username@host//A/a",
-        "sftp2://username@host//A/b",
+    assert list(Sftp2Path("sftp2://username@host/A").iglob("*")) == [
+        "sftp2://username@host/A/1.json",
+        "sftp2://username@host/A/a",
+        "sftp2://username@host/A/b",
     ]
     assert [
         file_entry.path
-        for file_entry in Sftp2Path("sftp2://username@host//A").glob_stat("*")
+        for file_entry in Sftp2Path("sftp2://username@host/A").glob_stat("*")
     ] == [
-        "sftp2://username@host//A/1.json",
-        "sftp2://username@host//A/a",
-        "sftp2://username@host//A/b",
+        "sftp2://username@host/A/1.json",
+        "sftp2://username@host/A/a",
+        "sftp2://username@host/A/b",
     ]
 
 
 def test_iterdir(sftp2_mocker):
-    sftp2.sftp2_makedirs("sftp2://username@host//A")
-    sftp2.sftp2_makedirs("sftp2://username@host//A/a")
-    sftp2.sftp2_makedirs("sftp2://username@host//A/b")
-    sftp2.sftp2_makedirs("sftp2://username@host//A/b/c")
-    with sftp2.sftp2_open("sftp2://username@host//A/1.json", "w") as f:
+    sftp2.sftp2_makedirs("sftp2://username@host/A")
+    sftp2.sftp2_makedirs("sftp2://username@host/A/a")
+    sftp2.sftp2_makedirs("sftp2://username@host/A/b")
+    sftp2.sftp2_makedirs("sftp2://username@host/A/b/c")
+    with sftp2.sftp2_open("sftp2://username@host/A/1.json", "w") as f:
         f.write("1.json")
 
-    assert sorted(list(Sftp2Path("sftp2://username@host//A").iterdir())) == [
-        Sftp2Path("sftp2://username@host//A/1.json"),
-        Sftp2Path("sftp2://username@host//A/a"),
-        Sftp2Path("sftp2://username@host//A/b"),
+    assert sorted(list(Sftp2Path("sftp2://username@host/A").iterdir())) == [
+        Sftp2Path("sftp2://username@host/A/1.json"),
+        Sftp2Path("sftp2://username@host/A/a"),
+        Sftp2Path("sftp2://username@host/A/b"),
     ]
 
 
 def test_cwd(sftp2_mocker):
-    cwd = Sftp2Path("sftp2://username@host//A").cwd()
+    cwd = Sftp2Path("sftp2://username@host/A").cwd()
     assert isinstance(cwd, Sftp2Path)
 
 
 def test_sync(sftp2_mocker):
     with pytest.raises(OSError):
-        Sftp2Path("sftp2://username@host//A").sync("/data/test")
+        Sftp2Path("sftp2://username@host/A").sync("/data/test")
 
 
 def test_get_private_key(fs):
@@ -120,19 +120,19 @@ def test_sftp2_should_retry():
 
 
 def test_generate_path_object(sftp2_mocker):
-    path = Sftp2Path("sftp2://username@host//A/B/C")
+    path = Sftp2Path("sftp2://username@host/A/B/C")
 
     result = path._generate_path_object("/root/A/B/C/D")
     assert isinstance(result, Sftp2Path)
-    assert result.path_with_protocol == "sftp2://username@host//root/A/B/C/D"
+    assert result.path_with_protocol == "sftp2://username@host/root/A/B/C/D"
 
     result = path._generate_path_object("/D", resolve=True)
-    assert result.path_with_protocol == "sftp2://username@host//D"
+    assert result.path_with_protocol == "sftp2://username@host/D"
 
 
 def test_parts(sftp2_mocker):
-    assert Sftp2Path("sftp2://username@host//A/B/C").parts == (
-        "sftp2://username@host//",
+    assert Sftp2Path("sftp2://username@host/A/B/C").parts == (
+        "sftp2://username@host/",
         "A",
         "B",
         "C",
@@ -143,7 +143,7 @@ def test_parts(sftp2_mocker):
         "B",
         "C",
     )
-    assert Sftp2Path("sftp2://username@host//").parts == ("sftp2://username@host//",)
+    assert Sftp2Path("sftp2://username@host/").parts == ("sftp2://username@host/",)
 
 
 def test_get_sftp2_client(mocker):
@@ -234,12 +234,9 @@ def test_path_properties(sftp2_mocker):
 
 def test_path_construction(sftp2_mocker):
     # Test absolute path construction
-    abs_path = Sftp2Path("sftp2://host//absolute/path/file.txt")
-    assert abs_path._real_path.startswith("/")
-
-    # Test relative path construction
-    rel_path = Sftp2Path("sftp2://host/relative/path/file.txt")
-    assert rel_path.name == "file.txt"
+    abs_path = Sftp2Path("sftp2://host/absolute/path/file.txt")
+    assert abs_path._remote_path.startswith("/")
+    assert abs_path.name == "file.txt"
 
 
 def test_backend_comparison(sftp2_mocker):
