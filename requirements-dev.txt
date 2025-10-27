@@ -27,6 +27,7 @@ black  # for E501
 
 # static check
 msgspec >= 0.19.0; python_version >= "3.13"
+git+https://github.com/Instagram/LibCST.git@73b17d8449034b520e7128c8a4bd100674d1e78c; python_version >= "3.14"
 pytype
 pyre-check ~= 0.9.22
 bandit
