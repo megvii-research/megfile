@@ -66,11 +66,11 @@ def _load_aliases_config(config_path) -> Dict[str, Dict[str, str]]:
 
 def _to_aliased_path(pathlike, other_path: str) -> str:
     """Convert path string to aliased path string"""
-    if pathlike.protocol == pathlike.unaliased_protocol:
+    if pathlike.protocol == pathlike._unaliased_protocol:
         return other_path
     aliases: Dict[str, Dict[str, str]] = pathlike._aliases
     unaliased_prefix = aliases[pathlike.protocol].get("prefix", "")
-    unaliased_prefix = "%s://%s" % (pathlike.unaliased_protocol, unaliased_prefix)
+    unaliased_prefix = "%s://%s" % (pathlike._unaliased_protocol, unaliased_prefix)
     if not other_path.startswith(unaliased_prefix):
         return other_path
     path_without_protocol = other_path[len(unaliased_prefix) :]
@@ -80,7 +80,7 @@ def _to_aliased_path(pathlike, other_path: str) -> str:
 def _to_aliased_pathlike(pathlike, other_pathlike) -> BasePath:
     """Convert pathlike object to aliased SmartPath object"""
     other_path = str(other_pathlike)
-    if pathlike.protocol != pathlike.unaliased_protocol:
+    if pathlike.protocol != pathlike._unaliased_protocol:
         other_path = _to_aliased_path(pathlike, other_path)
     return SmartPath(other_path)
 
@@ -137,12 +137,12 @@ class SmartPath(BasePath):
     def __init__(self, path: Union[PathLike, int], *other_paths: PathLike):
         self.path = str(path) if not isinstance(path, int) else path
         self.protocol = self._extract_protocol(path)
-        self.unaliased_path = _to_unaliased_path(self, path)
-        self.unaliased_protocol = self._extract_protocol(self.unaliased_path)
+        self._unaliased_path = _to_unaliased_path(self, path)
+        self._unaliased_protocol = self._extract_protocol(self._unaliased_path)
 
         pathlike = path
         if not isinstance(pathlike, BasePath):
-            pathlike = self._create_pathlike(self.unaliased_path)
+            pathlike = self._create_pathlike(self._unaliased_path)
         if len(other_paths) > 0:
             pathlike = pathlike.joinpath(*other_paths)
             self.path = str(pathlike)
