@@ -2,6 +2,9 @@ import hashlib
 import io
 import os
 import re
+import shlex
+import subprocess
+import time
 from functools import cached_property
 from logging import getLogger as get_logger
 from typing import IO, BinaryIO, Callable, Iterable, Iterator, List, Optional, Tuple
@@ -10,7 +13,11 @@ from urllib.parse import quote, unquote, urlsplit, urlunsplit
 import dateutil.parser
 from webdav3.client import Client as WebdavClient
 from webdav3.client import WebDavXmlUtils
-from webdav3.exceptions import RemoteResourceNotFound, WebDavException
+from webdav3.exceptions import (
+    RemoteResourceNotFound,
+    ResponseErrorCode,
+    WebDavException,
+)
 from webdav3.urn import Urn
 
 from megfile.config import (
@@ -18,7 +25,12 @@ from megfile.config import (
     READER_MAX_BUFFER_SIZE,
     WEBDAV_MAX_RETRY_TIMES,
 )
-from megfile.errors import SameFileError, _create_missing_ok_generator
+from megfile.errors import (
+    SameFileError,
+    _create_missing_ok_generator,
+    http_should_retry,
+    patch_method,
+)
 from megfile.interfaces import (
     ContextIterator,
     FileEntry,
@@ -54,6 +66,7 @@ __all__ = [
 WEBDAV_USERNAME = "WEBDAV_USERNAME"
 WEBDAV_PASSWORD = "WEBDAV_PASSWORD"
 WEBDAV_TOKEN = "WEBDAV_TOKEN"
+WEBDAV_TOKEN_COMMAND = "WEBDAV_TOKEN_COMMAND"
 WEBDAV_TIMEOUT = "WEBDAV_TIMEOUT"
 
 
@@ -93,6 +106,7 @@ def provide_connect_info(
     username: Optional[str] = None,
     password: Optional[str] = None,
     token: Optional[str] = None,
+    token_command: Optional[str] = None,
 ) -> dict:
     """Provide connection info for WebDAV client"""
     if not username:
@@ -101,6 +115,8 @@ def provide_connect_info(
         password = os.getenv(WEBDAV_PASSWORD)
     if not token:
         token = os.getenv(WEBDAV_TOKEN)
+    if not token_command:
+        token_command = os.getenv(WEBDAV_TOKEN_COMMAND)
 
     timeout = int(os.getenv(WEBDAV_TIMEOUT, "30"))
 
@@ -110,7 +126,9 @@ def provide_connect_info(
         "webdav_disable_check": True,
     }
 
-    if token:
+    if token_command:
+        options["webdav_token_command"] = token_command
+    elif token:
         options["webdav_token"] = token
     elif username and password:
         options["webdav_login"] = username
@@ -119,15 +137,77 @@ def provide_connect_info(
     return options
 
 
+def _patch_execute_request(
+    client: WebdavClient,
+    status_forcelist: Iterable[int] = (500, 502, 503, 504),
+    max_retries: int = WEBDAV_MAX_RETRY_TIMES,
+) -> WebdavClient:
+    def webdav_update_token_by_command():
+        cmds = shlex.split(client.webdav.token_command)
+        client.webdav.token_command_last_call = time.time()
+        client.webdav.token = subprocess.check_output(cmds).decode().strip()
+
+    def webdav_should_retry(error: Exception) -> bool:
+        if http_should_retry(error):
+            return True
+        if isinstance(error, ResponseErrorCode) and error.code == 401:
+            token_command = client.webdav.token_command
+            last_call = client.webdav.token_command_last_call
+            if token_command is not None and time.time() - last_call > 5:
+                webdav_update_token_by_command()
+                return True
+        return False
+
+    def after_callback(response, *args, **kwargs):
+        if response.status_code in status_forcelist:
+            response.raise_for_status()
+        return response
+
+    def before_callback(action, path, data=None, headers_ext=None):
+        # refresh token if needed
+        if client.webdav.token_command is not None and not client.webdav.token:
+            webdav_update_token_by_command()
+        _logger.debug(
+            "send http request: %s %r, with parameters: %s, headers: %s",
+            action,
+            path,
+            data,
+            headers_ext,
+        )
+
+    def retry_callback(error, action, path, data=None, headers_ext=None):
+        if data and hasattr(data, "seek"):
+            data.seek(0)
+        elif isinstance(data, Iterator):
+            _logger.warning("Can not retry http request with iterator data")
+            raise
+
+    client.execute_request = patch_method(
+        client.execute_request,
+        max_retries=max_retries,
+        should_retry=webdav_should_retry,
+        before_callback=before_callback,
+        after_callback=after_callback,
+        retry_callback=retry_callback,
+    )
+
+    return client
+
+
 def _get_webdav_client(
     hostname: str,
     username: Optional[str] = None,
     password: Optional[str] = None,
     token: Optional[str] = None,
+    token_command: Optional[str] = None,
 ) -> WebdavClient:
     """Get WebDAV client"""
-    options = provide_connect_info(hostname, username, password, token)
-    return WebdavClient(options)
+    options = provide_connect_info(hostname, username, password, token, token_command)
+    client = WebdavClient(options)
+    client.webdav.token_command = options.pop("webdav_token_command", None)
+    client.webdav.token_command_last_call = 0
+    client = _patch_execute_request(client)
+    return client
 
 
 def get_webdav_client(
@@ -135,10 +215,11 @@ def get_webdav_client(
     username: Optional[str] = None,
     password: Optional[str] = None,
     token: Optional[str] = None,
+    token_command: Optional[str] = None,
 ) -> WebdavClient:
     """Get cached WebDAV client"""
     return thread_local(
-        f"webdav_client:{hostname},{username},{password},{token}",
+        f"webdav_client:{hostname},{username},{password},{token},{token_command}",
         _get_webdav_client,
         hostname,
         username,
