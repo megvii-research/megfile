@@ -359,8 +359,8 @@ def smart_copy(
     if smart_islink(src_path) and is_s3(dst_path) and not followlinks:
         return
 
-    src_protocol, _ = SmartPath._extract_protocol(src_path)
-    dst_protocol, _ = SmartPath._extract_protocol(dst_path)
+    src_protocol = SmartPath._extract_protocol(src_path)
+    dst_protocol = SmartPath._extract_protocol(dst_path)
 
     copy_func = _get_copy_func(src_protocol, dst_protocol)
 
@@ -406,8 +406,8 @@ def _smart_sync_single_file(items: dict):
         # this function is equal to smart_copy
         dst_abs_file_path = dst_root_path
 
-    src_protocol, _ = SmartPath._extract_protocol(src_file_path)
-    dst_protocol, _ = SmartPath._extract_protocol(dst_abs_file_path)
+    src_protocol = SmartPath._extract_protocol(src_file_path)
+    dst_protocol = SmartPath._extract_protocol(dst_abs_file_path)
     should_sync = True
     try:
         if not force:
@@ -617,8 +617,8 @@ def smart_rename(
     """
     if smart_isdir(src_path):
         raise IsADirectoryError("%r is a directory" % src_path)
-    src_protocol, _ = SmartPath._extract_protocol(src_path)
-    dst_protocol, _ = SmartPath._extract_protocol(dst_path)
+    src_protocol = SmartPath._extract_protocol(src_path)
+    dst_protocol = SmartPath._extract_protocol(dst_path)
     if src_protocol == dst_protocol:
         SmartPath(src_path).rename(dst_path, overwrite=overwrite)
         return
@@ -634,8 +634,8 @@ def smart_move(src_path: PathLike, dst_path: PathLike, overwrite: bool = True) -
     :param dst_path: Given destination path
     :param overwrite: whether or not overwrite file when exists
     """
-    src_protocol, _ = SmartPath._extract_protocol(src_path)
-    dst_protocol, _ = SmartPath._extract_protocol(dst_path)
+    src_protocol = SmartPath._extract_protocol(src_path)
+    dst_protocol = SmartPath._extract_protocol(dst_path)
     if src_protocol == dst_protocol:
         SmartPath(src_path).rename(dst_path, overwrite=overwrite)
         return
@@ -826,7 +826,7 @@ def _group_glob(globstr: PathLike) -> List[str]:
     expanded_glob = ungloblize(globstr)
 
     for single_glob in expanded_glob:
-        protocol, _ = SmartPath._extract_protocol(single_glob)
+        protocol = SmartPath._extract_protocol(single_glob)
         glob_dict[protocol].append(single_glob)
 
     group_glob_list = []
@@ -1110,9 +1110,9 @@ def smart_concat(src_paths: List[PathLike], dst_path: PathLike) -> None:
     if not src_paths:
         return
 
-    dst_protocol, _ = SmartPath._extract_protocol(dst_path)
+    dst_protocol = SmartPath._extract_protocol(dst_path)
     for src_path in src_paths:
-        src_protocol, _ = SmartPath._extract_protocol(src_path)
+        src_protocol = SmartPath._extract_protocol(src_path)
         if src_protocol != dst_protocol:
             concat_func = _default_concat_func
             break

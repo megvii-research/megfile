@@ -89,17 +89,18 @@ def test_aliases(fs, sftp_mocker):
     config_path = os.path.expanduser(aliases_config)
     fs.create_file(
         config_path,
-        contents="[oss2]\nprotocol = s3+oss2\n[tos]\nprotocol = s3+tos",
+        contents="[oss]\nprotocol = s3+oss\n[tos]\nprotocol = s3+tos",
     )
-    aliases = {"oss2": {"protocol": "s3+oss2"}, "tos": {"protocol": "s3+tos"}}
+    aliases = {"oss": {"protocol": "s3+oss"}, "tos": {"protocol": "s3+tos"}}
     assert _load_aliases_config(config_path) == aliases
 
     with patch.object(SmartPath, "_aliases", new_callable=PropertyMock) as mock_aliases:
         mock_aliases.return_value = aliases
         assert (
-            SmartPath("oss2://bucket/dir/file").pathlike
-            == SmartPath("s3+oss2://bucket/dir/file").pathlike
+            SmartPath("oss://bucket/dir/file").pathlike
+            == SmartPath("s3+oss://bucket/dir/file").pathlike
         )
+        assert str(SmartPath("oss://bucket/dir/file")) == "oss://bucket/dir/file"
 
     aliases = {"dev": {"protocol": "sftp", "prefix": "ubuntu@host//"}}
     with patch.object(SmartPath, "_aliases", new_callable=PropertyMock) as mock_aliases:
@@ -108,6 +109,7 @@ def test_aliases(fs, sftp_mocker):
             SmartPath("dev://dir/file").pathlike
             == SmartPath("sftp://ubuntu@host//dir/file").pathlike
         )
+        assert str(SmartPath("dev://dir/file")) == "dev://dir/file"
 
     aliases = {"dev": {"protocol": "sftp", "prefix": "ubuntu@host/"}}
     with patch.object(SmartPath, "_aliases", new_callable=PropertyMock) as mock_aliases:
@@ -116,6 +118,7 @@ def test_aliases(fs, sftp_mocker):
             SmartPath("dev:///dir/file").pathlike
             == SmartPath("sftp://ubuntu@host//dir/file").pathlike
         )
+        assert str(SmartPath("dev://dir/file")) == "dev://dir/file"
 
 
 @patch.object(SmartPath, "_create_pathlike")
@@ -131,80 +134,80 @@ def test_init(funcA):
     """
 
 
-def test_extract_protocol():
-    assert SmartPath._extract_protocol(FS_TEST_ABSOLUTE_PATH) == (
+def test_split_protocol():
+    assert SmartPath._split_protocol(FS_TEST_ABSOLUTE_PATH) == (
         FSPath.protocol,
         FS_TEST_ABSOLUTE_PATH,
     )
-    assert SmartPath._extract_protocol(FS_TEST_ABSOLUTE_PATH_WITH_PROTOCOL) == (
+    assert SmartPath._split_protocol(FS_TEST_ABSOLUTE_PATH_WITH_PROTOCOL) == (
         FSPath.protocol,
-        FS_TEST_ABSOLUTE_PATH_WITH_PROTOCOL,
+        FS_TEST_ABSOLUTE_PATH,
     )
-    assert SmartPath._extract_protocol(FS_TEST_RELATIVE_PATH) == (
+    assert SmartPath._split_protocol(FS_TEST_RELATIVE_PATH) == (
         FSPath.protocol,
         FS_TEST_RELATIVE_PATH,
     )
-    assert SmartPath._extract_protocol(FS_TEST_RELATIVE_PATH_WITH_PROTOCOL) == (
+    assert SmartPath._split_protocol(FS_TEST_RELATIVE_PATH_WITH_PROTOCOL) == (
         FSPath.protocol,
-        FS_TEST_RELATIVE_PATH_WITH_PROTOCOL,
+        FS_TEST_RELATIVE_PATH,
     )
-    assert SmartPath._extract_protocol(S3_TEST_PATH) == (
+    assert SmartPath._split_protocol(S3_TEST_PATH) == (
         S3Path.protocol,
-        S3_TEST_PATH,
+        S3_TEST_PATH_WITHOUT_PROTOCOL,
     )
-    assert SmartPath._extract_protocol(HTTP_TEST_PATH) == (
+    assert SmartPath._split_protocol(HTTP_TEST_PATH) == (
         HttpPath.protocol,
-        HTTP_TEST_PATH,
+        HTTP_TEST_PATH_WITHOUT_PROTOCOL,
     )
-    assert SmartPath._extract_protocol(HTTPS_TEST_PATH) == (
+    assert SmartPath._split_protocol(HTTPS_TEST_PATH) == (
         HttpsPath.protocol,
-        HTTPS_TEST_PATH,
+        HTTPS_TEST_PATH_WITHOUT_PROTOCOL,
     )
-    assert SmartPath._extract_protocol(STDIO_TEST_PATH) == (
+    assert SmartPath._split_protocol(STDIO_TEST_PATH) == (
         StdioPath.protocol,
-        STDIO_TEST_PATH,
+        STDIO_TEST_PATH_WITHOUT_PROTOCOL,
     )
 
     fs_path = FSPath(FS_TEST_ABSOLUTE_PATH)
-    assert SmartPath._extract_protocol(fs_path) == (
+    assert SmartPath._split_protocol(fs_path) == (
         FSPath.protocol,
         FS_TEST_ABSOLUTE_PATH,
     )
     fs_path = FSPath(FS_TEST_RELATIVE_PATH)
-    assert SmartPath._extract_protocol(fs_path) == (
+    assert SmartPath._split_protocol(fs_path) == (
         FSPath.protocol,
         FS_TEST_RELATIVE_PATH,
     )
     s3_path = S3Path(S3_TEST_PATH_WITHOUT_PROTOCOL)
-    assert SmartPath._extract_protocol(s3_path) == (
+    assert SmartPath._split_protocol(s3_path) == (
         S3Path.protocol,
         S3_TEST_PATH_WITHOUT_PROTOCOL,
     )
     http_path = HttpPath(HTTP_TEST_PATH_WITHOUT_PROTOCOL)
-    assert SmartPath._extract_protocol(http_path) == (
+    assert SmartPath._split_protocol(http_path) == (
         HttpPath.protocol,
         HTTP_TEST_PATH_WITHOUT_PROTOCOL,
     )
     https_path = HttpsPath(HTTPS_TEST_PATH_WITHOUT_PROTOCOL)
-    assert SmartPath._extract_protocol(https_path) == (
+    assert SmartPath._split_protocol(https_path) == (
         HttpsPath.protocol,
         HTTPS_TEST_PATH_WITHOUT_PROTOCOL,
     )
     stdio_path = StdioPath(STDIO_TEST_PATH_WITHOUT_PROTOCOL)
-    assert SmartPath._extract_protocol(stdio_path) == (
+    assert SmartPath._split_protocol(stdio_path) == (
         StdioPath.protocol,
         STDIO_TEST_PATH_WITHOUT_PROTOCOL,
     )
     int_path = 1
-    assert SmartPath._extract_protocol(int_path) == ("file", int_path)
+    assert SmartPath._split_protocol(int_path) == ("file", int_path)
     pure_path = PurePath(FS_TEST_ABSOLUTE_PATH)
-    assert SmartPath._extract_protocol(pure_path) == ("file", FS_TEST_ABSOLUTE_PATH)
+    assert SmartPath._split_protocol(pure_path) == ("file", FS_TEST_ABSOLUTE_PATH)
 
     with pytest.raises(ProtocolNotFoundError):
-        SmartPath._extract_protocol(None)
+        SmartPath._split_protocol(None)
 
 
-@patch.object(SmartPath, "_extract_protocol")
+@patch.object(SmartPath, "_split_protocol")
 def _create_pathlike(funcA):
     funcA.return_value = (S3Path.protocol, S3_TEST_PATH_WITHOUT_PROTOCOL)
     assert isinstance(SmartPath._create_pathlike("S3 Case"), S3Path)
@@ -217,7 +220,7 @@ def _create_pathlike(funcA):
         SmartPath._create_pathlike("tcp://Not Exist Case")
 
 
-@patch.object(SmartPath, "_extract_protocol")
+@patch.object(SmartPath, "_split_protocol")
 def test_create_pathlike(funcA):
     funcA.return_value = ("NotExistProtocol", "")
     with pytest.raises(ProtocolNotFoundError):
@@ -367,13 +370,6 @@ def test_scandir(funcA):
     funcA.assert_called_once_with()
 
 
-def test_scandir(fs):
-    os.makedirs("/test")
-    SmartPath("/test/1").write_bytes(b"test")
-    for file_entry in SmartPath("/test").scandir():
-        file_entry.inode() == os.stat("/test/1").st_ino
-
-
 @patch.object(S3Path, "listdir")
 def test_listdir(funcA):
     SmartPath(S3_TEST_PATH).listdir()
@@ -427,7 +423,19 @@ def test_readlink_s3(funcA):
     funcA.assert_called_once()
 
 
-def test_stat(s3_empty_client, fs):
+def test_scandir_realworld(s3_empty_client, fs):
+    os.makedirs("/test")
+    SmartPath("/test/1").write_bytes(b"test")
+    for file_entry in SmartPath("/test").scandir():
+        file_entry.inode() == os.stat("/test/1").st_ino
+
+    path = SmartPath(f"s3://{BUCKET}/testA")
+    path.write_bytes(b"test")
+    for file_entry in SmartPath(f"s3://{BUCKET}").scandir():
+        file_entry.stat == path.stat()
+
+
+def test_stat_realworld(s3_empty_client, fs):
     path = SmartPath("/test")
     path.write_text("test")
     path_stat = path.stat()

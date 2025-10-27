@@ -359,8 +359,8 @@ def mv(
     _sftp_prompt_host_key(dst_path)
 
     if progress_bar:
-        src_protocol, _ = SmartPath._extract_protocol(src_path)
-        dst_protocol, _ = SmartPath._extract_protocol(dst_path)
+        src_protocol = SmartPath._extract_protocol(src_path)
+        dst_protocol = SmartPath._extract_protocol(dst_path)
 
         if recursive:
             if src_protocol == dst_protocol:
