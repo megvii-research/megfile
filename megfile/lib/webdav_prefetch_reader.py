@@ -1,12 +1,13 @@
 from io import BytesIO
 from typing import Optional
 
-import requests
+from webdav3.client import Client as WebdavClient
+from webdav3.client import Urn
 
 from megfile.config import (
-    HTTP_MAX_RETRY_TIMES,
     READER_BLOCK_SIZE,
     READER_MAX_BUFFER_SIZE,
+    WEBDAV_MAX_RETRY_TIMES,
 )
 from megfile.errors import (
     HttpBodyIncompleteError,
@@ -15,13 +16,11 @@ from megfile.errors import (
     patch_method,
 )
 from megfile.lib.base_prefetch_reader import BasePrefetchReader
-from megfile.lib.compat import fspath
-from megfile.pathlike import PathLike
 
 DEFAULT_TIMEOUT = (60, 60 * 60 * 24)
 
 
-class HttpPrefetchReader(BasePrefetchReader):
+class WebdavPrefetchReader(BasePrefetchReader):
     """
     Reader to fast read the http content, service must support Accept-Ranges.
 
@@ -36,19 +35,19 @@ class HttpPrefetchReader(BasePrefetchReader):
 
     def __init__(
         self,
-        url: PathLike,
+        urn: Urn,
         *,
-        session: Optional[requests.Session] = None,
+        client: Optional[WebdavClient] = None,
         content_size: Optional[int] = None,
         block_size: int = READER_BLOCK_SIZE,
         max_buffer_size: int = READER_MAX_BUFFER_SIZE,
         block_forward: Optional[int] = None,
-        max_retries: int = HTTP_MAX_RETRY_TIMES,
+        max_retries: int = WEBDAV_MAX_RETRY_TIMES,
         max_workers: Optional[int] = None,
     ):
-        self._url = url
+        self._urn = urn
         self._content_size = content_size
-        self._session = session or requests.Session()
+        self._client = client or WebdavClient({})
 
         super().__init__(
             block_size=block_size,
@@ -65,21 +64,23 @@ class HttpPrefetchReader(BasePrefetchReader):
         first_index_response = self._fetch_response()
         if first_index_response["Headers"].get("Accept-Ranges") != "bytes":
             raise UnsupportedError(
-                f"Unsupported server, server must support Accept-Ranges: {self._url}",
-                path=fspath(self._url),
+                f"Unsupported server, server must support Accept-Ranges: {self._urn}",
+                path=str(self._urn),
             )
         return first_index_response["Headers"]["Content-Length"]
 
     @property
     def name(self) -> str:
-        return fspath(self._url)
+        return str(self._urn)
 
     def _fetch_response(
         self, start: Optional[int] = None, end: Optional[int] = None
     ) -> dict:
         def fetch_response() -> dict:
             if start is None or end is None:
-                with self._session.get(fspath(self._url), stream=True) as response:
+                with self._client.execute_request(
+                    action="download", path=self._urn.quote()
+                ) as response:
                     return {
                         "Headers": response.headers,
                         "Cookies": response.cookies,
@@ -89,9 +90,9 @@ class HttpPrefetchReader(BasePrefetchReader):
             range_end = end
             if self._content_size is not None:
                 range_end = min(range_end, self._content_size - 1)
-            headers = {"Range": f"bytes={start}-{range_end}"}
-            with self._session.get(
-                fspath(self._url), headers=headers, stream=True
+            headers_ext = [f"Range: bytes={start}-{range_end}"]
+            with self._client.execute_request(
+                action="download", path=self._urn.quote(), headers_ext=headers_ext
             ) as response:
                 if len(response.content) != int(response.headers["Content-Length"]):
                     raise HttpBodyIncompleteError(

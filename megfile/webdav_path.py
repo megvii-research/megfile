@@ -13,6 +13,11 @@ from webdav3.client import WebDavXmlUtils
 from webdav3.exceptions import RemoteResourceNotFound, WebDavException
 from webdav3.urn import Urn
 
+from megfile.config import (
+    READER_BLOCK_SIZE,
+    READER_MAX_BUFFER_SIZE,
+    WEBDAV_MAX_RETRY_TIMES,
+)
 from megfile.errors import SameFileError, _create_missing_ok_generator
 from megfile.interfaces import (
     ContextIterator,
@@ -28,9 +33,16 @@ from megfile.lib.compat import fspath
 from megfile.lib.fnmatch import translate
 from megfile.lib.glob import has_magic
 from megfile.lib.joinpath import uri_join, uri_norm
+from megfile.lib.webdav_prefetch_reader import WebdavPrefetchReader
 from megfile.pathlike import URIPath
 from megfile.smart_path import SmartPath
-from megfile.utils import calculate_md5, copyfileobj, get_binary_mode, thread_local
+from megfile.utils import (
+    _is_pickle,
+    binary_open,
+    calculate_md5,
+    copyfileobj,
+    thread_local,
+)
 
 _logger = get_logger(__name__)
 
@@ -811,13 +823,15 @@ class WebdavPath(URIPath):
         with self.open(mode="wb") as output:
             output.write(file_object.read())
 
+    @binary_open
     def open(
         self,
-        mode: str = "r",
+        mode: str = "rb",
         *,
-        buffering=-1,
-        encoding: Optional[str] = None,
-        errors: Optional[str] = None,
+        max_workers: Optional[int] = None,
+        max_buffer_size: int = READER_MAX_BUFFER_SIZE,
+        block_forward: Optional[int] = None,
+        block_size: int = READER_BLOCK_SIZE,
         **kwargs,
     ) -> IO:
         """Open a file on the path.
@@ -838,15 +852,37 @@ class WebdavPath(URIPath):
         elif not self.exists():
             raise FileNotFoundError("No such file: %r" % self.path_with_protocol)
 
-        buffer = WebdavMemoryHandler(
+        if mode == "rb":
+            urn = Urn(self._remote_path)
+            response = self._client.execute_request(action="download", path=urn.quote())
+            response.close()
+            headers = response.headers
+            content_size = int(headers.get("Content-Length", 0))
+            if (
+                headers.get("Accept-Ranges") == "bytes"
+                and content_size >= block_size * 2
+                and not headers.get("Content-Encoding")
+            ):
+                reader = WebdavPrefetchReader(
+                    urn,
+                    client=self._client,
+                    content_size=content_size,
+                    block_size=block_size,
+                    max_buffer_size=max_buffer_size,
+                    block_forward=block_forward,
+                    max_retries=WEBDAV_MAX_RETRY_TIMES,
+                    max_workers=max_workers,
+                )
+                if _is_pickle(reader):
+                    reader = io.BufferedReader(reader)  # type: ignore
+                return reader
+
+        return WebdavMemoryHandler(
             self._remote_path,
-            get_binary_mode(mode),
+            mode,
             webdav_client=self._client,
             name=self.path_with_protocol,
         )
-        if "b" not in mode:
-            return io.TextIOWrapper(buffer, encoding=encoding, errors=errors)
-        return buffer
 
     def chmod(self, mode: int, *, follow_symlinks: bool = True):
         """
