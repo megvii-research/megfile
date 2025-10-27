@@ -1,6 +1,7 @@
 import configparser
 import os
 import signal
+import sys
 import time
 from multiprocessing import Process, Queue
 
@@ -436,6 +437,10 @@ def test_tail2(runner, tmpdir, mocker):
     assert result.output == "6\n7\n8\n9\n"
 
 
+@pytest.mark.skipif(
+    sys.version_info >= (3, 14),
+    reason="Skip on Python 3.14 because of python 3.14 on github not stabilize",
+)
 def test_tail_with_follow(runner, tmpdir, mocker):
     with open(str(tmpdir / "text"), "w") as f:
         for i in range(3):

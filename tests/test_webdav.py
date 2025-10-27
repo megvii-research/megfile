@@ -1,6 +1,7 @@
 import io
 import os
 import shutil
+import sys
 from datetime import datetime
 from typing import Dict, Iterator, List
 
@@ -147,6 +148,10 @@ def test_is_webdav():
     assert webdav.is_webdav("sftp://host/data") is False
 
 
+@pytest.mark.skipif(
+    sys.version_info >= (3, 14),
+    reason="Skip on Python 3.14 because of python 3.14 on github not stabilize",
+)
 def test_webdav_glob(webdav_mocker):
     webdav.webdav_makedirs("webdav://host/A")
     webdav.webdav_makedirs("webdav://host/A/a")
