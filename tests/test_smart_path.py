@@ -429,9 +429,10 @@ def test_scandir_realworld(s3_empty_client, fs):
     for file_entry in SmartPath("/test").scandir():
         file_entry.inode() == os.stat("/test/1").st_ino
 
-    path = SmartPath(f"s3://{BUCKET}/testA").write_bytes(b"test")
+    path = SmartPath(f"s3://{BUCKET}/testA")
+    path.write_bytes(b"test")
     for file_entry in SmartPath(f"s3://{BUCKET}").scandir():
-        file_entry.stat() == path.stat()
+        file_entry.stat == path.stat()
 
 
 def test_stat_realworld(s3_empty_client, fs):

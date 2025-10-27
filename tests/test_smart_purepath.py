@@ -7,7 +7,6 @@ from mock import PropertyMock, patch
 from moto import mock_aws
 
 from megfile.errors import S3FileExistsError, S3FileNotFoundError
-from megfile.fs_path import FSPath
 from megfile.lib.compat import fspath
 from megfile.pathlike import StatResult
 from megfile.s3_path import S3Path
@@ -353,12 +352,12 @@ def test_uri(oss_alias):
     assert SmartPath("oss://buc:ket/ke@y").as_uri() == "oss://buc:ket/ke@y"
 
 
-def test_absolute():
+def test_is_absolute():
     assert not SmartPath("file://foo/bar").is_absolute()
     assert not SmartPath("foo/bar").is_absolute()
 
 
-def test_reserved():
+def test_is_reserved():
     assert not SmartPath("file://foo/bar").is_reserved()
     assert not SmartPath("foo/bar").is_reserved()
 
@@ -640,7 +639,7 @@ def test_glob(s3_empty_client, fs, oss_alias):
     ]
 
     for path in SmartPath("A").glob("*"):
-        assert isinstance(path, FSPath)
+        assert isinstance(path, SmartPath)
 
     SmartPath("s3://bucket/A/1").write_text("1")
     SmartPath("s3://bucket/A/2.json").write_text("2")
@@ -669,7 +668,7 @@ def test_glob(s3_empty_client, fs, oss_alias):
     ]
 
     for path in SmartPath("s3://bucket/A").glob("*"):
-        assert isinstance(path, S3Path)
+        assert isinstance(path, SmartPath)
 
     SmartPath("s3+oss://bucket/B/1").write_text("1")
     SmartPath("s3+oss://bucket/B/2.json").write_text("2")
@@ -823,7 +822,7 @@ def test_iterdir(s3_empty_client, fs, oss_alias):
     ]
 
     for path in SmartPath("A").iterdir():
-        assert isinstance(path, FSPath)
+        assert isinstance(path, SmartPath)
 
     SmartPath("s3://bucket/A/1").write_text("1")
     SmartPath("s3://bucket/A/2.json").write_text("2")
@@ -839,7 +838,7 @@ def test_iterdir(s3_empty_client, fs, oss_alias):
     ]
 
     for path in SmartPath("s3://bucket/A").iterdir():
-        assert isinstance(path, S3Path)
+        assert isinstance(path, SmartPath)
 
     SmartPath("s3+oss://bucket/B/1").write_text("1")
     SmartPath("s3+oss://bucket/B/2.json").write_text("2")
@@ -966,13 +965,13 @@ def test_readlink(s3_empty_client, fs, oss_alias):
     path.touch()
     SmartPath("s3+oss://bucket/A/1.lnk").symlink_to(path)
     assert SmartPath("s3+oss://bucket/A/1.lnk").readlink() == SmartPath(
-        "s3+oss://bucket/A/1"
+        "s3://bucket/A/1"
     )
 
     path = SmartPath("oss://bucket/A/1")
     path.touch()
     SmartPath("oss://bucket/A/1.lnk").symlink_to(path)
-    assert SmartPath("oss://bucket/A/1.lnk").readlink() == SmartPath("oss://bucket/A/1")
+    assert SmartPath("oss://bucket/A/1.lnk").readlink() == SmartPath("s3://bucket/A/1")
 
 
 def test_rename(s3_empty_client, fs, oss_alias):

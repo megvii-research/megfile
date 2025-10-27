@@ -15,15 +15,22 @@ from .interfaces import BasePath, PathLike
 aliases_config = "~/.config/megfile/aliases.conf"
 
 
-def _bind_function(name, callback=None):
-    if callback is None:
+def _bind_function(name, after_callback=None, before_callback=None):
+    if before_callback is None and after_callback is None:
 
         def smart_method(self, *args, **kwargs):
             return getattr(self.pathlike, name)(*args, **kwargs)
+
     else:
 
         def smart_method(self, *args, **kwargs):
-            return callback(self, getattr(self.pathlike, name)(*args, **kwargs))
+            if before_callback is not None and len(args) > 0:
+                first_arg = before_callback(self, args[0])
+                args = (first_arg, *args[1:])
+            result = getattr(self.pathlike, name)(*args, **kwargs)
+            if after_callback is not None:
+                return after_callback(self, result)
+            return result
 
     smart_method.__name__ = name
 
@@ -36,6 +43,7 @@ def _bind_property(name, callback=None):
         @property
         def smart_property(self):
             return getattr(self.pathlike, name)
+
     else:
 
         @property
@@ -57,6 +65,7 @@ def _load_aliases_config(config_path) -> Dict[str, Dict[str, str]]:
 
 
 def _to_aliased_path(pathlike, other_path: str) -> str:
+    """Convert path string to aliased path string"""
     if pathlike.protocol == pathlike.unaliased_protocol:
         return other_path
     aliases: Dict[str, Dict[str, str]] = pathlike._aliases
@@ -69,6 +78,7 @@ def _to_aliased_path(pathlike, other_path: str) -> str:
 
 
 def _to_aliased_pathlike(pathlike, other_pathlike) -> BasePath:
+    """Convert pathlike object to aliased SmartPath object"""
     other_path = str(other_pathlike)
     if pathlike.protocol != pathlike.unaliased_protocol:
         other_path = _to_aliased_path(pathlike, other_path)
@@ -110,13 +120,24 @@ def _to_aliased_walk_iterator(pathlike, walk_iterator):
         yield (aliased_dirpath, dirnames, filenames)
 
 
+def _to_unaliased_path(pathlike, path):
+    """Convert path string to unaliased path string"""
+    aliases: Dict[str, Dict[str, str]] = pathlike._aliases
+    protocol, path_without_protocol = pathlike._split_protocol(path)
+    if protocol in aliases:
+        prefix = aliases[protocol].get("prefix", "")
+        protocol = aliases[protocol]["protocol"]
+        return "%s://%s%s" % (protocol, prefix, path_without_protocol)
+    return path
+
+
 class SmartPath(BasePath):
     _registered_protocols = dict()
 
     def __init__(self, path: Union[PathLike, int], *other_paths: PathLike):
         self.path = str(path) if not isinstance(path, int) else path
         self.protocol = self._extract_protocol(path)
-        self.unaliased_path = self._unalias(path)
+        self.unaliased_path = _to_unaliased_path(self, path)
         self.unaliased_protocol = self._extract_protocol(self.unaliased_path)
 
         pathlike = path
@@ -145,7 +166,7 @@ class SmartPath(BasePath):
                 path_without_protocol = path[len(protocol) + 3 :]
             return protocol, path_without_protocol
         elif isinstance(path, (BasePath, SmartPath)):
-            return str(path.protocol), str(path.path_without_protocol)
+            return str(path.protocol), path.path_without_protocol
         elif isinstance(path, (PurePath, BasePath)):
             return SmartPath._split_protocol(fspath(path))
         raise ProtocolNotFoundError("protocol not found: %r" % path)
@@ -153,16 +174,6 @@ class SmartPath(BasePath):
     @classmethod
     def _extract_protocol(cls, path: Union[PathLike, int]) -> str:
         return cls._split_protocol(path)[0]
-
-    @classmethod
-    def _unalias(cls, path: Union[PathLike, int]) -> Union[PathLike, int]:
-        aliases: Dict[str, Dict[str, str]] = cls._aliases  # pyre-ignore[9]
-        protocol, path_without_protocol = cls._split_protocol(path)
-        if protocol in aliases:
-            prefix = aliases[protocol].get("prefix", "")
-            protocol = aliases[protocol]["protocol"]
-            return "%s://%s%s" % (protocol, prefix, path_without_protocol)
-        return path
 
     @classmethod
     def _create_pathlike(cls, path: Union[PathLike, int]) -> BasePath:
@@ -193,7 +204,7 @@ class SmartPath(BasePath):
         :returns: Relative path from start
         """
         if start is not None:
-            start = SmartPath._unalias(start)  # pyre-ignore[9]
+            start = _to_unaliased_path(self, start)
         return self.pathlike.relpath(start=start)
 
     @cached_property
@@ -210,25 +221,9 @@ class SmartPath(BasePath):
         """
         return URIPathParents(self)
 
-    def match(self, pattern: str) -> bool:
-        """Return True if this path matches the given glob-style pattern
-
-        :param pattern: The glob-style pattern to match against
-        :returns: True if the path matches the given pattern
-        """
-        return self.pathlike.match(SmartPath._unalias(pattern))
-
-    def relative_to(self, *other):
-        """
-        Compute a version of this path relative to the path represented by other.
-        If it’s impossible, ValueError is raised.
-        """
-        other = [SmartPath._unalias(o) for o in other]
-        return self.pathlike.relative_to(*other)
-
-    symlink = _bind_function("symlink")
-    symlink_to = _bind_function("symlink_to")
-    hardlink_to = _bind_function("hardlink_to")
+    symlink = _bind_function("symlink", before_callback=_to_unaliased_path)
+    symlink_to = _bind_function("symlink_to", before_callback=_to_unaliased_path)
+    hardlink_to = _bind_function("hardlink_to", before_callback=_to_unaliased_path)
     readlink = _bind_function("readlink", _to_aliased_pathlike)
     is_dir = _bind_function("is_dir")
     is_file = _bind_function("is_file")
@@ -242,8 +237,8 @@ class SmartPath(BasePath):
     stat = _bind_function("stat")
     lstat = _bind_function("lstat")
     remove = _bind_function("remove")
-    rename = _bind_function("rename", _to_aliased_pathlike)
-    replace = _bind_function("replace", _to_aliased_pathlike)
+    rename = _bind_function("rename", _to_aliased_pathlike, _to_unaliased_path)
+    replace = _bind_function("replace", _to_aliased_pathlike, _to_unaliased_path)
     unlink = _bind_function("unlink")
     mkdir = _bind_function("mkdir")
     open = _bind_function("open")
@@ -265,14 +260,12 @@ class SmartPath(BasePath):
 
     as_uri = _bind_function("as_uri", _to_aliased_path)
     as_posix = _bind_function("as_posix", _to_aliased_path)
-    __lt__ = _bind_function("__lt__")
-    __le__ = _bind_function("__le__")
-    __gt__ = _bind_function("__gt__")
-    __ge__ = _bind_function("__ge__")
     __fspath__ = _bind_function("__fspath__", _to_aliased_path)
     __truediv__ = _bind_function("__truediv__", _to_aliased_pathlike)
 
     is_reserved = _bind_function("is_reserved")
+    match = _bind_function("match", before_callback=_to_unaliased_path)
+    relative_to = _bind_function("relative_to", before_callback=_to_unaliased_path)
     with_name = _bind_function("with_name", _to_aliased_pathlike)
     with_suffix = _bind_function("with_suffix", _to_aliased_pathlike)
     with_stem = _bind_function("with_stem", _to_aliased_pathlike)
@@ -291,7 +284,9 @@ class SmartPath(BasePath):
     owner = _bind_function("owner")
     absolute = _bind_function("absolute", _to_aliased_pathlike)
     rmdir = _bind_function("rmdir")
-    is_relative_to = _bind_function("is_relative_to")
+    is_relative_to = _bind_function(
+        "is_relative_to", before_callback=_to_unaliased_path
+    )
     read_bytes = _bind_function("read_bytes")
     read_text = _bind_function("read_text")
     rglob = _bind_function("rglob", _to_aliased_pathlike_list)
