@@ -7,7 +7,7 @@ name = "megfile"
 dynamic = ["version", "dependencies", "optional-dependencies", "readme"]
 description = "Megvii file operation library"
 authors = [
-    { name = "megvii", email = "megfile@megvii.com" }
+    { name = "megvii-reng", email = "megvii-reng@googlegroups.com" }
 ]
 urls = { Homepage = "https://github.com/megvii-research/megfile" }
 classifiers = [
