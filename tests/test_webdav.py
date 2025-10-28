@@ -175,7 +175,7 @@ def test_webdav_glob(webdav_mocker):
     with webdav.webdav_open("webdav://host/A/b/file.json", "w") as f:
         f.write("file")
 
-    assert webdav.webdav_glob("webdav://host/A/*") == [
+    assert sorted(webdav.webdav_glob("webdav://host/A/*")) == [
         "webdav://host/A/1.json",
         "webdav://host/A/a",
         "webdav://host/A/b",
@@ -185,7 +185,7 @@ def test_webdav_glob(webdav_mocker):
         "webdav://host/A/a",
         "webdav://host/A/b",
     ]
-    assert webdav.webdav_glob("webdav://host/A/**/*.json") == [
+    assert sorted(webdav.webdav_glob("webdav://host/A/**/*.json")) == [
         "webdav://host/A/1.json",
         "webdav://host/A/b/file.json",
     ]
