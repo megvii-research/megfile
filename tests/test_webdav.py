@@ -61,7 +61,7 @@ class FakeWebdavClient:
 
     def mkdir(self, path: str):
         """Create directory"""
-        os.makedirs(path, exist_ok=True)
+        os.mkdir(path)
 
     def clean(self, path: str):
         """Remove file or directory"""
@@ -105,7 +105,7 @@ class FakeWebdavClient:
         # Create parent directory if needed
         parent = os.path.dirname(remote_path)
         if parent and not os.path.exists(parent):
-            os.makedirs(parent, exist_ok=True)
+            os.mkdir(parent)
 
         with open(remote_path, "wb") as f:
             f.write(buffer.read())
@@ -148,6 +148,8 @@ def test_is_webdav():
 
 
 def test_webdav_glob(webdav_mocker):
+    if os.path.exists("/A"):
+        shutil.rmtree("/A")
     webdav.webdav_makedirs("webdav://host/A")
     webdav.webdav_makedirs("webdav://host/A/a")
     webdav.webdav_makedirs("webdav://host/A/b")

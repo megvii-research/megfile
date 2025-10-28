@@ -443,6 +443,7 @@ def test_fs_isfile(filesystem):
     assert fs.fs_isfile("soft_link_folder", followlinks=True) is False
 
 
+@pytest.mark.skipif(os.getuid() == 0, reason="skip fs_access test under root user")
 def test_fs_access(filesystem):
     os.mkdir("folder")
     with open("file", "w") as f:
