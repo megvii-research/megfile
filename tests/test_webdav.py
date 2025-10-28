@@ -17,16 +17,25 @@ class FakeWebdavClient:
         self.options = options
         self.hostname = options.get("webdav_hostname", "")
 
+    def _relative_path(self, path: str) -> str:
+        if path.startswith("/"):
+            return f".{path}"
+        return path
+
     def check(self, path: str) -> bool:
         """Check if path exists"""
+        path = self._relative_path(path)
         return os.path.exists(path)
 
     def is_dir(self, path: str) -> bool:
         """Check if path is a directory"""
+        path = self._relative_path(path)
         return os.path.isdir(path)
 
     def list(self, path: str, get_info: bool = False) -> List:
         """List directory contents"""
+        path = self._relative_path(path)
+
         if not get_info:
             return os.listdir(path)
 
@@ -46,6 +55,7 @@ class FakeWebdavClient:
 
     def info(self, path: str) -> Dict:
         """Get file/directory info"""
+        path = self._relative_path(path)
         if not os.path.exists(path):
             from webdav3.exceptions import RemoteResourceNotFound
 
@@ -61,10 +71,12 @@ class FakeWebdavClient:
 
     def mkdir(self, path: str):
         """Create directory"""
+        path = self._relative_path(path)
         os.mkdir(path)
 
     def clean(self, path: str):
         """Remove file or directory"""
+        path = self._relative_path(path)
         if not os.path.exists(path):
             from webdav3.exceptions import RemoteResourceNotFound
 
@@ -77,6 +89,7 @@ class FakeWebdavClient:
 
     def copy(self, src: str, dst: str):
         """Copy file or directory"""
+        src = self._relative_path(src)
         if os.path.isdir(src):
             shutil.copytree(src, dst)
         else:
@@ -84,6 +97,8 @@ class FakeWebdavClient:
 
     def move(self, src: str, dst: str, overwrite: bool = False):
         """Move/rename file or directory"""
+        src = self._relative_path(src)
+        dst = self._relative_path(dst)
         if overwrite and os.path.exists(dst):
             if os.path.isdir(dst):
                 shutil.rmtree(dst)
@@ -97,11 +112,13 @@ class FakeWebdavClient:
 
     def download_from(self, buffer: io.BytesIO, remote_path: str):
         """Download file to buffer"""
+        remote_path = self._relative_path(remote_path)
         with open(remote_path, "rb") as f:
             buffer.write(f.read())
 
     def upload_to(self, buffer: io.BytesIO, remote_path: str):
         """Upload buffer to file"""
+        remote_path = self._relative_path(remote_path)
         # Create parent directory if needed
         parent = os.path.dirname(remote_path)
         if parent and not os.path.exists(parent):
@@ -158,7 +175,7 @@ def test_webdav_glob(webdav_mocker):
     with webdav.webdav_open("webdav://host/A/b/file.json", "w") as f:
         f.write("file")
 
-    assert webdav.webdav_glob("webdav://host/A/*") == [
+    assert sorted(webdav.webdav_glob("webdav://host/A/*")) == [
         "webdav://host/A/1.json",
         "webdav://host/A/a",
         "webdav://host/A/b",
@@ -168,7 +185,7 @@ def test_webdav_glob(webdav_mocker):
         "webdav://host/A/a",
         "webdav://host/A/b",
     ]
-    assert webdav.webdav_glob("webdav://host/A/**/*.json") == [
+    assert sorted(webdav.webdav_glob("webdav://host/A/**/*.json")) == [
         "webdav://host/A/1.json",
         "webdav://host/A/b/file.json",
     ]

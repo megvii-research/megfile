@@ -1,7 +1,6 @@
 import hashlib
 import logging
 import os
-import sys
 import threading
 import time
 from collections import namedtuple
@@ -727,7 +726,6 @@ def test_s3_copy(s3_empty_client):
         s3.s3_copy("s3://bucket/key", "s3://bucket/key", followlinks=True)
 
 
-@pytest.mark.skipif(sys.version_info < (3, 6), reason="Python3.6+")
 def test_s3_copy_invalid(s3_empty_client):
     s3_empty_client.create_bucket(Bucket="bucket")
     s3_empty_client.put_object(Bucket="bucket", Key="key", Body="value")
@@ -3020,10 +3018,6 @@ def test_s3_buffered_open_raises_exceptions(mocker, s3_empty_client, fs):
     assert "s3://bucket/keyy" in str(error.value)
 
 
-@pytest.mark.skipif(
-    sys.version_info >= (3, 13),
-    reason="Skip on Python 3.13 because of python 3.13 on github not stabilize",
-)
 def test_s3_memory_open(s3_empty_client):
     content = b"test data for s3_memory_open"
     s3_empty_client.create_bucket(Bucket="bucket")
