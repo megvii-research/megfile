@@ -105,7 +105,7 @@ class FakeWebdavClient:
         # Create parent directory if needed
         parent = os.path.dirname(remote_path)
         if parent and not os.path.exists(parent):
-            os.mkdir(parent)
+            os.makedirs(parent)
 
         with open(remote_path, "wb") as f:
             f.write(buffer.read())
