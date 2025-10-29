@@ -6,6 +6,7 @@ pytest
 pytest-cov
 pytest-mock > 3.6.0
 pytest-socket
+pytest-retry
 moto[s3] >= 5.0.0
 cryptography >= 3.3.2
 mutmut

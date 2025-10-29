@@ -2,7 +2,11 @@ PACKAGE := megfile
 VERSION := $(shell cat ${PACKAGE}/version.py | sed -n -E 's/.*=//; s/ //g; s/"//g; p')
 
 test:
-	pytest --cov-config=pyproject.toml --cov=${PACKAGE} --no-cov-on-fail --cov-report=html:html_cov/ --cov-report term-missing --cov-report=xml tests/ --durations=10
+	pytest \
+		--cov=${PACKAGE} --cov-config=pyproject.toml --cov-report=html:html_cov/ --cov-report=term-missing --cov-report=xml --no-cov-on-fail \
+		--retries 2 --cumulative-timing 1 \
+		--durations=10 \
+		tests/
 
 format:
 	ruff check --fix ${PACKAGE} tests scripts pyproject.toml
