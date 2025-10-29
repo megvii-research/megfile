@@ -35,16 +35,14 @@ from megfile.interfaces import (
     ContextIterator,
     FileEntry,
     PathLike,
-    Readable,
-    Seekable,
     StatResult,
-    Writable,
 )
 from megfile.lib.compare import is_same_file
 from megfile.lib.compat import fspath
 from megfile.lib.fnmatch import translate
 from megfile.lib.glob import has_magic
 from megfile.lib.joinpath import uri_join, uri_norm
+from megfile.lib.webdav_memory_handler import WebdavMemoryHandler
 from megfile.lib.webdav_prefetch_reader import WebdavPrefetchReader
 from megfile.pathlike import URIPath
 from megfile.smart_path import SmartPath
@@ -150,9 +148,12 @@ def _patch_execute_request(
     def webdav_should_retry(error: Exception) -> bool:
         if http_should_retry(error):
             return True
-        if isinstance(error, ResponseErrorCode) and error.code == 401:
-            token_command = client.webdav.token_command
-            last_call = client.webdav.token_command_last_call
+        if (
+            isinstance(error, ResponseErrorCode)
+            and error.code == 401  # pytype: disable=attribute-error
+        ):
+            token_command = client.webdav.token_command  # pyre-ignore[16]
+            last_call = client.webdav.token_command_last_call  # pyre-ignore[16]
             if token_command is not None and time.time() - last_call > 5:
                 webdav_update_token_by_command()
                 return True
@@ -204,8 +205,10 @@ def _get_webdav_client(
     """Get WebDAV client"""
     options = provide_connect_info(hostname, username, password, token, token_command)
     client = WebdavClient(options)
-    client.webdav.token_command = options.pop("webdav_token_command", None)
-    client.webdav.token_command_last_call = 0
+    client.webdav.token_command = options.pop(  # pyre-ignore[16]
+        "webdav_token_command", None
+    )
+    client.webdav.token_command_last_call = 0  # pyre-ignore[16]
     client = _patch_execute_request(client)
     return client
 
@@ -299,114 +302,6 @@ def _webdav_split_magic(path: str) -> Tuple[str, str]:
         if has_magic(parts[i]):
             return "/".join(parts[:i]), "/".join(parts[i:])
     return path, ""
-
-
-class WebdavMemoryHandler(Readable[bytes], Seekable, Writable[bytes]):  # noqa: F821
-    def __init__(
-        self,
-        remote_path: str,
-        mode: str,
-        *,
-        webdav_client: WebdavClient,
-        name: str,
-    ):
-        self._remote_path = remote_path
-        self._mode = mode
-        self._client = webdav_client
-        self._name = name
-
-        if mode not in ("rb", "wb", "ab", "rb+", "wb+", "ab+"):
-            raise ValueError("unacceptable mode: %r" % mode)
-
-        self._fileobj = io.BytesIO()
-        self._download_fileobj()
-
-    @property
-    def name(self) -> str:
-        return self._name
-
-    @property
-    def mode(self) -> str:
-        return self._mode
-
-    def tell(self) -> int:
-        return self._fileobj.tell()
-
-    def seek(self, offset: int, whence: int = os.SEEK_SET) -> int:
-        return self._fileobj.seek(offset, whence)
-
-    def readable(self) -> bool:
-        return self._mode[0] == "r" or self._mode[-1] == "+"
-
-    def read(self, size: Optional[int] = None) -> bytes:
-        if not self.readable():
-            raise io.UnsupportedOperation("not readable")
-        return self._fileobj.read(size)
-
-    def readline(self, size: Optional[int] = None) -> bytes:
-        if not self.readable():
-            raise io.UnsupportedOperation("not readable")
-        if size is None:
-            size = -1
-        return self._fileobj.readline(size)
-
-    def readlines(self, hint: Optional[int] = None) -> List[bytes]:
-        if not self.readable():
-            raise io.UnsupportedOperation("not readable")
-        if hint is None:
-            hint = -1
-        return self._fileobj.readlines(hint)
-
-    def writable(self) -> bool:
-        return self._mode[0] == "w" or self._mode[0] == "a" or self._mode[-1] == "+"
-
-    def flush(self):
-        self._fileobj.flush()
-
-    def write(self, data: bytes) -> int:
-        if not self.writable():
-            raise io.UnsupportedOperation("not writable")
-        if self._mode[0] == "a":
-            self.seek(0, os.SEEK_END)
-        return self._fileobj.write(data)
-
-    def writelines(self, lines: Iterable[bytes]):
-        if not self.writable():
-            raise io.UnsupportedOperation("not writable")
-        if self._mode[0] == "a":
-            self.seek(0, os.SEEK_END)
-        self._fileobj.writelines(lines)
-
-    def _file_exists(self) -> bool:
-        try:
-            return not self._client.is_dir(self._remote_path)
-        except RemoteResourceNotFound:
-            return False
-
-    def _download_fileobj(self):
-        need_download = self._mode[0] == "r" or (
-            self._mode[0] == "a" and self._file_exists()
-        )
-        if not need_download:
-            return
-        # directly download to the file handle
-        self._client.download_from(self._fileobj, self._remote_path)
-        if self._mode[0] == "r":
-            self.seek(0, os.SEEK_SET)
-
-    def _upload_fileobj(self):
-        need_upload = self.writable()
-        if not need_upload:
-            return
-        # directly upload from file handle
-        self.seek(0, os.SEEK_SET)
-        self._client.upload_to(self._fileobj, self._remote_path)
-
-    def _close(self, need_upload: bool = True):
-        if hasattr(self, "_fileobj"):
-            if need_upload:
-                self._upload_fileobj()
-            self._fileobj.close()
 
 
 @SmartPath.register
