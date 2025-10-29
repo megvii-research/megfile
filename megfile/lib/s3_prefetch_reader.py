@@ -90,11 +90,8 @@ class S3PrefetchReader(BasePrefetchReader):
 
     @property
     def name(self) -> str:
-        return "s3%s://%s/%s" % (
-            f"+{self._profile_name}" if self._profile_name else "",
-            self._bucket,
-            self._key,
-        )
+        protocol = f"s3+{self._profile_name}" if self._profile_name else "s3"
+        return f"{protocol}://{self._bucket}/{self._key}"
 
     def _fetch_response(
         self, start: Optional[int] = None, end: Optional[int] = None

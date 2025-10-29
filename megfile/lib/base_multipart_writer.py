@@ -1,10 +1,10 @@
 import os
+from abc import ABC, abstractmethod
 from collections import OrderedDict
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from io import BytesIO
 from logging import getLogger as get_logger
-from threading import Lock
-from typing import NamedTuple, Optional
+from typing import Optional
 
 from megfile.config import (
     DEFAULT_WRITER_BLOCK_AUTOSCALE,
@@ -12,53 +12,26 @@ from megfile.config import (
     WRITER_BLOCK_SIZE,
     WRITER_MAX_BUFFER_SIZE,
 )
-from megfile.errors import raise_s3_error
 from megfile.interfaces import Writable
 from megfile.utils import process_local
 
 _logger = get_logger(__name__)
-"""
-class PartResult(NamedTuple):
-
-    etag: str
-    part_number: int
-    content_size: int
-
-in Python 3.6+
-"""
-
-_PartResult = NamedTuple(
-    "PartResult", [("etag", str), ("part_number", int), ("content_size", int)]
-)
 
 
-class PartResult(_PartResult):
-    def asdict(self):
-        return {"PartNumber": self.part_number, "ETag": self.etag}
-
-
-class S3BufferedWriter(Writable[bytes]):
+class BaseMultipartWriter(Writable[bytes], ABC):
     # Multi-upload part size must be between 5 MiB and 5 GiB.
     # There is no minimum size limit on the last part of your multipart upload.
     MIN_BLOCK_SIZE = 8 * 2**20
 
     def __init__(
         self,
-        bucket: str,
-        key: str,
         *,
-        s3_client,
         block_size: int = WRITER_BLOCK_SIZE,
         block_autoscale: bool = DEFAULT_WRITER_BLOCK_AUTOSCALE,
         max_buffer_size: int = WRITER_MAX_BUFFER_SIZE,
         max_workers: Optional[int] = None,
-        profile_name: Optional[str] = None,
         atomic: bool = False,
     ):
-        self._bucket = bucket
-        self._key = key
-        self._client = s3_client
-        self._profile_name = profile_name
         self.__atomic__ = atomic
 
         # user maybe put block_size with 'numpy.uint64' type
@@ -71,12 +44,12 @@ class S3BufferedWriter(Writable[bytes]):
         self._content_size = 0
         self._buffer = BytesIO()
 
-        self._futures_result = OrderedDict()
+        self._uploaded_results = OrderedDict()
         self._uploading_futures = set()
         self._is_global_executor = False
         if max_workers is None:
             self._executor = process_local(
-                "S3BufferedWriter.executor",
+                f"{self.__class__.__name__}.executor",
                 ThreadPoolExecutor,
                 max_workers=GLOBAL_MAX_WORKERS,
             )
@@ -85,18 +58,13 @@ class S3BufferedWriter(Writable[bytes]):
             self._executor = ThreadPoolExecutor(max_workers=max_workers)
 
         self._part_number = 0
-        self.__upload_id = None
-        self.__upload_id_lock = Lock()
 
         _logger.debug("open file: %r, mode: %s" % (self.name, self.mode))
 
     @property
+    @abstractmethod
     def name(self) -> str:
-        return "s3%s://%s/%s" % (
-            f"+{self._profile_name}" if self._profile_name else "",
-            self._bucket,
-            self._key,
-        )
+        pass
 
     @property
     def mode(self) -> str:
@@ -119,43 +87,9 @@ class S3BufferedWriter(Writable[bytes]):
             return min(self._base_block_size * 16, self._max_buffer_size)  # unreachable
         return self._base_block_size
 
-    @property
-    def _is_multipart(self) -> bool:
-        return len(self._futures_result) > 0 or len(self._uploading_futures) > 0
-
-    @property
-    def _upload_id(self) -> str:
-        if self.__upload_id is None:
-            with self.__upload_id_lock:
-                if self.__upload_id is None:
-                    with raise_s3_error(self.name):
-                        self.__upload_id = self._client.create_multipart_upload(
-                            Bucket=self._bucket, Key=self._key
-                        )["UploadId"]
-        return self.__upload_id
-
-    @property
-    def _multipart_upload(self):
-        for future in self._uploading_futures:
-            result = future.result()
-            self._total_buffer_size -= result.content_size
-            self._futures_result[result.part_number] = result.asdict()
-        self._uploading_futures = set()
-        return {"Parts": [result for _, result in sorted(self._futures_result.items())]}
-
+    @abstractmethod
     def _upload_buffer(self, part_number, content):
-        with raise_s3_error(self.name):
-            return PartResult(
-                self._client.upload_part(
-                    Bucket=self._bucket,
-                    Key=self._key,
-                    UploadId=self._upload_id,
-                    PartNumber=part_number,
-                    Body=content,
-                )["ETag"],
-                part_number,
-                len(content),
-            )
+        pass
 
     def _submit_upload_buffer(self, part_number: int, content: bytes):
         self._uploading_futures.add(
@@ -170,7 +104,7 @@ class S3BufferedWriter(Writable[bytes]):
             for future in wait_result.done:
                 result = future.result()
                 self._total_buffer_size -= result.content_size
-                self._futures_result[result.part_number] = result.asdict()
+                self._uploaded_results[result.part_number] = result.asdict()
             self._uploading_futures = wait_result.not_done
 
     def _submit_upload_content(self, content: bytes):
@@ -215,36 +149,10 @@ class S3BufferedWriter(Writable[bytes]):
         if not self._is_global_executor:
             self._executor.shutdown()
 
+    @abstractmethod
     def _abort(self):
-        _logger.debug("abort file: %r" % self.name)
+        pass
 
-        if self._is_multipart:
-            with raise_s3_error(self.name):
-                self._client.abort_multipart_upload(
-                    Bucket=self._bucket, Key=self._key, UploadId=self._upload_id
-                )
-
-        self._shutdown()
-
+    @abstractmethod
     def _close(self):
-        _logger.debug("close file: %r" % self.name)
-
-        if not self._is_multipart:
-            with raise_s3_error(self.name):
-                self._client.put_object(
-                    Bucket=self._bucket, Key=self._key, Body=self._buffer.getvalue()
-                )
-            self._shutdown()
-            return
-
-        self._submit_futures()
-
-        with raise_s3_error(self.name):
-            self._client.complete_multipart_upload(
-                Bucket=self._bucket,
-                Key=self._key,
-                MultipartUpload=self._multipart_upload,
-                UploadId=self._upload_id,
-            )
-
-        self._shutdown()
+        pass

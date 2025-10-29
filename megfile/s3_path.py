@@ -63,12 +63,10 @@ from megfile.lib.compat import fspath
 from megfile.lib.fnmatch import translate
 from megfile.lib.glob import has_magic, has_magic_ignore_brace, ungloblize
 from megfile.lib.joinpath import uri_join
-from megfile.lib.s3_buffered_writer import (
-    S3BufferedWriter,
-)
 from megfile.lib.s3_cached_handler import S3CachedHandler
 from megfile.lib.s3_limited_seekable_writer import S3LimitedSeekableWriter
 from megfile.lib.s3_memory_handler import S3MemoryHandler
+from megfile.lib.s3_multipart_writer import S3MultipartWriter
 from megfile.lib.s3_pipe_handler import S3PipeHandler
 from megfile.lib.s3_prefetch_reader import S3PrefetchReader
 from megfile.lib.s3_share_cache_reader import S3ShareCacheReader
@@ -1051,7 +1049,7 @@ def s3_buffered_open(
     else:
         if max_buffer_size is None:
             max_buffer_size = WRITER_MAX_BUFFER_SIZE
-        writer = S3BufferedWriter(
+        writer = S3MultipartWriter(
             bucket,
             key,
             s3_client=client,

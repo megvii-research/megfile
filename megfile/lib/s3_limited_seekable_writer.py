@@ -8,12 +8,12 @@ from megfile.config import (
 )
 from megfile.errors import raise_s3_error
 from megfile.interfaces import Seekable
-from megfile.lib.s3_buffered_writer import S3BufferedWriter
+from megfile.lib.s3_multipart_writer import S3MultipartWriter
 
 _logger = get_logger(__name__)
 
 
-class S3LimitedSeekableWriter(S3BufferedWriter, Seekable):
+class S3LimitedSeekableWriter(S3MultipartWriter, Seekable):
     """For file format like msgpack and mp4, it's a pain that you need to write
     header before writing the data. So it's kind of hard to make streaming write
     to unseekable file system like s3. In this case, we will try to keep the first
@@ -27,7 +27,7 @@ class S3LimitedSeekableWriter(S3BufferedWriter, Seekable):
         key: str,
         *,
         s3_client,
-        block_size: int = S3BufferedWriter.MIN_BLOCK_SIZE,
+        block_size: int = S3MultipartWriter.MIN_BLOCK_SIZE,
         head_block_size: Optional[int] = None,
         tail_block_size: Optional[int] = None,
         max_buffer_size: int = WRITER_MAX_BUFFER_SIZE,
