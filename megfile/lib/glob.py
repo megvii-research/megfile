@@ -289,9 +289,9 @@ def get_non_glob_dir(glob: str):
     root_dir = []
     if glob.startswith("/"):
         root_dir.append("/")
-    elif "://" in glob:
-        protocol, glob = glob.split("://", 1)
-        root_dir.append(f"{protocol}://")
+    elif "//" in glob:
+        protocol_or_domain, glob = glob.rsplit("//", 1)
+        root_dir.append(f"{protocol_or_domain}//")
     for name in glob.split("/"):
         if has_magic(name):
             break

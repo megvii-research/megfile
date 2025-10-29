@@ -569,6 +569,11 @@ def test_get_no_glob_root_path():
     assert glob.get_non_glob_dir("./**/*.py") == "."
     assert glob.get_non_glob_dir("**/*.py") == "."
     assert glob.get_non_glob_dir("s3://test/a*/**/*.py") == "s3://test"
+    assert glob.get_non_glob_dir("s3+test://test/a*/**/*.py") == "s3+test://test"
+    assert (
+        glob.get_non_glob_dir("sftp://user@1.1.1.1//test/*.json")
+        == "sftp://user@1.1.1.1//test"
+    )
 
 
 def test__iglob():
