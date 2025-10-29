@@ -5,22 +5,29 @@ from datetime import datetime
 from typing import Dict, Iterator, List
 
 import pytest
+from webdav3.exceptions import RemoteResourceNotFound
 
 from megfile import webdav
 from megfile.errors import SameFileError
+
+from .test_http import FakeResponse  # noqa: F401
 
 
 class FakeWebdavClient:
     """Mock WebDAV client that uses local filesystem"""
 
-    def __init__(self, options: dict):
+    def __init__(self, options: dict = {}):
         self.options = options
-        self.hostname = options.get("webdav_hostname", "")
 
     def _relative_path(self, path: str) -> str:
+        # XXX: pyfakefs not work in python3.14 when path is absolute
         if path.startswith("/"):
             return f".{path}"
         return path
+
+    def execute_request(self, action: str, path: str):
+        """Mock execute_request method"""
+        return FakeResponse()
 
     def check(self, path: str) -> bool:
         """Check if path exists"""
@@ -57,8 +64,6 @@ class FakeWebdavClient:
         """Get file/directory info"""
         path = self._relative_path(path)
         if not os.path.exists(path):
-            from webdav3.exceptions import RemoteResourceNotFound
-
             raise RemoteResourceNotFound(path)
 
         stat = os.stat(path)
@@ -78,8 +83,6 @@ class FakeWebdavClient:
         """Remove file or directory"""
         path = self._relative_path(path)
         if not os.path.exists(path):
-            from webdav3.exceptions import RemoteResourceNotFound
-
             raise RemoteResourceNotFound(path)
 
         if os.path.isdir(path):
@@ -90,6 +93,7 @@ class FakeWebdavClient:
     def copy(self, src: str, dst: str):
         """Copy file or directory"""
         src = self._relative_path(src)
+        dst = self._relative_path(dst)
         if os.path.isdir(src):
             shutil.copytree(src, dst)
         else:
@@ -123,7 +127,6 @@ class FakeWebdavClient:
         parent = os.path.dirname(remote_path)
         if parent and not os.path.exists(parent):
             os.makedirs(parent)
-
         with open(remote_path, "wb") as f:
             f.write(buffer.read())
 
@@ -132,8 +135,10 @@ class FakeWebdavClient:
 def webdav_mocker(fs, mocker):
     """Mock WebDAV client to use local filesystem"""
 
+    client = FakeWebdavClient()
+
     def fake_get_webdav_client(hostname, username=None, password=None, token=None):
-        return FakeWebdavClient({"webdav_hostname": hostname})
+        return client
 
     def fake_webdav_stat(client, path: str) -> Dict:
         return client.info(path)
@@ -147,12 +152,10 @@ def webdav_mocker(fs, mocker):
     mocker.patch(
         "megfile.webdav_path._get_webdav_client", side_effect=fake_get_webdav_client
     )
-    mocker.patch(
-        "megfile.webdav_path.get_webdav_client", side_effect=fake_get_webdav_client
-    )
     mocker.patch("megfile.webdav_path._webdav_stat", side_effect=fake_webdav_stat)
     mocker.patch("megfile.webdav_path._webdav_scan", side_effect=fake_webdav_scan)
-    yield
+    os.makedirs("/", exist_ok=True)
+    yield client
 
 
 def test_is_webdav():
