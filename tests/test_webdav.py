@@ -19,7 +19,7 @@ class FakeWebdavClient:
 
     def _relative_path(self, path: str) -> str:
         if path.startswith("/"):
-            return f".{path}"
+            return path[1:]
         return path
 
     def check(self, path: str) -> bool:
