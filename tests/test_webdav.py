@@ -154,7 +154,6 @@ def webdav_mocker(fs, mocker):
     )
     mocker.patch("megfile.webdav_path._webdav_stat", side_effect=fake_webdav_stat)
     mocker.patch("megfile.webdav_path._webdav_scan", side_effect=fake_webdav_scan)
-    os.makedirs("/", exist_ok=True)
     yield client
 
 
