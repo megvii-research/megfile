@@ -130,7 +130,7 @@ class FakeWebdavClient:
 
 
 @pytest.fixture
-def webdav_mocker(mocker):
+def webdav_mocker(fs, mocker):
     """Mock WebDAV client to use local filesystem"""
 
     def fake_get_webdav_client(hostname, username=None, password=None, token=None):
