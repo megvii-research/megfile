@@ -18,10 +18,9 @@ class FakeWebdavClient:
         self.hostname = options.get("webdav_hostname", "")
 
     def _relative_path(self, path: str) -> str:
-        if path == "/":
-            return "./"
-        elif path.startswith("/"):
-            return path[1:]
+        # XXX: pyfakefs not work in python3.14 when path is absolute
+        if path.startswith("/"):
+            return f".{path}"
         return path
 
     def check(self, path: str) -> bool:
@@ -131,7 +130,7 @@ class FakeWebdavClient:
 
 
 @pytest.fixture
-def webdav_mocker(fs, mocker):
+def webdav_mocker(mocker):
     """Mock WebDAV client to use local filesystem"""
 
     def fake_get_webdav_client(hostname, username=None, password=None, token=None):
@@ -166,7 +165,7 @@ def test_is_webdav():
     assert webdav.is_webdav("sftp://host/data") is False
 
 
-def test_webdav_glob(webdav_mocker):
+def test_webdav_glob(fs, webdav_mocker):
     webdav.webdav_makedirs("webdav://host/A")
     webdav.webdav_makedirs("webdav://host/A/a")
     webdav.webdav_makedirs("webdav://host/A/b")
@@ -201,7 +200,7 @@ def test_webdav_glob(webdav_mocker):
     ]
 
 
-def test_webdav_isdir_webdav_isfile(webdav_mocker):
+def test_webdav_isdir_webdav_isfile(fs, webdav_mocker):
     webdav.webdav_makedirs("webdav://host/A/B", parents=True)
 
     with webdav.webdav_open("webdav://host/A/B/file", "w") as f:
@@ -214,7 +213,7 @@ def test_webdav_isdir_webdav_isfile(webdav_mocker):
     assert webdav.webdav_isfile("webdav://host/A/C") is False
 
 
-def test_webdav_exists(webdav_mocker):
+def test_webdav_exists(fs, webdav_mocker):
     webdav.webdav_makedirs("webdav://host/A/B", parents=True)
 
     with webdav.webdav_open("webdav://host/A/B/file", "w") as f:
@@ -225,7 +224,7 @@ def test_webdav_exists(webdav_mocker):
     assert webdav.webdav_exists("webdav://host/A/C") is False
 
 
-def test_webdav_scandir(webdav_mocker):
+def test_webdav_scandir(fs, webdav_mocker):
     webdav.webdav_makedirs("webdav://host/A")
     webdav.webdav_makedirs("webdav://host/A/a")
     webdav.webdav_makedirs("webdav://host/A/b")
@@ -251,7 +250,7 @@ def test_webdav_scandir(webdav_mocker):
         list(webdav.webdav_scandir("webdav://host/A/1.json"))
 
 
-def test_webdav_stat(webdav_mocker):
+def test_webdav_stat(fs, webdav_mocker):
     webdav.webdav_makedirs("webdav://host/A")
     with webdav.webdav_open("webdav://host/A/test", "w") as f:
         f.write("test")
@@ -269,7 +268,7 @@ def test_webdav_stat(webdav_mocker):
     assert webdav.webdav_getsize("webdav://host/A/test") == os_stat.st_size
 
 
-def test_webdav_listdir(webdav_mocker):
+def test_webdav_listdir(fs, webdav_mocker):
     webdav.webdav_makedirs("webdav://host/A")
     webdav.webdav_makedirs("webdav://host/A/a")
     webdav.webdav_makedirs("webdav://host/A/b")
@@ -280,14 +279,14 @@ def test_webdav_listdir(webdav_mocker):
     assert webdav.webdav_listdir("webdav://host/A") == ["1.json", "a", "b"]
 
 
-def test_webdav_load_from(webdav_mocker):
+def test_webdav_load_from(fs, webdav_mocker):
     webdav.webdav_makedirs("webdav://host/A")
     with webdav.webdav_open("webdav://host/A/test", "w") as f:
         f.write("test")
     assert webdav.webdav_load_from("webdav://host/A/test").read() == b"test"
 
 
-def test_webdav_makedirs(webdav_mocker):
+def test_webdav_makedirs(fs, webdav_mocker):
     webdav.webdav_makedirs("webdav://host/A/B/C", parents=True)
     assert webdav.webdav_exists("webdav://host/A/B/C") is True
 
@@ -298,12 +297,12 @@ def test_webdav_makedirs(webdav_mocker):
         webdav.webdav_makedirs("webdav://host/D/B/C")
 
 
-def test_webdav_realpath(webdav_mocker):
+def test_webdav_realpath(fs, webdav_mocker):
     # WebDAV doesn't resolve paths like SFTP, just returns the path
     assert webdav.webdav_realpath("webdav://host/A/../B/C") == "webdav://host/A/../B/C"
 
 
-def test_webdav_rename(webdav_mocker):
+def test_webdav_rename(fs, webdav_mocker):
     webdav.webdav_makedirs("webdav://host/A")
     with webdav.webdav_open("webdav://host/A/test", "w") as f:
         f.write("test")
@@ -320,7 +319,7 @@ def test_webdav_rename(webdav_mocker):
         webdav.webdav_rename("webdav://host/A2/test2", "/A2/test")
 
 
-def test_webdav_move(webdav_mocker):
+def test_webdav_move(fs, webdav_mocker):
     webdav.webdav_makedirs("webdav://host/A")
     with webdav.webdav_open("webdav://host/A/test", "w") as f:
         f.write("test")
@@ -334,7 +333,7 @@ def test_webdav_move(webdav_mocker):
     assert webdav.webdav_exists("webdav://host/A2/test2") is True
 
 
-def test_webdav_open(webdav_mocker):
+def test_webdav_open(fs, webdav_mocker):
     webdav.webdav_makedirs("webdav://host/A")
 
     with webdav.webdav_open("webdav://host/A/test", "w") as f:
@@ -355,7 +354,7 @@ def test_webdav_open(webdav_mocker):
             f.write("test")
 
 
-def test_webdav_remove(webdav_mocker):
+def test_webdav_remove(fs, webdav_mocker):
     webdav.webdav_makedirs("webdav://host/A")
     with webdav.webdav_open("webdav://host/A/test", "w") as f:
         f.write("test")
@@ -372,7 +371,7 @@ def test_webdav_remove(webdav_mocker):
     assert webdav.webdav_exists("webdav://host/A") is False
 
 
-def test_webdav_scan(webdav_mocker):
+def test_webdav_scan(fs, webdav_mocker):
     webdav.webdav_makedirs("webdav://host/A")
     webdav.webdav_makedirs("webdav://host/A/a")
     webdav.webdav_makedirs("webdav://host/A/b")
@@ -400,7 +399,7 @@ def test_webdav_scan(webdav_mocker):
         list(webdav.webdav_scan_stat("webdav://host/B", missing_ok=False))
 
 
-def test_webdav_unlink(webdav_mocker):
+def test_webdav_unlink(fs, webdav_mocker):
     webdav.webdav_makedirs("webdav://host/A")
     with webdav.webdav_open("webdav://host/A/test", "w") as f:
         f.write("test")
@@ -412,7 +411,7 @@ def test_webdav_unlink(webdav_mocker):
     assert webdav.webdav_exists("webdav://host/A") is True
 
 
-def test_webdav_walk(webdav_mocker):
+def test_webdav_walk(fs, webdav_mocker):
     webdav.webdav_makedirs("webdav://host/A")
     webdav.webdav_makedirs("webdav://host/A/a")
     webdav.webdav_makedirs("webdav://host/A/a/b")
@@ -437,7 +436,7 @@ def test_webdav_walk(webdav_mocker):
     assert list(webdav.webdav_walk("webdav://host/A/1.json")) == []
 
 
-def test_webdav_getmd5(webdav_mocker):
+def test_webdav_getmd5(fs, webdav_mocker):
     from megfile.fs import fs_getmd5
 
     webdav.webdav_makedirs("webdav://host/A")
@@ -447,12 +446,12 @@ def test_webdav_getmd5(webdav_mocker):
     assert webdav.webdav_getmd5("webdav://host/A") == fs_getmd5("/A")
 
 
-def test_webdav_save_as(webdav_mocker):
+def test_webdav_save_as(fs, webdav_mocker):
     webdav.webdav_save_as(io.BytesIO(b"test"), "webdav://host/test")
     assert webdav.webdav_load_from("webdav://host/test").read() == b"test"
 
 
-def test_webdav_rmdir(webdav_mocker):
+def test_webdav_rmdir(fs, webdav_mocker):
     webdav.webdav_makedirs("webdav://host/A")
     with webdav.webdav_open("webdav://host/A/1.json", "w") as f:
         f.write("1.json")
@@ -465,7 +464,7 @@ def test_webdav_rmdir(webdav_mocker):
     assert webdav.webdav_exists("webdav://host/A") is False
 
 
-def test_webdav_copy(webdav_mocker):
+def test_webdav_copy(fs, webdav_mocker):
     webdav.webdav_makedirs("webdav://host/A")
     with webdav.webdav_open("webdav://host/A/1.json", "w") as f:
         f.write("1.json")
@@ -507,7 +506,7 @@ def test_webdav_copy(webdav_mocker):
     )
 
 
-def test_webdav_copy_error(webdav_mocker):
+def test_webdav_copy_error(fs, webdav_mocker):
     webdav.webdav_makedirs("webdav://host/A")
     with webdav.webdav_open("webdav://host/A/1.json", "w") as f:
         f.write("1.json")
@@ -525,7 +524,7 @@ def test_webdav_copy_error(webdav_mocker):
         webdav.webdav_copy("webdav://host/A/1.json", "webdav://host/A/1.json")
 
 
-def test_webdav_sync(webdav_mocker, mocker):
+def test_webdav_sync(fs, webdav_mocker, mocker):
     webdav.webdav_makedirs("webdav://host/A")
     with webdav.webdav_open("webdav://host/A/1.json", "w") as f:
         f.write("1.json")
@@ -556,7 +555,7 @@ def test_webdav_sync(webdav_mocker, mocker):
     )
 
 
-def test_webdav_download(webdav_mocker):
+def test_webdav_download(fs, webdav_mocker):
     webdav.webdav_makedirs("webdav://host/A")
     with webdav.webdav_open("webdav://host/A/1.json", "w") as f:
         f.write("1.json")
@@ -598,7 +597,7 @@ def test_webdav_download(webdav_mocker):
         webdav.webdav_download("webdav://host/A/1.json", "/1/")
 
 
-def test_webdav_upload(webdav_mocker):
+def test_webdav_upload(fs, webdav_mocker):
     with open("/1.json", "w") as f:
         f.write("1.json")
 
