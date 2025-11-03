@@ -47,3 +47,8 @@ If root is relative or unset, the relative path will be assumed relative to the 
 
 - Absolute path: `hdfs[+profile_name]:///path/to/file`
 - Relative path: `hdfs[+profile_name]://path/to/file`
+
+### webdav
+
+- `webdav://[username[:password]@]hostname[:port]/file_path`
+- `webdavs://[username[:password]@]hostname[:port]/file_path`

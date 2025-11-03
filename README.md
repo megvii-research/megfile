@@ -15,7 +15,7 @@ megfile - Megvii FILE library
 
 ## Why megfile
 
-* Same interfaces as the standard library, low learning curve
+* Same interfaces as the python standard library, low learning curve
 * Faster file read and write operations
 * Excellent error retry mechanism to help you handle network issues
 * Supports popular protocols, even making it easy to use the same protocol with different endpoints
@@ -97,6 +97,15 @@ $ megfile cp s3://playground/megfile-test /tmp/playground/megfile-test
 
 ```bash
 pip3 install megfile
+
+# for cli support
+pip3 install 'megfile[cli]'
+
+# for hdfs support
+pip3 install 'megfile[hdfs]'
+
+# for webdav support
+pip3 install 'megfile[webdav]'
 ```
 
 ## Configuration
@@ -154,6 +163,8 @@ You can get the configuration from `~/.config/megfile/aliases.conf`, like:
 [tos]
 protocol = s3+tos
 ```
+
+You can use alias in path, like `tos://bucket/key`, the same as `s3+tos://bucket/key`.
 
 ## Benchmark
 [![10GiB](https://github.com/megvii-research/megfile/blob/main/scripts/benchmark/10GiB.png?raw=true)](https://megvii-research.github.io/megfile/benchmark.html)
