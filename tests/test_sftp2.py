@@ -7,7 +7,7 @@ from typing import List
 
 import pytest
 
-from megfile import sftp2
+from tests.compat import sftp2
 
 
 class FakeSFTP2Client:
@@ -564,7 +564,7 @@ def test_sftp2_walk(sftp2_mocker):
 
 
 def test_sftp2_getmd5(sftp2_mocker):
-    from megfile.fs import fs_getmd5
+    from tests.compat.fs import fs_getmd5
 
     sftp2.sftp2_makedirs("sftp2://username@host/A")
     with sftp2.sftp2_open("sftp2://username@host/A/1.json", "w") as f:

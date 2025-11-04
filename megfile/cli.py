@@ -19,7 +19,7 @@ from megfile.hdfs_path import DEFAULT_HDFS_TIMEOUT
 from megfile.interfaces import FileEntry
 from megfile.lib.glob import get_non_glob_dir, has_magic
 from megfile.s3_path import get_s3_session
-from megfile.sftp import sftp_add_host_key
+from megfile.sftp_path import sftp_add_host_key
 from megfile.smart import (
     _smart_sync_single_file,
     smart_copy,

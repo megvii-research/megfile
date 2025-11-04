@@ -8,7 +8,7 @@ import pytest
 import requests
 
 from megfile.errors import HttpFileNotFoundError, HttpPermissionError, UnknownError
-from megfile.http import (
+from tests.compat.http import (
     get_http_session,
     http_exists,
     http_getmtime,

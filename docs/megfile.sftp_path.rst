@@ -2,6 +2,6 @@ megfile.sftp_path module
 ========================
 
 .. automodule:: megfile.sftp_path
-    :members: SftpPath
+    :members:
     :undoc-members:
     :show-inheritance:

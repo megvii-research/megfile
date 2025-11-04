@@ -270,15 +270,11 @@ def test_smart_copy(mocker):
             "fs", "s3://a/b", callback=None, followlinks=False, overwrite=True
         )
 
-        fs_stat = mocker.patch(
-            "megfile.fs.fs_stat", return_value=StatResult(islnk=False, size=10)
-        )
         smart.smart_copy("fs", "fs", followlinks=False)
         fs_copy.assert_called_once_with(
             "fs", "fs", callback=None, followlinks=False, overwrite=True
         )
         fs_copy.reset_mock()
-        fs_stat.stop()
 
         smart.smart_copy("s3+test1://a/b", "s3+test2://a/b")
         s3path_open.call_count == 2
@@ -587,124 +583,6 @@ def test_smart_open_input_params(mocker, fs):
     with smart.smart_open("http://test"):
         pass
     http_open.assert_called_once()
-
-
-def test_smart_open(mocker, fs):
-    """
-    This test is pretty naïve. Feel free to improve it
-    in order to ensure smart_open works as we expected.
-
-    Even ourselves do not know what we expect up to now.
-    """
-    # s3_writer = mocker.patch('megfile.s3.S3BufferedWriter')
-    # s3_reader = mocker.patch('megfile.s3.S3PrefetchReader')
-    # fs_open = mocker.patch('io.open', side_effect=open)
-    # text_wrapper = mocker.patch('io.TextIOWrapper')
-    # is_s3_func = mocker.patch('megfile.smart.is_s3')
-    # fs_isdir_func = mocker.patch('megfile.smart.fs_isdir')
-    # s3_isdir_func = mocker.patch('megfile.smart.s3_isdir')
-    # s3_isfile_func = mocker.patch('megfile.smart.s3_isfile')
-    # parse_s3_url = mocker.patch('megfile.s3.parse_s3_url')
-    # mocker.patch('megfile.s3.get_s3_client')
-
-    # is_s3_func.return_value = False
-    # fs_isdir_func.return_value = True
-
-    # with pytest.raises(IsADirectoryError):
-    #     smart.smart_open('folder')
-    # is_s3_func.return_value = False
-    # fs_isdir_func.return_value = False
-    # with pytest.raises(FileNotFoundError):
-    #     smart.smart_open('non-exist.file')
-    # fs_open.side_effect = None
-    # fs_open.reset_mock()
-
-    # is_s3_func.return_value = False
-    # fs_isdir_func.return_value = False
-    # smart.smart_open('file', 'wb+')
-    # fs_open.assert_called_once_with('file', 'wb+', encoding=None, errors=None)
-    # fs_open.reset_mock()
-
-    # is_s3_func.return_value = False
-    # fs_isdir_func.return_value = False
-    # smart.smart_open('non-exist/file', 'wb')
-    # fs_open.assert_called_once_with(
-    #     'non-exist/file', 'wb', encoding=None, errors=None)
-    # fs_open.reset_mock()
-
-    # is_s3_func.return_value = True
-    # s3_isdir_func.return_value = True
-    # s3_isfile_func.return_value = True
-    # parse_s3_url.return_value = ('bucket', 'key')
-    # smart.smart_open('s3://bucket/key')
-    # s3_reader.side_effect = None
-    # s3_reader.reset_mock()
-    # text_wrapper.reset_mock()
-
-    # is_s3_func.return_value = True
-    # s3_isdir_func.return_value = True
-    # s3_isfile_func.return_value = False
-    # parse_s3_url.return_value = ('bucket', 'key')
-    # with pytest.raises(IsADirectoryError) as e:
-    #     smart.smart_open('s3://bucket/key')
-
-    # is_s3_func.return_value = True
-    # s3_isdir_func.return_value = False
-    # s3_isfile_func.return_value = False
-    # parse_s3_url.return_value = ('bucket', 'key')
-    # with pytest.raises(FileNotFoundError) as e:
-    #     smart.smart_open('s3://bucket/key')
-
-    # is_s3_func.return_value = True
-    # s3_isdir_func.return_value = True
-    # s3_isfile_func.return_value = True
-    # parse_s3_url.return_value = ('bucket', 'key')
-    # with pytest.raises(FileExistsError) as e:
-    #     smart.smart_open('s3://bucket/key', 'x')
-
-    # is_s3_func.return_value = True
-    # s3_isdir_func.return_value = False
-    # s3_isfile_func.return_value = False
-    # parse_s3_url.return_value = ('bucket', 'key')
-    # with pytest.raises(ValueError) as e:
-    #     smart.smart_open('s3://bucket/key', 'wb+')
-    # assert 'wb+' in str(e.value)
-
-    # is_s3_func.return_value = True
-    # s3_isdir_func.return_value = False
-    # s3_isfile_func.return_value = False
-    # parse_s3_url.return_value = ('bucket', 'key')
-    # smart.smart_open('s3://bucket/key', 'w')
-    # # s3_writer.assert_called_once() in Python 3.6+
-    # assert s3_writer.call_count == 1
-    # # text_wrapper.assert_called_once() in Python 3.6+
-    # assert text_wrapper.call_count == 1
-    # s3_writer.reset_mock()
-    # text_wrapper.reset_mock()
-
-    # is_s3_func.return_value = True
-    # s3_isdir_func.return_value = False
-    # s3_isfile_func.return_value = False
-    # parse_s3_url.return_value = ('bucket', 'key')
-    # smart.smart_open('s3://bucket/key', 'xb')
-    # # s3_writer.assert_called_once() in Python 3.6+
-    # assert s3_writer.call_count == 1
-    # # text_wrapper.assert_not_called() in Python 3.6+
-    # assert text_wrapper.call_count == 0
-    # s3_writer.reset_mock()
-    # text_wrapper.reset_mock()
-
-    # is_s3_func.return_value = True
-    # s3_isdir_func.return_value = False
-    # s3_isfile_func.return_value = True
-    # parse_s3_url.return_value = ('bucket', 'key')
-    # smart.smart_open('s3://bucket/key', 'r')
-    # # s3_reader.assert_called_once() in Python 3.6+
-    # assert s3_reader.call_count == 1
-    # # text_wrapper.assert_called_once() in Python 3.6+
-    # assert text_wrapper.call_count == 1
-    # s3_reader.reset_mock()
-    # text_wrapper.reset_mock()
 
 
 def test_smart_open_custom_s3_open_func(mocker, fs):

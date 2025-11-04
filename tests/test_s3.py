@@ -18,7 +18,7 @@ import pytest
 from mock import patch
 from moto import mock_aws
 
-from megfile import s3, s3_path, smart
+from megfile import s3_path, smart
 from megfile.config import (
     GLOBAL_MAX_WORKERS,
 )
@@ -49,6 +49,7 @@ from megfile.s3_path import (
     _s3_split_magic_ignore_brace,
 )
 from megfile.utils import process_local, thread_local
+from tests.compat import s3
 
 from . import Any, FakeStatResult, Now
 
@@ -512,7 +513,7 @@ def test_parse_s3_url():
 
 
 def test_s3_scandir_internal(truncating_client, mocker):
-    mocker.patch("megfile.s3.s3_islink", return_value=False)
+    mocker.patch("tests.compat.s3.s3_islink", return_value=False)
 
     # walk the dir that is not exist
     # expect: empty generator
@@ -563,7 +564,7 @@ def test_s3_scandir_internal(truncating_client, mocker):
 
 
 def test_s3_scandir(truncating_client, mocker):
-    mocker.patch("megfile.s3.s3_islink", return_value=False)
+    mocker.patch("tests.compat.s3.s3_islink", return_value=False)
 
     assert sorted(list(map(lambda x: x.name, s3.s3_scandir("s3://")))) == [
         "bucketA",
@@ -602,7 +603,7 @@ def test_s3_scandir(truncating_client, mocker):
 
 
 def test_s3_listdir(truncating_client, mocker):
-    mocker.patch("megfile.s3.s3_islink", return_value=False)
+    mocker.patch("tests.compat.s3.s3_islink", return_value=False)
     assert s3.s3_listdir("s3://") == [
         "bucketA",
         "bucketB",
@@ -1546,13 +1547,13 @@ def test_s3_scan_stat(truncating_client, mocker):
 
 
 def test_s3_path_join():
-    assert s3.s3_path_join("s3://") == "s3://"
-    assert s3.s3_path_join("s3://", "bucket/key") == "s3://bucket/key"
-    assert s3.s3_path_join("s3://", "bucket//key") == "s3://bucket//key"
-    assert s3.s3_path_join("s3://", "bucket", "key") == "s3://bucket/key"
-    assert s3.s3_path_join("s3://", "bucket/", "key") == "s3://bucket/key"
-    assert s3.s3_path_join("s3://", "bucket", "/key") == "s3://bucket/key"
-    assert s3.s3_path_join("s3://", "bucket", "key/") == "s3://bucket/key/"
+    assert s3_path._s3_path_join("s3://") == "s3://"
+    assert s3_path._s3_path_join("s3://", "bucket/key") == "s3://bucket/key"
+    assert s3_path._s3_path_join("s3://", "bucket//key") == "s3://bucket//key"
+    assert s3_path._s3_path_join("s3://", "bucket", "key") == "s3://bucket/key"
+    assert s3_path._s3_path_join("s3://", "bucket/", "key") == "s3://bucket/key"
+    assert s3_path._s3_path_join("s3://", "bucket", "/key") == "s3://bucket/key"
+    assert s3_path._s3_path_join("s3://", "bucket", "key/") == "s3://bucket/key/"
 
 
 def _s3_glob_with_bucket_match():
@@ -3334,7 +3335,7 @@ def test_error(s3_empty_client, mocker):
             ERROR = 3
 
         mocker.patch("megfile.s3_path.Access", FakeAccess)
-        mocker.patch("megfile.s3.s3_islink", return_value=False)
+        mocker.patch("tests.compat.s3.s3_islink", return_value=False)
         with pytest.raises(Exception):
             s3.s3_access("s3://")
         with pytest.raises(TypeError):

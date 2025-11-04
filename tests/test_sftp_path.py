@@ -5,7 +5,6 @@ import subprocess
 import paramiko
 import pytest
 
-from megfile import sftp
 from megfile.sftp_path import (
     SFTP_PASSWORD,
     SFTP_PRIVATE_KEY_PATH,
@@ -19,6 +18,7 @@ from megfile.sftp_path import (
     sftp_should_retry,
 )
 from megfile.utils import thread_local
+from tests.compat import sftp
 
 from .test_sftp import FakeSFTPClient, sftp_mocker  # noqa: F401
 

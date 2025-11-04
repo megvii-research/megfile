@@ -16,14 +16,13 @@ from typing import (
 from tqdm import tqdm
 
 from megfile.errors import S3UnknownError
-from megfile.fs import (
+from megfile.fs_path import (
     fs_copy,
-    fs_listdir,
-    fs_scandir,
     is_fs,
 )
 from megfile.interfaces import (
     Access,
+    ContextIterator,
     FileCacher,
     FileEntry,
     NullCacher,
@@ -34,7 +33,7 @@ from megfile.lib.combine_reader import CombineReader
 from megfile.lib.compare import get_sync_type, is_same_file
 from megfile.lib.compat import fspath
 from megfile.lib.glob import globlize, ungloblize
-from megfile.s3 import (
+from megfile.s3_path import (
     is_s3,
     s3_concat,
     s3_copy,
@@ -43,7 +42,7 @@ from megfile.s3 import (
     s3_open,
     s3_upload,
 )
-from megfile.sftp import sftp_concat, sftp_copy, sftp_download, sftp_upload
+from megfile.sftp_path import sftp_concat, sftp_copy, sftp_download, sftp_upload
 from megfile.smart_path import SmartPath, get_traditional_path
 from megfile.utils import combine, copyfileobj, generate_cache_path
 
@@ -172,7 +171,7 @@ def smart_listdir(path: Optional[PathLike] = None) -> List[str]:
     :raises: FileNotFoundError, NotADirectoryError
     """
     if path is None:
-        return fs_listdir()
+        return sorted(os.listdir(path))
     return SmartPath(path).listdir()
 
 
@@ -185,7 +184,28 @@ def smart_scandir(path: Optional[PathLike] = None) -> Iterator[FileEntry]:
     :raises: FileNotFoundError, NotADirectoryError
     """
     if path is None:
-        return fs_scandir()
+
+        def create_generator():
+            from stat import S_ISDIR as stat_isdir
+            from stat import S_ISLNK as stat_islnk
+
+            with os.scandir(None) as entries:
+                for entry in entries:
+                    stat = entry.stat()
+                    yield FileEntry(
+                        entry.name,
+                        entry.path,
+                        StatResult(
+                            size=stat.st_size,
+                            ctime=stat.st_ctime,
+                            mtime=stat.st_mtime,
+                            isdir=stat_isdir(stat.st_mode),
+                            islnk=stat_islnk(stat.st_mode),
+                            extra=stat,
+                        ),
+                    )
+
+        return ContextIterator(create_generator())
     return SmartPath(path).scandir()
 
 

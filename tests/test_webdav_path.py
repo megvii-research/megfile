@@ -3,7 +3,6 @@ import os
 
 import pytest
 
-from megfile import webdav
 from megfile.webdav_path import (
     WEBDAV_PASSWORD,
     WEBDAV_TOKEN,
@@ -11,6 +10,7 @@ from megfile.webdav_path import (
     WebdavPath,
     provide_connect_info,
 )
+from tests.compat import webdav
 
 from .test_webdav import FakeWebdavClient, webdav_mocker  # noqa: F401
 
@@ -333,7 +333,7 @@ def test_getsize_directory(webdav_mocker):
 
 def test_md5_directory(webdav_mocker):
     """Test MD5 calculation for directory"""
-    from megfile.fs import fs_getmd5
+    from tests.compat.fs import fs_getmd5
 
     webdav.webdav_makedirs("webdav://host/A")
     with webdav.webdav_open("webdav://host/A/file1.txt", "w") as f:
