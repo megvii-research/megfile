@@ -1031,7 +1031,7 @@ def smart_load_content(
 def smart_save_content(path: PathLike, content: bytes) -> None:
     """Save bytes content to specified path
 
-    param path: Path to save content
+    :param path: Path to save content
     """
     with smart_open(path, "wb") as fd:
         fd.write(content)
@@ -1041,7 +1041,7 @@ def smart_load_text(path: PathLike) -> str:
     """
     Read content from path
 
-    param path: Path to be read
+    :param path: Path to be read
     """
     with smart_open(path) as fd:
         return fd.read()  # pytype: disable=bad-return-type
@@ -1050,16 +1050,27 @@ def smart_load_text(path: PathLike) -> str:
 def smart_save_text(path: PathLike, text: str) -> None:
     """Save text to specified path
 
-    param path: Path to save text
+    :param path: Path to save text
     """
     with smart_open(path, "w") as fd:
         fd.write(text)
 
 
 class SmartCacher(FileCacher):
+    """Smart cache files in local filesystem"""
+
     cache_path = None
 
     def __init__(self, path: str, cache_path: Optional[str] = None, mode: str = "r"):
+        """
+        :param path: Path to cache
+        :type path: str
+        :param cache_path: Path to cache file, defaults to None, will use ``/tmp``
+        :type cache_path: Optional[str], optional
+        :param mode: Mode to open cache file, defaults to "r"
+        :type mode: str, optional
+        :raises ValueError: If mode is not one of "r", "w", "a"
+        """
         if mode not in ("r", "w", "a"):
             raise ValueError("unacceptable mode: %r" % mode)
         if cache_path is None:
@@ -1079,12 +1090,22 @@ class SmartCacher(FileCacher):
             os.unlink(self.cache_path)
 
 
-def smart_cache(path, cacher=SmartCacher, **options):
+def smart_cache(path, cacher=SmartCacher, **options) -> FileCacher:
     """Return a path to Posixpath Interface
 
-    param path: Path to cache
-    param s3_cacher: Cacher for s3 path
-    param options: Optional arguments for s3_cacher
+    Examples: ::
+
+        >>> import subprocess
+        >>> from megfile import smart_cache
+        >>> with smart_cache(
+        ...     's3://mybucket/myfile.mp4',
+        ...     mode='r',
+        ... ) as cache_path:
+        ...     subprocess.run(['ffprobe', cache_path])
+
+    :param path: Path to cache
+    :param s3_cacher: Cacher for s3 path
+    :param options: Optional arguments for s3_cacher
     """
     if not is_fs(path):
         return cacher(path, **options)
@@ -1094,7 +1115,7 @@ def smart_cache(path, cacher=SmartCacher, **options):
 def smart_touch(path: PathLike):
     """Create a new file on path
 
-    param path: Path to create file
+    :param path: Path to create file
     """
     with smart_open(path, "w"):
         pass
@@ -1103,9 +1124,9 @@ def smart_touch(path: PathLike):
 def smart_getmd5(path: PathLike, recalculate: bool = False, followlinks: bool = False):
     """Get md5 value of file
 
-    param path: File path
-    param recalculate: calculate md5 in real-time or not return s3 etag when path is s3
-    param followlinks: If is True, calculate md5 for real file
+    :param path: File path
+    :param recalculate: calculate md5 in real-time or not return s3 etag when path is s3
+    :param followlinks: If is True, calculate md5 for real file
     """
     return SmartPath(path).md5(recalculate=recalculate, followlinks=followlinks)
 
