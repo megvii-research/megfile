@@ -33,12 +33,12 @@ __all__ = [
     "is_sftp2",
 ]
 
-SFTP2_USERNAME = "SFTP2_USERNAME"
-SFTP2_PASSWORD = "SFTP2_PASSWORD"
-SFTP2_PRIVATE_KEY_PATH = "SFTP2_PRIVATE_KEY_PATH"
-SFTP2_PRIVATE_KEY_TYPE = "SFTP2_PRIVATE_KEY_TYPE"
-SFTP2_PRIVATE_KEY_PASSWORD = "SFTP2_PRIVATE_KEY_PASSWORD"
-SFTP2_MAX_UNAUTH_CONN = "SFTP2_MAX_UNAUTH_CONN"
+SFTP_USERNAME = "SFTP_USERNAME"
+SFTP_PASSWORD = "SFTP_PASSWORD"
+SFTP_PRIVATE_KEY_PATH = "SFTP_PRIVATE_KEY_PATH"
+SFTP_PRIVATE_KEY_TYPE = "SFTP_PRIVATE_KEY_TYPE"
+SFTP_PRIVATE_KEY_PASSWORD = "SFTP_PRIVATE_KEY_PASSWORD"
+SFTP_MAX_UNAUTH_CONN = "SFTP_MAX_UNAUTH_CONN"
 MAX_RETRIES = SFTP_MAX_RETRY_TIMES
 DEFAULT_SSH_CONNECT_TIMEOUT = 5
 DEFAULT_SSH_KEEPALIVE_INTERVAL = 15
@@ -66,11 +66,11 @@ def _make_stat(stat) -> StatResult:
 
 def get_private_key():
     """Get private key for SSH authentication"""
-    private_key_path = os.getenv(SFTP2_PRIVATE_KEY_PATH)
+    private_key_path = os.getenv(SFTP_PRIVATE_KEY_PATH)
     if private_key_path:
         if not os.path.exists(private_key_path):
             raise FileNotFoundError(f"Private key file not exist: '{private_key_path}'")
-        private_key_password = os.getenv(SFTP2_PRIVATE_KEY_PASSWORD)
+        private_key_password = os.getenv(SFTP_PRIVATE_KEY_PASSWORD)
         if private_key_password:
             return private_key_path, private_key_password
         return private_key_path, ""
@@ -87,12 +87,12 @@ def provide_connect_info(
     if not port:
         port = 22
     if not username:
-        username = os.getenv(SFTP2_USERNAME)
+        username = os.getenv(SFTP_USERNAME)
         if not username:
             # 如果没有指定用户名，使用当前系统用户名
             username = getpass.getuser()
     if not password:
-        password = os.getenv(SFTP2_PASSWORD)
+        password = os.getenv(SFTP_PASSWORD)
     private_key = get_private_key()
     return hostname, port, username, password, private_key
 
