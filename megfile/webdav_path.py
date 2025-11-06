@@ -42,7 +42,7 @@ from megfile.lib.compat import fspath
 from megfile.lib.fnmatch import translate
 from megfile.lib.glob import has_magic
 from megfile.lib.joinpath import uri_join, uri_norm
-from megfile.lib.webdav_memory_handler import WebdavMemoryHandler
+from megfile.lib.webdav_memory_handler import WebdavMemoryHandler, _webdav_stat
 from megfile.lib.webdav_prefetch_reader import WebdavPrefetchReader
 from megfile.pathlike import URIPath
 from megfile.smart_path import SmartPath
@@ -254,23 +254,6 @@ def _webdav_scan_pairs(
         else:
             dst_file_path = dst_url
         yield src_file_path, dst_file_path
-
-
-def _webdav_stat(client: WebdavClient, remote_path: str):
-    urn = Urn(remote_path)
-    client._check_remote_resource(remote_path, urn)
-
-    response = client.execute_request(
-        action="info", path=urn.quote(), headers_ext=["Depth: 0"]
-    )
-    path = client.get_full_path(urn)
-    info = WebDavXmlUtils.parse_info_response(
-        response.content, path, client.webdav.hostname
-    )
-    info["is_dir"] = WebDavXmlUtils.parse_is_dir_response(
-        response.content, path, client.webdav.hostname
-    )
-    return info
 
 
 def _webdav_scan(client: WebdavClient, remote_path: str) -> List[dict]:

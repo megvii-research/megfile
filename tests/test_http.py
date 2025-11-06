@@ -52,6 +52,11 @@ class FakeResponse:
         error.response = self
         raise error
 
+    def iter_content(self, chunk_size=1):
+        content = self.raw.read()
+        for i in range(0, len(content), chunk_size):
+            yield content[i : i + chunk_size]
+
     def close(self):
         pass
 

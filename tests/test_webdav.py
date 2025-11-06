@@ -16,6 +16,8 @@ from .test_http import FakeResponse  # noqa: F401
 class FakeWebdavClient:
     """Mock WebDAV client that uses local filesystem"""
 
+    chunk_size = 8192
+
     def __init__(self, options: dict = {}):
         self.options = options
 
@@ -149,11 +151,21 @@ def webdav_mocker(fs, mocker):
                 yield from fake_webdav_scan(client, info["path"])
             yield info
 
+    def fake_webdav_download_from(client, buff, path: str) -> Dict:
+        return client.download_from(buff, path)
+
     mocker.patch(
         "megfile.webdav_path._get_webdav_client", side_effect=fake_get_webdav_client
     )
     mocker.patch("megfile.webdav_path._webdav_stat", side_effect=fake_webdav_stat)
     mocker.patch("megfile.webdav_path._webdav_scan", side_effect=fake_webdav_scan)
+    mocker.patch(
+        "megfile.lib.webdav_memory_handler._webdav_stat", side_effect=fake_webdav_stat
+    )
+    mocker.patch(
+        "megfile.lib.webdav_memory_handler._webdav_download_from",
+        side_effect=fake_webdav_download_from,
+    )
     yield client
 
 
