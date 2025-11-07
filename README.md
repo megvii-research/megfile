@@ -11,21 +11,16 @@ megfile - Megvii FILE library
 
 * Docs: http://megvii-research.github.io/megfile
 
-`megfile` provides a silky operation experience with different backends (currently including local file system and s3), which enable you to focus more on the logic of your own project instead of the question of "Which backend is used for this file?"
+`megfile` provides a silky operation experience with different backends, which enable you to focus more on the logic of your own project instead of the question of "Which backend is used for this file?"
 
-`megfile` provides:
+## Why megfile
 
-* Almost unified file system operation experience. Target path can be easily moved from local file system to s3.
-* Complete boundary case handling. Even the most difficult (or even you can't even think of) boundary conditions, `megfile` can help you easily handle it.
-* Perfect type hints and built-in documentation. You can enjoy the IDE's auto-completion and static checking.
-* Semantic version and upgrade guide, which allows you enjoy the latest features easily.
-
-`megfile`'s advantages are:
-
-* `smart_open` can open resources that use various protocols. Especially, reader / writer of s3 in `megfile` is implemented with multi-thread, which is faster than known competitors.
-* `smart_glob` is available on majority protocols. And it supports zsh extended pattern syntax of `[]`, e.g. `s3://bucket/video.{mp4,avi}`.
-* All-inclusive functions like `smart_exists` / `smart_stat` / `smart_sync`. If you don't find the functions you want, [submit an issue](https://github.com/megvii-research/megfile/issues).
-* Compatible with `pathlib.Path` interface, referring to `SmartPath` and other protocol classes like `S3Path`.
+* Same interfaces as the python standard library, low learning curve
+* Faster file read and write operations
+* Excellent error retry mechanism to help you handle network issues
+* Supports popular protocols, even making it easy to use the same protocol with different endpoints
+* Stable and secure, with CI coverage over 95%, used by multiple industry giants
+* Perfect type hints and built-in documentation. You can enjoy the IDE's auto-completion and static checking
 
 ## Support Protocols
 - fs(local filesystem)
@@ -33,11 +28,15 @@ megfile - Megvii FILE library
 - sftp
 - http
 - stdio
-- hdfs: `pip install 'megfile[hdfs]'`
+- hdfs: `pip3 install 'megfile[hdfs]'`
+- webdav: `pip3 install 'megfile[webdav]'`
 
 ## Quick Start
 
-Path string in `megfile` almost is `protocol://path/to/file`, for example `s3://bucketA/key`. But sftp path is a little different, format is `sftp://[username[:password]@]hostname[:port]//absolute_file_path`. More details see [path format document](https://megvii-research.github.io/megfile/path_format.html).
+The interfaces of `megfile` correspond to those in the Python standard library. For example, `open` -> `smart_open` and `pathlib.Path` -> `SmartPath`. You only need to [configure the protocol settings](https://megvii-research.github.io/megfile/configuration.html) and provide the path in the corresponding format to use them conveniently.
+
+Path string in `megfile` almost is `protocol://path/to/file`, for example `s3://bucketA/key`. More details see [path format document](https://megvii-research.github.io/megfile/path_format.html).
+
 Here's an example of writing a file to s3 / fs, syncing to local, reading and finally deleting it.
 
 ### Functional Interface
@@ -66,7 +65,7 @@ smart_glob('s3://playground/megfile-?.{mp4,avi}')
 
 ### SmartPath Interface
 
-`SmartPath` has a similar interface with pathlib.Path.
+`SmartPath` has a similar interface with `pathlib.Path`.
 
 ```python
 from megfile.smart_path import SmartPath
@@ -98,28 +97,15 @@ $ megfile cp s3://playground/megfile-test /tmp/playground/megfile-test
 
 ```bash
 pip3 install megfile
-```
 
-You can specify megfile version as well
-```bash
-pip3 install "megfile~=0.0"
-```
+# for cli support
+pip3 install 'megfile[cli]'
 
-### Build from Source
+# for hdfs support
+pip3 install 'megfile[hdfs]'
 
-megfile can be installed from source
-```bash
-git clone git@github.com:megvii-research/megfile.git
-cd megfile
-pip3 install -U .
-```
-
-### Development Environment
-
-```bash
-git clone git@github.com:megvii-research/megfile.git
-cd megfile
-pip3 install -r requirements.txt -r requirements-dev.txt
+# for webdav support
+pip3 install 'megfile[webdav]'
 ```
 
 ## Configuration
@@ -177,6 +163,8 @@ You can get the configuration from `~/.config/megfile/aliases.conf`, like:
 [tos]
 protocol = s3+tos
 ```
+
+You can use alias in path, like `tos://bucket/key`, the same as `s3+tos://bucket/key`.
 
 ## Benchmark
 [![10GiB](https://github.com/megvii-research/megfile/blob/main/scripts/benchmark/10GiB.png?raw=true)](https://megvii-research.github.io/megfile/benchmark.html)
