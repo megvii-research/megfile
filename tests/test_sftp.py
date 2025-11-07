@@ -10,8 +10,9 @@ from typing import List, Optional
 import paramiko
 import pytest
 
-from megfile import sftp, sftp_path
+from megfile import sftp_path
 from megfile.errors import SameFileError
+from tests.compat import sftp
 
 
 class FakeSFTPClient:
@@ -657,7 +658,7 @@ def test_sftp_walk(sftp_mocker):
 
 
 def test_sftp_getmd5(sftp_mocker):
-    from megfile.fs import fs_getmd5
+    from tests.compat.fs import fs_getmd5
 
     sftp.sftp_makedirs("sftp://username@host//A")
     with sftp.sftp_open("sftp://username@host//A/1.json", "w") as f:
@@ -1072,5 +1073,5 @@ def test_sftp_add_host_key(fs, mocker):
 def test__check_input(mocker, caplog):
     mocker.patch("builtins.input", return_value="xxx")
     with caplog.at_level(logging.WARNING, logger="megfile"):
-        sftp._check_input("xxx", "fingerprint", times=9)
+        sftp_path._check_input("xxx", "fingerprint", times=9)
     assert "Retried more than 10 times, give up" in caplog.text

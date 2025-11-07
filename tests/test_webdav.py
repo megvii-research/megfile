@@ -7,8 +7,8 @@ from typing import Dict, Iterator, List
 import pytest
 from webdav3.exceptions import RemoteResourceNotFound
 
-from megfile import webdav
 from megfile.errors import SameFileError
+from tests.compat import webdav
 
 from .test_http import FakeResponse  # noqa: F401
 
@@ -438,7 +438,7 @@ def test_webdav_walk(webdav_mocker):
 
 
 def test_webdav_getmd5(webdav_mocker):
-    from megfile.fs import fs_getmd5
+    from tests.compat.fs import fs_getmd5
 
     webdav.webdav_makedirs("webdav://host/A")
     with webdav.webdav_open("webdav://host/A/1.json", "w") as f:

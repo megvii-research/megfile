@@ -2,7 +2,7 @@ from io import BytesIO
 
 import pytest
 
-from megfile.stdio import is_stdio, stdio_open
+from tests.compat.stdio import is_stdio, stdio_open
 
 
 def test_is_stdio():

@@ -1,4 +1,4 @@
-from typing import BinaryIO, Callable, Iterator, List, Optional, Tuple
+from typing import BinaryIO, Iterator, List, Tuple
 
 from megfile.interfaces import Access, FileEntry, PathLike, StatResult
 from megfile.s3_path import (
@@ -11,11 +11,11 @@ from megfile.s3_path import (
     s3_buffered_open,
     s3_cached_open,
     s3_concat,
+    s3_copy,
     s3_download,
     s3_load_content,
     s3_memory_open,
     s3_open,
-    s3_path_join,
     s3_pipe_open,
     s3_prefetch_open,
     s3_share_cache_open,
@@ -27,7 +27,6 @@ __all__ = [
     "get_endpoint_url",
     "get_s3_session",
     "get_s3_client",
-    "s3_path_join",
     "is_s3",
     "s3_buffered_open",
     "s3_cached_open",
@@ -351,27 +350,6 @@ def s3_getmd5(
     :returns: md5 meta info
     """
     return S3Path(path).md5(recalculate, followlinks)
-
-
-def s3_copy(
-    src_url: PathLike,
-    dst_url: PathLike,
-    callback: Optional[Callable[[int], None]] = None,
-    followlinks: bool = False,
-    overwrite: bool = True,
-) -> None:
-    """File copy on S3
-    Copy content of file on `src_path` to `dst_path`.
-    It's caller's responsibility to ensure the s3_isfile(src_url) is True
-
-    :param src_url: Given path
-    :param dst_path: Target file path
-    :param callback: Called periodically during copy, and the input parameter is
-        the data size (in bytes) of copy since the last call
-    :param followlinks: False if regard symlink as file, else True
-    :param overwrite: whether or not overwrite file when exists, default is True
-    """
-    return S3Path(src_url).copy(dst_url, callback, followlinks, overwrite)
 
 
 def s3_sync(

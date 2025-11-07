@@ -33,6 +33,7 @@ def _bind_function(name, after_callback=None, before_callback=None):
             return result
 
     smart_method.__name__ = name
+    smart_method.__doc__ = f"Dynamically bound method for {name}"
 
     return smart_method
 

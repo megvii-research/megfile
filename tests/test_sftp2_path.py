@@ -3,7 +3,6 @@ import os
 
 import pytest
 
-from megfile import sftp2
 from megfile.sftp2_path import (
     Sftp2Path,
     get_private_key,
@@ -12,6 +11,7 @@ from megfile.sftp2_path import (
     provide_connect_info,
     sftp2_should_retry,
 )
+from tests.compat import sftp2
 
 from .test_sftp2 import FakeSFTP2Client, sftp2_mocker  # noqa: F401
 

@@ -33,7 +33,7 @@ from megfile.utils import calculate_md5, copyfd
 __all__ = [
     "FSPath",
     "is_fs",
-    "fs_path_join",
+    "fs_copy",
 ]
 
 
@@ -61,8 +61,37 @@ def is_fs(path: Union["PathLike", int]) -> bool:
     return scheme == "" or scheme == "file"
 
 
-def fs_path_join(path: PathLike, *other_paths: PathLike) -> str:
-    return path_join(fspath(path), *map(fspath, other_paths))
+def fs_copy(
+    src_path: PathLike,
+    dst_path: PathLike,
+    callback: Optional[Callable[[int], None]] = None,
+    followlinks: bool = False,
+    overwrite: bool = True,
+):
+    """File copy on file system
+    Copy content (excluding meta date) of file on `src_path` to `dst_path`.
+    `dst_path` must be a complete file name
+
+    .. note ::
+
+        The differences between this function and shutil.copyfile are:
+
+            1. If parent directory of dst_path doesn't exist, create it
+
+            2. Allow callback function, None by default.
+                callback: Optional[Callable[[int], None]], the int data is means
+                the size (in bytes) of the written data that is passed periodically
+
+            3. This function is thread-unsafe
+
+    :param src_path: Given path
+    :param dst_path: Target file path
+    :param callback: Called periodically during copy, and the input parameter is
+        the data size (in bytes) of copy since the last call
+    :param followlinks: False if regard symlink as file, else True
+    :param overwrite: whether or not overwrite file when exists, default is True
+    """
+    return FSPath(src_path).copy(dst_path, callback, followlinks, overwrite)
 
 
 def _fs_rename_file(

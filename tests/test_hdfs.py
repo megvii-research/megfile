@@ -4,8 +4,8 @@ import os
 
 import pytest
 
-from megfile import hdfs
 from megfile.lib.hdfs_tools import hdfs_api
+from tests.compat import hdfs
 
 
 @pytest.fixture
