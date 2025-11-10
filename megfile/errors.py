@@ -136,6 +136,7 @@ s3_retry_error_codes = (
     "UploadTrafficRateLimitExceeded",
     "MetaOperationQpsLimitExceeded",
     "TotalQpsLimitExceeded",
+    "PartitionQpsLimitted",
     "ActiveRequestLimitExceeded",
     "CpuLimitExceeded",
     "QpsLimitExceeded",
