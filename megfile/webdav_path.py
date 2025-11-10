@@ -287,6 +287,14 @@ def _webdav_split_magic(path: str) -> Tuple[str, str]:
     return path, ""
 
 
+def _webdav_check_accept_ranges(client: WebdavClient, remote_path: str):
+    urn = Urn(remote_path)
+    response = client.execute_request(action="download", path=urn.quote())
+    response.close()
+    headers = response.headers
+    return headers.get("Accept-Ranges") == "bytes"
+
+
 @SmartPath.register
 class WebdavPath(URIPath):
     """WebDAV protocol
@@ -812,20 +820,10 @@ class WebdavPath(URIPath):
             raise FileNotFoundError("No such file: %r" % self.path_with_protocol)
 
         if mode == "rb":
-            urn = Urn(self._remote_path)
-            response = self._client.execute_request(action="download", path=urn.quote())
-            response.close()
-            headers = response.headers
-            content_size = int(headers.get("Content-Length", 0))
-            if (
-                headers.get("Accept-Ranges") == "bytes"
-                and content_size >= block_size * 2
-                and not headers.get("Content-Encoding")
-            ):
+            if _webdav_check_accept_ranges(self._client, self._remote_path):
                 reader = WebdavPrefetchReader(
-                    urn,
+                    self._remote_path,
                     client=self._client,
-                    content_size=content_size,
                     block_size=block_size,
                     max_buffer_size=max_buffer_size,
                     block_forward=block_forward,

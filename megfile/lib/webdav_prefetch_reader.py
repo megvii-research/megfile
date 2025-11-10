@@ -11,11 +11,11 @@ from megfile.config import (
 )
 from megfile.errors import (
     HttpBodyIncompleteError,
-    UnsupportedError,
     http_should_retry,
     patch_method,
 )
 from megfile.lib.base_prefetch_reader import BasePrefetchReader
+from megfile.lib.webdav_memory_handler import _webdav_stat
 
 DEFAULT_TIMEOUT = (60, 60 * 60 * 24)
 
@@ -35,18 +35,17 @@ class WebdavPrefetchReader(BasePrefetchReader):
 
     def __init__(
         self,
-        urn: Urn,
+        remote_path: str,
         *,
         client: Optional[WebdavClient] = None,
-        content_size: Optional[int] = None,
         block_size: int = READER_BLOCK_SIZE,
         max_buffer_size: int = READER_MAX_BUFFER_SIZE,
         block_forward: Optional[int] = None,
         max_retries: int = WEBDAV_MAX_RETRY_TIMES,
         max_workers: Optional[int] = None,
     ):
-        self._urn = urn
-        self._content_size = content_size
+        self._urn = Urn(remote_path)
+        self._remote_path = remote_path
         self._client = client or WebdavClient({})
 
         super().__init__(
@@ -58,20 +57,12 @@ class WebdavPrefetchReader(BasePrefetchReader):
         )
 
     def _get_content_size(self) -> int:
-        if self._content_size is not None:
-            return self._content_size
-
-        first_index_response = self._fetch_response()
-        if first_index_response["Headers"].get("Accept-Ranges") != "bytes":
-            raise UnsupportedError(
-                f"Unsupported server, server must support Accept-Ranges: {self._urn}",
-                path=str(self._urn),
-            )
-        return first_index_response["Headers"]["Content-Length"]
+        info = _webdav_stat(self._client, self._remote_path)
+        return int(info.get("size") or 0)
 
     @property
     def name(self) -> str:
-        return str(self._urn)
+        return self._remote_path
 
     def _fetch_response(
         self, start: Optional[int] = None, end: Optional[int] = None
@@ -94,12 +85,17 @@ class WebdavPrefetchReader(BasePrefetchReader):
             with self._client.execute_request(
                 action="download", path=self._urn.quote(), headers_ext=headers_ext
             ) as response:
-                if len(response.content) != int(response.headers["Content-Length"]):
+                headers = response.headers
+                if (
+                    "Content-Length" in headers
+                    and len(response.content) != int(headers["Content-Length"])
+                    and not headers.get("Content-Encoding")
+                ):
                     raise HttpBodyIncompleteError(
                         "The downloaded content is incomplete, "
                         "expected size: %s, actual size: %d"
                         % (
-                            response.headers["Content-Length"],
+                            headers["Content-Length"],
                             len(response.content),
                         )
                     )

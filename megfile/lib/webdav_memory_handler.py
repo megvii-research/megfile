@@ -12,8 +12,6 @@ from megfile.lib.base_memory_handler import BaseMemoryHandler
 
 def _webdav_stat(client: WebdavClient, remote_path: str):
     urn = Urn(remote_path)
-    client._check_remote_resource(remote_path, urn)
-
     response = client.execute_request(
         action="info", path=urn.quote(), headers_ext=["Depth: 0"]
     )

@@ -5,13 +5,11 @@ from io import BytesIO
 
 import pytest
 import requests
-from webdav3.client import Urn
 
 from megfile.config import READER_BLOCK_SIZE
-from megfile.errors import UnsupportedError
 from megfile.lib.webdav_prefetch_reader import WebdavPrefetchReader
 
-URN = Urn("/test")
+PATH = "/test"
 CONTENT = b"block0 block1 block2 block3 block4 "
 CONTENT_SIZE = len(CONTENT)
 
@@ -85,6 +83,10 @@ def http_patch(mocker):
         "megfile.lib.webdav_prefetch_reader.WebdavClient.execute_request",
         side_effect=_fake_execute_request,
     )
+    mocker.patch(
+        "megfile.lib.webdav_prefetch_reader._webdav_stat",
+        return_value={"size": CONTENT_SIZE},
+    )
     return requests_get_func
 
 
@@ -97,10 +99,8 @@ def sleep_until_downloaded(reader, timeout: int = 5):
 
 
 def test_webdav_prefetch_reader(http_patch):
-    with WebdavPrefetchReader(
-        URN, content_size=CONTENT_SIZE, max_workers=2, block_size=7
-    ) as reader:
-        assert reader.name == str(URN)
+    with WebdavPrefetchReader(PATH, max_workers=2, block_size=7) as reader:
+        assert reader.name == PATH
         assert reader.mode == "rb"
 
         # size = 0
@@ -123,9 +123,7 @@ def test_webdav_prefetch_reader(http_patch):
         reader.seek(0)
         assert reader.read() == CONTENT
 
-    with WebdavPrefetchReader(
-        URN, content_size=CONTENT_SIZE, max_workers=2, block_size=7
-    ) as reader:
+    with WebdavPrefetchReader(PATH, max_workers=2, block_size=7) as reader:
         assert reader.read() == CONTENT
 
 
@@ -135,7 +133,11 @@ def test_webdav_prefetch_reader_readline(mocker):
         "megfile.lib.webdav_prefetch_reader.WebdavClient.execute_request",
         return_value=FakeResponse200(content),
     )
-    with WebdavPrefetchReader(URN, max_workers=2, block_size=3) as reader:
+    mocker.patch(
+        "megfile.lib.webdav_prefetch_reader._webdav_stat",
+        return_value={"size": len(content)},
+    )
+    with WebdavPrefetchReader(PATH, max_workers=2, block_size=3) as reader:
         # within block
         assert reader.readline() == b"1\n"
         # cross block
@@ -158,7 +160,7 @@ def test_webdav_prefetch_reader_readline(mocker):
 
 def test_webdav_prefetch_reader_readline_without_line_break_at_all(http_patch):
     with WebdavPrefetchReader(
-        URN, content_size=CONTENT_SIZE, max_workers=2, block_size=40
+        PATH, max_workers=2, block_size=40
     ) as reader:  # block_size > content_length
         reader.read(1)
         assert reader.readline() == b"lock0 block1 block2 block3 block4 "
@@ -169,9 +171,11 @@ def test_webdav_prefetch_reader_readline_tailing_block(mocker):
         "megfile.lib.webdav_prefetch_reader.WebdavClient.execute_request",
         return_value=FakeResponse200(b"123456"),
     )
-    with WebdavPrefetchReader(
-        URN, content_size=6, max_workers=2, block_size=3
-    ) as reader:
+    mocker.patch(
+        "megfile.lib.webdav_prefetch_reader._webdav_stat",
+        return_value={"size": 6},
+    )
+    with WebdavPrefetchReader(PATH, max_workers=2, block_size=3) as reader:
         # next block is empty
         assert reader.readline() == b"123456"
 
@@ -182,9 +186,11 @@ def test_webdav_prefetch_reader_read_readline_mix(mocker):
         "megfile.lib.webdav_prefetch_reader.WebdavClient.execute_request",
         return_value=FakeResponse200(content),
     )
-    with WebdavPrefetchReader(
-        URN, content_size=len(content), max_workers=2, block_size=3
-    ) as reader:
+    mocker.patch(
+        "megfile.lib.webdav_prefetch_reader._webdav_stat",
+        return_value={"size": len(content)},
+    )
+    with WebdavPrefetchReader(PATH, max_workers=2, block_size=3) as reader:
         assert reader.readline() == b"1\n"
         assert reader.read(2) == b"2\n"
         assert reader.readline() == b"3\n"
@@ -197,11 +203,13 @@ def test_webdav_prefetch_reader_seek_out_of_range(mocker):
     content = b"1\n2\n3\n4\n"
     mocker.patch(
         "megfile.lib.webdav_prefetch_reader.WebdavClient.execute_request",
-        return_value=FakeResponse200(b"1\n2\n3\n4\n"),
+        return_value=FakeResponse200(content),
     )
-    with WebdavPrefetchReader(
-        URN, content_size=len(content), max_workers=2, block_size=3
-    ) as reader:
+    mocker.patch(
+        "megfile.lib.webdav_prefetch_reader._webdav_stat",
+        return_value={"size": len(content)},
+    )
+    with WebdavPrefetchReader(PATH, max_workers=2, block_size=3) as reader:
         reader.seek(-2)
         assert reader.tell() == 0
         assert reader.read(2) == b"1\n"
@@ -217,17 +225,19 @@ def test_webdav_prefetch_reader_seek_out_of_range(mocker):
 
 
 def test_webdav_prefetch_reader_close(http_patch):
-    reader = WebdavPrefetchReader(URN, content_size=CONTENT_SIZE)
+    reader = WebdavPrefetchReader(
+        PATH,
+    )
     reader.close()
     assert reader.closed
 
-    with WebdavPrefetchReader(URN, content_size=CONTENT_SIZE) as reader:
+    with WebdavPrefetchReader(
+        PATH,
+    ) as reader:
         pass
     assert reader.closed
 
-    with WebdavPrefetchReader(
-        URN, content_size=CONTENT_SIZE, max_workers=1, block_size=1
-    ) as reader:
+    with WebdavPrefetchReader(PATH, max_workers=1, block_size=1) as reader:
         # 主线程休眠, 等待 reader.fetcher 线程阻塞在 _donwloading 事件上
         sleep_until_downloaded(reader)
     assert reader.closed
@@ -237,7 +247,9 @@ def test_webdav_prefetch_reader_close(http_patch):
 
 
 def test_webdav_prefetch_reader_seek(http_patch):
-    with WebdavPrefetchReader(URN, content_size=CONTENT_SIZE) as reader:
+    with WebdavPrefetchReader(
+        PATH,
+    ) as reader:
         reader.seek(0)
 
         reader.read(7)
@@ -259,8 +271,7 @@ def test_webdav_prefetch_reader_backward_seek_and_the_target_in_remains(
 ):
     """目标 offset 在 remains 中 重置 remains 位置"""
     with WebdavPrefetchReader(
-        URN,
-        content_size=CONTENT_SIZE,
+        PATH,
         max_workers=2,
         block_size=3,
         max_buffer_size=3 * 3,
@@ -286,8 +297,7 @@ def test_webdav_prefetch_reader_backward_seek_and_the_target_in_remains(
 def test_webdav_prefetch_reader_max_buffer_size_eq_0(http_patch, mocker):
     """目标 offset 在 remains 中 重置 remains 位置"""
     with WebdavPrefetchReader(
-        URN,
-        content_size=CONTENT_SIZE,
+        PATH,
         max_workers=2,
         block_size=3,
         max_buffer_size=0,
@@ -312,8 +322,7 @@ def test_webdav_prefetch_reader_max_buffer_size_eq_0(http_patch, mocker):
 def test_webdav_prefetch_reader_block_forward_eq_0(http_patch, mocker):
     """目标 offset 在 remains 中 重置 remains 位置"""
     with WebdavPrefetchReader(
-        URN,
-        content_size=CONTENT_SIZE,
+        PATH,
         max_workers=2,
         block_size=3,
         max_buffer_size=3,
@@ -347,8 +356,7 @@ def test_webdav_prefetch_reader_backward_block_forward_eq_1(http_patch, mocker):
         read_count = 1
 
     with WebdavPrefetchReader(
-        URN,
-        content_size=CONTENT_SIZE,
+        PATH,
         max_workers=2,
         block_size=3,
         max_buffer_size=3 * 3,
@@ -371,8 +379,7 @@ def test_webdav_prefetch_reader_backward_seek_and_the_target_out_of_remains(http
     以目标 offset 作为新的起点启动新的 future
     """
     with WebdavPrefetchReader(
-        URN,
-        content_size=CONTENT_SIZE,
+        PATH,
         max_workers=2,
         block_size=3,
         max_buffer_size=3 * 3,
@@ -401,8 +408,7 @@ def test_webdav_prefetch_reader_seek_and_the_target_in_buffer(http_patch, mocker
     必要时截断目标 block 的前半部分
     """
     with WebdavPrefetchReader(
-        URN,
-        content_size=CONTENT_SIZE,
+        PATH,
         max_workers=3,
         block_size=3,
         max_buffer_size=3 * 3,
@@ -436,8 +442,7 @@ def test_webdav_prefetch_reader_seek_and_the_target_out_of_buffer(http_patch):
     以目标 offset 作为新的起点启动新的 future
     """
     with WebdavPrefetchReader(
-        URN,
-        content_size=CONTENT_SIZE,
+        PATH,
         max_workers=2,
         block_size=3,
         max_buffer_size=3 * 3,
@@ -457,44 +462,34 @@ def test_webdav_prefetch_reader_seek_and_the_target_out_of_buffer(http_patch):
 
 def test_webdav_prefetch_reader_read_with_forward_seek(http_patch):
     """向后 seek 后, 测试 read 结果的正确性"""
-    with WebdavPrefetchReader(
-        URN, content_size=CONTENT_SIZE, max_workers=2, block_size=7
-    ) as reader:
+    with WebdavPrefetchReader(PATH, max_workers=2, block_size=7) as reader:
         reader.seek(2)
         assert reader.read(4) == b"ock0"
-    with WebdavPrefetchReader(
-        URN, content_size=CONTENT_SIZE, max_workers=2, block_size=7
-    ) as reader:
+    with WebdavPrefetchReader(PATH, max_workers=2, block_size=7) as reader:
         reader.read(1)
         reader.seek(3)
         assert reader.read(4) == b"ck0 "
-    with WebdavPrefetchReader(
-        URN, content_size=CONTENT_SIZE, max_workers=2, block_size=7
-    ) as reader:
+    with WebdavPrefetchReader(PATH, max_workers=2, block_size=7) as reader:
         sleep_until_downloaded(reader)  # 休眠以确保 buffer 被填充满
         reader.seek(7)  # 目标 offset 距当前位置正好为一个 block 大小
         assert reader.read(7) == b"block1 "
-    with WebdavPrefetchReader(
-        URN, content_size=CONTENT_SIZE, max_workers=2, block_size=7
-    ) as reader:
+    with WebdavPrefetchReader(PATH, max_workers=2, block_size=7) as reader:
         reader.read(1)
         reader.seek(7)
         assert reader.read(7) == b"block1 "
 
-    with WebdavPrefetchReader(
-        URN, content_size=CONTENT_SIZE, max_workers=2, block_size=7
-    ) as reader:
+    with WebdavPrefetchReader(PATH, max_workers=2, block_size=7) as reader:
         reader.seek(21)
         assert reader.read(7) == b"block3 "
-    with WebdavPrefetchReader(
-        URN, content_size=CONTENT_SIZE, max_workers=2, block_size=7
-    ) as reader:
+    with WebdavPrefetchReader(PATH, max_workers=2, block_size=7) as reader:
         reader.seek(-1, os.SEEK_END)
         assert reader.read(2) == b" "
 
 
 def test_webdav_prefetch_reader_tell(http_patch):
-    with WebdavPrefetchReader(URN, content_size=CONTENT_SIZE) as reader:
+    with WebdavPrefetchReader(
+        PATH,
+    ) as reader:
         assert reader.tell() == 0
         reader.read(0)
         assert reader.tell() == 0
@@ -507,9 +502,7 @@ def test_webdav_prefetch_reader_tell(http_patch):
 
 
 def test_webdav_prefetch_reader_tell_after_seek(http_patch):
-    with WebdavPrefetchReader(
-        URN, content_size=CONTENT_SIZE, max_workers=2, block_size=7
-    ) as reader:
+    with WebdavPrefetchReader(PATH, max_workers=2, block_size=7) as reader:
         reader.seek(2)
         assert reader.tell() == 2
         reader.seek(3)
@@ -522,8 +515,7 @@ def test_webdav_prefetch_reader_tell_after_seek(http_patch):
 
 def test_webdav_prefetch_reader_readinto(http_patch):
     with WebdavPrefetchReader(
-        URN,
-        content_size=CONTENT_SIZE,
+        PATH,
         max_workers=2,
         block_size=3,
         max_buffer_size=3 * 3,
@@ -536,9 +528,7 @@ def test_webdav_prefetch_reader_readinto(http_patch):
 
 
 def test_webdav_prefetch_reader_seek_history(http_patch):
-    with WebdavPrefetchReader(
-        URN, content_size=CONTENT_SIZE, max_buffer_size=3 * READER_BLOCK_SIZE
-    ) as reader:
+    with WebdavPrefetchReader(PATH, max_buffer_size=3 * READER_BLOCK_SIZE) as reader:
         reader._seek_buffer(2)
         history = reader._seek_history[0]
         assert history.seek_count == 1
@@ -556,8 +546,7 @@ def test_webdav_prefetch_reader_seek_history(http_patch):
 
 def test_webdav_prefetch_reader_no_buffer(http_patch):
     with WebdavPrefetchReader(
-        URN,
-        content_size=CONTENT_SIZE,
+        PATH,
         max_buffer_size=0,
     ) as reader:
         assert reader._block_capacity == 0
@@ -568,25 +557,6 @@ def test_webdav_prefetch_reader_no_buffer(http_patch):
         reader.read()
 
         assert list(reader._futures.keys()) == []
-
-
-def test_webdav_prefetch_reader_headers(mocker):
-    class FakeResponse200WithoutAcceptRange(FakeResponse200):
-        @property
-        def headers(self):
-            headers = super().headers
-            headers.pop("Accept-Ranges", None)
-            return headers
-
-    mocker.patch(
-        "megfile.lib.webdav_prefetch_reader.WebdavClient.execute_request",
-        return_value=FakeResponse200WithoutAcceptRange(),
-    )
-
-    with pytest.raises(UnsupportedError):
-        WebdavPrefetchReader(
-            URN,
-        )
 
 
 def test_webdav_prefetch_reader_retry(mocker, caplog):
@@ -610,9 +580,13 @@ def test_webdav_prefetch_reader_retry(mocker, caplog):
             "megfile.lib.webdav_prefetch_reader.WebdavClient.execute_request",
             return_value=fake_response,
         )
+        mocker.patch(
+            "megfile.lib.webdav_prefetch_reader._webdav_stat",
+            return_value={"size": CONTENT_SIZE},
+        )
 
         with WebdavPrefetchReader(
-            URN,
+            PATH,
             max_retries=2,
         ) as f:
             f.read()
