@@ -1,3 +1,17 @@
+## 5.0.0 - 2025.11.11
+- **breaking change**
+    - Dropped support for Python 3.9; added support for Python 3.14.
+    - Remove the function interfaces of each protocol, keeping only the smart function interfaces and Path interface.
+    - `sftp2` use the same env as `sftp`, remove `SFTP2_*` envs.
+    - `sftp2` removes support for relative paths.
+- feat
+    - Officially supports WebDav protocol.
+    - support retry some new errors.
+    - cli support `ll` command show human readable file size.
+- fix
+    - skip abort operate when file object already closed.
+    - fix sync error when sftp glob path.
+
 ## 4.2.5 - 2025.10.20
 - feat
     - Added the `webdav` protocol, implemented using the webdavclient3 library. Please install it using `pip install 'megfile[webdav]'`.
