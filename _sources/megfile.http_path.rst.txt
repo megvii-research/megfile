@@ -2,6 +2,6 @@ megfile.http_path module
 ========================
 
 .. automodule:: megfile.http_path
-    :members: HttpPath, HttpsPath
+    :members:
     :undoc-members:
     :show-inheritance:

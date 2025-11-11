@@ -48,6 +48,7 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Getting Started</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#megfile-megvii-file-library">megfile - Megvii FILE library</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#why-megfile">Why megfile</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#support-protocols">Support Protocols</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#quick-start">Quick Start</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#functional-interface">Functional Interface</a></li>
@@ -57,8 +58,6 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#pypi">PyPI</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#build-from-source">Build from Source</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#development-environment">Development Environment</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#configuration">Configuration</a><ul>
@@ -119,20 +118,17 @@
 <ul class="simple">
 <li><p>Docs: <a class="reference external" href="http://megvii-research.github.io/megfile">http://megvii-research.github.io/megfile</a></p></li>
 </ul>
-<p><code class="docutils literal notranslate"><span class="pre">megfile</span></code> provides a silky operation experience with different backends (currently including local file system and s3), which enable you to focus more on the logic of your own project instead of the question of “Which backend is used for this file?”</p>
-<p><code class="docutils literal notranslate"><span class="pre">megfile</span></code> provides:</p>
+<p><code class="docutils literal notranslate"><span class="pre">megfile</span></code> provides a silky operation experience with different backends, which enable you to focus more on the logic of your own project instead of the question of “Which backend is used for this file?”</p>
+</section>
+<section id="why-megfile">
+<h2>Why megfile<a class="headerlink" href="#why-megfile" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p>Almost unified file system operation experience. Target path can be easily moved from local file system to s3.</p></li>
-<li><p>Complete boundary case handling. Even the most difficult (or even you can’t even think of) boundary conditions, <code class="docutils literal notranslate"><span class="pre">megfile</span></code> can help you easily handle it.</p></li>
-<li><p>Perfect type hints and built-in documentation. You can enjoy the IDE’s auto-completion and static checking.</p></li>
-<li><p>Semantic version and upgrade guide, which allows you enjoy the latest features easily.</p></li>
-</ul>
-<p><code class="docutils literal notranslate"><span class="pre">megfile</span></code>‘s advantages are:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">smart_open</span></code> can open resources that use various protocols. Especially, reader / writer of s3 in <code class="docutils literal notranslate"><span class="pre">megfile</span></code> is implemented with multi-thread, which is faster than known competitors.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">smart_glob</span></code> is available on majority protocols. And it supports zsh extended pattern syntax of <code class="docutils literal notranslate"><span class="pre">[]</span></code>, e.g. <code class="docutils literal notranslate"><span class="pre">s3://bucket/video.{mp4,avi}</span></code>.</p></li>
-<li><p>All-inclusive functions like <code class="docutils literal notranslate"><span class="pre">smart_exists</span></code> / <code class="docutils literal notranslate"><span class="pre">smart_stat</span></code> / <code class="docutils literal notranslate"><span class="pre">smart_sync</span></code>. If you don’t find the functions you want, <a class="reference external" href="https://github.com/megvii-research/megfile/issues">submit an issue</a>.</p></li>
-<li><p>Compatible with <code class="docutils literal notranslate"><span class="pre">pathlib.Path</span></code> interface, referring to <code class="docutils literal notranslate"><span class="pre">SmartPath</span></code> and other protocol classes like <code class="docutils literal notranslate"><span class="pre">S3Path</span></code>.</p></li>
+<li><p>Same interfaces as the python standard library, low learning curve</p></li>
+<li><p>Faster file read and write operations</p></li>
+<li><p>Excellent error retry mechanism to help you handle network issues</p></li>
+<li><p>Supports popular protocols, even making it easy to use the same protocol with different endpoints</p></li>
+<li><p>Stable and secure, with CI coverage over 95%, used by multiple industry giants</p></li>
+<li><p>Perfect type hints and built-in documentation. You can enjoy the IDE’s auto-completion and static checking</p></li>
 </ul>
 </section>
 <section id="support-protocols">
@@ -143,13 +139,15 @@
 <li><p>sftp</p></li>
 <li><p>http</p></li>
 <li><p>stdio</p></li>
-<li><p>hdfs: <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">'megfile[hdfs]'</span></code></p></li>
+<li><p>hdfs: <code class="docutils literal notranslate"><span class="pre">pip3</span> <span class="pre">install</span> <span class="pre">'megfile[hdfs]'</span></code></p></li>
+<li><p>webdav: <code class="docutils literal notranslate"><span class="pre">pip3</span> <span class="pre">install</span> <span class="pre">'megfile[webdav]'</span></code></p></li>
 </ul>
 </section>
 <section id="quick-start">
 <h2>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading"></a></h2>
-<p>Path string in <code class="docutils literal notranslate"><span class="pre">megfile</span></code> almost is <code class="docutils literal notranslate"><span class="pre">protocol://path/to/file</span></code>, for example <code class="docutils literal notranslate"><span class="pre">s3://bucketA/key</span></code>. But sftp path is a little different, format is <code class="docutils literal notranslate"><span class="pre">sftp://[username[:password]&#64;]hostname[:port]//absolute_file_path</span></code>. More details see <a class="reference external" href="https://megvii-research.github.io/megfile/path_format.html">path format document</a>.
-Here’s an example of writing a file to s3 / fs, syncing to local, reading and finally deleting it.</p>
+<p>The interfaces of <code class="docutils literal notranslate"><span class="pre">megfile</span></code> correspond to those in the Python standard library. For example, <code class="docutils literal notranslate"><span class="pre">open</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">smart_open</span></code> and <code class="docutils literal notranslate"><span class="pre">pathlib.Path</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">SmartPath</span></code>. You only need to <a class="reference external" href="https://megvii-research.github.io/megfile/configuration.html">configure the protocol settings</a> and provide the path in the corresponding format to use them conveniently.</p>
+<p>Path string in <code class="docutils literal notranslate"><span class="pre">megfile</span></code> almost is <code class="docutils literal notranslate"><span class="pre">protocol://path/to/file</span></code>, for example <code class="docutils literal notranslate"><span class="pre">s3://bucketA/key</span></code>. More details see <a class="reference external" href="https://megvii-research.github.io/megfile/path_format.html">path format document</a>.</p>
+<p>Here’s an example of writing a file to s3 / fs, syncing to local, reading and finally deleting it.</p>
 <section id="functional-interface">
 <h3>Functional Interface<a class="headerlink" href="#functional-interface" title="Link to this heading"></a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">megfile</span><span class="w"> </span><span class="kn">import</span> <span class="n">smart_open</span><span class="p">,</span> <span class="n">smart_exists</span><span class="p">,</span> <span class="n">smart_sync</span><span class="p">,</span> <span class="n">smart_remove</span><span class="p">,</span> <span class="n">smart_glob</span>
@@ -177,7 +175,7 @@ Here’s an example of writing a file to s3 / fs, syncing to local, reading and 
 </section>
 <section id="smartpath-interface">
 <h3>SmartPath Interface<a class="headerlink" href="#smartpath-interface" title="Link to this heading"></a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">SmartPath</span></code> has a similar interface with pathlib.Path.</p>
+<p><code class="docutils literal notranslate"><span class="pre">SmartPath</span></code> has a similar interface with <code class="docutils literal notranslate"><span class="pre">pathlib.Path</span></code>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">megfile.smart_path</span><span class="w"> </span><span class="kn">import</span> <span class="n">SmartPath</span>
 
 <span class="n">path</span> <span class="o">=</span> <span class="n">SmartPath</span><span class="p">(</span><span class="s1">&#39;s3://playground/megfile-test&#39;</span><span class="p">)</span>
@@ -209,27 +207,15 @@ $<span class="w"> </span>megfile<span class="w"> </span>cp<span class="w"> </spa
 <section id="pypi">
 <h3>PyPI<a class="headerlink" href="#pypi" title="Link to this heading"></a></h3>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip3<span class="w"> </span>install<span class="w"> </span>megfile
-</pre></div>
-</div>
-<p>You can specify megfile version as well</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip3<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;megfile~=0.0&quot;</span>
-</pre></div>
-</div>
-</section>
-<section id="build-from-source">
-<h3>Build from Source<a class="headerlink" href="#build-from-source" title="Link to this heading"></a></h3>
-<p>megfile can be installed from source</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>git@github.com:megvii-research/megfile.git
-<span class="nb">cd</span><span class="w"> </span>megfile
-pip3<span class="w"> </span>install<span class="w"> </span>-U<span class="w"> </span>.
-</pre></div>
-</div>
-</section>
-<section id="development-environment">
-<h3>Development Environment<a class="headerlink" href="#development-environment" title="Link to this heading"></a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>git@github.com:megvii-research/megfile.git
-<span class="nb">cd</span><span class="w"> </span>megfile
-pip3<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt<span class="w"> </span>-r<span class="w"> </span>requirements-dev.txt
+
+<span class="c1"># for cli support</span>
+pip3<span class="w"> </span>install<span class="w"> </span><span class="s1">&#39;megfile[cli]&#39;</span>
+
+<span class="c1"># for hdfs support</span>
+pip3<span class="w"> </span>install<span class="w"> </span><span class="s1">&#39;megfile[hdfs]&#39;</span>
+
+<span class="c1"># for webdav support</span>
+pip3<span class="w"> </span>install<span class="w"> </span><span class="s1">&#39;megfile[webdav]&#39;</span>
 </pre></div>
 </div>
 </section>
@@ -289,6 +275,7 @@ $ megfile config alias tos s3+tos
 <span class="n">protocol</span> <span class="o">=</span> <span class="n">s3</span><span class="o">+</span><span class="n">tos</span>
 </pre></div>
 </div>
+<p>You can use alias in path, like <code class="docutils literal notranslate"><span class="pre">tos://bucket/key</span></code>, the same as <code class="docutils literal notranslate"><span class="pre">s3+tos://bucket/key</span></code>.</p>
 </section>
 </section>
 <section id="benchmark">

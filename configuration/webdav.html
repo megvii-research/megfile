@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Common Configuration &mdash; megfile  documentation</title>
+  <title>WebDAV Configuration &mdash; megfile  documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
 
@@ -21,8 +21,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="S3 Configuration" href="s3.html" />
-    <link rel="prev" title="Configuration" href="../configuration.html" /> 
+    <link rel="next" title="Auto Completion" href="completion.html" />
+    <link rel="prev" title="HTTP Configuration" href="http.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -49,15 +49,15 @@
 <li class="toctree-l1"><a class="reference internal" href="../readme.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../path_format.html">Path Format</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../configuration.html">Configuration</a><ul class="current">
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Common Configuration</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#environment-configurations">Environment configurations</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="common.html">Common Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="s3.html">S3 Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="hdfs.html">Hdfs Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sftp.html">Sftp Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="http.html">HTTP Configuration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="webdav.html">WebDAV Configuration</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">WebDAV Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#use-environments">Use environments</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="completion.html">Auto Completion</a></li>
 </ul>
 </li>
@@ -84,9 +84,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../configuration.html">Configuration</a></li>
-      <li class="breadcrumb-item active">Common Configuration</li>
+      <li class="breadcrumb-item active">WebDAV Configuration</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/configuration/common.md.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/configuration/webdav.md.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -94,24 +94,18 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="common-configuration">
-<h1>Common Configuration<a class="headerlink" href="#common-configuration" title="Link to this heading"></a></h1>
-<section id="environment-configurations">
-<h2>Environment configurations<a class="headerlink" href="#environment-configurations" title="Link to this heading"></a></h2>
-<p>All size unit is bytes, and support kubernetes canonical form quantity like <code class="docutils literal notranslate"><span class="pre">200Mi</span></code>.</p>
+  <section id="webdav-configuration">
+<h1>WebDAV Configuration<a class="headerlink" href="#webdav-configuration" title="Link to this heading"></a></h1>
+<p>Megfile does not support locking for now, because the current package in use does not support locking. Currently, <code class="docutils literal notranslate"><span class="pre">webdavclient3</span></code> is the best available option. In the future, we may consider coding our own implementation or adopting a better package.</p>
+<section id="use-environments">
+<h2>Use environments<a class="headerlink" href="#use-environments" title="Link to this heading"></a></h2>
+<p>You can use environments to setup authentication credentials:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_READER_BLOCK_SIZE</span></code>: default block size of read operate, unit is bytes, default is <code class="docutils literal notranslate"><span class="pre">8Mi</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_READER_MAX_BUFFER_SIZE</span></code>: max read buffer size, unit is bytes, default is <code class="docutils literal notranslate"><span class="pre">128Mi</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_WRITER_BLOCK_SIZE</span></code>:</p>
-<ul>
-<li><p>default block size of write operate, unit is bytes, default is <code class="docutils literal notranslate"><span class="pre">8Mi</span></code></p></li>
-<li><p>In S3, the block size automatically increases with the amount of data written if you don’t set <code class="docutils literal notranslate"><span class="pre">MEGFILE_WRITER_BLOCK_SIZE</span></code> and don’t set <code class="docutils literal notranslate"><span class="pre">MEGFILE_WRITER_BLOCK_AUTOSCALE</span></code> to false. The largest file size you can write under these conditions is <code class="docutils literal notranslate"><span class="pre">500Gi</span></code>. If you need to write a larger file to S3, you should set a larger block size. Note that AWS S3’s multipart upload supports a maximum of 10,000 parts, so the maximum supported file size is <code class="docutils literal notranslate"><span class="pre">MEGFILE_WRITE_BLOCK_SIZE</span></code> * 10,000.</p></li>
-</ul>
-</li>
-<li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_WRITER_MAX_BUFFER_SIZE</span></code>: max write buffer size, unit is bytes, default is <code class="docutils literal notranslate"><span class="pre">128Mi</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_WRITER_BLOCK_AUTOSCALE</span></code>: whether to automatically increase the block size; the default is <code class="docutils literal notranslate"><span class="pre">true</span></code>. However, if you set <code class="docutils literal notranslate"><span class="pre">MEGFILE_WRITER_BLOCK_SIZE</span></code>, it will be set to <code class="docutils literal notranslate"><span class="pre">false</span></code>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_MAX_WORKERS</span></code>: max threads will be used, default is <code class="docutils literal notranslate"><span class="pre">8</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">MEGFILE_MAX_RETRY_TIMES</span></code>: default max retry times when catch error which may fix by retry, default is <code class="docutils literal notranslate"><span class="pre">10</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">WEBDAV_USERNAME</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">WEBDAV_PASSWORD</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">WEBDAV_TOKEN</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">WEBDAV_TOKEN_COMMAND</span></code>: command to refresh token</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">WEBDAV_TIMEOUT</span></code>: timeout setting for webdav client, default is <code class="docutils literal notranslate"><span class="pre">30</span></code> seconds</p></li>
 </ul>
 </section>
 </section>
@@ -120,8 +114,8 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="../configuration.html" class="btn btn-neutral float-left" title="Configuration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="s3.html" class="btn btn-neutral float-right" title="S3 Configuration" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="http.html" class="btn btn-neutral float-left" title="HTTP Configuration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="completion.html" class="btn btn-neutral float-right" title="Auto Completion" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

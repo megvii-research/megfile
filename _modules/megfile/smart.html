@@ -97,14 +97,13 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">megfile.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">S3UnknownError</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">megfile.fs</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">megfile.fs_path</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">fs_copy</span><span class="p">,</span>
-    <span class="n">fs_listdir</span><span class="p">,</span>
-    <span class="n">fs_scandir</span><span class="p">,</span>
     <span class="n">is_fs</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">megfile.interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">Access</span><span class="p">,</span>
+    <span class="n">ContextIterator</span><span class="p">,</span>
     <span class="n">FileCacher</span><span class="p">,</span>
     <span class="n">FileEntry</span><span class="p">,</span>
     <span class="n">NullCacher</span><span class="p">,</span>
@@ -115,7 +114,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">megfile.lib.compare</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_sync_type</span><span class="p">,</span> <span class="n">is_same_file</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">megfile.lib.compat</span><span class="w"> </span><span class="kn">import</span> <span class="n">fspath</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">megfile.lib.glob</span><span class="w"> </span><span class="kn">import</span> <span class="n">globlize</span><span class="p">,</span> <span class="n">ungloblize</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">megfile.s3</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">megfile.s3_path</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">is_s3</span><span class="p">,</span>
     <span class="n">s3_concat</span><span class="p">,</span>
     <span class="n">s3_copy</span><span class="p">,</span>
@@ -124,7 +123,7 @@
     <span class="n">s3_open</span><span class="p">,</span>
     <span class="n">s3_upload</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">megfile.sftp</span><span class="w"> </span><span class="kn">import</span> <span class="n">sftp_concat</span><span class="p">,</span> <span class="n">sftp_copy</span><span class="p">,</span> <span class="n">sftp_download</span><span class="p">,</span> <span class="n">sftp_upload</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">megfile.sftp_path</span><span class="w"> </span><span class="kn">import</span> <span class="n">sftp_concat</span><span class="p">,</span> <span class="n">sftp_copy</span><span class="p">,</span> <span class="n">sftp_download</span><span class="p">,</span> <span class="n">sftp_upload</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">megfile.smart_path</span><span class="w"> </span><span class="kn">import</span> <span class="n">SmartPath</span><span class="p">,</span> <span class="n">get_traditional_path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">megfile.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">combine</span><span class="p">,</span> <span class="n">copyfileobj</span><span class="p">,</span> <span class="n">generate_cache_path</span>
 
@@ -276,7 +275,7 @@
 <span class="sd">    :raises: FileNotFoundError, NotADirectoryError</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">fs_listdir</span><span class="p">()</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">SmartPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">listdir</span><span class="p">()</span></div>
 
 
@@ -292,7 +291,28 @@
 <span class="sd">    :raises: FileNotFoundError, NotADirectoryError</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">fs_scandir</span><span class="p">()</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">create_generator</span><span class="p">():</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">stat</span><span class="w"> </span><span class="kn">import</span> <span class="n">S_ISDIR</span> <span class="k">as</span> <span class="n">stat_isdir</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">stat</span><span class="w"> </span><span class="kn">import</span> <span class="n">S_ISLNK</span> <span class="k">as</span> <span class="n">stat_islnk</span>
+
+            <span class="k">with</span> <span class="n">os</span><span class="o">.</span><span class="n">scandir</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span> <span class="k">as</span> <span class="n">entries</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">entries</span><span class="p">:</span>
+                    <span class="n">stat</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span>
+                    <span class="k">yield</span> <span class="n">FileEntry</span><span class="p">(</span>
+                        <span class="n">entry</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                        <span class="n">entry</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
+                        <span class="n">StatResult</span><span class="p">(</span>
+                            <span class="n">size</span><span class="o">=</span><span class="n">stat</span><span class="o">.</span><span class="n">st_size</span><span class="p">,</span>
+                            <span class="n">ctime</span><span class="o">=</span><span class="n">stat</span><span class="o">.</span><span class="n">st_ctime</span><span class="p">,</span>
+                            <span class="n">mtime</span><span class="o">=</span><span class="n">stat</span><span class="o">.</span><span class="n">st_mtime</span><span class="p">,</span>
+                            <span class="n">isdir</span><span class="o">=</span><span class="n">stat_isdir</span><span class="p">(</span><span class="n">stat</span><span class="o">.</span><span class="n">st_mode</span><span class="p">),</span>
+                            <span class="n">islnk</span><span class="o">=</span><span class="n">stat_islnk</span><span class="p">(</span><span class="n">stat</span><span class="o">.</span><span class="n">st_mode</span><span class="p">),</span>
+                            <span class="n">extra</span><span class="o">=</span><span class="n">stat</span><span class="p">,</span>
+                        <span class="p">),</span>
+                    <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">ContextIterator</span><span class="p">(</span><span class="n">create_generator</span><span class="p">())</span>
     <span class="k">return</span> <span class="n">SmartPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">scandir</span><span class="p">()</span></div>
 
 
@@ -481,8 +501,8 @@
     <span class="k">if</span> <span class="n">smart_islink</span><span class="p">(</span><span class="n">src_path</span><span class="p">)</span> <span class="ow">and</span> <span class="n">is_s3</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">followlinks</span><span class="p">:</span>
         <span class="k">return</span>
 
-    <span class="n">src_protocol</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">SmartPath</span><span class="o">.</span><span class="n">_extract_protocol</span><span class="p">(</span><span class="n">src_path</span><span class="p">)</span>
-    <span class="n">dst_protocol</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">SmartPath</span><span class="o">.</span><span class="n">_extract_protocol</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span>
+    <span class="n">src_protocol</span> <span class="o">=</span> <span class="n">SmartPath</span><span class="o">.</span><span class="n">_extract_protocol</span><span class="p">(</span><span class="n">src_path</span><span class="p">)</span>
+    <span class="n">dst_protocol</span> <span class="o">=</span> <span class="n">SmartPath</span><span class="o">.</span><span class="n">_extract_protocol</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span>
 
     <span class="n">copy_func</span> <span class="o">=</span> <span class="n">_get_copy_func</span><span class="p">(</span><span class="n">src_protocol</span><span class="p">,</span> <span class="n">dst_protocol</span><span class="p">)</span>
 
@@ -529,8 +549,8 @@
         <span class="c1"># this function is equal to smart_copy</span>
         <span class="n">dst_abs_file_path</span> <span class="o">=</span> <span class="n">dst_root_path</span>
 
-    <span class="n">src_protocol</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">SmartPath</span><span class="o">.</span><span class="n">_extract_protocol</span><span class="p">(</span><span class="n">src_file_path</span><span class="p">)</span>
-    <span class="n">dst_protocol</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">SmartPath</span><span class="o">.</span><span class="n">_extract_protocol</span><span class="p">(</span><span class="n">dst_abs_file_path</span><span class="p">)</span>
+    <span class="n">src_protocol</span> <span class="o">=</span> <span class="n">SmartPath</span><span class="o">.</span><span class="n">_extract_protocol</span><span class="p">(</span><span class="n">src_file_path</span><span class="p">)</span>
+    <span class="n">dst_protocol</span> <span class="o">=</span> <span class="n">SmartPath</span><span class="o">.</span><span class="n">_extract_protocol</span><span class="p">(</span><span class="n">dst_abs_file_path</span><span class="p">)</span>
     <span class="n">should_sync</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">force</span><span class="p">:</span>
@@ -751,8 +771,8 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">smart_isdir</span><span class="p">(</span><span class="n">src_path</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">IsADirectoryError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%r</span><span class="s2"> is a directory&quot;</span> <span class="o">%</span> <span class="n">src_path</span><span class="p">)</span>
-    <span class="n">src_protocol</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">SmartPath</span><span class="o">.</span><span class="n">_extract_protocol</span><span class="p">(</span><span class="n">src_path</span><span class="p">)</span>
-    <span class="n">dst_protocol</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">SmartPath</span><span class="o">.</span><span class="n">_extract_protocol</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span>
+    <span class="n">src_protocol</span> <span class="o">=</span> <span class="n">SmartPath</span><span class="o">.</span><span class="n">_extract_protocol</span><span class="p">(</span><span class="n">src_path</span><span class="p">)</span>
+    <span class="n">dst_protocol</span> <span class="o">=</span> <span class="n">SmartPath</span><span class="o">.</span><span class="n">_extract_protocol</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">src_protocol</span> <span class="o">==</span> <span class="n">dst_protocol</span><span class="p">:</span>
         <span class="n">SmartPath</span><span class="p">(</span><span class="n">src_path</span><span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">dst_path</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">)</span>
         <span class="k">return</span>
@@ -771,8 +791,8 @@
 <span class="sd">    :param dst_path: Given destination path</span>
 <span class="sd">    :param overwrite: whether or not overwrite file when exists</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">src_protocol</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">SmartPath</span><span class="o">.</span><span class="n">_extract_protocol</span><span class="p">(</span><span class="n">src_path</span><span class="p">)</span>
-    <span class="n">dst_protocol</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">SmartPath</span><span class="o">.</span><span class="n">_extract_protocol</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span>
+    <span class="n">src_protocol</span> <span class="o">=</span> <span class="n">SmartPath</span><span class="o">.</span><span class="n">_extract_protocol</span><span class="p">(</span><span class="n">src_path</span><span class="p">)</span>
+    <span class="n">dst_protocol</span> <span class="o">=</span> <span class="n">SmartPath</span><span class="o">.</span><span class="n">_extract_protocol</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">src_protocol</span> <span class="o">==</span> <span class="n">dst_protocol</span><span class="p">:</span>
         <span class="n">SmartPath</span><span class="p">(</span><span class="n">src_path</span><span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">dst_path</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">)</span>
         <span class="k">return</span>
@@ -985,7 +1005,7 @@
     <span class="n">expanded_glob</span> <span class="o">=</span> <span class="n">ungloblize</span><span class="p">(</span><span class="n">globstr</span><span class="p">)</span>
 
     <span class="k">for</span> <span class="n">single_glob</span> <span class="ow">in</span> <span class="n">expanded_glob</span><span class="p">:</span>
-        <span class="n">protocol</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">SmartPath</span><span class="o">.</span><span class="n">_extract_protocol</span><span class="p">(</span><span class="n">single_glob</span><span class="p">)</span>
+        <span class="n">protocol</span> <span class="o">=</span> <span class="n">SmartPath</span><span class="o">.</span><span class="n">_extract_protocol</span><span class="p">(</span><span class="n">single_glob</span><span class="p">)</span>
         <span class="n">glob_dict</span><span class="p">[</span><span class="n">protocol</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">single_glob</span><span class="p">)</span>
 
     <span class="n">group_glob_list</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1208,7 +1228,7 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">smart_save_content</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">content</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Save bytes content to specified path</span>
 
-<span class="sd">    param path: Path to save content</span>
+<span class="sd">    :param path: Path to save content</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">with</span> <span class="n">smart_open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fd</span><span class="p">:</span>
         <span class="n">fd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">content</span><span class="p">)</span></div>
@@ -1221,7 +1241,7 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Read content from path</span>
 
-<span class="sd">    param path: Path to be read</span>
+<span class="sd">    :param path: Path to be read</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">with</span> <span class="n">smart_open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">as</span> <span class="n">fd</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">fd</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>  <span class="c1"># pytype: disable=bad-return-type</span></div>
@@ -1233,7 +1253,7 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">smart_save_text</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Save text to specified path</span>
 
-<span class="sd">    param path: Path to save text</span>
+<span class="sd">    :param path: Path to save text</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">with</span> <span class="n">smart_open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fd</span><span class="p">:</span>
         <span class="n">fd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">text</span><span class="p">)</span></div>
@@ -1243,9 +1263,20 @@
 <div class="viewcode-block" id="SmartCacher">
 <a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.SmartCacher">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">SmartCacher</span><span class="p">(</span><span class="n">FileCacher</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Smart cache files in local filesystem&quot;&quot;&quot;</span>
+
     <span class="n">cache_path</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cache_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;r&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param path: Path to cache</span>
+<span class="sd">        :type path: str</span>
+<span class="sd">        :param cache_path: Path to cache file, defaults to None, will use ``/tmp``</span>
+<span class="sd">        :type cache_path: Optional[str], optional</span>
+<span class="sd">        :param mode: Mode to open cache file, defaults to &quot;r&quot;</span>
+<span class="sd">        :type mode: str, optional</span>
+<span class="sd">        :raises ValueError: If mode is not one of &quot;r&quot;, &quot;w&quot;, &quot;a&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;unacceptable mode: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">cache_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1268,12 +1299,22 @@
 
 <div class="viewcode-block" id="smart_cache">
 <a class="viewcode-back" href="../../megfile.smart.html#megfile.smart.smart_cache">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">smart_cache</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">cacher</span><span class="o">=</span><span class="n">SmartCacher</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">smart_cache</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">cacher</span><span class="o">=</span><span class="n">SmartCacher</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FileCacher</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a path to Posixpath Interface</span>
 
-<span class="sd">    param path: Path to cache</span>
-<span class="sd">    param s3_cacher: Cacher for s3 path</span>
-<span class="sd">    param options: Optional arguments for s3_cacher</span>
+<span class="sd">    Examples: ::</span>
+
+<span class="sd">        &gt;&gt;&gt; import subprocess</span>
+<span class="sd">        &gt;&gt;&gt; from megfile import smart_cache</span>
+<span class="sd">        &gt;&gt;&gt; with smart_cache(</span>
+<span class="sd">        ...     &#39;s3://mybucket/myfile.mp4&#39;,</span>
+<span class="sd">        ...     mode=&#39;r&#39;,</span>
+<span class="sd">        ... ) as cache_path:</span>
+<span class="sd">        ...     subprocess.run([&#39;ffprobe&#39;, cache_path])</span>
+
+<span class="sd">    :param path: Path to cache</span>
+<span class="sd">    :param s3_cacher: Cacher for s3 path</span>
+<span class="sd">    :param options: Optional arguments for s3_cacher</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">is_fs</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">cacher</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">)</span>
@@ -1286,7 +1327,7 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">smart_touch</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a new file on path</span>
 
-<span class="sd">    param path: Path to create file</span>
+<span class="sd">    :param path: Path to create file</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">with</span> <span class="n">smart_open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">):</span>
         <span class="k">pass</span></div>
@@ -1298,9 +1339,9 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">smart_getmd5</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">recalculate</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Get md5 value of file</span>
 
-<span class="sd">    param path: File path</span>
-<span class="sd">    param recalculate: calculate md5 in real-time or not return s3 etag when path is s3</span>
-<span class="sd">    param followlinks: If is True, calculate md5 for real file</span>
+<span class="sd">    :param path: File path</span>
+<span class="sd">    :param recalculate: calculate md5 in real-time or not return s3 etag when path is s3</span>
+<span class="sd">    :param followlinks: If is True, calculate md5 for real file</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">SmartPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">md5</span><span class="p">(</span><span class="n">recalculate</span><span class="o">=</span><span class="n">recalculate</span><span class="p">,</span> <span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span></div>
 
@@ -1328,9 +1369,9 @@
     <span class="k">if</span> <span class="ow">not</span> <span class="n">src_paths</span><span class="p">:</span>
         <span class="k">return</span>
 
-    <span class="n">dst_protocol</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">SmartPath</span><span class="o">.</span><span class="n">_extract_protocol</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span>
+    <span class="n">dst_protocol</span> <span class="o">=</span> <span class="n">SmartPath</span><span class="o">.</span><span class="n">_extract_protocol</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">src_path</span> <span class="ow">in</span> <span class="n">src_paths</span><span class="p">:</span>
-        <span class="n">src_protocol</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">SmartPath</span><span class="o">.</span><span class="n">_extract_protocol</span><span class="p">(</span><span class="n">src_path</span><span class="p">)</span>
+        <span class="n">src_protocol</span> <span class="o">=</span> <span class="n">SmartPath</span><span class="o">.</span><span class="n">_extract_protocol</span><span class="p">(</span><span class="n">src_path</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">src_protocol</span> <span class="o">!=</span> <span class="n">dst_protocol</span><span class="p">:</span>
             <span class="n">concat_func</span> <span class="o">=</span> <span class="n">_default_concat_func</span>
             <span class="k">break</span>

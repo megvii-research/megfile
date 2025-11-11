@@ -144,6 +144,7 @@
 <dt class="sig sig-object py" id="megfile.smart.SmartCacher">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">megfile.smart.</span></span><span class="sig-name descname"><span class="pre">SmartCacher</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'r'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/smart.html#SmartCacher"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.smart.SmartCacher" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">FileCacher</span></code></p>
+<p>Smart cache files in local filesystem</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="megfile.smart.SmartCacher.cache_path">
 <span class="sig-name descname"><span class="pre">cache_path</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#megfile.smart.SmartCacher.cache_path" title="Link to this definition"></a></dt>
@@ -203,11 +204,27 @@ Access.BUCKETWRITE)</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="megfile.smart.smart_cache">
-<span class="sig-prename descclassname"><span class="pre">megfile.smart.</span></span><span class="sig-name descname"><span class="pre">smart_cache</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cacher=&lt;class</span> <span class="pre">'megfile.smart.SmartCacher'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">**options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/smart.html#smart_cache"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.smart.smart_cache" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">megfile.smart.</span></span><span class="sig-name descname"><span class="pre">smart_cache</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cacher=&lt;class</span> <span class="pre">'megfile.smart.SmartCacher'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">**options</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">FileCacher</span></span></span><a class="reference internal" href="_modules/megfile/smart.html#smart_cache"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.smart.smart_cache" title="Link to this definition"></a></dt>
 <dd><p>Return a path to Posixpath Interface</p>
-<p>param path: Path to cache
-param s3_cacher: Cacher for s3 path
-param options: Optional arguments for s3_cacher</p>
+<p>Examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">megfile</span><span class="w"> </span><span class="kn">import</span> <span class="n">smart_cache</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">smart_cache</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="s1">&#39;s3://mybucket/myfile.mp4&#39;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span>
+<span class="gp">... </span><span class="p">)</span> <span class="k">as</span> <span class="n">cache_path</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">([</span><span class="s1">&#39;ffprobe&#39;</span><span class="p">,</span> <span class="n">cache_path</span><span class="p">])</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> – Path to cache</p></li>
+<li><p><strong>s3_cacher</strong> – Cacher for s3 path</p></li>
+<li><p><strong>options</strong> – Optional arguments for s3_cacher</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -297,9 +314,15 @@ data size (in bytes) of copy since the last call</p></li>
 <dt class="sig sig-object py" id="megfile.smart.smart_getmd5">
 <span class="sig-prename descclassname"><span class="pre">megfile.smart.</span></span><span class="sig-name descname"><span class="pre">smart_getmd5</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recalculate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/smart.html#smart_getmd5"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.smart.smart_getmd5" title="Link to this definition"></a></dt>
 <dd><p>Get md5 value of file</p>
-<p>param path: File path
-param recalculate: calculate md5 in real-time or not return s3 etag when path is s3
-param followlinks: If is True, calculate md5 for real file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> – File path</p></li>
+<li><p><strong>recalculate</strong> – calculate md5 in real-time or not return s3 etag when path is s3</p></li>
+<li><p><strong>followlinks</strong> – If is True, calculate md5 for real file</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -511,7 +534,11 @@ ascending alphabetical order.</p>
 <dt class="sig sig-object py" id="megfile.smart.smart_load_text">
 <span class="sig-prename descclassname"><span class="pre">megfile.smart.</span></span><span class="sig-name descname"><span class="pre">smart_load_text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/megfile/smart.html#smart_load_text"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.smart.smart_load_text" title="Link to this definition"></a></dt>
 <dd><p>Read content from path</p>
-<p>param path: Path to be read</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> – Path to be read</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -721,14 +748,22 @@ raise FileNotFoundError</p></li>
 <dt class="sig sig-object py" id="megfile.smart.smart_save_content">
 <span class="sig-prename descclassname"><span class="pre">megfile.smart.</span></span><span class="sig-name descname"><span class="pre">smart_save_content</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">content</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/megfile/smart.html#smart_save_content"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.smart.smart_save_content" title="Link to this definition"></a></dt>
 <dd><p>Save bytes content to specified path</p>
-<p>param path: Path to save content</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> – Path to save content</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="megfile.smart.smart_save_text">
 <span class="sig-prename descclassname"><span class="pre">megfile.smart.</span></span><span class="sig-name descname"><span class="pre">smart_save_text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/megfile/smart.html#smart_save_text"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.smart.smart_save_text" title="Link to this definition"></a></dt>
 <dd><p>Save text to specified path</p>
-<p>param path: Path to save text</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> – Path to save text</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -919,7 +954,11 @@ library <cite>map</cite>.</p></li>
 <dt class="sig sig-object py" id="megfile.smart.smart_touch">
 <span class="sig-prename descclassname"><span class="pre">megfile.smart.</span></span><span class="sig-name descname"><span class="pre">smart_touch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/smart.html#smart_touch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.smart.smart_touch" title="Link to this definition"></a></dt>
 <dd><p>Create a new file on path</p>
-<p>param path: Path to create file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> – Path to create file</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">

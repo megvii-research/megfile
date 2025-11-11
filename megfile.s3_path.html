@@ -21,8 +21,8 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="megfile.http module" href="megfile.http.html" />
-    <link rel="prev" title="megfile.s3 module" href="megfile.s3.html" /> 
+    <link rel="next" title="megfile.http_path module" href="megfile.http_path.html" />
+    <link rel="prev" title="megfile.fs_path module" href="megfile.fs_path.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -53,21 +53,34 @@
 <li class="toctree-l2"><a class="reference internal" href="megfile.smart.html">megfile.smart module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="megfile.smart_path.html">megfile.smart_path module</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="megfile.html#submodules">Submodules</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="megfile.fs.html">megfile.fs module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html">megfile.fs_path module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="megfile.s3.html">megfile.s3 module</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">megfile.s3_path module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.s3_path.S3Cacher"><code class="docutils literal notranslate"><span class="pre">S3Cacher</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#megfile.s3_path.S3Path"><code class="docutils literal notranslate"><span class="pre">S3Path</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.s3_path.get_endpoint_url"><code class="docutils literal notranslate"><span class="pre">get_endpoint_url()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.s3_path.get_s3_client"><code class="docutils literal notranslate"><span class="pre">get_s3_client()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.s3_path.get_s3_session"><code class="docutils literal notranslate"><span class="pre">get_s3_session()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.s3_path.is_s3"><code class="docutils literal notranslate"><span class="pre">is_s3()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.s3_path.parse_s3_url"><code class="docutils literal notranslate"><span class="pre">parse_s3_url()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.s3_path.s3_buffered_open"><code class="docutils literal notranslate"><span class="pre">s3_buffered_open()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.s3_path.s3_cached_open"><code class="docutils literal notranslate"><span class="pre">s3_cached_open()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.s3_path.s3_concat"><code class="docutils literal notranslate"><span class="pre">s3_concat()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.s3_path.s3_copy"><code class="docutils literal notranslate"><span class="pre">s3_copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.s3_path.s3_download"><code class="docutils literal notranslate"><span class="pre">s3_download()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.s3_path.s3_load_content"><code class="docutils literal notranslate"><span class="pre">s3_load_content()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.s3_path.s3_memory_open"><code class="docutils literal notranslate"><span class="pre">s3_memory_open()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.s3_path.s3_open"><code class="docutils literal notranslate"><span class="pre">s3_open()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.s3_path.s3_pipe_open"><code class="docutils literal notranslate"><span class="pre">s3_pipe_open()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.s3_path.s3_prefetch_open"><code class="docutils literal notranslate"><span class="pre">s3_prefetch_open()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.s3_path.s3_share_cache_open"><code class="docutils literal notranslate"><span class="pre">s3_share_cache_open()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.s3_path.s3_upload"><code class="docutils literal notranslate"><span class="pre">s3_upload()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="megfile.http.html">megfile.http module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="megfile.http_path.html">megfile.http_path module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="megfile.stdio.html">megfile.stdio module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="megfile.stdio_path.html">megfile.stdio_path module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="megfile.sftp.html">megfile.sftp module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html">megfile.sftp_path module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="megfile.hdfs.html">megfile.hdfs module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="megfile.hdfs_path.html">megfile.hdfs_path module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.webdav_path.html">megfile.webdav_path module</a></li>
 </ul>
 </li>
 </ul>
@@ -106,6 +119,17 @@
              
   <section id="module-megfile.s3_path">
 <span id="megfile-s3-path-module"></span><h1>megfile.s3_path module<a class="headerlink" href="#module-megfile.s3_path" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="megfile.s3_path.S3Cacher">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">megfile.s3_path.</span></span><span class="sig-name descname"><span class="pre">S3Cacher</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'r'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/s3_path.html#S3Cacher"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.s3_path.S3Cacher" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">FileCacher</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="megfile.s3_path.S3Cacher.cache_path">
+<span class="sig-name descname"><span class="pre">cache_path</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#megfile.s3_path.S3Cacher.cache_path" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="megfile.s3_path.S3Path">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">megfile.s3_path.</span></span><span class="sig-name descname"><span class="pre">S3Path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">other_paths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/s3_path.html#S3Path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.s3_path.S3Path" title="Link to this definition"></a></dt>
@@ -444,12 +468,6 @@ This function is to test the target bucket have WRITE access.</p>
 </dd></dl>
 
 <dl class="py property">
-<dt class="sig sig-object py" id="megfile.s3_path.S3Path.parts">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">parts</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#megfile.s3_path.S3Path.parts" title="Link to this definition"></a></dt>
-<dd><p>A tuple giving access to the path’s various components</p>
-</dd></dl>
-
-<dl class="py property">
 <dt class="sig sig-object py" id="megfile.s3_path.S3Path.path_with_protocol">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">path_with_protocol</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#megfile.s3_path.S3Path.path_with_protocol" title="Link to this definition"></a></dt>
 <dd><p>Return path with protocol, like <a class="reference external" href="file:///root">file:///root</a>, s3://bucket/key</p>
@@ -511,6 +529,12 @@ raise S3FileNotFoundError</p>
 </ul>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="megfile.s3_path.S3Path.root">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">root</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#megfile.s3_path.S3Path.root" title="Link to this definition"></a></dt>
+<dd><p>Return root of the path, like s3://</p>
 </dd></dl>
 
 <dl class="py method">
@@ -686,14 +710,411 @@ Because s3 symlink not support dir.</p>
 
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="megfile.s3_path.get_endpoint_url">
+<span class="sig-prename descclassname"><span class="pre">megfile.s3_path.</span></span><span class="sig-name descname"><span class="pre">get_endpoint_url</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">profile_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/megfile/s3_path.html#get_endpoint_url"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.s3_path.get_endpoint_url" title="Link to this definition"></a></dt>
+<dd><p>Get the endpoint url of S3</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>S3 endpoint url</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="megfile.s3_path.get_s3_client">
+<span class="sig-prename descclassname"><span class="pre">megfile.s3_path.</span></span><span class="sig-name descname"><span class="pre">get_s3_client</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Config</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">profile_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/s3_path.html#get_s3_client"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.s3_path.get_s3_client" title="Link to this definition"></a></dt>
+<dd><p>Get S3 client</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>S3 client</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="megfile.s3_path.get_s3_session">
+<span class="sig-prename descclassname"><span class="pre">megfile.s3_path.</span></span><span class="sig-name descname"><span class="pre">get_s3_session</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">profile_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Session</span></span></span><a class="reference internal" href="_modules/megfile/s3_path.html#get_s3_session"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.s3_path.get_s3_session" title="Link to this definition"></a></dt>
+<dd><p>Get S3 session</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>S3 session</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="megfile.s3_path.is_s3">
+<span class="sig-prename descclassname"><span class="pre">megfile.s3_path.</span></span><span class="sig-name descname"><span class="pre">is_s3</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/megfile/s3_path.html#is_s3"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.s3_path.is_s3" title="Link to this definition"></a></dt>
+<dd><ol class="arabic simple">
+<li><p>According to
+<a class="reference external" href="https://docs.aws.amazon.com/cli/latest/reference/s3/index.html">aws-cli</a> ,
+test if a path is s3 path.</p></li>
+<li><p>megfile also support the path like <cite>s3[+profile_name]://bucket/key</cite></p></li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> – Path to be tested</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if path is s3 path, else False</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="megfile.s3_path.parse_s3_url">
+<span class="sig-prename descclassname"><span class="pre">megfile.s3_path.</span></span><span class="sig-name descname"><span class="pre">parse_s3_url</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s3_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/megfile/s3_path.html#parse_s3_url"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.s3_path.parse_s3_url" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="megfile.s3_path.s3_buffered_open">
+<span class="sig-prename descclassname"><span class="pre">megfile.s3_path.</span></span><span class="sig-name descname"><span class="pre">s3_buffered_open</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s3_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_workers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_buffer_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">block_forward</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">block_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limited_seekable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffered</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">share_cache_key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atomic</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">IO</span></span></span><a class="reference internal" href="_modules/megfile/s3_path.html#s3_buffered_open"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.s3_path.s3_buffered_open" title="Link to this definition"></a></dt>
+<dd><p>Open an asynchronous prefetch reader, to support fast sequential read</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>User should make sure that reader / writer are closed correctly</p>
+<p>Supports context manager</p>
+<p>Some parameter setting may perform well: max_workers=10 or 20,
+default value None means using global thread pool</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>s3_url</strong> – s3 path</p></li>
+<li><p><strong>mode</strong> – Mode to open file, could be one of “rb”, “wb”, “ab”, “rb+”, “wb+”
+or “ab+”</p></li>
+<li><p><strong>encoding</strong> – encoding is the name of the encoding used to decode or encode
+the file. This should only be used in text mode.</p></li>
+<li><p><strong>errors</strong> – errors is an optional string that specifies how encoding and
+decoding errors are to be handled—this cannot be used in binary mode.</p></li>
+<li><p><strong>followlinks</strong> – follow symbolic link, default <cite>False</cite></p></li>
+<li><p><strong>max_workers</strong> – Max download / upload thread number, <cite>None</cite> by default,
+will use global thread pool with 8 threads.</p></li>
+<li><p><strong>max_buffer_size</strong> – Max cached buffer size in memory, 128MB by default.
+Set to <cite>0</cite> will disable cache.</p></li>
+<li><p><strong>block_forward</strong> – How many blocks of data cached from offset position, only for
+read mode.</p></li>
+<li><p><strong>block_size</strong> – Size of single block.
+Each block will be uploaded by single thread.</p></li>
+<li><p><strong>limited_seekable</strong> – If write-handle supports limited seek
+(both file head part and tail part can seek block_size).
+Notes: This parameter are valid only for write-handle.
+Read-handle support arbitrary seek</p></li>
+<li><p><strong>buffered</strong> – If you are operating pickle file without .pkl or .pickle extension,
+please set this to True to avoid the performance issue.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An opened File object</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p>S3FileNotFoundError</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="megfile.s3_path.s3_cached_open">
+<span class="sig-prename descclassname"><span class="pre">megfile.s3_path.</span></span><span class="sig-name descname"><span class="pre">s3_cached_open</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s3_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">S3CachedHandler</span></span></span><a class="reference internal" href="_modules/megfile/s3_path.html#s3_cached_open"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.s3_path.s3_cached_open" title="Link to this definition"></a></dt>
+<dd><p>Open a local-cache file reader / writer, for frequent random read / write</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>User should make sure that reader / writer are closed correctly</p>
+<p>Supports context manager</p>
+<p>cache_path can specify the path of cache file. Performance could be better
+if cache file path is on ssd or tmpfs</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>s3_url</strong> – s3 path</p></li>
+<li><p><strong>mode</strong> – Mode to open file, could be one of “rb”, “wb”, “ab”, “rb+”, “wb+”
+or “ab+”</p></li>
+<li><p><strong>encoding</strong> – encoding is the name of the encoding used to decode or encode
+the file. This should only be used in text mode.</p></li>
+<li><p><strong>errors</strong> – errors is an optional string that specifies how encoding and
+decoding errors are to be handled—this cannot be used in binary mode.</p></li>
+<li><p><strong>followlinks</strong> – follow symbolic link, default <cite>False</cite></p></li>
+<li><p><strong>cache_path</strong> – cache file path</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An opened BufferedReader / BufferedWriter object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="megfile.s3_path.s3_concat">
+<span class="sig-prename descclassname"><span class="pre">megfile.s3_path.</span></span><span class="sig-name descname"><span class="pre">s3_concat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_paths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">block_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">8388608</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_workers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">8</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/megfile/s3_path.html#s3_concat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.s3_path.s3_concat" title="Link to this definition"></a></dt>
+<dd><p>Concatenate s3 files to one file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>src_paths</strong> – Given source paths</p></li>
+<li><p><strong>dst_path</strong> – Given destination path</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="megfile.s3_path.s3_copy">
+<span class="sig-prename descclassname"><span class="pre">megfile.s3_path.</span></span><span class="sig-name descname"><span class="pre">s3_copy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callback</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/megfile/s3_path.html#s3_copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.s3_path.s3_copy" title="Link to this definition"></a></dt>
+<dd><p>File copy on S3
+Copy content of file on <cite>src_path</cite> to <cite>dst_path</cite>.
+It’s caller’s responsibility to ensure the s3_isfile(src_url) is True</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>src_url</strong> – Given path</p></li>
+<li><p><strong>dst_path</strong> – Target file path</p></li>
+<li><p><strong>callback</strong> – Called periodically during copy, and the input parameter is
+the data size (in bytes) of copy since the last call</p></li>
+<li><p><strong>followlinks</strong> – False if regard symlink as file, else True</p></li>
+<li><p><strong>overwrite</strong> – whether or not overwrite file when exists, default is True</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="megfile.s3_path.s3_download">
+<span class="sig-prename descclassname"><span class="pre">megfile.s3_path.</span></span><span class="sig-name descname"><span class="pre">s3_download</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callback</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/megfile/s3_path.html#s3_download"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.s3_path.s3_download" title="Link to this definition"></a></dt>
+<dd><p>Downloads a file from s3 to local filesystem.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>src_url</strong> – source s3 path</p></li>
+<li><p><strong>dst_url</strong> – target fs path</p></li>
+<li><p><strong>callback</strong> – Called periodically during copy, and the input parameter is
+the data size (in bytes) of copy since the last call</p></li>
+<li><p><strong>followlinks</strong> – False if regard symlink as file, else True</p></li>
+<li><p><strong>overwrite</strong> – whether or not overwrite file when exists, default is True</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="megfile.s3_path.s3_load_content">
+<span class="sig-prename descclassname"><span class="pre">megfile.s3_path.</span></span><span class="sig-name descname"><span class="pre">s3_load_content</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s3_url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bytes</span></span></span><a class="reference internal" href="_modules/megfile/s3_path.html#s3_load_content"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.s3_path.s3_load_content" title="Link to this definition"></a></dt>
+<dd><p>Get specified file from [start, stop) in bytes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>s3_url</strong> – Specified path</p></li>
+<li><p><strong>start</strong> – start index</p></li>
+<li><p><strong>stop</strong> – stop index</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>bytes content in range [start, stop)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="megfile.s3_path.s3_memory_open">
+<span class="sig-prename descclassname"><span class="pre">megfile.s3_path.</span></span><span class="sig-name descname"><span class="pre">s3_memory_open</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s3_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">S3MemoryHandler</span></span></span><a class="reference internal" href="_modules/megfile/s3_path.html#s3_memory_open"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.s3_path.s3_memory_open" title="Link to this definition"></a></dt>
+<dd><p>Open a memory-cache file reader / writer, for frequent random read / write</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>User should make sure that reader / writer are closed correctly</p>
+<p>Supports context manager</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>mode</strong> – Mode to open file, could be one of “rb”, “wb”, “ab”, “rb+”,
+“wb+” or “ab+”</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An opened BufferedReader / BufferedWriter object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="megfile.s3_path.s3_open">
+<span class="sig-prename descclassname"><span class="pre">megfile.s3_path.</span></span><span class="sig-name descname"><span class="pre">s3_open</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s3_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_workers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_buffer_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">block_forward</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">block_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limited_seekable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffered</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">share_cache_key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atomic</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">IO</span></span></span><a class="headerlink" href="#megfile.s3_path.s3_open" title="Link to this definition"></a></dt>
+<dd><p>Open an asynchronous prefetch reader, to support fast sequential read</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>User should make sure that reader / writer are closed correctly</p>
+<p>Supports context manager</p>
+<p>Some parameter setting may perform well: max_workers=10 or 20,
+default value None means using global thread pool</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>s3_url</strong> – s3 path</p></li>
+<li><p><strong>mode</strong> – Mode to open file, could be one of “rb”, “wb”, “ab”, “rb+”, “wb+”
+or “ab+”</p></li>
+<li><p><strong>encoding</strong> – encoding is the name of the encoding used to decode or encode
+the file. This should only be used in text mode.</p></li>
+<li><p><strong>errors</strong> – errors is an optional string that specifies how encoding and
+decoding errors are to be handled—this cannot be used in binary mode.</p></li>
+<li><p><strong>followlinks</strong> – follow symbolic link, default <cite>False</cite></p></li>
+<li><p><strong>max_workers</strong> – Max download / upload thread number, <cite>None</cite> by default,
+will use global thread pool with 8 threads.</p></li>
+<li><p><strong>max_buffer_size</strong> – Max cached buffer size in memory, 128MB by default.
+Set to <cite>0</cite> will disable cache.</p></li>
+<li><p><strong>block_forward</strong> – How many blocks of data cached from offset position, only for
+read mode.</p></li>
+<li><p><strong>block_size</strong> – Size of single block.
+Each block will be uploaded by single thread.</p></li>
+<li><p><strong>limited_seekable</strong> – If write-handle supports limited seek
+(both file head part and tail part can seek block_size).
+Notes: This parameter are valid only for write-handle.
+Read-handle support arbitrary seek</p></li>
+<li><p><strong>buffered</strong> – If you are operating pickle file without .pkl or .pickle extension,
+please set this to True to avoid the performance issue.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An opened File object</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p>S3FileNotFoundError</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="megfile.s3_path.s3_pipe_open">
+<span class="sig-prename descclassname"><span class="pre">megfile.s3_path.</span></span><span class="sig-name descname"><span class="pre">s3_pipe_open</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s3_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">join_thread</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">S3PipeHandler</span></span></span><a class="reference internal" href="_modules/megfile/s3_path.html#s3_pipe_open"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.s3_path.s3_pipe_open" title="Link to this definition"></a></dt>
+<dd><p>Open a asynchronous read-write reader / writer, to support fast sequential
+read / write</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>User should make sure that reader / writer are closed correctly</p>
+<p>Supports context manager</p>
+<p>When join_thread is False, while the file handle are closing,
+this function will not wait until the asynchronous writing finishes;</p>
+<p>False doesn’t affect read-handle, but this can speed up write-handle because
+file will be written asynchronously.</p>
+<p>But asynchronous behavior can guarantee the file are successfully written,
+and frequent execution may cause thread and file handle exhaustion</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>s3_url</strong> – s3 path</p></li>
+<li><p><strong>mode</strong> – Mode to open file, either “r”, “rb”, “w” or “wb”</p></li>
+<li><p><strong>encoding</strong> – encoding is the name of the encoding used to decode or encode
+the file. This should only be used in text mode.</p></li>
+<li><p><strong>errors</strong> – errors is an optional string that specifies how encoding and
+decoding errors are to be handled—this cannot be used in binary mode.</p></li>
+<li><p><strong>followlinks</strong> – follow symbolic link, default <cite>False</cite></p></li>
+<li><p><strong>join_thread</strong> – If wait after function execution until s3 finishes writing</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An opened BufferedReader / BufferedWriter object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="megfile.s3_path.s3_prefetch_open">
+<span class="sig-prename descclassname"><span class="pre">megfile.s3_path.</span></span><span class="sig-name descname"><span class="pre">s3_prefetch_open</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s3_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'rb'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_workers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">block_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">8388608</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">S3PrefetchReader</span></span></span><a class="reference internal" href="_modules/megfile/s3_path.html#s3_prefetch_open"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.s3_path.s3_prefetch_open" title="Link to this definition"></a></dt>
+<dd><p>Open a asynchronous prefetch reader, to support fast sequential
+read and random read</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>User should make sure that reader / writer are closed correctly</p>
+<p>Supports context manager</p>
+<p>Some parameter setting may perform well: max_workers=10 or 20,
+block_size=8 or 16 MB, default value None means using global thread pool</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>s3_url</strong> – s3 path</p></li>
+<li><p><strong>mode</strong> – only support “r” or “rb”</p></li>
+<li><p><strong>encoding</strong> – encoding is the name of the encoding used to decode or encode
+the file. This should only be used in text mode.</p></li>
+<li><p><strong>errors</strong> – errors is an optional string that specifies how encoding and
+decoding errors are to be handled—this cannot be used in binary mode.</p></li>
+<li><p><strong>followlinks</strong> – follow symbolic link, default <cite>False</cite></p></li>
+<li><p><strong>max_workers</strong> – Max download thread number, <cite>None</cite> by default</p></li>
+<li><p><strong>block_size</strong> – Max data size downloaded by each thread, in bytes,
+8MB by default</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An opened S3PrefetchReader object</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p>S3FileNotFoundError</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="megfile.s3_path.s3_share_cache_open">
+<span class="sig-prename descclassname"><span class="pre">megfile.s3_path.</span></span><span class="sig-name descname"><span class="pre">s3_share_cache_open</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s3_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'rb'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'lru'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_workers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">block_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">8388608</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">S3ShareCacheReader</span></span></span><a class="reference internal" href="_modules/megfile/s3_path.html#s3_share_cache_open"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.s3_path.s3_share_cache_open" title="Link to this definition"></a></dt>
+<dd><p>Open a asynchronous prefetch reader, to support fast sequential read and
+random read</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>User should make sure that reader / writer are closed correctly</p>
+<p>Supports context manager</p>
+<p>Some parameter setting may perform well: max_workers=10 or 20,
+block_size=8 or 16 MB, default value None means using global thread pool</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>s3_url</strong> – s3 path</p></li>
+<li><p><strong>mode</strong> – only support “r” or “rb”</p></li>
+<li><p><strong>encoding</strong> – encoding is the name of the encoding used to decode or encode
+the file. This should only be used in text mode.</p></li>
+<li><p><strong>errors</strong> – errors is an optional string that specifies how encoding and
+decoding errors are to be handled—this cannot be used in binary mode.</p></li>
+<li><p><strong>followlinks</strong> – follow symbolic link, default <cite>False</cite></p></li>
+<li><p><strong>max_workers</strong> – Max download thread number, None by default</p></li>
+<li><p><strong>block_size</strong> – Max data size downloaded by each thread, in bytes,
+8MB by default</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An opened S3ShareCacheReader object</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p>S3FileNotFoundError</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="megfile.s3_path.s3_upload">
+<span class="sig-prename descclassname"><span class="pre">megfile.s3_path.</span></span><span class="sig-name descname"><span class="pre">s3_upload</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callback</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/megfile/s3_path.html#s3_upload"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.s3_path.s3_upload" title="Link to this definition"></a></dt>
+<dd><p>Uploads a file from local filesystem to s3.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>src_url</strong> – source fs path</p></li>
+<li><p><strong>dst_url</strong> – target s3 path</p></li>
+<li><p><strong>callback</strong> – Called periodically during copy, and the input parameter is
+the data size (in bytes) of copy since the last call</p></li>
+<li><p><strong>followlinks</strong> – False if regard symlink as file, else True</p></li>
+<li><p><strong>overwrite</strong> – whether or not overwrite file when exists, default is True</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="megfile.s3.html" class="btn btn-neutral float-left" title="megfile.s3 module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="megfile.http.html" class="btn btn-neutral float-right" title="megfile.http module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="megfile.fs_path.html" class="btn btn-neutral float-left" title="megfile.fs_path module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="megfile.http_path.html" class="btn btn-neutral float-right" title="megfile.http_path module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

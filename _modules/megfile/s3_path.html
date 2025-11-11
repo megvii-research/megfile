@@ -174,7 +174,6 @@
     <span class="s2">&quot;get_endpoint_url&quot;</span><span class="p">,</span>
     <span class="s2">&quot;get_s3_session&quot;</span><span class="p">,</span>
     <span class="s2">&quot;get_s3_client&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;s3_path_join&quot;</span><span class="p">,</span>
     <span class="s2">&quot;is_s3&quot;</span><span class="p">,</span>
     <span class="s2">&quot;s3_buffered_open&quot;</span><span class="p">,</span>
     <span class="s2">&quot;s3_cached_open&quot;</span><span class="p">,</span>
@@ -185,6 +184,7 @@
     <span class="s2">&quot;s3_open&quot;</span><span class="p">,</span>
     <span class="s2">&quot;S3Cacher&quot;</span><span class="p">,</span>
     <span class="s2">&quot;s3_upload&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;s3_copy&quot;</span><span class="p">,</span>
     <span class="s2">&quot;s3_download&quot;</span><span class="p">,</span>
     <span class="s2">&quot;s3_load_content&quot;</span><span class="p">,</span>
     <span class="s2">&quot;s3_concat&quot;</span><span class="p">,</span>
@@ -265,7 +265,7 @@
 
 
 <div class="viewcode-block" id="parse_s3_url">
-<a class="viewcode-back" href="../../megfile.s3.html#megfile.s3.parse_s3_url">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.parse_s3_url">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">parse_s3_url</span><span class="p">(</span><span class="n">s3_url</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
     <span class="n">s3_url</span> <span class="o">=</span> <span class="n">fspath</span><span class="p">(</span><span class="n">s3_url</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">is_s3</span><span class="p">(</span><span class="n">s3_url</span><span class="p">):</span>
@@ -295,7 +295,7 @@
 
 
 <div class="viewcode-block" id="get_endpoint_url">
-<a class="viewcode-back" href="../../megfile.s3.html#megfile.s3.get_endpoint_url">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.get_endpoint_url">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_endpoint_url</span><span class="p">(</span><span class="n">profile_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the endpoint url of S3</span>
 
@@ -323,7 +323,7 @@
 
 
 <div class="viewcode-block" id="get_s3_session">
-<a class="viewcode-back" href="../../megfile.s3.html#megfile.s3.get_s3_session">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.get_s3_session">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_s3_session</span><span class="p">(</span><span class="n">profile_name</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">boto3</span><span class="o">.</span><span class="n">Session</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Get S3 session</span>
 
@@ -363,7 +363,7 @@
 
 
 <div class="viewcode-block" id="get_s3_client">
-<a class="viewcode-back" href="../../megfile.s3.html#megfile.s3.get_s3_client">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.get_s3_client">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_s3_client</span><span class="p">(</span>
     <span class="n">config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">botocore</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">Config</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">cache_key</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -444,9 +444,7 @@
     <span class="p">)</span>
 
 
-<div class="viewcode-block" id="s3_path_join">
-<a class="viewcode-back" href="../../megfile.s3.html#megfile.s3.s3_path_join">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">s3_path_join</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="o">*</span><span class="n">other_paths</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_s3_path_join</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="o">*</span><span class="n">other_paths</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Concat 2 or more path to a complete path</span>
 
@@ -461,10 +459,9 @@
 <span class="sd">        and will directly concat.</span>
 
 <span class="sd">        e.g. os.path.join(&#39;/path&#39;, &#39;to&#39;, &#39;/file&#39;) =&gt; &#39;/file&#39;,</span>
-<span class="sd">        but s3_path_join(&#39;/path&#39;, &#39;to&#39;, &#39;/file&#39;) =&gt; &#39;/path/to/file&#39;</span>
+<span class="sd">        but _s3_path_join(&#39;/path&#39;, &#39;to&#39;, &#39;/file&#39;) =&gt; &#39;/path/to/file&#39;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">uri_join</span><span class="p">(</span><span class="n">fspath</span><span class="p">(</span><span class="n">path</span><span class="p">),</span> <span class="o">*</span><span class="nb">map</span><span class="p">(</span><span class="n">fspath</span><span class="p">,</span> <span class="n">other_paths</span><span class="p">))</span></div>
-
+    <span class="k">return</span> <span class="n">uri_join</span><span class="p">(</span><span class="n">fspath</span><span class="p">(</span><span class="n">path</span><span class="p">),</span> <span class="o">*</span><span class="nb">map</span><span class="p">(</span><span class="n">fspath</span><span class="p">,</span> <span class="n">other_paths</span><span class="p">))</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_list_all_buckets</span><span class="p">(</span><span class="n">profile_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
@@ -699,7 +696,7 @@
         <span class="k">with</span> <span class="n">raise_s3_error</span><span class="p">(</span><span class="n">_s3_pathname</span><span class="p">,</span> <span class="n">S3BucketNotFoundError</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">resp</span> <span class="ow">in</span> <span class="n">_list_objects_recursive</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">delimiter</span><span class="p">):</span>
                 <span class="k">for</span> <span class="n">content</span> <span class="ow">in</span> <span class="n">resp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Contents&quot;</span><span class="p">,</span> <span class="p">[]):</span>
-                    <span class="n">path</span> <span class="o">=</span> <span class="n">s3_path_join</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">protocol</span><span class="si">}</span><span class="s2">://&quot;</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">content</span><span class="p">[</span><span class="s2">&quot;Key&quot;</span><span class="p">])</span>
+                    <span class="n">path</span> <span class="o">=</span> <span class="n">_s3_path_join</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">protocol</span><span class="si">}</span><span class="s2">://&quot;</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">content</span><span class="p">[</span><span class="s2">&quot;Key&quot;</span><span class="p">])</span>
                     <span class="k">if</span> <span class="ow">not</span> <span class="n">search_dir</span> <span class="ow">and</span> <span class="n">pattern</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
                         <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">):</span>
                             <span class="k">continue</span>
@@ -715,7 +712,7 @@
                             <span class="p">)</span>
                         <span class="n">dirname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">dirname</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">common_prefix</span> <span class="ow">in</span> <span class="n">resp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;CommonPrefixes&quot;</span><span class="p">,</span> <span class="p">[]):</span>
-                    <span class="n">path</span> <span class="o">=</span> <span class="n">s3_path_join</span><span class="p">(</span>
+                    <span class="n">path</span> <span class="o">=</span> <span class="n">_s3_path_join</span><span class="p">(</span>
                         <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">protocol</span><span class="si">}</span><span class="s2">://&quot;</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">common_prefix</span><span class="p">[</span><span class="s2">&quot;Prefix&quot;</span><span class="p">]</span>
                     <span class="p">)</span>
                     <span class="n">dirname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
@@ -736,14 +733,14 @@
     <span class="k">for</span> <span class="n">src_file_path</span> <span class="ow">in</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">src_url</span><span class="p">)</span><span class="o">.</span><span class="n">scan</span><span class="p">():</span>
         <span class="n">content_path</span> <span class="o">=</span> <span class="n">src_file_path</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">fspath</span><span class="p">(</span><span class="n">src_url</span><span class="p">))</span> <span class="p">:]</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">content_path</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">dst_file_path</span> <span class="o">=</span> <span class="n">s3_path_join</span><span class="p">(</span><span class="n">dst_url</span><span class="p">,</span> <span class="n">content_path</span><span class="p">)</span>
+            <span class="n">dst_file_path</span> <span class="o">=</span> <span class="n">_s3_path_join</span><span class="p">(</span><span class="n">dst_url</span><span class="p">,</span> <span class="n">content_path</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">dst_file_path</span> <span class="o">=</span> <span class="n">dst_url</span>
         <span class="k">yield</span> <span class="n">src_file_path</span><span class="p">,</span> <span class="n">dst_file_path</span>
 
 
 <div class="viewcode-block" id="is_s3">
-<a class="viewcode-back" href="../../megfile.s3.html#megfile.s3.is_s3">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.is_s3">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">is_s3</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    1. According to</span>
@@ -792,7 +789,7 @@
 
 
 <div class="viewcode-block" id="s3_prefetch_open">
-<a class="viewcode-back" href="../../megfile.s3.html#megfile.s3.s3_prefetch_open">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.s3_prefetch_open">[docs]</a>
 <span class="nd">@_s3_binary_mode</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">s3_prefetch_open</span><span class="p">(</span>
     <span class="n">s3_url</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
@@ -853,7 +850,7 @@
 
 
 <div class="viewcode-block" id="s3_share_cache_open">
-<a class="viewcode-back" href="../../megfile.s3.html#megfile.s3.s3_share_cache_open">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.s3_share_cache_open">[docs]</a>
 <span class="nd">@_s3_binary_mode</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">s3_share_cache_open</span><span class="p">(</span>
     <span class="n">s3_url</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
@@ -917,7 +914,7 @@
 
 
 <div class="viewcode-block" id="s3_pipe_open">
-<a class="viewcode-back" href="../../megfile.s3.html#megfile.s3.s3_pipe_open">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.s3_pipe_open">[docs]</a>
 <span class="nd">@_s3_binary_mode</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">s3_pipe_open</span><span class="p">(</span>
     <span class="n">s3_url</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">join_thread</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
@@ -979,7 +976,7 @@
 
 
 <div class="viewcode-block" id="s3_cached_open">
-<a class="viewcode-back" href="../../megfile.s3.html#megfile.s3.s3_cached_open">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.s3_cached_open">[docs]</a>
 <span class="nd">@_s3_binary_mode</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">s3_cached_open</span><span class="p">(</span>
     <span class="n">s3_url</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
@@ -1035,7 +1032,7 @@
 
 
 <div class="viewcode-block" id="s3_buffered_open">
-<a class="viewcode-back" href="../../megfile.s3.html#megfile.s3.s3_buffered_open">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.s3_buffered_open">[docs]</a>
 <span class="nd">@_s3_binary_mode</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">s3_buffered_open</span><span class="p">(</span>
     <span class="n">s3_url</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
@@ -1181,7 +1178,7 @@
 
 
 <div class="viewcode-block" id="s3_memory_open">
-<a class="viewcode-back" href="../../megfile.s3.html#megfile.s3.s3_memory_open">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.s3_memory_open">[docs]</a>
 <span class="nd">@_s3_binary_mode</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">s3_memory_open</span><span class="p">(</span>
     <span class="n">s3_url</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
@@ -1220,8 +1217,32 @@
 <span class="n">s3_open</span> <span class="o">=</span> <span class="n">s3_buffered_open</span>
 
 
+<div class="viewcode-block" id="s3_copy">
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.s3_copy">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">s3_copy</span><span class="p">(</span>
+    <span class="n">src_url</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
+    <span class="n">dst_url</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
+    <span class="n">callback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">],</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;File copy on S3</span>
+<span class="sd">    Copy content of file on `src_path` to `dst_path`.</span>
+<span class="sd">    It&#39;s caller&#39;s responsibility to ensure the s3_isfile(src_url) is True</span>
+
+<span class="sd">    :param src_url: Given path</span>
+<span class="sd">    :param dst_path: Target file path</span>
+<span class="sd">    :param callback: Called periodically during copy, and the input parameter is</span>
+<span class="sd">        the data size (in bytes) of copy since the last call</span>
+<span class="sd">    :param followlinks: False if regard symlink as file, else True</span>
+<span class="sd">    :param overwrite: whether or not overwrite file when exists, default is True</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">src_url</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">dst_url</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">)</span></div>
+
+
+
 <div class="viewcode-block" id="s3_download">
-<a class="viewcode-back" href="../../megfile.s3.html#megfile.s3.s3_download">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.s3_download">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">s3_download</span><span class="p">(</span>
     <span class="n">src_url</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
     <span class="n">dst_url</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
@@ -1239,8 +1260,7 @@
 <span class="sd">    :param followlinks: False if regard symlink as file, else True</span>
 <span class="sd">    :param overwrite: whether or not overwrite file when exists, default is True</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">megfile.fs</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_fs</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">megfile.fs_path</span><span class="w"> </span><span class="kn">import</span> <span class="n">FSPath</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">megfile.fs_path</span><span class="w"> </span><span class="kn">import</span> <span class="n">FSPath</span><span class="p">,</span> <span class="n">is_fs</span>
 
     <span class="n">dst_url</span> <span class="o">=</span> <span class="n">fspath</span><span class="p">(</span><span class="n">dst_url</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">is_fs</span><span class="p">(</span><span class="n">dst_url</span><span class="p">):</span>
@@ -1305,7 +1325,7 @@
 
 
 <div class="viewcode-block" id="s3_upload">
-<a class="viewcode-back" href="../../megfile.s3.html#megfile.s3.s3_upload">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.s3_upload">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">s3_upload</span><span class="p">(</span>
     <span class="n">src_url</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
     <span class="n">dst_url</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
@@ -1323,8 +1343,7 @@
 <span class="sd">    :param followlinks: False if regard symlink as file, else True</span>
 <span class="sd">    :param overwrite: whether or not overwrite file when exists, default is True</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">megfile.fs</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_fs</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">megfile.fs_path</span><span class="w"> </span><span class="kn">import</span> <span class="n">FSPath</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">megfile.fs_path</span><span class="w"> </span><span class="kn">import</span> <span class="n">FSPath</span><span class="p">,</span> <span class="n">is_fs</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">is_fs</span><span class="p">(</span><span class="n">src_url</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;src_url is not fs path: </span><span class="si">{</span><span class="n">src_url</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -1367,7 +1386,7 @@
 
 
 <div class="viewcode-block" id="s3_load_content">
-<a class="viewcode-back" href="../../megfile.s3.html#megfile.s3.s3_load_content">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.s3_load_content">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">s3_load_content</span><span class="p">(</span>
     <span class="n">s3_url</span><span class="p">,</span>
     <span class="n">start</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -1406,6 +1425,8 @@
 
 
 
+<div class="viewcode-block" id="S3Cacher">
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.S3Cacher">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">S3Cacher</span><span class="p">(</span><span class="n">FileCacher</span><span class="p">):</span>
     <span class="n">cache_path</span> <span class="o">=</span> <span class="kc">None</span>
 
@@ -1426,7 +1447,8 @@
         <span class="p">):</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">):</span>
                 <span class="n">s3_upload</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_path</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_path</span><span class="p">)</span></div>
+
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_group_src_paths_by_block</span><span class="p">(</span>
@@ -1474,7 +1496,7 @@
 
 
 <div class="viewcode-block" id="s3_concat">
-<a class="viewcode-back" href="../../megfile.s3.html#megfile.s3.s3_concat">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.s3_concat">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">s3_concat</span><span class="p">(</span>
     <span class="n">src_paths</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">PathLike</span><span class="p">],</span>
     <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
@@ -1508,7 +1530,7 @@
 
 
 <div class="viewcode-block" id="S3Path">
-<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3.S3Path">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.S3Path">[docs]</a>
 <span class="nd">@SmartPath</span><span class="o">.</span><span class="n">register</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">S3Path</span><span class="p">(</span><span class="n">URIPath</span><span class="p">):</span>
     <span class="n">protocol</span> <span class="o">=</span> <span class="s2">&quot;s3&quot;</span>
@@ -1530,11 +1552,9 @@
     <span class="nd">@cached_property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">path_with_protocol</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return path with protocol, like file:///root, s3://bucket/key&quot;&quot;&quot;</span>
-        <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span>
-        <span class="n">protocol_prefix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_protocol_with_profile</span> <span class="o">+</span> <span class="s2">&quot;://&quot;</span>
-        <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">protocol_prefix</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">path</span>
-        <span class="k">return</span> <span class="n">protocol_prefix</span> <span class="o">+</span> <span class="n">path</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
 
     <span class="nd">@cached_property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">path_without_protocol</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -1542,21 +1562,14 @@
 <span class="sd">        Return path without protocol, example: if path is s3://bucket/key,</span>
 <span class="sd">        return bucket/key</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span>
-        <span class="n">protocol_prefix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_protocol_with_profile</span> <span class="o">+</span> <span class="s2">&quot;://&quot;</span>
-        <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">protocol_prefix</span><span class="p">):</span>
-            <span class="n">path</span> <span class="o">=</span> <span class="n">path</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">protocol_prefix</span><span class="p">)</span> <span class="p">:]</span>
-        <span class="k">return</span> <span class="n">path</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">)</span> <span class="p">:]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span>
 
     <span class="nd">@cached_property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">parts</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;A tuple giving access to the path’s various components&quot;&quot;&quot;</span>
-        <span class="n">parts</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_protocol_with_profile</span><span class="si">}</span><span class="s2">://&quot;</span><span class="p">]</span>
-        <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span>
-        <span class="n">path</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">path</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
-            <span class="n">parts</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">))</span>
-        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">root</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return root of the path, like s3://&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_protocol_with_profile</span><span class="si">}</span><span class="s2">://&quot;</span>
 
     <span class="nd">@cached_property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_client</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1584,7 +1597,7 @@
             <span class="k">return</span> <span class="p">{}</span>
 
 <div class="viewcode-block" id="S3Path.access">
-<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3.S3Path.access">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.S3Path.access">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">access</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="n">Access</span> <span class="o">=</span> <span class="n">Access</span><span class="o">.</span><span class="n">READ</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Test if path has access permission described by mode</span>
@@ -1636,7 +1649,7 @@
 
 
 <div class="viewcode-block" id="S3Path.exists">
-<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3.S3Path.exists">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.S3Path.exists">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">exists</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Test if s3_url exists</span>
@@ -1653,7 +1666,7 @@
 
 
 <div class="viewcode-block" id="S3Path.getmtime">
-<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3.S3Path.getmtime">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.S3Path.getmtime">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">getmtime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get last-modified time of the file on the given s3_url path</span>
@@ -1672,7 +1685,7 @@
 
 
 <div class="viewcode-block" id="S3Path.getsize">
-<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3.S3Path.getsize">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.S3Path.getsize">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">getsize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get file size on the given s3_url path (in bytes).</span>
@@ -1693,7 +1706,7 @@
 
 
 <div class="viewcode-block" id="S3Path.glob">
-<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3.S3Path.glob">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.S3Path.glob">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">glob</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">pattern</span><span class="p">,</span>
@@ -1724,7 +1737,7 @@
 
 
 <div class="viewcode-block" id="S3Path.glob_stat">
-<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3.S3Path.glob_stat">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.S3Path.glob_stat">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">glob_stat</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">pattern</span><span class="p">,</span>
@@ -1769,7 +1782,7 @@
 
 
 <div class="viewcode-block" id="S3Path.iglob">
-<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3.S3Path.iglob">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.S3Path.iglob">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">iglob</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">pattern</span><span class="p">,</span>
@@ -1799,7 +1812,7 @@
 
 
 <div class="viewcode-block" id="S3Path.is_dir">
-<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3.S3Path.is_dir">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.S3Path.is_dir">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Test if an s3 url is directory</span>
@@ -1837,7 +1850,7 @@
 
 
 <div class="viewcode-block" id="S3Path.is_file">
-<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3.S3Path.is_file">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.S3Path.is_file">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Test if an s3_url is file</span>
@@ -1868,7 +1881,7 @@
 
 
 <div class="viewcode-block" id="S3Path.listdir">
-<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3.S3Path.listdir">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.S3Path.listdir">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">listdir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get all contents of given s3_url. The result is in ascending alphabetical order.</span>
@@ -1883,7 +1896,7 @@
 
 
 <div class="viewcode-block" id="S3Path.iterdir">
-<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3.S3Path.iterdir">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.S3Path.iterdir">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">iterdir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="s2">&quot;S3Path&quot;</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get all contents of given s3_url. The order of result is in arbitrary order.</span>
@@ -1897,7 +1910,7 @@
 
 
 <div class="viewcode-block" id="S3Path.load">
-<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3.S3Path.load">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.S3Path.load">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BinaryIO</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Read all content in binary on specified path and write into memory</span>
 
@@ -1920,7 +1933,7 @@
 
 
 <div class="viewcode-block" id="S3Path.hasbucket">
-<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3.S3Path.hasbucket">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.S3Path.hasbucket">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">hasbucket</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Test if the bucket of s3_url exists</span>
@@ -1957,7 +1970,7 @@
 
 
 <div class="viewcode-block" id="S3Path.mkdir">
-<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3.S3Path.mkdir">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.S3Path.mkdir">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">mkdir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="mo">0o777</span><span class="p">,</span> <span class="n">parents</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">exist_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create an s3 directory.</span>
@@ -1988,7 +2001,7 @@
 
 
 <div class="viewcode-block" id="S3Path.move">
-<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3.S3Path.move">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.S3Path.move">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">move</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dst_url</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Move file/directory path from src_url to dst_url</span>
@@ -2003,7 +2016,7 @@
 
 
 <div class="viewcode-block" id="S3Path.remove">
-<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3.S3Path.remove">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.S3Path.remove">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">remove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Remove the file or directory on s3, `s3://` and `s3://bucket`</span>
@@ -2091,7 +2104,7 @@
 
 
 <div class="viewcode-block" id="S3Path.rename">
-<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3.S3Path.rename">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.S3Path.rename">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">rename</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;S3Path&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Move s3 file path from src_url to dst_url</span>
@@ -2108,7 +2121,7 @@
 
 
 <div class="viewcode-block" id="S3Path.scan">
-<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3.S3Path.scan">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.S3Path.scan">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">scan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Iteratively traverse only files in given s3 directory, in alphabetical order.</span>
@@ -2140,7 +2153,7 @@
 
 
 <div class="viewcode-block" id="S3Path.scan_stat">
-<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3.S3Path.scan_stat">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.S3Path.scan_stat">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">scan_stat</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">FileEntry</span><span class="p">]:</span>
@@ -2181,7 +2194,7 @@
                     <span class="k">for</span> <span class="n">content</span> <span class="ow">in</span> <span class="n">resp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Contents&quot;</span><span class="p">,</span> <span class="p">[]):</span>
                         <span class="k">if</span> <span class="n">content</span><span class="p">[</span><span class="s2">&quot;Key&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">):</span>
                             <span class="k">continue</span>
-                        <span class="n">path</span> <span class="o">=</span> <span class="n">s3_path_join</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">protocol</span><span class="si">}</span><span class="s2">://&quot;</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">content</span><span class="p">[</span><span class="s2">&quot;Key&quot;</span><span class="p">])</span>
+                        <span class="n">path</span> <span class="o">=</span> <span class="n">_s3_path_join</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">protocol</span><span class="si">}</span><span class="s2">://&quot;</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">content</span><span class="p">[</span><span class="s2">&quot;Key&quot;</span><span class="p">])</span>
 
                         <span class="k">if</span> <span class="n">followlinks</span><span class="p">:</span>
                             <span class="k">try</span><span class="p">:</span>
@@ -2205,7 +2218,7 @@
 
 
 <div class="viewcode-block" id="S3Path.scandir">
-<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3.S3Path.scandir">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.S3Path.scandir">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">scandir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ContextIterator</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get all contents of given s3_url, the order of result is in arbitrary order.</span>
@@ -2314,7 +2327,7 @@
         <span class="k">return</span> <span class="n">StatResult</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span> <span class="n">mtime</span><span class="o">=</span><span class="n">mtime</span><span class="p">,</span> <span class="n">isdir</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <div class="viewcode-block" id="S3Path.stat">
-<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3.S3Path.stat">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.S3Path.stat">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">stat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StatResult</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get StatResult of s3_url file, including file size and mtime,</span>
@@ -2362,7 +2375,7 @@
 
 
 <div class="viewcode-block" id="S3Path.unlink">
-<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3.S3Path.unlink">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.S3Path.unlink">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">unlink</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Remove the file on s3</span>
@@ -2384,7 +2397,7 @@
 
 
 <div class="viewcode-block" id="S3Path.walk">
-<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3.S3Path.walk">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.S3Path.walk">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">walk</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]]:</span>
@@ -2440,9 +2453,7 @@
                 <span class="n">dirs</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">dirs</span><span class="p">)</span>
                 <span class="n">stack</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="n">dirs</span><span class="p">))</span>
 
-                <span class="n">root</span> <span class="o">=</span> <span class="n">s3_path_join</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_protocol_with_profile</span><span class="si">}</span><span class="s2">://&quot;</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">current</span>
-                <span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">root</span> <span class="o">=</span> <span class="n">_s3_path_join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">current</span><span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
                 <span class="n">dirs</span> <span class="o">=</span> <span class="p">[</span><span class="n">path</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">current</span><span class="p">)</span> <span class="p">:]</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">dirs</span><span class="p">]</span>
                 <span class="n">files</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">path</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">current</span><span class="p">)</span> <span class="p">:]</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">files</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">files</span> <span class="ow">or</span> <span class="n">dirs</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">current</span><span class="p">:</span>
@@ -2450,7 +2461,7 @@
 
 
 <div class="viewcode-block" id="S3Path.md5">
-<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3.S3Path.md5">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.S3Path.md5">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">md5</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">recalculate</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get md5 meta info in files that uploaded/copied via megfile</span>
@@ -2492,7 +2503,7 @@
 
 
 <div class="viewcode-block" id="S3Path.copy">
-<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3.S3Path.copy">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.S3Path.copy">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">copy</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">dst_url</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
@@ -2548,7 +2559,7 @@
 
 
 <div class="viewcode-block" id="S3Path.sync">
-<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3.S3Path.sync">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.S3Path.sync">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">sync</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">dst_url</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
@@ -2588,7 +2599,7 @@
 
 
 <div class="viewcode-block" id="S3Path.symlink">
-<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3.S3Path.symlink">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.S3Path.symlink">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">symlink</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create a symbolic link pointing to src_path named dst_path.</span>
@@ -2620,7 +2631,7 @@
 
 
 <div class="viewcode-block" id="S3Path.readlink">
-<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3.S3Path.readlink">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.S3Path.readlink">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">readlink</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;S3Path&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a S3Path instance representing the path to which the symbolic link points</span>
@@ -2646,7 +2657,7 @@
 
 
 <div class="viewcode-block" id="S3Path.is_symlink">
-<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3.S3Path.is_symlink">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.S3Path.is_symlink">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_symlink</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Test whether a path is link</span>
@@ -2664,7 +2675,7 @@
 
 
 <div class="viewcode-block" id="S3Path.save">
-<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3.S3Path.save">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.S3Path.save">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_object</span><span class="p">:</span> <span class="n">BinaryIO</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Write the opened binary stream to specified path,</span>
 <span class="sd">        but the stream won&#39;t be closed</span>
@@ -2684,7 +2695,7 @@
 
 
 <div class="viewcode-block" id="S3Path.open">
-<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3.S3Path.open">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.S3Path.open">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">open</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;r&quot;</span><span class="p">,</span>
@@ -2704,7 +2715,7 @@
 
 
 <div class="viewcode-block" id="S3Path.absolute">
-<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3.S3Path.absolute">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.S3Path.absolute">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">absolute</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;S3Path&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Make the path absolute, without normalization or resolving symlinks.</span>
@@ -2714,7 +2725,7 @@
 
 
 <div class="viewcode-block" id="S3Path.cwd">
-<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3.S3Path.cwd">[docs]</a>
+<a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.S3Path.cwd">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">cwd</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;S3Path&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return current working directory</span>
 

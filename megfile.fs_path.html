@@ -21,8 +21,8 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="megfile.s3 module" href="megfile.s3.html" />
-    <link rel="prev" title="megfile.fs module" href="megfile.fs.html" /> 
+    <link rel="next" title="megfile.s3_path module" href="megfile.s3_path.html" />
+    <link rel="prev" title="megfile.smart_path module" href="megfile.smart_path.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -53,21 +53,18 @@
 <li class="toctree-l2"><a class="reference internal" href="megfile.smart.html">megfile.smart module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="megfile.smart_path.html">megfile.smart_path module</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="megfile.html#submodules">Submodules</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="megfile.fs.html">megfile.fs module</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">megfile.fs_path module</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#megfile.fs_path.FSPath"><code class="docutils literal notranslate"><span class="pre">FSPath</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.fs_path.fs_copy"><code class="docutils literal notranslate"><span class="pre">fs_copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.fs_path.is_fs"><code class="docutils literal notranslate"><span class="pre">is_fs()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="megfile.s3.html">megfile.s3 module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html">megfile.s3_path module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="megfile.http.html">megfile.http module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="megfile.http_path.html">megfile.http_path module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="megfile.stdio.html">megfile.stdio module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="megfile.stdio_path.html">megfile.stdio_path module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="megfile.sftp.html">megfile.sftp module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html">megfile.sftp_path module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="megfile.hdfs.html">megfile.hdfs module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="megfile.hdfs_path.html">megfile.hdfs_path module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.webdav_path.html">megfile.webdav_path module</a></li>
 </ul>
 </li>
 </ul>
@@ -148,16 +145,7 @@ Using <code class="docutils literal notranslate"><span class="pre">os.access</sp
 <dl class="py property">
 <dt class="sig sig-object py" id="megfile.fs_path.FSPath.anchor">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">anchor</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#megfile.fs_path.FSPath.anchor" title="Link to this definition"></a></dt>
-<dd><p>str(object=’’) -&gt; str
-str(bytes_or_buffer[, encoding[, errors]]) -&gt; str</p>
-<p>Create a new string object from the given object. If encoding or
-errors is specified, then the object must expose a data buffer
-that will be decoded using the given encoding and error handler.
-Otherwise, returns the result of object.__str__() (if defined)
-or repr(object).
-encoding defaults to sys.getdefaultencoding().
-errors defaults to ‘strict’.</p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.fs_path.FSPath.chmod">
@@ -214,16 +202,7 @@ the data size (in bytes) of copy since the last call</p></li>
 <dl class="py property">
 <dt class="sig sig-object py" id="megfile.fs_path.FSPath.drive">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">drive</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#megfile.fs_path.FSPath.drive" title="Link to this definition"></a></dt>
-<dd><p>str(object=’’) -&gt; str
-str(bytes_or_buffer[, encoding[, errors]]) -&gt; str</p>
-<p>Create a new string object from the given object. If encoding or
-errors is specified, then the object must expose a data buffer
-that will be decoded using the given encoding and error handler.
-Otherwise, returns the result of object.__str__() (if defined)
-or repr(object).
-encoding defaults to sys.getdefaultencoding().
-errors defaults to ‘strict’.</p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.fs_path.FSPath.exists">
@@ -784,16 +763,7 @@ eliminating any symbolic links encountered in the path.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="megfile.fs_path.FSPath.root">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">root</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#megfile.fs_path.FSPath.root" title="Link to this definition"></a></dt>
-<dd><p>str(object=’’) -&gt; str
-str(bytes_or_buffer[, encoding[, errors]]) -&gt; str</p>
-<p>Create a new string object from the given object. If encoding or
-errors is specified, then the object must expose a data buffer
-that will be decoded using the given encoding and error handler.
-Otherwise, returns the result of object.__str__() (if defined)
-or repr(object).
-encoding defaults to sys.getdefaultencoding().
-errors defaults to ‘strict’.</p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="megfile.fs_path.FSPath.save">
@@ -957,14 +927,64 @@ track of the directories it visited already.</p>
 
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="megfile.fs_path.fs_copy">
+<span class="sig-prename descclassname"><span class="pre">megfile.fs_path.</span></span><span class="sig-name descname"><span class="pre">fs_copy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callback</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">followlinks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megfile/fs_path.html#fs_copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs_path.fs_copy" title="Link to this definition"></a></dt>
+<dd><p>File copy on file system
+Copy content (excluding meta date) of file on <cite>src_path</cite> to <cite>dst_path</cite>.
+<cite>dst_path</cite> must be a complete file name</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The differences between this function and shutil.copyfile are:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>If parent directory of dst_path doesn’t exist, create it</p></li>
+<li><dl class="simple">
+<dt>Allow callback function, None by default.</dt><dd><p>callback: Optional[Callable[[int], None]], the int data is means
+the size (in bytes) of the written data that is passed periodically</p>
+</dd>
+</dl>
+</li>
+<li><p>This function is thread-unsafe</p></li>
+</ol>
+</div></blockquote>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>src_path</strong> – Given path</p></li>
+<li><p><strong>dst_path</strong> – Target file path</p></li>
+<li><p><strong>callback</strong> – Called periodically during copy, and the input parameter is
+the data size (in bytes) of copy since the last call</p></li>
+<li><p><strong>followlinks</strong> – False if regard symlink as file, else True</p></li>
+<li><p><strong>overwrite</strong> – whether or not overwrite file when exists, default is True</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="megfile.fs_path.is_fs">
+<span class="sig-prename descclassname"><span class="pre">megfile.fs_path.</span></span><span class="sig-name descname"><span class="pre">is_fs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/megfile/fs_path.html#is_fs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.fs_path.is_fs" title="Link to this definition"></a></dt>
+<dd><p>Test if a path is fs path</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> – Path to be tested</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True of a path is fs path, else False</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="megfile.fs.html" class="btn btn-neutral float-left" title="megfile.fs module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="megfile.s3.html" class="btn btn-neutral float-right" title="megfile.s3 module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="megfile.smart_path.html" class="btn btn-neutral float-left" title="megfile.smart_path module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="megfile.s3_path.html" class="btn btn-neutral float-right" title="megfile.s3_path module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

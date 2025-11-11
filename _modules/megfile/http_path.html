@@ -118,7 +118,7 @@
 
 
 <div class="viewcode-block" id="get_http_session">
-<a class="viewcode-back" href="../../megfile.http.html#megfile.http.get_http_session">[docs]</a>
+<a class="viewcode-back" href="../../megfile.http_path.html#megfile.http_path.get_http_session">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_http_session</span><span class="p">(</span>
     <span class="n">timeout</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]]</span> <span class="o">=</span> <span class="n">DEFAULT_TIMEOUT</span><span class="p">,</span>
     <span class="n">status_forcelist</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="mi">502</span><span class="p">,</span> <span class="mi">503</span><span class="p">,</span> <span class="mi">504</span><span class="p">),</span>
@@ -196,7 +196,7 @@
 
 
 <div class="viewcode-block" id="is_http">
-<a class="viewcode-back" href="../../megfile.http.html#megfile.http.is_http">[docs]</a>
+<a class="viewcode-back" href="../../megfile.http_path.html#megfile.http_path.is_http">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">is_http</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;http scheme definition: http(s)://domain/path</span>
 
@@ -216,7 +216,7 @@
 
 
 <div class="viewcode-block" id="HttpPath">
-<a class="viewcode-back" href="../../megfile.http_path.html#megfile.http.HttpPath">[docs]</a>
+<a class="viewcode-back" href="../../megfile.http_path.html#megfile.http_path.HttpPath">[docs]</a>
 <span class="nd">@SmartPath</span><span class="o">.</span><span class="n">register</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">HttpPath</span><span class="p">(</span><span class="n">URIPath</span><span class="p">):</span>
     <span class="n">protocol</span> <span class="o">=</span> <span class="s2">&quot;http&quot;</span>
@@ -233,7 +233,7 @@
         <span class="k">return</span> <span class="n">get_http_session</span><span class="p">(</span><span class="n">status_forcelist</span><span class="o">=</span><span class="p">(),</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">request_kwargs</span><span class="p">)</span>
 
 <div class="viewcode-block" id="HttpPath.open">
-<a class="viewcode-back" href="../../megfile.http_path.html#megfile.http.HttpPath.open">[docs]</a>
+<a class="viewcode-back" href="../../megfile.http_path.html#megfile.http_path.HttpPath.open">[docs]</a>
     <span class="nd">@binary_open</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">open</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -311,7 +311,7 @@
 
 
 <div class="viewcode-block" id="HttpPath.stat">
-<a class="viewcode-back" href="../../megfile.http_path.html#megfile.http.HttpPath.stat">[docs]</a>
+<a class="viewcode-back" href="../../megfile.http_path.html#megfile.http_path.HttpPath.stat">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">stat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StatResult</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get StatResult of http_url response, including size and mtime,</span>
@@ -352,7 +352,7 @@
 
 
 <div class="viewcode-block" id="HttpPath.getsize">
-<a class="viewcode-back" href="../../megfile.http_path.html#megfile.http.HttpPath.getsize">[docs]</a>
+<a class="viewcode-back" href="../../megfile.http_path.html#megfile.http_path.HttpPath.getsize">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">getsize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get file size on the given http_url path.</span>
@@ -367,7 +367,7 @@
 
 
 <div class="viewcode-block" id="HttpPath.getmtime">
-<a class="viewcode-back" href="../../megfile.http_path.html#megfile.http.HttpPath.getmtime">[docs]</a>
+<a class="viewcode-back" href="../../megfile.http_path.html#megfile.http_path.HttpPath.getmtime">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">getmtime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get Last-Modified time of the http request on the given http_url path.</span>
@@ -382,7 +382,7 @@
 
 
 <div class="viewcode-block" id="HttpPath.is_file">
-<a class="viewcode-back" href="../../megfile.http_path.html#megfile.http.HttpPath.is_file">[docs]</a>
+<a class="viewcode-back" href="../../megfile.http_path.html#megfile.http_path.HttpPath.is_file">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Test if http path exists</span>
 
@@ -405,7 +405,7 @@
 
 
 <div class="viewcode-block" id="HttpsPath">
-<a class="viewcode-back" href="../../megfile.http_path.html#megfile.http.HttpsPath">[docs]</a>
+<a class="viewcode-back" href="../../megfile.http_path.html#megfile.http_path.HttpsPath">[docs]</a>
 <span class="nd">@SmartPath</span><span class="o">.</span><span class="n">register</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">HttpsPath</span><span class="p">(</span><span class="n">HttpPath</span><span class="p">):</span>
     <span class="n">protocol</span> <span class="o">=</span> <span class="s2">&quot;https&quot;</span></div>

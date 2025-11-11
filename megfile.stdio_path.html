@@ -21,8 +21,8 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="megfile.sftp module" href="megfile.sftp.html" />
-    <link rel="prev" title="megfile.stdio module" href="megfile.stdio.html" /> 
+    <link rel="next" title="megfile.sftp_path module" href="megfile.sftp_path.html" />
+    <link rel="prev" title="megfile.http_path module" href="megfile.http_path.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -53,21 +53,17 @@
 <li class="toctree-l2"><a class="reference internal" href="megfile.smart.html">megfile.smart module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="megfile.smart_path.html">megfile.smart_path module</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="megfile.html#submodules">Submodules</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="megfile.fs.html">megfile.fs module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="megfile.fs_path.html">megfile.fs_path module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="megfile.s3.html">megfile.s3 module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="megfile.s3_path.html">megfile.s3_path module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="megfile.http.html">megfile.http module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="megfile.http_path.html">megfile.http_path module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="megfile.stdio.html">megfile.stdio module</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">megfile.stdio_path module</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#megfile.stdio_path.StdioPath"><code class="docutils literal notranslate"><span class="pre">StdioPath</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile.stdio_path.is_stdio"><code class="docutils literal notranslate"><span class="pre">is_stdio()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="megfile.sftp.html">megfile.sftp module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="megfile.sftp_path.html">megfile.sftp_path module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="megfile.hdfs.html">megfile.hdfs module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="megfile.hdfs_path.html">megfile.hdfs_path module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="megfile.webdav_path.html">megfile.webdav_path module</a></li>
 </ul>
 </li>
 </ul>
@@ -135,14 +131,32 @@
 
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="megfile.stdio_path.is_stdio">
+<span class="sig-prename descclassname"><span class="pre">megfile.stdio_path.</span></span><span class="sig-name descname"><span class="pre">is_stdio</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">BasePath</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">PathLike</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/megfile/stdio_path.html#is_stdio"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megfile.stdio_path.is_stdio" title="Link to this definition"></a></dt>
+<dd><p>stdio scheme definition: stdio://-</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Only tests protocol</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> – Path to be tested</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True of a path is stdio url, else False</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="megfile.stdio.html" class="btn btn-neutral float-left" title="megfile.stdio module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="megfile.sftp.html" class="btn btn-neutral float-right" title="megfile.sftp module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="megfile.http_path.html" class="btn btn-neutral float-left" title="megfile.http_path module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="megfile.sftp_path.html" class="btn btn-neutral float-right" title="megfile.sftp_path module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
