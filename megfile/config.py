@@ -131,7 +131,13 @@ WEBDAV_MAX_RETRY_TIMES = int(
 
 SFTP_HOST_KEY_POLICY = os.getenv("MEGFILE_SFTP_HOST_KEY_POLICY")
 
-HTTP_AUTH_HEADERS = ("Authorization", "Www-Authenticate", "Cookie", "Cookie2")
+HTTP_AUTH_HEADERS = (
+    "Authorization",
+    "Www-Authenticate",
+    "Cookie",
+    "Cookie2",
+    "X-Amz-Security-Token",
+)
 
 if os.getenv("MEGFILE_LOG_LEVEL"):
     set_log_level()
