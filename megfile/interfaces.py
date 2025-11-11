@@ -68,6 +68,17 @@ class Closable(ABC):
     def _abort(self) -> None:
         pass
 
+    def abort(self) -> bool:
+        """Abort the file-like object without saving.
+
+        This method has no effect if the file is already closed.
+        """
+        if not getattr(self, "__closed__", False):
+            self._abort()
+            setattr(self, "__closed__", True)
+            return True
+        return False
+
     def close(self) -> None:
         """Flush and close the file-like object.
 
@@ -82,22 +93,22 @@ class Closable(ABC):
 
     def __exit__(self, type, value, traceback) -> None:
         if self.atomic and value is not None:
-            from megfile.errors import full_error_message
+            if self.abort():
+                from megfile.errors import full_error_message
 
-            _logger.warning(
-                f"skip closing atomic file-like object: {self}, "
-                f"since error encountered: {full_error_message(value)}"
-            )
-            self._abort()
+                _logger.warning(
+                    f"skip closing atomic file-like object: {self}, "
+                    f"since error encountered: {full_error_message(value)}"
+                )
             return
         self.close()
 
     def __del__(self):
         if self.atomic:
-            _logger.warning(
-                f"skip closing atomic file-like object before deletion: {self}"
-            )
-            self._abort()
+            if self.abort():
+                _logger.warning(
+                    f"skip closing atomic file-like object before deletion: {self}"
+                )
             return
         self.close()
 

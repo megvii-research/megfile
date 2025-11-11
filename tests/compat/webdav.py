@@ -1,4 +1,3 @@
-from logging import getLogger as get_logger
 from typing import IO, BinaryIO, Callable, Iterator, List, Optional, Tuple
 
 from megfile.interfaces import FileEntry, PathLike, StatResult
@@ -8,8 +7,6 @@ from megfile.webdav_path import (
     WebdavPath,
     is_webdav,
 )
-
-_logger = get_logger(__name__)
 
 __all__ = [
     "is_webdav",
@@ -128,8 +125,7 @@ def webdav_download(
     :param followlinks: Ignored for WebDAV
     :param overwrite: whether or not overwrite file when exists, default is True
     """
-    from megfile.fs import is_fs
-    from megfile.fs_path import FSPath
+    from megfile.fs_path import FSPath, is_fs
 
     if not is_fs(dst_url):
         raise OSError(f"dst_url is not fs path: {dst_url}")
@@ -190,8 +186,7 @@ def webdav_upload(
     """
     import os
 
-    from megfile.fs import is_fs
-    from megfile.fs_path import FSPath
+    from megfile.fs_path import FSPath, is_fs
 
     if not is_fs(src_url):
         raise OSError(f"src_url is not fs path: {src_url}")

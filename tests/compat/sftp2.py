@@ -205,8 +205,7 @@ def sftp2_download(
     :param followlinks: False if regard symlink as file, else True
     :param overwrite: whether or not overwrite file when exists, default is True
     """
-    from megfile.fs import is_fs
-    from megfile.fs_path import FSPath
+    from megfile.fs_path import FSPath, is_fs
 
     if not is_fs(dst_url):
         raise OSError(f"dst_url is not fs path: {dst_url}")
@@ -255,8 +254,7 @@ def sftp2_upload(
         the data size (in bytes) of copy since the last call
     :param overwrite: whether or not overwrite file when exists, default is True
     """
-    from megfile.fs import is_fs
-    from megfile.fs_path import FSPath
+    from megfile.fs_path import FSPath, is_fs
 
     if not is_fs(src_url):
         raise OSError(f"src_url is not fs path: {src_url}")

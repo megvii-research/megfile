@@ -8,7 +8,7 @@ import pytest
 import requests
 
 from megfile.errors import HttpFileNotFoundError, HttpPermissionError, UnknownError
-from megfile.http import (
+from tests.compat.http import (
     get_http_session,
     http_exists,
     http_getmtime,
@@ -51,6 +51,11 @@ class FakeResponse:
         error = requests.exceptions.HTTPError()
         error.response = self
         raise error
+
+    def iter_content(self, chunk_size=1):
+        content = self.raw.read()
+        for i in range(0, len(content), chunk_size):
+            yield content[i : i + chunk_size]
 
     def close(self):
         pass

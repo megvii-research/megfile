@@ -93,7 +93,6 @@ __all__ = [
     "get_endpoint_url",
     "get_s3_session",
     "get_s3_client",
-    "s3_path_join",
     "is_s3",
     "s3_buffered_open",
     "s3_cached_open",
@@ -104,6 +103,7 @@ __all__ = [
     "s3_open",
     "S3Cacher",
     "s3_upload",
+    "s3_copy",
     "s3_download",
     "s3_load_content",
     "s3_concat",
@@ -351,7 +351,7 @@ def get_s3_client_with_cache(
     )
 
 
-def s3_path_join(path: PathLike, *other_paths: PathLike) -> str:
+def _s3_path_join(path: PathLike, *other_paths: PathLike) -> str:
     """
     Concat 2 or more path to a complete path
 
@@ -366,7 +366,7 @@ def s3_path_join(path: PathLike, *other_paths: PathLike) -> str:
         and will directly concat.
 
         e.g. os.path.join('/path', 'to', '/file') => '/file',
-        but s3_path_join('/path', 'to', '/file') => '/path/to/file'
+        but _s3_path_join('/path', 'to', '/file') => '/path/to/file'
     """
     return uri_join(fspath(path), *map(fspath, other_paths))
 
@@ -603,7 +603,7 @@ def _s3_glob_stat_single_path(
         with raise_s3_error(_s3_pathname, S3BucketNotFoundError):
             for resp in _list_objects_recursive(client, bucket, prefix, delimiter):
                 for content in resp.get("Contents", []):
-                    path = s3_path_join(f"{protocol}://", bucket, content["Key"])
+                    path = _s3_path_join(f"{protocol}://", bucket, content["Key"])
                     if not search_dir and pattern.match(path):
                         if path.endswith("/"):
                             continue
@@ -619,7 +619,7 @@ def _s3_glob_stat_single_path(
                             )
                         dirname = os.path.dirname(dirname)
                 for common_prefix in resp.get("CommonPrefixes", []):
-                    path = s3_path_join(
+                    path = _s3_path_join(
                         f"{protocol}://", bucket, common_prefix["Prefix"]
                     )
                     dirname = os.path.dirname(path)
@@ -640,7 +640,7 @@ def _s3_scan_pairs(
     for src_file_path in S3Path(src_url).scan():
         content_path = src_file_path[len(fspath(src_url)) :]
         if len(content_path) > 0:
-            dst_file_path = s3_path_join(dst_url, content_path)
+            dst_file_path = _s3_path_join(dst_url, content_path)
         else:
             dst_file_path = dst_url
         yield src_file_path, dst_file_path
@@ -1103,6 +1103,27 @@ def s3_memory_open(
 s3_open = s3_buffered_open
 
 
+def s3_copy(
+    src_url: PathLike,
+    dst_url: PathLike,
+    callback: Optional[Callable[[int], None]] = None,
+    followlinks: bool = False,
+    overwrite: bool = True,
+) -> None:
+    """File copy on S3
+    Copy content of file on `src_path` to `dst_path`.
+    It's caller's responsibility to ensure the s3_isfile(src_url) is True
+
+    :param src_url: Given path
+    :param dst_path: Target file path
+    :param callback: Called periodically during copy, and the input parameter is
+        the data size (in bytes) of copy since the last call
+    :param followlinks: False if regard symlink as file, else True
+    :param overwrite: whether or not overwrite file when exists, default is True
+    """
+    return S3Path(src_url).copy(dst_url, callback, followlinks, overwrite)
+
+
 def s3_download(
     src_url: PathLike,
     dst_url: PathLike,
@@ -1120,8 +1141,7 @@ def s3_download(
     :param followlinks: False if regard symlink as file, else True
     :param overwrite: whether or not overwrite file when exists, default is True
     """
-    from megfile.fs import is_fs
-    from megfile.fs_path import FSPath
+    from megfile.fs_path import FSPath, is_fs
 
     dst_url = fspath(dst_url)
     if not is_fs(dst_url):
@@ -1201,8 +1221,7 @@ def s3_upload(
     :param followlinks: False if regard symlink as file, else True
     :param overwrite: whether or not overwrite file when exists, default is True
     """
-    from megfile.fs import is_fs
-    from megfile.fs_path import FSPath
+    from megfile.fs_path import FSPath, is_fs
 
     if not is_fs(src_url):
         raise OSError(f"src_url is not fs path: {src_url}")
@@ -1985,7 +2004,7 @@ class S3Path(URIPath):
                     for content in resp.get("Contents", []):
                         if content["Key"].endswith("/"):
                             continue
-                        path = s3_path_join(f"{protocol}://", bucket, content["Key"])
+                        path = _s3_path_join(f"{protocol}://", bucket, content["Key"])
 
                         if followlinks:
                             try:
@@ -2232,7 +2251,7 @@ class S3Path(URIPath):
                 dirs = sorted(dirs)
                 stack.extend(reversed(dirs))
 
-                root = s3_path_join(self.root, bucket, current)[:-1]
+                root = _s3_path_join(self.root, bucket, current)[:-1]
                 dirs = [path[len(current) :] for path in dirs]
                 files = sorted(path[len(current) :] for path in files)
                 if files or dirs or not current:

@@ -1,4 +1,5 @@
 import atexit
+import base64
 import hashlib
 import io
 import os
@@ -29,6 +30,11 @@ _logger = get_logger(__name__)
 __all__ = [
     "SftpPath",
     "is_sftp",
+    "sftp_add_host_key",
+    "sftp_concat",
+    "sftp_copy",
+    "sftp_download",
+    "sftp_upload",
 ]
 
 SFTP_USERNAME = "SFTP_USERNAME"
@@ -64,7 +70,8 @@ def get_private_key():
         private_key_path = os.getenv(SFTP_PRIVATE_KEY_PATH)
         if not os.path.exists(private_key_path):
             raise FileNotFoundError(
-                f"Private key file not exist: '{SFTP_PRIVATE_KEY_PATH}'"
+                "Private key file not exist, "
+                f"path:{private_key_path}, env:'{SFTP_PRIVATE_KEY_PATH}'"
             )
         return key_with_types[key_type].from_private_key_file(
             private_key_path, password=os.getenv(SFTP_PRIVATE_KEY_PASSWORD)
@@ -333,6 +340,236 @@ def _sftp_scan_pairs(
         else:
             dst_file_path = dst_url
         yield src_file_path, dst_file_path
+
+
+def _check_input(input_str: str, fingerprint: str, times: int = 0) -> bool:
+    answers = input_str.strip()
+    if answers.lower() in ("yes", "y") or answers == fingerprint:
+        return True
+    elif answers.lower() in ("no", "n"):
+        return False
+    elif times >= 10:
+        _logger.warning("Retried more than 10 times, give up")
+        return False
+    else:
+        input_str = input("Please type 'yes', 'no' or the fingerprint: ")
+        return _check_input(input_str, fingerprint, times=times + 1)
+
+
+def _prompt_add_to_known_hosts(hostname, key) -> bool:
+    fingerprint = hashlib.sha256(key.asbytes()).digest()
+    fingerprint = f"SHA256:{base64.b64encode(fingerprint).decode('utf-8')}"
+    answers = input(f"""The authenticity of host '{hostname}' can't be established.
+{key.get_name().upper()} key fingerprint is {fingerprint}.
+This key is not known by any other names.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? """)
+    return _check_input(answers, fingerprint)
+
+
+def sftp_add_host_key(
+    hostname: str,
+    port: int = 22,
+    prompt: bool = False,
+    host_key_path: Optional["str"] = None,
+):
+    """Add a host key to known_hosts.
+
+    :param hostname: hostname
+    :param port: port, default is 22
+    :param prompt: If True, requires user input of 'yes' or 'no' to decide whether to
+        add this host key
+    :param host_key_path: path of known_hosts, default is ~/.ssh/known_hosts
+    """
+    if not host_key_path:
+        host_key_path = os.path.expanduser("~/.ssh/known_hosts")
+
+    if not os.path.exists(host_key_path):
+        dirname = os.path.dirname(host_key_path)
+        if dirname and dirname != ".":
+            os.makedirs(dirname, exist_ok=True, mode=0o700)
+        with open(host_key_path, "w"):
+            pass
+        os.chmod(host_key_path, 0o600)
+
+    host_key = paramiko.hostkeys.HostKeys(host_key_path)
+    if host_key.lookup(hostname):
+        return
+
+    transport = paramiko.Transport(
+        (
+            hostname,
+            port,
+        )
+    )
+    transport.connect()
+    key = transport.get_remote_server_key()
+    transport.close()
+
+    if prompt:
+        result = _prompt_add_to_known_hosts(hostname, key)
+        if not result:
+            return
+
+    host_key.add(hostname, key.get_name(), key)
+    host_key.save(host_key_path)
+
+
+def sftp_concat(src_paths: List[PathLike], dst_path: PathLike) -> None:
+    """Concatenate sftp files to one file.
+
+    :param src_paths: Given source paths
+    :param dst_path: Given destination path
+    """
+    dst_path_obj = SftpPath(dst_path)
+
+    def get_real_path(path: PathLike) -> str:
+        return SftpPath(path)._real_path
+
+    command = ["cat", *map(get_real_path, src_paths), ">", get_real_path(dst_path)]
+    exec_result = dst_path_obj._exec_command(command)
+    if exec_result.returncode != 0:
+        _logger.error(exec_result.stderr)
+        raise OSError(f"Failed to concat {src_paths} to {dst_path}")
+
+
+def sftp_copy(
+    src_path: PathLike,
+    dst_path: PathLike,
+    callback: Optional[Callable[[int], None]] = None,
+    followlinks: bool = False,
+    overwrite: bool = True,
+):
+    """
+    Copy the file to the given destination path.
+
+    :param src_path: Given path
+    :param dst_path: The destination path to copy the file to.
+    :param callback: An optional callback function that takes an integer parameter
+        and is called periodically during the copy operation to report the number
+        of bytes copied.
+    :param followlinks: Whether to follow symbolic links when copying directories.
+    :raises IsADirectoryError: If the source is a directory.
+    :raises OSError: If there is an error copying the file.
+    """
+    return SftpPath(src_path).copy(dst_path, callback, followlinks, overwrite)
+
+
+def sftp_download(
+    src_url: PathLike,
+    dst_url: PathLike,
+    callback: Optional[Callable[[int], None]] = None,
+    followlinks: bool = False,
+    overwrite: bool = True,
+):
+    """
+    Downloads a file from sftp to local filesystem.
+
+    :param src_url: source sftp path
+    :param dst_url: target fs path
+    :param callback: Called periodically during copy, and the input parameter is
+        the data size (in bytes) of copy since the last call
+    :param followlinks: False if regard symlink as file, else True
+    :param overwrite: whether or not overwrite file when exists, default is True
+    """
+    from megfile.fs_path import FSPath, is_fs
+
+    if not is_fs(dst_url):
+        raise OSError(f"dst_url is not fs path: {dst_url}")
+    if not is_sftp(src_url) and not isinstance(src_url, SftpPath):
+        raise OSError(f"src_url is not sftp path: {src_url}")
+
+    dst_path = FSPath(dst_url)
+    if not overwrite and dst_path.exists():
+        return
+
+    if isinstance(src_url, SftpPath):
+        src_path: SftpPath = src_url
+    else:
+        src_path: SftpPath = SftpPath(src_url)
+
+    if followlinks and src_path.is_symlink():
+        src_path = src_path.readlink()
+    if src_path.is_dir():
+        raise IsADirectoryError("Is a directory: %r" % src_url)
+    if str(dst_url).endswith("/"):
+        raise IsADirectoryError("Is a directory: %r" % dst_url)
+
+    dst_path.parent.makedirs(exist_ok=True)
+
+    sftp_callback = None
+    if callback:
+        bytes_transferred_before = 0
+
+        def sftp_callback(bytes_transferred: int, _total_bytes: int):
+            nonlocal bytes_transferred_before
+            callback(bytes_transferred - bytes_transferred_before)  # pyre-ignore[29]
+            bytes_transferred_before = bytes_transferred
+
+    src_path._client.get(
+        src_path._real_path, dst_path.path_without_protocol, callback=sftp_callback
+    )
+
+    src_stat = src_path.stat()
+    dst_path.utime(src_stat.st_atime, src_stat.st_mtime)
+    dst_path.chmod(src_stat.st_mode)
+
+
+def sftp_upload(
+    src_url: PathLike,
+    dst_url: PathLike,
+    callback: Optional[Callable[[int], None]] = None,
+    followlinks: bool = False,
+    overwrite: bool = True,
+):
+    """
+    Uploads a file from local filesystem to sftp server.
+
+    :param src_url: source fs path
+    :param dst_url: target sftp path
+    :param callback: Called periodically during copy, and the input parameter is
+        the data size (in bytes) of copy since the last call
+    :param overwrite: whether or not overwrite file when exists, default is True
+    """
+    from megfile.fs_path import FSPath, is_fs
+
+    if not is_fs(src_url):
+        raise OSError(f"src_url is not fs path: {src_url}")
+    if not is_sftp(dst_url) and not isinstance(dst_url, SftpPath):
+        raise OSError(f"dst_url is not sftp path: {dst_url}")
+
+    if followlinks and os.path.islink(src_url):
+        src_url = os.readlink(src_url)
+    if os.path.isdir(src_url):
+        raise IsADirectoryError("Is a directory: %r" % src_url)
+    if str(dst_url).endswith("/"):
+        raise IsADirectoryError("Is a directory: %r" % dst_url)
+
+    src_path = FSPath(src_url)
+    if isinstance(dst_url, SftpPath):
+        dst_path: SftpPath = dst_url
+    else:
+        dst_path: SftpPath = SftpPath(dst_url)
+    if not overwrite and dst_path.exists():
+        return
+
+    dst_path.parent.makedirs(exist_ok=True)
+
+    sftp_callback = None
+    if callback:
+        bytes_transferred_before = 0
+
+        def sftp_callback(bytes_transferred: int, _total_bytes: int):
+            nonlocal bytes_transferred_before
+            callback(bytes_transferred - bytes_transferred_before)  # pyre-ignore[29]
+            bytes_transferred_before = bytes_transferred
+
+    dst_path._client.put(
+        src_path.path_without_protocol, dst_path._real_path, callback=sftp_callback
+    )
+
+    src_stat = src_path.stat()
+    dst_path.utime(src_stat.st_atime, src_stat.st_mtime)
+    dst_path.chmod(src_stat.st_mode)
 
 
 @SmartPath.register

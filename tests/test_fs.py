@@ -5,8 +5,9 @@ from io import BytesIO
 import pytest
 from mock import patch
 
-from megfile import fs, smart
+from megfile import smart
 from megfile.interfaces import Access, StatResult
+from tests.compat import fs
 
 from . import FakeStatResult, Now
 
@@ -443,6 +444,7 @@ def test_fs_isfile(filesystem):
     assert fs.fs_isfile("soft_link_folder", followlinks=True) is False
 
 
+@pytest.mark.skipif(os.getuid() == 0, reason="skip fs_access test under root user")
 def test_fs_access(filesystem):
     os.mkdir("folder")
     with open("file", "w") as f:
@@ -476,9 +478,9 @@ def test_fs_exists(filesystem):
 
 
 def test_fs_remove(filesystem, mocker):
-    remove = mocker.patch("megfile.fs.fs_remove")
-    if_func = mocker.patch("megfile.fs.fs_isdir")
-    exists_func = mocker.patch("megfile.fs.fs_exists")
+    remove = mocker.patch("tests.compat.fs.fs_remove")
+    if_func = mocker.patch("tests.compat.fs.fs_isdir")
+    exists_func = mocker.patch("tests.compat.fs.fs_exists")
 
     def isdir(path: str) -> bool:
         return path == "folder"
@@ -551,16 +553,6 @@ def test_fs_makedirs(filesystem):
     with pytest.raises(FileExistsError) as error:
         fs.fs_makedirs("file", exist_ok=True)
     assert "file" in str(error.value)
-
-
-def test_fs_path_join():
-    assert fs.fs_path_join("/") == "/"
-    assert fs.fs_path_join("/", "bucket/key") == "/bucket/key"
-    assert fs.fs_path_join("/", "bucket//key") == "/bucket//key"
-    assert fs.fs_path_join("/", "bucket", "key") == "/bucket/key"
-    assert fs.fs_path_join("/", "bucket/", "key") == "/bucket/key"
-    assert fs.fs_path_join("/", "bucket", "/key") == "/key"
-    assert fs.fs_path_join("/", "bucket", "key/") == "/bucket/key/"
 
 
 def test_smart_open_read_not_found(filesystem):

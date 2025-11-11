@@ -2,6 +2,9 @@ import hashlib
 import io
 import os
 import re
+import shlex
+import subprocess
+import time
 from functools import cached_property
 from logging import getLogger as get_logger
 from typing import IO, BinaryIO, Callable, Iterable, Iterator, List, Optional, Tuple
@@ -10,27 +13,46 @@ from urllib.parse import quote, unquote, urlsplit, urlunsplit
 import dateutil.parser
 from webdav3.client import Client as WebdavClient
 from webdav3.client import WebDavXmlUtils
-from webdav3.exceptions import RemoteResourceNotFound, WebDavException
+from webdav3.exceptions import (
+    RemoteResourceNotFound,
+    ResponseErrorCode,
+    WebDavException,
+)
 from webdav3.urn import Urn
 
-from megfile.errors import SameFileError, _create_missing_ok_generator
+from megfile.config import (
+    READER_BLOCK_SIZE,
+    READER_MAX_BUFFER_SIZE,
+    WEBDAV_MAX_RETRY_TIMES,
+)
+from megfile.errors import (
+    SameFileError,
+    _create_missing_ok_generator,
+    http_should_retry,
+    patch_method,
+)
 from megfile.interfaces import (
     ContextIterator,
     FileEntry,
     PathLike,
-    Readable,
-    Seekable,
     StatResult,
-    Writable,
 )
 from megfile.lib.compare import is_same_file
 from megfile.lib.compat import fspath
 from megfile.lib.fnmatch import translate
 from megfile.lib.glob import has_magic
 from megfile.lib.joinpath import uri_join, uri_norm
+from megfile.lib.webdav_memory_handler import WebdavMemoryHandler, _webdav_stat
+from megfile.lib.webdav_prefetch_reader import WebdavPrefetchReader
 from megfile.pathlike import URIPath
 from megfile.smart_path import SmartPath
-from megfile.utils import calculate_md5, copyfileobj, get_binary_mode, thread_local
+from megfile.utils import (
+    _is_pickle,
+    binary_open,
+    calculate_md5,
+    copyfileobj,
+    thread_local,
+)
 
 _logger = get_logger(__name__)
 
@@ -42,6 +64,7 @@ __all__ = [
 WEBDAV_USERNAME = "WEBDAV_USERNAME"
 WEBDAV_PASSWORD = "WEBDAV_PASSWORD"
 WEBDAV_TOKEN = "WEBDAV_TOKEN"
+WEBDAV_TOKEN_COMMAND = "WEBDAV_TOKEN_COMMAND"
 WEBDAV_TIMEOUT = "WEBDAV_TIMEOUT"
 
 
@@ -81,6 +104,7 @@ def provide_connect_info(
     username: Optional[str] = None,
     password: Optional[str] = None,
     token: Optional[str] = None,
+    token_command: Optional[str] = None,
 ) -> dict:
     """Provide connection info for WebDAV client"""
     if not username:
@@ -89,6 +113,8 @@ def provide_connect_info(
         password = os.getenv(WEBDAV_PASSWORD)
     if not token:
         token = os.getenv(WEBDAV_TOKEN)
+    if not token_command:
+        token_command = os.getenv(WEBDAV_TOKEN_COMMAND)
 
     timeout = int(os.getenv(WEBDAV_TIMEOUT, "30"))
 
@@ -98,7 +124,9 @@ def provide_connect_info(
         "webdav_disable_check": True,
     }
 
-    if token:
+    if token_command:
+        options["webdav_token_command"] = token_command
+    elif token:
         options["webdav_token"] = token
     elif username and password:
         options["webdav_login"] = username
@@ -107,15 +135,82 @@ def provide_connect_info(
     return options
 
 
+def _patch_execute_request(
+    client: WebdavClient,
+    status_forcelist: Iterable[int] = (500, 502, 503, 504),
+    max_retries: int = WEBDAV_MAX_RETRY_TIMES,
+) -> WebdavClient:
+    def webdav_update_token_by_command():
+        cmds = shlex.split(client.webdav.token_command)
+        client.webdav.token_command_last_call = time.time()
+        client.webdav.token = subprocess.check_output(cmds).decode().strip()
+
+    def webdav_should_retry(error: Exception) -> bool:
+        if http_should_retry(error):
+            return True
+        if (
+            isinstance(error, ResponseErrorCode)
+            and error.code == 401  # pytype: disable=attribute-error
+        ):
+            token_command = client.webdav.token_command  # pyre-ignore[16]
+            last_call = client.webdav.token_command_last_call  # pyre-ignore[16]
+            if token_command is not None and time.time() - last_call > 5:
+                webdav_update_token_by_command()
+                return True
+        return False
+
+    def after_callback(response, *args, **kwargs):
+        if response.status_code in status_forcelist:
+            response.raise_for_status()
+        return response
+
+    def before_callback(action, path, data=None, headers_ext=None):
+        # refresh token if needed
+        if client.webdav.token_command is not None and not client.webdav.token:
+            webdav_update_token_by_command()
+        _logger.debug(
+            "send http request: %s %r, with parameters: %s, headers: %s",
+            action,
+            path,
+            data,
+            headers_ext,
+        )
+
+    def retry_callback(error, action, path, data=None, headers_ext=None):
+        if data and hasattr(data, "seek"):
+            data.seek(0)
+        elif isinstance(data, Iterator):
+            _logger.warning("Can not retry http request with iterator data")
+            raise
+
+    client.execute_request = patch_method(
+        client.execute_request,
+        max_retries=max_retries,
+        should_retry=webdav_should_retry,
+        before_callback=before_callback,
+        after_callback=after_callback,
+        retry_callback=retry_callback,
+    )
+
+    return client
+
+
 def _get_webdav_client(
     hostname: str,
     username: Optional[str] = None,
     password: Optional[str] = None,
     token: Optional[str] = None,
+    token_command: Optional[str] = None,
 ) -> WebdavClient:
     """Get WebDAV client"""
-    options = provide_connect_info(hostname, username, password, token)
-    return WebdavClient(options)
+    options = provide_connect_info(hostname, username, password, token, token_command)
+    client = WebdavClient(options)
+    client.webdav.token_command = options.pop(  # pyre-ignore[16]
+        "webdav_token_command", None
+    )
+    client.webdav.token_command_last_call = 0  # pyre-ignore[16]
+    client = _patch_execute_request(client)
+    return client
 
 
 def get_webdav_client(
@@ -123,10 +218,11 @@ def get_webdav_client(
     username: Optional[str] = None,
     password: Optional[str] = None,
     token: Optional[str] = None,
+    token_command: Optional[str] = None,
 ) -> WebdavClient:
     """Get cached WebDAV client"""
     return thread_local(
-        f"webdav_client:{hostname},{username},{password},{token}",
+        f"webdav_client:{hostname},{username},{password},{token},{token_command}",
         _get_webdav_client,
         hostname,
         username,
@@ -160,23 +256,6 @@ def _webdav_scan_pairs(
         yield src_file_path, dst_file_path
 
 
-def _webdav_stat(client: WebdavClient, remote_path: str):
-    urn = Urn(remote_path)
-    client._check_remote_resource(remote_path, urn)
-
-    response = client.execute_request(
-        action="info", path=urn.quote(), headers_ext=["Depth: 0"]
-    )
-    path = client.get_full_path(urn)
-    info = WebDavXmlUtils.parse_info_response(
-        response.content, path, client.webdav.hostname
-    )
-    info["is_dir"] = WebDavXmlUtils.parse_is_dir_response(
-        response.content, path, client.webdav.hostname
-    )
-    return info
-
-
 def _webdav_scan(client: WebdavClient, remote_path: str) -> List[dict]:
     directory_urn = Urn(remote_path, directory=True)
     if directory_urn.path() != WebdavClient.root and not client.check(
@@ -208,112 +287,12 @@ def _webdav_split_magic(path: str) -> Tuple[str, str]:
     return path, ""
 
 
-class WebdavMemoryHandler(Readable[bytes], Seekable, Writable[bytes]):  # noqa: F821
-    def __init__(
-        self,
-        remote_path: str,
-        mode: str,
-        *,
-        webdav_client: WebdavClient,
-        name: str,
-    ):
-        self._remote_path = remote_path
-        self._mode = mode
-        self._client = webdav_client
-        self._name = name
-
-        if mode not in ("rb", "wb", "ab", "rb+", "wb+", "ab+"):
-            raise ValueError("unacceptable mode: %r" % mode)
-
-        self._fileobj = io.BytesIO()
-        self._download_fileobj()
-
-    @property
-    def name(self) -> str:
-        return self._name
-
-    @property
-    def mode(self) -> str:
-        return self._mode
-
-    def tell(self) -> int:
-        return self._fileobj.tell()
-
-    def seek(self, offset: int, whence: int = os.SEEK_SET) -> int:
-        return self._fileobj.seek(offset, whence)
-
-    def readable(self) -> bool:
-        return self._mode[0] == "r" or self._mode[-1] == "+"
-
-    def read(self, size: Optional[int] = None) -> bytes:
-        if not self.readable():
-            raise io.UnsupportedOperation("not readable")
-        return self._fileobj.read(size)
-
-    def readline(self, size: Optional[int] = None) -> bytes:
-        if not self.readable():
-            raise io.UnsupportedOperation("not readable")
-        if size is None:
-            size = -1
-        return self._fileobj.readline(size)
-
-    def readlines(self, hint: Optional[int] = None) -> List[bytes]:
-        if not self.readable():
-            raise io.UnsupportedOperation("not readable")
-        if hint is None:
-            hint = -1
-        return self._fileobj.readlines(hint)
-
-    def writable(self) -> bool:
-        return self._mode[0] == "w" or self._mode[0] == "a" or self._mode[-1] == "+"
-
-    def flush(self):
-        self._fileobj.flush()
-
-    def write(self, data: bytes) -> int:
-        if not self.writable():
-            raise io.UnsupportedOperation("not writable")
-        if self._mode[0] == "a":
-            self.seek(0, os.SEEK_END)
-        return self._fileobj.write(data)
-
-    def writelines(self, lines: Iterable[bytes]):
-        if not self.writable():
-            raise io.UnsupportedOperation("not writable")
-        if self._mode[0] == "a":
-            self.seek(0, os.SEEK_END)
-        self._fileobj.writelines(lines)
-
-    def _file_exists(self) -> bool:
-        try:
-            return not self._client.is_dir(self._remote_path)
-        except RemoteResourceNotFound:
-            return False
-
-    def _download_fileobj(self):
-        need_download = self._mode[0] == "r" or (
-            self._mode[0] == "a" and self._file_exists()
-        )
-        if not need_download:
-            return
-        # directly download to the file handle
-        self._client.download_from(self._fileobj, self._remote_path)
-        if self._mode[0] == "r":
-            self.seek(0, os.SEEK_SET)
-
-    def _upload_fileobj(self):
-        need_upload = self.writable()
-        if not need_upload:
-            return
-        # directly upload from file handle
-        self.seek(0, os.SEEK_SET)
-        self._client.upload_to(self._fileobj, self._remote_path)
-
-    def _close(self, need_upload: bool = True):
-        if hasattr(self, "_fileobj"):
-            if need_upload:
-                self._upload_fileobj()
-            self._fileobj.close()
+def _webdav_check_accept_ranges(client: WebdavClient, remote_path: str):
+    urn = Urn(remote_path)
+    response = client.execute_request(action="download", path=urn.quote())
+    response.close()
+    headers = response.headers
+    return headers.get("Accept-Ranges") == "bytes"
 
 
 @SmartPath.register
@@ -811,13 +790,15 @@ class WebdavPath(URIPath):
         with self.open(mode="wb") as output:
             output.write(file_object.read())
 
+    @binary_open
     def open(
         self,
-        mode: str = "r",
+        mode: str = "rb",
         *,
-        buffering=-1,
-        encoding: Optional[str] = None,
-        errors: Optional[str] = None,
+        max_workers: Optional[int] = None,
+        max_buffer_size: int = READER_MAX_BUFFER_SIZE,
+        block_forward: Optional[int] = None,
+        block_size: int = READER_BLOCK_SIZE,
         **kwargs,
     ) -> IO:
         """Open a file on the path.
@@ -838,15 +819,27 @@ class WebdavPath(URIPath):
         elif not self.exists():
             raise FileNotFoundError("No such file: %r" % self.path_with_protocol)
 
-        buffer = WebdavMemoryHandler(
+        if mode == "rb":
+            if _webdav_check_accept_ranges(self._client, self._remote_path):
+                reader = WebdavPrefetchReader(
+                    self._remote_path,
+                    client=self._client,
+                    block_size=block_size,
+                    max_buffer_size=max_buffer_size,
+                    block_forward=block_forward,
+                    max_retries=WEBDAV_MAX_RETRY_TIMES,
+                    max_workers=max_workers,
+                )
+                if _is_pickle(reader):
+                    reader = io.BufferedReader(reader)  # type: ignore
+                return reader
+
+        return WebdavMemoryHandler(
             self._remote_path,
-            get_binary_mode(mode),
+            mode,
             webdav_client=self._client,
             name=self.path_with_protocol,
         )
-        if "b" not in mode:
-            return io.TextIOWrapper(buffer, encoding=encoding, errors=errors)
-        return buffer
 
     def chmod(self, mode: int, *, follow_symlinks: bool = True):
         """

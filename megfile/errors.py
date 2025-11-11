@@ -50,8 +50,7 @@ _logger = getLogger(__name__)
 
 
 def s3_endpoint_url(path: Optional[PathLike] = None):
-    from megfile.s3 import get_endpoint_url, get_s3_client
-    from megfile.s3_path import S3Path
+    from megfile.s3_path import S3Path, get_endpoint_url, get_s3_client
 
     profile_name = None
     if path:
@@ -137,6 +136,7 @@ s3_retry_error_codes = (
     "UploadTrafficRateLimitExceeded",
     "MetaOperationQpsLimitExceeded",
     "TotalQpsLimitExceeded",
+    "PartitionQpsLimitted",
     "ActiveRequestLimitExceeded",
     "CpuLimitExceeded",
     "QpsLimitExceeded",

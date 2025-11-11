@@ -125,10 +125,19 @@ HDFS_MAX_RETRY_TIMES = int(
 SFTP_MAX_RETRY_TIMES = int(
     os.getenv("MEGFILE_SFTP_MAX_RETRY_TIMES") or DEFAULT_MAX_RETRY_TIMES
 )
+WEBDAV_MAX_RETRY_TIMES = int(
+    os.getenv("MEGFILE_WEBDAV_MAX_RETRY_TIMES") or DEFAULT_MAX_RETRY_TIMES
+)
 
 SFTP_HOST_KEY_POLICY = os.getenv("MEGFILE_SFTP_HOST_KEY_POLICY")
 
-HTTP_AUTH_HEADERS = ("Authorization", "Www-Authenticate", "Cookie", "Cookie2")
+HTTP_AUTH_HEADERS = (
+    "Authorization",
+    "Www-Authenticate",
+    "Cookie",
+    "Cookie2",
+    "X-Amz-Security-Token",
+)
 
 if os.getenv("MEGFILE_LOG_LEVEL"):
     set_log_level()

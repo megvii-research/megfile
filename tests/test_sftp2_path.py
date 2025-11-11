@@ -3,11 +3,7 @@ import os
 
 import pytest
 
-from megfile import sftp2
 from megfile.sftp2_path import (
-    SFTP2_PASSWORD,
-    SFTP2_PRIVATE_KEY_PATH,
-    SFTP2_USERNAME,
     Sftp2Path,
     get_private_key,
     get_sftp2_client,
@@ -15,11 +11,18 @@ from megfile.sftp2_path import (
     provide_connect_info,
     sftp2_should_retry,
 )
+from tests.compat import sftp2
 
 from .test_sftp2 import FakeSFTP2Client, sftp2_mocker  # noqa: F401
 
 
 def test_provide_connect_info(fs, mocker):
+    from megfile import sftp2_path
+
+    sftp2_path.SFTP_PASSWORD = "SFTP2_PASSWORD"
+    sftp2_path.SFTP_PRIVATE_KEY_PATH = "SFTP2_PRIVATE_KEY_PATH"
+    sftp2_path.SFTP_USERNAME = "SFTP2_USERNAME"
+
     hostname, port, username, password, private_key = (
         "test_hostname",
         22,
@@ -39,9 +42,9 @@ def test_provide_connect_info(fs, mocker):
     assert result == (hostname, 22, expected_username, None, None)
 
     # Test with environment variables set
-    os.environ[SFTP2_USERNAME] = username
-    os.environ[SFTP2_PASSWORD] = password
-    os.environ[SFTP2_PRIVATE_KEY_PATH] = private_key
+    os.environ[sftp2_path.SFTP_USERNAME] = username
+    os.environ[sftp2_path.SFTP_PASSWORD] = password
+    os.environ[sftp2_path.SFTP_PRIVATE_KEY_PATH] = private_key
 
     result = provide_connect_info(hostname, port)
     assert result[0] == hostname
@@ -108,8 +111,12 @@ def test_sync(sftp2_mocker):
 
 
 def test_get_private_key(fs):
+    from megfile import sftp2_path
+
+    sftp2_path.SFTP_PRIVATE_KEY_PATH = "SFTP2_PRIVATE_KEY_PATH"
+
     with pytest.raises(FileNotFoundError):
-        os.environ["SFTP2_PRIVATE_KEY_PATH"] = "/file_not_exist"
+        os.environ[sftp2_path.SFTP_PRIVATE_KEY_PATH] = "/file_not_exist"
         get_private_key()
 
 

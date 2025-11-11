@@ -6,7 +6,7 @@ from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 import pytest
 
 from megfile.lib.shadow_handler import ShadowHandler
-from megfile.s3 import s3_buffered_open
+from megfile.s3_path import s3_buffered_open
 from megfile.smart import smart_open
 from megfile.utils import (
     get_content_size,
