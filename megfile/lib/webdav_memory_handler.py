@@ -1,9 +1,43 @@
 import os
 
 from webdav3.client import Client as WebdavClient
-from webdav3.exceptions import RemoteResourceNotFound
+from webdav3.client import Urn, WebDavXmlUtils, wrap_connection_error
+from webdav3.exceptions import (
+    OptionNotValid,
+    RemoteResourceNotFound,
+)
 
 from megfile.lib.base_memory_handler import BaseMemoryHandler
+
+
+def _webdav_stat(client: WebdavClient, remote_path: str):
+    urn = Urn(remote_path)
+    response = client.execute_request(
+        action="info", path=urn.quote(), headers_ext=["Depth: 0"]
+    )
+    path = client.get_full_path(urn)
+    info = WebDavXmlUtils.parse_info_response(
+        response.content, path, client.webdav.hostname
+    )
+    info["is_dir"] = WebDavXmlUtils.parse_is_dir_response(
+        response.content, path, client.webdav.hostname
+    )
+    return info
+
+
+@wrap_connection_error
+def _webdav_download_from(client: WebdavClient, buff, remote_path):
+    urn = Urn(remote_path)
+    if client.is_dir(urn.path()):
+        raise OptionNotValid(name="remote_path", value=remote_path)
+
+    if not client.check(urn.path()):
+        raise RemoteResourceNotFound(urn.path())
+
+    response = client.execute_request(action="download", path=urn.quote())
+
+    for chunk in response.iter_content(chunk_size=client.chunk_size):
+        buff.write(chunk)
 
 
 class WebdavMemoryHandler(BaseMemoryHandler):
@@ -25,8 +59,6 @@ class WebdavMemoryHandler(BaseMemoryHandler):
         return self._name
 
     def _file_exists(self) -> bool:
-        from megfile.webdav_path import _webdav_stat
-
         try:
             return not _webdav_stat(self._client, self._remote_path)["is_dir"]
         except RemoteResourceNotFound:
@@ -38,7 +70,7 @@ class WebdavMemoryHandler(BaseMemoryHandler):
         if not need_download:
             return
         # directly download to the file handle
-        self._client.download_from(self._fileobj, self._remote_path)
+        _webdav_download_from(self._client, self._fileobj, self._remote_path)
         if self._mode[0] == "r":
             self.seek(0, os.SEEK_SET)
 

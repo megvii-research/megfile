@@ -42,7 +42,7 @@ from megfile.lib.compat import fspath
 from megfile.lib.fnmatch import translate
 from megfile.lib.glob import has_magic
 from megfile.lib.joinpath import uri_join, uri_norm
-from megfile.lib.webdav_memory_handler import WebdavMemoryHandler
+from megfile.lib.webdav_memory_handler import WebdavMemoryHandler, _webdav_stat
 from megfile.lib.webdav_prefetch_reader import WebdavPrefetchReader
 from megfile.pathlike import URIPath
 from megfile.smart_path import SmartPath
@@ -256,23 +256,6 @@ def _webdav_scan_pairs(
         yield src_file_path, dst_file_path
 
 
-def _webdav_stat(client: WebdavClient, remote_path: str):
-    urn = Urn(remote_path)
-    client._check_remote_resource(remote_path, urn)
-
-    response = client.execute_request(
-        action="info", path=urn.quote(), headers_ext=["Depth: 0"]
-    )
-    path = client.get_full_path(urn)
-    info = WebDavXmlUtils.parse_info_response(
-        response.content, path, client.webdav.hostname
-    )
-    info["is_dir"] = WebDavXmlUtils.parse_is_dir_response(
-        response.content, path, client.webdav.hostname
-    )
-    return info
-
-
 def _webdav_scan(client: WebdavClient, remote_path: str) -> List[dict]:
     directory_urn = Urn(remote_path, directory=True)
     if directory_urn.path() != WebdavClient.root and not client.check(
@@ -302,6 +285,14 @@ def _webdav_split_magic(path: str) -> Tuple[str, str]:
         if has_magic(parts[i]):
             return "/".join(parts[:i]), "/".join(parts[i:])
     return path, ""
+
+
+def _webdav_check_accept_ranges(client: WebdavClient, remote_path: str):
+    urn = Urn(remote_path)
+    response = client.execute_request(action="download", path=urn.quote())
+    response.close()
+    headers = response.headers
+    return headers.get("Accept-Ranges") == "bytes"
 
 
 @SmartPath.register
@@ -829,20 +820,10 @@ class WebdavPath(URIPath):
             raise FileNotFoundError("No such file: %r" % self.path_with_protocol)
 
         if mode == "rb":
-            urn = Urn(self._remote_path)
-            response = self._client.execute_request(action="download", path=urn.quote())
-            response.close()
-            headers = response.headers
-            content_size = int(headers.get("Content-Length", 0))
-            if (
-                headers.get("Accept-Ranges") == "bytes"
-                and content_size >= block_size * 2
-                and not headers.get("Content-Encoding")
-            ):
+            if _webdav_check_accept_ranges(self._client, self._remote_path):
                 reader = WebdavPrefetchReader(
-                    urn,
+                    self._remote_path,
                     client=self._client,
-                    content_size=content_size,
                     block_size=block_size,
                     max_buffer_size=max_buffer_size,
                     block_forward=block_forward,

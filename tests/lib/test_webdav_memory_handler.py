@@ -18,7 +18,16 @@ def client(fs, mocker):
     def fake_webdav_stat(client, path: str) -> Dict:
         return client.info(path)
 
-    mocker.patch("megfile.webdav_path._webdav_stat", side_effect=fake_webdav_stat)
+    def fake_webdav_download_from(client, buff, path: str) -> Dict:
+        return client.download_from(buff, path)
+
+    mocker.patch(
+        "megfile.lib.webdav_memory_handler._webdav_stat", side_effect=fake_webdav_stat
+    )
+    mocker.patch(
+        "megfile.lib.webdav_memory_handler._webdav_download_from",
+        side_effect=fake_webdav_download_from,
+    )
     yield FakeWebdavClient()
 
 
