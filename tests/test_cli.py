@@ -16,6 +16,7 @@ from megfile.cli import (
     cli,
     config,
     cp,
+    env,
     hdfs,
     head,
     ll,
@@ -657,7 +658,7 @@ def test_config_alias(tmpdir, runner):
 
     config = configparser.ConfigParser()
     config.read(str(tmpdir / "config"))
-    assert config["a"]["protocol"] == "b"
+    assert config["alias"]["a"] == "b"
 
     result = runner.invoke(
         alias,
@@ -671,6 +672,49 @@ def test_config_alias(tmpdir, runner):
     )
     assert result.exit_code == 1
     assert isinstance(result.exc_info[1], NameError)
+
+
+def test_config_env(tmpdir, runner):
+    result = runner.invoke(
+        env,
+        [
+            "-p",
+            str(tmpdir / "config"),
+            "a=b",
+        ],
+    )
+    assert "Your env config" in result.output
+
+    config = configparser.ConfigParser()
+    config.read(str(tmpdir / "config"))
+    assert config["env"]["a"] == "b"
+
+    result = runner.invoke(
+        env,
+        [
+            "-p",
+            str(tmpdir / "config"),
+            "--no-cover",
+            "a=b",
+        ],
+    )
+    assert result.exit_code == 1
+    assert isinstance(result.exc_info[1], NameError)
+
+    # space
+    result = runner.invoke(
+        env,
+        [
+            "-p",
+            str(tmpdir / "config"),
+            "a=b c",
+        ],
+    )
+    assert "Your env config" in result.output
+
+    config = configparser.ConfigParser()
+    config.read(str(tmpdir / "config"))
+    assert config["env"]["a"] == "b c"
 
 
 def test_sftp_env(mocker):

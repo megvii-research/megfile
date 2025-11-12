@@ -144,6 +144,7 @@ def _patch_execute_request(
         cmds = shlex.split(client.webdav.token_command)
         client.webdav.token_command_last_call = time.time()
         client.webdav.token = subprocess.check_output(cmds).decode().strip()
+        _logger.debug("update webdav token by command: %s", client.webdav.token_command)
 
     def webdav_should_retry(error: Exception) -> bool:
         if http_should_retry(error):
