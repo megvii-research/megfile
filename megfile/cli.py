@@ -14,7 +14,12 @@ from click import ParamType
 from click.shell_completion import CompletionItem, ZshComplete
 from tqdm import tqdm
 
-from megfile.config import READER_BLOCK_SIZE, SFTP_HOST_KEY_POLICY, set_log_level
+from megfile.config import (
+    CONFIG_PATH,
+    READER_BLOCK_SIZE,
+    SFTP_HOST_KEY_POLICY,
+    set_log_level,
+)
 from megfile.hdfs_path import DEFAULT_HDFS_TIMEOUT
 from megfile.interfaces import FileEntry
 from megfile.lib.glob import get_non_glob_dir, has_magic
@@ -865,8 +870,8 @@ def hdfs(path, url, profile_name, user, root, token, timeout, no_cover):
 @click.option(
     "-p",
     "--path",
-    default="~/.config/megfile/aliases.conf",
-    help="alias config file, default is $HOME/.config/megfile/aliases.conf",
+    default=CONFIG_PATH,
+    help=f"megfile config file, default is {CONFIG_PATH}",
 )
 @click.argument("name")
 @click.argument("protocol_or_path")
@@ -876,24 +881,44 @@ def alias(path, name, protocol_or_path, no_cover):
     config = configparser.ConfigParser()
     if os.path.exists(path):
         config.read(path)
-    if name in config.sections() and no_cover:
-        raise NameError(f"alias-name has been used: {name}")
-
-    if "://" in protocol_or_path:
-        protocol, prefix = protocol_or_path.split("://", maxsplit=1)
-        config[name] = {
-            "protocol": protocol,
-            "prefix": prefix,
-        }
-    else:
-        config[name] = {
-            "protocol": protocol_or_path,
-        }
-
+    config.setdefault("alias", {})
+    if config.has_option("alias", name) and no_cover:
+        value = config.get("alias", name)
+        raise NameError(f"alias-name has been used: {name} = {value}")
+    config.set("alias", name, protocol_or_path)
     _safe_makedirs(os.path.dirname(path))  # make sure dirpath exist
     with open(path, "w") as fp:
         config.write(fp)
     click.echo(f"Your alias config has been saved into {path}")
+
+
+@config.command(short_help="Update the config file for envs")
+@click.option(
+    "-p",
+    "--path",
+    default=CONFIG_PATH,
+    help=f"megfile config file, default is {CONFIG_PATH}",
+)
+@click.argument("expr")
+@click.option("--no-cover", is_flag=True, help="Not cover the same-name config")
+def env(path, expr, no_cover):
+    if "=" not in expr:
+        raise ValueError("Invalid env format: {}".format(expr))
+    name, value = expr.split("=", 1)
+
+    path = os.path.expanduser(path)
+    config = configparser.ConfigParser()
+    if os.path.exists(path):
+        config.read(path)
+    config.setdefault("env", {})
+    if config.has_option("env", name) and no_cover:
+        value = config.get("env", name)
+        raise NameError(f"env has been set: {name} = {value}")
+    config.set("env", name, value)
+    _safe_makedirs(os.path.dirname(path))  # make sure dirpath exist
+    with open(path, "w") as fp:
+        config.write(fp)
+    click.echo(f"Your env config has been saved into {path}")
 
 
 @cli.group(short_help="Return the completion file")

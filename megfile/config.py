@@ -1,3 +1,4 @@
+import configparser
 import logging
 import os
 import typing as T
@@ -73,6 +74,25 @@ def set_log_level(level: T.Optional[T.Union[int, str]] = None):
     )
     level = level or os.getenv("MEGFILE_LOG_LEVEL") or logging.INFO
     logging.getLogger("megfile").setLevel(level)
+
+
+CONFIG_PATH = "~/.config/megfile/megfile.conf"
+
+
+def load_megfile_config(section) -> T.Dict[str, str]:
+    path = os.path.expanduser(CONFIG_PATH)
+    if not os.path.isfile(path):
+        return {}
+    config = configparser.ConfigParser()
+    if os.path.exists(path):
+        config.read(path)
+    if not config.has_section(section):
+        return {}
+    return dict(config.items(section))
+
+
+for key, value in load_megfile_config("env").items():
+    os.environ.setdefault(key.upper(), value)
 
 
 READER_BLOCK_SIZE = parse_quantity(os.getenv("MEGFILE_READER_BLOCK_SIZE") or 8 * 2**20)

@@ -6,6 +6,7 @@ import pytest
 from mock import PropertyMock, patch
 from moto import mock_aws
 
+from megfile.config import CONFIG_PATH
 from megfile.errors import (
     ProtocolExistsError,
     ProtocolNotFoundError,
@@ -17,7 +18,12 @@ from megfile.interfaces import Access
 from megfile.s3_path import S3Path
 from megfile.sftp2_path import Sftp2Path
 from megfile.sftp_path import SftpPath
-from megfile.smart_path import PurePath, SmartPath, _load_aliases_config, aliases_config
+from megfile.smart_path import (
+    LEGACY_ALIASES_CONFIG,
+    PurePath,
+    SmartPath,
+    _load_aliases_config,
+)
 from megfile.stdio_path import StdioPath
 from megfile.webdav_path import WebdavPath, WebdavsPath
 
@@ -86,19 +92,31 @@ def test_register_result():
 
 
 def test_aliases(fs, sftp_mocker):
-    config_path = os.path.expanduser(aliases_config)
+    config_path = os.path.expanduser(LEGACY_ALIASES_CONFIG)
     fs.create_file(
         config_path,
         contents="[oss]\nprotocol = s3+oss\n[tos]\nprotocol = s3+tos",
     )
     aliases = {"oss": {"protocol": "s3+oss"}, "tos": {"protocol": "s3+tos"}}
-    assert _load_aliases_config(config_path) == aliases
+    assert _load_aliases_config() == aliases
+
+    config_path = os.path.expanduser(CONFIG_PATH)
+    fs.create_file(
+        config_path,
+        contents="[alias]\noss = s3+oss2\ntos2 = s3+tos2",
+    )
+    aliases = {
+        "oss": {"protocol": "s3+oss2"},
+        "tos": {"protocol": "s3+tos"},
+        "tos2": {"protocol": "s3+tos2"},
+    }
+    assert _load_aliases_config() == aliases
 
     with patch.object(SmartPath, "_aliases", new_callable=PropertyMock) as mock_aliases:
         mock_aliases.return_value = aliases
         assert (
             SmartPath("oss://bucket/dir/file").pathlike
-            == SmartPath("s3+oss://bucket/dir/file").pathlike
+            == SmartPath("s3+oss2://bucket/dir/file").pathlike
         )
         assert str(SmartPath("oss://bucket/dir/file")) == "oss://bucket/dir/file"
 

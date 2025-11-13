@@ -1,3 +1,4 @@
+import megfile.config  # noqa: F401  # make sure env config is loaded
 from megfile.fs_path import FSPath, is_fs
 from megfile.hdfs_path import HdfsPath, is_hdfs
 from megfile.http_path import HttpPath, HttpsPath, is_http
@@ -7,6 +8,7 @@ from megfile.s3_path import (
     s3_buffered_open,
     s3_cached_open,
     s3_memory_open,
+    s3_open,
     s3_pipe_open,
     s3_prefetch_open,
     s3_share_cache_open,
@@ -114,6 +116,7 @@ __all__ = [
     "s3_buffered_open",
     "s3_cached_open",
     "s3_memory_open",
+    "s3_open",
     "s3_pipe_open",
     "s3_prefetch_open",
     "s3_share_cache_open",

@@ -4,6 +4,7 @@ from functools import cached_property
 from pathlib import PurePath
 from typing import Dict, Optional, Tuple, Union
 
+from megfile.config import load_megfile_config
 from megfile.lib.compat import fspath
 from megfile.lib.url import get_url_scheme
 from megfile.pathlike import URIPathParents
@@ -12,7 +13,7 @@ from megfile.utils import cached_classproperty
 from .errors import ProtocolExistsError, ProtocolNotFoundError
 from .interfaces import BasePath, PathLike
 
-aliases_config = "~/.config/megfile/aliases.conf"
+LEGACY_ALIASES_CONFIG = "~/.config/megfile/aliases.conf"
 
 
 def _bind_function(name, after_callback=None, before_callback=None):
@@ -54,14 +55,20 @@ def _bind_property(name, callback=None):
     return smart_property
 
 
-def _load_aliases_config(config_path) -> Dict[str, Dict[str, str]]:
-    if not os.path.exists(config_path):
-        return {}
-    parser = ConfigParser()
-    parser.read(config_path)
+def _load_aliases_config() -> Dict[str, Dict[str, str]]:
     configs = {}
-    for section in parser.sections():
-        configs[section] = dict(parser.items(section))
+    config_path = os.path.expanduser(LEGACY_ALIASES_CONFIG)
+    if os.path.isfile(config_path):
+        parser = ConfigParser()
+        parser.read(config_path)
+        for section in parser.sections():
+            configs[section] = dict(parser.items(section))
+    for name, protocol_or_path in load_megfile_config("alias").items():
+        if "://" in protocol_or_path:
+            protocol, prefix = protocol_or_path.split("://", maxsplit=1)
+            configs[name] = {"protocol": protocol, "prefix": prefix}
+        else:
+            configs[name] = {"protocol": protocol_or_path}
     return configs
 
 
@@ -151,8 +158,7 @@ class SmartPath(BasePath):
 
     @cached_classproperty
     def _aliases(cls) -> Dict[str, Dict[str, str]]:
-        config_path = os.path.expanduser(aliases_config)
-        return _load_aliases_config(config_path)
+        return _load_aliases_config()
 
     @classmethod
     def _split_protocol(cls, path: Union[PathLike, int]) -> Tuple[str, Union[str, int]]:
