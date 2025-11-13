@@ -19,7 +19,7 @@ def _webdav_stat(client: WebdavClient, remote_path: str):
     info = WebDavXmlUtils.parse_info_response(
         response.content, path, client.webdav.hostname
     )
-    info["is_dir"] = WebDavXmlUtils.parse_is_dir_response(
+    info["isdir"] = WebDavXmlUtils.parse_is_dir_response(
         response.content, path, client.webdav.hostname
     )
     return info
@@ -60,7 +60,7 @@ class WebdavMemoryHandler(BaseMemoryHandler):
 
     def _file_exists(self) -> bool:
         try:
-            return not _webdav_stat(self._client, self._remote_path)["is_dir"]
+            return not _webdav_stat(self._client, self._remote_path)["isdir"]
         except RemoteResourceNotFound:
             return False
 

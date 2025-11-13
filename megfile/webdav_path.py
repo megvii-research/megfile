@@ -78,7 +78,7 @@ def _make_stat(info: dict) -> StatResult:
     except Exception:
         mtime = 0.0
 
-    isdir = info.get("is_dir", False)
+    isdir = info.get("isdir", False)
 
     return StatResult(
         size=size,
@@ -458,7 +458,7 @@ class WebdavPath(URIPath):
         :returns: True if the path is a directory, else False
         """
         try:
-            return _webdav_stat(self._client, self._remote_path)["is_dir"]
+            return _webdav_stat(self._client, self._remote_path)["isdir"]
         except RemoteResourceNotFound:
             return False
 
@@ -470,7 +470,7 @@ class WebdavPath(URIPath):
         :returns: True if the path is a file, else False
         """
         try:
-            return not _webdav_stat(self._client, self._remote_path)["is_dir"]
+            return not _webdav_stat(self._client, self._remote_path)["isdir"]
         except RemoteResourceNotFound:
             return False
 
