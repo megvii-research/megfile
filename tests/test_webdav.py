@@ -57,7 +57,7 @@ class FakeWebdavClient:
                     "path": item_path,
                     "size": stat.st_size,
                     "modified": datetime.fromtimestamp(stat.st_mtime).isoformat(),
-                    "is_dir": os.path.isdir(item_path),
+                    "isdir": os.path.isdir(item_path),
                 }
             )
         return items
@@ -73,7 +73,7 @@ class FakeWebdavClient:
             "path": path,
             "size": stat.st_size,
             "modified": datetime.fromtimestamp(stat.st_mtime).isoformat(),
-            "is_dir": os.path.isdir(path),
+            "isdir": os.path.isdir(path),
         }
 
     def mkdir(self, path: str):
@@ -147,7 +147,7 @@ def webdav_mocker(fs, mocker):
 
     def fake_webdav_scan(client, path: str) -> Iterator[Dict]:
         for info in client.list(path, get_info=True):
-            if info["is_dir"]:
+            if info["isdir"]:
                 yield from fake_webdav_scan(client, info["path"])
             yield info
 
