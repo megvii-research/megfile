@@ -1,9 +1,9 @@
-import configparser
 import os
 
 import pytest
 from mock import patch
 
+from megfile.config import CaseSensitiveConfigParser
 from megfile.hdfs_path import HdfsPath, get_hdfs_client, get_hdfs_config
 from megfile.lib.hdfs_tools import hdfs_api
 
@@ -32,7 +32,7 @@ def test_get_hdfs_config():
 
 @patch.dict(os.environ, {"HDFS_CONFIG_PATH": ".config.ini"})
 def test_get_hdfs_config_from_file(fs):
-    config = configparser.ConfigParser()
+    config = CaseSensitiveConfigParser()
     config["global"] = {"default.alias": "default"}
     config["default.alias"] = {
         "user": "user",

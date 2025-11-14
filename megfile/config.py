@@ -4,6 +4,11 @@ import os
 import typing as T
 
 
+class CaseSensitiveConfigParser(configparser.ConfigParser):
+    def optionxform(self, optionstr: str) -> str:
+        return optionstr
+
+
 def parse_quantity(quantity: T.Union[str, int]) -> int:
     """
     Parse kubernetes canonical form quantity like 200Mi to a int number.
@@ -83,7 +88,7 @@ def load_megfile_config(section) -> T.Dict[str, str]:
     path = os.path.expanduser(CONFIG_PATH)
     if not os.path.isfile(path):
         return {}
-    config = configparser.ConfigParser()
+    config = CaseSensitiveConfigParser()
     if os.path.exists(path):
         config.read(path)
     if not config.has_section(section):

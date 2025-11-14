@@ -1,4 +1,3 @@
-import configparser
 import os
 import shutil
 import signal
@@ -18,6 +17,7 @@ from megfile.config import (
     CONFIG_PATH,
     READER_BLOCK_SIZE,
     SFTP_HOST_KEY_POLICY,
+    CaseSensitiveConfigParser,
     set_log_level,
 )
 from megfile.hdfs_path import DEFAULT_HDFS_TIMEOUT
@@ -846,7 +846,7 @@ def hdfs(path, url, profile_name, user, root, token, timeout, no_cover):
         "timeout": timeout,
     }
     profile_name = f"{profile_name}.alias"
-    config = configparser.ConfigParser()
+    config = CaseSensitiveConfigParser()
     if os.path.exists(path):
         config.read(path)
     if "global" not in config.sections():
@@ -878,7 +878,7 @@ def hdfs(path, url, profile_name, user, root, token, timeout, no_cover):
 @click.option("--no-cover", is_flag=True, help="Not cover the same-name config")
 def alias(path, name, protocol_or_path, no_cover):
     path = os.path.expanduser(path)
-    config = configparser.ConfigParser()
+    config = CaseSensitiveConfigParser()
     if os.path.exists(path):
         config.read(path)
     config.setdefault("alias", {})
@@ -907,7 +907,8 @@ def env(path, expr, no_cover):
     name, value = expr.split("=", 1)
 
     path = os.path.expanduser(path)
-    config = configparser.ConfigParser()
+
+    config = CaseSensitiveConfigParser()
     if os.path.exists(path):
         config.read(path)
     config.setdefault("env", {})

@@ -1,4 +1,3 @@
-import configparser
 import os
 import signal
 import sys
@@ -35,6 +34,7 @@ from megfile.cli import (
     touch,
     version,
 )
+from megfile.config import CaseSensitiveConfigParser
 
 from .test_smart import s3_empty_client  # noqa: F401
 
@@ -595,7 +595,7 @@ def test_config_hdfs(tmpdir, runner):
     )
     assert "Your hdfs config" in result.output
 
-    config = configparser.ConfigParser()
+    config = CaseSensitiveConfigParser()
     config.read(str(tmpdir / "config"))
     assert config["global"]["default.alias"] == "default"
     assert config["default.alias"]["url"] == "http://127.0.0.1:8000"
@@ -656,7 +656,7 @@ def test_config_alias(tmpdir, runner):
     )
     assert "Your alias config" in result.output
 
-    config = configparser.ConfigParser()
+    config = CaseSensitiveConfigParser()
     config.read(str(tmpdir / "config"))
     assert config["alias"]["a"] == "b"
 
@@ -685,7 +685,7 @@ def test_config_env(tmpdir, runner):
     )
     assert "Your env config" in result.output
 
-    config = configparser.ConfigParser()
+    config = CaseSensitiveConfigParser()
     config.read(str(tmpdir / "config"))
     assert config["env"]["a"] == "b"
 
@@ -712,9 +712,24 @@ def test_config_env(tmpdir, runner):
     )
     assert "Your env config" in result.output
 
-    config = configparser.ConfigParser()
+    config = CaseSensitiveConfigParser()
     config.read(str(tmpdir / "config"))
     assert config["env"]["a"] == "b c"
+
+    # case sensitive
+    result = runner.invoke(
+        env,
+        [
+            "-p",
+            str(tmpdir / "config"),
+            "A=B",
+        ],
+    )
+    assert "Your env config" in result.output
+
+    config = CaseSensitiveConfigParser()
+    config.read(str(tmpdir / "config"))
+    assert config["env"]["A"] == "B"
 
 
 def test_sftp_env(mocker):

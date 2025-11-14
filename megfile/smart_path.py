@@ -1,5 +1,4 @@
 import os
-from configparser import ConfigParser
 from functools import cached_property
 from pathlib import PurePath
 from typing import Dict, Optional, Tuple, Union
@@ -10,6 +9,7 @@ from megfile.lib.url import get_url_scheme
 from megfile.pathlike import URIPathParents
 from megfile.utils import cached_classproperty
 
+from .config import CaseSensitiveConfigParser
 from .errors import ProtocolExistsError, ProtocolNotFoundError
 from .interfaces import BasePath, PathLike
 
@@ -59,7 +59,7 @@ def _load_aliases_config() -> Dict[str, Dict[str, str]]:
     configs = {}
     config_path = os.path.expanduser(LEGACY_ALIASES_CONFIG)
     if os.path.isfile(config_path):
-        parser = ConfigParser()
+        parser = CaseSensitiveConfigParser()
         parser.read(config_path)
         for section in parser.sections():
             configs[section] = dict(parser.items(section))
