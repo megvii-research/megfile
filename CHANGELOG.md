@@ -1,3 +1,11 @@
+## 5.0.1 - 2025.11.14
+- feat
+    - Support all in one config file in megfile, default path is `~/.config/megfile/megfile.conf`.
+        - Added support for environment variable configuration similar to dotenv. Use the command `megfile config env KEY=VALUE` to set environment variables.
+        - The alias configuration will be written to this file, and the old configuration file will be deprecated in the next major version.
+- fix
+    - Fix the `is_dir` error in webdav `scandir`
+
 ## 5.0.0 - 2025.11.11
 - **breaking change**
     - Dropped support for Python 3.9; added support for Python 3.14.
