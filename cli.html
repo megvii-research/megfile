@@ -61,6 +61,7 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#megfile-config">config</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#megfile-config-alias">alias</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#megfile-config-env">env</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#megfile-config-hdfs">hdfs</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#megfile-config-s3">s3</a></li>
 </ul>
@@ -201,7 +202,7 @@ you also need configure <code class="docutils literal notranslate"><span class="
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-megfile-config-alias-p">
 <span id="cmdoption-megfile-config-alias-path"></span><span class="sig-name descname"><span class="pre">-p</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--path</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;path&gt;</span></span><a class="headerlink" href="#cmdoption-megfile-config-alias-p" title="Link to this definition"></a></dt>
-<dd><p>alias config file, default is $HOME/.config/megfile/aliases.conf</p>
+<dd><p>megfile config file, default is ~/.config/megfile/megfile.conf</p>
 </dd></dl>
 
 <dl class="std option">
@@ -220,6 +221,33 @@ you also need configure <code class="docutils literal notranslate"><span class="
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-megfile-config-alias-arg-PROTOCOL_OR_PATH">
 <span class="sig-name descname"><span class="pre">PROTOCOL_OR_PATH</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-megfile-config-alias-arg-PROTOCOL_OR_PATH" title="Link to this definition"></a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+</section>
+<section id="megfile-config-env">
+<h4>env<a class="headerlink" href="#megfile-config-env" title="Link to this heading"></a></h4>
+<p>Update the config file for envs</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>megfile<span class="w"> </span>config<span class="w"> </span>env<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>EXPR
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-megfile-config-env-p">
+<span id="cmdoption-megfile-config-env-path"></span><span class="sig-name descname"><span class="pre">-p</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--path</span></span><span class="sig-prename descclassname"> <span class="pre">&lt;path&gt;</span></span><a class="headerlink" href="#cmdoption-megfile-config-env-p" title="Link to this definition"></a></dt>
+<dd><p>megfile config file, default is ~/.config/megfile/megfile.conf</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-megfile-config-env-no-cover">
+<span class="sig-name descname"><span class="pre">--no-cover</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-megfile-config-env-no-cover" title="Link to this definition"></a></dt>
+<dd><p>Not cover the same-name config</p>
+</dd></dl>
+
+<p class="rubric">Arguments</p>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-megfile-config-env-arg-EXPR">
+<span class="sig-name descname"><span class="pre">EXPR</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-megfile-config-env-arg-EXPR" title="Link to this definition"></a></dt>
 <dd><p>Required argument</p>
 </dd></dl>
 
