@@ -9,7 +9,7 @@ action_map = {
     "chore": "Maintenance",
     "ci": "CI",
     "revert": "Reverted",
-    "breaking change": "Breaking Changes"
+    "breaking change": "Breaking Changes",
 }
 
 
