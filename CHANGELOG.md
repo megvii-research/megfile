@@ -1,3 +1,7 @@
+## 5.0.2 - 2025.11.25
+- perf
+    - Expose protocol-specific function interfaces at the top level.
+
 ## 5.0.1 - 2025.11.14
 - feat
     - Support all in one config file in megfile, default path is `~/.config/megfile/megfile.conf`.
