@@ -92,6 +92,8 @@ def safe_cli():  # pragma: no cover
 
 
 def get_echo_path(file_stat, base_path: str = "", full: bool = False):
+    if base_path.startswith("file://"):
+        base_path = base_path[7:]
     if base_path == file_stat.path:
         path = file_stat.name
     elif full:
@@ -150,6 +152,8 @@ def _sftp_prompt_host_key(path):
 
 def _ls(path: str, long: bool, full: bool, recursive: bool, human_readable: bool):
     base_path = path
+    if path == "file://":
+        path = "./"
     if has_magic(path):
         scan_func = smart_glob_stat
         base_path = get_non_glob_dir(path)
@@ -186,7 +190,7 @@ class PathType(ParamType):
     name = "path"
 
     def shell_complete(self, ctx, param, incomplete):
-        if "://" not in incomplete and not incomplete.startswith("/"):
+        if not incomplete:
             completions = [
                 CompletionItem(f"{protocol}://")
                 for protocol in SmartPath._registered_protocols
@@ -196,6 +200,15 @@ class PathType(ParamType):
                     continue
                 completions.append(CompletionItem(f"s3+{name}://"))
             return completions
+        if incomplete.startswith("file://"):
+            return [
+                CompletionItem(
+                    f"file://{entry.path}/"
+                    if entry.is_dir()
+                    else f"file://{entry.path}"
+                )
+                for entry in islice(smart_glob_stat(incomplete[7:] + "*"), 128)
+            ]
         try:
             return [
                 CompletionItem(f"{entry.path}/" if entry.is_dir() else entry.path)
