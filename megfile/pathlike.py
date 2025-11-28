@@ -565,7 +565,7 @@ class BasePath:
 
     @cached_property
     def anchor(self) -> str:
-        return self.root  # pyre-ignore[7]
+        return self.root
 
     def joinpath(self: Self, *other_paths: "PathLike") -> Self:
         """
@@ -863,7 +863,7 @@ class URIPath(BasePath):
         path = path.lstrip("/")
         if path != "":
             parts.extend(path.split("/"))
-        return tuple(parts)  # pyre-ignore[7]
+        return tuple(parts)
 
     @cached_property
     def parents(self) -> "URIPathParents":
