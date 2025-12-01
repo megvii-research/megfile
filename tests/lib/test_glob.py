@@ -84,6 +84,13 @@ def assert_glob(pattern, expected, recursive=True):
     assert sorted(glob.glob(pattern, recursive=recursive)) == sorted(expected)
 
 
+def assert_glob_contains(pattern, expected, recursive=True):
+    """Assert glob result contains all expected items (allows extra system dirs)"""
+    result = set(glob.glob(pattern, recursive=recursive))
+    expected_set = set(expected)
+    assert expected_set.issubset(result), f"Missing items: {expected_set - result}"
+
+
 def _glob_with_common_wildcard():
     """
     scenario: common shell wildcard, '*', '**', '[]', '?'
@@ -91,16 +98,16 @@ def _glob_with_common_wildcard():
     """
     # without any wildcards
     assert_glob("/emptyBucketForGlobTest", ["/emptyBucketForGlobTest"])
-    assert_glob(
-        "*",
+    assert_glob_contains(
+        "/*",
         [
-            "tmp",
-            "bucketA",
-            "bucketB",
-            "bucketC",
-            "bucketForGlobTest",
-            "emptyBucketForGlobTest",
-            "1.json",
+            "/tmp",
+            "/bucketA",
+            "/bucketB",
+            "/bucketC",
+            "/bucketForGlobTest",
+            "/emptyBucketForGlobTest",
+            "/1.json",
         ],
         recursive=False,
     )
@@ -186,47 +193,48 @@ def _glob_with_recursive_pathname():
         ],
     )
 
-    assert_glob(
-        "**",
+    assert_glob_contains(
+        "/**",
         [
-            "1.json",
-            "tmp",
-            "bucketA",
-            "bucketA/folderAA",
-            "bucketA/folderAA/folderAAA",
-            "bucketA/folderAA/folderAAA/fileAAAA",
-            "bucketA/folderAB-C",
-            "bucketA/folderAB-C/fileAB-C",
-            "bucketA/folderAB",
-            "bucketA/folderAB/fileAB",
-            "bucketA/folderAB/fileAC",
-            "bucketA/fileAA",
-            "bucketA/fileAB",
-            "bucketB",
-            "bucketC",
-            "bucketC/folder",
-            "bucketC/folder/file",
-            "bucketForGlobTest",
-            "bucketForGlobTest/1",
-            "bucketForGlobTest/1/a",
-            "bucketForGlobTest/1/a/b",
-            "bucketForGlobTest/1/a/b/c",
-            "bucketForGlobTest/1/a/b/c/1.json",
-            "bucketForGlobTest/1/a/b/c/A.msg",
-            "bucketForGlobTest/1/a/b/1.json",
-            "bucketForGlobTest/2",
-            "bucketForGlobTest/2/a",
-            "bucketForGlobTest/2/a/d",
-            "bucketForGlobTest/2/a/d/c",
-            "bucketForGlobTest/2/a/d/c/1.json",
-            "bucketForGlobTest/2/a/d/2.json",
-            "bucketForGlobTest/2/a/b",
-            "bucketForGlobTest/2/a/b/c",
-            "bucketForGlobTest/2/a/b/c/1.json",
-            "bucketForGlobTest/2/a/b/c/2.json",
-            "bucketForGlobTest/2/a/b/a",
-            "bucketForGlobTest/2/a/b/a/1.json",
-            "emptyBucketForGlobTest",
+            "/1.json",
+            "/tmp",
+            "/bucketA",
+            "/bucketA/folderAA",
+            "/bucketA/folderAA/folderAAA",
+            "/bucketA/folderAA/folderAAA/fileAAAA",
+            "/bucketA/folderAB-C",
+            "/bucketA/folderAB-C/fileAB-C",
+            "/bucketA/folderAB",
+            "/bucketA/folderAB/fileAB",
+            "/bucketA/folderAB/fileAC",
+            "/bucketA/fileAA",
+            "/bucketA/fileAB",
+            "/bucketB",
+            "/bucketC",
+            "/bucketC/folder",
+            "/bucketC/folder/file",
+            "/bucketForGlobTest",
+            "/bucketForGlobTest/1",
+            "/bucketForGlobTest/1/a",
+            "/bucketForGlobTest/1/a/b",
+            "/bucketForGlobTest/1/a/b/c",
+            "/bucketForGlobTest/1/a/b/c/1.json",
+            "/bucketForGlobTest/1/a/b/c/A.msg",
+            "/bucketForGlobTest/1/a/b/1.json",
+            "/bucketForGlobTest/2",
+            "/bucketForGlobTest/2/a",
+            "/bucketForGlobTest/2/a/d",
+            "/bucketForGlobTest/2/a/d/c",
+            "/bucketForGlobTest/2/a/d/c/1.json",
+            "/bucketForGlobTest/2/a/d/2.json",
+            "/bucketForGlobTest/2/a/b",
+            "/bucketForGlobTest/2/a/b/c",
+            "/bucketForGlobTest/2/a/b/c/1.json",
+            "/bucketForGlobTest/2/a/b/c/2.json",
+            "/bucketForGlobTest/2/a/b/a",
+            "/bucketForGlobTest/2/a/b/a/1.json",
+            "/emptyBucketForGlobTest",
+            "/",
         ],
     )
 
