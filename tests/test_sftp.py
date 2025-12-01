@@ -628,7 +628,8 @@ def test_sftp_unlink(sftp_mocker):
     assert sftp.sftp_exists("sftp://username@host//A/test") is False
     assert sftp.sftp_exists("sftp://username@host//A") is True
 
-    with pytest.raises(IsADirectoryError):
+    # macOS raises PermissionError (EPERM), Linux raises IsADirectoryError (EISDIR)
+    with pytest.raises((IsADirectoryError, PermissionError)):
         sftp.sftp_unlink("sftp://username@host//A")
 
 

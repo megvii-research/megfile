@@ -88,7 +88,7 @@ def test_smart_stat(funcA):
 
 
 @patch.object(SmartPath, "lstat")
-def test_smart_stat(funcA):
+def test_smart_lstat(funcA):
     funcA.return_value = StatResult()
     res = smart.smart_lstat("Test Case")
     assert res == StatResult()
@@ -468,19 +468,19 @@ def test_smart_sync_file(s3_empty_client, fs):
 def test_smart_remove(funcA):
     funcA.return_value = None
 
-    res = smart.smart_remove("False Case", missing_ok=False, followlinks=True)
+    res = smart.smart_remove("False Case", missing_ok=False)
     assert res is None
-    funcA.assert_called_once_with(missing_ok=False, followlinks=True)
+    funcA.assert_called_once_with(missing_ok=False)
 
-    res = smart.smart_remove("True Case", missing_ok=True, followlinks=True)
+    res = smart.smart_remove("True Case", missing_ok=True)
     assert res is None
-    funcA.assert_called_with(missing_ok=True, followlinks=True)
+    funcA.assert_called_with(missing_ok=True)
 
-    res = smart.smart_remove("s3://test", missing_ok=True, followlinks=True)
+    res = smart.smart_remove("s3://test", missing_ok=True)
     assert res is None
 
 
-def test_smart_remove(mocker):
+def test_smart_remove_path(mocker):
     fs_remove = mocker.patch("megfile.fs_path.FSPath.remove")
     smart.smart_remove("/test")
     fs_remove.assert_called_once_with(missing_ok=False)

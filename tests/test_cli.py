@@ -1,4 +1,5 @@
 import os
+import platform
 import signal
 import sys
 import time
@@ -441,6 +442,10 @@ def test_tail2(runner, tmpdir, mocker):
 @pytest.mark.skipif(
     sys.version_info >= (3, 14),
     reason="Skip on Python 3.14 because of python 3.14 on github not stabilize",
+)
+@pytest.mark.skipif(
+    platform.system() == "Darwin",
+    reason="macOS uses spawn for multiprocessing which cannot pickle local functions",
 )
 def test_tail_with_follow(runner, tmpdir, mocker):
     with open(str(tmpdir / "text"), "w") as f:

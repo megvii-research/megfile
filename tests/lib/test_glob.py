@@ -7,64 +7,65 @@ from megfile.lib import fnmatch, glob
 
 File = namedtuple("File", ["path", "body"])
 """
-bucketA/
-|-folderAA/
-  |-folderAAA/
-    |-fileAAAA
-|-folderAB-C/
-  |-fileAB-C
-|-folderAB/
+test/
+|-bucketA/
+  |-folderAA/
+    |-folderAAA/
+      |-fileAAAA
+  |-folderAB-C/
+    |-fileAB-C
+  |-folderAB/
+    |-fileAB
+    |-fileAC
+  |-fileAA
   |-fileAB
-  |-fileAC
-|-fileAA
-|-fileAB
-bucketB/
-bucketC/
-|-folder    （目录）
-    |-file
-
-bucketForGlobTest/ （用于 glob 的测试, 结构较复杂）
-|-1
-    |-a （目录）
-        |-b
-            |-c
-                |-1.json
-                |-A.msg
-        |-1.json
-|-2
-    |-a
-        |-d
-            |-c
-                |-1.json
-            |-2.json
-        |-b
-            |-c
-                |-1.json
-                |-2.json
-            |-a
-                |-1.json
-emptyBucketForGlobTest/
+|-bucketB/
+|-bucketC/
+  |-folder    （目录）
+      |-file
+|-bucketForGlobTest/ （用于 glob 的测试, 结构较复杂）
+  |-1
+      |-a （目录）
+          |-b
+              |-c
+                  |-1.json
+                  |-A.msg
+          |-1.json
+  |-2
+      |-a
+          |-d
+              |-c
+                  |-1.json
+              |-2.json
+          |-b
+              |-c
+                  |-1.json
+                  |-2.json
+              |-a
+                  |-1.json
+|-emptyBucketForGlobTest/
+|-1.json
 """
 
 FILE_LIST = [
-    File("/bucketA/folderAA/folderAAA/fileAAAA", "fileAAAA"),
-    File("/bucketA/folderAB-C/fileAB-C", "fileAB-C"),
-    File("/bucketA/folderAB/fileAB", "fileAB"),
-    File("/bucketA/folderAB/fileAC", "fileAC"),
-    File("/bucketA/fileAA", "fileAA"),
-    File("/bucketA/fileAB", "fileAB"),
-    File("/bucketB", None),  # 空 bucket
-    File("/bucketC/folder/file", "file"),
-    File("/bucketForGlobTest/1/a/b/c/1.json", "1.json"),
-    File("/bucketForGlobTest/1/a/b/1.json", "1.json"),  # for glob(*/a/*/*.json)
-    File("/bucketForGlobTest/1/a/b/c/A.msg", "A.msg"),
-    File("/bucketForGlobTest/2/a/d/c/1.json", "1.json"),
-    File("/bucketForGlobTest/2/a/d/2.json", "2.json"),
-    File("/bucketForGlobTest/2/a/b/c/1.json", "1.json"),
-    File("/bucketForGlobTest/2/a/b/c/2.json", "2.json"),
-    File("/bucketForGlobTest/2/a/b/a/1.json", "1.json"),
-    File("/emptyBucketForGlobTest", None),
-    File("/1.json", "1.json"),
+    File("/test/bucketA/folderAA/folderAAA/fileAAAA", "fileAAAA"),
+    File("/test/bucketA/folderAB-C/fileAB-C", "fileAB-C"),
+    File("/test/bucketA/folderAB/fileAB", "fileAB"),
+    File("/test/bucketA/folderAB/fileAC", "fileAC"),
+    File("/test/bucketA/fileAA", "fileAA"),
+    File("/test/bucketA/fileAB", "fileAB"),
+    File("/test/bucketB", None),  # 空 bucket
+    File("/test/bucketC/folder/file", "file"),
+    File("/test/bucketForGlobTest/1/a/b/c/1.json", "1.json"),
+    File("/test/bucketForGlobTest/1/a/b/1.json", "1.json"),  # for glob(*/a/*/*.json)
+    File("/test/bucketForGlobTest/1/a/b/c/A.msg", "A.msg"),
+    File("/test/bucketForGlobTest/2/a/d/c/1.json", "1.json"),
+    File("/test/bucketForGlobTest/2/a/d/2.json", "2.json"),
+    File("/test/bucketForGlobTest/2/a/b/c/1.json", "1.json"),
+    File("/test/bucketForGlobTest/2/a/b/c/2.json", "2.json"),
+    File("/test/bucketForGlobTest/2/a/b/a/1.json", "1.json"),
+    File("/test/emptyBucketForGlobTest", None),
+    File("/test/1.json", "1.json"),
 ]
 
 
@@ -90,41 +91,45 @@ def _glob_with_common_wildcard():
     expectation: return matched pathnames in lexicographical order
     """
     # without any wildcards
-    assert_glob("/emptyBucketForGlobTest", ["/emptyBucketForGlobTest"])
+    assert_glob("/test/emptyBucketForGlobTest", ["/test/emptyBucketForGlobTest"])
     assert_glob(
-        "*",
+        "/test/*",
         [
-            "tmp",
-            "bucketA",
-            "bucketB",
-            "bucketC",
-            "bucketForGlobTest",
-            "emptyBucketForGlobTest",
-            "1.json",
+            "/test/bucketA",
+            "/test/bucketB",
+            "/test/bucketC",
+            "/test/bucketForGlobTest",
+            "/test/emptyBucketForGlobTest",
+            "/test/1.json",
         ],
         recursive=False,
     )
-    assert_glob("/emptyBucketForGlobTest/", ["/emptyBucketForGlobTest/"])
-    assert_glob("/bucketForGlobTest/1", ["/bucketForGlobTest/1"])
-    assert_glob("/bucketForGlobTest/1/", ["/bucketForGlobTest/1/"])
-    assert_glob("/bucketForGlobTest/1/a", ["/bucketForGlobTest/1/a"])
-    assert_glob("/bucketForGlobTest/2/a/d/2.json", ["/bucketForGlobTest/2/a/d/2.json"])
-
-    # '*', all files and folders
-    assert_glob("/emptyBucketForGlobTest/*", [])
+    assert_glob("/test/emptyBucketForGlobTest/", ["/test/emptyBucketForGlobTest/"])
+    assert_glob("/test/bucketForGlobTest/1", ["/test/bucketForGlobTest/1"])
+    assert_glob("/test/bucketForGlobTest/1/", ["/test/bucketForGlobTest/1/"])
+    assert_glob("/test/bucketForGlobTest/1/a", ["/test/bucketForGlobTest/1/a"])
     assert_glob(
-        "/bucketForGlobTest/*", ["/bucketForGlobTest/1", "/bucketForGlobTest/2"]
+        "/test/bucketForGlobTest/2/a/d/2.json",
+        ["/test/bucketForGlobTest/2/a/d/2.json"],
+    )
+    # '*', all files and folders
+    assert_glob("/test/emptyBucketForGlobTest/*", [])
+    assert_glob(
+        "/test/bucketForGlobTest/*",
+        ["/test/bucketForGlobTest/1", "/test/bucketForGlobTest/2"],
     )
 
     # all files under all direct subfolders
     assert_glob(
-        "/bucketForGlobTest/*/*", ["/bucketForGlobTest/1/a", "/bucketForGlobTest/2/a"]
+        "/test/bucketForGlobTest/*/*",
+        ["/test/bucketForGlobTest/1/a", "/test/bucketForGlobTest/2/a"],
     )
 
     # combination of '?' and []
-    assert_glob("/bucketForGlobTest/[2-3]/**/*?msg", [])
+    assert_glob("/test/bucketForGlobTest/[2-3]/**/*?msg", [])
     assert_glob(
-        "/bucketForGlobTest/[13]/**/*?msg", ["/bucketForGlobTest/1/a/b/c/A.msg"]
+        "/test/bucketForGlobTest/[13]/**/*?msg",
+        ["/test/bucketForGlobTest/1/a/b/c/A.msg"],
     )
 
 
@@ -136,97 +141,97 @@ def _glob_with_recursive_pathname():
     """
     # recursive all files and folders
     assert_glob(
-        "/bucketForGlobTest/**",
+        "/test/bucketForGlobTest/**",
         [
-            "/bucketForGlobTest/",
-            "/bucketForGlobTest/1",
-            "/bucketForGlobTest/1/a",
-            "/bucketForGlobTest/1/a/b",
-            "/bucketForGlobTest/1/a/b/1.json",
-            "/bucketForGlobTest/1/a/b/c",
-            "/bucketForGlobTest/1/a/b/c/1.json",
-            "/bucketForGlobTest/1/a/b/c/A.msg",
-            "/bucketForGlobTest/2",
-            "/bucketForGlobTest/2/a",
-            "/bucketForGlobTest/2/a/b",
-            "/bucketForGlobTest/2/a/b/a",
-            "/bucketForGlobTest/2/a/b/a/1.json",
-            "/bucketForGlobTest/2/a/b/c",
-            "/bucketForGlobTest/2/a/b/c/1.json",
-            "/bucketForGlobTest/2/a/b/c/2.json",
-            "/bucketForGlobTest/2/a/d",
-            "/bucketForGlobTest/2/a/d/2.json",
-            "/bucketForGlobTest/2/a/d/c/1.json",
-            "/bucketForGlobTest/2/a/d/c",
+            "/test/bucketForGlobTest/",
+            "/test/bucketForGlobTest/1",
+            "/test/bucketForGlobTest/1/a",
+            "/test/bucketForGlobTest/1/a/b",
+            "/test/bucketForGlobTest/1/a/b/1.json",
+            "/test/bucketForGlobTest/1/a/b/c",
+            "/test/bucketForGlobTest/1/a/b/c/1.json",
+            "/test/bucketForGlobTest/1/a/b/c/A.msg",
+            "/test/bucketForGlobTest/2",
+            "/test/bucketForGlobTest/2/a",
+            "/test/bucketForGlobTest/2/a/b",
+            "/test/bucketForGlobTest/2/a/b/a",
+            "/test/bucketForGlobTest/2/a/b/a/1.json",
+            "/test/bucketForGlobTest/2/a/b/c",
+            "/test/bucketForGlobTest/2/a/b/c/1.json",
+            "/test/bucketForGlobTest/2/a/b/c/2.json",
+            "/test/bucketForGlobTest/2/a/d",
+            "/test/bucketForGlobTest/2/a/d/2.json",
+            "/test/bucketForGlobTest/2/a/d/c/1.json",
+            "/test/bucketForGlobTest/2/a/d/c",
         ],
     )
 
     assert_glob(
-        "/bucketForGlobTest/**/*",
+        "/test/bucketForGlobTest/**/*",
         [
-            "/bucketForGlobTest/1",
-            "/bucketForGlobTest/1/a",
-            "/bucketForGlobTest/1/a/b",
-            "/bucketForGlobTest/1/a/b/1.json",
-            "/bucketForGlobTest/1/a/b/c",
-            "/bucketForGlobTest/1/a/b/c/1.json",
-            "/bucketForGlobTest/1/a/b/c/A.msg",
-            "/bucketForGlobTest/2",
-            "/bucketForGlobTest/2/a",
-            "/bucketForGlobTest/2/a/b",
-            "/bucketForGlobTest/2/a/b/a",
-            "/bucketForGlobTest/2/a/b/a/1.json",
-            "/bucketForGlobTest/2/a/b/c",
-            "/bucketForGlobTest/2/a/b/c/1.json",
-            "/bucketForGlobTest/2/a/b/c/2.json",
-            "/bucketForGlobTest/2/a/d",
-            "/bucketForGlobTest/2/a/d/2.json",
-            "/bucketForGlobTest/2/a/d/c/1.json",
-            "/bucketForGlobTest/2/a/d/c",
+            "/test/bucketForGlobTest/1",
+            "/test/bucketForGlobTest/1/a",
+            "/test/bucketForGlobTest/1/a/b",
+            "/test/bucketForGlobTest/1/a/b/1.json",
+            "/test/bucketForGlobTest/1/a/b/c",
+            "/test/bucketForGlobTest/1/a/b/c/1.json",
+            "/test/bucketForGlobTest/1/a/b/c/A.msg",
+            "/test/bucketForGlobTest/2",
+            "/test/bucketForGlobTest/2/a",
+            "/test/bucketForGlobTest/2/a/b",
+            "/test/bucketForGlobTest/2/a/b/a",
+            "/test/bucketForGlobTest/2/a/b/a/1.json",
+            "/test/bucketForGlobTest/2/a/b/c",
+            "/test/bucketForGlobTest/2/a/b/c/1.json",
+            "/test/bucketForGlobTest/2/a/b/c/2.json",
+            "/test/bucketForGlobTest/2/a/d",
+            "/test/bucketForGlobTest/2/a/d/2.json",
+            "/test/bucketForGlobTest/2/a/d/c/1.json",
+            "/test/bucketForGlobTest/2/a/d/c",
         ],
     )
 
     assert_glob(
-        "**",
+        "/test/**",
         [
-            "1.json",
-            "tmp",
-            "bucketA",
-            "bucketA/folderAA",
-            "bucketA/folderAA/folderAAA",
-            "bucketA/folderAA/folderAAA/fileAAAA",
-            "bucketA/folderAB-C",
-            "bucketA/folderAB-C/fileAB-C",
-            "bucketA/folderAB",
-            "bucketA/folderAB/fileAB",
-            "bucketA/folderAB/fileAC",
-            "bucketA/fileAA",
-            "bucketA/fileAB",
-            "bucketB",
-            "bucketC",
-            "bucketC/folder",
-            "bucketC/folder/file",
-            "bucketForGlobTest",
-            "bucketForGlobTest/1",
-            "bucketForGlobTest/1/a",
-            "bucketForGlobTest/1/a/b",
-            "bucketForGlobTest/1/a/b/c",
-            "bucketForGlobTest/1/a/b/c/1.json",
-            "bucketForGlobTest/1/a/b/c/A.msg",
-            "bucketForGlobTest/1/a/b/1.json",
-            "bucketForGlobTest/2",
-            "bucketForGlobTest/2/a",
-            "bucketForGlobTest/2/a/d",
-            "bucketForGlobTest/2/a/d/c",
-            "bucketForGlobTest/2/a/d/c/1.json",
-            "bucketForGlobTest/2/a/d/2.json",
-            "bucketForGlobTest/2/a/b",
-            "bucketForGlobTest/2/a/b/c",
-            "bucketForGlobTest/2/a/b/c/1.json",
-            "bucketForGlobTest/2/a/b/c/2.json",
-            "bucketForGlobTest/2/a/b/a",
-            "bucketForGlobTest/2/a/b/a/1.json",
-            "emptyBucketForGlobTest",
+            "/test/1.json",
+            "/test/bucketA",
+            "/test/bucketA/folderAA",
+            "/test/bucketA/folderAA/folderAAA",
+            "/test/bucketA/folderAA/folderAAA/fileAAAA",
+            "/test/bucketA/folderAB-C",
+            "/test/bucketA/folderAB-C/fileAB-C",
+            "/test/bucketA/folderAB",
+            "/test/bucketA/folderAB/fileAB",
+            "/test/bucketA/folderAB/fileAC",
+            "/test/bucketA/fileAA",
+            "/test/bucketA/fileAB",
+            "/test/bucketB",
+            "/test/bucketC",
+            "/test/bucketC/folder",
+            "/test/bucketC/folder/file",
+            "/test/bucketForGlobTest",
+            "/test/bucketForGlobTest/1",
+            "/test/bucketForGlobTest/1/a",
+            "/test/bucketForGlobTest/1/a/b",
+            "/test/bucketForGlobTest/1/a/b/c",
+            "/test/bucketForGlobTest/1/a/b/c/1.json",
+            "/test/bucketForGlobTest/1/a/b/c/A.msg",
+            "/test/bucketForGlobTest/1/a/b/1.json",
+            "/test/bucketForGlobTest/2",
+            "/test/bucketForGlobTest/2/a",
+            "/test/bucketForGlobTest/2/a/d",
+            "/test/bucketForGlobTest/2/a/d/c",
+            "/test/bucketForGlobTest/2/a/d/c/1.json",
+            "/test/bucketForGlobTest/2/a/d/2.json",
+            "/test/bucketForGlobTest/2/a/b",
+            "/test/bucketForGlobTest/2/a/b/c",
+            "/test/bucketForGlobTest/2/a/b/c/1.json",
+            "/test/bucketForGlobTest/2/a/b/c/2.json",
+            "/test/bucketForGlobTest/2/a/b/a",
+            "/test/bucketForGlobTest/2/a/b/a/1.json",
+            "/test/emptyBucketForGlobTest",
+            "/test/",
         ],
     )
 
@@ -238,10 +243,10 @@ def _glob_with_same_file_and_folder():
     """
     # same name and folder
     assert_glob(
-        "/bucketForGlobTest/1/*",
+        "/test/bucketForGlobTest/1/*",
         [
             # 1 file name 'a' and 1 actual folder
-            "/bucketForGlobTest/1/a"
+            "/test/bucketForGlobTest/1/a"
         ],
     )
 
@@ -252,27 +257,30 @@ def _glob_with_nested_pathname():
     expectation: work correctly as standard glob module
     """
     # nested
-    # non-recursive, actually: /bucketForGlobTest/*/a/*/*.jso?
+    # non-recursive, actually: /test/bucketForGlobTest/*/a/*/*.jso?
     assert_glob(
-        "/bucketForGlobTest/**/a/**/*.jso?",
-        ["/bucketForGlobTest/2/a/d/2.json", "/bucketForGlobTest/1/a/b/1.json"],
+        "/test/bucketForGlobTest/**/a/**/*.jso?",
+        [
+            "/test/bucketForGlobTest/2/a/d/2.json",
+            "/test/bucketForGlobTest/1/a/b/1.json",
+        ],
         recursive=False,
     )
 
     # recursive
-    # /bucketForGlobTest/2/a/b/a/1.json is returned 2 times
-    # without set, otherwise, '/bucketForGlobTest/2/a/b/a/1.json' would be duplicated
+    # /test/bucketForGlobTest/2/a/b/a/1.json is returned 2 times
+    # without set, otherwise, would be duplicated
     assert_glob(
-        "/bucketForGlobTest/**/a/**/*.jso?",
+        "/test/bucketForGlobTest/**/a/**/*.jso?",
         [
-            "/bucketForGlobTest/1/a/b/1.json",
-            "/bucketForGlobTest/1/a/b/c/1.json",
-            "/bucketForGlobTest/2/a/b/a/1.json",  # first time
-            "/bucketForGlobTest/2/a/b/a/1.json",  # second time
-            "/bucketForGlobTest/2/a/b/c/1.json",
-            "/bucketForGlobTest/2/a/b/c/2.json",
-            "/bucketForGlobTest/2/a/d/2.json",
-            "/bucketForGlobTest/2/a/d/c/1.json",
+            "/test/bucketForGlobTest/1/a/b/1.json",
+            "/test/bucketForGlobTest/1/a/b/c/1.json",
+            "/test/bucketForGlobTest/2/a/b/a/1.json",  # first time
+            "/test/bucketForGlobTest/2/a/b/a/1.json",  # second time
+            "/test/bucketForGlobTest/2/a/b/c/1.json",
+            "/test/bucketForGlobTest/2/a/b/c/2.json",
+            "/test/bucketForGlobTest/2/a/d/2.json",
+            "/test/bucketForGlobTest/2/a/d/c/1.json",
         ],
     )
 
@@ -285,17 +293,17 @@ def _glob_with_not_exists_dir():
     keep identical result with standard glob module
     """
 
-    assert_glob("/bucketForGlobTest/notExists/not_exists_file", [])
-    assert_glob("/bucketForGlobTest/notExists/not_exists_dir/", [])
+    assert_glob("/test/bucketForGlobTest/notExists/not_exists_file", [])
+    assert_glob("/test/bucketForGlobTest/notExists/not_exists_dir/", [])
 
     # not exists path
-    assert_glob("/notExistsBucket/**", [])
+    assert_glob("/test/notExistsBucket/**", [])
 
-    assert_glob("/bucketA/notExists/**", [])
+    assert_glob("/test/bucketA/notExists/**", [])
 
-    assert_glob("/notExistsBucket/**", [])
+    assert_glob("/test/notExistsBucket/**", [])
 
-    assert_glob("/bucketForGlobTest/notExists/**", [])
+    assert_glob("/test/bucketForGlobTest/notExists/**", [])
 
 
 def _glob_with_dironly():
@@ -305,21 +313,22 @@ def _glob_with_dironly():
         each of them is end with '/'
     """
     assert_glob(
-        "/bucketForGlobTest/*/", ["/bucketForGlobTest/1/", "/bucketForGlobTest/2/"]
+        "/test/bucketForGlobTest/*/",
+        ["/test/bucketForGlobTest/1/", "/test/bucketForGlobTest/2/"],
     )
 
-    assert_glob("/bucketForGlobTest/[2-9]/", ["/bucketForGlobTest/2/"])
+    assert_glob("/test/bucketForGlobTest/[2-9]/", ["/test/bucketForGlobTest/2/"])
 
     # all sub-directories of 2, recursively
     assert_glob(
-        "/bucketForGlobTest/2/**/*/",
+        "/test/bucketForGlobTest/2/**/*/",
         [
-            "/bucketForGlobTest/2/a/",
-            "/bucketForGlobTest/2/a/b/",
-            "/bucketForGlobTest/2/a/b/a/",
-            "/bucketForGlobTest/2/a/b/c/",
-            "/bucketForGlobTest/2/a/d/",
-            "/bucketForGlobTest/2/a/d/c/",
+            "/test/bucketForGlobTest/2/a/",
+            "/test/bucketForGlobTest/2/a/b/",
+            "/test/bucketForGlobTest/2/a/b/a/",
+            "/test/bucketForGlobTest/2/a/b/c/",
+            "/test/bucketForGlobTest/2/a/d/",
+            "/test/bucketForGlobTest/2/a/d/c/",
         ],
     )
 
@@ -330,17 +339,21 @@ def _glob_with_curly():
     expectation: returns only contains pathname of files
     """
     assert_glob(
-        "/bucketForGlobTest/{1,2}/", ["/bucketForGlobTest/1/", "/bucketForGlobTest/2/"]
+        "/test/bucketForGlobTest/{1,2}/",
+        ["/test/bucketForGlobTest/1/", "/test/bucketForGlobTest/2/"],
     )
 
-    assert_glob("/bucketForGlobTest/{[2-4],[4-9]}/", ["/bucketForGlobTest/2/"])
+    assert_glob(
+        "/test/bucketForGlobTest/{[2-4],[4-9]}/",
+        ["/test/bucketForGlobTest/2/"],
+    )
 
     assert_glob(
-        "/bucketForGlobTest/1/**/*.{json,msg}",
+        "/test/bucketForGlobTest/1/**/*.{json,msg}",
         [
-            "/bucketForGlobTest/1/a/b/1.json",
-            "/bucketForGlobTest/1/a/b/c/1.json",
-            "/bucketForGlobTest/1/a/b/c/A.msg",
+            "/test/bucketForGlobTest/1/a/b/1.json",
+            "/test/bucketForGlobTest/1/a/b/c/1.json",
+            "/test/bucketForGlobTest/1/a/b/c/A.msg",
         ],
     )
 
