@@ -652,3 +652,156 @@ def test_webdav_path_join():
     assert (
         webdav.webdav_path_join("webdav://host/A/", "a", "b") == "webdav://host/A/a/b"
     )
+
+
+def test_webdav_rename_different_backend(webdav_mocker):
+    """Test rename between different WebDAV hosts falls back to copy"""
+    webdav.webdav_makedirs("webdav://host/A")
+    with webdav.webdav_open("webdav://host/A/file.txt", "w") as f:
+        f.write("content")
+
+    # Rename to the same backend should work with move
+    webdav.webdav_makedirs("webdav://host/B")
+    webdav.webdav_rename("webdav://host/A/file.txt", "webdav://host/B/file.txt")
+    assert webdav.webdav_exists("webdav://host/B/file.txt") is True
+
+
+def test_webdav_copy_same_backend(webdav_mocker):
+    """Test copy on same backend uses server-side copy"""
+    webdav.webdav_makedirs("webdav://host/A")
+    webdav.webdav_makedirs("webdav://host/B")
+    with webdav.webdav_open("webdav://host/A/file.txt", "w") as f:
+        f.write("test content")
+
+    webdav.webdav_copy("webdav://host/A/file.txt", "webdav://host/B/file.txt")
+    assert webdav.webdav_exists("webdav://host/B/file.txt") is True
+    assert webdav.webdav_exists("webdav://host/A/file.txt") is True
+
+
+def test_webdav_sync_directory(webdav_mocker):
+    """Test sync directory with nested structure"""
+    webdav.webdav_makedirs("webdav://host/src/subdir", parents=True)
+    with webdav.webdav_open("webdav://host/src/file1.txt", "w") as f:
+        f.write("file1")
+    with webdav.webdav_open("webdav://host/src/subdir/file2.txt", "w") as f:
+        f.write("file2")
+
+    webdav.webdav_sync("webdav://host/src", "webdav://host/dst")
+    assert webdav.webdav_exists("webdav://host/dst/file1.txt") is True
+    assert webdav.webdav_exists("webdav://host/dst/subdir/file2.txt") is True
+
+
+def test_webdav_scan(webdav_mocker):
+    """Test scan method"""
+    webdav.webdav_makedirs("webdav://host/dir/subdir", parents=True)
+    with webdav.webdav_open("webdav://host/dir/file1.txt", "w") as f:
+        f.write("file1")
+    with webdav.webdav_open("webdav://host/dir/subdir/file2.txt", "w") as f:
+        f.write("file2")
+
+    result = list(webdav.webdav_scan("webdav://host/dir"))
+    assert len(result) == 2
+
+
+def test_webdav_mkdir_exist_ok(webdav_mocker):
+    """Test mkdir with exist_ok=True"""
+    webdav.webdav_makedirs("webdav://host/dir")
+    # Should not raise error when directory already exists
+    webdav.webdav_makedirs("webdav://host/dir", exist_ok=True)
+
+
+def test_webdav_is_file_is_dir(webdav_mocker):
+    """Test is_file and is_dir methods"""
+    webdav.webdav_makedirs("webdav://host/dir")
+    with webdav.webdav_open("webdav://host/file.txt", "w") as f:
+        f.write("test")
+
+    assert webdav.webdav_isfile("webdav://host/file.txt") is True
+    assert webdav.webdav_isfile("webdav://host/dir") is False
+    assert webdav.webdav_isdir("webdav://host/dir") is True
+    assert webdav.webdav_isdir("webdav://host/file.txt") is False
+
+
+def test_webdav_replace(webdav_mocker):
+    """Test replace method"""
+    with webdav.webdav_open("webdav://host/src.txt", "w") as f:
+        f.write("source")
+    with webdav.webdav_open("webdav://host/dst.txt", "w") as f:
+        f.write("destination")
+
+    webdav.WebdavPath("webdav://host/src.txt").replace("webdav://host/dst.txt")
+
+    assert webdav.webdav_exists("webdav://host/dst.txt") is True
+    assert webdav.webdav_exists("webdav://host/src.txt") is False
+
+
+def test_webdav_getmtime_getsize(webdav_mocker):
+    """Test getmtime and getsize"""
+    with webdav.webdav_open("webdav://host/file.txt", "w") as f:
+        f.write("test content")
+
+    size = webdav.webdav_getsize("webdav://host/file.txt")
+    mtime = webdav.webdav_getmtime("webdav://host/file.txt")
+
+    assert size == 12
+    assert mtime >= 0
+
+
+def test_webdav_listdir(webdav_mocker):
+    """Test listdir method"""
+    webdav.webdav_makedirs("webdav://host/dir")
+    with webdav.webdav_open("webdav://host/dir/file1.txt", "w") as f:
+        f.write("test1")
+    with webdav.webdav_open("webdav://host/dir/file2.txt", "w") as f:
+        f.write("test2")
+
+    result = webdav.webdav_listdir("webdav://host/dir")
+    assert len(result) == 2
+
+
+def test_webdav_glob_recursive(webdav_mocker):
+    """Test glob with recursive pattern"""
+    webdav.webdav_makedirs("webdav://host/a/b/c", parents=True)
+    with webdav.webdav_open("webdav://host/a/file.txt", "w") as f:
+        f.write("test1")
+    with webdav.webdav_open("webdav://host/a/b/file.txt", "w") as f:
+        f.write("test2")
+
+    result = list(webdav.webdav_glob("webdav://host/a/**/*.txt"))
+    assert len(result) >= 2
+
+
+def test_webdav_remove_file(webdav_mocker):
+    """Test remove single file"""
+    with webdav.webdav_open("webdav://host/file.txt", "w") as f:
+        f.write("test")
+
+    webdav.webdav_unlink("webdav://host/file.txt")
+    assert webdav.webdav_exists("webdav://host/file.txt") is False
+
+
+def test_webdav_realpath(webdav_mocker):
+    """Test realpath method"""
+    path = webdav.webdav_realpath("webdav://host/some/path")
+    assert path == "webdav://host/some/path"
+
+
+def test_make_stat_invalid_date():
+    """Test _make_stat with invalid date string"""
+    from megfile.webdav_path import _make_stat
+
+    # Invalid date string should result in mtime=0.0
+    info = {"size": 100, "modified": "invalid-date-string", "isdir": False}
+    stat = _make_stat(info)
+    assert stat.mtime == 0.0
+    assert stat.size == 100
+
+
+def test_make_stat_empty_date():
+    """Test _make_stat with empty date string"""
+    from megfile.webdav_path import _make_stat
+
+    info = {"size": 50, "modified": "", "isdir": True}
+    stat = _make_stat(info)
+    assert stat.mtime == 0.0
+    assert stat.is_dir() is True

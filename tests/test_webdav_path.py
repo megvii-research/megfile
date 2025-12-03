@@ -3,9 +3,11 @@ import os
 
 import pytest
 
+from megfile.errors import SameFileError
 from megfile.webdav_path import (
     WEBDAV_PASSWORD,
     WEBDAV_TOKEN,
+    WEBDAV_TOKEN_COMMAND,
     WEBDAV_USERNAME,
     WebdavPath,
     provide_connect_info,
@@ -375,3 +377,279 @@ def test_load_and_save(webdav_mocker):
     # Load
     loaded = WebdavPath("webdav://host/file.bin").load()
     assert loaded.read() == data
+
+
+def test_provide_connect_info_with_token_command(fs, mocker):
+    """Test provide_connect_info with token command"""
+    hostname = "http://test_hostname"
+    token_command = "echo test_token"
+
+    os.environ[WEBDAV_TOKEN_COMMAND] = token_command
+
+    options = provide_connect_info(hostname)
+    assert options["webdav_hostname"] == hostname
+    assert "webdav_token_command" in options
+    assert options["webdav_token_command"] == token_command
+
+    # Clean up
+    del os.environ[WEBDAV_TOKEN_COMMAND]
+
+
+def test_open_x_mode_file_exists(webdav_mocker):
+    """Test open with 'x' mode raises error when file exists"""
+    with webdav.webdav_open("webdav://host/file.txt", "w") as f:
+        f.write("existing content")
+
+    with pytest.raises(FileExistsError):
+        webdav.webdav_open("webdav://host/file.txt", "x")
+
+
+def test_rename_to_non_webdav_raises_error(webdav_mocker):
+    """Test rename to non-WebDAV path raises error"""
+    webdav.webdav_makedirs("webdav://host/A")
+    with webdav.webdav_open("webdav://host/A/file.txt", "w") as f:
+        f.write("test")
+
+    with pytest.raises(OSError, match="Not a webdav path"):
+        WebdavPath("webdav://host/A/file.txt").rename("/local/path")
+
+
+def test_copy_to_same_file_raises_error(webdav_mocker):
+    """Test copy to same file raises SameFileError"""
+    webdav.webdav_makedirs("webdav://host/A")
+    with webdav.webdav_open("webdav://host/A/file.txt", "w") as f:
+        f.write("test")
+
+    with pytest.raises(SameFileError):
+        WebdavPath("webdav://host/A/file.txt").copy("webdav://host/A/file.txt")
+
+
+def test_copy_directory_raises_error(webdav_mocker):
+    """Test copy on directory raises error"""
+    webdav.webdav_makedirs("webdav://host/A")
+
+    with pytest.raises(IsADirectoryError):
+        WebdavPath("webdav://host/A").copy("webdav://host/B")
+
+
+def test_copy_to_directory_path_raises_error(webdav_mocker):
+    """Test copy to directory path (ending with /) raises error"""
+    with webdav.webdav_open("webdav://host/file.txt", "w") as f:
+        f.write("test")
+
+    with pytest.raises(IsADirectoryError):
+        WebdavPath("webdav://host/file.txt").copy("webdav://host/A/")
+
+
+def test_copy_to_non_webdav_raises_error(webdav_mocker):
+    """Test copy to non-WebDAV path raises error"""
+    with webdav.webdav_open("webdav://host/file.txt", "w") as f:
+        f.write("test")
+
+    with pytest.raises(OSError, match="Not a webdav path"):
+        WebdavPath("webdav://host/file.txt").copy("/local/path")
+
+
+def test_copy_no_overwrite(webdav_mocker):
+    """Test copy with overwrite=False doesn't overwrite existing file"""
+    with webdav.webdav_open("webdav://host/src.txt", "w") as f:
+        f.write("source")
+
+    with webdav.webdav_open("webdav://host/dst.txt", "w") as f:
+        f.write("destination")
+
+    WebdavPath("webdav://host/src.txt").copy("webdav://host/dst.txt", overwrite=False)
+
+    # Original file should remain unchanged
+    with webdav.webdav_open("webdav://host/dst.txt", "r") as f:
+        assert f.read() == "destination"
+
+
+def test_sync_to_non_webdav_raises_error(webdav_mocker):
+    """Test sync to non-WebDAV path raises error"""
+    webdav.webdav_makedirs("webdav://host/A")
+
+    with pytest.raises(OSError, match="Not a webdav path"):
+        WebdavPath("webdav://host/A").sync("/local/path")
+
+
+def test_sync_with_force(webdav_mocker):
+    """Test sync with force=True overwrites files"""
+    with webdav.webdav_open("webdav://host/src.txt", "w") as f:
+        f.write("source")
+
+    with webdav.webdav_open("webdav://host/dst.txt", "w") as f:
+        f.write("destination")
+
+    WebdavPath("webdav://host/src.txt").sync("webdav://host/dst.txt", force=True)
+
+    with webdav.webdav_open("webdav://host/dst.txt", "r") as f:
+        assert f.read() == "source"
+
+
+def test_remove_missing_ok_true(webdav_mocker):
+    """Test remove with missing_ok=True doesn't raise for non-existent file"""
+    # Should not raise
+    WebdavPath("webdav://host/nonexistent").remove(missing_ok=True)
+
+
+def test_remove_missing_ok_false(webdav_mocker):
+    """Test remove with missing_ok=False raises for non-existent file"""
+    with pytest.raises(FileNotFoundError):
+        WebdavPath("webdav://host/nonexistent").remove(missing_ok=False)
+
+
+def test_unlink_missing_ok_false(webdav_mocker):
+    """Test unlink with missing_ok=False raises for non-existent file"""
+    with pytest.raises(FileNotFoundError):
+        WebdavPath("webdav://host/nonexistent").unlink(missing_ok=False)
+
+
+def test_scan_stat_missing_ok(webdav_mocker):
+    """Test scan_stat with missing_ok=False raises for non-existent directory"""
+    with pytest.raises(FileNotFoundError):
+        list(WebdavPath("webdav://host/nonexistent").scan_stat(missing_ok=False))
+
+
+def test_scandir_on_file_raises_error(webdav_mocker):
+    """Test scandir on file raises NotADirectoryError"""
+    with webdav.webdav_open("webdav://host/file.txt", "w") as f:
+        f.write("test")
+
+    with pytest.raises(NotADirectoryError):
+        list(WebdavPath("webdav://host/file.txt").scandir())
+
+
+def test_scandir_on_nonexistent_raises_error(webdav_mocker):
+    """Test scandir on non-existent path raises FileNotFoundError"""
+    with pytest.raises(FileNotFoundError):
+        list(WebdavPath("webdav://host/nonexistent").scandir())
+
+
+def test_rename_directory(webdav_mocker):
+    """Test rename on directory"""
+    webdav.webdav_makedirs("webdav://host/A")
+    with webdav.webdav_open("webdav://host/A/file.txt", "w") as f:
+        f.write("test")
+
+    WebdavPath("webdav://host/A").rename("webdav://host/B")
+
+    assert not WebdavPath("webdav://host/A").exists()
+    assert WebdavPath("webdav://host/B").exists()
+    assert WebdavPath("webdav://host/B/file.txt").exists()
+
+
+def test_generate_path_object(webdav_mocker):
+    """Test _generate_path_object method"""
+    path = WebdavPath("webdav://host/A/B/C")
+
+    result = path._generate_path_object("/root/D/E")
+    assert isinstance(result, WebdavPath)
+    assert result.path_with_protocol == "webdav://host/root/D/E"
+
+    # Test with relative path
+    result = path._generate_path_object("relative/path")
+    assert result.path_with_protocol == "webdav://host/relative/path"
+
+
+def test_is_same_backend(webdav_mocker):
+    """Test _is_same_backend method"""
+    path1 = WebdavPath("webdav://user:pass@host1:8080/path")
+    path2 = WebdavPath("webdav://user:pass@host1:8080/other")
+    path3 = WebdavPath("webdav://user:pass@host2:8080/path")
+
+    assert path1._is_same_backend(path2) is True
+    assert path1._is_same_backend(path3) is False
+
+
+def test_iterdir_on_file(webdav_mocker):
+    """Test iterdir raises error on file"""
+    with webdav.webdav_open("webdav://host/file.txt", "w") as f:
+        f.write("test")
+
+    with pytest.raises(NotADirectoryError):
+        list(WebdavPath("webdav://host/file.txt").iterdir())
+
+
+def test_open_directory_raises_error(webdav_mocker):
+    """Test open on directory raises error"""
+    webdav.webdav_makedirs("webdav://host/A")
+
+    with pytest.raises(IsADirectoryError):
+        webdav.webdav_open("webdav://host/A", "w")
+
+
+def test_open_nonexistent_for_read_raises_error(webdav_mocker):
+    """Test open non-existent file for read raises error"""
+    with pytest.raises(FileNotFoundError):
+        webdav.webdav_open("webdav://host/nonexistent", "r")
+
+
+def test_walk_on_nonexistent(webdav_mocker):
+    """Test walk on non-existent path returns nothing"""
+    result = list(WebdavPath("webdav://host/nonexistent").walk())
+    assert len(result) == 0
+
+
+def test_walk_on_file(webdav_mocker):
+    """Test walk on file returns nothing"""
+    with webdav.webdav_open("webdav://host/file.txt", "w") as f:
+        f.write("test")
+
+    result = list(WebdavPath("webdav://host/file.txt").walk())
+    assert len(result) == 0
+
+
+def test_webdav_touch(webdav_mocker):
+    """Test touch creates new file or updates timestamp"""
+    path = WebdavPath("webdav://host/newfile.txt")
+
+    # Touch non-existent file creates it
+    path.touch()
+    assert path.exists() is True
+
+
+def test_webdav_write_text(webdav_mocker):
+    """Test write_text method"""
+    path = WebdavPath("webdav://host/text.txt")
+    path.write_text("Hello World")
+
+    with webdav.webdav_open("webdav://host/text.txt", "r") as f:
+        assert f.read() == "Hello World"
+
+
+def test_webdav_read_text(webdav_mocker):
+    """Test read_text method"""
+    with webdav.webdav_open("webdav://host/text.txt", "w") as f:
+        f.write("Hello World")
+
+    path = WebdavPath("webdav://host/text.txt")
+    assert path.read_text() == "Hello World"
+
+
+def test_webdav_save_load(webdav_mocker):
+    """Test save and load methods"""
+    import io
+
+    data = b"binary data"
+    path = WebdavPath("webdav://host/binary.dat")
+
+    # save() expects a file-like object, not bytes
+    path.save(io.BytesIO(data))
+    loaded = path.load()
+    # load() returns a file-like object, read it
+    assert loaded.read() == data
+
+
+def test_webdav_walk_with_directories(webdav_mocker):
+    """Test walk returns directories structure correctly"""
+    webdav.webdav_makedirs("webdav://host/root/dir1/subdir", parents=True)
+    webdav.webdav_makedirs("webdav://host/root/dir2", parents=True)
+    with webdav.webdav_open("webdav://host/root/file.txt", "w") as f:
+        f.write("test")
+    with webdav.webdav_open("webdav://host/root/dir1/subdir/file.txt", "w") as f:
+        f.write("test")
+
+    results = list(WebdavPath("webdav://host/root").walk())
+    # Should have at least 3 entries (root, dir1, dir1/subdir, dir2)
+    assert len(results) >= 3

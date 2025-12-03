@@ -1,10 +1,13 @@
 import io
 import os
+import socket
 
 import pytest
 
 from megfile.sftp2_path import (
     Sftp2Path,
+    Sftp2RawFile,
+    _get_ssh2_session,
     get_private_key,
     get_sftp2_client,
     get_ssh2_session,
@@ -261,3 +264,275 @@ def test_protocol_detection(sftp2_mocker):
     assert path._is_same_protocol("sftp2://other/path") is True
     assert path._is_same_protocol("sftp://other/path") is False
     assert path._is_same_protocol("/local/path") is False
+
+
+def test_get_ssh2_session_with_private_key(mocker, fs):
+    """Test SSH2 session authentication with private key"""
+    # Create a fake key file
+    key_path = "/home/user/.ssh/id_rsa"
+    os.makedirs("/home/user/.ssh", exist_ok=True)
+    with open(key_path, "w") as f:
+        f.write("fake private key")
+
+    Session = mocker.patch("ssh2.session.Session")
+    mocker.patch("socket.socket")
+    mocker.patch(
+        "megfile.sftp2_path.provide_connect_info",
+        return_value=("127.0.0.1", 22, "user", None, (key_path, "")),
+    )
+
+    session_instance = Session.return_value
+    session_instance.handshake.return_value = None
+    session_instance.userauth_publickey_fromfile.return_value = 0  # Success
+
+    # Clear thread local cache first
+    from megfile.utils import mutex
+
+    if hasattr(mutex, "_thread_local_data"):
+        mutex._thread_local_data.clear()
+
+    result = _get_ssh2_session("127.0.0.1")
+    assert result == session_instance
+
+
+def test_get_ssh2_session_with_agent(mocker):
+    """Test SSH2 session authentication with SSH agent"""
+    Session = mocker.patch("ssh2.session.Session")
+    mocker.patch("socket.socket")
+    mocker.patch(
+        "megfile.sftp2_path.provide_connect_info",
+        return_value=("127.0.0.1", 22, "user", None, None),
+    )
+
+    session_instance = Session.return_value
+    session_instance.handshake.return_value = None
+    # Password auth fails
+    session_instance.userauth_password.side_effect = Exception("No password")
+    # Agent auth succeeds
+    session_instance.agent_init.return_value = None
+    session_instance.agent_auth.return_value = None
+
+    result = _get_ssh2_session("127.0.0.1")
+    assert result == session_instance
+    assert session_instance.agent_init.called
+    assert session_instance.agent_auth.called
+
+
+def test_get_ssh2_session_with_default_keys(mocker, fs):
+    """Test SSH2 session authentication with default SSH keys"""
+    # Create fake default key files
+    os.makedirs(os.path.expanduser("~/.ssh"), exist_ok=True)
+    default_key = os.path.expanduser("~/.ssh/id_rsa")
+    with open(default_key, "w") as f:
+        f.write("fake private key")
+
+    Session = mocker.patch("ssh2.session.Session")
+    mocker.patch("socket.socket")
+    mocker.patch(
+        "megfile.sftp2_path.provide_connect_info",
+        return_value=("127.0.0.1", 22, "user", None, None),
+    )
+
+    session_instance = Session.return_value
+    session_instance.handshake.return_value = None
+    # Agent auth fails
+    session_instance.agent_init.side_effect = Exception("No agent")
+    # Public key auth succeeds
+    session_instance.userauth_publickey_fromfile.return_value = 0
+
+    result = _get_ssh2_session("127.0.0.1")
+    assert result == session_instance
+    assert session_instance.userauth_publickey_fromfile.called
+
+
+def test_get_ssh2_session_auth_failure(mocker):
+    """Test SSH2 session raises error when all auth methods fail"""
+    Session = mocker.patch("ssh2.session.Session")
+    mocker.patch("socket.socket")
+    mocker.patch(
+        "megfile.sftp2_path.provide_connect_info",
+        return_value=("127.0.0.1", 22, "user", None, None),
+    )
+
+    session_instance = Session.return_value
+    session_instance.handshake.return_value = None
+    # All auth methods fail
+    session_instance.userauth_password.side_effect = Exception("No password")
+    session_instance.agent_init.side_effect = Exception("No agent")
+    session_instance.userauth_publickey_fromfile.return_value = 1  # Failure
+
+    with pytest.raises(ValueError, match="Authentication failed"):
+        _get_ssh2_session("127.0.0.1")
+
+
+def test_sftp2_raw_file_closed_operations():
+    """Test Sftp2RawFile raises error when operating on closed file"""
+
+    class MockHandle:
+        def read(self, size):
+            return 0, b""
+
+        def write(self, data):
+            return 0, 0
+
+        def close(self):
+            pass
+
+    raw_file = Sftp2RawFile(MockHandle(), "/path", "r")
+    raw_file.close()
+
+    with pytest.raises(ValueError, match="I/O operation on closed file"):
+        raw_file.readinto(bytearray(10))
+
+    with pytest.raises(ValueError, match="I/O operation on closed file"):
+        raw_file.read()
+
+    with pytest.raises(ValueError, match="I/O operation on closed file"):
+        raw_file.write(b"test")
+
+
+def test_sftp2_raw_file_seek_operations():
+    """Test Sftp2RawFile seek operations"""
+
+    class MockHandle:
+        def __init__(self):
+            self._pos = 0
+
+        def read(self, size):
+            return 0, b""
+
+        def write(self, data):
+            return 0, 0
+
+        def close(self):
+            pass
+
+        def tell64(self):
+            return self._pos
+
+        def seek64(self, pos):
+            self._pos = pos
+
+    raw_file = Sftp2RawFile(MockHandle(), "/path", "r")
+
+    # Test SEEK_SET
+    raw_file.seek(100, 0)
+    assert raw_file.tell() == 100
+
+    # Test SEEK_CUR
+    raw_file.seek(50, 1)
+    assert raw_file.tell() == 150
+
+    # Test SEEK_END raises error
+    with pytest.raises(OSError, match="SEEK_END not supported"):
+        raw_file.seek(0, 2)
+
+    # Test invalid whence
+    with pytest.raises(OSError, match="invalid whence"):
+        raw_file.seek(0, 5)
+
+    # Test negative seek position
+    with pytest.raises(OSError, match="negative seek position"):
+        raw_file.seek(-100, 0)
+
+    raw_file.close()
+
+
+def test_sftp2_raw_file_no_seek_support():
+    """Test Sftp2RawFile when SFTP doesn't support seek"""
+
+    class MockHandle:
+        def read(self, size):
+            return 0, b""
+
+        def close(self):
+            pass
+
+        # No seek64 or tell64 methods
+
+    raw_file = Sftp2RawFile(MockHandle(), "/path", "r")
+
+    with pytest.raises(OSError, match="tell not supported"):
+        raw_file.tell()
+
+    with pytest.raises(OSError, match="seek not supported"):
+        raw_file.seek(0)
+
+    raw_file.close()
+
+
+def test_sftp2_raw_file_other_methods():
+    """Test Sftp2RawFile misc methods"""
+
+    class MockHandle:
+        def read(self, size):
+            return 0, b""
+
+        def close(self):
+            pass
+
+    raw_file = Sftp2RawFile(MockHandle(), "/path", "r")
+
+    # Test fileno returns -1
+    assert raw_file.fileno() == -1
+
+    # Test isatty returns False
+    assert raw_file.isatty() is False
+
+    # Test truncate raises error
+    with pytest.raises(OSError, match="truncate not supported"):
+        raw_file.truncate()
+
+    # Test flush is a no-op (doesn't raise)
+    raw_file.flush()
+
+    # Test readable/writable/seekable
+    assert raw_file.readable() is True
+    assert raw_file.writable() is False
+    assert raw_file.seekable() is True
+
+    raw_file.close()
+
+
+def test_sftp2_raw_file_write_mode():
+    """Test Sftp2RawFile in write mode"""
+
+    class MockHandle:
+        def __init__(self):
+            self.data = b""
+
+        def write(self, data):
+            self.data += data
+            return 0, len(data)
+
+        def close(self):
+            pass
+
+    raw_file = Sftp2RawFile(MockHandle(), "/path", "w")
+
+    assert raw_file.readable() is False
+    assert raw_file.writable() is True
+
+    bytes_written = raw_file.write(b"test data")
+    assert bytes_written == 9
+
+    raw_file.close()
+
+
+def test_sftp2_should_retry_more_cases():
+    """Test sftp2_should_retry with more error cases"""
+    # ConnectionError should retry
+    assert sftp2_should_retry(ConnectionError()) is True
+
+    # socket.timeout should retry
+    assert sftp2_should_retry(socket.timeout()) is True
+
+    # OSError with specific messages should retry
+    assert sftp2_should_retry(OSError("Socket is closed")) is True
+    assert sftp2_should_retry(OSError("Cannot assign requested address")) is True
+
+    # Other OSError should not retry
+    assert sftp2_should_retry(OSError("Permission denied")) is False
+
+    # Other exceptions should not retry
+    assert sftp2_should_retry(ValueError("test")) is False
