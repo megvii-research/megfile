@@ -136,6 +136,10 @@ def test_parents():
         FSPath("file://foo"),
         FSPath("file://"),
     )
+    assert tuple(FSPath("/foo/bar").parents) == (
+        FSPath("/foo"),
+        FSPath("/"),
+    )
 
 
 def test_parent():

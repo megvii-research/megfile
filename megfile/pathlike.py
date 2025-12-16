@@ -922,6 +922,8 @@ class URIPathParents(Sequence):
     def __getitem__(self, idx):
         if idx < 0 or idx > len(self):
             raise IndexError(idx)
+        if self.parts[0] == "/" and idx == len(self):
+            raise IndexError(idx)
 
         if len(self.parts[: -idx - 1]) > 1:
             other_path = os.path.join(*self.parts[: -idx - 1])
