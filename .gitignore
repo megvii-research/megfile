@@ -19,4 +19,6 @@ bandit-sarif.json
 .vscode
 .ruff_cache
 venv
+.venv
 .tests
+.devcontainer

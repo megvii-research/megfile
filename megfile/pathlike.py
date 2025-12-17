@@ -917,10 +917,18 @@ class URIPathParents(Sequence):
             self.parts = parts
 
     def __len__(self):
+        if (
+            (self.prefix == "" or "://" in self.prefix)
+            and len(self.parts) > 0
+            and self.parts[0] != "/"
+        ):
+            return len(self.parts)
         return max(len(self.parts) - 1, 0)
 
     def __getitem__(self, idx):
-        if idx < 0 or idx > len(self):
+        if idx < 0:
+            idx += len(self)
+        if idx < 0 or idx >= len(self):
             raise IndexError(idx)
 
         if len(self.parts[: -idx - 1]) > 1:
