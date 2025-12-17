@@ -118,24 +118,35 @@ def test_anchor():
 
 
 def test_parents():
+    assert len(FSPath("foo//bar").parents) == 2
     assert tuple(FSPath("foo//bar").parents) == (FSPath("foo"), FSPath(""))
+
+    assert len(FSPath("foo/./bar").parents) == 2
     assert tuple(FSPath("foo/./bar").parents) == (FSPath("foo"), FSPath(""))
+
+    assert len(FSPath("foo/../bar").parents) == 3
     assert tuple(FSPath("foo/../bar").parents) == (
         FSPath("foo/.."),
         FSPath("foo"),
         FSPath(""),
     )
+
+    assert len(FSPath("../bar").parents) == 2
     assert tuple(FSPath("../bar").parents) == (FSPath(".."), FSPath(""))
+
+    assert len(FSPath("foo/../bar").parents) == 3
     assert tuple(FSPath("foo", "../bar").parents) == (
         FSPath("foo/.."),
         FSPath("foo"),
         FSPath(""),
     )
 
+    assert len(FSPath("file://foo/bar").parents) == 2
     assert tuple(FSPath("file://foo/bar").parents) == (
         FSPath("file://foo"),
         FSPath("file://"),
     )
+    assert len(FSPath("/foo/bar").parents) == 2
     assert tuple(FSPath("/foo/bar").parents) == (
         FSPath("/foo"),
         FSPath("/"),

@@ -120,6 +120,8 @@ def test_anchor():
 
 
 def test_parents():
+    print(HttpPath("foo//bar").parts)
+    print(len(HttpPath("foo//bar").parents))
     assert tuple(HttpPath("foo//bar").parents) == (
         HttpPath("foo/"),
         HttpPath("foo"),
