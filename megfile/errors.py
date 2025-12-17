@@ -182,7 +182,7 @@ def patch_method(
                         f"Cannot handle error {full_error_message(error)} "
                         f"after {retries} tries"
                     )
-                    raise
+                    raise MaxRetriesExceededError(error, retries=retries)
                 retry_interval = min(0.1 * 2**retries, 30)
                 _logger.info(
                     f"unknown error encountered: {full_error_message(error)}, "
@@ -209,14 +209,31 @@ def _create_missing_ok_generator(generator, missing_ok: bool, error: Exception):
     return create_generator()
 
 
+class MaxRetriesExceededError(Exception):
+    def __init__(self, error: Exception, retries: int = 1):
+        message = "Max retires exceeded: %s, after %d tries" % (
+            full_error_message(error),
+            retries,
+        )
+        super().__init__(message)
+        self.retries = retries
+        self.__cause__ = error
+
+    def __reduce__(self):
+        return (self.__class__, (self.__cause__, self.retries))
+
+
 class UnknownError(Exception):
     def __init__(self, error: Exception, path: PathLike, extra: Optional[str] = None):
-        message = "Unknown error encountered: %r, error: %s" % (
-            path,
-            full_error_message(error),
-        )
+        parts = [f"Unknown error encountered: {path!r}"]
+        if isinstance(error, MaxRetriesExceededError):
+            parts.append(f"error: {full_error_message(error.__cause__)}")
+            parts.append(f"after {error.retries} tries")
+        else:
+            parts.append(f"error: {full_error_message(error)}")
         if extra is not None:
-            message += ", " + extra
+            parts.append(extra)
+        message = ", ".join(parts)
         super().__init__(message)
         self.path = path
         self.extra = extra

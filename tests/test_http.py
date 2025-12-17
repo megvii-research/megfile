@@ -7,7 +7,12 @@ from typing import Optional
 import pytest
 import requests
 
-from megfile.errors import HttpFileNotFoundError, HttpPermissionError, UnknownError
+from megfile.errors import (
+    HttpFileNotFoundError,
+    HttpPermissionError,
+    MaxRetriesExceededError,
+    UnknownError,
+)
 from tests.compat.http import (
     get_http_session,
     http_exists,
@@ -260,7 +265,7 @@ def test_get_http_session(mocker):
 
     requests_request_func.return_value = FakeResponse502()
     session = get_http_session()
-    with pytest.raises(requests.exceptions.HTTPError):
+    with pytest.raises(MaxRetriesExceededError):
         session.request("get", "http://test")
 
     class FakeResponse200(FakeResponse):

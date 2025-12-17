@@ -13,6 +13,7 @@ from megfile.errors import (
     HttpFileNotFoundError,
     HttpPermissionError,
     HttpUnknownError,
+    MaxRetriesExceededError,
     NoCredentialsError,
     ParamValidationError,
     S3BucketNotFoundError,
@@ -35,6 +36,25 @@ from megfile.errors import (
     translate_http_error,
     translate_s3_error,
 )
+
+
+def test_megfile_max_retries_exceeded_error():
+    cause = Exception("cause")
+    error = MaxRetriesExceededError(cause, 16)
+    assert "Exception(" in str(error)
+    assert "cause" in str(error)
+    assert "after 16 tries" in str(error)
+    assert error.__cause__ is cause
+
+
+def test_megfile_max_retries_exceeded_error_pickle():
+    cause = Exception("cause")
+    error = MaxRetriesExceededError(cause, 16)
+    error = pickle.loads(pickle.dumps(error))
+    assert "Exception(" in str(error)
+    assert "cause" in str(error)
+    assert "after 16 tries" in str(error)
+    assert str(error.__cause__) == str(cause)
 
 
 def test_megfile_unknown_error():
@@ -110,6 +130,10 @@ def test_translate_s3_error():
 
     exception_error = Exception()
     assert isinstance(translate_s3_error(exception_error, s3_url), S3UnknownError)
+
+    exception_error = MaxRetriesExceededError(exception_error, 3)
+    assert isinstance(translate_s3_error(exception_error, s3_url), S3UnknownError)
+    assert "after 3 tries" in str(translate_s3_error(exception_error, s3_url))
 
     s3_upload_failed_error = boto3.exceptions.S3UploadFailedError("NoSuchBucket")
     assert isinstance(
@@ -286,7 +310,7 @@ def test_patch_method(caplog):
             should_retry=lambda e: True,
         )
 
-        with pytest.raises(ValueError):
+        with pytest.raises(MaxRetriesExceededError):
             patched_test()
 
         times = 1

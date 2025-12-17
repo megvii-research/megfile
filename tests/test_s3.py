@@ -23,6 +23,7 @@ from megfile.config import (
     GLOBAL_MAX_WORKERS,
 )
 from megfile.errors import (
+    MaxRetriesExceededError,
     S3BucketNotFoundError,
     S3FileNotFoundError,
     S3IsADirectoryError,
@@ -229,7 +230,7 @@ def test_retry(s3_empty_client, mocker):
     sleep = mocker.patch.object(time, "sleep")
     with pytest.raises(UnknownError) as error:
         s3.s3_exists("s3://bucket")
-    assert error.value.__cause__ is read_error
+    assert error.value.__cause__.__cause__ is read_error
     assert sleep.call_count == s3_path.max_retries - 1
 
 
@@ -3137,14 +3138,13 @@ def test_s3_load_content_retry(s3_empty_client, mocker):
     read_error = botocore.exceptions.IncompleteReadError(
         actual_bytes=0, expected_bytes=1
     )
+    retry_error = MaxRetriesExceededError(read_error, s3_path.max_retries)
+    translate_error = translate_s3_error(retry_error, "s3://bucket/key")
     mocker.patch.object(s3_empty_client, "get_object", side_effect=read_error)
     sleep = mocker.patch.object(time, "sleep")
     with pytest.raises(Exception) as error:
         s3.s3_load_content("s3://bucket/key")
-    assert (
-        error.value.__str__()
-        == translate_s3_error(read_error, "s3://bucket/key").__str__()
-    )
+    assert str(error.value) == str(translate_error)
     assert sleep.call_count == s3_path.max_retries - 1
 
 
