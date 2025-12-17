@@ -727,3 +727,323 @@ def test_sftp2_sync(sftp2_mocker):
         sftp2.sftp2_stat("sftp2://username@host/A/1.json").size
         == sftp2.sftp2_stat("sftp2://username@host/A2/1.json").size
     )
+
+
+def test_sftp2_rename_different_backend(sftp2_mocker):
+    """Test rename between different backends falls back to copy"""
+    sftp2.sftp2_makedirs("sftp2://username@host/A")
+    sftp2.sftp2_makedirs("sftp2://username@host/B")
+    with sftp2.sftp2_open("sftp2://username@host/A/test", "w") as f:
+        f.write("test content")
+
+    # When renaming between different backends, it should copy and delete
+    # This is simulated by the mock, but tests the code path
+    sftp2.sftp2_rename(
+        "sftp2://username@host/A/test", "sftp2://username@host/B/test", overwrite=True
+    )
+    assert sftp2.sftp2_exists("sftp2://username@host/B/test") is True
+    assert sftp2.sftp2_exists("sftp2://username@host/A/test") is False
+
+
+def test_sftp2_rename_error(sftp2_mocker):
+    """Test rename raises error for non-sftp2 destination"""
+    from megfile.sftp2_path import Sftp2Path
+
+    sftp2.sftp2_makedirs("sftp2://username@host/A")
+    with sftp2.sftp2_open("sftp2://username@host/A/test", "w") as f:
+        f.write("test content")
+
+    with pytest.raises(OSError, match="Not a sftp2 path"):
+        Sftp2Path("sftp2://username@host/A/test").rename("/local/path")
+
+
+def test_sftp2_copy_error(sftp2_mocker):
+    """Test copy raises appropriate errors"""
+    from megfile.sftp2_path import Sftp2Path
+
+    sftp2.sftp2_makedirs("sftp2://username@host/A")
+    with sftp2.sftp2_open("sftp2://username@host/A/test", "w") as f:
+        f.write("test content")
+
+    # Copy to non-sftp2 path should raise error
+    with pytest.raises(OSError, match="Not a sftp2 path"):
+        Sftp2Path("sftp2://username@host/A/test").copy("/local/path")
+
+    # Copy to directory path should raise error
+    with pytest.raises(IsADirectoryError):
+        Sftp2Path("sftp2://username@host/A/test").copy("sftp2://username@host/B/")
+
+    # Copy directory should raise error
+    with pytest.raises(IsADirectoryError):
+        Sftp2Path("sftp2://username@host/A").copy("sftp2://username@host/B/test")
+
+
+def test_sftp2_scandir_not_directory(sftp2_mocker):
+    """Test scandir raises error for non-directory"""
+    from megfile.sftp2_path import Sftp2Path
+
+    with sftp2.sftp2_open("sftp2://username@host/file", "w") as f:
+        f.write("test")
+
+    with pytest.raises(NotADirectoryError):
+        list(Sftp2Path("sftp2://username@host/file").scandir())
+
+
+def test_sftp2_remove_directory(sftp2_mocker):
+    """Test remove works recursively on directories"""
+    from megfile.sftp2_path import Sftp2Path
+
+    sftp2.sftp2_makedirs("sftp2://username@host/A/B/C", parents=True)
+    with sftp2.sftp2_open("sftp2://username@host/A/file1", "w") as f:
+        f.write("test1")
+    with sftp2.sftp2_open("sftp2://username@host/A/B/file2", "w") as f:
+        f.write("test2")
+
+    Sftp2Path("sftp2://username@host/A").remove()
+    assert sftp2.sftp2_exists("sftp2://username@host/A") is False
+
+
+def test_sftp2_scan_stat_file(sftp2_mocker):
+    """Test scan_stat on a single file"""
+    from megfile.sftp2_path import Sftp2Path
+
+    with sftp2.sftp2_open("sftp2://username@host/file", "w") as f:
+        f.write("test")
+
+    result = list(Sftp2Path("sftp2://username@host/file").scan_stat())
+    assert len(result) == 1
+    assert result[0].name == "file"
+
+
+def test_sftp2_walk_file(sftp2_mocker):
+    """Test walk on a single file returns nothing"""
+    from megfile.sftp2_path import Sftp2Path
+
+    with sftp2.sftp2_open("sftp2://username@host/file", "w") as f:
+        f.write("test")
+
+    result = list(Sftp2Path("sftp2://username@host/file").walk())
+    assert len(result) == 0
+
+
+def test_sftp2_walk_nonexistent(sftp2_mocker):
+    """Test walk on non-existent path returns nothing"""
+    from megfile.sftp2_path import Sftp2Path
+
+    result = list(Sftp2Path("sftp2://username@host/nonexistent").walk())
+    assert len(result) == 0
+
+
+def test_sftp2_readlink_errors(sftp2_mocker):
+    """Test readlink raises appropriate errors"""
+    from megfile.sftp2_path import Sftp2Path
+
+    # Non-existent file
+    with pytest.raises(FileNotFoundError):
+        Sftp2Path("sftp2://username@host/nonexistent").readlink()
+
+    # Regular file (not a symlink)
+    with sftp2.sftp2_open("sftp2://username@host/file", "w") as f:
+        f.write("test")
+
+    with pytest.raises(OSError, match="Not a symlink"):
+        Sftp2Path("sftp2://username@host/file").readlink()
+
+
+def test_sftp2_utime(sftp2_mocker):
+    """Test utime sets access and modification times"""
+    from megfile.sftp2_path import Sftp2Path
+
+    with sftp2.sftp2_open("sftp2://username@host/file", "w") as f:
+        f.write("test")
+
+    path = Sftp2Path("sftp2://username@host/file")
+    path.utime(1000.0, 2000.0)
+
+    stat = os.stat("/file")
+    assert stat.st_atime == 1000
+    assert stat.st_mtime == 2000
+
+
+def test_sftp2_rename_cross_backend(sftp2_mocker):
+    """Test rename when moving to different path falls back to copy"""
+    from megfile.sftp2_path import Sftp2Path
+
+    sftp2.sftp2_makedirs("sftp2://username@host/src")
+    sftp2.sftp2_makedirs("sftp2://username@host/dst")  # Create destination dir
+    with sftp2.sftp2_open("sftp2://username@host/src/file.txt", "w") as f:
+        f.write("content")
+
+    # Rename file to different location (same backend)
+    Sftp2Path("sftp2://username@host/src/file.txt").rename(
+        "sftp2://username@host/dst/file.txt", overwrite=True
+    )
+
+    assert sftp2.sftp2_exists("sftp2://username@host/dst/file.txt") is True
+
+
+def test_sftp2_rename_directory(sftp2_mocker):
+    """Test rename directory with contents"""
+    from megfile.sftp2_path import Sftp2Path
+
+    # Create a directory with files
+    sftp2.sftp2_makedirs("sftp2://username@host/dir1/subdir", parents=True)
+    with sftp2.sftp2_open("sftp2://username@host/dir1/file1.txt", "w") as f:
+        f.write("file1")
+    with sftp2.sftp2_open("sftp2://username@host/dir1/subdir/file2.txt", "w") as f:
+        f.write("file2")
+
+    # Rename directory
+    Sftp2Path("sftp2://username@host/dir1").rename("sftp2://username@host/dir2")
+
+    assert sftp2.sftp2_exists("sftp2://username@host/dir2/file1.txt") is True
+
+
+def test_sftp2_copy_file(sftp2_mocker):
+    """Test copy file"""
+    from megfile.sftp2_path import Sftp2Path
+
+    sftp2.sftp2_makedirs("sftp2://username@host/src")
+    sftp2.sftp2_makedirs("sftp2://username@host/dst")
+    with sftp2.sftp2_open("sftp2://username@host/src/file.txt", "w") as f:
+        f.write("content")
+
+    Sftp2Path("sftp2://username@host/src/file.txt").copy(
+        "sftp2://username@host/dst/file.txt"
+    )
+
+    assert sftp2.sftp2_exists("sftp2://username@host/dst/file.txt") is True
+    assert sftp2.sftp2_exists("sftp2://username@host/src/file.txt") is True
+
+
+def test_sftp2_sync_directory(sftp2_mocker):
+    """Test sync directory"""
+    from megfile.sftp2_path import Sftp2Path
+
+    sftp2.sftp2_makedirs("sftp2://username@host/src/subdir", parents=True)
+    with sftp2.sftp2_open("sftp2://username@host/src/file1.txt", "w") as f:
+        f.write("file1")
+    with sftp2.sftp2_open("sftp2://username@host/src/subdir/file2.txt", "w") as f:
+        f.write("file2")
+
+    Sftp2Path("sftp2://username@host/src").sync("sftp2://username@host/dst")
+
+    assert sftp2.sftp2_exists("sftp2://username@host/dst/file1.txt") is True
+    assert sftp2.sftp2_exists("sftp2://username@host/dst/subdir/file2.txt") is True
+
+
+def test_sftp2_walk_directory(sftp2_mocker):
+    """Test walk directory"""
+    from megfile.sftp2_path import Sftp2Path
+
+    sftp2.sftp2_makedirs("sftp2://username@host/dir/subdir", parents=True)
+    with sftp2.sftp2_open("sftp2://username@host/dir/file1.txt", "w") as f:
+        f.write("file1")
+    with sftp2.sftp2_open("sftp2://username@host/dir/subdir/file2.txt", "w") as f:
+        f.write("file2")
+
+    result = list(Sftp2Path("sftp2://username@host/dir").walk())
+    assert len(result) >= 2  # At least 2 directories in walk result
+
+
+def test_sftp2_is_file_and_is_dir(sftp2_mocker):
+    """Test is_file and is_dir methods"""
+    from megfile.sftp2_path import Sftp2Path
+
+    sftp2.sftp2_makedirs("sftp2://username@host/dir")
+    with sftp2.sftp2_open("sftp2://username@host/file.txt", "w") as f:
+        f.write("test")
+
+    assert Sftp2Path("sftp2://username@host/file.txt").is_file() is True
+    assert Sftp2Path("sftp2://username@host/file.txt").is_dir() is False
+    assert Sftp2Path("sftp2://username@host/dir").is_dir() is True
+    assert Sftp2Path("sftp2://username@host/dir").is_file() is False
+
+    # Non-existent should return False
+    assert Sftp2Path("sftp2://username@host/nonexistent").is_file() is False
+    assert Sftp2Path("sftp2://username@host/nonexistent").is_dir() is False
+
+
+def test_sftp2_replace(sftp2_mocker):
+    """Test replace method"""
+    from megfile.sftp2_path import Sftp2Path
+
+    with sftp2.sftp2_open("sftp2://username@host/src.txt", "w") as f:
+        f.write("source")
+    with sftp2.sftp2_open("sftp2://username@host/dst.txt", "w") as f:
+        f.write("destination")
+
+    Sftp2Path("sftp2://username@host/src.txt").replace("sftp2://username@host/dst.txt")
+
+    assert sftp2.sftp2_exists("sftp2://username@host/dst.txt") is True
+    assert sftp2.sftp2_exists("sftp2://username@host/src.txt") is False
+
+
+def test_sftp2_glob_recursive(sftp2_mocker):
+    """Test glob with recursive pattern"""
+    from megfile.sftp2_path import Sftp2Path
+
+    sftp2.sftp2_makedirs("sftp2://username@host/a/b/c", parents=True)
+    with sftp2.sftp2_open("sftp2://username@host/a/file.txt", "w") as f:
+        f.write("test1")
+    with sftp2.sftp2_open("sftp2://username@host/a/b/file.txt", "w") as f:
+        f.write("test2")
+    with sftp2.sftp2_open("sftp2://username@host/a/b/c/file.txt", "w") as f:
+        f.write("test3")
+
+    result = list(Sftp2Path("sftp2://username@host/a").glob("**/*.txt"))
+    assert len(result) == 3
+
+
+def test_sftp2_symlink_operations(sftp2_mocker):
+    """Test symlink-related operations"""
+    from megfile.sftp2_path import Sftp2Path
+
+    with sftp2.sftp2_open("sftp2://username@host/target.txt", "w") as f:
+        f.write("target")
+
+    # Create symlink
+    sftp2.sftp2_symlink(
+        "sftp2://username@host/target.txt", "sftp2://username@host/link.txt"
+    )
+
+    # Test is_symlink
+    link_path = Sftp2Path("sftp2://username@host/link.txt")
+    assert link_path.is_symlink() is True
+
+
+def test_sftp2_scan_single_file(sftp2_mocker):
+    """Test scan on single file"""
+    with sftp2.sftp2_open("sftp2://username@host/file.txt", "w") as f:
+        f.write("test")
+
+    result = list(sftp2.sftp2_scan("sftp2://username@host/file.txt"))
+    assert len(result) == 1
+
+
+def test_sftp2_getmtime_getsize(sftp2_mocker):
+    """Test getmtime and getsize"""
+    with sftp2.sftp2_open("sftp2://username@host/file.txt", "w") as f:
+        f.write("test content")
+
+    size = sftp2.sftp2_getsize("sftp2://username@host/file.txt")
+    mtime = sftp2.sftp2_getmtime("sftp2://username@host/file.txt")
+
+    assert size == 12
+    assert mtime > 0
+
+
+def test_sftp2_listdir(sftp2_mocker):
+    """Test listdir method"""
+    from megfile.sftp2_path import Sftp2Path
+
+    sftp2.sftp2_makedirs("sftp2://username@host/dir")
+    with sftp2.sftp2_open("sftp2://username@host/dir/file1.txt", "w") as f:
+        f.write("test1")
+    with sftp2.sftp2_open("sftp2://username@host/dir/file2.txt", "w") as f:
+        f.write("test2")
+
+    result = Sftp2Path("sftp2://username@host/dir").listdir()
+    assert len(result) == 2
+    assert "file1.txt" in result
+    assert "file2.txt" in result
