@@ -211,6 +211,9 @@ def _create_missing_ok_generator(generator, missing_ok: bool, error: Exception):
 
 class MaxRetriesExceededError(Exception):
     def __init__(self, error: Exception, retries: int = 1):
+        while isinstance(error, MaxRetriesExceededError):
+            retries *= error.retries
+            error = error.__cause__
         message = "Max retires exceeded: %s, after %d tries" % (
             full_error_message(error),
             retries,
@@ -367,6 +370,8 @@ def translate_fs_error(fs_error: Exception, fs_path: PathLike) -> Exception:
         if fs_error.filename is None:
             fs_error.filename = fs_path
         return fs_error
+    if isinstance(fs_error, MaxRetriesExceededError):
+        return fs_error.__cause__
     return fs_error
 
 
@@ -376,7 +381,10 @@ def translate_s3_error(s3_error: Exception, s3_url: PathLike) -> Exception:
     """
     if isinstance(s3_error, S3Exception):
         return s3_error
-    elif isinstance(s3_error, ClientError):
+    ori_error = s3_error
+    if isinstance(s3_error, MaxRetriesExceededError):
+        s3_error = s3_error.__cause__
+    if isinstance(s3_error, ClientError):
         code = client_error_code(s3_error)
         if code in ("NoSuchBucket"):
             bucket_or_url = (
@@ -436,7 +444,7 @@ def translate_s3_error(s3_error: Exception, s3_url: PathLike) -> Exception:
             return S3InvalidRangeError("Invalid range: %r" % s3_url)
         elif "AccessDenied" in str(s3_error):
             return S3PermissionError("Access denied: %r" % s3_url)
-    return S3UnknownError(s3_error, s3_url)
+    return S3UnknownError(ori_error, s3_url)
 
 
 def translate_http_error(http_error: Exception, http_url: str) -> Exception:
@@ -451,13 +459,16 @@ def translate_http_error(http_error: Exception, http_url: str) -> Exception:
     """
     if isinstance(http_error, HttpException):
         return http_error
+    ori_error = http_error
+    if isinstance(http_error, MaxRetriesExceededError):
+        http_error = http_error.__cause__
     if isinstance(http_error, HTTPError):
         status_code = http_error.response.status_code
         if status_code == 401 or status_code == 403:
             return HttpPermissionError("Permission denied: %r" % http_url)
         elif status_code == 404:
             return HttpFileNotFoundError("No such file: %r" % http_url)
-    return HttpUnknownError(http_error, http_url)
+    return HttpUnknownError(ori_error, http_url)
 
 
 @contextmanager
@@ -493,6 +504,8 @@ def translate_hdfs_error(hdfs_error: Exception, hdfs_path: PathLike) -> Exceptio
         elif hdfs_error.status_code == 404:
             return FileNotFoundError(f"No match file: {hdfs_path}")
     # pytype: enable=attribute-error
+    if isinstance(hdfs_error, MaxRetriesExceededError):
+        return hdfs_error.__cause__
     return hdfs_error
 
 
