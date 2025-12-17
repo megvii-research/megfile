@@ -23,6 +23,7 @@ from megfile.config import (
     GLOBAL_MAX_WORKERS,
 )
 from megfile.errors import (
+    MaxRetriesExceededError,
     S3BucketNotFoundError,
     S3FileNotFoundError,
     S3IsADirectoryError,
@@ -229,7 +230,7 @@ def test_retry(s3_empty_client, mocker):
     sleep = mocker.patch.object(time, "sleep")
     with pytest.raises(UnknownError) as error:
         s3.s3_exists("s3://bucket")
-    assert error.value.__cause__ is read_error
+    assert error.value.__cause__.__cause__ is read_error
     assert sleep.call_count == s3_path.max_retries - 1
 
 
@@ -3137,14 +3138,13 @@ def test_s3_load_content_retry(s3_empty_client, mocker):
     read_error = botocore.exceptions.IncompleteReadError(
         actual_bytes=0, expected_bytes=1
     )
+    retry_error = MaxRetriesExceededError(read_error, s3_path.max_retries)
+    translate_error = translate_s3_error(retry_error, "s3://bucket/key")
     mocker.patch.object(s3_empty_client, "get_object", side_effect=read_error)
     sleep = mocker.patch.object(time, "sleep")
     with pytest.raises(Exception) as error:
         s3.s3_load_content("s3://bucket/key")
-    assert (
-        error.value.__str__()
-        == translate_s3_error(read_error, "s3://bucket/key").__str__()
-    )
+    assert str(error.value) == str(translate_error)
     assert sleep.call_count == s3_path.max_retries - 1
 
 
@@ -3766,3 +3766,38 @@ def test_s3_atomic(s3_empty_client):
     del f
 
     assert s3.s3_listdir("s3://bucket") == ["00", "01", "02", "10"]
+
+
+@pytest.fixture
+def error_client(mocker):
+    from megfile.errors import patch_method
+
+    with mock_aws():
+        client = boto3.client("s3")
+
+        def _make_request(*args, **kwargs):
+            from botocore.exceptions import ClientError
+
+            raise ClientError(
+                error_response={"Error": {"Code": "404"}},
+                operation_name="PutObject",
+            )
+
+        def s3_should_retry(error: Exception) -> bool:
+            return True
+
+        client._make_request = patch_method(
+            _make_request,
+            max_retries=1,
+            should_retry=s3_should_retry,
+        )
+
+        yield client
+
+
+def test_s3_retry(error_client, mocker):
+    from megfile.errors import S3FileNotFoundError, raise_s3_error
+
+    with pytest.raises(S3FileNotFoundError):
+        with raise_s3_error("s3://bucket/key"):
+            error_client.head_object(Bucket="bucket", Key="key")

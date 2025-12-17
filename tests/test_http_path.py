@@ -6,6 +6,7 @@ import pytest
 import requests
 import requests_mock  # noqa: F401
 
+from megfile.errors import MaxRetriesExceededError
 from megfile.http_path import HttpPath, Response, get_http_session, is_http
 
 
@@ -88,33 +89,33 @@ def test_http_retry(requests_mock, mocker):
     session = get_http_session()
     history_index = 0
 
-    with pytest.raises(requests.exceptions.HTTPError):
+    with pytest.raises(MaxRetriesExceededError):
         session.post("http://foo", files={"foo": "bar"})
     for _ in range(max_retries):
         assert b'name="foo"' in requests_mock.request_history[history_index].body
         assert b"bar" in requests_mock.request_history[history_index].body
         history_index += 1
 
-    with pytest.raises(requests.exceptions.HTTPError):
+    with pytest.raises(MaxRetriesExceededError):
         session.post("http://foo", files={"foo": io.BytesIO(b"bar")})
     for _ in range(max_retries):
         assert b"bar" in requests_mock.request_history[history_index].body
         history_index += 1
 
-    with pytest.raises(requests.exceptions.HTTPError):
+    with pytest.raises(MaxRetriesExceededError):
         session.post("http://foo", files={"foo": io.BytesIO(b"bar")})
     for _ in range(max_retries):
         assert b"bar" in requests_mock.request_history[history_index].body
         history_index += 1
 
-    with pytest.raises(requests.exceptions.HTTPError):
+    with pytest.raises(MaxRetriesExceededError):
         session.post("http://foo", files={"foo": ("filename", io.BytesIO(b"bar"))})
     for _ in range(max_retries):
         assert b'name="filename"' in requests_mock.request_history[history_index].body
         assert b"bar" in requests_mock.request_history[history_index].body
         history_index += 1
 
-    with pytest.raises(requests.exceptions.HTTPError):
+    with pytest.raises(MaxRetriesExceededError):
         session.post(
             "http://foo",
             files={"foo": ("filename", io.BytesIO(b"bar"), "application/vnd.ms-excel")},
@@ -124,7 +125,7 @@ def test_http_retry(requests_mock, mocker):
         assert b"bar" in requests_mock.request_history[history_index].body
         history_index += 1
 
-    with pytest.raises(requests.exceptions.HTTPError):
+    with pytest.raises(MaxRetriesExceededError):
         session.post(
             "http://foo",
             files={"foo": ("filename", b"bar", "application/vnd.ms-excel")},
@@ -134,7 +135,7 @@ def test_http_retry(requests_mock, mocker):
         assert b"bar" in requests_mock.request_history[history_index].body
         history_index += 1
 
-    with pytest.raises(requests.exceptions.HTTPError):
+    with pytest.raises(MaxRetriesExceededError):
         session.post(
             "http://foo",
             files={
@@ -151,7 +152,7 @@ def test_http_retry(requests_mock, mocker):
         assert b"bar" in requests_mock.request_history[history_index].body
         history_index += 1
 
-    with pytest.raises(requests.exceptions.HTTPError):
+    with pytest.raises(MaxRetriesExceededError):
         session.post("http://foo", data=io.BytesIO(b"bar"))
     for _ in range(max_retries):
         assert (
@@ -181,7 +182,7 @@ def test_http_retry_fileobj_without_seek(requests_mock, mocker, fs):
         def read(self, size=-1, **kwargs):
             return b"bar"
 
-    with pytest.raises(requests.exceptions.HTTPError):
+    with pytest.raises(MaxRetriesExceededError):
         session.post(
             "http://foo",
             files={"foo": ("filename", FakeFile(), "application/vnd.ms-excel")},
