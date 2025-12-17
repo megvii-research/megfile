@@ -1,3 +1,10 @@
+## 5.0.3 - 2025.12.17
+- feat
+    - show retries count in exception messages
+- fix
+    - fix `parents` when path startswith /
+    - fix zsh completion and ls with `file://` path in cli
+
 ## 5.0.2 - 2025.11.25
 - perf
     - Expose protocol-specific function interfaces at the top level.
