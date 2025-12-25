@@ -1005,7 +1005,7 @@ class FSPath(URIPath):
             closefd=closefd,
         )
         if atomic:
-            if mode == "w":
+            if mode in ("w", "wb"):
                 return WrapAtomic(fp)
             else:
                 raise ValueError("atomic is only supported in write mode 'w'")
