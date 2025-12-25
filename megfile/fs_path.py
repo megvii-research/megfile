@@ -1004,8 +1004,11 @@ class FSPath(URIPath):
             newline=newline,
             closefd=closefd,
         )
-        if atomic and ("w" in mode or "x" in mode or "a" in mode):
-            return WrapAtomic(fp)
+        if atomic:
+            if mode == "w":
+                return WrapAtomic(fp)
+            else:
+                raise ValueError("atomic is only supported in write mode 'w'")
         return fp
 
     @cached_property
