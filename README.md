@@ -19,7 +19,7 @@ megfile - Megvii FILE library
 * Faster file read and write operations
 * Excellent error retry mechanism to help you handle network issues
 * Supports popular protocols, even making it easy to use the same protocol with different endpoints
-* Stable and secure, with CI coverage over 95%, used by multiple industry giants
+* Stable and secure, with high CI test coverage, used by multiple industry giants
 * Perfect type hints and built-in documentation. You can enjoy the IDE's auto-completion and static checking
 
 ## Support Protocols
