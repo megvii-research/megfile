@@ -76,9 +76,7 @@ def test_s3_memory_handler_atomic_abort(client):
 
 
 def test_s3_memory_handler_atomic_commit(client):
-    with S3MemoryHandler(
-        BUCKET, KEY, "wb", s3_client=client, atomic=True
-    ) as writer:
+    with S3MemoryHandler(BUCKET, KEY, "wb", s3_client=client, atomic=True) as writer:
         writer.write(b"atomic commit")
 
     body = client.get_object(Bucket=BUCKET, Key=KEY)["Body"].read()
