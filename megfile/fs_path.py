@@ -17,7 +17,6 @@ from megfile.interfaces import (
     Access,
     ContextIterator,
     FileEntry,
-    FileLike,
     PathLike,
     StatResult,
     URIPath,
@@ -29,6 +28,7 @@ from megfile.lib.joinpath import path_join
 from megfile.lib.url import get_url_scheme
 from megfile.smart_path import SmartPath
 from megfile.utils import calculate_md5, copyfd
+from megfile.utils.atomic import FSFunc, WrapAtomic
 
 __all__ = [
     "FSPath",
@@ -113,36 +113,6 @@ def _fs_rename_file(
     if dst_dir and dst_dir != ".":
         os.makedirs(dst_dir, exist_ok=True)
     shutil.move(src_path, dst_path)
-
-
-class WrapAtomic(FileLike):
-    __atomic__ = True
-
-    def __init__(self, fileobj):
-        self.fileobj = fileobj
-        self.temp_name = f"{self.name}.temp"
-        os.rename(self.name, self.temp_name)
-
-    @property
-    def name(self):
-        return self.fileobj.name
-
-    @property
-    def mode(self):
-        return self.fileobj.mode
-
-    def _close(self):
-        self.fileobj.close()
-        os.rename(self.temp_name, self.name)
-
-    def _abort(self):
-        try:
-            os.unlink(self.temp_name)
-        except FileNotFoundError:
-            pass
-
-    def __getattr__(self, name: str):
-        return getattr(self.fileobj, name)
 
 
 @SmartPath.register
@@ -995,7 +965,30 @@ class FSPath(URIPath):
                     self.path_without_protocol  # pyre-ignore[6]
                 )
             ).mkdir(parents=True, exist_ok=True)
-        fp = io.open(
+
+        if atomic and mode not in ("r", "rb"):
+            if isinstance(self.path_without_protocol, int):
+                raise TypeError("atomic is not supported for file descriptor path")
+
+            fs_func = FSFunc(
+                exists=os.path.exists,
+                copy=shutil.copyfile,
+                replace=os.replace,
+                open=io.open,
+                unlink=os.unlink,
+            )
+            return WrapAtomic(
+                self.path_without_protocol,
+                mode,
+                fs_func,
+                buffering=buffering,
+                encoding=encoding,
+                errors=errors,
+                newline=newline,
+                closefd=closefd,
+            )
+
+        return io.open(
             self.path_without_protocol,
             mode,
             buffering=buffering,
@@ -1004,12 +997,6 @@ class FSPath(URIPath):
             newline=newline,
             closefd=closefd,
         )
-        if atomic:
-            if mode in ("w", "wb"):
-                return WrapAtomic(fp)
-            else:
-                raise ValueError("atomic is only supported in write mode 'w'")
-        return fp
 
     @cached_property
     def parts(self) -> Tuple[str, ...]:

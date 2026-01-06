@@ -1321,3 +1321,43 @@ def test_fs_atomic(filesystem):
     del f
 
     assert fs.fs_listdir("/atomic") == ["00", "01", "02", "10"]
+
+
+def test_fs_atomic_append(filesystem):
+    os.makedirs("/atomic", exist_ok=True)
+    with fs.fs_open("/atomic/file.txt", "w") as f:
+        f.write("old")
+
+    with fs.fs_open("/atomic/file.txt", "a", atomic=True) as f:
+        f.write("new")
+
+    with fs.fs_open("/atomic/file.txt", "r") as f:
+        assert f.read() == "oldnew"
+
+
+def test_fs_atomic_append_rollback(filesystem):
+    os.makedirs("/atomic", exist_ok=True)
+    with fs.fs_open("/atomic/rollback.txt", "w") as f:
+        f.write("keep")
+
+    with pytest.raises(RuntimeError):
+        with fs.fs_open("/atomic/rollback.txt", "a", atomic=True) as f:
+            f.write("drop")
+            raise RuntimeError("boom")
+
+    with fs.fs_open("/atomic/rollback.txt", "r") as f:
+        assert f.read() == "keep"
+
+
+def test_fs_atomic_r_plus(filesystem):
+    os.makedirs("/atomic", exist_ok=True)
+    with fs.fs_open("/atomic/bin", "wb") as f:
+        f.write(b"abcd")
+
+    with fs.fs_open("/atomic/bin", "r+b", atomic=True) as f:
+        assert f.read(2) == b"ab"
+        f.seek(0)
+        f.write(b"ZZ")
+
+    with fs.fs_open("/atomic/bin", "rb") as f:
+        assert f.read() == b"ZZcd"
