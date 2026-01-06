@@ -17,6 +17,7 @@ class S3CachedHandler(S3MemoryHandler):
         cache_path: Optional[str] = None,
         remove_cache_when_open: bool = True,
         profile_name: Optional[str] = None,
+        atomic: bool = False,
     ):
         self._bucket = bucket
         self._key = key
@@ -36,6 +37,9 @@ class S3CachedHandler(S3MemoryHandler):
 
         if remove_cache_when_open:
             os.unlink(self._cache_path)  # pyre-ignore[6]
+
+        if atomic:
+            self.__atomic__ = True
 
     def fileno(self) -> int:
         # allow numpy.array to create a memmaped ndarray

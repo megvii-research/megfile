@@ -10,6 +10,8 @@ class BaseMemoryHandler(Readable[bytes], Seekable, Writable[bytes], ABC):
     def __init__(
         self,
         mode: str,
+        *,
+        atomic: bool = False,
     ):
         self._mode = mode
 
@@ -18,6 +20,9 @@ class BaseMemoryHandler(Readable[bytes], Seekable, Writable[bytes], ABC):
 
         self._fileobj = BytesIO()
         self._download_fileobj()
+
+        if atomic:
+            self.__atomic__ = True
 
     @property
     @abstractmethod
@@ -89,4 +94,9 @@ class BaseMemoryHandler(Readable[bytes], Seekable, Writable[bytes], ABC):
             need_upload = need_upload and self.writable()
             if need_upload:
                 self._upload_fileobj()
+            self._fileobj.close()
+
+    def _abort(self):
+        print(1111111111111111)
+        if hasattr(self, "_fileobj"):
             self._fileobj.close()

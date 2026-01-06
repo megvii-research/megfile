@@ -53,7 +53,6 @@ from megfile.utils import (
     copyfileobj,
     thread_local,
 )
-from megfile.utils.atomic import FSFuncForAtomic, WrapAtomic
 
 _logger = get_logger(__name__)
 
@@ -836,27 +835,13 @@ class WebdavPath(URIPath):
                 if _is_pickle(reader):
                     reader = io.BufferedReader(reader)  # type: ignore
                 return reader
-        elif atomic:
-            fs_func = FSFuncForAtomic(
-                exists=lambda path: self.from_path(path).exists(),
-                copy=lambda src, dst: self.from_path(src).copy(dst),
-                replace=lambda src, dst: self.from_path(src).replace(dst),
-                open=lambda path, *args, **kwargs: self.from_path(path).open(
-                    *args, **kwargs
-                ),
-                unlink=lambda path: self.from_path(path).unlink(),
-            )
-            return WrapAtomic(
-                self.path_with_protocol,
-                mode,
-                fs_func,
-            )
 
         return WebdavMemoryHandler(
             self._remote_path,
             mode,
             webdav_client=self._client,
             name=self.path_with_protocol,
+            atomic=atomic,
         )
 
     def chmod(self, mode: int, *, follow_symlinks: bool = True):

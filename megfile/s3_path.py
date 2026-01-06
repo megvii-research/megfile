@@ -991,7 +991,12 @@ def s3_buffered_open(
     if "a" in mode or "+" in mode:
         if cache_path is None:
             return S3MemoryHandler(
-                bucket, key, mode, s3_client=client, profile_name=s3_url._profile_name
+                bucket,
+                key,
+                mode,
+                s3_client=client,
+                profile_name=s3_url._profile_name,
+                atomic=atomic,
             )
         return S3CachedHandler(
             bucket,
@@ -1000,6 +1005,7 @@ def s3_buffered_open(
             s3_client=client,
             cache_path=cache_path,
             profile_name=s3_url._profile_name,
+            atomic=atomic,
         )
 
     if mode == "rb":

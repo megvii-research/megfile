@@ -48,11 +48,12 @@ class WebdavMemoryHandler(BaseMemoryHandler):
         *,
         webdav_client: WebdavClient,
         name: str,
+        atomic: bool = False,
     ):
         self._remote_path = remote_path
         self._client = webdav_client
         self._name = name
-        super().__init__(mode=mode)
+        super().__init__(mode=mode, atomic=atomic)
 
     @property
     def name(self) -> str:
