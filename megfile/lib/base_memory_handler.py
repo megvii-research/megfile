@@ -97,6 +97,5 @@ class BaseMemoryHandler(Readable[bytes], Seekable, Writable[bytes], ABC):
             self._fileobj.close()
 
     def _abort(self):
-        print(1111111111111111)
         if hasattr(self, "_fileobj"):
             self._fileobj.close()

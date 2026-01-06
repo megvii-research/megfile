@@ -299,6 +299,21 @@ def test_webdav_open_atomic_overwrite_and_abort(webdav_mocker):
 
     with path.open("r") as f:
         assert f.read() == "updated content"
+
+    f = path.open("w", atomic=True)
+    f.write("del atomic")
+    del f
+
+    with path.open("r") as f:
+        assert f.read() == "updated content"
+
+    f = path.open("w", atomic=False)
+    f.write("del not atomic")
+    del f
+
+    with path.open("r") as f:
+        assert f.read() == "del not atomic"
+
     assert WebdavPath(path.path_with_protocol + ".temp").exists() is False
 
 
