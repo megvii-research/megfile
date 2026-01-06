@@ -28,7 +28,7 @@ from megfile.lib.joinpath import path_join
 from megfile.lib.url import get_url_scheme
 from megfile.smart_path import SmartPath
 from megfile.utils import calculate_md5, copyfd
-from megfile.utils.atomic import FSFunc, WrapAtomic
+from megfile.utils.atomic import FSFuncForAtomic, WrapAtomic
 
 __all__ = [
     "FSPath",
@@ -970,7 +970,7 @@ class FSPath(URIPath):
             if isinstance(self.path_without_protocol, int):
                 raise TypeError("atomic is not supported for file descriptor path")
 
-            fs_func = FSFunc(
+            fs_func = FSFuncForAtomic(
                 exists=os.path.exists,
                 copy=shutil.copyfile,
                 replace=os.replace,

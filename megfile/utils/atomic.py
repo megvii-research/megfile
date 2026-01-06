@@ -3,12 +3,12 @@ import typing as T
 from megfile.interfaces import FileLike
 
 
-class FSFunc(T.NamedTuple):
+class FSFuncForAtomic(T.NamedTuple):
     exists: T.Callable[[str], bool]
-    copy: T.Callable[[str, str], None]
-    replace: T.Callable[[str, str], None]
+    copy: T.Callable[[str, str], T.Any]
+    replace: T.Callable[[str, str], T.Any]
     open: T.Callable[..., T.IO]
-    unlink: T.Callable[[str], None]
+    unlink: T.Callable[[str], T.Any]
 
 
 class WrapAtomic(FileLike):
@@ -20,7 +20,7 @@ class WrapAtomic(FileLike):
         self,
         path: str,
         mode: str,
-        fs_func: FSFunc,
+        fs_func: FSFuncForAtomic,
         *,
         buffering: int = -1,
         encoding: T.Optional[str] = None,
