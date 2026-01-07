@@ -4,6 +4,7 @@ import io
 import os
 import sys
 from functools import cached_property, lru_cache
+from logging import getLogger
 from typing import IO, BinaryIO, Iterator, List, Optional, Tuple
 
 from megfile.config import (
@@ -25,6 +26,8 @@ __all__ = [
     "HdfsPath",
     "is_hdfs",
 ]
+
+_logger = getLogger(__name__)
 
 HDFS_USER = "HDFS_USER"
 HDFS_URL = "HDFS_URL"
@@ -590,6 +593,7 @@ class HdfsPath(URIPath):
         max_buffer_size: int = READER_MAX_BUFFER_SIZE,
         block_forward: Optional[int] = None,
         block_size: int = READER_BLOCK_SIZE,
+        atomic: bool = False,
         **kwargs,
     ) -> IO:
         """
@@ -618,6 +622,12 @@ class HdfsPath(URIPath):
             encoding = None
         elif not encoding:
             encoding = sys.getdefaultencoding()
+
+        if atomic:
+            _logger.warning(
+                "`atomic` parameter in HdfsPath.open is not supported yet. "
+                "The parameter will be ignored."
+            )
 
         with raise_hdfs_error(self.path_with_protocol):
             if mode in ("r", "rb"):

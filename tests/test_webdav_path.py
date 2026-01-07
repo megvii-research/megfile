@@ -268,6 +268,55 @@ def test_open_modes(webdav_mocker):
         assert content == b"binary content"
 
 
+def test_webdav_open_atomic_write_new_file(webdav_mocker):
+    path = WebdavPath("webdav://host/atomic/new.txt")
+
+    with path.open("w", atomic=True) as f:
+        f.write("hello atomic")
+
+    assert path.exists() is True
+    with path.open("r") as f:
+        assert f.read() == "hello atomic"
+    assert WebdavPath(path.path_with_protocol + ".temp").exists() is False
+
+
+def test_webdav_open_atomic_overwrite_and_abort(webdav_mocker):
+    path = WebdavPath("webdav://host/atomic/existing.txt")
+
+    with path.open("w") as f:
+        f.write("old content")
+
+    with pytest.raises(RuntimeError):
+        with path.open("w", atomic=True) as f:
+            f.write("new content")
+            raise RuntimeError("boom")
+
+    with path.open("r") as f:
+        assert f.read() == "old content"
+
+    with path.open("w", atomic=True) as f:
+        f.write("updated content")
+
+    with path.open("r") as f:
+        assert f.read() == "updated content"
+
+    f = path.open("w", atomic=True)
+    f.write("del atomic")
+    del f
+
+    with path.open("r") as f:
+        assert f.read() == "updated content"
+
+    f = path.open("w", atomic=False)
+    f.write("del not atomic")
+    del f
+
+    with path.open("r") as f:
+        assert f.read() == "del not atomic"
+
+    assert WebdavPath(path.path_with_protocol + ".temp").exists() is False
+
+
 def test_remove_directory_recursive(webdav_mocker):
     """Test removing a directory with contents"""
     webdav.webdav_makedirs("webdav://host/A/B/C", parents=True)

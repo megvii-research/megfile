@@ -1,6 +1,10 @@
 import typing as T
+from io import TextIOWrapper
+from logging import getLogger
 
 from megfile.interfaces import FileLike
+
+_logger = getLogger(__name__)
 
 
 class FSFuncForAtomic(T.NamedTuple):
@@ -91,3 +95,49 @@ class WrapAtomic(FileLike):
             self.fs_func.unlink(self._temp_path)
         except FileNotFoundError:
             pass
+
+
+class AtomicTextIOWrapper(TextIOWrapper):
+    """TextIOWrapper that keeps atomic semantics of the underlying raw object."""
+
+    def __init__(self, buffer, *args, **kwargs):
+        # Keep a reference to the raw object so we can call abort later.
+        self._raw = buffer
+        super().__init__(buffer, *args, **kwargs)
+
+    @property
+    def atomic(self) -> bool:
+        return getattr(self._raw, "atomic", False)
+
+    def abort(self) -> bool:
+        """Abort the atomic operation.
+
+        Returns:
+            bool: True if the abort was performed, False otherwise.
+        """
+        if hasattr(self._raw, "abort"):
+            return self._raw._abort()
+        return False
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.atomic and exc_val is not None:
+            if self.abort():
+                from megfile.errors import full_error_message
+
+                _logger.warning(
+                    f"skip closing atomic file-like object: {self}, "
+                    f"since error encountered: {full_error_message(exc_val)}"
+                )
+            return
+
+        super().__exit__(exc_type, exc_val, exc_tb)
+
+    def __del__(self):
+        if self.atomic:
+            if self.abort():
+                _logger.warning(
+                    f"skip closing atomic file-like object before deletion: {self}"
+                )
+            return
+        self.flush()
+        self.close()

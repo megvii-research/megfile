@@ -800,6 +800,7 @@ class WebdavPath(URIPath):
         max_buffer_size: int = READER_MAX_BUFFER_SIZE,
         block_forward: Optional[int] = None,
         block_size: int = READER_BLOCK_SIZE,
+        atomic: bool = False,
         **kwargs,
     ) -> IO:
         """Open a file on the path.
@@ -840,6 +841,7 @@ class WebdavPath(URIPath):
             mode,
             webdav_client=self._client,
             name=self.path_with_protocol,
+            atomic=atomic,
         )
 
     def chmod(self, mode: int, *, follow_symlinks: bool = True):

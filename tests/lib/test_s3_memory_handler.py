@@ -60,6 +60,29 @@ def test_s3_memory_handler_append(client):
     assert content == CONTENT * 2
 
 
+def test_s3_memory_handler_atomic_abort(client):
+    client.put_object(Bucket=BUCKET, Key=KEY, Body=b"old")
+
+    with pytest.raises(RuntimeError):
+        with S3MemoryHandler(
+            BUCKET, KEY, "wb", s3_client=client, atomic=True
+        ) as writer:
+            assert writer.atomic is True
+            writer.write(b"new")
+            raise RuntimeError("abort write")
+
+    body = client.get_object(Bucket=BUCKET, Key=KEY)["Body"].read()
+    assert body == b"old"
+
+
+def test_s3_memory_handler_atomic_commit(client):
+    with S3MemoryHandler(BUCKET, KEY, "wb", s3_client=client, atomic=True) as writer:
+        writer.write(b"atomic commit")
+
+    body = client.get_object(Bucket=BUCKET, Key=KEY)["Body"].read()
+    assert body == b"atomic commit"
+
+
 def assert_ability(fp1, fp2):
     # TODO: pyfakefs writable 返回值是错的, readable 不可读时会抛异常
     # 正确测试以下几项, 需要关掉 pyfakefs

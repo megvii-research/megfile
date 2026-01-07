@@ -320,3 +320,37 @@ def test__exec_command(mocker):
     assert result.returncode == 0
     assert result.stdout == "makefile"
     assert result.stderr == "makefile_stderr"
+
+
+def test_sftp_open_atomic_write_new_file(sftp_mocker):
+    path = SftpPath("sftp://username@host//atomic/new.txt")
+
+    with path.open("w", atomic=True) as f:
+        f.write("hello atomic")
+
+    assert path.exists() is True
+    with path.open("r") as f:
+        assert f.read() == "hello atomic"
+    assert SftpPath(path.path_with_protocol + ".temp").exists() is False
+
+
+def test_sftp_open_atomic_overwrite_and_abort(sftp_mocker):
+    path = SftpPath("sftp://username@host//atomic/existing.txt")
+
+    with path.open("w") as f:
+        f.write("old content")
+
+    with pytest.raises(RuntimeError):
+        with path.open("w", atomic=True) as f:
+            f.write("new content")
+            raise RuntimeError("boom")
+
+    with path.open("r") as f:
+        assert f.read() == "old content"
+
+    with path.open("w", atomic=True) as f:
+        f.write("updated content")
+
+    with path.open("r") as f:
+        assert f.read() == "updated content"
+    assert SftpPath(path.path_with_protocol + ".temp").exists() is False

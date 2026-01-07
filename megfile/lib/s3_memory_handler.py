@@ -19,12 +19,13 @@ class S3MemoryHandler(BaseMemoryHandler):
         *,
         s3_client,
         profile_name: Optional[str] = None,
+        atomic: bool = False,
     ):
         self._bucket = bucket
         self._key = key
         self._client = s3_client
         self._profile_name = profile_name
-        super().__init__(mode=mode)
+        super().__init__(mode=mode, atomic=atomic)
 
     @property
     def name(self) -> str:

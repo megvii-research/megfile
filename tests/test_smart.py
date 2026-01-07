@@ -588,7 +588,7 @@ def test_smart_open_input_params(mocker, fs):
 def test_smart_open_custom_s3_open_func(mocker, fs):
     s3_open = mocker.Mock()
     s3_binary_open = _s3_binary_mode(s3_open)
-    text_wrapper = mocker.patch("io.TextIOWrapper")
+    text_wrapper = mocker.patch("megfile.utils.AtomicTextIOWrapper")
     s3_hasbucket_func = mocker.patch("megfile.s3_path.S3Path.hasbucket")
     s3_hasbucket_func.return_value = True
     s3_isfile_func = mocker.patch("megfile.s3_path.S3Path.is_file")

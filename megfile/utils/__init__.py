@@ -13,7 +13,6 @@ from io import (
     BytesIO,
     StringIO,
     TextIOBase,
-    TextIOWrapper,
 )
 from threading import RLock
 from typing import IO, Callable, List, Optional
@@ -23,6 +22,7 @@ from megfile.config import (
     DEFAULT_HASH_BUFFER_SIZE,
     READER_LAZY_PREFETCH,
 )
+from megfile.utils.atomic import AtomicTextIOWrapper
 from megfile.utils.mutex import ProcessLocal, ThreadLocal
 
 
@@ -210,7 +210,7 @@ def binary_open(open_func):
     ):
         fileobj = open_func(path, get_binary_mode(mode), **kwargs)
         if "b" not in mode:
-            fileobj = TextIOWrapper(fileobj, encoding=encoding, errors=errors)
+            fileobj = AtomicTextIOWrapper(fileobj, encoding=encoding, errors=errors)
             fileobj.mode = mode  # pyre-ignore[41]
         return fileobj
 

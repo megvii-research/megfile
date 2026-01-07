@@ -76,9 +76,9 @@ from megfile.lib.url import get_url_scheme
 from megfile.smart_path import SmartPath
 from megfile.utils import (
     _is_pickle,
+    binary_open,
     calculate_md5,
     generate_cache_path,
-    get_binary_mode,
     get_content_offset,
     is_domain_or_subdomain,
     is_readable,
@@ -683,11 +683,15 @@ def _s3_binary_mode(s3_open_func):
                 raise S3FileExistsError("File exists: %r" % s3_url)
             mode = mode.replace("x", "w")
 
-        fileobj = s3_open_func(s3_url, get_binary_mode(mode), **kwargs)
-        if "b" not in mode:
-            fileobj = io.TextIOWrapper(fileobj, encoding=encoding, errors=errors)  # type: ignore
-            fileobj.mode = mode  # pyre-ignore[41]
-        return fileobj
+        return binary_open(
+            s3_open_func,
+        )(
+            s3_url,
+            mode,
+            encoding=encoding,
+            errors=errors,
+            **kwargs,
+        )
 
     return wrapper
 
@@ -991,7 +995,12 @@ def s3_buffered_open(
     if "a" in mode or "+" in mode:
         if cache_path is None:
             return S3MemoryHandler(
-                bucket, key, mode, s3_client=client, profile_name=s3_url._profile_name
+                bucket,
+                key,
+                mode,
+                s3_client=client,
+                profile_name=s3_url._profile_name,
+                atomic=atomic,
             )
         return S3CachedHandler(
             bucket,
@@ -1000,6 +1009,7 @@ def s3_buffered_open(
             s3_client=client,
             cache_path=cache_path,
             profile_name=s3_url._profile_name,
+            atomic=atomic,
         )
 
     if mode == "rb":

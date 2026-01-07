@@ -24,6 +24,7 @@ from megfile.lib.glob import FSFunc, iglob
 from megfile.pathlike import URIPath
 from megfile.smart_path import SmartPath
 from megfile.utils import calculate_md5, copyfileobj, thread_local
+from megfile.utils.atomic import FSFuncForAtomic, WrapAtomic
 
 _logger = get_logger(__name__)
 
@@ -1234,6 +1235,7 @@ class SftpPath(URIPath):
         buffering=-1,
         encoding: Optional[str] = None,
         errors: Optional[str] = None,
+        atomic: bool = False,
         **kwargs,
     ) -> IO:
         """Open a file on the path.
@@ -1253,6 +1255,26 @@ class SftpPath(URIPath):
             self.parent.mkdir(parents=True, exist_ok=True)
         elif not self.exists():
             raise FileNotFoundError("No such file: %r" % self.path_with_protocol)
+
+        if atomic and mode not in ("r", "rb"):
+            fs_func = FSFuncForAtomic(
+                exists=lambda path: self.from_path(path).exists(),
+                copy=lambda src, dst: self.from_path(src).copy(dst),
+                replace=lambda src, dst: self.from_path(src).replace(dst),
+                open=lambda path, *args, **kwargs: self.from_path(path).open(
+                    *args, **kwargs
+                ),
+                unlink=lambda path: self.from_path(path).unlink(),
+            )
+            return WrapAtomic(
+                self.path_with_protocol,
+                mode,
+                fs_func,
+                buffering=buffering,
+                encoding=encoding,
+                errors=errors,
+            )
+
         fileobj = self._client.open(self._real_path, mode, bufsize=buffering)
         fileobj.name = self.path
         if "r" in mode and "b" not in mode:
