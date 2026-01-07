@@ -116,7 +116,7 @@ class AtomicTextIOWrapper(TextIOWrapper):
             bool: True if the abort was performed, False otherwise.
         """
         if hasattr(self._raw, "abort"):
-            return self._raw._abort()
+            return self._raw.abort()
         return False
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -139,5 +139,9 @@ class AtomicTextIOWrapper(TextIOWrapper):
                     f"skip closing atomic file-like object before deletion: {self}"
                 )
             return
-        self.flush()
-        self.close()
+        try:
+            if self._raw.writable():
+                self.flush()
+            self.close()
+        except Exception:
+            pass

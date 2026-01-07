@@ -40,7 +40,7 @@ class BaseMemoryHandler(Readable[bytes], Seekable, Writable[bytes], ABC):
         return self._fileobj.seek(offset, whence)
 
     def readable(self) -> bool:
-        return self._mode[0] == "r" or self._mode[-1] == "+"
+        return self._mode[0] == "r" or "+" in self._mode
 
     def read(self, size: Optional[int] = None) -> bytes:
         if not self.readable():
@@ -62,7 +62,7 @@ class BaseMemoryHandler(Readable[bytes], Seekable, Writable[bytes], ABC):
         return self._fileobj.readlines(hint)
 
     def writable(self) -> bool:
-        return self._mode[0] == "w" or self._mode[0] == "a" or self._mode[-1] == "+"
+        return self._mode[0] == "w" or self._mode[0] == "a" or "+" in self._mode
 
     def flush(self):
         self._fileobj.flush()
