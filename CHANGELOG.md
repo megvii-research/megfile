@@ -1,3 +1,9 @@
+## 5.0.4 - 2026.01.07
+- feat
+    - support atomic for sftp and webdav
+    - atomic for s3 open supports append mode and more
+    - atomic for fs open supports append mode and more
+
 ## 5.0.3 - 2025.12.17
 - feat
     - show retries count in exception messages
