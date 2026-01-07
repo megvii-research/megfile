@@ -98,7 +98,6 @@
     <span class="n">Access</span><span class="p">,</span>
     <span class="n">ContextIterator</span><span class="p">,</span>
     <span class="n">FileEntry</span><span class="p">,</span>
-    <span class="n">FileLike</span><span class="p">,</span>
     <span class="n">PathLike</span><span class="p">,</span>
     <span class="n">StatResult</span><span class="p">,</span>
     <span class="n">URIPath</span><span class="p">,</span>
@@ -110,6 +109,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">megfile.lib.url</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_url_scheme</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">megfile.smart_path</span><span class="w"> </span><span class="kn">import</span> <span class="n">SmartPath</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">megfile.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">calculate_md5</span><span class="p">,</span> <span class="n">copyfd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">megfile.utils.atomic</span><span class="w"> </span><span class="kn">import</span> <span class="n">FSFuncForAtomic</span><span class="p">,</span> <span class="n">WrapAtomic</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">&quot;FSPath&quot;</span><span class="p">,</span>
@@ -200,36 +200,6 @@
     <span class="k">if</span> <span class="n">dst_dir</span> <span class="ow">and</span> <span class="n">dst_dir</span> <span class="o">!=</span> <span class="s2">&quot;.&quot;</span><span class="p">:</span>
         <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">dst_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">shutil</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">src_path</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">)</span>
-
-
-<span class="k">class</span><span class="w"> </span><span class="nc">WrapAtomic</span><span class="p">(</span><span class="n">FileLike</span><span class="p">):</span>
-    <span class="n">__atomic__</span> <span class="o">=</span> <span class="kc">True</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fileobj</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">fileobj</span> <span class="o">=</span> <span class="n">fileobj</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">temp_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">.temp&quot;</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">temp_name</span><span class="p">)</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fileobj</span><span class="o">.</span><span class="n">name</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fileobj</span><span class="o">.</span><span class="n">mode</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">_close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">fileobj</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">temp_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">_abort</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">temp_name</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
-            <span class="k">pass</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fileobj</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="FSPath">
@@ -1206,7 +1176,30 @@
                     <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span>  <span class="c1"># pyre-ignore[6]</span>
                 <span class="p">)</span>
             <span class="p">)</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">fp</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span>
+
+        <span class="k">if</span> <span class="n">atomic</span> <span class="ow">and</span> <span class="n">mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;atomic is not supported for file descriptor path&quot;</span><span class="p">)</span>
+
+            <span class="n">fs_func</span> <span class="o">=</span> <span class="n">FSFuncForAtomic</span><span class="p">(</span>
+                <span class="n">exists</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">,</span>
+                <span class="n">copy</span><span class="o">=</span><span class="n">shutil</span><span class="o">.</span><span class="n">copyfile</span><span class="p">,</span>
+                <span class="n">replace</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">replace</span><span class="p">,</span>
+                <span class="nb">open</span><span class="o">=</span><span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">,</span>
+                <span class="n">unlink</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">unlink</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">WrapAtomic</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span>
+                <span class="n">mode</span><span class="p">,</span>
+                <span class="n">fs_func</span><span class="p">,</span>
+                <span class="n">buffering</span><span class="o">=</span><span class="n">buffering</span><span class="p">,</span>
+                <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">,</span>
+                <span class="n">errors</span><span class="o">=</span><span class="n">errors</span><span class="p">,</span>
+                <span class="n">newline</span><span class="o">=</span><span class="n">newline</span><span class="p">,</span>
+                <span class="n">closefd</span><span class="o">=</span><span class="n">closefd</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">path_without_protocol</span><span class="p">,</span>
             <span class="n">mode</span><span class="p">,</span>
             <span class="n">buffering</span><span class="o">=</span><span class="n">buffering</span><span class="p">,</span>
@@ -1214,10 +1207,7 @@
             <span class="n">errors</span><span class="o">=</span><span class="n">errors</span><span class="p">,</span>
             <span class="n">newline</span><span class="o">=</span><span class="n">newline</span><span class="p">,</span>
             <span class="n">closefd</span><span class="o">=</span><span class="n">closefd</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="k">if</span> <span class="n">atomic</span> <span class="ow">and</span> <span class="p">(</span><span class="s2">&quot;w&quot;</span> <span class="ow">in</span> <span class="n">mode</span> <span class="ow">or</span> <span class="s2">&quot;x&quot;</span> <span class="ow">in</span> <span class="n">mode</span> <span class="ow">or</span> <span class="s2">&quot;a&quot;</span> <span class="ow">in</span> <span class="n">mode</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">WrapAtomic</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">fp</span></div>
+        <span class="p">)</span></div>
 
 
     <span class="nd">@cached_property</span>
