@@ -1,3 +1,7 @@
+## 5.0.4.post1 - 2026.01.07
+- fix
+    - fix atomic error in `__del__`
+
 ## 5.0.4 - 2026.01.07
 - feat
     - support atomic for sftp and webdav
