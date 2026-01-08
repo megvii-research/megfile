@@ -133,15 +133,14 @@ class AtomicTextIOWrapper(TextIOWrapper):
         super().__exit__(exc_type, exc_val, exc_tb)
 
     def __del__(self):
+        if self.closed:
+            return
+
         if self.atomic:
             if self.abort():
                 _logger.warning(
                     f"skip closing atomic file-like object before deletion: {self}"
                 )
             return
-        try:
-            if self._raw.writable():
-                self.flush()
-            self.close()
-        except Exception:
-            pass
+
+        self.close()
