@@ -1,3 +1,9 @@
+## 5.0.5 - 2026.01.09
+- feat
+    - Add `megfile edit` command in cli for editing remote files with vim or other editors.
+- refactor
+    - Optimize `__del__` in `AtomicTextIOWrapper`
+
 ## 5.0.4.post1 - 2026.01.07
 - fix
     - fix atomic error in `__del__`
