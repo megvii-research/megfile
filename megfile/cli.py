@@ -1,6 +1,8 @@
 import os
+import shlex
 import shutil
 import signal
+import subprocess
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -27,6 +29,7 @@ from megfile.s3_path import get_s3_session
 from megfile.sftp_path import sftp_add_host_key
 from megfile.smart import (
     _smart_sync_single_file,
+    smart_cache,
     smart_copy,
     smart_exists,
     smart_getmd5,
@@ -717,6 +720,16 @@ def stat(path: str):
     _sftp_prompt_host_key(path)
 
     click.echo(smart_stat(path))
+
+
+@cli.command(short_help="Edit the file.")
+@click.argument("path", type=PathType())
+@click.option("-e", "--editor", type=str, default="vim", help="Editor to use.")
+def edit(path: str, editor: str):
+    with smart_cache(path, mode="a") as cache_path:
+        cmds = shlex.split(editor)
+        cmds.append(cache_path)
+        subprocess.check_call(cmds)
 
 
 @cli.command(short_help="Return the megfile version.")
