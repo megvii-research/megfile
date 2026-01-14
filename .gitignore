@@ -9,6 +9,7 @@ __pycache__/
 .coverage
 html_cov/
 html_doc/
+markdown_doc/
 .mutmut-cache
 mutmut.xml
 coverage.xml

@@ -21,6 +21,7 @@ m2r2
 sphinx-rtd-theme ~= 2.0
 sphinxcontrib-jquery
 sphinx_click
+sphinx-markdown-builder
 
 # format
 ruff

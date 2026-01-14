@@ -29,6 +29,7 @@ extensions = [
     'sphinx_rtd_theme',
     'sphinx_click',
     'sphinxcontrib.jquery',
+    'sphinx_markdown_builder',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
