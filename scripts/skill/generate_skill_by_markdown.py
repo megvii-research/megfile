@@ -13,7 +13,7 @@ SPHINX_FILE_NAMES = [
     "megfile.smart_path.md",
     "cli.md",
 ]
-SKILL_OUTPUT_PATH = "skill"
+SKILL_OUTPUT_PATH = "markdown_doc/skill"
 
 if __name__ == "__main__":
     references_path = os.path.join(SKILL_OUTPUT_PATH, "references")
