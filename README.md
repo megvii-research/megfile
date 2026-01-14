@@ -172,7 +172,7 @@ You can use alias in path, like `tos://bucket/key`, the same as `s3+tos://bucket
 
 ## Skill for AI coding
 ```bash
-git clone -b gh-skill https://github.com/megvii-research/megfile.git path/to/your/ai/skills/megfile
+git clone -b gh-skill --single-branch https://github.com/megvii-research/megfile.git path/to/your/ai/skills/megfile
 ```
 
 ## How to Contribute
