@@ -170,6 +170,11 @@ You can use alias in path, like `tos://bucket/key`, the same as `s3+tos://bucket
 [![10GiB](https://github.com/megvii-research/megfile/blob/main/scripts/benchmark/10GiB.png?raw=true)](https://megvii-research.github.io/megfile/benchmark.html)
 [![10MiB](https://github.com/megvii-research/megfile/blob/main/scripts/benchmark/10MiB.png?raw=true)](https://megvii-research.github.io/megfile/benchmark.html)
 
+## Skill for AI coding
+```bash
+git clone -b gh-skill --single-branch https://github.com/megvii-research/megfile.git path/to/your/ai/skills/megfile
+```
+
 ## How to Contribute
 * We welcome everyone to contribute code to the `megfile` project, but the contributed code needs to meet the following conditions as much as possible:
 

@@ -38,6 +38,10 @@ mut:
 doc:
 	PYTHONPATH=. sphinx-build --fresh-env docs html_doc
 
+skill:
+	PYTHONPATH=. sphinx-build -M markdown docs markdown_doc docs/cli.rst docs/megfile.smart.rst docs/megfile.smart_path.rst --fresh-env 
+	python3 -m "scripts.skill.generate_skill_by_markdown"
+
 release:
 	git tag ${VERSION}
 	git push origin ${VERSION}

@@ -35,9 +35,17 @@ jobs:
       - name: Run build-sphinx
         run: |
           make doc
+          make skill
 
       - name: Deploy gh-pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./html_doc
+
+      - name: Deploy skill
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./markdown_doc/skill
+          publish_branch: gh-skill
