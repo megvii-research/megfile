@@ -266,7 +266,7 @@ def _get_class(cls_or_obj) -> type:
     return type(cls_or_obj)
 
 
-def calculate_md5(file_object):
+def calculate_md5(file_object) -> str:
     hash_md5 = hashlib.md5()  # nosec
     for chunk in iter(lambda: file_object.read(DEFAULT_HASH_BUFFER_SIZE), b""):
         hash_md5.update(chunk)
