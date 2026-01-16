@@ -13,6 +13,7 @@ import boto3
 import botocore
 from boto3.s3.transfer import TransferConfig
 from botocore.awsrequest import AWSPreparedRequest, AWSResponse
+from botocore.utils import calculate_md5 as botocore_calculate_md5
 
 from megfile.config import (
     GLOBAL_MAX_WORKERS,
@@ -114,6 +115,11 @@ endpoint_url = "https://s3.amazonaws.com"
 max_retries = S3_MAX_RETRY_TIMES
 max_keys = 1000
 
+# Patch for https://github.com/aws/aws-cli/issues/9214
+CALCULATE_MD5_FOR_OPERATIONS = {
+    "DeleteObjects",
+}
+
 
 def _patch_make_request(client: botocore.client.BaseClient, redirect: bool = False):
     def after_callback(result: Tuple[AWSResponse, dict], *args, **kwargs):
@@ -140,6 +146,10 @@ def _patch_make_request(client: botocore.client.BaseClient, redirect: bool = Fal
             request_dict["body"].seek(0)
 
     def before_callback(operation_model, request_dict, request_context):
+        if operation_model.name in CALCULATE_MD5_FOR_OPERATIONS:
+            if "Content-MD5" not in request_dict["headers"]:
+                md5_digest = botocore_calculate_md5(request_dict["body"])
+                request_dict["headers"]["Content-MD5"] = md5_digest
         _logger.debug(
             "send s3 request: %r, with parameters: %s",
             operation_model.name,
