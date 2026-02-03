@@ -659,3 +659,23 @@ def test_s3_prefetch_reader_size(client_for_get_object, mocker):
         s3_client=client_for_get_object,
     ) as reader:
         assert reader._content_size == 123
+
+
+def test_no_prefetch_readline_binary(client):  # noqa: ARG002
+    """Test readline with max_buffer_size=0 in binary mode."""
+    content = b"line1\nline2\nline3"
+    key = "test_no_prefetch_readline_binary.txt"
+    client.put_object(Bucket=BUCKET, Key=key, Body=content)
+
+    with S3PrefetchReader(
+        BUCKET,
+        key,
+        s3_client=client,
+        max_buffer_size=0,
+    ) as reader:
+        line1 = reader.readline()
+        assert line1 == b"line1\n"
+        line2 = reader.readline()
+        assert line2 == b"line2\n"
+        line3 = reader.readline()
+        assert line3 == b"line3"

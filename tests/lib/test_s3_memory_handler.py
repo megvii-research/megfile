@@ -11,7 +11,7 @@ LOCAL_PATH = "/tmp/localfile"
 
 
 @pytest.fixture
-def client(s3_empty_client, fs):
+def client(s3_empty_client):
     s3_empty_client.create_bucket(Bucket=BUCKET)
     return s3_empty_client
 
