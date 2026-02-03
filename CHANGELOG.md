@@ -1,3 +1,7 @@
+## 5.0.7 - 2026.02.03
+- fix
+    - fix `readline` error in `s3_open` when `max_buffer_size` is `0`.
+
 ## 5.0.6 - 2026.01.16
 - chore
     - Add skill docs for AI coding, use `git clone -b gh-skill --single-branch https://github.com/megvii-research/megfile.git path/to/your/ai/skills/megfile` to install the skill.
