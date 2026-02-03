@@ -274,7 +274,11 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
     def _buffer(self) -> BytesIO:
         if self._block_capacity == 0:
             buffer = self._fetch_buffer(index=self._block_index)
-            buffer.seek(self._cached_offset)
+            if self._cached_offset is not None:
+                offset = self._cached_offset
+            else:
+                offset = self._offset % self._block_size
+            buffer.seek(offset)
             self._cached_offset = None
             return buffer
 
