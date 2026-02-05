@@ -3,10 +3,10 @@ import io
 import os
 import re
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from collections import deque
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from functools import cached_property, lru_cache, wraps
 from logging import getLogger as get_logger
-from queue import Queue
 from typing import IO, Any, BinaryIO, Callable, Dict, Iterator, List, Optional, Tuple
 from urllib.parse import urlparse
 
@@ -702,8 +702,7 @@ def _s3_fast_list_objects_recursive(s3_client, bucket: str, prefix: str):
         len(initial_results),
         len(initial_subdirs),
     )
-    for resp in initial_results:
-        yield resp
+    yield from initial_results
 
     # If no subdirs to process, we're done
     if not initial_subdirs:
@@ -711,60 +710,48 @@ def _s3_fast_list_objects_recursive(s3_client, bucket: str, prefix: str):
         return
 
     # Process subdirs in parallel using a single ThreadPoolExecutor
-    # Use a work queue to handle subdirs at all levels
+    # Use a deque for better performance (no lock overhead)
     _logger.debug(
         "Starting parallel processing: %d subdirs, max_workers=%d",
         len(initial_subdirs),
         min(len(initial_subdirs), GLOBAL_MAX_WORKERS),
     )
-    work_queue = Queue()
-    for subdir in initial_subdirs:
-        work_queue.put(subdir)
+    pending_subdirs = deque(initial_subdirs)
 
     max_workers = min(len(initial_subdirs), GLOBAL_MAX_WORKERS)
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         active_futures = {}
 
         # Submit initial batch of work
-        while not work_queue.empty() and len(active_futures) < max_workers:
-            subdir = work_queue.get()
+        while pending_subdirs and len(active_futures) < max_workers:
+            subdir = pending_subdirs.popleft()
             future = executor.submit(analyze_and_list_prefix, subdir)
             active_futures[future] = subdir
 
         # Process results and submit new work as futures complete
         while active_futures:
-            for future in as_completed(active_futures):
+            done, _ = wait(active_futures, return_when=FIRST_COMPLETED)
+            for future in done:
                 subdir = active_futures.pop(future)
-                try:
-                    results, new_subdirs = future.result()
-                    _logger.debug(
-                        "Processed subdir: %s, results=%d, new_subdirs=%d",
-                        subdir,
-                        len(results),
-                        len(new_subdirs),
-                    )
+                results, new_subdirs = future.result()
+                _logger.debug(
+                    "Processed subdir: %s, results=%d, new_subdirs=%d",
+                    subdir,
+                    len(results),
+                    len(new_subdirs),
+                )
 
-                    # Yield all results from this subdir
-                    for resp in results:
-                        yield resp
+                # Yield all results from this subdir
+                yield from results
 
-                    # Add new subdirs to queue
-                    for new_subdir in new_subdirs:
-                        work_queue.put(new_subdir)
+                # Add new subdirs to pending list
+                pending_subdirs.extend(new_subdirs)
 
-                    # Submit more work if available
-                    while not work_queue.empty() and len(active_futures) < max_workers:
-                        next_subdir = work_queue.get()
-                        next_future = executor.submit(
-                            analyze_and_list_prefix, next_subdir
-                        )
-                        active_futures[next_future] = next_subdir
-
-                except Exception as error:
-                    _logger.warning(f"Error listing subdir {subdir}: {error}")
-
-                # Break to re-enter as_completed with updated futures
-                break
+                # Submit more work if available
+                while pending_subdirs and len(active_futures) < max_workers:
+                    next_subdir = pending_subdirs.popleft()
+                    next_future = executor.submit(analyze_and_list_prefix, next_subdir)
+                    active_futures[next_future] = next_subdir
 
 
 def _make_stat(content: Dict[str, Any]):
