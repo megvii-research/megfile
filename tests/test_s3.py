@@ -42,10 +42,10 @@ from megfile.s3_path import (
     S3MemoryHandler,
     _group_s3path_by_bucket,
     _group_s3path_by_prefix,
-    _list_objects_recursive,
     _parse_s3_url_ignore_brace,
     _parse_s3_url_profile,
     _patch_make_request,
+    _s3_list_objects,
     _s3_split_magic,
     _s3_split_magic_ignore_brace,
 )
@@ -3222,9 +3222,7 @@ def s3_empty_client_with_patch(client):
 
 def test_list_objects_recursive(s3_empty_client):
     with s3_empty_client_with_patch(s3_empty_client) as client:
-        assert list(
-            _list_objects_recursive(client, "bucket", "prefix", "delimiter")
-        ) == [
+        assert list(_s3_list_objects(client, "bucket", "prefix", "delimiter")) == [
             {"IsTruncated": True, "Contents": ["test"], "NextContinuationToken": 1},
             {"IsTruncated": True, "Contents": ["test"], "NextContinuationToken": 2},
             {"IsTruncated": True, "Contents": ["test"], "NextContinuationToken": 3},
