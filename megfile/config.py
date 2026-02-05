@@ -156,6 +156,8 @@ WEBDAV_MAX_RETRY_TIMES = int(
 
 SFTP_HOST_KEY_POLICY = os.getenv("MEGFILE_SFTP_HOST_KEY_POLICY")
 
+S3_FAST_LIST = parse_boolean(os.getenv("MEGFILE_S3_FAST_LIST"), False)
+
 HTTP_AUTH_HEADERS = (
     "Authorization",
     "Www-Authenticate",

@@ -3,9 +3,10 @@ import io
 import os
 import re
 import time
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from functools import cached_property, lru_cache, wraps
 from logging import getLogger as get_logger
+from queue import Queue
 from typing import IO, Any, BinaryIO, Callable, Dict, Iterator, List, Optional, Tuple
 from urllib.parse import urlparse
 
@@ -21,6 +22,7 @@ from megfile.config import (
     READER_BLOCK_SIZE,
     READER_MAX_BUFFER_SIZE,
     S3_CLIENT_CACHE_MODE,
+    S3_FAST_LIST,
     S3_MAX_RETRY_TIMES,
     WRITER_BLOCK_SIZE,
     WRITER_MAX_BUFFER_SIZE,
@@ -503,7 +505,12 @@ def _s3_split_magic(s3_pathname: str) -> Tuple[str, str]:
     return s3_pathname, ""
 
 
-def _list_objects_recursive(s3_client, bucket: str, prefix: str, delimiter: str = ""):
+def _s3_list_objects(s3_client, bucket: str, prefix: str, delimiter: str = ""):
+    # Use fast recursive listing when enabled and no delimiter
+    if S3_FAST_LIST and delimiter == "":
+        yield from _s3_fast_list_objects_recursive(s3_client, bucket, prefix)
+        return
+
     resp = s3_client.list_objects_v2(
         Bucket=bucket, Prefix=prefix, Delimiter=delimiter, MaxKeys=max_keys
     )
@@ -521,6 +528,177 @@ def _list_objects_recursive(s3_client, bucket: str, prefix: str, delimiter: str 
             ContinuationToken=resp["NextContinuationToken"],
             MaxKeys=max_keys,
         )
+
+
+def _s3_fast_list_objects_recursive(s3_client, bucket: str, prefix: str):
+    """
+    Fast recursive list objects with adaptive strategy using iterative approach.
+
+    Strategy:
+    1. Sample first batch (up to max_keys) to analyze directory structure
+    2. If all files at current level (dense directory) → serial listing
+    3. If 0-1 subdir → serial listing
+    4. If first batch spans ≥2 subdirs → serial listing (files evenly distributed)
+    5. If first batch concentrated in 1 subdir but many subdirs exist → parallel listing
+    6. Use queue-based iteration to avoid nested ThreadPoolExecutor creation
+    """
+
+    def list_remaining_with_continuation(first_resp, prefix_to_list):
+        """Continue listing objects using continuation token from first response"""
+        results = [first_resp]
+        continuation_token = first_resp.get("NextContinuationToken")
+        while continuation_token:
+            resp = s3_client.list_objects_v2(
+                Bucket=bucket,
+                Prefix=prefix_to_list,
+                ContinuationToken=continuation_token,
+                MaxKeys=max_keys,
+            )
+            results.append(resp)
+            if not resp.get("IsTruncated", False):
+                break
+            continuation_token = resp.get("NextContinuationToken")
+        return results
+
+    def get_all_subdirs(prefix_to_list):
+        """Get all immediate subdirectories under a prefix using delimiter"""
+        subdir_prefixes = set()
+        delimiter_resp = s3_client.list_objects_v2(
+            Bucket=bucket,
+            Prefix=prefix_to_list,
+            Delimiter="/",
+            MaxKeys=max_keys,
+        )
+
+        for common_prefix in delimiter_resp.get("CommonPrefixes", []):
+            subdir_prefixes.add(common_prefix["Prefix"])
+
+        # Continue getting all subdirs if there are more
+        while delimiter_resp.get("IsTruncated", False):
+            delimiter_resp = s3_client.list_objects_v2(
+                Bucket=bucket,
+                Prefix=prefix_to_list,
+                Delimiter="/",
+                ContinuationToken=delimiter_resp["NextContinuationToken"],
+                MaxKeys=max_keys,
+            )
+            for common_prefix in delimiter_resp.get("CommonPrefixes", []):
+                subdir_prefixes.add(common_prefix["Prefix"])
+
+        return subdir_prefixes
+
+    def analyze_and_list_prefix(prefix_to_list):
+        """Analyze a prefix and return results + subdirs to process"""
+        # First batch: sample the directory structure
+        first_resp = s3_client.list_objects_v2(
+            Bucket=bucket, Prefix=prefix_to_list, MaxKeys=max_keys
+        )
+
+        subdirs_to_process = []
+
+        # If no truncation, we're done with this prefix
+        if not first_resp.get("IsTruncated", False):
+            return [first_resp], subdirs_to_process
+
+        # Analyze directory structure from first batch
+        contents = first_resp.get("Contents", [])
+
+        # Count how many different subdirs the first batch spans
+        subdirs_in_first_batch = set()
+        for content in contents:
+            relative_path = content["Key"][len(prefix_to_list) :]
+            if "/" in relative_path:
+                # Extract the first-level subdir
+                first_subdir = relative_path.split("/")[0]
+                subdirs_in_first_batch.add(prefix_to_list + first_subdir + "/")
+
+        # Strategy 1: All files at current level (dense directory, no subdirs)
+        # Continue serial listing without checking subdirs
+        if len(subdirs_in_first_batch) == 0:
+            return (
+                list_remaining_with_continuation(first_resp, prefix_to_list),
+                subdirs_to_process,
+            )
+
+        # Strategy 2b: First batch already spans multiple subdirs (≥2)
+        # Files are distributed relatively evenly across subdirs
+        # Each subdir likely has < 1000 files, so serial continuation is more efficient
+        # No need to call get_all_subdirs - save one API request!
+        if len(subdirs_in_first_batch) >= 2:
+            return (
+                list_remaining_with_continuation(first_resp, prefix_to_list),
+                subdirs_to_process,
+            )
+
+        # Strategy 2c: First batch concentrated in 0-1 subdir
+        # Need to check total subdir count to decide serial vs parallel
+        subdir_prefixes = get_all_subdirs(prefix_to_list)
+        num_subdirs = len(subdir_prefixes)
+
+        # If 0-1 subdirs total, use serial
+        if num_subdirs <= 1:
+            return (
+                list_remaining_with_continuation(first_resp, prefix_to_list),
+                subdirs_to_process,
+            )
+
+        # Many subdirs exist but first batch concentrated in one
+        # Use parallel to avoid being blocked by large subdirs
+        return [], list(subdir_prefixes)
+
+    # Initial processing of root prefix
+    initial_results, initial_subdirs = analyze_and_list_prefix(prefix)
+    for resp in initial_results:
+        yield resp
+
+    # If no subdirs to process, we're done
+    if not initial_subdirs:
+        return
+
+    # Process subdirs in parallel using a single ThreadPoolExecutor
+    # Use a work queue to handle subdirs at all levels
+    work_queue = Queue()
+    for subdir in initial_subdirs:
+        work_queue.put(subdir)
+
+    max_workers = min(len(initial_subdirs), GLOBAL_MAX_WORKERS)
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        active_futures = {}
+
+        # Submit initial batch of work
+        while not work_queue.empty() and len(active_futures) < max_workers:
+            subdir = work_queue.get()
+            future = executor.submit(analyze_and_list_prefix, subdir)
+            active_futures[future] = subdir
+
+        # Process results and submit new work as futures complete
+        while active_futures:
+            for future in as_completed(active_futures):
+                subdir = active_futures.pop(future)
+                try:
+                    results, new_subdirs = future.result()
+
+                    # Yield all results from this subdir
+                    for resp in results:
+                        yield resp
+
+                    # Add new subdirs to queue
+                    for new_subdir in new_subdirs:
+                        work_queue.put(new_subdir)
+
+                    # Submit more work if available
+                    while not work_queue.empty() and len(active_futures) < max_workers:
+                        next_subdir = work_queue.get()
+                        next_future = executor.submit(
+                            analyze_and_list_prefix, next_subdir
+                        )
+                        active_futures[next_future] = next_subdir
+
+                except Exception as error:
+                    _logger.warning(f"Error listing subdir {subdir}: {error}")
+
+                # Break to re-enter as_completed with updated futures
+                break
 
 
 def _make_stat(content: Dict[str, Any]):
@@ -611,7 +789,7 @@ def _s3_glob_stat_single_path(
         bucket, prefix = parse_s3_url(top_prefix)
         client = get_s3_client_with_cache(profile_name=profile_name)
         with raise_s3_error(_s3_pathname, S3BucketNotFoundError):
-            for resp in _list_objects_recursive(client, bucket, prefix, delimiter):
+            for resp in _s3_list_objects(client, bucket, prefix, delimiter):
                 for content in resp.get("Contents", []):
                     path = _s3_path_join(f"{protocol}://", bucket, content["Key"])
                     if not search_dir and pattern.match(path):
@@ -1888,7 +2066,7 @@ class S3Path(URIPath):
         with raise_s3_error(self.path_with_protocol):
             prefix = _become_prefix(key)
             total_count, error_count = 0, 0
-            for resp in _list_objects_recursive(client, bucket, prefix):
+            for resp in _s3_list_objects(client, bucket, prefix):
                 if "Contents" in resp:
                     keys = [{"Key": content["Key"]} for content in resp["Contents"]]
                     total_count += len(keys)
@@ -2020,7 +2198,7 @@ class S3Path(URIPath):
                 return False
 
             with raise_s3_error(self.path_with_protocol, suppress_error_callback):
-                for resp in _list_objects_recursive(client, bucket, prefix):
+                for resp in _s3_list_objects(client, bucket, prefix):
                     for content in resp.get("Contents", []):
                         if content["Key"].endswith("/"):
                             continue
@@ -2083,7 +2261,7 @@ class S3Path(URIPath):
                     )
                 return
 
-            for resp in _list_objects_recursive(client, bucket, prefix, "/"):
+            for resp in _s3_list_objects(client, bucket, prefix, "/"):
                 for common_prefix in resp.get("CommonPrefixes", []):
                     yield FileEntry(
                         common_prefix["Prefix"][len(prefix) : -1],
@@ -2137,7 +2315,7 @@ class S3Path(URIPath):
         client = self._client
         count, size, mtime = 0, 0, 0.0
         with raise_s3_error(self.path_with_protocol):
-            for resp in _list_objects_recursive(client, bucket, prefix):
+            for resp in _s3_list_objects(client, bucket, prefix):
                 for content in resp.get("Contents", []):
                     count += 1
                     size += content["Size"]
@@ -2260,7 +2438,7 @@ class S3Path(URIPath):
             while len(stack) > 0:
                 current = _become_prefix(stack.pop())
                 dirs, files = [], []
-                for resp in _list_objects_recursive(client, bucket, current, "/"):
+                for resp in _s3_list_objects(client, bucket, current, "/"):
                     for common_prefix in resp.get("CommonPrefixes", []):
                         dirs.append(common_prefix["Prefix"][:-1])
                     for content in resp.get("Contents", []):
