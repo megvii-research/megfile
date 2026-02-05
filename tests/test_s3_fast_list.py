@@ -264,3 +264,177 @@ def test_fast_list_correctness_comparison(s3_empty_client):
     # Results should be identical (order doesn't matter)
     assert sorted(fast_keys) == sorted(standard_keys)
     assert len(fast_keys) == len(files)
+
+
+def test_fast_list_strategy_2d_top_level_files_not_lost(s3_empty_client):
+    """
+    Critical bug test: Strategy 2d should not lose top-level files
+
+    When first batch is concentrated in one subdir but many subdirs exist,
+    we switch to parallel listing. This test ensures top-level files
+    (files directly under prefix, not in subdirs) are not lost.
+    """
+    bucket = "test-bucket"
+    files = []
+
+    # Create 50 top-level files (not in any subdir)
+    for i in range(50):
+        files.append(f"prefix/top_level_file{i:04d}.txt")
+
+    # Create 1000 files in subdir0 (triggers truncation, concentrated in one subdir)
+    for i in range(1000):
+        files.append(f"prefix/subdir0/file{i:04d}.txt")
+
+    # Create 10 more subdirs with few files each (triggers parallel strategy)
+    for subdir_num in range(1, 11):
+        for file_num in range(10):
+            files.append(f"prefix/subdir{subdir_num}/file{file_num:04d}.txt")
+
+    create_files(s3_empty_client, bucket, files)
+
+    results = list(_s3_fast_list_objects_recursive(s3_empty_client, bucket, "prefix/"))
+    keys = collect_all_keys(results)
+
+    # All files must be present, especially top-level files
+    assert len(keys) == len(files)
+    for i in range(50):
+        assert f"prefix/top_level_file{i:04d}.txt" in keys, (
+            f"Top-level file top_level_file{i:04d}.txt is missing!"
+        )
+    assert sorted(keys) == sorted(files)
+
+
+def test_fast_list_strategy_2d_top_level_files_over_1000(s3_empty_client):
+    """
+    Critical bug test: Strategy 2d with >1000 top-level files
+
+    When there are more than 1000 files at the top level AND many subdirs,
+    the first_resp only contains first 1000 files. We must use get_all_subdirs
+    responses to capture ALL top-level files, not just first_resp.
+    """
+    bucket = "test-bucket"
+    files = []
+
+    # Create 1500 top-level files (exceeds max_keys=1000)
+    for i in range(1500):
+        files.append(f"prefix/top_file{i:04d}.txt")
+
+    # Create 10 subdirs with 100 files each
+    for subdir_num in range(10):
+        for file_num in range(100):
+            files.append(f"prefix/subdir{subdir_num}/file{file_num:04d}.txt")
+
+    create_files(s3_empty_client, bucket, files)
+
+    results = list(_s3_fast_list_objects_recursive(s3_empty_client, bucket, "prefix/"))
+    keys = collect_all_keys(results)
+
+    # All 2500 files must be present
+    assert len(keys) == len(files), (
+        f"Expected {len(files)} files, but got {len(keys)}. "
+        f"Missing files: {set(files) - set(keys)}"
+    )
+
+    # Specifically check that files beyond first 1000 are not lost
+    for i in range(1000, 1500):
+        assert f"prefix/top_file{i:04d}.txt" in keys, (
+            f"Top-level file top_file{i:04d}.txt (beyond first 1000) is missing!"
+        )
+
+    assert sorted(keys) == sorted(files)
+
+
+def test_fast_list_strategy_2d_mixed_top_and_subdir_files(s3_empty_client):
+    """
+    Test Strategy 2d with mixed top-level and subdirectory files
+
+    Ensures that when using parallel listing, both top-level files
+    and subdirectory files are correctly captured.
+    """
+    bucket = "test-bucket"
+    files = []
+
+    # Create 200 top-level files
+    for i in range(200):
+        files.append(f"prefix/root{i:04d}.txt")
+
+    # Create first subdir with 900 files (first batch will be concentrated here)
+    for i in range(900):
+        files.append(f"prefix/bigdir/file{i:04d}.txt")
+
+    # Create 20 more subdirs with 50 files each (total 1000 more files)
+    for subdir_num in range(20):
+        for file_num in range(50):
+            files.append(f"prefix/dir{subdir_num}/file{file_num:04d}.txt")
+
+    create_files(s3_empty_client, bucket, files)
+
+    results = list(_s3_fast_list_objects_recursive(s3_empty_client, bucket, "prefix/"))
+    keys = collect_all_keys(results)
+
+    # Total: 200 + 900 + 1000 = 2100 files
+    assert len(keys) == 2100
+    assert sorted(keys) == sorted(files)
+
+    # Verify all top-level files are present
+    top_level_files = [f for f in keys if f.count("/") == 1]
+    assert len(top_level_files) == 200
+
+
+def test_fast_list_strategy_2d_only_top_level_files(s3_empty_client):
+    """
+    Edge case: Many top-level files but subdirs exist (with few files)
+
+    This tests the case where first_resp is full of top-level files,
+    but subdirs also exist. Should not lose any top-level files.
+    """
+    bucket = "test-bucket"
+    files = []
+
+    # Create 1200 top-level files
+    for i in range(1200):
+        files.append(f"prefix/file{i:04d}.txt")
+
+    # Create 5 subdirs with only 1 file each
+    for subdir_num in range(5):
+        files.append(f"prefix/subdir{subdir_num}/single_file.txt")
+
+    create_files(s3_empty_client, bucket, files)
+
+    results = list(_s3_fast_list_objects_recursive(s3_empty_client, bucket, "prefix/"))
+    keys = collect_all_keys(results)
+
+    # All 1205 files must be present
+    assert len(keys) == 1205
+    assert sorted(keys) == sorted(files)
+
+    # Verify all 1200 top-level files exist
+    for i in range(1200):
+        assert f"prefix/file{i:04d}.txt" in keys
+
+
+def test_fast_list_strategy_2c_no_file_loss(s3_empty_client):
+    """
+    Test Strategy 2c: When only 0-1 subdirs exist, use serial listing
+
+    This should continue with serial pagination and not lose any files.
+    """
+    bucket = "test-bucket"
+    files = []
+
+    # Create 800 files in single subdir
+    for i in range(800):
+        files.append(f"prefix/onlydir/file{i:04d}.txt")
+
+    # Create 500 top-level files
+    for i in range(500):
+        files.append(f"prefix/top{i:04d}.txt")
+
+    create_files(s3_empty_client, bucket, files)
+
+    results = list(_s3_fast_list_objects_recursive(s3_empty_client, bucket, "prefix/"))
+    keys = collect_all_keys(results)
+
+    # All 1300 files must be present
+    assert len(keys) == 1300
+    assert sorted(keys) == sorted(files)

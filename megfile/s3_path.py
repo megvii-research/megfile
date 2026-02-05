@@ -536,21 +536,19 @@ def _s3_fast_list_objects_recursive(s3_client, bucket: str, prefix: str):
 
     Strategy:
     1. Sample first batch (up to max_keys) to analyze directory structure
-    2. If all files at current level (dense directory) → serial listing
-    3. If 0-1 subdir → serial listing
-    4. If first batch spans ≥2 subdirs → serial listing (files evenly distributed)
-    5. If first batch concentrated in 1 subdir but many subdirs exist → parallel listing
-    6. Use queue-based iteration to avoid nested ThreadPoolExecutor creation
+    2a. If all files at current level (dense directory) → serial listing
+    2b. If first batch spans ≥2 subdirs → serial listing (evenly distributed)
+    2c. If first batch concentrated in 0-1 subdir and ≤1 total subdirs
+        → serial listing
+    2d. If first batch concentrated in 1 subdir but many subdirs exist
+        → parallel listing
+    3. Use queue-based iteration to avoid nested ThreadPoolExecutor creation
     """
-    _logger.debug(
-        "Starting fast list: bucket=%s, prefix=%s", bucket, prefix
-    )
+    _logger.debug("Starting fast list: bucket=%s, prefix=%s", bucket, prefix)
 
     def list_remaining_with_continuation(first_resp, prefix_to_list):
         """Continue listing objects using continuation token from first response"""
-        _logger.debug(
-            "Continuing serial listing: prefix=%s", prefix_to_list
-        )
+        _logger.debug("Continuing serial listing: prefix=%s", prefix_to_list)
         results = [first_resp]
         continuation_token = first_resp.get("NextContinuationToken")
         while continuation_token:
@@ -567,11 +565,17 @@ def _s3_fast_list_objects_recursive(s3_client, bucket: str, prefix: str):
         return results
 
     def get_all_subdirs(prefix_to_list):
-        """Get all immediate subdirectories under a prefix using delimiter"""
-        _logger.debug(
-            "Getting all subdirs: prefix=%s", prefix_to_list
-        )
+        """Get all immediate subdirectories and top-level files using delimiter
+
+        Returns:
+            (top_level_responses, subdir_prefixes):
+                - top_level_responses: list of responses containing top-level files
+                - subdir_prefixes: set of immediate subdirectory prefixes
+        """
+        _logger.debug("Getting all subdirs: prefix=%s", prefix_to_list)
         subdir_prefixes = set()
+        top_level_responses = []
+
         delimiter_resp = s3_client.list_objects_v2(
             Bucket=bucket,
             Prefix=prefix_to_list,
@@ -579,10 +583,14 @@ def _s3_fast_list_objects_recursive(s3_client, bucket: str, prefix: str):
             MaxKeys=max_keys,
         )
 
+        # Collect top-level files (files directly under prefix, not in subdirs)
+        if delimiter_resp.get("Contents"):
+            top_level_responses.append(delimiter_resp)
+
         for common_prefix in delimiter_resp.get("CommonPrefixes", []):
             subdir_prefixes.add(common_prefix["Prefix"])
 
-        # Continue getting all subdirs if there are more
+        # Continue getting all subdirs and top-level files if there are more
         while delimiter_resp.get("IsTruncated", False):
             delimiter_resp = s3_client.list_objects_v2(
                 Bucket=bucket,
@@ -591,15 +599,18 @@ def _s3_fast_list_objects_recursive(s3_client, bucket: str, prefix: str):
                 ContinuationToken=delimiter_resp["NextContinuationToken"],
                 MaxKeys=max_keys,
             )
+            if delimiter_resp.get("Contents"):
+                top_level_responses.append(delimiter_resp)
             for common_prefix in delimiter_resp.get("CommonPrefixes", []):
                 subdir_prefixes.add(common_prefix["Prefix"])
 
         _logger.debug(
-            "Found %d subdirs under prefix=%s",
+            "Found %d subdirs and %d top-level responses under prefix=%s",
             len(subdir_prefixes),
+            len(top_level_responses),
             prefix_to_list,
         )
-        return subdir_prefixes
+        return top_level_responses, subdir_prefixes
 
     def analyze_and_list_prefix(prefix_to_list):
         """Analyze a prefix and return results + subdirs to process"""
@@ -627,11 +638,11 @@ def _s3_fast_list_objects_recursive(s3_client, bucket: str, prefix: str):
                 first_subdir = relative_path.split("/")[0]
                 subdirs_in_first_batch.add(prefix_to_list + first_subdir + "/")
 
-        # Strategy 1: All files at current level (dense directory, no subdirs)
+        # Strategy 2a: All files at current level (dense directory, no subdirs)
         # Continue serial listing without checking subdirs
         if len(subdirs_in_first_batch) == 0:
             _logger.debug(
-                "Strategy 1 (dense directory): prefix=%s, num_files=%d",
+                "Strategy 2a (dense directory): prefix=%s, num_files=%d",
                 prefix_to_list,
                 len(contents),
             )
@@ -656,13 +667,13 @@ def _s3_fast_list_objects_recursive(s3_client, bucket: str, prefix: str):
                 subdirs_to_process,
             )
 
-        # Strategy 2c: First batch concentrated in 0-1 subdir
+        # Strategy 2c/2d: First batch concentrated in 0-1 subdir
         # Need to check total subdir count to decide serial vs parallel
-        subdir_prefixes = get_all_subdirs(prefix_to_list)
+        top_level_responses, subdir_prefixes = get_all_subdirs(prefix_to_list)
         num_subdirs = len(subdir_prefixes)
 
-        # If 0-1 subdirs total, use serial
         if num_subdirs <= 1:
+            # Strategy 2c: Few subdirs, use serial listing
             _logger.debug(
                 "Strategy 2c (few subdirs, serial): prefix=%s, num_subdirs=%d",
                 prefix_to_list,
@@ -673,14 +684,16 @@ def _s3_fast_list_objects_recursive(s3_client, bucket: str, prefix: str):
                 subdirs_to_process,
             )
 
-        # Many subdirs exist but first batch concentrated in one
-        # Use parallel to avoid being blocked by large subdirs
+        # Strategy 2d: Many subdirs exist, use parallel listing
+        # Return top-level files from delimiter listing to avoid missing files
         _logger.debug(
-            "Strategy 2c (many subdirs, parallel): prefix=%s, num_subdirs=%d",
+            "Strategy 2d (many subdirs, parallel): prefix=%s, num_subdirs=%d, "
+            "top_level_responses=%d",
             prefix_to_list,
             num_subdirs,
+            len(top_level_responses),
         )
-        return [], list(subdir_prefixes)
+        return top_level_responses, list(subdir_prefixes)
 
     # Initial processing of root prefix
     initial_results, initial_subdirs = analyze_and_list_prefix(prefix)
