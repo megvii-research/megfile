@@ -84,7 +84,8 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">concurrent.futures</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThreadPoolExecutor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">deque</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">concurrent.futures</span><span class="w"> </span><span class="kn">import</span> <span class="n">FIRST_COMPLETED</span><span class="p">,</span> <span class="n">ThreadPoolExecutor</span><span class="p">,</span> <span class="n">wait</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">cached_property</span><span class="p">,</span> <span class="n">lru_cache</span><span class="p">,</span> <span class="n">wraps</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">getLogger</span> <span class="k">as</span> <span class="n">get_logger</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">IO</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">BinaryIO</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
@@ -102,6 +103,7 @@
     <span class="n">READER_BLOCK_SIZE</span><span class="p">,</span>
     <span class="n">READER_MAX_BUFFER_SIZE</span><span class="p">,</span>
     <span class="n">S3_CLIENT_CACHE_MODE</span><span class="p">,</span>
+    <span class="n">S3_FAST_LIST</span><span class="p">,</span>
     <span class="n">S3_MAX_RETRY_TIMES</span><span class="p">,</span>
     <span class="n">WRITER_BLOCK_SIZE</span><span class="p">,</span>
     <span class="n">WRITER_MAX_BUFFER_SIZE</span><span class="p">,</span>
@@ -596,7 +598,12 @@
     <span class="k">return</span> <span class="n">s3_pathname</span><span class="p">,</span> <span class="s2">&quot;&quot;</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_list_objects_recursive</span><span class="p">(</span><span class="n">s3_client</span><span class="p">,</span> <span class="n">bucket</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">delimiter</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_s3_list_objects</span><span class="p">(</span><span class="n">s3_client</span><span class="p">,</span> <span class="n">bucket</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">delimiter</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">):</span>
+    <span class="c1"># Use fast recursive listing when enabled and no delimiter</span>
+    <span class="k">if</span> <span class="n">S3_FAST_LIST</span> <span class="ow">and</span> <span class="n">delimiter</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+        <span class="k">yield from</span> <span class="n">_s3_fast_list_objects_recursive</span><span class="p">(</span><span class="n">s3_client</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">prefix</span><span class="p">)</span>
+        <span class="k">return</span>
+
     <span class="n">resp</span> <span class="o">=</span> <span class="n">s3_client</span><span class="o">.</span><span class="n">list_objects_v2</span><span class="p">(</span>
         <span class="n">Bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span> <span class="n">Prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">,</span> <span class="n">Delimiter</span><span class="o">=</span><span class="n">delimiter</span><span class="p">,</span> <span class="n">MaxKeys</span><span class="o">=</span><span class="n">max_keys</span>
     <span class="p">)</span>
@@ -614,6 +621,230 @@
             <span class="n">ContinuationToken</span><span class="o">=</span><span class="n">resp</span><span class="p">[</span><span class="s2">&quot;NextContinuationToken&quot;</span><span class="p">],</span>
             <span class="n">MaxKeys</span><span class="o">=</span><span class="n">max_keys</span><span class="p">,</span>
         <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_s3_fast_list_objects_recursive</span><span class="p">(</span><span class="n">s3_client</span><span class="p">,</span> <span class="n">bucket</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Fast recursive list objects with adaptive strategy using iterative approach.</span>
+
+<span class="sd">    Strategy:</span>
+<span class="sd">    1. Sample first batch (up to max_keys) to analyze directory structure</span>
+<span class="sd">    2a. If all files at current level (dense directory) → serial listing</span>
+<span class="sd">    2b. If first batch spans ≥2 subdirs → serial listing (evenly distributed)</span>
+<span class="sd">    2c. If first batch concentrated in 0-1 subdir and ≤1 total subdirs</span>
+<span class="sd">        → serial listing</span>
+<span class="sd">    2d. If first batch concentrated in 1 subdir but many subdirs exist</span>
+<span class="sd">        → parallel listing</span>
+<span class="sd">    3. Use queue-based iteration to avoid nested ThreadPoolExecutor creation</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Starting fast list: bucket=</span><span class="si">%s</span><span class="s2">, prefix=</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">prefix</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">list_remaining_with_continuation</span><span class="p">(</span><span class="n">first_resp</span><span class="p">,</span> <span class="n">prefix_to_list</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Continue listing objects using continuation token from first response&quot;&quot;&quot;</span>
+        <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Continuing serial listing: prefix=</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">prefix_to_list</span><span class="p">)</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="p">[</span><span class="n">first_resp</span><span class="p">]</span>
+        <span class="n">continuation_token</span> <span class="o">=</span> <span class="n">first_resp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;NextContinuationToken&quot;</span><span class="p">)</span>
+        <span class="k">while</span> <span class="n">continuation_token</span><span class="p">:</span>
+            <span class="n">resp</span> <span class="o">=</span> <span class="n">s3_client</span><span class="o">.</span><span class="n">list_objects_v2</span><span class="p">(</span>
+                <span class="n">Bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span>
+                <span class="n">Prefix</span><span class="o">=</span><span class="n">prefix_to_list</span><span class="p">,</span>
+                <span class="n">ContinuationToken</span><span class="o">=</span><span class="n">continuation_token</span><span class="p">,</span>
+                <span class="n">MaxKeys</span><span class="o">=</span><span class="n">max_keys</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">resp</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">resp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;IsTruncated&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+                <span class="k">break</span>
+            <span class="n">continuation_token</span> <span class="o">=</span> <span class="n">resp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;NextContinuationToken&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">results</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_all_subdirs</span><span class="p">(</span><span class="n">prefix_to_list</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get all immediate subdirectories and top-level files using delimiter</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            (top_level_responses, subdir_prefixes):</span>
+<span class="sd">                - top_level_responses: list of responses containing top-level files</span>
+<span class="sd">                - subdir_prefixes: set of immediate subdirectory prefixes</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Getting all subdirs: prefix=</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">prefix_to_list</span><span class="p">)</span>
+        <span class="n">subdir_prefixes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">top_level_responses</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">delimiter_resp</span> <span class="o">=</span> <span class="n">s3_client</span><span class="o">.</span><span class="n">list_objects_v2</span><span class="p">(</span>
+            <span class="n">Bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span>
+            <span class="n">Prefix</span><span class="o">=</span><span class="n">prefix_to_list</span><span class="p">,</span>
+            <span class="n">Delimiter</span><span class="o">=</span><span class="s2">&quot;/&quot;</span><span class="p">,</span>
+            <span class="n">MaxKeys</span><span class="o">=</span><span class="n">max_keys</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Collect top-level files (files directly under prefix, not in subdirs)</span>
+        <span class="k">if</span> <span class="n">delimiter_resp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Contents&quot;</span><span class="p">):</span>
+            <span class="n">top_level_responses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">delimiter_resp</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">common_prefix</span> <span class="ow">in</span> <span class="n">delimiter_resp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;CommonPrefixes&quot;</span><span class="p">,</span> <span class="p">[]):</span>
+            <span class="n">subdir_prefixes</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">common_prefix</span><span class="p">[</span><span class="s2">&quot;Prefix&quot;</span><span class="p">])</span>
+
+        <span class="c1"># Continue getting all subdirs and top-level files if there are more</span>
+        <span class="k">while</span> <span class="n">delimiter_resp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;IsTruncated&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="n">delimiter_resp</span> <span class="o">=</span> <span class="n">s3_client</span><span class="o">.</span><span class="n">list_objects_v2</span><span class="p">(</span>
+                <span class="n">Bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span>
+                <span class="n">Prefix</span><span class="o">=</span><span class="n">prefix_to_list</span><span class="p">,</span>
+                <span class="n">Delimiter</span><span class="o">=</span><span class="s2">&quot;/&quot;</span><span class="p">,</span>
+                <span class="n">ContinuationToken</span><span class="o">=</span><span class="n">delimiter_resp</span><span class="p">[</span><span class="s2">&quot;NextContinuationToken&quot;</span><span class="p">],</span>
+                <span class="n">MaxKeys</span><span class="o">=</span><span class="n">max_keys</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">delimiter_resp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Contents&quot;</span><span class="p">):</span>
+                <span class="n">top_level_responses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">delimiter_resp</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">common_prefix</span> <span class="ow">in</span> <span class="n">delimiter_resp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;CommonPrefixes&quot;</span><span class="p">,</span> <span class="p">[]):</span>
+                <span class="n">subdir_prefixes</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">common_prefix</span><span class="p">[</span><span class="s2">&quot;Prefix&quot;</span><span class="p">])</span>
+
+        <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="s2">&quot;Found </span><span class="si">%d</span><span class="s2"> subdirs and </span><span class="si">%d</span><span class="s2"> top-level responses under prefix=</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">subdir_prefixes</span><span class="p">),</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">top_level_responses</span><span class="p">),</span>
+            <span class="n">prefix_to_list</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">top_level_responses</span><span class="p">,</span> <span class="n">subdir_prefixes</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">analyze_and_list_prefix</span><span class="p">(</span><span class="n">prefix_to_list</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Analyze a prefix and return results + subdirs to process&quot;&quot;&quot;</span>
+        <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Analyzing prefix: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">prefix_to_list</span><span class="p">)</span>
+        <span class="c1"># First batch: sample the directory structure</span>
+        <span class="n">first_resp</span> <span class="o">=</span> <span class="n">s3_client</span><span class="o">.</span><span class="n">list_objects_v2</span><span class="p">(</span>
+            <span class="n">Bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span> <span class="n">Prefix</span><span class="o">=</span><span class="n">prefix_to_list</span><span class="p">,</span> <span class="n">MaxKeys</span><span class="o">=</span><span class="n">max_keys</span>
+        <span class="p">)</span>
+
+        <span class="n">subdirs_to_process</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># If no truncation, we&#39;re done with this prefix</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">first_resp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;IsTruncated&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">first_resp</span><span class="p">],</span> <span class="n">subdirs_to_process</span>
+
+        <span class="c1"># Analyze directory structure from first batch</span>
+        <span class="n">contents</span> <span class="o">=</span> <span class="n">first_resp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Contents&quot;</span><span class="p">,</span> <span class="p">[])</span>
+
+        <span class="c1"># Count how many different subdirs the first batch spans</span>
+        <span class="n">subdirs_in_first_batch</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">content</span> <span class="ow">in</span> <span class="n">contents</span><span class="p">:</span>
+            <span class="n">relative_path</span> <span class="o">=</span> <span class="n">content</span><span class="p">[</span><span class="s2">&quot;Key&quot;</span><span class="p">][</span><span class="nb">len</span><span class="p">(</span><span class="n">prefix_to_list</span><span class="p">)</span> <span class="p">:]</span>
+            <span class="k">if</span> <span class="s2">&quot;/&quot;</span> <span class="ow">in</span> <span class="n">relative_path</span><span class="p">:</span>
+                <span class="c1"># Extract the first-level subdir</span>
+                <span class="n">first_subdir</span> <span class="o">=</span> <span class="n">relative_path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">subdirs_in_first_batch</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">prefix_to_list</span> <span class="o">+</span> <span class="n">first_subdir</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Strategy 2a: All files at current level (dense directory, no subdirs)</span>
+        <span class="c1"># Continue serial listing without checking subdirs</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">subdirs_in_first_batch</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s2">&quot;Strategy 2a (dense directory): prefix=</span><span class="si">%s</span><span class="s2">, num_files=</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">prefix_to_list</span><span class="p">,</span>
+                <span class="nb">len</span><span class="p">(</span><span class="n">contents</span><span class="p">),</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="p">(</span>
+                <span class="n">list_remaining_with_continuation</span><span class="p">(</span><span class="n">first_resp</span><span class="p">,</span> <span class="n">prefix_to_list</span><span class="p">),</span>
+                <span class="n">subdirs_to_process</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Strategy 2b: First batch already spans multiple subdirs (≥2)</span>
+        <span class="c1"># Files are distributed relatively evenly across subdirs</span>
+        <span class="c1"># Each subdir likely has &lt; 1000 files, so serial continuation is more efficient</span>
+        <span class="c1"># No need to call get_all_subdirs - save one API request!</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">subdirs_in_first_batch</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s2">&quot;Strategy 2b (evenly distributed): prefix=</span><span class="si">%s</span><span class="s2">, &quot;</span>
+                <span class="s2">&quot;subdirs_in_first_batch=</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">prefix_to_list</span><span class="p">,</span>
+                <span class="nb">len</span><span class="p">(</span><span class="n">subdirs_in_first_batch</span><span class="p">),</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="p">(</span>
+                <span class="n">list_remaining_with_continuation</span><span class="p">(</span><span class="n">first_resp</span><span class="p">,</span> <span class="n">prefix_to_list</span><span class="p">),</span>
+                <span class="n">subdirs_to_process</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Strategy 2c/2d: First batch concentrated in 0-1 subdir</span>
+        <span class="c1"># Need to check total subdir count to decide serial vs parallel</span>
+        <span class="n">top_level_responses</span><span class="p">,</span> <span class="n">subdir_prefixes</span> <span class="o">=</span> <span class="n">get_all_subdirs</span><span class="p">(</span><span class="n">prefix_to_list</span><span class="p">)</span>
+        <span class="n">num_subdirs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">subdir_prefixes</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">num_subdirs</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># Strategy 2c: Few subdirs, use serial listing</span>
+            <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s2">&quot;Strategy 2c (few subdirs, serial): prefix=</span><span class="si">%s</span><span class="s2">, num_subdirs=</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">prefix_to_list</span><span class="p">,</span>
+                <span class="n">num_subdirs</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="p">(</span>
+                <span class="n">list_remaining_with_continuation</span><span class="p">(</span><span class="n">first_resp</span><span class="p">,</span> <span class="n">prefix_to_list</span><span class="p">),</span>
+                <span class="n">subdirs_to_process</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Strategy 2d: Many subdirs exist, use parallel listing</span>
+        <span class="c1"># Return top-level files from delimiter listing to avoid missing files</span>
+        <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="s2">&quot;Strategy 2d (many subdirs, parallel): prefix=</span><span class="si">%s</span><span class="s2">, num_subdirs=</span><span class="si">%d</span><span class="s2">, &quot;</span>
+            <span class="s2">&quot;top_level_responses=</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">prefix_to_list</span><span class="p">,</span>
+            <span class="n">num_subdirs</span><span class="p">,</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">top_level_responses</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">top_level_responses</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">subdir_prefixes</span><span class="p">)</span>
+
+    <span class="c1"># Initial processing of root prefix</span>
+    <span class="n">initial_results</span><span class="p">,</span> <span class="n">initial_subdirs</span> <span class="o">=</span> <span class="n">analyze_and_list_prefix</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span>
+    <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+        <span class="s2">&quot;Initial analysis complete: num_results=</span><span class="si">%d</span><span class="s2">, num_subdirs=</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="nb">len</span><span class="p">(</span><span class="n">initial_results</span><span class="p">),</span>
+        <span class="nb">len</span><span class="p">(</span><span class="n">initial_subdirs</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="k">yield from</span> <span class="n">initial_results</span>
+
+    <span class="c1"># If no subdirs to process, we&#39;re done</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">initial_subdirs</span><span class="p">:</span>
+        <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;No subdirs to process, fast list complete&quot;</span><span class="p">)</span>
+        <span class="k">return</span>
+
+    <span class="c1"># Process subdirs in parallel using a single ThreadPoolExecutor</span>
+    <span class="c1"># Use a deque for better performance (no lock overhead)</span>
+    <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+        <span class="s2">&quot;Starting parallel processing: </span><span class="si">%d</span><span class="s2"> subdirs, max_workers=</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="nb">len</span><span class="p">(</span><span class="n">initial_subdirs</span><span class="p">),</span>
+        <span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">initial_subdirs</span><span class="p">),</span> <span class="n">GLOBAL_MAX_WORKERS</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">pending_subdirs</span> <span class="o">=</span> <span class="n">deque</span><span class="p">(</span><span class="n">initial_subdirs</span><span class="p">)</span>
+
+    <span class="n">max_workers</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">initial_subdirs</span><span class="p">),</span> <span class="n">GLOBAL_MAX_WORKERS</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="n">max_workers</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+        <span class="n">active_futures</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># Submit initial batch of work</span>
+        <span class="k">while</span> <span class="n">pending_subdirs</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">active_futures</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">max_workers</span><span class="p">:</span>
+            <span class="n">subdir</span> <span class="o">=</span> <span class="n">pending_subdirs</span><span class="o">.</span><span class="n">popleft</span><span class="p">()</span>
+            <span class="n">future</span> <span class="o">=</span> <span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">analyze_and_list_prefix</span><span class="p">,</span> <span class="n">subdir</span><span class="p">)</span>
+            <span class="n">active_futures</span><span class="p">[</span><span class="n">future</span><span class="p">]</span> <span class="o">=</span> <span class="n">subdir</span>
+
+        <span class="c1"># Process results and submit new work as futures complete</span>
+        <span class="k">while</span> <span class="n">active_futures</span><span class="p">:</span>
+            <span class="n">done</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">wait</span><span class="p">(</span><span class="n">active_futures</span><span class="p">,</span> <span class="n">return_when</span><span class="o">=</span><span class="n">FIRST_COMPLETED</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">future</span> <span class="ow">in</span> <span class="n">done</span><span class="p">:</span>
+                <span class="n">subdir</span> <span class="o">=</span> <span class="n">active_futures</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">future</span><span class="p">)</span>
+                <span class="n">results</span><span class="p">,</span> <span class="n">new_subdirs</span> <span class="o">=</span> <span class="n">future</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+                <span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="s2">&quot;Processed subdir: </span><span class="si">%s</span><span class="s2">, results=</span><span class="si">%d</span><span class="s2">, new_subdirs=</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">,</span>
+                    <span class="n">subdir</span><span class="p">,</span>
+                    <span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">),</span>
+                    <span class="nb">len</span><span class="p">(</span><span class="n">new_subdirs</span><span class="p">),</span>
+                <span class="p">)</span>
+
+                <span class="c1"># Yield all results from this subdir</span>
+                <span class="k">yield from</span> <span class="n">results</span>
+
+                <span class="c1"># Add new subdirs to pending list</span>
+                <span class="n">pending_subdirs</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">new_subdirs</span><span class="p">)</span>
+
+                <span class="c1"># Submit more work if available</span>
+                <span class="k">while</span> <span class="n">pending_subdirs</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">active_futures</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">max_workers</span><span class="p">:</span>
+                    <span class="n">next_subdir</span> <span class="o">=</span> <span class="n">pending_subdirs</span><span class="o">.</span><span class="n">popleft</span><span class="p">()</span>
+                    <span class="n">next_future</span> <span class="o">=</span> <span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">analyze_and_list_prefix</span><span class="p">,</span> <span class="n">next_subdir</span><span class="p">)</span>
+                    <span class="n">active_futures</span><span class="p">[</span><span class="n">next_future</span><span class="p">]</span> <span class="o">=</span> <span class="n">next_subdir</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_make_stat</span><span class="p">(</span><span class="n">content</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
@@ -704,7 +935,7 @@
         <span class="n">bucket</span><span class="p">,</span> <span class="n">prefix</span> <span class="o">=</span> <span class="n">parse_s3_url</span><span class="p">(</span><span class="n">top_prefix</span><span class="p">)</span>
         <span class="n">client</span> <span class="o">=</span> <span class="n">get_s3_client_with_cache</span><span class="p">(</span><span class="n">profile_name</span><span class="o">=</span><span class="n">profile_name</span><span class="p">)</span>
         <span class="k">with</span> <span class="n">raise_s3_error</span><span class="p">(</span><span class="n">_s3_pathname</span><span class="p">,</span> <span class="n">S3BucketNotFoundError</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">resp</span> <span class="ow">in</span> <span class="n">_list_objects_recursive</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">delimiter</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">resp</span> <span class="ow">in</span> <span class="n">_s3_list_objects</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">delimiter</span><span class="p">):</span>
                 <span class="k">for</span> <span class="n">content</span> <span class="ow">in</span> <span class="n">resp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Contents&quot;</span><span class="p">,</span> <span class="p">[]):</span>
                     <span class="n">path</span> <span class="o">=</span> <span class="n">_s3_path_join</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">protocol</span><span class="si">}</span><span class="s2">://&quot;</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">content</span><span class="p">[</span><span class="s2">&quot;Key&quot;</span><span class="p">])</span>
                     <span class="k">if</span> <span class="ow">not</span> <span class="n">search_dir</span> <span class="ow">and</span> <span class="n">pattern</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
@@ -2069,7 +2300,7 @@
         <span class="k">with</span> <span class="n">raise_s3_error</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">):</span>
             <span class="n">prefix</span> <span class="o">=</span> <span class="n">_become_prefix</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
             <span class="n">total_count</span><span class="p">,</span> <span class="n">error_count</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
-            <span class="k">for</span> <span class="n">resp</span> <span class="ow">in</span> <span class="n">_list_objects_recursive</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">prefix</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">resp</span> <span class="ow">in</span> <span class="n">_s3_list_objects</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">prefix</span><span class="p">):</span>
                 <span class="k">if</span> <span class="s2">&quot;Contents&quot;</span> <span class="ow">in</span> <span class="n">resp</span><span class="p">:</span>
                     <span class="n">keys</span> <span class="o">=</span> <span class="p">[{</span><span class="s2">&quot;Key&quot;</span><span class="p">:</span> <span class="n">content</span><span class="p">[</span><span class="s2">&quot;Key&quot;</span><span class="p">]}</span> <span class="k">for</span> <span class="n">content</span> <span class="ow">in</span> <span class="n">resp</span><span class="p">[</span><span class="s2">&quot;Contents&quot;</span><span class="p">]]</span>
                     <span class="n">total_count</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span>
@@ -2210,7 +2441,7 @@
                 <span class="k">return</span> <span class="kc">False</span>
 
             <span class="k">with</span> <span class="n">raise_s3_error</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">,</span> <span class="n">suppress_error_callback</span><span class="p">):</span>
-                <span class="k">for</span> <span class="n">resp</span> <span class="ow">in</span> <span class="n">_list_objects_recursive</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">prefix</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">resp</span> <span class="ow">in</span> <span class="n">_s3_list_objects</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">prefix</span><span class="p">):</span>
                     <span class="k">for</span> <span class="n">content</span> <span class="ow">in</span> <span class="n">resp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Contents&quot;</span><span class="p">,</span> <span class="p">[]):</span>
                         <span class="k">if</span> <span class="n">content</span><span class="p">[</span><span class="s2">&quot;Key&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">):</span>
                             <span class="k">continue</span>
@@ -2276,7 +2507,7 @@
                     <span class="p">)</span>
                 <span class="k">return</span>
 
-            <span class="k">for</span> <span class="n">resp</span> <span class="ow">in</span> <span class="n">_list_objects_recursive</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">resp</span> <span class="ow">in</span> <span class="n">_s3_list_objects</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">):</span>
                 <span class="k">for</span> <span class="n">common_prefix</span> <span class="ow">in</span> <span class="n">resp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;CommonPrefixes&quot;</span><span class="p">,</span> <span class="p">[]):</span>
                     <span class="k">yield</span> <span class="n">FileEntry</span><span class="p">(</span>
                         <span class="n">common_prefix</span><span class="p">[</span><span class="s2">&quot;Prefix&quot;</span><span class="p">][</span><span class="nb">len</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span> <span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span>
@@ -2331,7 +2562,7 @@
         <span class="n">client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span>
         <span class="n">count</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">mtime</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">0.0</span>
         <span class="k">with</span> <span class="n">raise_s3_error</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">resp</span> <span class="ow">in</span> <span class="n">_list_objects_recursive</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">prefix</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">resp</span> <span class="ow">in</span> <span class="n">_s3_list_objects</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">prefix</span><span class="p">):</span>
                 <span class="k">for</span> <span class="n">content</span> <span class="ow">in</span> <span class="n">resp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Contents&quot;</span><span class="p">,</span> <span class="p">[]):</span>
                     <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
                     <span class="n">size</span> <span class="o">+=</span> <span class="n">content</span><span class="p">[</span><span class="s2">&quot;Size&quot;</span><span class="p">]</span>
@@ -2462,7 +2693,7 @@
             <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">stack</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">current</span> <span class="o">=</span> <span class="n">_become_prefix</span><span class="p">(</span><span class="n">stack</span><span class="o">.</span><span class="n">pop</span><span class="p">())</span>
                 <span class="n">dirs</span><span class="p">,</span> <span class="n">files</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
-                <span class="k">for</span> <span class="n">resp</span> <span class="ow">in</span> <span class="n">_list_objects_recursive</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">current</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">resp</span> <span class="ow">in</span> <span class="n">_s3_list_objects</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">current</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">):</span>
                     <span class="k">for</span> <span class="n">common_prefix</span> <span class="ow">in</span> <span class="n">resp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;CommonPrefixes&quot;</span><span class="p">,</span> <span class="p">[]):</span>
                         <span class="n">dirs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">common_prefix</span><span class="p">[</span><span class="s2">&quot;Prefix&quot;</span><span class="p">][:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
                     <span class="k">for</span> <span class="n">content</span> <span class="ow">in</span> <span class="n">resp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Contents&quot;</span><span class="p">,</span> <span class="p">[]):</span>
