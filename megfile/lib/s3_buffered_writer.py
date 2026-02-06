@@ -15,6 +15,7 @@ from megfile.config import (
 from megfile.errors import raise_s3_error
 from megfile.interfaces import Writable
 from megfile.utils import process_local
+from megfile.utils.endpoint import is_cloudflare_r2
 
 _logger = get_logger(__name__)
 """
@@ -63,7 +64,13 @@ class S3BufferedWriter(Writable[bytes]):
 
         # user maybe put block_size with 'numpy.uint64' type
         self._base_block_size = int(block_size)
-        self._block_autoscale = block_autoscale
+
+        if is_cloudflare_r2(self._client._endpoint.host):
+            # Cloudflare R2 requires all non-trailing parts to have the same size,
+            # so we disable block autoscaling to ensure consistent part sizes.
+            self._block_autoscale = False
+        else:
+            self._block_autoscale = block_autoscale
 
         self._max_buffer_size = max_buffer_size
         self._total_buffer_size = 0

@@ -228,3 +228,31 @@ def test_s3_buffered_writer_autoscale_block_size(client, mocker):
 
         writer._block_autoscale = False
         assert writer._block_size == 1
+
+
+def test_s3_buffered_writer_cloudflare_r2_disable_autoscale(client, mocker):
+    """Test that block autoscale is disabled for Cloudflare R2."""
+    # Mock is_cloudflare_r2 to return True
+    mocker.patch("megfile.lib.s3_buffered_writer.is_cloudflare_r2", return_value=True)
+
+    # Create writer with block_autoscale=True (default)
+    writer = S3BufferedWriter(BUCKET, KEY, s3_client=client, block_autoscale=True)
+
+    # Verify that autoscale is disabled for R2
+    assert writer._block_autoscale is False
+
+    writer.close()
+
+
+def test_s3_buffered_writer_non_r2_keeps_autoscale(client, mocker):
+    """Test that block autoscale is not affected for non-R2 endpoints."""
+    # Mock is_cloudflare_r2 to return False
+    mocker.patch("megfile.lib.s3_buffered_writer.is_cloudflare_r2", return_value=False)
+
+    # Create writer with block_autoscale=True (default)
+    writer = S3BufferedWriter(BUCKET, KEY, s3_client=client, block_autoscale=True)
+
+    # Verify that autoscale remains enabled for regular S3
+    assert writer._block_autoscale is True
+
+    writer.close()
