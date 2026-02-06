@@ -1,3 +1,7 @@
+## 5.0.8 - 2026.02.06
+- perf
+    - Improve S3 file listing performance by supporting parallel processing via env `MEGFILE_S3_FAST_LIST=true`.
+
 ## 5.0.7 - 2026.02.03
 - fix
     - fix `readline` error in `s3_open` when `max_buffer_size` is `0`.
