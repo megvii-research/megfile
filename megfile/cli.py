@@ -833,9 +833,9 @@ def s3(
                 raise NameError(f"profile-name has been used: {profile_name}")
             used = True
             sections[i] = dumps(config_dict)
+            click.echo(f"The {profile_name} config has been updated.")
             continue
         sections[i] = "\n" + ("[" + section).strip() + "\n"
-        click.echo(f"The {profile_name} config has been updated.")
     text = "\n".join(sections)
     if not used:  # Given profile_name not been used.
         text += "\n" + dumps(config_dict)
