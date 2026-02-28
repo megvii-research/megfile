@@ -498,7 +498,7 @@
 <span class="sd">    :param overwrite: whether or not overwrite file when exists, default is True</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># this function contains plenty of manual polymorphism</span>
-    <span class="k">if</span> <span class="n">smart_islink</span><span class="p">(</span><span class="n">src_path</span><span class="p">)</span> <span class="ow">and</span> <span class="n">is_s3</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">followlinks</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">is_s3</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">followlinks</span> <span class="ow">and</span> <span class="n">smart_islink</span><span class="p">(</span><span class="n">src_path</span><span class="p">):</span>
         <span class="k">return</span>
 
     <span class="n">src_protocol</span> <span class="o">=</span> <span class="n">SmartPath</span><span class="o">.</span><span class="n">_extract_protocol</span><span class="p">(</span><span class="n">src_path</span><span class="p">)</span>
