@@ -376,7 +376,7 @@ def smart_copy(
     :param overwrite: whether or not overwrite file when exists, default is True
     """
     # this function contains plenty of manual polymorphism
-    if smart_islink(src_path) and is_s3(dst_path) and not followlinks:
+    if is_s3(dst_path) and not followlinks and smart_islink(src_path):
         return
 
     src_protocol = SmartPath._extract_protocol(src_path)
