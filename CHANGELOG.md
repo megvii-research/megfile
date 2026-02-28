@@ -1,6 +1,6 @@
 ## 5.0.9 - 2026.02.28
 - perf
-    - Optimize `smart_copy`
+    - Reduce S3 API calls in `smart_copy`
 - fix
     - Fix multipart upload to comply with Cloudflare R2 part size requirements
     - Remove duplicate echo statement in cli's config update logs
