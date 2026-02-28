@@ -1,10 +1,17 @@
+## 5.0.9 - 2026.02.28
+- perf
+    - Reduce S3 API calls in `smart_copy`
+- fix
+    - Fix multipart upload to comply with Cloudflare R2 part size requirements
+    - Remove duplicate echo statement in cli's config update logs
+
 ## 5.0.8 - 2026.02.06
 - perf
     - Improve S3 file listing performance by supporting parallel processing via env `MEGFILE_S3_FAST_LIST=true`.
 
 ## 5.0.7 - 2026.02.03
 - fix
-    - fix `readline` error in `s3_open` when `max_buffer_size` is `0`.
+    - Fix `readline` error in `s3_open` when `max_buffer_size` is `0`.
 
 ## 5.0.6 - 2026.01.16
 - chore
