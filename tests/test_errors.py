@@ -28,6 +28,8 @@ from megfile.errors import (
     http_retry_exceptions,
     http_should_retry,
     patch_method,
+    s3_access_key_masked,
+    s3_config_hint,
     s3_endpoint_url,
     s3_retry_exceptions,
     s3_should_retry,
@@ -322,3 +324,155 @@ def test_pickle_error():
     e = S3UnknownError(Exception(), "")
     d = pickle.dumps(e)
     pickle.loads(d)
+
+
+def test_s3_access_key_masked(mocker):
+    # Test with access key longer than 8 characters
+    mocker.patch(
+        "megfile.s3_path.get_access_token",
+        return_value=("AKIAIOSFODNN7EXAMPLE", "secret", None),
+    )
+    result = s3_access_key_masked("s3://bucket/key")
+    assert result == "AKIAIОСF****" or result == "AKIAIOSF****"
+    assert result.endswith("****")
+    assert len(result) == 12  # 8 chars + 4 asterisks
+
+    # Test with access key shorter than or equal to 8 characters
+    mocker.patch(
+        "megfile.s3_path.get_access_token",
+        return_value=("SHORTKEY", "secret", None),
+    )
+    result = s3_access_key_masked("s3://bucket/key")
+    assert result == "SHORTKEY"
+
+    # Test with no access key
+    mocker.patch(
+        "megfile.s3_path.get_access_token",
+        return_value=(None, None, None),
+    )
+    result = s3_access_key_masked("s3://bucket/key")
+    assert result is None
+
+
+def test_s3_config_hint(mocker):
+    mocker.patch("os.environ.get", return_value=None)
+
+    # Test no_credentials hint
+    hint = s3_config_hint("s3://bucket/key", "no_credentials")
+    assert "No credentials found" in hint
+    assert "AWS_ACCESS_KEY_ID" in hint
+    assert "AWS_SECRET_ACCESS_KEY" in hint
+    assert "~/.aws/credentials" in hint
+    assert "[default]" in hint
+
+    # Test invalid_access_key hint
+    hint = s3_config_hint("s3://bucket/key", "invalid_access_key")
+    assert "access_key is invalid" in hint
+    assert "AWS_ACCESS_KEY_ID" in hint
+
+    # Test signature_mismatch hint
+    hint = s3_config_hint("s3://bucket/key", "signature_mismatch")
+    assert "secret_key does not match" in hint
+    assert "AWS_SECRET_ACCESS_KEY" in hint
+
+    # Test access_denied hint
+    hint = s3_config_hint("s3://bucket/key", "access_denied")
+    assert "Access denied" in hint
+    assert "permissions" in hint or "IAM" in hint
+
+    # Test generic hint
+    hint = s3_config_hint("s3://bucket/key", "generic")
+    assert "invalid" in hint
+    assert "AWS_ACCESS_KEY_ID" in hint
+
+
+def test_s3_config_hint_with_profile(mocker):
+    # Test with profile name from path
+    hint = s3_config_hint("s3+myprofile://bucket/key", "no_credentials")
+    assert "MYPROFILE__AWS_ACCESS_KEY_ID" in hint
+    assert "MYPROFILE__AWS_SECRET_ACCESS_KEY" in hint
+    assert "[myprofile]" in hint or "[profile myprofile]" in hint
+
+
+def test_translate_s3_error_with_hint(mocker):
+    """Test that translated errors contain access_key and hint information."""
+    s3_url = "s3://test-bucket/test-key"
+
+    # Mock access key
+    mocker.patch(
+        "megfile.s3_path.get_access_token",
+        return_value=("AKIAIOSFODNN7EXAMPLE", "secret", None),
+    )
+
+    # Test InvalidAccessKeyId error contains access_key and hint
+    error_response = {"Error": {"Code": "InvalidAccessKeyId", "Message": "Invalid key"}}
+    client_error = ClientError(error_response, operation_name="test")
+    result = translate_s3_error(client_error, s3_url)
+    assert isinstance(result, S3ConfigError)
+    error_msg = str(result)
+    assert "access_key" in error_msg
+    assert "AKIAIOSF****" in error_msg
+    assert "Hint:" in error_msg
+
+    # Test SignatureDoesNotMatch error contains access_key and hint
+    error_response = {
+        "Error": {"Code": "SignatureDoesNotMatch", "Message": "Signature mismatch"}
+    }
+    client_error = ClientError(error_response, operation_name="test")
+    result = translate_s3_error(client_error, s3_url)
+    assert isinstance(result, S3ConfigError)
+    error_msg = str(result)
+    assert "access_key" in error_msg
+    assert "Hint:" in error_msg
+    assert "secret_key" in error_msg  # hint should mention secret_key
+
+    # Test AccessDenied error contains access_key and hint
+    error_response = {"Error": {"Code": "AccessDenied", "Message": "Access denied"}}
+    client_error = ClientError(error_response, operation_name="test")
+    result = translate_s3_error(client_error, s3_url)
+    assert isinstance(result, S3PermissionError)
+    error_msg = str(result)
+    assert "access_key" in error_msg
+    assert "Hint:" in error_msg
+
+    # Test NoCredentialsError contains hint
+    no_creds_error = NoCredentialsError()
+    result = translate_s3_error(no_creds_error, s3_url)
+    assert isinstance(result, S3ConfigError)
+    error_msg = str(result)
+    assert "Hint:" in error_msg
+    assert "No credentials found" in error_msg
+
+
+def test_translate_s3_transfer_error_with_hint(mocker):
+    """Test S3UploadFailedError/S3TransferFailedError with hint."""
+    s3_url = "s3://test-bucket/test-key"
+
+    mocker.patch(
+        "megfile.s3_path.get_access_token",
+        return_value=("AKIAIOSFODNN7EXAMPLE", "secret", None),
+    )
+
+    # Test AccessDenied in S3UploadFailedError
+    s3_error = boto3.exceptions.S3UploadFailedError("AccessDenied: test")
+    result = translate_s3_error(s3_error, s3_url)
+    assert isinstance(result, S3PermissionError)
+    error_msg = str(result)
+    assert "access_key" in error_msg
+    assert "Hint:" in error_msg
+
+    # Test InvalidAccessKeyId in S3UploadFailedError
+    s3_error = boto3.exceptions.S3UploadFailedError("InvalidAccessKeyId: test")
+    result = translate_s3_error(s3_error, s3_url)
+    assert isinstance(result, S3ConfigError)
+    error_msg = str(result)
+    assert "access_key" in error_msg
+    assert "Hint:" in error_msg
+
+    # Test SignatureDoesNotMatch in S3UploadFailedError
+    s3_error = boto3.exceptions.S3UploadFailedError("SignatureDoesNotMatch: test")
+    result = translate_s3_error(s3_error, s3_url)
+    assert isinstance(result, S3ConfigError)
+    error_msg = str(result)
+    assert "access_key" in error_msg
+    assert "Hint:" in error_msg
