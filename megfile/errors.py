@@ -1,4 +1,5 @@
 # pyre-ignore-all-errors[16]
+import os
 import time
 from contextlib import contextmanager
 from functools import wraps
@@ -49,16 +50,103 @@ __all__ = [
 _logger = getLogger(__name__)
 
 
-def s3_endpoint_url(path: Optional[PathLike] = None):
-    from megfile.s3_path import S3Path, get_endpoint_url, get_s3_client
+def _get_s3_profile_name(path: Optional[PathLike] = None):
+    """Extract profile name from S3 path."""
+    from megfile.s3_path import S3Path
 
     profile_name = None
     if path:
         profile_name = S3Path(path)._profile_name
+    if not profile_name:
+        profile_name = os.environ.get("AWS_PROFILE")
+    return profile_name
+
+
+def _get_s3_env_var_names(profile_name: Optional[str] = None):
+    """Return the environment variable names for access key and secret key."""
+    if profile_name:
+        env_prefix = f"{profile_name}__".upper()
+        return f"{env_prefix}AWS_ACCESS_KEY_ID", f"{env_prefix}AWS_SECRET_ACCESS_KEY"
+    return "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"
+
+
+def _get_s3_config_sections(profile_name: Optional[str] = None):
+    """Return section names for credentials/config files."""
+    if profile_name:
+        return f"[{profile_name}]", f"[profile {profile_name}]"
+    return "[default]", "[default]"
+
+
+def s3_endpoint_url(path: Optional[PathLike] = None):
+    from megfile.s3_path import get_endpoint_url, get_s3_client
+
+    profile_name = _get_s3_profile_name(path)
     endpoint_url = get_endpoint_url(profile_name=profile_name)
     if endpoint_url is None:
         endpoint_url = get_s3_client(profile_name=profile_name).meta.endpoint_url
     return endpoint_url
+
+
+def s3_access_key_masked(path: Optional[PathLike] = None):
+    from megfile.s3_path import get_access_token
+
+    profile_name = _get_s3_profile_name(path)
+    access_key, _, _ = get_access_token(profile_name=profile_name)
+    if access_key and len(access_key) > 8:
+        return access_key[:8] + "****"
+    return access_key
+
+
+def s3_config_hint(path: Optional[PathLike] = None, error_type: str = "generic"):
+    """Return a hint string for troubleshooting S3 credentials issues.
+
+    Args:
+        path: S3 path to extract profile name from
+        error_type: One of 'no_credentials', 'invalid_access_key',
+                   'signature_mismatch', 'access_denied', 'generic'
+    """
+    profile_name = _get_s3_profile_name(path)
+    ak_env, sk_env = _get_s3_env_var_names(profile_name)
+    credentials_section, config_section = _get_s3_config_sections(profile_name)
+
+    config_guide = (
+        f"in ~/.aws/config under section {config_section}, "
+        f"or in ~/.aws/credentials under section {credentials_section}"
+    )
+
+    if error_type == "no_credentials":
+        return (
+            f"No credentials found. "
+            f"Please set environment variables {ak_env} and {sk_env}, "
+            f"or configure aws_access_key_id and aws_secret_access_key "
+            f"{config_guide}"
+        )
+    elif error_type == "invalid_access_key":
+        return (
+            f"The access_key is invalid or does not exist. "
+            f"Please check the value of environment variable {ak_env}, "
+            f"or aws_access_key_id {config_guide}"
+        )
+    elif error_type == "signature_mismatch":
+        return (
+            f"The secret_key does not match the access_key. "
+            f"Please check the value of environment variable {sk_env}, "
+            f"or aws_secret_access_key {config_guide}"
+        )
+    elif error_type == "access_denied":
+        return (
+            "Access denied. Please check: "
+            "1) the bucket/object permissions or IAM policy; "
+            "2) whether the credentials have the required permissions; "
+            "3) whether endpoint, access_key, and secret_key are correct"
+        )
+    else:
+        return (
+            f"Credentials may be invalid. "
+            f"Please check environment variables {ak_env} and {sk_env}, "
+            f"or aws_access_key_id and aws_secret_access_key "
+            f"{config_guide}"
+        )
 
 
 def full_class_name(obj):
@@ -402,14 +490,44 @@ def translate_s3_error(s3_error: Exception, s3_url: PathLike) -> Exception:
         if code in ("401", "403", "AccessDenied"):
             message = client_error_message(s3_error)
             return S3PermissionError(
-                "Permission denied: %r, code: %r, message: %r, endpoint: %r"
-                % (s3_url, code, message, s3_endpoint_url(s3_url))
+                "Permission denied: %r, code: %r, message: %r, endpoint: %r, "
+                "access_key: %r. Hint: %s"
+                % (
+                    s3_url,
+                    code,
+                    message,
+                    s3_endpoint_url(s3_url),
+                    s3_access_key_masked(s3_url),
+                    s3_config_hint(s3_url, "access_denied"),
+                )
             )
-        if code in ("InvalidAccessKeyId", "SignatureDoesNotMatch"):
+        if code == "InvalidAccessKeyId":
             message = client_error_message(s3_error)
             return S3ConfigError(
-                "Invalid configuration: %r, code: %r, message: %r, endpoint: %r"
-                % (s3_url, code, message, s3_endpoint_url(s3_url))
+                "Invalid access key: %r, code: %r, message: %r, endpoint: %r, "
+                "access_key: %r. Hint: %s"
+                % (
+                    s3_url,
+                    code,
+                    message,
+                    s3_endpoint_url(s3_url),
+                    s3_access_key_masked(s3_url),
+                    s3_config_hint(s3_url, "invalid_access_key"),
+                )
+            )
+        if code == "SignatureDoesNotMatch":
+            message = client_error_message(s3_error)
+            return S3ConfigError(
+                "Signature mismatch: %r, code: %r, message: %r, endpoint: %r, "
+                "access_key: %r. Hint: %s"
+                % (
+                    s3_url,
+                    code,
+                    message,
+                    s3_endpoint_url(s3_url),
+                    s3_access_key_masked(s3_url),
+                    s3_config_hint(s3_url, "signature_mismatch"),
+                )
             )
         if code in ("InvalidRange", "Requested Range Not Satisfiable"):
             return S3InvalidRangeError(
@@ -430,20 +548,52 @@ def translate_s3_error(s3_error: Exception, s3_url: PathLike) -> Exception:
             return S3FileNotFoundError("Invalid length for parameter Key: %r" % s3_url)
         return S3UnknownError(s3_error, s3_url)
     elif isinstance(s3_error, NoCredentialsError):
-        return S3ConfigError(str(s3_error))
+        return S3ConfigError(
+            "%s. Hint: %s" % (str(s3_error), s3_config_hint(s3_url, "no_credentials"))
+        )
     elif isinstance(s3_error, (S3UploadFailedError, S3TransferFailedError)):
         if "NoSuchBucket" in str(s3_error):
             return S3BucketNotFoundError("No such bucket: %r" % s3_url)
         elif "NoSuchKey" in str(s3_error):
             return S3FileNotFoundError("No such file: %r" % s3_url)
-        elif "InvalidAccessKeyId" in str(s3_error) or "SignatureDoesNotMatch" in str(
-            s3_error
-        ):
-            return S3ConfigError("Invalid access key id: %r" % s3_url)
+        elif "AccessDenied" in str(s3_error):
+            return S3PermissionError(
+                "AccessDenied: %r, message: %r, endpoint: %r, access_key: %r. "
+                "Hint: %s"
+                % (
+                    s3_url,
+                    str(s3_error),
+                    s3_endpoint_url(s3_url),
+                    s3_access_key_masked(s3_url),
+                    s3_config_hint(s3_url, "access_denied"),
+                )
+            )
+        elif "InvalidAccessKeyId" in str(s3_error):
+            return S3ConfigError(
+                "InvalidAccessKeyId: %r, message: %r, endpoint: %r, access_key: %r. "
+                "Hint: %s"
+                % (
+                    s3_url,
+                    str(s3_error),
+                    s3_endpoint_url(s3_url),
+                    s3_access_key_masked(s3_url),
+                    s3_config_hint(s3_url, "invalid_access_key"),
+                )
+            )
+        elif "SignatureDoesNotMatch" in str(s3_error):
+            return S3ConfigError(
+                "SignatureDoesNotMatch: %r, message: %r, endpoint: %r, access_key: %r. "
+                "Hint: %s"
+                % (
+                    s3_url,
+                    str(s3_error),
+                    s3_endpoint_url(s3_url),
+                    s3_access_key_masked(s3_url),
+                    s3_config_hint(s3_url, "signature_mismatch"),
+                )
+            )
         elif "InvalidRange" in str(s3_error):
             return S3InvalidRangeError("Invalid range: %r" % s3_url)
-        elif "AccessDenied" in str(s3_error):
-            return S3PermissionError("Access denied: %r" % s3_url)
     return S3UnknownError(ori_error, s3_url)
 
 
