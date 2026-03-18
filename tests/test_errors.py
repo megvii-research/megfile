@@ -379,6 +379,9 @@ def test_s3_config_hint(mocker):
     hint = s3_config_hint("s3://bucket/key", "access_denied")
     assert "Access denied" in hint
     assert "permissions" in hint or "IAM" in hint
+    assert "endpoint" in hint
+    assert "access_key" in hint
+    assert "secret_key" in hint
 
     # Test generic hint
     hint = s3_config_hint("s3://bucket/key", "generic")
@@ -391,7 +394,8 @@ def test_s3_config_hint_with_profile(mocker):
     hint = s3_config_hint("s3+myprofile://bucket/key", "no_credentials")
     assert "MYPROFILE__AWS_ACCESS_KEY_ID" in hint
     assert "MYPROFILE__AWS_SECRET_ACCESS_KEY" in hint
-    assert "[myprofile]" in hint or "[profile myprofile]" in hint
+    assert "~/.aws/config under section [profile myprofile]" in hint
+    assert "or in ~/.aws/credentials under section [myprofile]" in hint
 
 
 def test_translate_s3_error_with_hint(mocker):

@@ -71,11 +71,11 @@ def _get_s3_env_var_names(profile_name: Optional[str] = None):
     return "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"
 
 
-def _get_s3_config_section(profile_name: Optional[str] = None):
-    """Return the config file section name."""
+def _get_s3_config_sections(profile_name: Optional[str] = None):
+    """Return section names for credentials/config files."""
     if profile_name:
-        return f"[{profile_name}] or [profile {profile_name}]"
-    return "[default]"
+        return f"[{profile_name}]", f"[profile {profile_name}]"
+    return "[default]", "[default]"
 
 
 def s3_endpoint_url(path: Optional[PathLike] = None):
@@ -108,41 +108,45 @@ def s3_config_hint(path: Optional[PathLike] = None, error_type: str = "generic")
     """
     profile_name = _get_s3_profile_name(path)
     ak_env, sk_env = _get_s3_env_var_names(profile_name)
-    config_section = _get_s3_config_section(profile_name)
+    credentials_section, config_section = _get_s3_config_sections(profile_name)
 
-    config_files = "~/.aws/credentials or ~/.aws/config"
+    config_guide = (
+        f"in ~/.aws/config under section {config_section}, "
+        f"or in ~/.aws/credentials under section {credentials_section}"
+    )
 
     if error_type == "no_credentials":
         return (
             f"No credentials found. "
             f"Please set environment variables {ak_env} and {sk_env}, "
             f"or configure aws_access_key_id and aws_secret_access_key "
-            f"in {config_files} under section {config_section}"
+            f"{config_guide}"
         )
     elif error_type == "invalid_access_key":
         return (
             f"The access_key is invalid or does not exist. "
             f"Please check the value of environment variable {ak_env}, "
-            f"or aws_access_key_id in {config_files} under section {config_section}"
+            f"or aws_access_key_id {config_guide}"
         )
     elif error_type == "signature_mismatch":
         return (
             f"The secret_key does not match the access_key. "
             f"Please check the value of environment variable {sk_env}, "
-            f"or aws_secret_access_key in {config_files} under section {config_section}"
+            f"or aws_secret_access_key {config_guide}"
         )
     elif error_type == "access_denied":
         return (
             "Access denied. Please check: "
             "1) the bucket/object permissions or IAM policy; "
-            "2) whether the credentials have the required permissions"
+            "2) whether the credentials have the required permissions; "
+            "3) whether endpoint, access_key, and secret_key are correct"
         )
     else:
         return (
             f"Credentials may be invalid. "
             f"Please check environment variables {ak_env} and {sk_env}, "
             f"or aws_access_key_id and aws_secret_access_key "
-            f"in {config_files} under section {config_section}"
+            f"{config_guide}"
         )
 
 
