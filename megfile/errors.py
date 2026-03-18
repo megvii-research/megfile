@@ -1,4 +1,5 @@
 # pyre-ignore-all-errors[16]
+import os
 import time
 from contextlib import contextmanager
 from functools import wraps
@@ -51,8 +52,6 @@ _logger = getLogger(__name__)
 
 def _get_s3_profile_name(path: Optional[PathLike] = None):
     """Extract profile name from S3 path."""
-    import os
-
     from megfile.s3_path import S3Path
 
     profile_name = None
