@@ -230,6 +230,24 @@ def test_http_prefetch_reader_close(http_patch):
         reader.read()
 
 
+def test_http_prefetch_reader_refetch_current_block_when_future_evicted(http_patch):
+    with HttpPrefetchReader(
+        URL,
+        content_size=CONTENT_SIZE,
+        max_workers=2,
+        block_size=7,
+        max_buffer_size=3 * 7,
+        block_forward=2,
+    ) as reader:
+        reader.seek(14)
+        reader._submit_future(2)
+        reader._submit_future(3)
+        reader._submit_future(4)
+        reader._futures.pop(2)
+
+        assert reader.read(7) == b"block2 "
+
+
 def test_http_prefetch_reader_seek(http_patch):
     with HttpPrefetchReader(URL, content_size=CONTENT_SIZE) as reader:
         reader.seek(0)

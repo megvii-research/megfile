@@ -358,7 +358,20 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
         self._futures[index] = future
 
     def _fetch_future_result(self, index: int):
-        return self._futures.result(index)
+        try:
+            return self._futures.result(index)
+        except KeyError:
+            # The current block may have been evicted from the LRU future cache before
+            # we consume it. Bypass the future manager and fetch this block directly
+            # to avoid depending on the shared LRU state again in the fallback path.
+            # This path does not call back into _fetch_future_result(), so it will not
+            # loop on the same missing-future condition.
+            _logger.warning(
+                "future evicted before consumption, fetch current block directly: %r, key: %r",
+                self.name,
+                index,
+            )
+            return self._fetch_buffer(index)
 
     def _cleanup_futures(self):
         self._futures.cleanup(self._block_capacity)

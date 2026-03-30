@@ -259,6 +259,25 @@ def test_s3_prefetch_reader_close(client):
         reader.read()
 
 
+def test_s3_prefetch_reader_refetch_current_block_when_future_evicted(client):
+    with S3PrefetchReader(
+        BUCKET,
+        KEY,
+        s3_client=client,
+        max_workers=2,
+        block_size=7,
+        max_buffer_size=3 * 7,
+        block_forward=2,
+    ) as reader:
+        reader.seek(14)
+        reader._submit_future(2)
+        reader._submit_future(3)
+        reader._submit_future(4)
+        reader._futures.pop(2)
+
+        assert reader.read(7) == b"block2 "
+
+
 def test_s3_prefetch_reader_seek(client):
     with S3PrefetchReader(BUCKET, KEY, s3_client=client) as reader:
         reader.seek(0)
