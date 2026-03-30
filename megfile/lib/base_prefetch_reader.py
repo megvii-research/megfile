@@ -367,7 +367,10 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
             # This path does not call back into _fetch_future_result(), so it will not
             # loop on the same missing-future condition.
             _logger.warning(
-                "future evicted before consumption, fetch current block directly: %r, key: %r",
+                (
+                    "future evicted before consumption, "
+                    "fetch current block directly: %r, key: %r"
+                ),
                 self.name,
                 index,
             )
