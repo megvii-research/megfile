@@ -292,11 +292,11 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
                     self._submit_future(index)
             else:
                 self._submit_future(self._block_index)
-            self._cleanup_futures()
 
             self._cached_buffer = self._fetch_future_result(self._block_index)
             self._cached_buffer.seek(self._cached_offset)
             self._cached_offset = None
+            self._cleanup_futures()
 
         return self._cached_buffer
 
