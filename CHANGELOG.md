@@ -1,6 +1,7 @@
 ## 5.0.10 - 2026.04.03
 - fix
     - Fix evicted prefetch blocks not being refetched directly
+- perf
     - Improve S3 credential error hints
 
 ## 5.0.9 - 2026.02.28
