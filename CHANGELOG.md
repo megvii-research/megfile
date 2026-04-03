@@ -1,3 +1,8 @@
+## 5.0.10 - 2026.04.03
+- fix
+    - Fix evicted prefetch blocks not being refetched directly
+    - Improve S3 credential error hints
+
 ## 5.0.9 - 2026.02.28
 - perf
     - Reduce S3 API calls in `smart_copy`
