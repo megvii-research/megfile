@@ -2,6 +2,11 @@ PACKAGE := megfile
 VERSION := $(shell cat ${PACKAGE}/version.py | sed -n -E 's/.*=//; s/ //g; s/"//g; p')
 
 test:
+	# Ignore the developer's ~/.aws/config so a custom endpoint_url
+	# (e.g. Aliyun OSS) doesn't leak through moto's mock_aws and send
+	# real network calls. CI runners have no ~/.aws/config so this is
+	# a no-op there.
+	AWS_CONFIG_FILE=/dev/null \
 	pytest \
 		--cov=${PACKAGE} --cov-config=pyproject.toml --cov-report=html:html_cov/ --cov-report=term-missing --cov-report=xml --no-cov-on-fail \
 		--retries 2 --cumulative-timing 1 \

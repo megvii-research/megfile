@@ -39,7 +39,11 @@ def get_content_size(fileobj: IO, *, intrusive: bool = False) -> int:
         if isinstance(file, TextIOBase):
             file = file.buffer
         if isinstance(file, BufferedIOBase):
-            file = file.raw
+            # ``BufferedReader`` / ``BufferedWriter`` wrap a raw ``FileIO`` we
+            # want to peek through. Some ``BufferedIOBase`` subclasses have no
+            # underlying raw (e.g. ``BytesIO``, including the one pyfakefs
+            # exposes as ``TextIOWrapper.buffer`` since 6.x) — keep them as-is.
+            file = getattr(file, "raw", file)
         if hasattr(file, "_content_size"):
             return getattr(file, "_content_size")  # pyre-ignore[16]
 

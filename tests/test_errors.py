@@ -30,7 +30,9 @@ from megfile.errors import (
     patch_method,
     s3_access_key_masked,
     s3_config_hint,
+    s3_endpoint_extra,
     s3_endpoint_url,
+    s3_proxy_url,
     s3_retry_exceptions,
     s3_should_retry,
     translate_fs_error,
@@ -267,6 +269,160 @@ def test_s3_endpoint_url(mocker):
     assert s3_endpoint_url() == "test"
     assert s3_endpoint_url("s3+test1://") == "test1"
     assert s3_endpoint_url("s3+test2://") == "test2"
+
+
+def test_s3_proxy_url(monkeypatch):
+    monkeypatch.delenv("HTTP_PROXY", raising=False)
+    monkeypatch.delenv("HTTPS_PROXY", raising=False)
+    monkeypatch.delenv("http_proxy", raising=False)
+    monkeypatch.delenv("https_proxy", raising=False)
+
+    assert s3_proxy_url(None) is None
+    assert s3_proxy_url("") is None
+    assert s3_proxy_url("https://s3.amazonaws.com") is None
+    assert s3_proxy_url("http://s3.amazonaws.com") is None
+
+    monkeypatch.setenv("HTTPS_PROXY", "http://proxy.example.com:8080")
+    monkeypatch.setenv("HTTP_PROXY", "http://proxy.example.com:8081")
+    assert s3_proxy_url("https://s3.amazonaws.com") == "http://proxy.example.com:8080"
+    assert s3_proxy_url("http://s3.amazonaws.com") == "http://proxy.example.com:8081"
+    assert s3_proxy_url("ftp://s3.amazonaws.com") is None
+
+    # Lowercase fallback when uppercase isn't set.
+    monkeypatch.delenv("HTTPS_PROXY")
+    monkeypatch.delenv("HTTP_PROXY")
+    monkeypatch.setenv("https_proxy", "http://lower.example.com:8080")
+    monkeypatch.setenv("http_proxy", "http://lower.example.com:8081")
+    assert s3_proxy_url("https://s3.amazonaws.com") == "http://lower.example.com:8080"
+    assert s3_proxy_url("http://s3.amazonaws.com") == "http://lower.example.com:8081"
+
+
+def test_s3_endpoint_extra(mocker, monkeypatch):
+    monkeypatch.delenv("HTTP_PROXY", raising=False)
+    monkeypatch.delenv("HTTPS_PROXY", raising=False)
+    monkeypatch.delenv("http_proxy", raising=False)
+    monkeypatch.delenv("https_proxy", raising=False)
+
+    mocker.patch(
+        "megfile.errors.s3_endpoint_url",
+        return_value="https://s3.amazonaws.com",
+    )
+    # Default: just endpoint, no access_key, no proxy.
+    assert (
+        s3_endpoint_extra("s3://bucket/key") == "endpoint: 'https://s3.amazonaws.com'"
+    )
+
+    monkeypatch.setenv("HTTPS_PROXY", "http://proxy.example.com:8080")
+    # Default still suppresses proxy even when env is set.
+    assert (
+        s3_endpoint_extra("s3://bucket/key") == "endpoint: 'https://s3.amazonaws.com'"
+    )
+    # Opt in to proxy.
+    assert s3_endpoint_extra("s3://bucket/key", include_proxy=True) == (
+        "endpoint: 'https://s3.amazonaws.com', proxy: 'http://proxy.example.com:8080'"
+    )
+
+    # access_key sits between endpoint and proxy.
+    mocker.patch("megfile.errors.s3_access_key_masked", return_value="AKIA****")
+    assert s3_endpoint_extra(
+        "s3://bucket/key", include_access_key=True, include_proxy=True
+    ) == (
+        "endpoint: 'https://s3.amazonaws.com', access_key: 'AKIA****', "
+        "proxy: 'http://proxy.example.com:8080'"
+    )
+
+
+def test_translate_s3_error_404_includes_endpoint_and_proxy(mocker, monkeypatch):
+    monkeypatch.delenv("HTTP_PROXY", raising=False)
+    monkeypatch.delenv("HTTPS_PROXY", raising=False)
+    monkeypatch.delenv("http_proxy", raising=False)
+    monkeypatch.delenv("https_proxy", raising=False)
+    mocker.patch(
+        "megfile.errors.s3_endpoint_url",
+        return_value="https://s3.amazonaws.com",
+    )
+
+    # NoSuchKey: endpoint included, proxy NOT included even when set.
+    monkeypatch.setenv("HTTPS_PROXY", "http://proxy.example.com:8080")
+    error = translate_s3_error(
+        ClientError({"Error": {"Code": "NoSuchKey"}}, operation_name="test"),
+        "s3://bucket/key",
+    )
+    assert isinstance(error, S3FileNotFoundError)
+    assert "endpoint: 'https://s3.amazonaws.com'" in str(error)
+    assert "proxy" not in str(error)
+
+    # Numeric 404: both endpoint and proxy included.
+    error = translate_s3_error(
+        ClientError({"Error": {"Code": "404"}}, operation_name="test"),
+        "s3://bucket/key",
+    )
+    assert isinstance(error, S3FileNotFoundError)
+    assert "endpoint: 'https://s3.amazonaws.com'" in str(error)
+    assert "proxy: 'http://proxy.example.com:8080'" in str(error)
+
+    # Numeric 404 without proxy env: only endpoint, no proxy field.
+    monkeypatch.delenv("HTTPS_PROXY")
+    error = translate_s3_error(
+        ClientError({"Error": {"Code": "404"}}, operation_name="test"),
+        "s3://bucket/key",
+    )
+    assert "endpoint: 'https://s3.amazonaws.com'" in str(error)
+    assert "proxy" not in str(error)
+
+
+def test_translate_s3_error_permission_includes_proxy(mocker, monkeypatch):
+    monkeypatch.delenv("HTTP_PROXY", raising=False)
+    monkeypatch.delenv("HTTPS_PROXY", raising=False)
+    monkeypatch.delenv("http_proxy", raising=False)
+    monkeypatch.delenv("https_proxy", raising=False)
+    mocker.patch(
+        "megfile.errors.s3_endpoint_url",
+        return_value="https://s3.amazonaws.com",
+    )
+    mocker.patch("megfile.errors.s3_access_key_masked", return_value="AKIA****")
+
+    # AccessDenied (named): no proxy even when env is set — server is real S3.
+    monkeypatch.setenv("HTTPS_PROXY", "http://proxy.example.com:8080")
+    error = translate_s3_error(
+        ClientError({"Error": {"Code": "AccessDenied"}}, operation_name="test"),
+        "s3://bucket/key",
+    )
+    assert isinstance(error, S3PermissionError)
+    assert "proxy" not in str(error)
+
+    # Numeric 401: includes proxy.
+    error = translate_s3_error(
+        ClientError({"Error": {"Code": "401"}}, operation_name="test"),
+        "s3://bucket/key",
+    )
+    assert isinstance(error, S3PermissionError)
+    assert "proxy: 'http://proxy.example.com:8080'" in str(error)
+
+    # Numeric 403: includes proxy.
+    error = translate_s3_error(
+        ClientError({"Error": {"Code": "403"}}, operation_name="test"),
+        "s3://bucket/key",
+    )
+    assert isinstance(error, S3PermissionError)
+    assert "proxy: 'http://proxy.example.com:8080'" in str(error)
+
+
+def test_s3_unknown_error_includes_proxy(mocker, monkeypatch):
+    monkeypatch.delenv("HTTP_PROXY", raising=False)
+    monkeypatch.delenv("HTTPS_PROXY", raising=False)
+    monkeypatch.delenv("http_proxy", raising=False)
+    monkeypatch.delenv("https_proxy", raising=False)
+    monkeypatch.setenv("HTTPS_PROXY", "http://proxy.example.com:8080")
+
+    mocker.patch(
+        "megfile.errors.s3_endpoint_url",
+        return_value="https://s3.amazonaws.com",
+    )
+    error = S3UnknownError(Exception("boom"), "s3://bucket/key")
+    message = str(error)
+    assert "endpoint: 'https://s3.amazonaws.com'" in message
+    assert "proxy: 'http://proxy.example.com:8080'" in message
 
 
 def test_translate_hdfs_error():
