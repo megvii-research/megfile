@@ -87,6 +87,48 @@ def s3_endpoint_url(path: Optional[PathLike] = None):
     return endpoint_url
 
 
+def s3_proxy_url(endpoint_url: Optional[str]) -> Optional[str]:
+    """Return the proxy URL that botocore/urllib3 will use for ``endpoint_url``.
+
+    megfile does not configure proxies itself; the underlying HTTP stack
+    reads ``HTTPS_PROXY``/``HTTP_PROXY`` (and the lowercase variants) from
+    the environment. We mirror that lookup here so the proxy can be shown
+    in error messages — bad proxy configuration is a common cause of
+    client/server/connection errors.
+    """
+    if not endpoint_url:
+        return None
+    if endpoint_url.startswith("https://"):
+        return os.environ.get("HTTPS_PROXY") or os.environ.get("https_proxy")
+    if endpoint_url.startswith("http://"):
+        return os.environ.get("HTTP_PROXY") or os.environ.get("http_proxy")
+    return None
+
+
+def s3_endpoint_extra(
+    path: Optional[PathLike] = None,
+    include_access_key: bool = False,
+    include_proxy: bool = False,
+) -> str:
+    """Build the ``endpoint: ..., access_key: ..., proxy: ...`` suffix used in
+    S3 error messages.
+
+    Set ``include_access_key=True`` for credential-related errors. Set
+    ``include_proxy=True`` for errors whose response body was likely not
+    S3-format XML (numeric HTTP codes, connection errors), since a
+    misconfigured proxy is a common cause of those.
+    """
+    endpoint_url = s3_endpoint_url(path)
+    extra = "endpoint: %r" % endpoint_url
+    if include_access_key:
+        extra += ", access_key: %r" % s3_access_key_masked(path)
+    if include_proxy:
+        proxy_url = s3_proxy_url(endpoint_url)
+        if proxy_url:
+            extra += ", proxy: %r" % proxy_url
+    return extra
+
+
 def s3_access_key_masked(path: Optional[PathLike] = None):
     from megfile.s3_path import get_access_token
 
@@ -400,7 +442,9 @@ class S3InvalidRangeError(S3Exception):
 
 class S3UnknownError(S3Exception, UnknownError):
     def __init__(self, error: Exception, path: PathLike, extra: Optional[str] = None):
-        super().__init__(error, path, extra or "endpoint: %r" % s3_endpoint_url(path))
+        super().__init__(
+            error, path, extra or s3_endpoint_extra(path, include_proxy=True)
+        )
 
 
 class HttpException(Exception):
@@ -486,46 +530,51 @@ def translate_s3_error(s3_error: Exception, s3_url: PathLike) -> Exception:
                 % (bucket_or_url, s3_endpoint_url(s3_url))
             )
         if code in ("404", "NoSuchKey"):
-            return S3FileNotFoundError("No such file: %r" % s3_url)
+            # A numeric "404" (rather than the named "NoSuchKey") usually
+            # means the response body was not S3-format XML — most often a
+            # proxy returning its own error page. Surface the proxy in that
+            # case so a misconfiguration is easy to spot.
+            return S3FileNotFoundError(
+                "No such file: %r, %s"
+                % (s3_url, s3_endpoint_extra(s3_url, include_proxy=code == "404"))
+            )
         if code in ("401", "403", "AccessDenied"):
-            message = client_error_message(s3_error)
+            # Same reasoning as the "404" branch above: numeric 401/403 is
+            # likely a proxy auth/redirect page rather than a real S3
+            # AccessDenied response.
             return S3PermissionError(
-                "Permission denied: %r, code: %r, message: %r, endpoint: %r, "
-                "access_key: %r. Hint: %s"
+                "Permission denied: %r, code: %r, message: %r, %s. Hint: %s"
                 % (
                     s3_url,
                     code,
-                    message,
-                    s3_endpoint_url(s3_url),
-                    s3_access_key_masked(s3_url),
+                    client_error_message(s3_error),
+                    s3_endpoint_extra(
+                        s3_url,
+                        include_access_key=True,
+                        include_proxy=code in ("401", "403"),
+                    ),
                     s3_config_hint(s3_url, "access_denied"),
                 )
             )
         if code == "InvalidAccessKeyId":
-            message = client_error_message(s3_error)
             return S3ConfigError(
-                "Invalid access key: %r, code: %r, message: %r, endpoint: %r, "
-                "access_key: %r. Hint: %s"
+                "Invalid access key: %r, code: %r, message: %r, %s. Hint: %s"
                 % (
                     s3_url,
                     code,
-                    message,
-                    s3_endpoint_url(s3_url),
-                    s3_access_key_masked(s3_url),
+                    client_error_message(s3_error),
+                    s3_endpoint_extra(s3_url, include_access_key=True),
                     s3_config_hint(s3_url, "invalid_access_key"),
                 )
             )
         if code == "SignatureDoesNotMatch":
-            message = client_error_message(s3_error)
             return S3ConfigError(
-                "Signature mismatch: %r, code: %r, message: %r, endpoint: %r, "
-                "access_key: %r. Hint: %s"
+                "Signature mismatch: %r, code: %r, message: %r, %s. Hint: %s"
                 % (
                     s3_url,
                     code,
-                    message,
-                    s3_endpoint_url(s3_url),
-                    s3_access_key_masked(s3_url),
+                    client_error_message(s3_error),
+                    s3_endpoint_extra(s3_url, include_access_key=True),
                     s3_config_hint(s3_url, "signature_mismatch"),
                 )
             )
@@ -558,37 +607,31 @@ def translate_s3_error(s3_error: Exception, s3_url: PathLike) -> Exception:
             return S3FileNotFoundError("No such file: %r" % s3_url)
         elif "AccessDenied" in str(s3_error):
             return S3PermissionError(
-                "AccessDenied: %r, message: %r, endpoint: %r, access_key: %r. "
-                "Hint: %s"
+                "AccessDenied: %r, message: %r, %s. Hint: %s"
                 % (
                     s3_url,
                     str(s3_error),
-                    s3_endpoint_url(s3_url),
-                    s3_access_key_masked(s3_url),
+                    s3_endpoint_extra(s3_url, include_access_key=True),
                     s3_config_hint(s3_url, "access_denied"),
                 )
             )
         elif "InvalidAccessKeyId" in str(s3_error):
             return S3ConfigError(
-                "InvalidAccessKeyId: %r, message: %r, endpoint: %r, access_key: %r. "
-                "Hint: %s"
+                "InvalidAccessKeyId: %r, message: %r, %s. Hint: %s"
                 % (
                     s3_url,
                     str(s3_error),
-                    s3_endpoint_url(s3_url),
-                    s3_access_key_masked(s3_url),
+                    s3_endpoint_extra(s3_url, include_access_key=True),
                     s3_config_hint(s3_url, "invalid_access_key"),
                 )
             )
         elif "SignatureDoesNotMatch" in str(s3_error):
             return S3ConfigError(
-                "SignatureDoesNotMatch: %r, message: %r, endpoint: %r, access_key: %r. "
-                "Hint: %s"
+                "SignatureDoesNotMatch: %r, message: %r, %s. Hint: %s"
                 % (
                     s3_url,
                     str(s3_error),
-                    s3_endpoint_url(s3_url),
-                    s3_access_key_masked(s3_url),
+                    s3_endpoint_extra(s3_url, include_access_key=True),
                     s3_config_hint(s3_url, "signature_mismatch"),
                 )
             )
