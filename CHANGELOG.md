@@ -1,3 +1,7 @@
+## 5.0.11 - 2026.05.06
+- feat
+    - Show HTTP proxy in S3 error messages for non-S3-format responses
+
 ## 5.0.10 - 2026.04.03
 - fix
     - Fix evicted prefetch blocks not being refetched directly
