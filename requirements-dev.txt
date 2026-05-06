@@ -7,7 +7,7 @@ pytest-cov
 pytest-mock > 3.6.0
 pytest-socket
 pytest-retry
-moto[s3] >= 5.0.0; < 5.2.0
+moto[s3] >= 5.0.0, < 5.2.0
 cryptography >= 3.3.2
 mutmut
 pyfakefs >= 4.5
