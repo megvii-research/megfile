@@ -588,7 +588,7 @@ def translate_s3_error(s3_error: Exception, s3_url: PathLike) -> Exception:
                     s3_endpoint_url(s3_url),
                 )
             )
-        return S3UnknownError(s3_error, s3_url)
+        return S3UnknownError(ori_error, s3_url)
     elif isinstance(s3_error, ParamValidationError):
         report = param_validation_error_report(s3_error)
         if "Invalid bucket name" in report:

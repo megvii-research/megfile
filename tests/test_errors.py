@@ -139,6 +139,11 @@ def test_translate_s3_error():
     assert isinstance(translate_s3_error(exception_error, s3_url), S3UnknownError)
     assert "after 3 tries" in str(translate_s3_error(exception_error, s3_url))
 
+    client_error = ClientError({"Error": {"Code": "Unknown"}}, operation_name="test")
+    exception_error = MaxRetriesExceededError(client_error, 3)
+    assert isinstance(translate_s3_error(exception_error, s3_url), S3UnknownError)
+    assert "after 3 tries" in str(translate_s3_error(exception_error, s3_url))
+
     s3_upload_failed_error = boto3.exceptions.S3UploadFailedError("NoSuchBucket")
     assert isinstance(
         translate_s3_error(s3_upload_failed_error, s3_url), S3BucketNotFoundError
