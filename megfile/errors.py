@@ -17,6 +17,7 @@ from boto3.exceptions import (  # TODO: test different boto3 version
 from botocore.exceptions import ClientError, NoCredentialsError, ParamValidationError
 from requests.exceptions import HTTPError
 
+from megfile.config import S3_MAX_RETRY_TIMES
 from megfile.interfaces import PathLike
 
 __all__ = [
@@ -42,6 +43,7 @@ __all__ = [
     "translate_s3_error",
     "patch_method",
     "raise_s3_error",
+    "s3_call_with_retry",
     "s3_should_retry",
     "translate_fs_error",
     "http_should_retry",
@@ -279,6 +281,16 @@ def s3_should_retry(error: Exception) -> bool:
     if isinstance(error, botocore.exceptions.ClientError):
         return client_error_code(error) in s3_retry_error_codes
     return False
+
+
+def s3_call_with_retry(
+    func: Callable,
+    *args,
+    max_retries: int = S3_MAX_RETRY_TIMES,
+    **kwargs,
+):
+    func = patch_method(func, max_retries=max_retries, should_retry=s3_should_retry)
+    return func(*args, **kwargs)
 
 
 def patch_method(

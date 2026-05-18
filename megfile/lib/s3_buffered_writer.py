@@ -12,7 +12,7 @@ from megfile.config import (
     WRITER_BLOCK_SIZE,
     WRITER_MAX_BUFFER_SIZE,
 )
-from megfile.errors import raise_s3_error
+from megfile.errors import raise_s3_error, s3_call_with_retry
 from megfile.interfaces import Writable
 from megfile.utils import process_local
 from megfile.utils.endpoint import is_cloudflare_r2
@@ -136,8 +136,10 @@ class S3BufferedWriter(Writable[bytes]):
             with self.__upload_id_lock:
                 if self.__upload_id is None:
                     with raise_s3_error(self.name):
-                        self.__upload_id = self._client.create_multipart_upload(
-                            Bucket=self._bucket, Key=self._key
+                        self.__upload_id = s3_call_with_retry(
+                            self._client.create_multipart_upload,
+                            Bucket=self._bucket,
+                            Key=self._key,
                         )["UploadId"]
         return self.__upload_id
 
@@ -153,7 +155,8 @@ class S3BufferedWriter(Writable[bytes]):
     def _upload_buffer(self, part_number, content):
         with raise_s3_error(self.name):
             return PartResult(
-                self._client.upload_part(
+                s3_call_with_retry(
+                    self._client.upload_part,
                     Bucket=self._bucket,
                     Key=self._key,
                     UploadId=self._upload_id,
@@ -227,8 +230,11 @@ class S3BufferedWriter(Writable[bytes]):
 
         if self._is_multipart:
             with raise_s3_error(self.name):
-                self._client.abort_multipart_upload(
-                    Bucket=self._bucket, Key=self._key, UploadId=self._upload_id
+                s3_call_with_retry(
+                    self._client.abort_multipart_upload,
+                    Bucket=self._bucket,
+                    Key=self._key,
+                    UploadId=self._upload_id,
                 )
 
         self._shutdown()
@@ -238,8 +244,11 @@ class S3BufferedWriter(Writable[bytes]):
 
         if not self._is_multipart:
             with raise_s3_error(self.name):
-                self._client.put_object(
-                    Bucket=self._bucket, Key=self._key, Body=self._buffer.getvalue()
+                s3_call_with_retry(
+                    self._client.put_object,
+                    Bucket=self._bucket,
+                    Key=self._key,
+                    Body=self._buffer.getvalue(),
                 )
             self._shutdown()
             return
@@ -247,7 +256,8 @@ class S3BufferedWriter(Writable[bytes]):
         self._submit_futures()
 
         with raise_s3_error(self.name):
-            self._client.complete_multipart_upload(
+            s3_call_with_retry(
+                self._client.complete_multipart_upload,
                 Bucket=self._bucket,
                 Key=self._key,
                 MultipartUpload=self._multipart_upload,

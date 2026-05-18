@@ -5,6 +5,7 @@ from megfile.errors import (
     S3ConfigError,
     S3PermissionError,
     S3UnknownError,
+    s3_call_with_retry,
     translate_s3_error,
 )
 from megfile.lib.base_memory_handler import BaseMemoryHandler
@@ -37,7 +38,9 @@ class S3MemoryHandler(BaseMemoryHandler):
 
     def _file_exists(self) -> bool:
         try:
-            self._client.head_object(Bucket=self._bucket, Key=self._key)
+            s3_call_with_retry(
+                self._client.head_object, Bucket=self._bucket, Key=self._key
+            )
         except Exception as error:
             error = self._translate_error(error)
             if isinstance(error, (S3UnknownError, S3ConfigError, S3PermissionError)):
@@ -52,7 +55,9 @@ class S3MemoryHandler(BaseMemoryHandler):
             return
         # directly download to the file handle
         try:
-            self._client.download_fileobj(self._bucket, self._key, self._fileobj)
+            s3_call_with_retry(
+                self._client.download_fileobj, self._bucket, self._key, self._fileobj
+            )
         except Exception as error:
             raise self._translate_error(error)
         if self._mode[0] == "r":
@@ -65,6 +70,8 @@ class S3MemoryHandler(BaseMemoryHandler):
         # directly upload from file handle
         self.seek(0, os.SEEK_SET)
         try:
-            self._client.upload_fileobj(self._fileobj, self._bucket, self._key)
+            s3_call_with_retry(
+                self._client.upload_fileobj, self._fileobj, self._bucket, self._key
+            )
         except Exception as error:
             raise self._translate_error(error)

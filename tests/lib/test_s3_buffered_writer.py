@@ -2,6 +2,7 @@ from concurrent.futures import wait
 from io import UnsupportedOperation
 from threading import Event
 
+import botocore.exceptions
 import moto
 import moto.s3
 import pytest
@@ -128,6 +129,65 @@ def test_s3_buffered_writer_write_multipart(client, mocker):
 
     content_read = client.get_object(Bucket=BUCKET, Key=KEY)["Body"].read()
     assert content_read == content + b"\n" + content
+
+
+def test_s3_buffered_writer_upload_part_retry(client, mocker):
+    block_size = 10 * 2**20
+    content_size = 16 * 2**20
+    content = b"a" * content_size
+    upload_part_func = client.upload_part
+    retry_error = botocore.exceptions.ClientError(
+        {"Error": {"Code": "ActiveRequestLimitExceeded"}},
+        operation_name="UploadPart",
+    )
+    call_count = 0
+
+    def fake_upload_part(**kwargs):
+        nonlocal call_count
+        call_count += 1
+        if call_count == 1:
+            raise retry_error
+        return upload_part_func(**kwargs)
+
+    mocker.patch("megfile.errors.time.sleep")
+    mocker.patch.object(client, "upload_part", side_effect=fake_upload_part)
+
+    with S3BufferedWriter(
+        BUCKET, KEY, s3_client=client, block_size=block_size, max_workers=1
+    ) as writer:
+        writer.write(content)
+        writer.write(b"\n")
+        writer.write(content)
+
+    content_read = client.get_object(Bucket=BUCKET, Key=KEY)["Body"].read()
+    assert content_read == content + b"\n" + content
+    assert call_count == 3
+
+
+def test_s3_buffered_writer_put_object_retry(client, mocker):
+    put_object_func = client.put_object
+    retry_error = botocore.exceptions.ClientError(
+        {"Error": {"Code": "ActiveRequestLimitExceeded"}},
+        operation_name="PutObject",
+    )
+    call_count = 0
+
+    def fake_put_object(**kwargs):
+        nonlocal call_count
+        call_count += 1
+        if call_count == 1:
+            raise retry_error
+        return put_object_func(**kwargs)
+
+    mocker.patch("megfile.errors.time.sleep")
+    mocker.patch.object(client, "put_object", side_effect=fake_put_object)
+
+    with S3BufferedWriter(BUCKET, KEY, s3_client=client) as writer:
+        writer.write(CONTENT)
+
+    content = client.get_object(Bucket=BUCKET, Key=KEY)["Body"].read()
+    assert content == CONTENT
+    assert call_count == 2
 
 
 def test_s3_buffered_writer_write_multipart_pending(client, mocker):

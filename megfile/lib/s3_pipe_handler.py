@@ -4,7 +4,7 @@ import os
 from threading import Thread
 from typing import Optional
 
-from megfile.errors import translate_s3_error
+from megfile.errors import s3_call_with_retry, translate_s3_error
 from megfile.interfaces import Readable, Writable
 
 _s3_opened_pipes = []
@@ -75,7 +75,9 @@ class S3PipeHandler(Readable[bytes], Writable[bytes]):
     def _download_fileobj(self):
         try:
             with os.fdopen(self._pipe[1], "wb") as buffer:
-                self._client.download_fileobj(self._bucket, self._key, buffer)
+                s3_call_with_retry(
+                    self._client.download_fileobj, self._bucket, self._key, buffer
+                )
         except BrokenPipeError:  # pragma: no cover
             if self._fileobj.closed:
                 return
@@ -86,7 +88,9 @@ class S3PipeHandler(Readable[bytes], Writable[bytes]):
     def _upload_fileobj(self):
         try:
             with os.fdopen(self._pipe[0], "rb") as buffer:
-                self._client.upload_fileobj(buffer, self._bucket, self._key)
+                s3_call_with_retry(
+                    self._client.upload_fileobj, buffer, self._bucket, self._key
+                )
         except Exception as error:
             self._exc = error
 

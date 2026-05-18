@@ -6,7 +6,7 @@ from typing import Optional
 from megfile.config import (
     WRITER_MAX_BUFFER_SIZE,
 )
-from megfile.errors import raise_s3_error
+from megfile.errors import raise_s3_error, s3_call_with_retry
 from megfile.interfaces import Seekable
 from megfile.lib.s3_buffered_writer import S3BufferedWriter
 
@@ -150,7 +150,8 @@ class S3LimitedSeekableWriter(S3BufferedWriter, Seekable):
 
         if not self._is_multipart:
             with raise_s3_error(self.name):
-                self._client.put_object(
+                s3_call_with_retry(
+                    self._client.put_object,
                     Bucket=self._bucket,
                     Key=self._key,
                     Body=self._head_buffer.getvalue() + self._buffer.getvalue(),
@@ -167,7 +168,8 @@ class S3LimitedSeekableWriter(S3BufferedWriter, Seekable):
         self._buffer = BytesIO()  # clean memory
 
         with raise_s3_error(self.name):
-            self._client.complete_multipart_upload(
+            s3_call_with_retry(
+                self._client.complete_multipart_upload,
                 Bucket=self._bucket,
                 Key=self._key,
                 MultipartUpload=self._multipart_upload,

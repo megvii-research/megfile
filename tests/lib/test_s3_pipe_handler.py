@@ -2,6 +2,7 @@ import os
 import sys
 from subprocess import check_call
 
+import botocore.exceptions
 import pytest
 
 from megfile.errors import S3Exception
@@ -62,6 +63,32 @@ def test_s3_pipe_handler_write(client):
 
     content = client.get_object(Bucket=BUCKET, Key=KEY)["Body"].read()
     assert content == CONTENT
+
+
+def test_s3_pipe_handler_upload_retry(client, mocker):
+    upload_fileobj_func = client.upload_fileobj
+    retry_error = botocore.exceptions.ClientError(
+        {"Error": {"Code": "ActiveRequestLimitExceeded"}},
+        operation_name="UploadPart",
+    )
+    call_count = 0
+
+    def fake_upload_fileobj(*args, **kwargs):
+        nonlocal call_count
+        call_count += 1
+        if call_count == 1:
+            raise retry_error
+        return upload_fileobj_func(*args, **kwargs)
+
+    mocker.patch("megfile.errors.time.sleep")
+    mocker.patch.object(client, "upload_fileobj", side_effect=fake_upload_fileobj)
+
+    with S3PipeHandler(BUCKET, KEY, "wb", s3_client=client) as writer:
+        writer.write(CONTENT)
+
+    content = client.get_object(Bucket=BUCKET, Key=KEY)["Body"].read()
+    assert content == CONTENT
+    assert call_count == 2
 
 
 def assert_no_timeout(filename, timeout=60):

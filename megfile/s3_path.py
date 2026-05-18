@@ -45,6 +45,7 @@ from megfile.errors import (
     patch_method,
     raise_s3_error,
     s3_error_code_should_retry,
+    s3_call_with_retry,
     s3_should_retry,
     translate_fs_error,
     translate_s3_error,
@@ -1545,9 +1546,9 @@ def s3_load_content(
 
     client = get_s3_client_with_cache(profile_name=s3_url._profile_name)
     with raise_s3_error(s3_url.path):
-        return patch_method(
-            _get_object, max_retries=max_retries, should_retry=s3_should_retry
-        )(client, bucket, key, range_str)
+        return s3_call_with_retry(
+            _get_object, client, bucket, key, range_str, max_retries=max_retries
+        )
 
 
 class S3Cacher(FileCacher):
@@ -2761,12 +2762,15 @@ class MultiPartWriter:
         bucket, key = parse_s3_url(path)
         self._bucket = bucket
         self._key = key
-        self._upload_id = self._client.create_multipart_upload(
-            Bucket=self._bucket, Key=self._key
+        self._upload_id = s3_call_with_retry(
+            self._client.create_multipart_upload,
+            Bucket=self._bucket,
+            Key=self._key,
         )["UploadId"]
 
     def upload_part(self, part_num: int, file_obj: io.BytesIO) -> None:
-        response = self._client.upload_part(
+        response = s3_call_with_retry(
+            self._client.upload_part,
             Body=file_obj,
             UploadId=self._upload_id,
             PartNumber=part_num,
@@ -2790,15 +2794,29 @@ class MultiPartWriter:
             else:
                 return client.get_object(Bucket=bucket, Key=key)["Body"].read()
 
-        get_object = patch_method(
-            get_object, max_retries=max_retries, should_retry=s3_should_retry
-        )
         for path, bytes_range in paths:
             bucket, key = parse_s3_url(path)
             if bytes_range:
-                file_obj.write(get_object(self._client, bucket, key, bytes_range))
+                file_obj.write(
+                    s3_call_with_retry(
+                        get_object,
+                        self._client,
+                        bucket,
+                        key,
+                        bytes_range,
+                        max_retries=max_retries,
+                    )
+                )
             else:
-                file_obj.write(get_object(self._client, bucket, key))
+                file_obj.write(
+                    s3_call_with_retry(
+                        get_object,
+                        self._client,
+                        bucket,
+                        key,
+                        max_retries=max_retries,
+                    )
+                )
         file_obj.seek(0, os.SEEK_SET)
         self.upload_part(part_num, file_obj)
 
@@ -2815,14 +2833,15 @@ class MultiPartWriter:
         )
         if copy_source_range:
             params["CopySourceRange"] = copy_source_range
-        response = self._client.upload_part_copy(**params)
+        response = s3_call_with_retry(self._client.upload_part_copy, **params)
         self._multipart_upload_info.append(
             {"PartNumber": part_num, "ETag": response["CopyPartResult"]["ETag"]}
         )
 
     def close(self):
         self._multipart_upload_info.sort(key=lambda t: t["PartNumber"])
-        self._client.complete_multipart_upload(
+        s3_call_with_retry(
+            self._client.complete_multipart_upload,
             UploadId=self._upload_id,
             Bucket=self._bucket,
             Key=self._key,
