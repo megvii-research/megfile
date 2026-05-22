@@ -5,9 +5,13 @@ from datetime import datetime
 from typing import Dict, Iterator, List
 
 import pytest
-from webdav3.exceptions import RemoteResourceNotFound
+from webdav3.exceptions import (
+    RemoteResourceNotFound,
+    ResponseErrorCode,
+)
 
 from megfile.errors import SameFileError
+from megfile.webdav_path import _patch_execute_request
 from tests.compat import webdav
 
 from .test_http import FakeResponse  # noqa: F401
@@ -176,6 +180,37 @@ def test_is_webdav():
     assert webdav.is_webdav("https://host/data") is False
     assert webdav.is_webdav("ftp://host/data") is False
     assert webdav.is_webdav("sftp://host/data") is False
+
+
+def test_webdav_response_409_retry():
+    class Client:
+        def __init__(self):
+            self.calls = 0
+            self.webdav = type("Webdav", (), {"token_command": None})()
+
+        def execute_request(self, action, path, data=None, headers_ext=None):
+            self.calls += 1
+            if self.calls == 1:
+                data.read()
+                raise ResponseErrorCode(
+                    url="https://example.com/file", code=409, message=b"Conflict"
+                )
+            assert data.tell() == 0
+            response = FakeResponse()
+            response.status_code = 200
+            response.content = b"<xml/>"
+            return response
+
+        def get_url(self, path):
+            return "https://example.com" + path
+
+    client = Client()
+    _patch_execute_request(client, max_retries=2)
+
+    response = client.execute_request("upload", "/file", data=io.BytesIO(b"content"))
+
+    assert client.calls == 2
+    assert response.content == b"<xml/>"
 
 
 def test_webdav_glob(webdav_mocker):
