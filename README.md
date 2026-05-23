@@ -80,8 +80,6 @@ if path.exists():
 
 ### Command Line Interface
 ```bash
-$ pip install 'megfile[cli]'  # install megfile cli requirements
-
 $ megfile --help  # see what you can do
 
 $ megfile ls s3://playground/
@@ -98,9 +96,6 @@ $ megfile cp s3://playground/megfile-test /tmp/playground/megfile-test
 
 ```bash
 pip3 install megfile
-
-# for cli support
-pip3 install 'megfile[cli]'
 
 # for hdfs support
 pip3 install 'megfile[hdfs]'

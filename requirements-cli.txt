@@ -1,1 +1,2 @@
-click
+# Kept for compatibility with `pip install megfile[cli]`.
+# Remove this empty extra in the next major version.
