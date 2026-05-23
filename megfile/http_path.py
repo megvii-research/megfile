@@ -50,9 +50,10 @@ def get_http_session(
     session.headers.update(headers or {})
     session.cookies.update(cookies or {})
     session.trust_env = trust_env
+    retry_status_codes = set(status_forcelist)
 
     def after_callback(response, *args, **kwargs):
-        if response.status_code in status_forcelist:
+        if response.status_code in retry_status_codes:
             response.raise_for_status()
         return response
 

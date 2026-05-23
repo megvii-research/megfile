@@ -277,6 +277,20 @@ def test_get_http_session(mocker):
     assert response.status_code == 200
 
 
+def test_get_http_session_status_forcelist_generator(mocker):
+    requests_request_func = mocker.patch("requests.Session.request")
+    mocker.patch("megfile.http_path.HTTP_MAX_RETRY_TIMES", 1)
+
+    class FakeResponse502(FakeResponse):
+        status_code = 502
+
+    requests_request_func.return_value = FakeResponse502()
+    session = get_http_session(status_forcelist=(code for code in [502]))
+
+    with pytest.raises(MaxRetriesExceededError):
+        session.request("get", "http://test")
+
+
 def test_http_exists(mocker):
     class FakeResponse200(FakeResponse):
         status_code = 200

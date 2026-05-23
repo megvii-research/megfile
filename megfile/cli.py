@@ -428,11 +428,17 @@ def mv(
     help="Command is performed on all files or objects "
     "under the specified directory or prefix.",
 )
-def rm(path: str, recursive: bool):
+@click.option(
+    "-f",
+    "--force",
+    is_flag=True,
+    help="Ignore nonexistent files and arguments.",
+)
+def rm(path: str, recursive: bool, force: bool):
     _sftp_prompt_host_key(path)
 
     remove_func = smart_remove if recursive else smart_unlink
-    remove_func(path)
+    remove_func(path, missing_ok=force)
 
 
 @cli.command(short_help="Make source and dest identical, modifying destination only.")

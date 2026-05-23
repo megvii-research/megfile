@@ -246,6 +246,15 @@ def test_rm(runner, testdir):
     assert result.exit_code == 0
     assert runner.invoke(ls, [str(testdir)]).output == ""
 
+    missing_path = str(testdir / "missing")
+    result = runner.invoke(rm, [missing_path])
+
+    assert result.exit_code != 0
+
+    result = runner.invoke(rm, ["-f", missing_path])
+
+    assert result.exit_code == 0
+
 
 def test_size(runner, testdir):
     result = runner.invoke(size, [str(testdir / "text")])

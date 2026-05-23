@@ -137,9 +137,11 @@ def provide_connect_info(
 
 def _patch_execute_request(
     client: WebdavClient,
-    status_forcelist: Iterable[int] = (500, 502, 503, 504),
+    status_forcelist: Iterable[int] = (409, 500, 502, 503, 504),
     max_retries: int = WEBDAV_MAX_RETRY_TIMES,
 ) -> WebdavClient:
+    retry_status_codes = set(status_forcelist)
+
     def webdav_update_token_by_command():
         cmds = shlex.split(client.webdav.token_command)
         client.webdav.token_command_last_call = time.time()
@@ -148,6 +150,11 @@ def _patch_execute_request(
 
     def webdav_should_retry(error: Exception) -> bool:
         if http_should_retry(error):
+            return True
+        if (
+            isinstance(error, ResponseErrorCode)
+            and error.code in retry_status_codes  # pytype: disable=attribute-error
+        ):
             return True
         if (
             isinstance(error, ResponseErrorCode)
@@ -160,7 +167,7 @@ def _patch_execute_request(
                 return True
         return False
 
-    def after_callback(response, *args, **kwargs):
+    def after_callback(response, action, path, data=None, headers_ext=None):
         if response.status_code in status_forcelist:
             response.raise_for_status()
         return response
