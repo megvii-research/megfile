@@ -5,3 +5,4 @@ requests
 paramiko < 4.0.0
 tqdm
 pyyaml
+click
