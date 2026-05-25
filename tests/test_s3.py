@@ -46,7 +46,6 @@ from megfile.s3_path import (
     _parse_s3_url_profile,
     _patch_make_request,
     _s3_list_objects,
-    _s3_split_magic,
     _s3_split_magic_ignore_brace,
 )
 from megfile.utils import process_local, thread_local
@@ -2571,22 +2570,6 @@ def test_s3_glob_stat_cross_bucket(truncating_client, mocker):
                 missing_ok=False,
             )
         )
-
-
-def test_s3_split_magic():
-    assert _s3_split_magic("s3://bucketA/{a/b,c}*/d") == ("s3://bucketA/", "{a/b,c}*/d")
-    assert _s3_split_magic("s3+test://bucketA/{a/b,c}*/d") == (
-        "s3+test://bucketA/",
-        "{a/b,c}*/d",
-    )
-    assert _s3_split_magic("s3+test://bucketA/{a/b,c}*/d//") == (
-        "s3+test://bucketA/",
-        "{a/b,c}*/d//",
-    )
-    assert _s3_split_magic("s3://bucketA/a{/b,c}*") == (
-        "s3://bucketA/a",
-        "{/b,c}*",
-    )
 
 
 def test_group_s3path_by_bucket(truncating_client):

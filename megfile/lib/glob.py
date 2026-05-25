@@ -200,6 +200,33 @@ def _isrecursive(pattern: str) -> bool:
     return pattern == "**"
 
 
+def split_magic(pathname: str) -> Tuple[str, str]:
+    """Split a glob path into the literal prefix and wildcard suffix."""
+    for i in range(len(pathname) - 1, 0, -1):
+        if not has_magic(pathname[:i]):
+            return pathname[:i], pathname[i:]
+    return pathname, ""
+
+
+def should_recursive_glob(wildcard_part: str, search_dir: bool = False) -> bool:
+    """Whether a bulk-listing backend must list recursively for this wildcard.
+
+    Local-style glob implementations can ignore this and keep expanding with
+    scandir one directory level at a time.
+    """
+    if "**" in wildcard_part:
+        return True
+    for expanded_path in ungloblize(wildcard_part):
+        parts_length = len(expanded_path.split("/"))
+        if parts_length + search_dir >= 2:
+            return True
+    return False
+
+
+def replace_recursive_wildcard(pathname: str) -> str:
+    return re.sub(r"\*{2,}", "*", pathname)
+
+
 def escape(pathname):
     """Escape all special characters."""
     # Escaping is done by wrapping any of "*?[" between square brackets.
