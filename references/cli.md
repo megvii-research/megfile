@@ -488,6 +488,10 @@ megfile rm [OPTIONS] PATH
 
 Command is performed on all files or objects under the specified directory or prefix.
 
+### -f, --force
+
+Ignore nonexistent files and arguments.
+
 ### Arguments
 
 ### PATH
