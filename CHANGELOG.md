@@ -1,3 +1,10 @@
+## 5.0.12 - 2026.05.25
+- fix
+    - Preserve S3 retry count in unknown errors
+    - Retry transient WebDAV info and conflict responses
+- chore
+    - Install `click` by default
+
 ## 5.0.11 - 2026.05.06
 - feat
     - Show HTTP proxy in S3 error messages for non-S3-format responses
