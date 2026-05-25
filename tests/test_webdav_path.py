@@ -75,6 +75,12 @@ def test_webdav_glob(webdav_mocker):
         "webdav://host/A/1.json",
         "webdav://host/A/b/file.json",
     ]
+    assert WebdavPath("webdav://host/A").glob("*/*.json") == [
+        "webdav://host/A/b/file.json",
+    ]
+    assert WebdavPath("webdav://host/A/b/file.json").glob("") == [
+        "webdav://host/A/b/file.json",
+    ]
     assert [
         file_entry.path
         for file_entry in sorted(WebdavPath("webdav://host/A").glob_stat("*"))

@@ -589,6 +589,35 @@ def test_get_no_glob_root_path():
     )
 
 
+def test_should_recursive_glob():
+    assert glob.split_magic("s3://bucketA/{a/b,c}*/d") == (
+        "s3://bucketA/",
+        "{a/b,c}*/d",
+    )
+    assert glob.split_magic("s3+test://bucketA/{a/b,c}*/d") == (
+        "s3+test://bucketA/",
+        "{a/b,c}*/d",
+    )
+    assert glob.split_magic("s3+test://bucketA/{a/b,c}*/d//") == (
+        "s3+test://bucketA/",
+        "{a/b,c}*/d//",
+    )
+    assert glob.split_magic("s3://bucketA/a{/b,c}*") == (
+        "s3://bucketA/a",
+        "{/b,c}*",
+    )
+
+    top_prefix, wildcard_part = glob.split_magic("webdav://host/A/*/*.jsonl")
+    assert top_prefix == "webdav://host/A/"
+    assert wildcard_part == "*/*.jsonl"
+    assert glob.should_recursive_glob(wildcard_part) is True
+
+    top_prefix, wildcard_part = glob.split_magic("webdav://host/A/*.jsonl")
+    assert top_prefix == "webdav://host/A/"
+    assert wildcard_part == "*.jsonl"
+    assert glob.should_recursive_glob(wildcard_part) is False
+
+
 def test__iglob():
     with pytest.raises(OSError):
         list(glob._iglob("/root", True, dironly=True, fs=glob.DEFAULT_FILESYSTEM_FUNC))

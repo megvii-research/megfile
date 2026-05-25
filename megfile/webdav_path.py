@@ -40,8 +40,12 @@ from megfile.interfaces import (
 from megfile.lib.compare import is_same_file
 from megfile.lib.compat import fspath
 from megfile.lib.fnmatch import translate
-from megfile.lib.glob import has_magic
-from megfile.lib.joinpath import uri_join, uri_norm
+from megfile.lib.glob import (
+    has_magic,
+    replace_recursive_wildcard,
+    should_recursive_glob,
+    split_magic,
+)
 from megfile.lib.webdav_memory_handler import WebdavMemoryHandler, _webdav_stat
 from megfile.lib.webdav_prefetch_reader import WebdavPrefetchReader
 from megfile.pathlike import URIPath
@@ -287,14 +291,6 @@ def _webdav_scandir(client: WebdavClient, remote_path: str) -> List[dict]:
     return client.list(remote_path, get_info=True)
 
 
-def _webdav_split_magic(path: str) -> Tuple[str, str]:
-    parts = path.split("/")
-    for i in range(0, len(parts)):
-        if has_magic(parts[i]):
-            return "/".join(parts[:i]), "/".join(parts[i:])
-    return path, ""
-
-
 def _webdav_check_accept_ranges(client: WebdavClient, remote_path: str):
     urn = Urn(remote_path)
     response = client.execute_request(action="download", path=urn.quote())
@@ -422,21 +418,48 @@ class WebdavPath(URIPath):
             raise FileNotFoundError
         :returns: An iterator contains tuples of path and file stat
         """
-        remote_path = self._remote_path
+        glob_path = self.path_with_protocol
         if pattern:
-            remote_path = os.path.join(remote_path, pattern)
-        remote_path, pattern = _webdav_split_magic(remote_path)
-        root = os.path.relpath(remote_path, self._remote_path)
-        root = uri_join(self.path_with_protocol, root)
-        root = uri_norm(root)
-        pattern = re.compile(translate(pattern))
-        scan_func = _webdav_scan if recursive else _webdav_scandir
-        for info in scan_func(self._client, remote_path):
-            entry = _make_entry(info, remote_path, root)
-            relative = os.path.relpath(entry.path, root)
-            if not pattern.match(relative):
-                continue
-            yield entry
+            glob_path = self.joinpath(pattern).path_with_protocol
+        if not recursive:
+            glob_path = replace_recursive_wildcard(glob_path)
+
+        def create_generator() -> Iterator[FileEntry]:
+            if not has_magic(glob_path):
+                path_obj = self.from_path(glob_path)
+                if path_obj.exists():
+                    yield FileEntry(
+                        path_obj.name,
+                        path_obj.path_with_protocol,
+                        path_obj.stat(),
+                    )
+                return
+
+            remote_path = self.from_path(glob_path)._remote_path
+            top_prefix, wildcard_part = split_magic(remote_path)
+            search_dir = wildcard_part.endswith("/")
+            recursive_scan = should_recursive_glob(wildcard_part, search_dir)
+            compiled_pattern = re.compile(translate(glob_path))
+            root = self._generate_path_object(top_prefix)
+
+            scan_func = _webdav_scan if recursive_scan else _webdav_scandir
+            try:
+                infos = scan_func(root._client, root._remote_path)
+            except RemoteResourceNotFound:
+                return
+            for info in infos:
+                entry = _make_entry(info, root._remote_path, root.path_with_protocol)
+                match_path = (
+                    entry.path + "/" if search_dir and entry.is_dir() else entry.path
+                )
+                if compiled_pattern.match(match_path):
+                    yield entry
+
+        return _create_missing_ok_generator(
+            create_generator(),
+            missing_ok,
+            FileNotFoundError("No match any file: %r" % glob_path),
+        )
 
     def iglob(
         self, pattern, recursive: bool = True, missing_ok: bool = True

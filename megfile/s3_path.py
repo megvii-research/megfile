@@ -64,7 +64,14 @@ from megfile.interfaces import (
 from megfile.lib.compare import is_same_file
 from megfile.lib.compat import fspath
 from megfile.lib.fnmatch import translate
-from megfile.lib.glob import has_magic, has_magic_ignore_brace, ungloblize
+from megfile.lib.glob import (
+    has_magic,
+    has_magic_ignore_brace,
+    replace_recursive_wildcard,
+    should_recursive_glob,
+    split_magic,
+    ungloblize,
+)
 from megfile.lib.joinpath import uri_join
 from megfile.lib.s3_buffered_writer import (
     S3BufferedWriter,
@@ -498,13 +505,6 @@ def _become_prefix(prefix: str) -> str:
     return prefix
 
 
-def _s3_split_magic(s3_pathname: str) -> Tuple[str, str]:
-    for i in range(len(s3_pathname) - 1, 0, -1):
-        if not has_magic(s3_pathname[:i]):
-            return s3_pathname[:i], s3_pathname[i:]
-    return s3_pathname, ""
-
-
 def _s3_list_objects(s3_client, bucket: str, prefix: str, delimiter: str = ""):
     # Use fast recursive listing when enabled and no delimiter
     if S3_FAST_LIST and delimiter == "":
@@ -806,20 +806,12 @@ def _s3_glob_stat_single_path(
     s3_pathname = fspath(s3_pathname)
     if not recursive:
         # If not recursive, replace ** with *
-        s3_pathname = re.sub(r"\*{2,}", "*", s3_pathname)
+        s3_pathname = replace_recursive_wildcard(s3_pathname)
     protocol, profile_name = _parse_s3_url_profile(s3_pathname)
-    top_prefix, wildcard_part = _s3_split_magic(s3_pathname)
+    top_prefix, wildcard_part = split_magic(s3_pathname)
     top_dir = os.path.dirname(top_prefix) if wildcard_part else top_prefix
     search_dir = wildcard_part.endswith("/")
-
-    def should_recursive(wildcard_part: str) -> bool:
-        if "**" in wildcard_part:
-            return True
-        for expanded_path in ungloblize(wildcard_part):
-            parts_length = len(expanded_path.split("/"))
-            if parts_length + search_dir >= 2:
-                return True
-        return False
+    recursive_scan = should_recursive_glob(wildcard_part, search_dir)
 
     def create_generator(_s3_pathname) -> Iterator[FileEntry]:
         if not has_magic(_s3_pathname):
@@ -834,7 +826,7 @@ def _s3_glob_stat_single_path(
             return
 
         delimiter = ""
-        if not should_recursive(wildcard_part):
+        if not recursive_scan:
             delimiter = "/"
 
         dirnames = set()
