@@ -1,3 +1,7 @@
+## 5.0.13 - 2026.05.25
+- fix
+    - Fix WebDAV glob matching for nested wildcard patterns and direct file paths
+
 ## 5.0.12 - 2026.05.25
 - fix
     - Preserve S3 retry count in unknown errors
