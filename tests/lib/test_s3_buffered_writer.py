@@ -2,11 +2,13 @@ from concurrent.futures import wait
 from io import UnsupportedOperation
 from threading import Event
 
+import botocore
 import moto
 import moto.s3
 import pytest
 
 from megfile.lib.s3_buffered_writer import S3BufferedWriter
+from megfile.s3_path import _patch_make_request
 from tests.test_s3 import s3_empty_client  # noqa: F401
 
 BUCKET = "bucket"
@@ -128,6 +130,45 @@ def test_s3_buffered_writer_write_multipart(client, mocker):
 
     content_read = client.get_object(Bucket=BUCKET, Key=KEY)["Body"].read()
     assert content_read == content + b"\n" + content
+
+
+def test_s3_buffered_writer_upload_part_retry_rewinds_body(s3_empty_client, mocker):
+    client = s3_empty_client
+    client.create_bucket(Bucket=BUCKET)
+    _patch_make_request(client)
+    mocker.patch("megfile.errors.time.sleep")
+
+    original_make_request = client._endpoint.make_request
+    upload_part_calls = []
+
+    def flaky_make_request(operation_model, request_dict):
+        if operation_model.name != "UploadPart":
+            return original_make_request(operation_model, request_dict)
+
+        body = request_dict["body"]
+        raw_body = getattr(body, "_raw", body)
+        position = raw_body.tell() if hasattr(raw_body, "tell") else None
+        upload_part_calls.append(position)
+
+        if len(upload_part_calls) == 1:
+            body.read()
+            raise botocore.exceptions.IncompleteReadError(
+                actual_bytes=0, expected_bytes=1
+            )
+        return original_make_request(operation_model, request_dict)
+
+    mocker.patch.object(
+        client._endpoint, "make_request", side_effect=flaky_make_request
+    )
+
+    with S3BufferedWriter(
+        BUCKET, KEY, s3_client=client, block_size=5, max_workers=1
+    ) as writer:
+        writer.write(CONTENT)
+
+    assert upload_part_calls == [0, 0]
+    content_read = client.get_object(Bucket=BUCKET, Key=KEY)["Body"].read()
+    assert content_read == CONTENT
 
 
 def test_s3_buffered_writer_write_multipart_pending(client, mocker):
