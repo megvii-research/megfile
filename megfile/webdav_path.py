@@ -725,8 +725,14 @@ class WebdavPath(URIPath):
 
         :param missing_ok: if False and target file not exists, raise FileNotFoundError
         """
-        if missing_ok and not self.exists():
-            return
+        try:
+            stat = self.stat()
+        except FileNotFoundError:
+            if missing_ok:
+                return
+            raise
+        if stat.isdir:
+            raise IsADirectoryError(f"Is a directory: '{self.path_with_protocol}'")
         try:
             self._client.clean(self._remote_path)
         except RemoteResourceNotFound:
@@ -841,14 +847,18 @@ class WebdavPath(URIPath):
         :param errors: error handling for text mode
         :returns: File-Like object
         """
-        if "x" in mode:
-            if self.exists():
-                raise FileExistsError("File exists: %r" % self.path_with_protocol)
+        try:
+            stat = self.stat()
+        except FileNotFoundError:
+            stat = None
+
+        if "x" in mode and stat is not None:
+            raise FileExistsError("File exists: %r" % self.path_with_protocol)
+        if stat is not None and stat.isdir:
+            raise IsADirectoryError("Is a directory: %r" % self.path_with_protocol)
         if "w" in mode or "x" in mode or "a" in mode:
-            if self.is_dir():
-                raise IsADirectoryError("Is a directory: %r" % self.path_with_protocol)
             self.parent.mkdir(parents=True, exist_ok=True)
-        elif not self.exists():
+        elif stat is None:
             raise FileNotFoundError("No such file: %r" % self.path_with_protocol)
 
         if mode == "rb":
