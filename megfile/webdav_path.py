@@ -640,7 +640,7 @@ class WebdavPath(URIPath):
             self._client.clean(self._remote_path)
         except RemoteResourceNotFound:
             if not missing_ok:
-                raise FileNotFoundError(f"No such file: '{self.path_with_protocol}'")
+                raise FileNotFoundError("No such file: %r" % self.path_with_protocol)
 
     def scan(self, missing_ok: bool = True, followlinks: bool = False) -> Iterator[str]:
         """
@@ -665,14 +665,15 @@ class WebdavPath(URIPath):
         """
 
         def create_generator() -> Iterator[FileEntry]:
-            if not self.exists():
+            stat = self._stat_or_none()
+            if stat is None:
                 return
 
-            if self.is_file():
+            if stat.is_file():
                 yield FileEntry(
                     self.name,
                     self.path_with_protocol,
-                    self.stat(),
+                    stat,
                 )
                 return
 
@@ -694,11 +695,12 @@ class WebdavPath(URIPath):
 
         :returns: An iterator contains all contents
         """
-        if not self.exists():
+        stat = self._stat_or_none()
+        if stat is None:
             raise FileNotFoundError(
-                f"No such file or directory: '{self.path_with_protocol}'"
+                "No such file or directory: %r" % self.path_with_protocol
             )
-        if not self.is_dir():
+        if not stat.is_dir():
             raise NotADirectoryError(f"Not a directory: '{self.path_with_protocol}'")
 
         def create_generator():
@@ -717,7 +719,7 @@ class WebdavPath(URIPath):
             info = _webdav_stat(self._client, self._remote_path)
             return _make_stat(info)
         except RemoteResourceNotFound:
-            raise FileNotFoundError(f"No such file: '{self.path_with_protocol}'")
+            raise FileNotFoundError("No such file: %r" % self.path_with_protocol)
 
     def unlink(self, missing_ok: bool = False) -> None:
         """
@@ -725,19 +727,18 @@ class WebdavPath(URIPath):
 
         :param missing_ok: if False and target file not exists, raise FileNotFoundError
         """
-        try:
-            stat = self.stat()
-        except FileNotFoundError:
+        stat = self._stat_or_none()
+        if stat is None:
             if missing_ok:
                 return
-            raise
-        if stat.isdir:
+            raise FileNotFoundError("No such file: %r" % self.path_with_protocol)
+        if stat.is_dir():
             raise IsADirectoryError(f"Is a directory: '{self.path_with_protocol}'")
         try:
             self._client.clean(self._remote_path)
         except RemoteResourceNotFound:
             if not missing_ok:
-                raise FileNotFoundError(f"No such file: '{self.path_with_protocol}'")
+                raise FileNotFoundError("No such file: %r" % self.path_with_protocol)
 
     def walk(
         self, followlinks: bool = False
@@ -748,9 +749,8 @@ class WebdavPath(URIPath):
         :param followlinks: Ignored for WebDAV
         :returns: A 3-tuple generator (root, dirs, files)
         """
-        if not self.exists():
-            return
-        if self.is_file():
+        stat = self._stat_or_none()
+        if stat is None or stat.is_file():
             return
 
         stack = [self._remote_path]
@@ -847,14 +847,11 @@ class WebdavPath(URIPath):
         :param errors: error handling for text mode
         :returns: File-Like object
         """
-        try:
-            stat = self.stat()
-        except FileNotFoundError:
-            stat = None
+        stat = self._stat_or_none()
 
         if "x" in mode and stat is not None:
             raise FileExistsError("File exists: %r" % self.path_with_protocol)
-        if stat is not None and stat.isdir:
+        if stat is not None and stat.is_dir():
             raise IsADirectoryError("Is a directory: %r" % self.path_with_protocol)
         if "w" in mode or "x" in mode or "a" in mode:
             self.parent.mkdir(parents=True, exist_ok=True)
@@ -931,14 +928,15 @@ class WebdavPath(URIPath):
         if str(dst_path).endswith("/"):
             raise IsADirectoryError("Is a directory: %r" % dst_path)
 
-        if self.is_dir():
+        dst_path = self.from_path(dst_path)
+        src_stat = self.stat()
+        if src_stat.is_dir():
             raise IsADirectoryError("Is a directory: %r" % self.path_with_protocol)
 
-        if not overwrite and self.from_path(dst_path).exists():
+        if not overwrite and dst_path.exists():
             return
 
-        self.from_path(os.path.dirname(fspath(dst_path))).makedirs(exist_ok=True)
-        dst_path = self.from_path(dst_path)
+        dst_path.parent.makedirs(exist_ok=True)
 
         if self._is_same_backend(dst_path):
             if self._remote_path == dst_path._remote_path:
@@ -947,7 +945,7 @@ class WebdavPath(URIPath):
                 )
             self._client.copy(self._remote_path, dst_path._remote_path)
             if callback:
-                callback(self.stat().size)
+                callback(src_stat.size)
         else:
             with self.open("rb") as fsrc:
                 with dst_path.open("wb") as fdst:

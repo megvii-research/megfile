@@ -634,6 +634,12 @@ class BasePath:
         """Get the status of the path."""
         raise NotImplementedError('method "stat" not implemented: %r' % self)
 
+    def _stat_or_none(self, follow_symlinks=True) -> Optional[StatResult]:
+        try:
+            return self.stat(follow_symlinks=follow_symlinks)
+        except FileNotFoundError:
+            return None
+
     def lstat(self) -> StatResult:
         """
         Like stat() but, if the path points to a symbolic link,

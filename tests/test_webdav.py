@@ -25,6 +25,7 @@ class FakeWebdavClient:
 
     def __init__(self, options: dict = {}):
         self.options = options
+        self.info_calls = []
 
     def _relative_path(self, path: str) -> str:
         # XXX: pyfakefs not work in python3.14 when path is absolute
@@ -69,6 +70,7 @@ class FakeWebdavClient:
 
     def info(self, path: str) -> Dict:
         """Get file/directory info"""
+        self.info_calls.append(path)
         path = self._relative_path(path)
         if not os.path.exists(path):
             raise RemoteResourceNotFound(path)
@@ -465,6 +467,34 @@ def test_webdav_scan(webdav_mocker):
         list(webdav.webdav_scan_stat("webdav://host/B", missing_ok=False))
 
 
+def test_webdav_scan_stat_file_reuses_stat(webdav_mocker):
+    webdav.webdav_makedirs("webdav://host/A")
+    with webdav.webdav_open("webdav://host/A/1.json", "w") as f:
+        f.write("1.json")
+
+    path = webdav.WebdavPath("webdav://host/A/1.json")
+    client = path._client
+    client.info_calls.clear()
+
+    entries = list(path.scan_stat())
+
+    assert [entry.path for entry in entries] == ["webdav://host/A/1.json"]
+    assert client.info_calls == ["/A/1.json"]
+
+
+def test_webdav_scandir_reuses_stat(webdav_mocker):
+    webdav.webdav_makedirs("webdav://host/A")
+
+    path = webdav.WebdavPath("webdav://host/A")
+    client = path._client
+    client.info_calls.clear()
+
+    with path.scandir() as entries:
+        assert list(entries) == []
+
+    assert client.info_calls == ["/A"]
+
+
 def test_webdav_unlink(webdav_mocker):
     webdav.webdav_makedirs("webdav://host/A")
     with webdav.webdav_open("webdav://host/A/test", "w") as f:
@@ -557,11 +587,15 @@ def test_webdav_copy(webdav_mocker):
     def callback(length):
         assert length == len("1.json")
 
-    webdav.webdav_copy(
-        "webdav://host/A/1.json",
+    path = webdav.WebdavPath("webdav://host/A/1.json")
+    client = path._client
+    client.info_calls.clear()
+
+    path.copy(
         "webdav://host/A2/1.json.bak",
         callback=callback,
     )
+    assert client.info_calls.count("/A/1.json") == 1
 
     assert (
         webdav.webdav_stat("webdav://host/A/1.json").size
