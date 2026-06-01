@@ -626,18 +626,29 @@ def test_iterdir_on_file(webdav_mocker):
         list(WebdavPath("webdav://host/file.txt").iterdir())
 
 
-def test_open_directory_raises_error(webdav_mocker):
+def test_open_directory_raises_error(webdav_mocker, mocker):
     """Test open on directory raises error"""
     webdav.webdav_makedirs("webdav://host/A")
+    download_from = mocker.patch(
+        "megfile.lib.webdav_memory_handler._webdav_download_from"
+    )
 
     with pytest.raises(IsADirectoryError):
         webdav.webdav_open("webdav://host/A", "w")
+    with pytest.raises(IsADirectoryError):
+        webdav.webdav_open("webdav://host/A", "r")
+    download_from.assert_not_called()
 
 
-def test_open_nonexistent_for_read_raises_error(webdav_mocker):
+def test_open_nonexistent_for_read_raises_error(webdav_mocker, mocker):
     """Test open non-existent file for read raises error"""
+    download_from = mocker.patch(
+        "megfile.lib.webdav_memory_handler._webdav_download_from"
+    )
+
     with pytest.raises(FileNotFoundError):
         webdav.webdav_open("webdav://host/nonexistent", "r")
+    download_from.assert_not_called()
 
 
 def test_walk_on_nonexistent(webdav_mocker):
