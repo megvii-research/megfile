@@ -185,7 +185,7 @@ def sftp2_resolve(path: PathLike, strict=False) -> "str":
         eliminating any symbolic links encountered in the path.
     :rtype: Sftp2Path
     """
-    return Sftp2Path(path).resolve(strict).path_with_protocol
+    return Sftp2Path(path).resolve(strict=strict).path_with_protocol
 
 
 def sftp2_download(
@@ -373,7 +373,7 @@ def sftp2_exists(path: PathLike, followlinks: bool = False) -> bool:
     :returns: True if the path exists, else False
 
     """
-    return Sftp2Path(path).exists(followlinks)
+    return Sftp2Path(path).exists(followlinks=followlinks)
 
 
 def sftp2_getmtime(path: PathLike, follow_symlinks: bool = False) -> float:
@@ -386,7 +386,7 @@ def sftp2_getmtime(path: PathLike, follow_symlinks: bool = False) -> float:
     :param path: Given path
     :returns: last-modified time
     """
-    return Sftp2Path(path).getmtime(follow_symlinks)
+    return Sftp2Path(path).getmtime(follow_symlinks=follow_symlinks)
 
 
 def sftp2_getsize(path: PathLike, follow_symlinks: bool = False) -> int:
@@ -403,7 +403,7 @@ def sftp2_getsize(path: PathLike, follow_symlinks: bool = False) -> int:
     :returns: File size
 
     """
-    return Sftp2Path(path).getsize(follow_symlinks)
+    return Sftp2Path(path).getsize(follow_symlinks=follow_symlinks)
 
 
 def sftp2_isdir(path: PathLike, followlinks: bool = False) -> bool:
@@ -420,7 +420,7 @@ def sftp2_isdir(path: PathLike, followlinks: bool = False) -> bool:
     :returns: True if the path is a directory, else False
 
     """
-    return Sftp2Path(path).is_dir(followlinks)
+    return Sftp2Path(path).is_dir(followlinks=followlinks)
 
 
 def sftp2_isfile(path: PathLike, followlinks: bool = False) -> bool:
@@ -437,7 +437,7 @@ def sftp2_isfile(path: PathLike, followlinks: bool = False) -> bool:
     :returns: True if the path is a file, else False
 
     """
-    return Sftp2Path(path).is_file(followlinks)
+    return Sftp2Path(path).is_file(followlinks=followlinks)
 
 
 def sftp2_listdir(path: PathLike) -> List[str]:
@@ -479,7 +479,7 @@ def sftp2_makedirs(
 
     :raises: FileExistsError
     """
-    return Sftp2Path(path).mkdir(mode, parents, exist_ok)
+    return Sftp2Path(path).mkdir(mode, parents=parents, exist_ok=exist_ok)
 
 
 def sftp2_realpath(path: PathLike) -> str:
@@ -501,7 +501,7 @@ def sftp2_rename(
     :param dst_path: Given destination path
     :param overwrite: whether or not overwrite file when exists
     """
-    return Sftp2Path(src_path).rename(dst_path, overwrite)
+    return Sftp2Path(src_path).rename(dst_path, overwrite=overwrite)
 
 
 def sftp2_move(
@@ -514,7 +514,7 @@ def sftp2_move(
     :param dst_path: Given destination path
     :param overwrite: whether or not overwrite file when exists
     """
-    return Sftp2Path(src_path).replace(dst_path, overwrite)
+    return Sftp2Path(src_path).replace(dst_path, overwrite=overwrite)
 
 
 def sftp2_remove(path: PathLike, missing_ok: bool = False) -> None:
@@ -525,7 +525,7 @@ def sftp2_remove(path: PathLike, missing_ok: bool = False) -> None:
     :param missing_ok: if False and target file/directory not exists,
         raise FileNotFoundError
     """
-    return Sftp2Path(path).remove(missing_ok)
+    return Sftp2Path(path).remove(missing_ok=missing_ok)
 
 
 def sftp2_scan(
@@ -544,7 +544,7 @@ def sftp2_scan(
         raise FileNotFoundError
     :returns: A file path generator
     """
-    return Sftp2Path(path).scan(missing_ok, followlinks)
+    return Sftp2Path(path).scan(missing_ok=missing_ok, followlinks=followlinks)
 
 
 def sftp2_scan_stat(
@@ -559,7 +559,7 @@ def sftp2_scan_stat(
         raise FileNotFoundError
     :returns: A file path generator
     """
-    return Sftp2Path(path).scan_stat(missing_ok, followlinks)
+    return Sftp2Path(path).scan_stat(missing_ok=missing_ok, followlinks=followlinks)
 
 
 def sftp2_scandir(path: PathLike) -> Iterator[FileEntry]:
@@ -580,7 +580,7 @@ def sftp2_stat(path: PathLike, follow_symlinks=True) -> StatResult:
     :param path: Given path
     :returns: StatResult
     """
-    return Sftp2Path(path).stat(follow_symlinks)
+    return Sftp2Path(path).stat(follow_symlinks=follow_symlinks)
 
 
 def sftp2_unlink(path: PathLike, missing_ok: bool = False) -> None:
@@ -590,7 +590,7 @@ def sftp2_unlink(path: PathLike, missing_ok: bool = False) -> None:
     :param path: Given path
     :param missing_ok: if False and target file not exists, raise FileNotFoundError
     """
-    return Sftp2Path(path).unlink(missing_ok)
+    return Sftp2Path(path).unlink(missing_ok=missing_ok)
 
 
 def sftp2_walk(
@@ -620,7 +620,7 @@ def sftp2_walk(
     :param followlinks: False if regard symlink as file, else True
     :returns: A 3-tuple generator
     """
-    return Sftp2Path(path).walk(followlinks)
+    return Sftp2Path(path).walk(followlinks=followlinks)
 
 
 def sftp2_getmd5(path: PathLike, recalculate: bool = False, followlinks: bool = False):
@@ -633,7 +633,7 @@ def sftp2_getmd5(path: PathLike, recalculate: bool = False, followlinks: bool = 
 
     returns: md5 of file
     """
-    return Sftp2Path(path).md5(recalculate, followlinks)
+    return Sftp2Path(path).md5(recalculate=recalculate, followlinks=followlinks)
 
 
 def sftp2_symlink(src_path: PathLike, dst_path: PathLike) -> None:
@@ -737,7 +737,9 @@ def sftp2_copy(
     :raises IsADirectoryError: If the source is a directory.
     :raises OSError: If there is an error copying the file.
     """
-    return Sftp2Path(src_path).copy(dst_path, callback, followlinks, overwrite)
+    return Sftp2Path(src_path).copy(
+        dst_path, callback, followlinks=followlinks, overwrite=overwrite
+    )
 
 
 def sftp2_sync(
@@ -756,7 +758,9 @@ def sftp2_sync(
         priority is higher than 'overwrite', default is False
     :param overwrite: whether or not overwrite file when exists, default is True
     """
-    return Sftp2Path(src_path).sync(dst_path, followlinks, force, overwrite)
+    return Sftp2Path(src_path).sync(
+        dst_path, followlinks=followlinks, force=force, overwrite=overwrite
+    )
 
 
 def _check_input(input_str: str, fingerprint: str, times: int = 0) -> bool:

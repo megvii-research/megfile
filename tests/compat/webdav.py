@@ -106,7 +106,7 @@ def webdav_resolve(path: PathLike, strict=False) -> "str":
     :param strict: Ignored for WebDAV
     :return: Absolute path
     """
-    return WebdavPath(path).resolve(strict).path_with_protocol
+    return WebdavPath(path).resolve(strict=strict).path_with_protocol
 
 
 def webdav_download(
@@ -244,7 +244,7 @@ def webdav_exists(path: PathLike, followlinks: bool = False) -> bool:
     :param followlinks: Ignored for WebDAV
     :returns: True if the path exists, else False
     """
-    return WebdavPath(path).exists(followlinks)
+    return WebdavPath(path).exists(followlinks=followlinks)
 
 
 def webdav_getmtime(path: PathLike, follow_symlinks: bool = False) -> float:
@@ -255,7 +255,7 @@ def webdav_getmtime(path: PathLike, follow_symlinks: bool = False) -> float:
     :param follow_symlinks: Ignored for WebDAV
     :returns: last-modified time
     """
-    return WebdavPath(path).getmtime(follow_symlinks)
+    return WebdavPath(path).getmtime(follow_symlinks=follow_symlinks)
 
 
 def webdav_getsize(path: PathLike, follow_symlinks: bool = False) -> int:
@@ -266,7 +266,7 @@ def webdav_getsize(path: PathLike, follow_symlinks: bool = False) -> int:
     :param follow_symlinks: Ignored for WebDAV
     :returns: File size
     """
-    return WebdavPath(path).getsize(follow_symlinks)
+    return WebdavPath(path).getsize(follow_symlinks=follow_symlinks)
 
 
 def webdav_isdir(path: PathLike, followlinks: bool = False) -> bool:
@@ -277,7 +277,7 @@ def webdav_isdir(path: PathLike, followlinks: bool = False) -> bool:
     :param followlinks: Ignored for WebDAV
     :returns: True if the path is a directory, else False
     """
-    return WebdavPath(path).is_dir(followlinks)
+    return WebdavPath(path).is_dir(followlinks=followlinks)
 
 
 def webdav_isfile(path: PathLike, followlinks: bool = False) -> bool:
@@ -288,7 +288,7 @@ def webdav_isfile(path: PathLike, followlinks: bool = False) -> bool:
     :param followlinks: Ignored for WebDAV
     :returns: True if the path is a file, else False
     """
-    return WebdavPath(path).is_file(followlinks)
+    return WebdavPath(path).is_file(followlinks=followlinks)
 
 
 def webdav_listdir(path: PathLike) -> List[str]:
@@ -324,7 +324,7 @@ def webdav_makedirs(
     :param parents: If parents is true, any missing parents are created
     :param exist_ok: If False and target directory exists, raise FileExistsError
     """
-    return WebdavPath(path).mkdir(mode, parents, exist_ok)
+    return WebdavPath(path).mkdir(mode, parents=parents, exist_ok=exist_ok)
 
 
 def webdav_realpath(path: PathLike) -> str:
@@ -346,7 +346,7 @@ def webdav_rename(
     :param dst_path: Given destination path
     :param overwrite: whether or not overwrite file when exists
     """
-    return WebdavPath(src_path).rename(dst_path, overwrite)
+    return WebdavPath(src_path).rename(dst_path, overwrite=overwrite)
 
 
 def webdav_move(
@@ -359,7 +359,7 @@ def webdav_move(
     :param dst_path: Given destination path
     :param overwrite: whether or not overwrite file when exists
     """
-    return WebdavPath(src_path).replace(dst_path, overwrite)
+    return WebdavPath(src_path).replace(dst_path, overwrite=overwrite)
 
 
 def webdav_remove(path: PathLike, missing_ok: bool = False) -> None:
@@ -370,7 +370,7 @@ def webdav_remove(path: PathLike, missing_ok: bool = False) -> None:
     :param missing_ok: if False and target file/directory not exists,
         raise FileNotFoundError
     """
-    return WebdavPath(path).remove(missing_ok)
+    return WebdavPath(path).remove(missing_ok=missing_ok)
 
 
 def webdav_scan(
@@ -385,7 +385,7 @@ def webdav_scan(
     :param followlinks: Ignored for WebDAV
     :returns: A file path generator
     """
-    return WebdavPath(path).scan(missing_ok, followlinks)
+    return WebdavPath(path).scan(missing_ok=missing_ok, followlinks=followlinks)
 
 
 def webdav_scan_stat(
@@ -400,7 +400,7 @@ def webdav_scan_stat(
     :param followlinks: Ignored for WebDAV
     :returns: A file path generator yielding FileEntry objects
     """
-    return WebdavPath(path).scan_stat(missing_ok, followlinks)
+    return WebdavPath(path).scan_stat(missing_ok=missing_ok, followlinks=followlinks)
 
 
 def webdav_scandir(path: PathLike) -> Iterator[FileEntry]:
@@ -421,7 +421,7 @@ def webdav_stat(path: PathLike, follow_symlinks=True) -> StatResult:
     :param follow_symlinks: Ignored for WebDAV
     :returns: StatResult
     """
-    return WebdavPath(path).stat(follow_symlinks)
+    return WebdavPath(path).stat(follow_symlinks=follow_symlinks)
 
 
 def webdav_unlink(path: PathLike, missing_ok: bool = False) -> None:
@@ -431,7 +431,7 @@ def webdav_unlink(path: PathLike, missing_ok: bool = False) -> None:
     :param path: Given path
     :param missing_ok: if False and target file not exists, raise FileNotFoundError
     """
-    return WebdavPath(path).unlink(missing_ok)
+    return WebdavPath(path).unlink(missing_ok=missing_ok)
 
 
 def webdav_walk(
@@ -444,7 +444,7 @@ def webdav_walk(
     :param followlinks: Ignored for WebDAV
     :returns: A 3-tuple generator (root, dirs, files)
     """
-    return WebdavPath(path).walk(followlinks)
+    return WebdavPath(path).walk(followlinks=followlinks)
 
 
 def webdav_getmd5(path: PathLike, recalculate: bool = False, followlinks: bool = False):
@@ -456,7 +456,7 @@ def webdav_getmd5(path: PathLike, recalculate: bool = False, followlinks: bool =
     :param followlinks: Ignored for WebDAV
     :returns: md5 of file
     """
-    return WebdavPath(path).md5(recalculate, followlinks)
+    return WebdavPath(path).md5(recalculate=recalculate, followlinks=followlinks)
 
 
 def webdav_save_as(file_object: BinaryIO, path: PathLike):
@@ -526,7 +526,9 @@ def webdav_copy(
     :param followlinks: Ignored for WebDAV
     :param overwrite: whether to overwrite existing file
     """
-    return WebdavPath(src_path).copy(dst_path, callback, followlinks, overwrite)
+    return WebdavPath(src_path).copy(
+        dst_path, callback, followlinks=followlinks, overwrite=overwrite
+    )
 
 
 def webdav_sync(
@@ -544,4 +546,6 @@ def webdav_sync(
     :param force: Sync file forcibly
     :param overwrite: whether or not overwrite file when exists, default is True
     """
-    return WebdavPath(src_path).sync(dst_path, followlinks, force, overwrite)
+    return WebdavPath(src_path).sync(
+        dst_path, followlinks=followlinks, force=force, overwrite=overwrite
+    )

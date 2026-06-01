@@ -1364,7 +1364,9 @@ def s3_copy(
     :param followlinks: False if regard symlink as file, else True
     :param overwrite: whether or not overwrite file when exists, default is True
     """
-    return S3Path(src_url).copy(dst_url, callback, followlinks, overwrite)
+    return S3Path(src_url).copy(
+        dst_url, callback, followlinks=followlinks, overwrite=overwrite
+    )
 
 
 def s3_download(
@@ -1766,7 +1768,7 @@ class S3Path(URIPath):
         if not bucket:  # s3:// => True, s3:///key => False
             return not key
 
-        return self.is_file(followlinks) or self.is_dir()
+        return self.is_file(followlinks=followlinks) or self.is_dir()
 
     def getmtime(self, follow_symlinks: bool = False) -> float:
         """
@@ -1861,15 +1863,15 @@ class S3Path(URIPath):
                 for group_s3_pathname_2 in _group_s3path_by_prefix(group_s3_pathname_1):
                     for file_entry in _s3_glob_stat_single_path(
                         group_s3_pathname_2,
-                        recursive,
-                        missing_ok,
+                        recursive=recursive,
+                        missing_ok=missing_ok,
                     ):
                         yield file_entry
 
         return _create_missing_ok_generator(
             create_generator(),
-            missing_ok,
-            S3FileNotFoundError("No match any file: %r" % s3_pathname),
+            missing_ok=missing_ok,
+            error=S3FileNotFoundError("No match any file: %r" % s3_pathname),
         )
 
     def iglob(
@@ -2077,7 +2079,7 @@ class S3Path(URIPath):
         for src_file_path, dst_file_path in _s3_scan_pairs(
             self.path_with_protocol, dst_url
         ):
-            S3Path(src_file_path).rename(dst_file_path, overwrite)
+            S3Path(src_file_path).rename(dst_file_path, overwrite=overwrite)
 
     def remove(self, missing_ok: bool = False) -> None:
         """
@@ -2265,8 +2267,10 @@ class S3Path(URIPath):
 
         return _create_missing_ok_generator(
             create_generator(),
-            missing_ok,
-            S3FileNotFoundError("No match any file in: %r" % self.path_with_protocol),
+            missing_ok=missing_ok,
+            error=S3FileNotFoundError(
+                "No match any file in: %r" % self.path_with_protocol
+            ),
         )
 
     def scandir(self) -> ContextIterator:

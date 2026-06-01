@@ -457,8 +457,8 @@ class WebdavPath(URIPath):
 
         return _create_missing_ok_generator(
             create_generator(),
-            missing_ok,
-            FileNotFoundError("No match any file: %r" % glob_path),
+            missing_ok=missing_ok,
+            error=FileNotFoundError("No match any file: %r" % glob_path),
         )
 
     def iglob(
@@ -685,8 +685,10 @@ class WebdavPath(URIPath):
 
         return _create_missing_ok_generator(
             create_generator(),
-            missing_ok,
-            FileNotFoundError("No match any file in: %r" % self.path_with_protocol),
+            missing_ok=missing_ok,
+            error=FileNotFoundError(
+                "No match any file in: %r" % self.path_with_protocol
+            ),
         )
 
     def scandir(self) -> ContextIterator:

@@ -92,7 +92,7 @@ def s3_exists(path: PathLike, followlinks: bool = False) -> bool:
     :param path: Given path
     :returns: True if s3_url exists, else False
     """
-    return S3Path(path).exists(followlinks)
+    return S3Path(path).exists(followlinks=followlinks)
 
 
 def s3_getmtime(path: PathLike, follow_symlinks: bool = False) -> float:
@@ -110,7 +110,7 @@ def s3_getmtime(path: PathLike, follow_symlinks: bool = False) -> float:
     :returns: Last-modified time
     :raises: S3FileNotFoundError, UnsupportedError
     """
-    return S3Path(path).getmtime(follow_symlinks)
+    return S3Path(path).getmtime(follow_symlinks=follow_symlinks)
 
 
 def s3_getsize(path: PathLike, follow_symlinks: bool = False) -> int:
@@ -130,7 +130,7 @@ def s3_getsize(path: PathLike, follow_symlinks: bool = False) -> int:
     :returns: File size
     :raises: S3FileNotFoundError, UnsupportedError
     """
-    return S3Path(path).getsize(follow_symlinks)
+    return S3Path(path).getsize(follow_symlinks=follow_symlinks)
 
 
 def s3_isdir(path: PathLike, followlinks: bool = False) -> bool:
@@ -145,7 +145,7 @@ def s3_isdir(path: PathLike, followlinks: bool = False) -> bool:
         Because s3 symlink not support dir.
     :returns: True if path is s3 directory, else False
     """
-    return S3Path(path).is_dir(followlinks)
+    return S3Path(path).is_dir(followlinks=followlinks)
 
 
 def s3_isfile(path: PathLike, followlinks: bool = False) -> bool:
@@ -155,7 +155,7 @@ def s3_isfile(path: PathLike, followlinks: bool = False) -> bool:
     :param path: Given path
     :returns: True if path is s3 file, else False
     """
-    return S3Path(path).is_file(followlinks)
+    return S3Path(path).is_file(followlinks=followlinks)
 
 
 def s3_listdir(path: PathLike) -> List[str]:
@@ -198,7 +198,7 @@ def s3_move(src_url: PathLike, dst_url: PathLike, overwrite: bool = True) -> Non
     :param dst_url: Given destination path
     :param overwrite: whether or not overwrite file when exists
     """
-    return S3Path(src_url).move(dst_url, overwrite)
+    return S3Path(src_url).move(dst_url, overwrite=overwrite)
 
 
 def s3_remove(path: PathLike, missing_ok: bool = False) -> None:
@@ -211,7 +211,7 @@ def s3_remove(path: PathLike, missing_ok: bool = False) -> None:
         raise S3FileNotFoundError
     :raises: S3PermissionError, S3FileNotFoundError, UnsupportedError
     """
-    return S3Path(path).remove(missing_ok)
+    return S3Path(path).remove(missing_ok=missing_ok)
 
 
 def s3_scan(
@@ -238,7 +238,7 @@ def s3_scan(
     :raises: UnsupportedError
     :returns: A file path generator
     """
-    return S3Path(path).scan(missing_ok, followlinks)
+    return S3Path(path).scan(missing_ok=missing_ok, followlinks=followlinks)
 
 
 def s3_scan_stat(
@@ -254,7 +254,7 @@ def s3_scan_stat(
     :raises: UnsupportedError
     :returns: A file path generator
     """
-    return S3Path(path).scan_stat(missing_ok, followlinks)
+    return S3Path(path).scan_stat(missing_ok=missing_ok, followlinks=followlinks)
 
 
 def s3_scandir(path: PathLike) -> Iterator[FileEntry]:
@@ -283,7 +283,7 @@ def s3_stat(path: PathLike, follow_symlinks=True) -> StatResult:
     :returns: StatResult
     :raises: S3FileNotFoundError, S3BucketNotFoundError
     """
-    return S3Path(path).stat(follow_symlinks)
+    return S3Path(path).stat(follow_symlinks=follow_symlinks)
 
 
 def s3_unlink(path: PathLike, missing_ok: bool = False) -> None:
@@ -295,7 +295,7 @@ def s3_unlink(path: PathLike, missing_ok: bool = False) -> None:
         raise S3FileNotFoundError
     :raises: S3PermissionError, S3FileNotFoundError, S3IsADirectoryError
     """
-    return S3Path(path).unlink(missing_ok)
+    return S3Path(path).unlink(missing_ok=missing_ok)
 
 
 def s3_walk(
@@ -333,7 +333,7 @@ def s3_walk(
     :raises: UnsupportedError
     :returns: A 3-tuple generator
     """
-    return S3Path(path).walk(followlinks)
+    return S3Path(path).walk(followlinks=followlinks)
 
 
 def s3_getmd5(
@@ -349,7 +349,7 @@ def s3_getmd5(
     :param followlinks: If is True, calculate md5 for real file
     :returns: md5 meta info
     """
-    return S3Path(path).md5(recalculate, followlinks)
+    return S3Path(path).md5(recalculate=recalculate, followlinks=followlinks)
 
 
 def s3_sync(
@@ -369,7 +369,9 @@ def s3_sync(
         priority is higher than 'overwrite', default is False
     :param overwrite: whether or not overwrite file when exists, default is True
     """
-    return S3Path(src_url).sync(dst_url, followlinks, force, overwrite)
+    return S3Path(src_url).sync(
+        dst_url, followlinks=followlinks, force=force, overwrite=overwrite
+    )
 
 
 def s3_symlink(src_path: PathLike, dst_path: PathLike) -> None:
@@ -422,7 +424,7 @@ def s3_rename(src_url: PathLike, dst_url: PathLike, overwrite: bool = True) -> N
     :param dst_url: Given destination path
     :param overwrite: whether or not overwrite file when exists
     """
-    S3Path(src_url).rename(dst_url, overwrite)
+    S3Path(src_url).rename(dst_url, overwrite=overwrite)
 
 
 def s3_glob(

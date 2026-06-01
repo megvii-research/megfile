@@ -43,7 +43,7 @@ def hdfs_exists(path: PathLike, followlinks: bool = False) -> bool:
     :param path: Given path
     :returns: True if path exists, else False
     """
-    return HdfsPath(path).exists(followlinks)
+    return HdfsPath(path).exists(followlinks=followlinks)
 
 
 def hdfs_stat(path: PathLike, follow_symlinks=True) -> StatResult:
@@ -61,7 +61,7 @@ def hdfs_stat(path: PathLike, follow_symlinks=True) -> StatResult:
     :returns: StatResult
     :raises: FileNotFoundError
     """
-    return HdfsPath(path).stat(follow_symlinks)
+    return HdfsPath(path).stat(follow_symlinks=follow_symlinks)
 
 
 def hdfs_getmtime(path: PathLike, follow_symlinks: bool = False) -> float:
@@ -78,7 +78,7 @@ def hdfs_getmtime(path: PathLike, follow_symlinks: bool = False) -> float:
     :returns: Last-modified time
     :raises: FileNotFoundError
     """
-    return HdfsPath(path).getmtime(follow_symlinks)
+    return HdfsPath(path).getmtime(follow_symlinks=follow_symlinks)
 
 
 def hdfs_getsize(path: PathLike, follow_symlinks: bool = False) -> int:
@@ -97,7 +97,7 @@ def hdfs_getsize(path: PathLike, follow_symlinks: bool = False) -> int:
     :returns: File size
     :raises: FileNotFoundError
     """
-    return HdfsPath(path).getsize(follow_symlinks)
+    return HdfsPath(path).getsize(follow_symlinks=follow_symlinks)
 
 
 def hdfs_isdir(path: PathLike, followlinks: bool = False) -> bool:
@@ -112,7 +112,7 @@ def hdfs_isdir(path: PathLike, followlinks: bool = False) -> bool:
         Because hdfs symlink not support dir.
     :returns: True if path is hdfs directory, else False
     """
-    return HdfsPath(path).is_dir(followlinks)
+    return HdfsPath(path).is_dir(followlinks=followlinks)
 
 
 def hdfs_isfile(path: PathLike, followlinks: bool = False) -> bool:
@@ -122,7 +122,7 @@ def hdfs_isfile(path: PathLike, followlinks: bool = False) -> bool:
     :param path: Given path
     :returns: True if path is hdfs file, else False
     """
-    return HdfsPath(path).is_file(followlinks)
+    return HdfsPath(path).is_file(followlinks=followlinks)
 
 
 def hdfs_listdir(path: PathLike) -> List[str]:
@@ -154,7 +154,7 @@ def hdfs_move(src_path: PathLike, dst_path: PathLike, overwrite: bool = True) ->
     :param src_path: Given path
     :param dst_path: Given destination path
     """
-    return HdfsPath(src_path).move(dst_path, overwrite)
+    return HdfsPath(src_path).move(dst_path, overwrite=overwrite)
 
 
 def hdfs_remove(path: PathLike, missing_ok: bool = False) -> None:
@@ -167,7 +167,7 @@ def hdfs_remove(path: PathLike, missing_ok: bool = False) -> None:
         raise FileNotFoundError
     :raises: FileNotFoundError, UnsupportedError
     """
-    return HdfsPath(path).remove(missing_ok)
+    return HdfsPath(path).remove(missing_ok=missing_ok)
 
 
 def hdfs_scan(
@@ -190,7 +190,7 @@ def hdfs_scan(
     :raises: UnsupportedError
     :returns: A file path generator
     """
-    return HdfsPath(path).scan(missing_ok, followlinks)
+    return HdfsPath(path).scan(missing_ok=missing_ok, followlinks=followlinks)
 
 
 def hdfs_scan_stat(
@@ -206,7 +206,7 @@ def hdfs_scan_stat(
     :raises: UnsupportedError
     :returns: A file path generator
     """
-    return HdfsPath(path).scan_stat(missing_ok, followlinks)
+    return HdfsPath(path).scan_stat(missing_ok=missing_ok, followlinks=followlinks)
 
 
 def hdfs_scandir(path: PathLike) -> Iterator[FileEntry]:
@@ -228,7 +228,7 @@ def hdfs_unlink(path: PathLike, missing_ok: bool = False) -> None:
     :param missing_ok: if False and target file not exists, raise FileNotFoundError
     :raises: FileNotFoundError, IsADirectoryError
     """
-    return HdfsPath(path).unlink(missing_ok)
+    return HdfsPath(path).unlink(missing_ok=missing_ok)
 
 
 def hdfs_walk(
@@ -263,7 +263,7 @@ def hdfs_walk(
         Because hdfs not support symlink.
     :returns: A 3-tuple generator
     """
-    return HdfsPath(path).walk(followlinks)
+    return HdfsPath(path).walk(followlinks=followlinks)
 
 
 def hdfs_getmd5(
@@ -277,7 +277,7 @@ def hdfs_getmd5(
     :param followlinks: Ignore this parameter, just for compatibility
     :returns: checksum
     """
-    return HdfsPath(path).md5(recalculate, followlinks)
+    return HdfsPath(path).md5(recalculate=recalculate, followlinks=followlinks)
 
 
 def hdfs_save_as(file_object: BinaryIO, path: PathLike):
