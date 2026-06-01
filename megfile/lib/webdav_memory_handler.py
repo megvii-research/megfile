@@ -2,10 +2,7 @@ import os
 
 from webdav3.client import Client as WebdavClient
 from webdav3.client import Urn, WebDavXmlUtils, wrap_connection_error
-from webdav3.exceptions import (
-    OptionNotValid,
-    RemoteResourceNotFound,
-)
+from webdav3.exceptions import RemoteResourceNotFound
 
 from megfile.lib.base_memory_handler import BaseMemoryHandler
 from megfile.pathlike import UNKNOWN_STAT
@@ -27,15 +24,8 @@ def _webdav_stat(client: WebdavClient, remote_path: str):
 
 
 @wrap_connection_error
-def _webdav_download_from(client: WebdavClient, buff, remote_path, *, check=True):
+def _webdav_download_from(client: WebdavClient, buff, remote_path):
     urn = Urn(remote_path)
-    if check:
-        if client.is_dir(urn.path()):
-            raise OptionNotValid(name="remote_path", value=remote_path)
-
-        if not client.check(urn.path()):
-            raise RemoteResourceNotFound(urn.path())
-
     response = client.execute_request(action="download", path=urn.quote())
 
     for chunk in response.iter_content(chunk_size=client.chunk_size):
@@ -78,7 +68,6 @@ class WebdavMemoryHandler(BaseMemoryHandler):
             self._client,
             self._fileobj,
             self._remote_path,
-            check=self._content_stat is UNKNOWN_STAT,
         )
         if self._mode[0] == "r":
             self.seek(0, os.SEEK_SET)

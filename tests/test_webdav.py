@@ -26,6 +26,7 @@ class FakeWebdavClient:
     def __init__(self, options: dict = {}):
         self.options = options
         self.info_calls = []
+        self.check_calls = []
 
     def _relative_path(self, path: str) -> str:
         # XXX: pyfakefs not work in python3.14 when path is absolute
@@ -39,6 +40,7 @@ class FakeWebdavClient:
 
     def check(self, path: str) -> bool:
         """Check if path exists"""
+        self.check_calls.append(path)
         path = self._relative_path(path)
         return os.path.exists(path)
 
@@ -158,7 +160,7 @@ def webdav_mocker(fs, mocker):
                 yield from fake_webdav_scan(client, info["path"])
             yield info
 
-    def fake_webdav_download_from(client, buff, path: str, *, check=True) -> Dict:
+    def fake_webdav_download_from(client, buff, path: str) -> Dict:
         return client.download_from(buff, path)
 
     mocker.patch(
@@ -488,11 +490,47 @@ def test_webdav_scandir_reuses_stat(webdav_mocker):
     path = webdav.WebdavPath("webdav://host/A")
     client = path._client
     client.info_calls.clear()
+    client.check_calls.clear()
 
     with path.scandir() as entries:
         assert list(entries) == []
 
     assert client.info_calls == ["/A"]
+    assert client.check_calls == []
+
+
+def test_webdav_open_read_reuses_stat(webdav_mocker):
+    webdav.webdav_makedirs("webdav://host/A")
+    with webdav.webdav_open("webdav://host/A/1.json", "w") as f:
+        f.write("1.json")
+
+    path = webdav.WebdavPath("webdav://host/A/1.json")
+    client = path._client
+    client.info_calls.clear()
+    client.check_calls.clear()
+
+    with path.open("r") as f:
+        assert f.read() == "1.json"
+
+    assert client.info_calls == ["/A/1.json"]
+    assert client.check_calls == []
+
+
+def test_webdav_scan_stat_directory_skips_extra_check(webdav_mocker):
+    webdav.webdav_makedirs("webdav://host/A")
+    with webdav.webdav_open("webdav://host/A/1.json", "w") as f:
+        f.write("1.json")
+
+    path = webdav.WebdavPath("webdav://host/A")
+    client = path._client
+    client.info_calls.clear()
+    client.check_calls.clear()
+
+    entries = list(path.scan_stat())
+
+    assert [entry.path for entry in entries] == ["webdav://host/A/1.json"]
+    assert client.info_calls == ["/A"]
+    assert client.check_calls == []
 
 
 def test_webdav_unlink(webdav_mocker):
@@ -539,13 +577,17 @@ def test_webdav_walk(webdav_mocker):
     with webdav.webdav_open("webdav://host/A/b/3.json", "w") as f:
         f.write("3.json")
 
-    assert list(webdav.webdav_walk("webdav://host/A")) == [
+    path = webdav.WebdavPath("webdav://host/A")
+    client = path._client
+    client.info_calls.clear()
+    assert list(path.walk()) == [
         ("webdav://host/A", ["a", "b"], ["1.json"]),
         ("webdav://host/A/a", ["b"], ["2.json"]),
         ("webdav://host/A/a/b", [], []),
         ("webdav://host/A/b", ["c"], ["3.json"]),
         ("webdav://host/A/b/c", [], []),
     ]
+    assert client.info_calls == ["/A"]
 
     assert list(webdav.webdav_walk("webdav://host/A/not_found")) == []
     assert list(webdav.webdav_walk("webdav://host/A/1.json")) == []

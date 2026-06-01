@@ -270,11 +270,6 @@ def _webdav_scan_pairs(
 
 def _webdav_scan(client: WebdavClient, remote_path: str) -> List[dict]:
     directory_urn = Urn(remote_path, directory=True)
-    if directory_urn.path() != WebdavClient.root and not client.check(
-        directory_urn.path()
-    ):
-        raise RemoteResourceNotFound(directory_urn.path())
-
     path = Urn.normalize_path(client.get_full_path(directory_urn))
     response = client.execute_request(
         action="list", path=directory_urn.quote(), headers_ext=["Depth: infinity"]
@@ -755,13 +750,15 @@ class WebdavPath(URIPath):
         if stat is None or stat.is_file():
             return
 
-        stack = [self._remote_path]
+        stack = [self]
         while stack:
-            root = stack.pop()
+            root_path = stack.pop()
             dirs, files = [], []
 
-            root_path = self._generate_path_object(root)
-            for entry in root_path.scandir():
+            for info in _webdav_scandir(root_path._client, root_path._remote_path):
+                entry = _make_entry(
+                    info, root_path._remote_path, root_path.path_with_protocol
+                )
                 if entry.is_dir():
                     dirs.append(entry.name)
                 else:
@@ -772,9 +769,7 @@ class WebdavPath(URIPath):
 
             yield root_path.path_with_protocol, dirs, files
 
-            stack.extend(
-                (os.path.join(root, directory) for directory in reversed(dirs))
-            )
+            stack.extend(root_path.joinpath(directory) for directory in reversed(dirs))
 
     def resolve(self, strict=False) -> "WebdavPath":
         """Return the absolute path

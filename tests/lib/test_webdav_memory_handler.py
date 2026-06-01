@@ -24,7 +24,7 @@ def client(fs, mocker):
     def fake_webdav_stat(client, path: str) -> Dict:
         return client.info(path)
 
-    def fake_webdav_download_from(client, buff, path: str, *, check=True) -> Dict:
+    def fake_webdav_download_from(client, buff, path: str) -> Dict:
         return client.download_from(buff, path)
 
     mocker.patch(
@@ -90,34 +90,12 @@ def test_webdav_download_from_function(real_webdav_client, mocker):
     mock_response.iter_content.return_value = [b"chunk1", b"chunk2", b"chunk3"]
 
     real_webdav_client.execute_request.return_value = mock_response
-    real_webdav_client.is_dir.return_value = False
-    real_webdav_client.check.return_value = True
-
     buffer = BytesIO()
     _webdav_download_from(real_webdav_client, buffer, "/test/file.txt")
 
     assert buffer.getvalue() == b"chunk1chunk2chunk3"
-
-
-def test_webdav_download_from_is_directory(real_webdav_client, mocker):
-    """Test _webdav_download_from raises error for directory"""
-    from webdav3.exceptions import OptionNotValid
-
-    real_webdav_client.is_dir.return_value = True
-
-    buffer = BytesIO()
-    with pytest.raises(OptionNotValid):
-        _webdav_download_from(real_webdav_client, buffer, "/test/dir")
-
-
-def test_webdav_download_from_not_found(real_webdav_client, mocker):
-    """Test _webdav_download_from raises error for non-existent file"""
-    real_webdav_client.is_dir.return_value = False
-    real_webdav_client.check.return_value = False
-
-    buffer = BytesIO()
-    with pytest.raises(RemoteResourceNotFound):
-        _webdav_download_from(real_webdav_client, buffer, "/test/notfound.txt")
+    real_webdav_client.is_dir.assert_not_called()
+    real_webdav_client.check.assert_not_called()
 
 
 def test_webdav_memory_handler_close(client):
