@@ -1,7 +1,6 @@
 import os
 from typing import Generator
 
-import boto3
 import pytest
 from mock import PropertyMock, patch
 from moto import mock_aws
@@ -11,6 +10,7 @@ from megfile.lib.compat import fspath
 from megfile.pathlike import StatResult
 from megfile.s3_path import S3Path
 from megfile.smart_path import SmartPath
+from tests.s3_utils import make_moto_s3_client
 
 from . import FakeStatResult, Now
 
@@ -18,9 +18,9 @@ BUCKET = "bucket"
 
 
 @pytest.fixture
-def s3_empty_client(mocker):
+def s3_empty_client(mocker, monkeypatch):
     with mock_aws():
-        client = boto3.client("s3")
+        client = make_moto_s3_client(monkeypatch)
         client.create_bucket(Bucket=BUCKET)
         mocker.patch("megfile.s3_path.get_s3_client", return_value=client)
         yield client

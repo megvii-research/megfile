@@ -3,17 +3,17 @@
 # To test if it will cause deadlock that
 # exiting Python process without calling close on S3PipeHandler
 
-import boto3
 from moto import mock_aws
 
 from megfile.lib.s3_pipe_handler import S3PipeHandler
+from tests.s3_utils import make_moto_s3_client
 
 BUCKET = "bucket"
 KEY = "key"
 CONTENT = b" " * 10000000  # 10MB
 
 with mock_aws():
-    client = boto3.client("s3")
+    client = make_moto_s3_client()
     client.create_bucket(Bucket=BUCKET)
     client.put_object(Bucket=BUCKET, Key=KEY, Body=CONTENT)
     reader1 = S3PipeHandler(BUCKET, KEY, "rb", s3_client=client)

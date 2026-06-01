@@ -50,6 +50,7 @@ from megfile.s3_path import (
 )
 from megfile.utils import process_local, thread_local
 from tests.compat import s3
+from tests.s3_utils import make_moto_s3_client
 
 from . import Any, FakeStatResult, Now
 
@@ -157,9 +158,9 @@ FILE_LIST = [
 
 
 @pytest.fixture
-def s3_empty_client(mocker):
+def s3_empty_client(mocker, monkeypatch):
     with mock_aws():
-        client = boto3.client("s3")
+        client = make_moto_s3_client(monkeypatch)
         mocker.patch("megfile.s3_path.get_s3_client", return_value=client)
         yield client
 
@@ -3254,12 +3255,12 @@ def test_group_s3path_by_prefix():
 
 
 @pytest.fixture
-def s3_empty_client_with_patch_for_has_bucket(mocker):
+def s3_empty_client_with_patch_for_has_bucket(mocker, monkeypatch):
     def head_bucket_without_permission(*args, **kwargs):
         raise botocore.exceptions.ClientError({"Error": {"Code": "403"}}, "head_bucket")
 
     with mock_aws():
-        client = boto3.client("s3")
+        client = make_moto_s3_client(monkeypatch)
         client.head_bucket = head_bucket_without_permission
         mocker.patch("megfile.s3_path.get_s3_client", return_value=client)
         yield client
@@ -3750,11 +3751,11 @@ def test_s3_atomic(s3_empty_client):
 
 
 @pytest.fixture
-def error_client(mocker):
+def error_client(mocker, monkeypatch):
     from megfile.errors import patch_method
 
     with mock_aws():
-        client = boto3.client("s3")
+        client = make_moto_s3_client(monkeypatch)
 
         def _make_request(*args, **kwargs):
             from botocore.exceptions import ClientError
