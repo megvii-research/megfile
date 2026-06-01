@@ -10,6 +10,7 @@ from webdav3.exceptions import (
     ResponseErrorCode,
 )
 
+from megfile import smart_copy
 from megfile.errors import SameFileError
 from megfile.webdav_path import _patch_execute_request
 from tests.compat import webdav
@@ -410,6 +411,14 @@ def test_webdav_open(webdav_mocker):
         with webdav.webdav_open("webdav://host/A", "w") as f:
             f.write("test")
 
+    with pytest.raises(IsADirectoryError):
+        with webdav.webdav_open("webdav://host/A", "r") as f:
+            f.read()
+
+    with pytest.raises(IsADirectoryError):
+        with webdav.webdav_open("webdav://host/A", "rb") as f:
+            f.read()
+
 
 def test_webdav_remove(webdav_mocker):
     webdav.webdav_makedirs("webdav://host/A")
@@ -466,6 +475,25 @@ def test_webdav_unlink(webdav_mocker):
 
     assert webdav.webdav_exists("webdav://host/A/test") is False
     assert webdav.webdav_exists("webdav://host/A") is True
+
+    client = webdav_mocker
+    clean = client.clean
+
+    def clean_should_not_be_called(path):
+        raise AssertionError("clean should not be called for missing_ok=True")
+
+    client.clean = clean_should_not_be_called
+    webdav.webdav_unlink("webdav://host/A/not_found", missing_ok=True)
+    client.clean = clean
+
+    with webdav.webdav_open("webdav://host/A/test", "w") as f:
+        f.write("test")
+
+    with pytest.raises(IsADirectoryError):
+        webdav.webdav_unlink("webdav://host/A")
+
+    assert webdav.webdav_exists("webdav://host/A") is True
+    assert webdav.webdav_exists("webdav://host/A/test") is True
 
 
 def test_webdav_walk(webdav_mocker):
@@ -570,6 +598,9 @@ def test_webdav_copy_error(webdav_mocker):
 
     with pytest.raises(IsADirectoryError):
         webdav.webdav_copy("webdav://host/A", "webdav://host/A2")
+
+    with pytest.raises(IsADirectoryError):
+        smart_copy("webdav://host/A", "webdav://host/A2")
 
     with pytest.raises(IsADirectoryError):
         webdav.webdav_copy("webdav://host/A/1.json", "webdav://host/A2/")
