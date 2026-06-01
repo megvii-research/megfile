@@ -635,13 +635,13 @@ def smart_rename(
     :param dst_path: Given destination path
     :param overwrite: whether or not overwrite file when exists
     """
-    if smart_isdir(src_path):
-        raise IsADirectoryError("%r is a directory" % src_path)
     src_protocol = SmartPath._extract_protocol(src_path)
     dst_protocol = SmartPath._extract_protocol(dst_path)
     if src_protocol == dst_protocol:
-        SmartPath(src_path).rename(dst_path, overwrite=overwrite)
+        SmartPath(src_path).rename(dst_path, overwrite=overwrite, recursive=False)
         return
+    if smart_isdir(src_path):
+        raise IsADirectoryError("%r is a directory" % src_path)
     smart_copy(src_path, dst_path, overwrite=overwrite)
     smart_unlink(src_path)
 
@@ -657,7 +657,7 @@ def smart_move(src_path: PathLike, dst_path: PathLike, overwrite: bool = True) -
     src_protocol = SmartPath._extract_protocol(src_path)
     dst_protocol = SmartPath._extract_protocol(dst_path)
     if src_protocol == dst_protocol:
-        SmartPath(src_path).rename(dst_path, overwrite=overwrite)
+        SmartPath(src_path).rename(dst_path, overwrite=overwrite, recursive=True)
         return
     smart_sync(src_path, dst_path, followlinks=True, overwrite=overwrite)
     smart_remove(src_path)

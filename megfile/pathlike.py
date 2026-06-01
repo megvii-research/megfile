@@ -726,12 +726,18 @@ class BasePath:
         """
         return self.chmod(mode=mode, follow_symlinks=False)
 
-    def rename(self: Self, dst_path: "PathLike", overwrite: bool = True) -> Self:
+    def rename(
+        self: Self,
+        dst_path: "PathLike",
+        overwrite: bool = True,
+        recursive: bool = True,
+    ) -> Self:
         """
         rename file
 
         :param dst_path: Given destination path
         :param overwrite: whether or not overwrite file when exists
+        :param recursive: whether or not rename directory recursively
         """
         raise NotImplementedError(f"'rename' is unsupported on '{type(self)}'")
 

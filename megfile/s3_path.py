@@ -2079,7 +2079,9 @@ class S3Path(URIPath):
         for src_file_path, dst_file_path in _s3_scan_pairs(
             self.path_with_protocol, dst_url
         ):
-            S3Path(src_file_path).rename(dst_file_path, overwrite=overwrite)
+            S3Path(src_file_path).rename(
+                dst_file_path, overwrite=overwrite, recursive=False
+            )
 
     def remove(self, missing_ok: bool = False) -> None:
         """
@@ -2166,13 +2168,21 @@ class S3Path(URIPath):
                     "No such file or directory: %r" % self.path_with_protocol
                 )
 
-    def rename(self, dst_path: PathLike, overwrite: bool = True) -> "S3Path":
+    def rename(
+        self, dst_path: PathLike, overwrite: bool = True, recursive: bool = True
+    ) -> "S3Path":
         """
         Move s3 file path from src_url to dst_url
 
         :param dst_path: Given destination path
         :param overwrite: whether or not overwrite file when exists
+        :param recursive: whether or not rename directory recursively
         """
+        if not recursive:
+            self.copy(dst_path, overwrite=overwrite)
+            self.unlink()
+            return self.from_path(dst_path)
+
         if self.is_file():
             self.copy(dst_path, overwrite=overwrite)
         else:

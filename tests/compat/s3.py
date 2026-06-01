@@ -417,14 +417,17 @@ def s3_readlink(path) -> str:
     return S3Path(path).readlink().path_with_protocol
 
 
-def s3_rename(src_url: PathLike, dst_url: PathLike, overwrite: bool = True) -> None:
+def s3_rename(
+    src_url: PathLike, dst_url: PathLike, overwrite: bool = True, recursive: bool = True
+) -> None:
     """
     Move s3 file path from src_url to dst_url
 
     :param dst_url: Given destination path
     :param overwrite: whether or not overwrite file when exists
+    :param recursive: whether or not rename directory recursively
     """
-    S3Path(src_url).rename(dst_url, overwrite=overwrite)
+    S3Path(src_url).rename(dst_url, overwrite=overwrite, recursive=recursive)
 
 
 def s3_glob(

@@ -375,19 +375,26 @@ class HdfsPath(URIPath):
         with raise_hdfs_error(self.path_with_protocol):
             self._client.makedirs(self.path_without_protocol, permission=mode)
 
-    def rename(self, dst_path: PathLike, overwrite: bool = True) -> "HdfsPath":
+    def rename(
+        self, dst_path: PathLike, overwrite: bool = True, recursive: bool = True
+    ) -> "HdfsPath":
         """
         Move hdfs file path from src_path to dst_path
 
         :param dst_path: Given destination path
         :param overwrite: whether or not overwrite file when exists
+        :param recursive: whether or not rename directory recursively
         """
         dst_path = self.from_path(dst_path)
-        if self.is_dir():
+        src_stat = self.stat()
+        if src_stat.is_dir():
+            if not recursive:
+                raise IsADirectoryError("Is a directory: %r" % self.path_with_protocol)
             for filename in self.iterdir():
                 filename.rename(
                     dst_path.joinpath(filename.relative_to(self.path_with_protocol)),
                     overwrite=overwrite,
+                    recursive=recursive,
                 )
         else:
             if overwrite:
@@ -406,7 +413,7 @@ class HdfsPath(URIPath):
 
         :param dst_path: Given destination path
         """
-        self.rename(dst_path=dst_path, overwrite=overwrite)
+        self.rename(dst_path=dst_path, overwrite=overwrite, recursive=True)
 
     def remove(self, missing_ok: bool = False) -> None:
         """

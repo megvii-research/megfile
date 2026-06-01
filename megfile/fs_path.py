@@ -491,12 +491,15 @@ class FSPath(URIPath):
             )
         )
 
-    def rename(self, dst_path: PathLike, overwrite: bool = True) -> "FSPath":
+    def rename(
+        self, dst_path: PathLike, overwrite: bool = True, recursive: bool = True
+    ) -> "FSPath":
         """
         rename file on fs
 
         :param dst_path: Given destination path
         :param overwrite: whether or not overwrite file when exists
+        :param recursive: whether or not rename directory recursively
         """
         self._check_int_path()
 
@@ -506,8 +509,12 @@ class FSPath(URIPath):
             if os.path.exists(src_path):
                 os.remove(src_path)
             return self.from_path(dst_path)
-        else:
-            os.makedirs(dst_path, exist_ok=True)
+        if not os.path.exists(src_path):
+            raise FileNotFoundError("No such file: %r" % self.path_with_protocol)
+        if not recursive and os.path.isdir(src_path):
+            raise IsADirectoryError("Is a directory: %r" % self.path_with_protocol)
+
+        os.makedirs(dst_path, exist_ok=True)
 
         with os.scandir(src_path) as entries:
             for file_entry in entries:
@@ -518,7 +525,9 @@ class FSPath(URIPath):
                     dst_file_path = os.path.join(dst_file_path, relative_path)
                 if os.path.exists(dst_file_path) and file_entry.is_dir():
                     self.from_path(src_file_path).rename(
-                        dst_file_path, overwrite=overwrite
+                        dst_file_path,
+                        overwrite=overwrite,
+                        recursive=recursive,
                     )
                 else:
                     _fs_rename_file(src_file_path, dst_file_path, overwrite=overwrite)

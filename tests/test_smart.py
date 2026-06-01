@@ -495,7 +495,7 @@ def test_smart_move(mocker):
     funcA.return_value = None
     res = smart.smart_move("s3://bucket/a", "s3://bucket/b")
     assert res is None
-    funcA.assert_called_once_with("s3://bucket/b", overwrite=True)
+    funcA.assert_called_once_with("s3://bucket/b", overwrite=True, recursive=True)
 
     res = smart.smart_move("/bucket/a", "/bucket/b")
     assert res is None
@@ -511,11 +511,13 @@ def test_smart_move(mocker):
 
 
 @patch.object(SmartPath, "rename")
-def test_smart_rename(funcA):
+def test_smart_rename(funcA, mocker):
+    smart_isdir = mocker.patch("megfile.smart.smart_isdir")
     funcA.return_value = None
-    res = smart.smart_move("s3://bucket/a", "s3://bucket/b")
+    res = smart.smart_rename("s3://bucket/a", "s3://bucket/b")
     assert res is None
-    funcA.assert_called_once_with("s3://bucket/b", overwrite=True)
+    funcA.assert_called_once_with("s3://bucket/b", overwrite=True, recursive=False)
+    smart_isdir.assert_not_called()
 
 
 def test_smart_rename_fs(s3_empty_client, filesystem):

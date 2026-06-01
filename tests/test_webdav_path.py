@@ -594,6 +594,24 @@ def test_rename_directory(webdav_mocker):
     assert WebdavPath("webdav://host/B/file.txt").exists()
 
 
+def test_rename_directory_recursive_false_raises(webdav_mocker):
+    """Test rename(recursive=False) treats source as a single file."""
+    webdav.webdav_makedirs("webdav://host/A")
+    with webdav.webdav_open("webdav://host/A/file.txt", "w") as f:
+        f.write("test")
+
+    path = WebdavPath("webdav://host/A")
+    client = path._client
+    client.info_calls.clear()
+
+    with pytest.raises(IsADirectoryError):
+        path.rename("webdav://host/B", recursive=False)
+
+    assert client.info_calls == ["/A"]
+    assert WebdavPath("webdav://host/A/file.txt").exists()
+    assert not WebdavPath("webdav://host/B").exists()
+
+
 def test_generate_path_object(webdav_mocker):
     """Test _generate_path_object method"""
     path = WebdavPath("webdav://host/A/B/C")
