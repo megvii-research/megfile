@@ -62,7 +62,7 @@ class S3PrefetchReader(BasePrefetchReader):
             max_workers=max_workers,
         )
 
-    def _get_content_size(self):
+    def _get_content_size_from_remote(self):
         if self._block_capacity <= 0 or READER_LAZY_PREFETCH:
             response = self._client.head_object(Bucket=self._bucket, Key=self._key)
             self._content_etag = response.get("ETag")

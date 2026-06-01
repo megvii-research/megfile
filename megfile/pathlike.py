@@ -24,6 +24,7 @@ from megfile.lib.fnmatch import _compile_pattern
 from megfile.lib.joinpath import uri_join
 
 Self = TypeVar("Self")
+UNKNOWN_STAT = object()
 
 
 class Access(Enum):

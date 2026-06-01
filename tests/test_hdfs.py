@@ -226,6 +226,11 @@ def test_hdfs_load_from(http_mocker):
     assert hdfs.hdfs_load_from("hdfs://root/b/3.txt").read() == b"333"
 
 
+def test_hdfs_open_dir(http_mocker):
+    with pytest.raises(IsADirectoryError):
+        hdfs.hdfs_open("hdfs://root", "rb")
+
+
 def test_hdfs_move(http_mocker, mocker):
     http_mocker.put(
         "http://127.0.0.1:8000/webhdfs/v1/a?op=RENAME&destination=%2Fb",

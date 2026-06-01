@@ -3,6 +3,7 @@ from typing import Optional
 
 from megfile.errors import translate_fs_error, translate_s3_error
 from megfile.lib.s3_memory_handler import S3MemoryHandler
+from megfile.pathlike import UNKNOWN_STAT
 from megfile.utils import generate_cache_path
 
 
@@ -24,6 +25,7 @@ class S3CachedHandler(S3MemoryHandler):
         self._mode = mode
         self._client = s3_client
         self._profile_name = profile_name
+        self._content_stat = UNKNOWN_STAT
 
         if mode not in ("rb", "wb", "ab", "rb+", "wb+", "ab+"):
             raise ValueError("unacceptable mode: %r" % mode)

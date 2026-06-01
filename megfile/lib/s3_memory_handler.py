@@ -35,7 +35,7 @@ class S3MemoryHandler(BaseMemoryHandler):
     def _translate_error(self, error: Exception):
         return translate_s3_error(error, self.name)
 
-    def _file_exists(self) -> bool:
+    def _file_exists_from_remote(self) -> bool:
         try:
             self._client.head_object(Bucket=self._bucket, Key=self._key)
         except Exception as error:

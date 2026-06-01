@@ -16,6 +16,7 @@ from megfile.errors import (
 )
 from megfile.lib.base_prefetch_reader import BasePrefetchReader
 from megfile.lib.webdav_memory_handler import _webdav_stat
+from megfile.pathlike import UNKNOWN_STAT
 
 DEFAULT_TIMEOUT = (60, 60 * 60 * 24)
 
@@ -38,6 +39,7 @@ class WebdavPrefetchReader(BasePrefetchReader):
         remote_path: str,
         *,
         client: Optional[WebdavClient] = None,
+        content_stat=UNKNOWN_STAT,
         block_size: int = READER_BLOCK_SIZE,
         max_buffer_size: int = READER_MAX_BUFFER_SIZE,
         block_forward: Optional[int] = None,
@@ -54,9 +56,10 @@ class WebdavPrefetchReader(BasePrefetchReader):
             block_forward=block_forward,
             max_retries=max_retries,
             max_workers=max_workers,
+            content_stat=content_stat,
         )
 
-    def _get_content_size(self) -> int:
+    def _get_content_size_from_remote(self) -> int:
         info = _webdav_stat(self._client, self._remote_path)
         return int(info.get("size") or 0)
 

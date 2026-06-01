@@ -15,6 +15,7 @@ from megfile.config import (
     READER_MAX_BUFFER_SIZE,
 )
 from megfile.interfaces import Readable, Seekable
+from megfile.pathlike import UNKNOWN_STAT, StatResult
 from megfile.utils import ProcessLocal, process_local
 
 _logger = get_logger(__name__)
@@ -36,8 +37,10 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
         block_forward: Optional[int] = None,
         max_retries: int = DEFAULT_MAX_RETRY_TIMES,
         max_workers: Optional[int] = None,
+        content_stat=UNKNOWN_STAT,
         **kwargs,
     ):
+        self._content_stat = content_stat
         self._is_global_executor = False
         if max_workers is None:
             self._executor = process_local(
@@ -89,8 +92,13 @@ class BasePrefetchReader(Readable[bytes], Seekable, ABC):
 
         _logger.debug("open file: %r, mode: %s" % (self.name, self.mode))
 
-    @abstractmethod
     def _get_content_size(self):
+        if isinstance(self._content_stat, StatResult):
+            return int(self._content_stat.size)
+        return self._get_content_size_from_remote()
+
+    @abstractmethod
+    def _get_content_size_from_remote(self):
         pass  # pragma: no cover
 
     @property

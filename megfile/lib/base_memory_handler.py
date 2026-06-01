@@ -4,6 +4,7 @@ from io import BytesIO, UnsupportedOperation
 from typing import Iterable, List, Optional
 
 from megfile.interfaces import Readable, Seekable, Writable
+from megfile.pathlike import UNKNOWN_STAT, StatResult
 
 
 class BaseMemoryHandler(Readable[bytes], Seekable, Writable[bytes], ABC):
@@ -12,8 +13,10 @@ class BaseMemoryHandler(Readable[bytes], Seekable, Writable[bytes], ABC):
         mode: str,
         *,
         atomic: bool = False,
+        content_stat=UNKNOWN_STAT,
     ):
         self._mode = mode
+        self._content_stat = content_stat
 
         if mode not in ("rb", "wb", "ab", "rb+", "wb+", "ab+"):
             raise ValueError("unacceptable mode: %r" % mode)
@@ -87,6 +90,17 @@ class BaseMemoryHandler(Readable[bytes], Seekable, Writable[bytes], ABC):
 
     @abstractmethod
     def _upload_fileobj(self):
+        pass
+
+    def _file_exists(self) -> bool:
+        if isinstance(self._content_stat, StatResult):
+            return self._content_stat.is_file()
+        if self._content_stat is None:
+            return False
+        return self._file_exists_from_remote()
+
+    @abstractmethod
+    def _file_exists_from_remote(self) -> bool:
         pass
 
     def _close(self, need_upload: bool = True):
