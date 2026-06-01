@@ -71,7 +71,7 @@ def http_stat(path: PathLike, follow_symlinks=True) -> StatResult:
     :returns: StatResult
     :raises: HttpPermissionError, HttpFileNotFoundError
     """
-    return HttpPath(path).stat(follow_symlinks)
+    return HttpPath(path).stat(follow_symlinks=follow_symlinks)
 
 
 def http_getsize(path: PathLike, follow_symlinks: bool = False) -> int:
@@ -85,7 +85,7 @@ def http_getsize(path: PathLike, follow_symlinks: bool = False) -> int:
     :returns: File size (in bytes)
     :raises: HttpPermissionError, HttpFileNotFoundError
     """
-    return HttpPath(path).getsize(follow_symlinks)
+    return HttpPath(path).getsize(follow_symlinks=follow_symlinks)
 
 
 def http_getmtime(path: PathLike, follow_symlinks: bool = False) -> float:
@@ -99,7 +99,7 @@ def http_getmtime(path: PathLike, follow_symlinks: bool = False) -> float:
     :returns: Last-Modified time (in Unix timestamp format)
     :raises: HttpPermissionError, HttpFileNotFoundError
     """
-    return HttpPath(path).getmtime(follow_symlinks)
+    return HttpPath(path).getmtime(follow_symlinks=follow_symlinks)
 
 
 def http_exists(path: PathLike, followlinks: bool = False) -> bool:
@@ -111,4 +111,4 @@ def http_exists(path: PathLike, followlinks: bool = False) -> bool:
     :return: return True if exists
     :rtype: bool
     """
-    return HttpPath(path).exists(followlinks)
+    return HttpPath(path).exists(followlinks=followlinks)

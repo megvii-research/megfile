@@ -551,11 +551,11 @@ def test_smart_rename_fs(s3_empty_client, filesystem):
 def test_smart_unlink(funcA):
     funcA.return_value = None
 
-    res = smart.smart_unlink("False Case", False)
+    res = smart.smart_unlink("False Case", missing_ok=False)
     assert res is None
     funcA.assert_called_once_with(missing_ok=False)
 
-    res = smart.smart_unlink("True Case", True)
+    res = smart.smart_unlink("True Case", missing_ok=True)
     assert res is None
     funcA.assert_called_with(missing_ok=True)
 
@@ -565,7 +565,7 @@ def test_smart_makedirs(funcA):
     funcA.return_value = None
     res = smart.smart_makedirs("Test Case", exist_ok=True)
     assert res is None
-    funcA.assert_called_once_with(True)
+    funcA.assert_called_once_with(exist_ok=True)
 
 
 def test_smart_open_input_params(mocker, fs):

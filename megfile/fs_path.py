@@ -91,7 +91,9 @@ def fs_copy(
     :param followlinks: False if regard symlink as file, else True
     :param overwrite: whether or not overwrite file when exists, default is True
     """
-    return FSPath(src_path).copy(dst_path, callback, followlinks, overwrite)
+    return FSPath(src_path).copy(
+        dst_path, callback, followlinks=followlinks, overwrite=overwrite
+    )
 
 
 def _fs_rename_file(
@@ -371,8 +373,8 @@ class FSPath(URIPath):
 
         for path in _create_missing_ok_generator(
             iglob(fspath(glob_path), recursive=recursive),
-            missing_ok,
-            FileNotFoundError("No match any file: %r" % glob_path),
+            missing_ok=missing_ok,
+            error=FileNotFoundError("No match any file: %r" % glob_path),
         ):
             yield self.from_path(path)
 
@@ -500,7 +502,7 @@ class FSPath(URIPath):
 
         src_path, dst_path = fspath(self.path_without_protocol), fspath(dst_path)
         if os.path.isfile(src_path):
-            _fs_rename_file(src_path, dst_path, overwrite)
+            _fs_rename_file(src_path, dst_path, overwrite=overwrite)
             if os.path.exists(src_path):
                 os.remove(src_path)
             return self.from_path(dst_path)
@@ -515,9 +517,11 @@ class FSPath(URIPath):
                 if relative_path and relative_path != ".":
                     dst_file_path = os.path.join(dst_file_path, relative_path)
                 if os.path.exists(dst_file_path) and file_entry.is_dir():
-                    self.from_path(src_file_path).rename(dst_file_path, overwrite)
+                    self.from_path(src_file_path).rename(
+                        dst_file_path, overwrite=overwrite
+                    )
                 else:
-                    _fs_rename_file(src_file_path, dst_file_path, overwrite)
+                    _fs_rename_file(src_file_path, dst_file_path, overwrite=overwrite)
 
             shutil.rmtree(src_path, ignore_errors=True)
 
@@ -574,8 +578,8 @@ class FSPath(URIPath):
         """
         return _create_missing_ok_generator(
             self._scan(followlinks=followlinks),
-            missing_ok,
-            FileNotFoundError("No match any file in: %r" % self.path),
+            missing_ok=missing_ok,
+            error=FileNotFoundError("No match any file in: %r" % self.path),
         )
 
     def scan_stat(

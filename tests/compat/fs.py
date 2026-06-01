@@ -100,7 +100,7 @@ def fs_exists(path: PathLike, followlinks: bool = False) -> bool:
     :returns: True if the path exists, else False
 
     """
-    return FSPath(path).exists(followlinks)
+    return FSPath(path).exists(followlinks=followlinks)
 
 
 def fs_getmtime(path: PathLike, follow_symlinks: bool = False) -> float:
@@ -112,7 +112,7 @@ def fs_getmtime(path: PathLike, follow_symlinks: bool = False) -> float:
     :param path: Given path
     :returns: last-modified time
     """
-    return FSPath(path).getmtime(follow_symlinks)
+    return FSPath(path).getmtime(follow_symlinks=follow_symlinks)
 
 
 def fs_getsize(path: PathLike, follow_symlinks: bool = False) -> int:
@@ -127,7 +127,7 @@ def fs_getsize(path: PathLike, follow_symlinks: bool = False) -> int:
     :returns: File size
 
     """
-    return FSPath(path).getsize(follow_symlinks)
+    return FSPath(path).getsize(follow_symlinks=follow_symlinks)
 
 
 def fs_expanduser(path: PathLike):
@@ -151,7 +151,7 @@ def fs_isdir(path: PathLike, followlinks: bool = False) -> bool:
     :returns: True if the path is a directory, else False
 
     """
-    return FSPath(path).is_dir(followlinks)
+    return FSPath(path).is_dir(followlinks=followlinks)
 
 
 def fs_isfile(path: PathLike, followlinks: bool = False) -> bool:
@@ -168,7 +168,7 @@ def fs_isfile(path: PathLike, followlinks: bool = False) -> bool:
     :returns: True if the path is a file, else False
 
     """
-    return FSPath(path).is_file(followlinks)
+    return FSPath(path).is_file(followlinks=followlinks)
 
 
 def fs_listdir(path: Optional[PathLike] = None) -> List[str]:
@@ -222,7 +222,7 @@ def fs_remove(path: PathLike, missing_ok: bool = False) -> None:
     :param missing_ok: if False and target file/directory not exists,
         raise FileNotFoundError
     """
-    return FSPath(path).remove(missing_ok)
+    return FSPath(path).remove(missing_ok=missing_ok)
 
 
 def fs_scan(
@@ -241,7 +241,7 @@ def fs_scan(
         raise FileNotFoundError
     :returns: A file path generator
     """
-    return FSPath(path).scan(missing_ok, followlinks)
+    return FSPath(path).scan(missing_ok=missing_ok, followlinks=followlinks)
 
 
 def fs_scan_stat(
@@ -256,7 +256,7 @@ def fs_scan_stat(
         raise FileNotFoundError
     :returns: A file path generator
     """
-    return FSPath(path).scan_stat(missing_ok, followlinks)
+    return FSPath(path).scan_stat(missing_ok=missing_ok, followlinks=followlinks)
 
 
 def fs_scandir(path: Optional[PathLike] = None) -> Iterator[FileEntry]:
@@ -298,7 +298,7 @@ def fs_stat(path: PathLike, follow_symlinks=True) -> StatResult:
     :param path: Given path
     :returns: StatResult
     """
-    return FSPath(path).stat(follow_symlinks)
+    return FSPath(path).stat(follow_symlinks=follow_symlinks)
 
 
 def fs_unlink(path: PathLike, missing_ok: bool = False) -> None:
@@ -308,7 +308,7 @@ def fs_unlink(path: PathLike, missing_ok: bool = False) -> None:
     :param path: Given path
     :param missing_ok: if False and target file not exists, raise FileNotFoundError
     """
-    return FSPath(path).unlink(missing_ok)
+    return FSPath(path).unlink(missing_ok=missing_ok)
 
 
 def fs_walk(
@@ -339,7 +339,7 @@ def fs_walk(
 
     :returns: A 3-tuple generator
     """
-    return FSPath(path).walk(followlinks)
+    return FSPath(path).walk(followlinks=followlinks)
 
 
 def fs_getmd5(path: PathLike, recalculate: bool = False, followlinks: bool = False):
@@ -352,7 +352,7 @@ def fs_getmd5(path: PathLike, recalculate: bool = False, followlinks: bool = Fal
 
     returns: md5 of file
     """
-    return FSPath(path).md5(recalculate, followlinks)
+    return FSPath(path).md5(recalculate=recalculate, followlinks=followlinks)
 
 
 def fs_sync(
@@ -371,7 +371,9 @@ def fs_sync(
         priority is higher than 'overwrite', default is False
     :param overwrite: whether or not overwrite file when exists, default is True
     """
-    return FSPath(src_path).sync(dst_path, followlinks, force, overwrite)
+    return FSPath(src_path).sync(
+        dst_path, followlinks=followlinks, force=force, overwrite=overwrite
+    )
 
 
 def fs_symlink(src_path: PathLike, dst_path: PathLike) -> None:
@@ -567,7 +569,7 @@ def fs_rename(src_path: PathLike, dst_path: PathLike, overwrite: bool = True) ->
     :param dst_path: Given destination path
     :param overwrite: whether or not overwrite file when exists
     """
-    FSPath(src_path).rename(dst_path, overwrite)
+    FSPath(src_path).rename(dst_path, overwrite=overwrite)
 
 
 def fs_move(src_path: PathLike, dst_path: PathLike, overwrite: bool = True) -> None:
@@ -578,7 +580,7 @@ def fs_move(src_path: PathLike, dst_path: PathLike, overwrite: bool = True) -> N
     :param dst_path: Given destination path
     :param overwrite: whether or not overwrite file when exists
     """
-    return fs_rename(src_path, dst_path, overwrite)
+    return fs_rename(src_path, dst_path, overwrite=overwrite)
 
 
 def fs_open(path: PathLike, mode: str = "r", **kwargs) -> IO:

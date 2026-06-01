@@ -683,7 +683,7 @@ def smart_makedirs(path: PathLike, exist_ok: bool = False) -> None:
     :param missing_ok: if False and target directory not exists, raise FileNotFoundError
     :raises: PermissionError, FileExistsError
     """
-    SmartPath(path).makedirs(exist_ok)
+    SmartPath(path).makedirs(exist_ok=exist_ok)
 
 
 def smart_open(

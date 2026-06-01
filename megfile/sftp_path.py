@@ -452,7 +452,9 @@ def sftp_copy(
     :raises IsADirectoryError: If the source is a directory.
     :raises OSError: If there is an error copying the file.
     """
-    return SftpPath(src_path).copy(dst_path, callback, followlinks, overwrite)
+    return SftpPath(src_path).copy(
+        dst_path, callback, followlinks=followlinks, overwrite=overwrite
+    )
 
 
 def sftp_download(
@@ -788,8 +790,8 @@ class SftpPath(URIPath):
         fs = FSFunc(_exist, _is_dir, _scandir)
         for real_path in _create_missing_ok_generator(
             iglob(fspath(glob_path), recursive=recursive, fs=fs),
-            missing_ok,
-            FileNotFoundError("No match any file: %r" % glob_path),
+            missing_ok=missing_ok,
+            error=FileNotFoundError("No match any file: %r" % glob_path),
         ):
             yield self.from_path(real_path)
 
@@ -1041,8 +1043,10 @@ class SftpPath(URIPath):
 
         return _create_missing_ok_generator(
             create_generator(),
-            missing_ok,
-            FileNotFoundError("No match any file in: %r" % self.path_with_protocol),
+            missing_ok=missing_ok,
+            error=FileNotFoundError(
+                "No match any file in: %r" % self.path_with_protocol
+            ),
         )
 
     def scandir(self) -> ContextIterator:
