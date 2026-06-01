@@ -866,6 +866,7 @@ class WebdavPath(URIPath):
                 reader = WebdavPrefetchReader(
                     self._remote_path,
                     client=self._client,
+                    content_stat=stat,
                     block_size=block_size,
                     max_buffer_size=max_buffer_size,
                     block_forward=block_forward,
@@ -882,6 +883,7 @@ class WebdavPath(URIPath):
             webdav_client=self._client,
             name=self.path_with_protocol,
             atomic=atomic,
+            content_stat=stat,
         )
 
     def chmod(self, mode: int, *, follow_symlinks: bool = True):

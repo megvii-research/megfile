@@ -156,7 +156,7 @@ def webdav_mocker(fs, mocker):
                 yield from fake_webdav_scan(client, info["path"])
             yield info
 
-    def fake_webdav_download_from(client, buff, path: str) -> Dict:
+    def fake_webdav_download_from(client, buff, path: str, *, check=True) -> Dict:
         return client.download_from(buff, path)
 
     mocker.patch(

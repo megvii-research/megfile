@@ -631,6 +631,11 @@ class HdfsPath(URIPath):
 
         with raise_hdfs_error(self.path_with_protocol):
             if mode in ("r", "rb"):
+                stat = self.stat()
+                if stat.isdir:
+                    raise IsADirectoryError(
+                        "Is a directory: %r" % self.path_with_protocol
+                    )
                 file_obj = HdfsPrefetchReader(
                     hdfs_path=self.path_without_protocol,
                     client=self._client,
@@ -640,6 +645,7 @@ class HdfsPath(URIPath):
                     block_forward=block_forward,
                     max_retries=HDFS_MAX_RETRY_TIMES,
                     max_workers=max_workers,
+                    content_stat=stat,
                 )
                 if _is_pickle(file_obj):
                     file_obj = io.BufferedReader(file_obj)  # type: ignore

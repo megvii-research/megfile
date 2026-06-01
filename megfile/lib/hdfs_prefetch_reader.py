@@ -8,6 +8,7 @@ from megfile.config import (
 )
 from megfile.errors import raise_hdfs_error
 from megfile.lib.base_prefetch_reader import BasePrefetchReader
+from megfile.pathlike import UNKNOWN_STAT
 
 
 class HdfsPrefetchReader(BasePrefetchReader):
@@ -32,6 +33,7 @@ class HdfsPrefetchReader(BasePrefetchReader):
         max_retries: int = HDFS_MAX_RETRY_TIMES,
         max_workers: Optional[int] = None,
         profile_name: Optional[str] = None,
+        content_stat=UNKNOWN_STAT,
     ):
         self._path = hdfs_path
         self._client = client
@@ -43,9 +45,10 @@ class HdfsPrefetchReader(BasePrefetchReader):
             block_forward=block_forward,
             max_retries=max_retries,
             max_workers=max_workers,
+            content_stat=content_stat,
         )
 
-    def _get_content_size(self):
+    def _get_content_size_from_remote(self):
         with raise_hdfs_error(self._path):
             return self._client.status(self._path)["length"]
 

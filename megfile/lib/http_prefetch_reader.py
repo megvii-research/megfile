@@ -16,7 +16,7 @@ from megfile.errors import (
 )
 from megfile.lib.base_prefetch_reader import BasePrefetchReader
 from megfile.lib.compat import fspath
-from megfile.pathlike import PathLike
+from megfile.pathlike import UNKNOWN_STAT, PathLike
 
 DEFAULT_TIMEOUT = (60, 60 * 60 * 24)
 
@@ -40,6 +40,7 @@ class HttpPrefetchReader(BasePrefetchReader):
         *,
         session: Optional[requests.Session] = None,
         content_size: Optional[int] = None,
+        content_stat=UNKNOWN_STAT,
         block_size: int = READER_BLOCK_SIZE,
         max_buffer_size: int = READER_MAX_BUFFER_SIZE,
         block_forward: Optional[int] = None,
@@ -56,9 +57,10 @@ class HttpPrefetchReader(BasePrefetchReader):
             block_forward=block_forward,
             max_retries=max_retries,
             max_workers=max_workers,
+            content_stat=content_stat,
         )
 
-    def _get_content_size(self) -> int:
+    def _get_content_size_from_remote(self) -> int:
         if self._content_size is not None:
             return self._content_size
 
