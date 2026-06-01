@@ -2,7 +2,6 @@ import os
 from io import BytesIO, StringIO
 from pathlib import Path
 
-import boto3
 import pytest
 from mock import patch
 from moto import mock_aws
@@ -13,6 +12,7 @@ from megfile.errors import S3UnknownError
 from megfile.interfaces import Access, FileEntry, StatResult
 from megfile.s3_path import _s3_binary_mode
 from megfile.smart_path import SmartPath
+from tests.s3_utils import make_moto_s3_client
 
 
 @pytest.fixture
@@ -26,7 +26,7 @@ BUCKET = "bucket"
 @pytest.fixture
 def s3_empty_client(mocker):
     with mock_aws():
-        client = boto3.client("s3")
+        client = make_moto_s3_client()
         client.create_bucket(Bucket=BUCKET)
         mocker.patch("megfile.s3_path.get_s3_client", return_value=client)
         yield client

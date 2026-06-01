@@ -45,7 +45,7 @@ class HdfsPrefetchReader(BasePrefetchReader):
             max_workers=max_workers,
         )
 
-    def _get_content_size(self):
+    def _get_content_size_from_remote(self):
         with raise_hdfs_error(self._path):
             return self._client.status(self._path)["length"]
 

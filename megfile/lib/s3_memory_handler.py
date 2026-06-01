@@ -8,6 +8,7 @@ from megfile.errors import (
     translate_s3_error,
 )
 from megfile.lib.base_memory_handler import BaseMemoryHandler
+from megfile.pathlike import UNKNOWN_STAT
 
 
 class S3MemoryHandler(BaseMemoryHandler):
@@ -20,12 +21,13 @@ class S3MemoryHandler(BaseMemoryHandler):
         s3_client,
         profile_name: Optional[str] = None,
         atomic: bool = False,
+        content_stat=UNKNOWN_STAT,
     ):
         self._bucket = bucket
         self._key = key
         self._client = s3_client
         self._profile_name = profile_name
-        super().__init__(mode=mode, atomic=atomic)
+        super().__init__(mode=mode, atomic=atomic, content_stat=content_stat)
 
     @property
     def name(self) -> str:
@@ -36,6 +38,9 @@ class S3MemoryHandler(BaseMemoryHandler):
         return translate_s3_error(error, self.name)
 
     def _file_exists(self) -> bool:
+        file_exists = self._known_file_exists()
+        if file_exists is not None:
+            return file_exists
         try:
             self._client.head_object(Bucket=self._bucket, Key=self._key)
         except Exception as error:

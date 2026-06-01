@@ -50,6 +50,7 @@ from megfile.s3_path import (
 )
 from megfile.utils import process_local, thread_local
 from tests.compat import s3
+from tests.s3_utils import make_moto_s3_client
 
 from . import Any, FakeStatResult, Now
 
@@ -159,7 +160,7 @@ FILE_LIST = [
 @pytest.fixture
 def s3_empty_client(mocker):
     with mock_aws():
-        client = boto3.client("s3")
+        client = make_moto_s3_client()
         mocker.patch("megfile.s3_path.get_s3_client", return_value=client)
         yield client
 
@@ -563,6 +564,13 @@ def test_s3_scandir_internal(truncating_client, mocker):
         s3.s3_scandir("s3://bucketA/fileAA")
 
 
+def test_s3_scandir_missing_raises_before_iteration(truncating_client):
+    with pytest.raises(FileNotFoundError):
+        s3.s3_scandir("s3://notExistBucket")
+    with pytest.raises(FileNotFoundError):
+        s3.s3_scandir("s3://bucketA/notExistFile")
+
+
 def test_s3_scandir(truncating_client, mocker):
     mocker.patch("tests.compat.s3.s3_islink", return_value=False)
 
@@ -832,6 +840,15 @@ def test_s3_stat(truncating_client, mocker):
         s3.s3_stat("s3:///notExistFile")
     with pytest.raises(S3FileNotFoundError) as error:
         s3.s3_stat("s3:///bucketA/")
+
+
+def test_s3_stat_file_does_not_repeat_head(s3_empty_client, mocker):
+    s3_empty_client.create_bucket(Bucket="bucket")
+    s3_empty_client.put_object(Bucket="bucket", Key="key", Body=b"value")
+    head_object = mocker.spy(s3_empty_client, "head_object")
+
+    assert s3.s3_stat("s3://bucket/key").size == 5
+    assert head_object.call_count == 1
 
 
 def test_s3_lstat(truncating_client, mocker):
@@ -1544,6 +1561,42 @@ def test_s3_scan_stat(truncating_client, mocker):
 
     with pytest.raises(UnsupportedError) as error:
         s3.s3_scan_stat("s3://")
+
+
+def test_s3_scan_stat_file_does_not_repeat_head(s3_empty_client, mocker):
+    s3_empty_client.create_bucket(Bucket="bucket")
+    s3_empty_client.put_object(Bucket="bucket", Key="key", Body=b"value")
+    head_object = mocker.spy(s3_empty_client, "head_object")
+
+    entries = s3.s3_scan_stat("s3://bucket/key", missing_ok=False)
+    assert head_object.call_count == 1
+    assert [entry.path for entry in entries] == ["s3://bucket/key"]
+    assert head_object.call_count == 1
+
+
+def test_s3_scan_stat_missing_raises_before_iteration(s3_empty_client):
+    s3_empty_client.create_bucket(Bucket="bucket")
+
+    with pytest.raises(FileNotFoundError):
+        s3.s3_scan_stat("s3://bucket/missing", missing_ok=False)
+
+
+def test_s3_glob_stat_non_magic_file_does_not_repeat_head(s3_empty_client, mocker):
+    s3_empty_client.create_bucket(Bucket="bucket")
+    s3_empty_client.put_object(Bucket="bucket", Key="key", Body=b"value")
+    head_object = mocker.spy(s3_empty_client, "head_object")
+
+    entries = s3.s3_glob_stat("s3://bucket/key", missing_ok=False)
+    assert head_object.call_count == 1
+    assert [entry.path for entry in entries] == ["s3://bucket/key"]
+    assert head_object.call_count == 1
+
+
+def test_s3_glob_stat_missing_raises_before_iteration(s3_empty_client):
+    s3_empty_client.create_bucket(Bucket="bucket")
+
+    with pytest.raises(FileNotFoundError):
+        s3.s3_glob_stat("s3://bucket/missing", missing_ok=False)
 
 
 def test_s3_path_join():
@@ -3259,7 +3312,7 @@ def s3_empty_client_with_patch_for_has_bucket(mocker):
         raise botocore.exceptions.ClientError({"Error": {"Code": "403"}}, "head_bucket")
 
     with mock_aws():
-        client = boto3.client("s3")
+        client = make_moto_s3_client()
         client.head_bucket = head_bucket_without_permission
         mocker.patch("megfile.s3_path.get_s3_client", return_value=client)
         yield client
@@ -3754,7 +3807,7 @@ def error_client(mocker):
     from megfile.errors import patch_method
 
     with mock_aws():
-        client = boto3.client("s3")
+        client = make_moto_s3_client()
 
         def _make_request(*args, **kwargs):
             from botocore.exceptions import ClientError

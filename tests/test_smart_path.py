@@ -1,7 +1,6 @@
 import os
 import stat
 
-import boto3
 import pytest
 from mock import PropertyMock, patch
 from moto import mock_aws
@@ -26,6 +25,7 @@ from megfile.smart_path import (
 )
 from megfile.stdio_path import StdioPath
 from megfile.webdav_path import WebdavPath, WebdavsPath
+from tests.s3_utils import make_moto_s3_client
 
 from .test_sftp import sftp_mocker  # noqa: F401
 
@@ -61,7 +61,7 @@ BUCKET = "bucket"
 @pytest.fixture
 def s3_empty_client(mocker):
     with mock_aws():
-        client = boto3.client("s3")
+        client = make_moto_s3_client()
         client.create_bucket(Bucket=BUCKET)
         mocker.patch("megfile.s3_path.get_s3_client", return_value=client)
         yield client

@@ -24,7 +24,7 @@ def client(fs, mocker):
     def fake_webdav_stat(client, path: str) -> Dict:
         return client.info(path)
 
-    def fake_webdav_download_from(client, buff, path: str) -> Dict:
+    def fake_webdav_download_from(client, buff, path: str, *, check=True) -> Dict:
         return client.download_from(buff, path)
 
     mocker.patch(

@@ -816,9 +816,11 @@ def _s3_glob_stat_single_path(
     def create_generator(_s3_pathname) -> Iterator[FileEntry]:
         if not has_magic(_s3_pathname):
             _s3_pathname_obj = S3Path(_s3_pathname)
-            if _s3_pathname_obj.is_file():
-                stat = _s3_pathname_obj.stat(follow_symlinks=followlinks)
+            try:
+                stat = _s3_pathname_obj._get_file_stat(follow_symlinks=followlinks)
                 yield FileEntry(_s3_pathname_obj.name, _s3_pathname_obj.path, stat)
+            except S3FileNotFoundError:
+                pass
             if _s3_pathname_obj.is_dir():
                 yield FileEntry(
                     _s3_pathname_obj.name, _s3_pathname_obj.path, StatResult(isdir=True)
@@ -2226,12 +2228,12 @@ class S3Path(URIPath):
         def create_generator() -> Iterator[FileEntry]:
             # On s3, file and directory may be of same name and level, so need
             # to test the path is file or directory
-            if not key.endswith("/") and self.is_file():
-                yield FileEntry(
-                    self.name,
-                    fspath(self.path_with_protocol),
-                    self.stat(follow_symlinks=followlinks),
-                )
+            if not key.endswith("/"):
+                try:
+                    stat = self._get_file_stat(follow_symlinks=followlinks)
+                    yield FileEntry(self.name, fspath(self.path_with_protocol), stat)
+                except S3FileNotFoundError:
+                    pass
 
             prefix = _become_prefix(key)
             protocol = self._protocol_with_profile
@@ -2323,24 +2325,27 @@ class S3Path(URIPath):
                         _make_stat_without_metadata(content, self.from_path(path)),
                     )
 
-        def missing_ok_generator():
-            def suppress_error_callback(e):
-                if isinstance(e, S3BucketNotFoundError):
-                    return False
-                elif not key and isinstance(e, S3FileNotFoundError):
-                    return True
+        def suppress_error_callback(e):
+            if isinstance(e, S3BucketNotFoundError):
                 return False
+            elif not key and isinstance(e, S3FileNotFoundError):
+                return True
+            return False
 
+        def raise_s3_error_generator():
             with raise_s3_error(self.path_with_protocol, suppress_error_callback):
-                yield from _create_missing_ok_generator(
-                    create_generator(),
-                    missing_ok=False,
-                    error=S3FileNotFoundError(
-                        "No such directory: %r" % self.path_with_protocol
-                    ),
-                )
+                yield from create_generator()
 
-        return ContextIterator(missing_ok_generator())
+        missing_ok_generator = _create_missing_ok_generator(
+            raise_s3_error_generator(),
+            missing_ok=False,
+            error=S3FileNotFoundError(
+                "No such directory: %r" % self.path_with_protocol
+            ),
+            empty_ok=not key,
+        )
+
+        return ContextIterator(missing_ok_generator)
 
     def _get_dir_stat(self) -> StatResult:
         """
@@ -2375,6 +2380,34 @@ class S3Path(URIPath):
 
         return StatResult(size=size, mtime=mtime, isdir=True)
 
+    def _get_file_stat(self, follow_symlinks: bool = True) -> StatResult:
+        islnk = False
+        bucket, key = parse_s3_url(self.path_with_protocol)
+        if not bucket:
+            raise S3BucketNotFoundError(
+                "Empty bucket name: %r" % self.path_with_protocol
+            )
+        if not key or key.endswith("/"):
+            raise S3FileNotFoundError("No such file: %r" % self.path_with_protocol)
+
+        with raise_s3_error(self.path_with_protocol):
+            content = self._client.head_object(Bucket=bucket, Key=key)
+            metadata = {
+                key.lower(): value for key, value in content.get("Metadata", {}).items()
+            }
+            if metadata and "symlink_to" in metadata:
+                islnk = True
+                if follow_symlinks:
+                    s3_url = metadata["symlink_to"]
+                    bucket, key = parse_s3_url(s3_url)
+                    content = self._client.head_object(Bucket=bucket, Key=key)
+            return StatResult(
+                islnk=islnk,
+                size=content["ContentLength"],
+                mtime=content["LastModified"].timestamp(),
+                extra=content,
+            )
+
     def stat(self, follow_symlinks=True) -> StatResult:
         """
         Get StatResult of s3_url file, including file size and mtime,
@@ -2389,36 +2422,19 @@ class S3Path(URIPath):
         :returns: StatResult
         :raises: S3FileNotFoundError, S3BucketNotFoundError
         """
-        islnk = False
         bucket, key = parse_s3_url(self.path_with_protocol)
         if not bucket:
             raise S3BucketNotFoundError(
                 "Empty bucket name: %r" % self.path_with_protocol
             )
 
-        if not self.is_file():
+        if not key or key.endswith("/"):
             return self._get_dir_stat()
 
-        client = self._client
-        with raise_s3_error(self.path_with_protocol):
-            content = client.head_object(Bucket=bucket, Key=key)
-            if "Metadata" in content:
-                metadata = dict(
-                    (key.lower(), value) for key, value in content["Metadata"].items()
-                )
-                if metadata and "symlink_to" in metadata:
-                    islnk = True
-                    if islnk and follow_symlinks:
-                        s3_url = metadata["symlink_to"]
-                        bucket, key = parse_s3_url(s3_url)
-                        content = client.head_object(Bucket=bucket, Key=key)
-            stat_record = StatResult(
-                islnk=islnk,
-                size=content["ContentLength"],
-                mtime=content["LastModified"].timestamp(),
-                extra=content,
-            )
-        return stat_record
+        try:
+            return self._get_file_stat(follow_symlinks=follow_symlinks)
+        except S3FileNotFoundError:
+            return self._get_dir_stat()
 
     def unlink(self, missing_ok: bool = False) -> None:
         """
@@ -2563,7 +2579,7 @@ class S3Path(URIPath):
         src_bucket, src_key = parse_s3_url(src_url)
         dst_bucket, dst_key = parse_s3_url(dst_url)
         if dst_bucket == src_bucket and src_key.rstrip("/") == dst_key.rstrip("/"):
-            raise SameFileError(f"'{src_url}' and '{dst_url}' are the same file")
+            raise SameFileError("%r and %r are the same file" % (src_url, dst_url))
 
         if not src_bucket:
             raise S3BucketNotFoundError("Empty bucket name: %r" % src_url)
@@ -2580,7 +2596,7 @@ class S3Path(URIPath):
                 pass
 
         try:
-            with raise_s3_error(f"'{src_url}' or '{dst_url}'"):
+            with raise_s3_error("%r or %r" % (src_url, dst_url)):
                 self._client.copy(
                     {"Bucket": src_bucket, "Key": src_key},
                     Bucket=dst_bucket,

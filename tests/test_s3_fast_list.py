@@ -1,15 +1,15 @@
-import boto3
 import pytest
 from moto import mock_aws
 
 from megfile.s3_path import _s3_fast_list_objects_recursive
+from tests.s3_utils import make_moto_s3_client
 
 
 @pytest.fixture
 def s3_empty_client(mocker):
     """Create an empty S3 client with moto"""
     with mock_aws():
-        client = boto3.client("s3")
+        client = make_moto_s3_client()
         mocker.patch("megfile.s3_path.get_s3_client", return_value=client)
 
         # Use mocker.spy to track list_objects_v2 calls

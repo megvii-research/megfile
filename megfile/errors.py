@@ -323,13 +323,17 @@ def patch_method(
     return wrapper
 
 
-def _create_missing_ok_generator(generator, missing_ok: bool, error: Exception):
+def _create_missing_ok_generator(
+    generator, missing_ok: bool, error: Exception, empty_ok: bool = False
+):
     if missing_ok:
         return generator
 
     try:
         first = next(generator)
     except StopIteration:
+        if empty_ok:
+            return iter(())
         raise error
 
     def create_generator():

@@ -1,6 +1,7 @@
 import io
 import os
 import shutil
+from collections import defaultdict
 from datetime import datetime
 from typing import Dict, Iterator, List
 
@@ -12,7 +13,7 @@ from webdav3.exceptions import (
 
 from megfile import smart_copy
 from megfile.errors import SameFileError
-from megfile.webdav_path import _patch_execute_request
+from megfile.webdav_path import _patch_execute_request, thread_local
 from tests.compat import webdav
 
 from .test_http import FakeResponse  # noqa: F401
@@ -25,6 +26,10 @@ class FakeWebdavClient:
 
     def __init__(self, options: dict = {}):
         self.options = options
+        self.info_calls = defaultdict(int)
+        self.clean_calls = defaultdict(int)
+        self.check_calls = defaultdict(int)
+        self.is_dir_calls = defaultdict(int)
 
     def _relative_path(self, path: str) -> str:
         # XXX: pyfakefs not work in python3.14 when path is absolute
@@ -39,11 +44,13 @@ class FakeWebdavClient:
     def check(self, path: str) -> bool:
         """Check if path exists"""
         path = self._relative_path(path)
+        self.check_calls[path] += 1
         return os.path.exists(path)
 
     def is_dir(self, path: str) -> bool:
         """Check if path is a directory"""
         path = self._relative_path(path)
+        self.is_dir_calls[path] += 1
         return os.path.isdir(path)
 
     def list(self, path: str, get_info: bool = False) -> List:
@@ -70,6 +77,7 @@ class FakeWebdavClient:
     def info(self, path: str) -> Dict:
         """Get file/directory info"""
         path = self._relative_path(path)
+        self.info_calls[path] += 1
         if not os.path.exists(path):
             raise RemoteResourceNotFound(path)
 
@@ -89,6 +97,7 @@ class FakeWebdavClient:
     def clean(self, path: str):
         """Remove file or directory"""
         path = self._relative_path(path)
+        self.clean_calls[path] += 1
         if not os.path.exists(path):
             raise RemoteResourceNotFound(path)
 
@@ -143,6 +152,7 @@ def webdav_mocker(fs, mocker):
     """Mock WebDAV client to use local filesystem"""
 
     client = FakeWebdavClient()
+    thread_local._data.clear()
 
     def fake_get_webdav_client(hostname, username=None, password=None, token=None):
         return client
@@ -156,7 +166,7 @@ def webdav_mocker(fs, mocker):
                 yield from fake_webdav_scan(client, info["path"])
             yield info
 
-    def fake_webdav_download_from(client, buff, path: str) -> Dict:
+    def fake_webdav_download_from(client, buff, path: str, *, check=True) -> Dict:
         return client.download_from(buff, path)
 
     mocker.patch(
@@ -172,6 +182,7 @@ def webdav_mocker(fs, mocker):
         side_effect=fake_webdav_download_from,
     )
     yield client
+    thread_local._data.clear()
 
 
 def test_is_webdav():
@@ -392,13 +403,21 @@ def test_webdav_move(webdav_mocker):
 
 
 def test_webdav_open(webdav_mocker):
+    client = webdav_mocker
+
     webdav.webdav_makedirs("webdav://host/A")
 
     with webdav.webdav_open("webdav://host/A/test", "w") as f:
         f.write("test")
 
+    client.info_calls.clear()
+    client.check_calls.clear()
+    client.is_dir_calls.clear()
     with webdav.webdav_open("webdav://host/A/test", "r") as f:
         assert f.read() == "test"
+    assert client.info_calls["./A/test"] == 1
+    assert sum(client.check_calls.values()) == 0
+    assert sum(client.is_dir_calls.values()) == 0
 
     with webdav.webdav_open("webdav://host/A/test", "rb") as f:
         assert f.read() == b"test"
@@ -496,6 +515,32 @@ def test_webdav_unlink(webdav_mocker):
     assert webdav.webdav_exists("webdav://host/A/test") is True
 
 
+def test_webdav_non_mutating_operations_do_not_repeat_stat(webdav_mocker):
+    client = webdav_mocker
+
+    webdav.webdav_makedirs("webdav://host/A")
+    with webdav.webdav_open("webdav://host/A/file.txt", "w") as f:
+        f.write("test")
+
+    client.info_calls.clear()
+    assert [
+        entry.path for entry in webdav.webdav_scan_stat("webdav://host/A/file.txt")
+    ] == ["webdav://host/A/file.txt"]
+    assert client.info_calls["./A/file.txt"] == 1
+
+    client.info_calls.clear()
+    assert [entry.name for entry in webdav.webdav_scandir("webdav://host/A")] == [
+        "file.txt"
+    ]
+    assert client.info_calls["./A"] == 1
+
+    client.info_calls.clear()
+    assert [
+        entry.path for entry in webdav.webdav_glob_stat("webdav://host/A/file.txt")
+    ] == ["webdav://host/A/file.txt"]
+    assert client.info_calls["./A/file.txt"] == 1
+
+
 def test_webdav_walk(webdav_mocker):
     webdav.webdav_makedirs("webdav://host/A")
     webdav.webdav_makedirs("webdav://host/A/a")
@@ -550,6 +595,8 @@ def test_webdav_rmdir(webdav_mocker):
 
 
 def test_webdav_copy(webdav_mocker):
+    client = webdav_mocker
+
     webdav.webdav_makedirs("webdav://host/A")
     with webdav.webdav_open("webdav://host/A/1.json", "w") as f:
         f.write("1.json")
@@ -557,11 +604,13 @@ def test_webdav_copy(webdav_mocker):
     def callback(length):
         assert length == len("1.json")
 
+    client.info_calls.clear()
     webdav.webdav_copy(
         "webdav://host/A/1.json",
         "webdav://host/A2/1.json.bak",
         callback=callback,
     )
+    assert client.info_calls["./A/1.json"] == 1
 
     assert (
         webdav.webdav_stat("webdav://host/A/1.json").size

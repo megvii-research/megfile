@@ -8,6 +8,7 @@ from webdav3.exceptions import (
 )
 
 from megfile.lib.base_memory_handler import BaseMemoryHandler
+from megfile.pathlike import UNKNOWN_STAT
 
 
 def _webdav_stat(client: WebdavClient, remote_path: str):
@@ -26,13 +27,14 @@ def _webdav_stat(client: WebdavClient, remote_path: str):
 
 
 @wrap_connection_error
-def _webdav_download_from(client: WebdavClient, buff, remote_path):
+def _webdav_download_from(client: WebdavClient, buff, remote_path, *, check=True):
     urn = Urn(remote_path)
-    if client.is_dir(urn.path()):
-        raise OptionNotValid(name="remote_path", value=remote_path)
+    if check:
+        if client.is_dir(urn.path()):
+            raise OptionNotValid(name="remote_path", value=remote_path)
 
-    if not client.check(urn.path()):
-        raise RemoteResourceNotFound(urn.path())
+        if not client.check(urn.path()):
+            raise RemoteResourceNotFound(urn.path())
 
     response = client.execute_request(action="download", path=urn.quote())
 
@@ -49,17 +51,21 @@ class WebdavMemoryHandler(BaseMemoryHandler):
         webdav_client: WebdavClient,
         name: str,
         atomic: bool = False,
+        content_stat=UNKNOWN_STAT,
     ):
         self._remote_path = remote_path
         self._client = webdav_client
         self._name = name
-        super().__init__(mode=mode, atomic=atomic)
+        super().__init__(mode=mode, atomic=atomic, content_stat=content_stat)
 
     @property
     def name(self) -> str:
         return self._name
 
     def _file_exists(self) -> bool:
+        file_exists = self._known_file_exists()
+        if file_exists is not None:
+            return file_exists
         try:
             return not _webdav_stat(self._client, self._remote_path)["isdir"]
         except RemoteResourceNotFound:
@@ -71,7 +77,12 @@ class WebdavMemoryHandler(BaseMemoryHandler):
         if not need_download:
             return
         # directly download to the file handle
-        _webdav_download_from(self._client, self._fileobj, self._remote_path)
+        _webdav_download_from(
+            self._client,
+            self._fileobj,
+            self._remote_path,
+            check=self._known_file_exists() is None,
+        )
         if self._mode[0] == "r":
             self.seek(0, os.SEEK_SET)
 

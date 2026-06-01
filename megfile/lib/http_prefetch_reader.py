@@ -58,7 +58,7 @@ class HttpPrefetchReader(BasePrefetchReader):
             max_workers=max_workers,
         )
 
-    def _get_content_size(self) -> int:
+    def _get_content_size_from_remote(self) -> int:
         if self._content_size is not None:
             return self._content_size
 
