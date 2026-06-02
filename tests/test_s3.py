@@ -40,6 +40,7 @@ from megfile.interfaces import Access, FileEntry, StatResult
 from megfile.s3_path import (
     S3CachedHandler,
     S3MemoryHandler,
+    S3Path,
     _group_s3path_by_bucket,
     _group_s3path_by_prefix,
     _parse_s3_url_ignore_brace,
@@ -1267,6 +1268,43 @@ def test_s3_rename(truncating_client):
     with s3.s3_open("s3://bucketA/folderAA/folderAAA/fileAAAA1", "r") as f:
         assert f.read() == "fileAAAA2"
     assert s3.s3_exists("s3://bucketA/folderAA/folderAAA/fileAAAA2") is False
+
+
+def test_s3_rename_recursive_false_does_not_stat(mocker, s3_empty_client):
+    s3_empty_client.create_bucket(Bucket="bucket")
+    s3_empty_client.put_object(Bucket="bucket", Key="src", Body=b"value")
+    stat = mocker.patch.object(S3Path, "stat")
+
+    s3.s3_rename("s3://bucket/src", "s3://bucket/dst", recursive=False)
+
+    stat.assert_not_called()
+    assert s3.s3_exists("s3://bucket/src") is False
+    assert (
+        s3_empty_client.get_object(Bucket="bucket", Key="dst")["Body"].read()
+        == b"value"
+    )
+
+
+def test_s3_rename_recursive_true_does_not_copy_directory_root(mocker, s3_empty_client):
+    s3_empty_client.create_bucket(Bucket="bucket")
+    s3_empty_client.put_object(Bucket="bucket", Key="src/a", Body=b"a")
+    s3_empty_client.put_object(Bucket="bucket", Key="src/b", Body=b"b")
+    copy_calls = []
+    original_copy = S3Path.copy
+
+    def copy_spy(self, *args, **kwargs):
+        copy_calls.append(self.path_with_protocol)
+        return original_copy(self, *args, **kwargs)
+
+    mocker.patch.object(S3Path, "copy", copy_spy)
+
+    s3.s3_rename("s3://bucket/src", "s3://bucket/dst", recursive=True)
+
+    assert copy_calls == ["s3://bucket/src/a", "s3://bucket/src/b"]
+    assert s3.s3_exists("s3://bucket/src/a") is False
+    assert s3.s3_exists("s3://bucket/src/b") is False
+    assert s3.s3_exists("s3://bucket/dst/a")
+    assert s3.s3_exists("s3://bucket/dst/b")
 
 
 def test_s3_unlink(s3_setup):

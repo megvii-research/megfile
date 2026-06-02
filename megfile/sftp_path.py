@@ -921,12 +921,15 @@ class SftpPath(URIPath):
     def _is_same_protocol(self, path):
         return is_sftp(path)
 
-    def rename(self, dst_path: PathLike, overwrite: bool = True) -> "SftpPath":
+    def rename(
+        self, dst_path: PathLike, overwrite: bool = True, recursive: bool = True
+    ) -> "SftpPath":
         """
         rename file on sftp
 
         :param dst_path: Given destination path
         :param overwrite: whether or not overwrite file when exists
+        :param recursive: whether or not rename directory recursively
         """
         if not self._is_same_protocol(dst_path):
             raise OSError("Not a %s path: %r" % (self.protocol, dst_path))
@@ -934,6 +937,8 @@ class SftpPath(URIPath):
         dst_path = self.from_path(str(dst_path).rstrip("/"))
 
         src_stat = self.stat()
+        if src_stat.is_dir() and not recursive:
+            raise IsADirectoryError("Is a directory: %r" % self.path_with_protocol)
 
         if self._is_same_backend(dst_path):
             if overwrite:
@@ -943,10 +948,12 @@ class SftpPath(URIPath):
                 self.sync(dst_path, overwrite=overwrite)
                 self.remove(missing_ok=True)
         else:
-            if self.is_dir():
+            if src_stat.is_dir():
                 for file_entry in self.scandir():
                     self.from_path(file_entry.path).rename(
-                        dst_path.joinpath(file_entry.name)
+                        dst_path.joinpath(file_entry.name),
+                        overwrite=overwrite,
+                        recursive=recursive,
                     )
                 self._client.rmdir(self._real_path)
             else:

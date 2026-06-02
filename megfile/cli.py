@@ -386,7 +386,9 @@ def mv(
         if recursive:
             if src_protocol == dst_protocol:
                 with tqdm(total=1) as t:
-                    SmartPath(src_path).rename(dst_path, overwrite=not skip)
+                    SmartPath(src_path).rename(
+                        dst_path, overwrite=not skip, recursive=True
+                    )
                     t.update(1)
             else:
                 smart_sync_with_progress(
@@ -396,7 +398,9 @@ def mv(
         else:
             if src_protocol == dst_protocol:
                 with tqdm(total=1) as t:
-                    SmartPath(src_path).rename(dst_path, overwrite=not skip)
+                    SmartPath(src_path).rename(
+                        dst_path, overwrite=not skip, recursive=False
+                    )
                     t.update(1)
             else:
                 file_size = smart_stat(src_path).size
