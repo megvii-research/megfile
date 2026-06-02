@@ -1480,7 +1480,9 @@
 <span class="sd">    :param followlinks: False if regard symlink as file, else True</span>
 <span class="sd">    :param overwrite: whether or not overwrite file when exists, default is True</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">src_url</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">dst_url</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">S3Path</span><span class="p">(</span><span class="n">src_url</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span>
+        <span class="n">dst_url</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span>
+    <span class="p">)</span></div>
 
 
 
@@ -1905,7 +1907,7 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">bucket</span><span class="p">:</span>  <span class="c1"># s3:// =&gt; True, s3:///key =&gt; False</span>
             <span class="k">return</span> <span class="ow">not</span> <span class="n">key</span>
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_file</span><span class="p">(</span><span class="n">followlinks</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_file</span><span class="p">(</span><span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="S3Path.getmtime">
@@ -2012,15 +2014,15 @@
                 <span class="k">for</span> <span class="n">group_s3_pathname_2</span> <span class="ow">in</span> <span class="n">_group_s3path_by_prefix</span><span class="p">(</span><span class="n">group_s3_pathname_1</span><span class="p">):</span>
                     <span class="k">for</span> <span class="n">file_entry</span> <span class="ow">in</span> <span class="n">_s3_glob_stat_single_path</span><span class="p">(</span>
                         <span class="n">group_s3_pathname_2</span><span class="p">,</span>
-                        <span class="n">recursive</span><span class="p">,</span>
-                        <span class="n">missing_ok</span><span class="p">,</span>
+                        <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">,</span>
+                        <span class="n">missing_ok</span><span class="o">=</span><span class="n">missing_ok</span><span class="p">,</span>
                     <span class="p">):</span>
                         <span class="k">yield</span> <span class="n">file_entry</span>
 
         <span class="k">return</span> <span class="n">_create_missing_ok_generator</span><span class="p">(</span>
             <span class="n">create_generator</span><span class="p">(),</span>
-            <span class="n">missing_ok</span><span class="p">,</span>
-            <span class="n">S3FileNotFoundError</span><span class="p">(</span><span class="s2">&quot;No match any file: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">s3_pathname</span><span class="p">),</span>
+            <span class="n">missing_ok</span><span class="o">=</span><span class="n">missing_ok</span><span class="p">,</span>
+            <span class="n">error</span><span class="o">=</span><span class="n">S3FileNotFoundError</span><span class="p">(</span><span class="s2">&quot;No match any file: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">s3_pathname</span><span class="p">),</span>
         <span class="p">)</span></div>
 
 
@@ -2255,7 +2257,9 @@
         <span class="k">for</span> <span class="n">src_file_path</span><span class="p">,</span> <span class="n">dst_file_path</span> <span class="ow">in</span> <span class="n">_s3_scan_pairs</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">,</span> <span class="n">dst_url</span>
         <span class="p">):</span>
-            <span class="n">S3Path</span><span class="p">(</span><span class="n">src_file_path</span><span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">dst_file_path</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">)</span></div>
+            <span class="n">S3Path</span><span class="p">(</span><span class="n">src_file_path</span><span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+                <span class="n">dst_file_path</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">False</span>
+            <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="S3Path.remove">
@@ -2348,13 +2352,21 @@
 
 <div class="viewcode-block" id="S3Path.rename">
 <a class="viewcode-back" href="../../megfile.s3_path.html#megfile.s3_path.S3Path.rename">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">rename</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;S3Path&quot;</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">rename</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;S3Path&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Move s3 file path from src_url to dst_url</span>
 
 <span class="sd">        :param dst_path: Given destination path</span>
 <span class="sd">        :param overwrite: whether or not overwrite file when exists</span>
+<span class="sd">        :param recursive: whether or not rename directory recursively</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">recursive</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">dst_path</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">dst_path</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -2455,8 +2467,10 @@
 
         <span class="k">return</span> <span class="n">_create_missing_ok_generator</span><span class="p">(</span>
             <span class="n">create_generator</span><span class="p">(),</span>
-            <span class="n">missing_ok</span><span class="p">,</span>
-            <span class="n">S3FileNotFoundError</span><span class="p">(</span><span class="s2">&quot;No match any file in: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">),</span>
+            <span class="n">missing_ok</span><span class="o">=</span><span class="n">missing_ok</span><span class="p">,</span>
+            <span class="n">error</span><span class="o">=</span><span class="n">S3FileNotFoundError</span><span class="p">(</span>
+                <span class="s2">&quot;No match any file in: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span>
+            <span class="p">),</span>
         <span class="p">)</span></div>
 
 

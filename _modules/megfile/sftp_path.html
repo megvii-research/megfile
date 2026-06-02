@@ -544,7 +544,9 @@
 <span class="sd">    :raises IsADirectoryError: If the source is a directory.</span>
 <span class="sd">    :raises OSError: If there is an error copying the file.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">SftpPath</span><span class="p">(</span><span class="n">src_path</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">dst_path</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">followlinks</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">SftpPath</span><span class="p">(</span><span class="n">src_path</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span>
+        <span class="n">dst_path</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">followlinks</span><span class="o">=</span><span class="n">followlinks</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span>
+    <span class="p">)</span></div>
 
 
 
@@ -906,8 +908,8 @@
         <span class="n">fs</span> <span class="o">=</span> <span class="n">FSFunc</span><span class="p">(</span><span class="n">_exist</span><span class="p">,</span> <span class="n">_is_dir</span><span class="p">,</span> <span class="n">_scandir</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">real_path</span> <span class="ow">in</span> <span class="n">_create_missing_ok_generator</span><span class="p">(</span>
             <span class="n">iglob</span><span class="p">(</span><span class="n">fspath</span><span class="p">(</span><span class="n">glob_path</span><span class="p">),</span> <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">,</span> <span class="n">fs</span><span class="o">=</span><span class="n">fs</span><span class="p">),</span>
-            <span class="n">missing_ok</span><span class="p">,</span>
-            <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s2">&quot;No match any file: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">glob_path</span><span class="p">),</span>
+            <span class="n">missing_ok</span><span class="o">=</span><span class="n">missing_ok</span><span class="p">,</span>
+            <span class="n">error</span><span class="o">=</span><span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s2">&quot;No match any file: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">glob_path</span><span class="p">),</span>
         <span class="p">):</span>
             <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">real_path</span><span class="p">)</span></div>
 
@@ -1061,12 +1063,15 @@
 
 <div class="viewcode-block" id="SftpPath.rename">
 <a class="viewcode-back" href="../../megfile.sftp_path.html#megfile.sftp_path.SftpPath.rename">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">rename</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SftpPath&quot;</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">rename</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SftpPath&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        rename file on sftp</span>
 
 <span class="sd">        :param dst_path: Given destination path</span>
 <span class="sd">        :param overwrite: whether or not overwrite file when exists</span>
+<span class="sd">        :param recursive: whether or not rename directory recursively</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_same_protocol</span><span class="p">(</span><span class="n">dst_path</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="s2">&quot;Not a </span><span class="si">%s</span><span class="s2"> path: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="p">,</span> <span class="n">dst_path</span><span class="p">))</span>
@@ -1074,6 +1079,8 @@
         <span class="n">dst_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">dst_path</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">))</span>
 
         <span class="n">src_stat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">src_stat</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">recursive</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">IsADirectoryError</span><span class="p">(</span><span class="s2">&quot;Is a directory: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_same_backend</span><span class="p">(</span><span class="n">dst_path</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">overwrite</span><span class="p">:</span>
@@ -1083,10 +1090,12 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">sync</span><span class="p">(</span><span class="n">dst_path</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">missing_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">src_stat</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
                 <span class="k">for</span> <span class="n">file_entry</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">scandir</span><span class="p">():</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">file_entry</span><span class="o">.</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
-                        <span class="n">dst_path</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">file_entry</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                        <span class="n">dst_path</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">file_entry</span><span class="o">.</span><span class="n">name</span><span class="p">),</span>
+                        <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">,</span>
+                        <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">,</span>
                     <span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">rmdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_real_path</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
@@ -1195,8 +1204,10 @@
 
         <span class="k">return</span> <span class="n">_create_missing_ok_generator</span><span class="p">(</span>
             <span class="n">create_generator</span><span class="p">(),</span>
-            <span class="n">missing_ok</span><span class="p">,</span>
-            <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s2">&quot;No match any file in: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">),</span>
+            <span class="n">missing_ok</span><span class="o">=</span><span class="n">missing_ok</span><span class="p">,</span>
+            <span class="n">error</span><span class="o">=</span><span class="ne">FileNotFoundError</span><span class="p">(</span>
+                <span class="s2">&quot;No match any file in: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span>
+            <span class="p">),</span>
         <span class="p">)</span></div>
 
 

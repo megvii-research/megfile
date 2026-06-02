@@ -216,6 +216,30 @@
 
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_make_stat</span><span class="p">(</span><span class="n">headers</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StatResult</span><span class="p">:</span>
+    <span class="n">size</span> <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Content-Length&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">size</span><span class="p">:</span>
+        <span class="n">size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">size</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">size</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="n">last_modified</span> <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Last-Modified&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">last_modified</span><span class="p">:</span>
+        <span class="n">last_modified</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">mktime</span><span class="p">(</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">last_modified</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%a</span><span class="s2">, </span><span class="si">%d</span><span class="s2"> %b %Y %H:%M:%S %Z&quot;</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">last_modified</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+    <span class="k">return</span> <span class="n">StatResult</span><span class="p">(</span>
+        <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span>
+        <span class="n">mtime</span><span class="o">=</span><span class="n">last_modified</span><span class="p">,</span>
+        <span class="n">isdir</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">islnk</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">extra</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
 <div class="viewcode-block" id="HttpPath">
 <a class="viewcode-back" href="../../megfile.http_path.html#megfile.http_path.HttpPath">[docs]</a>
 <span class="nd">@SmartPath</span><span class="o">.</span><span class="n">register</span>
@@ -280,7 +304,8 @@
             <span class="k">raise</span> <span class="n">translate_http_error</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">)</span>
 
         <span class="n">headers</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">headers</span>
-        <span class="n">content_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Content-Length&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="n">content_stat</span> <span class="o">=</span> <span class="n">_make_stat</span><span class="p">(</span><span class="n">headers</span><span class="p">)</span>
+        <span class="n">content_size</span> <span class="o">=</span> <span class="n">content_stat</span><span class="o">.</span><span class="n">size</span>
         <span class="k">if</span> <span class="p">(</span>
             <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Accept-Ranges&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;bytes&quot;</span>
             <span class="ow">and</span> <span class="n">content_size</span> <span class="o">&gt;=</span> <span class="n">block_size</span> <span class="o">*</span> <span class="mi">2</span>
@@ -292,6 +317,7 @@
                 <span class="bp">self</span><span class="p">,</span>
                 <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span>
                 <span class="n">content_size</span><span class="o">=</span><span class="n">content_size</span><span class="p">,</span>
+                <span class="n">content_stat</span><span class="o">=</span><span class="n">content_stat</span><span class="p">,</span>
                 <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span><span class="p">,</span>
                 <span class="n">max_buffer_size</span><span class="o">=</span><span class="n">max_buffer_size</span><span class="p">,</span>
                 <span class="n">block_forward</span><span class="o">=</span><span class="n">block_forward</span><span class="p">,</span>
@@ -329,27 +355,7 @@
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">translate_http_error</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_with_protocol</span><span class="p">)</span>
 
-        <span class="n">size</span> <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Content-Length&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">size</span><span class="p">:</span>
-            <span class="n">size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">size</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">size</span> <span class="o">=</span> <span class="mi">0</span>
-
-        <span class="n">last_modified</span> <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Last-Modified&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">last_modified</span><span class="p">:</span>
-            <span class="n">last_modified</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">mktime</span><span class="p">(</span>
-                <span class="n">time</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">last_modified</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%a</span><span class="s2">, </span><span class="si">%d</span><span class="s2"> %b %Y %H:%M:%S %Z&quot;</span><span class="p">)</span>
-            <span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">last_modified</span> <span class="o">=</span> <span class="mf">0.0</span>
-
-        <span class="k">return</span> <span class="n">StatResult</span><span class="p">(</span>
-            <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span>
-            <span class="n">mtime</span><span class="o">=</span><span class="n">last_modified</span><span class="p">,</span>
-            <span class="n">isdir</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-            <span class="n">islnk</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-            <span class="n">extra</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span>
-        <span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">_make_stat</span><span class="p">(</span><span class="n">headers</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="HttpPath.getsize">
