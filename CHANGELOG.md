@@ -1,3 +1,17 @@
+## 5.0.14 - 2026.06.02
+- feat
+    - Add `recursive` option to `Path.rename()` and protocol rename APIs
+    - Make `smart_rename()` use file-only rename semantics and `smart_move()` use recursive move semantics for same-protocol paths
+- fix
+    - Guard WebDAV file-only operations from silently operating on directories
+    - Add S3 multipart writer retry rewind coverage
+    - Isolate moto S3 tests from local AWS endpoint configuration
+- perf
+    - Reduce redundant WebDAV stat/check requests
+    - Reuse known content stat in reader/handler paths
+- chore
+    - Pass bool-style flags by keyword in internal calls
+
 ## 5.0.13 - 2026.05.25
 - fix
     - Fix WebDAV glob matching for nested wildcard patterns and direct file paths
