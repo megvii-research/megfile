@@ -103,6 +103,7 @@ __all__ = [
     "get_endpoint_url",
     "get_s3_session",
     "get_s3_client",
+    "s3_generate_presigned_url",
     "is_s3",
     "s3_buffered_open",
     "s3_cached_open",
@@ -367,6 +368,36 @@ def get_s3_client_with_cache(
 ):
     return get_s3_client(
         config=config, cache_key="s3_filelike_client", profile_name=profile_name
+    )
+
+
+def s3_generate_presigned_url(
+    s3_url: PathLike,
+    expires_in: int = 3600,
+    method: str = "get_object",
+    *,
+    profile_name: Optional[str] = None,
+    params: Optional[Dict] = None,
+    config: Optional[botocore.config.Config] = None,
+):
+    """Generate a presigned S3 URL for an S3 object path."""
+
+    protocol, path_profile_name = _parse_s3_url_profile(fspath(s3_url))
+    if not protocol.startswith("s3"):
+        raise ValueError("Not a s3 url: %r" % s3_url)
+    profile_name = profile_name or path_profile_name
+    bucket, key = parse_s3_url(s3_url)
+    if not bucket or not key:
+        raise ValueError("S3 object path must include bucket and key: %r" % s3_url)
+
+    request_params = {"Bucket": bucket, "Key": key}
+    if params:
+        request_params.update(params)
+    client = get_s3_client(config=config, profile_name=profile_name)
+    return client.generate_presigned_url(
+        method,
+        Params=request_params,
+        ExpiresIn=expires_in,
     )
 
 

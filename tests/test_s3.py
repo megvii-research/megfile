@@ -221,6 +221,56 @@ def test_parse_s3_url_profile():
     assert _parse_s3_url_profile("s3+test://bucket") == ("s3+test", "test")
 
 
+def test_s3_generate_presigned_url(mocker):
+    client = mocker.Mock()
+    client.generate_presigned_url.return_value = "https://example.com/bucket/key"
+    get_client = mocker.patch("megfile.s3_path.get_s3_client", return_value=client)
+
+    url = s3_path.s3_generate_presigned_url(
+        "s3+public://bucket/key",
+        expires_in=120,
+        params={"ResponseContentType": "image/jpeg"},
+    )
+
+    assert url == "https://example.com/bucket/key"
+    get_client.assert_called_once_with(config=None, profile_name="public")
+    client.generate_presigned_url.assert_called_once_with(
+        "get_object",
+        Params={
+            "Bucket": "bucket",
+            "Key": "key",
+            "ResponseContentType": "image/jpeg",
+        },
+        ExpiresIn=120,
+    )
+
+
+def test_s3_generate_presigned_url_profile_override(mocker):
+    client = mocker.Mock()
+    mocker.patch("megfile.s3_path.get_s3_client", return_value=client)
+
+    s3_path.s3_generate_presigned_url("s3+m2://bucket/key", profile_name="m2public")
+
+    s3_path.get_s3_client.assert_called_once_with(config=None, profile_name="m2public")
+
+
+@pytest.mark.parametrize("path", ["file:///tmp/x", "s3://bucket", "s3://bucket/"])
+def test_s3_generate_presigned_url_invalid_path(path):
+    with pytest.raises(ValueError):
+        s3_path.s3_generate_presigned_url(path)
+
+
+def test_s3_generate_presigned_url_with_moto_client(s3_empty_client):
+    s3_empty_client.create_bucket(Bucket="bucket")
+    s3_empty_client.put_object(Bucket="bucket", Key="path/to.jpg", Body=b"data")
+
+    url = s3_path.s3_generate_presigned_url("s3://bucket/path/to.jpg")
+
+    assert "bucket" in url
+    assert "path/to.jpg" in url
+    assert "AWSAccessKeyId" in url or "X-Amz-Credential" in url
+
+
 def test_retry(s3_empty_client, mocker):
     read_error = botocore.exceptions.IncompleteReadError(
         actual_bytes=0, expected_bytes=1
