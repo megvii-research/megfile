@@ -1,3 +1,7 @@
+## Unreleased
+- feat
+    - Add `s3_generate_presigned_url` helper for S3 object paths
+
 ## 5.0.14 - 2026.06.02
 - feat
     - Add `recursive` option to `Path.rename()` and protocol rename APIs
