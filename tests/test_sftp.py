@@ -467,6 +467,10 @@ def test_sftp_rename(sftp_mocker):
     with sftp.sftp_open("sftp://username@host//A/test", "w") as f:
         f.write("test")
 
+    with pytest.raises(SameFileError):
+        sftp.sftp_rename("sftp://username@host//A/test", "sftp://username@host//A/test")
+    assert sftp.sftp_exists("sftp://username@host//A/test") is True
+
     sftp.sftp_rename("sftp://username@host//A/test", "sftp://username@host//A/test2")
     assert sftp.sftp_exists("sftp://username@host//A/test") is False
     assert sftp.sftp_exists("sftp://username@host//A/test2") is True
@@ -506,20 +510,7 @@ def test_sftp_move(sftp_mocker):
     sftp.sftp_makedirs("sftp://username@host//A3")
     with sftp.sftp_open("sftp://username@host//A3/test2", "w") as f:
         f.write("test3")
-    sftp.sftp_move(
-        "sftp://username@host//A3", "sftp://username@host//A2", overwrite=False
-    )
-    assert sftp.sftp_exists("sftp://username@host//A3/test2") is False
-    assert sftp.sftp_exists("sftp://username@host//A2/test2") is True
-    with sftp.sftp_open("sftp://username@host//A2/test2", "r") as f:
-        assert f.read() == "test"
-
-    sftp.sftp_makedirs("sftp://username@host//A3")
-    with sftp.sftp_open("sftp://username@host//A3/test2", "w") as f:
-        f.write("test3")
-    sftp.sftp_move(
-        "sftp://username@host//A3", "sftp://username@host//A2", overwrite=True
-    )
+    sftp.sftp_move("sftp://username@host//A3", "sftp://username@host//A2")
     assert sftp.sftp_exists("sftp://username@host//A3/test2") is False
     assert sftp.sftp_exists("sftp://username@host//A2/test2") is True
     with sftp.sftp_open("sftp://username@host//A2/test2", "r") as f:

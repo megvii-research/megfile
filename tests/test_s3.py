@@ -1175,18 +1175,6 @@ def test_s3_move(truncating_client):
     s3.s3_move(
         "s3://bucketA/folderAA/folderAAA1",
         "s3://bucketA/folderAA/folderAAA2",
-        overwrite=False,
-    )
-    assert s3.s3_exists("s3://bucketA/folderAA/folderAAA1") is False
-    with s3.s3_open("s3://bucketA/folderAA/folderAAA2/fileAAAA", "r") as f:
-        assert f.read() == "fileAAAA"
-    assert s3.s3_exists("s3://bucketA/folderAA/folderAAA1") is False
-
-    smart.smart_touch("s3://bucketA/folderAA/folderAAA1/fileAAAA")
-    s3.s3_move(
-        "s3://bucketA/folderAA/folderAAA1",
-        "s3://bucketA/folderAA/folderAAA2",
-        overwrite=True,
     )
     assert s3.s3_exists("s3://bucketA/folderAA/folderAAA1") is False
     with s3.s3_open("s3://bucketA/folderAA/folderAAA2/fileAAAA", "r") as f:
@@ -1232,6 +1220,11 @@ def test_s3_sync(truncating_client, mocker):
 
 
 def test_s3_rename(truncating_client):
+    with pytest.raises(SameFileError):
+        s3.s3_rename("s3://bucketA/folderAB", "s3://bucketA/folderAB")
+    assert s3.s3_exists("s3://bucketA/folderAB/fileAB") is True
+    assert s3.s3_exists("s3://bucketA/folderAB/fileAC") is True
+
     s3.s3_rename(
         "s3://bucketA/folderAA/folderAAA/fileAAAA",
         "s3://bucketA/folderAA/folderAAA/fileAAAA1",
@@ -1251,19 +1244,6 @@ def test_s3_rename(truncating_client):
     s3.s3_rename(
         "s3://bucketA/folderAA/folderAAA/fileAAAA2",
         "s3://bucketA/folderAA/folderAAA/fileAAAA1",
-        overwrite=False,
-    )
-    with s3.s3_open("s3://bucketA/folderAA/folderAAA/fileAAAA1", "r") as f:
-        assert f.read() == "fileAAAA"
-    assert s3.s3_exists("s3://bucketA/folderAA/folderAAA/fileAAAA2") is False
-
-    with s3.s3_open("s3://bucketA/folderAA/folderAAA/fileAAAA2", "w") as f:
-        f.write("fileAAAA2")
-
-    s3.s3_rename(
-        "s3://bucketA/folderAA/folderAAA/fileAAAA2",
-        "s3://bucketA/folderAA/folderAAA/fileAAAA1",
-        overwrite=True,
     )
     with s3.s3_open("s3://bucketA/folderAA/folderAAA/fileAAAA1", "r") as f:
         assert f.read() == "fileAAAA2"

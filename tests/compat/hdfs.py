@@ -147,14 +147,14 @@ def hdfs_load_from(path: PathLike) -> BinaryIO:
     return HdfsPath(path).load()
 
 
-def hdfs_move(src_path: PathLike, dst_path: PathLike, overwrite: bool = True) -> None:
+def hdfs_move(src_path: PathLike, dst_path: PathLike) -> None:
     """
     Move file/directory path from src_path to dst_path
 
     :param src_path: Given path
     :param dst_path: Given destination path
     """
-    return HdfsPath(src_path).move(dst_path, overwrite=overwrite)
+    return HdfsPath(src_path).move(dst_path)
 
 
 def hdfs_remove(path: PathLike, missing_ok: bool = False) -> None:

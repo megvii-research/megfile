@@ -2069,19 +2069,16 @@ class S3Path(URIPath):
         if self.exists():
             raise S3FileExistsError("File exists: %r" % self.path_with_protocol)
 
-    def move(self, dst_url: PathLike, overwrite: bool = True) -> None:
+    def move(self, dst_url: PathLike) -> None:
         """
         Move file/directory path from src_url to dst_url
 
         :param dst_url: Given destination path
-        :param overwrite: whether or not overwrite file when exists
         """
         for src_file_path, dst_file_path in _s3_scan_pairs(
             self.path_with_protocol, dst_url
         ):
-            S3Path(src_file_path).rename(
-                dst_file_path, overwrite=overwrite, recursive=False
-            )
+            S3Path(src_file_path).rename(dst_file_path, recursive=False)
 
     def remove(self, missing_ok: bool = False) -> None:
         """
@@ -2168,27 +2165,33 @@ class S3Path(URIPath):
                     "No such file or directory: %r" % self.path_with_protocol
                 )
 
-    def rename(
-        self, dst_path: PathLike, overwrite: bool = True, recursive: bool = True
-    ) -> "S3Path":
+    def rename(self, dst_path: PathLike, recursive: bool = True) -> "S3Path":
         """
         Move s3 file path from src_url to dst_url
 
         :param dst_path: Given destination path
-        :param overwrite: whether or not overwrite file when exists
         :param recursive: whether or not rename directory recursively
         """
+        dst_path = self.from_path(dst_path)
+        src_bucket, src_key = parse_s3_url(self.path_with_protocol)
+        dst_bucket, dst_key = parse_s3_url(dst_path.path_with_protocol)
+        if src_bucket == dst_bucket and src_key.rstrip("/") == dst_key.rstrip("/"):
+            raise SameFileError(
+                "%r and %r are the same file"
+                % (self.path_with_protocol, dst_path.path_with_protocol)
+            )
+
         if not recursive:
-            self.copy(dst_path, overwrite=overwrite)
+            self.copy(dst_path)
             self.unlink()
-            return self.from_path(dst_path)
+            return dst_path
 
         if self.is_file():
-            self.copy(dst_path, overwrite=overwrite)
+            self.copy(dst_path)
         else:
-            self.sync(dst_path, overwrite=overwrite)
+            self.sync(dst_path)
         self.remove(missing_ok=True)
-        return self.from_path(dst_path)
+        return dst_path
 
     def scan(self, missing_ok: bool = True, followlinks: bool = False) -> Iterator[str]:
         """
