@@ -1,3 +1,7 @@
+## Unreleased
+- feat
+    - Add `ConfigError` as a common base class for configuration errors
+
 ## 5.0.14 - 2026.06.02
 - feat
     - Add `recursive` option to `Path.rename()` and protocol rename APIs

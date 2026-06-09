@@ -26,6 +26,7 @@ __all__ = [
     "S3NotADirectoryError",
     "S3IsADirectoryError",
     "S3PermissionError",
+    "ConfigError",
     "S3ConfigError",
     "UnknownError",
     "UnsupportedError",
@@ -421,7 +422,13 @@ class S3PermissionError(S3Exception, PermissionError):
     pass
 
 
-class S3ConfigError(S3Exception, EnvironmentError):
+class ConfigError(EnvironmentError):
+    """
+    Base type for configuration errors.
+    """
+
+
+class S3ConfigError(S3Exception, ConfigError):
     """
     Error raised by wrong S3 config, including wrong config file format,
     wrong aws_secret_access_key / aws_access_key_id, and etc.

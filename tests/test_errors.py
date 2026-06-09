@@ -8,6 +8,7 @@ import urllib3.exceptions
 
 from megfile.errors import (
     ClientError,
+    ConfigError,
     HTTPError,
     HttpException,
     HttpFileNotFoundError,
@@ -84,6 +85,12 @@ def test_megfile_unsupported_error_pickle():
     error = UnsupportedError("operation", "path")
     error = pickle.loads(pickle.dumps(error))
     assert "path" in str(error)
+
+
+def test_s3_config_error_inherits_config_error():
+    error = S3ConfigError("bad config")
+    assert isinstance(error, ConfigError)
+    assert isinstance(error, EnvironmentError)
 
 
 def test_translate_s3_error():
