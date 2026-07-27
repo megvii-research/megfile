@@ -1,4 +1,4 @@
-## Unreleased
+## 5.0.15 - 2026.07.27
 - feat
     - Add `s3_generate_presigned_url` helper for S3 object paths
 
