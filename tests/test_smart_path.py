@@ -139,6 +139,34 @@ def test_aliases(fs, sftp_mocker):
         assert str(SmartPath("dev://dir/file")) == "dev://dir/file"
 
 
+def test_aliases_from_env(fs, monkeypatch):
+    # isolate from the real config files on the machine running the tests
+    fs.create_file(os.path.expanduser(CONFIG_PATH), contents="[alias]\n")
+    monkeypatch.setenv("MEGFILE_ALIASES__OSS", "s3+oss")
+    monkeypatch.setenv("MEGFILE_ALIASES__DATASET", "s3+prod://bucket/prefix")
+    aliases = _load_aliases_config()
+    assert aliases["oss"] == {"protocol": "s3+oss"}
+    assert aliases["dataset"] == {"protocol": "s3+prod", "prefix": "bucket/prefix"}
+
+    with patch.object(SmartPath, "_aliases", new_callable=PropertyMock) as mock_aliases:
+        mock_aliases.return_value = aliases
+        assert (
+            SmartPath("oss://bucket/dir/file").pathlike
+            == SmartPath("s3+oss://bucket/dir/file").pathlike
+        )
+        assert str(SmartPath("oss://bucket/dir/file")) == "oss://bucket/dir/file"
+
+
+def test_aliases_from_env_override_config(fs, monkeypatch):
+    fs.create_file(
+        os.path.expanduser(CONFIG_PATH),
+        contents="[alias]\noss = s3+oss",
+    )
+    monkeypatch.setenv("MEGFILE_ALIASES__OSS", "s3+other")
+    aliases = _load_aliases_config()
+    assert aliases["oss"] == {"protocol": "s3+other"}
+
+
 @patch.object(SmartPath, "_create_pathlike")
 def test_init(funcA):
     SmartPath(FS_TEST_ABSOLUTE_PATH)

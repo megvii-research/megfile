@@ -14,6 +14,28 @@ from .errors import ProtocolExistsError, ProtocolNotFoundError
 from .interfaces import BasePath, PathLike
 
 LEGACY_ALIASES_CONFIG = "~/.config/megfile/aliases.conf"
+ALIASES_ENV_PREFIX = "MEGFILE_ALIASES__"
+
+
+def _load_aliases_from_env() -> Dict[str, str]:
+    """Load alias definitions from environment variables.
+
+    ``MEGFILE_ALIASES__OSS=s3+oss`` is equivalent to the config file entry::
+
+        [alias]
+        oss = s3+oss
+
+    Alias names are lowercased, matching the case-insensitive behavior of ini
+    option names. Environment variables take precedence over the config file
+    for the same alias name.
+    """
+    aliases = {}
+    for key, value in os.environ.items():
+        if key.startswith(ALIASES_ENV_PREFIX):
+            name = key[len(ALIASES_ENV_PREFIX) :]
+            if name:
+                aliases[name.lower()] = value
+    return aliases
 
 
 def _bind_function(name, after_callback=None, before_callback=None):
@@ -63,7 +85,9 @@ def _load_aliases_config() -> Dict[str, Dict[str, str]]:
         parser.read(config_path)
         for section in parser.sections():
             configs[section] = dict(parser.items(section))
-    for name, protocol_or_path in load_megfile_config("alias").items():
+    alias_config = load_megfile_config("alias")
+    alias_config.update(_load_aliases_from_env())
+    for name, protocol_or_path in alias_config.items():
         if "://" in protocol_or_path:
             protocol, prefix = protocol_or_path.split("://", maxsplit=1)
             configs[name] = {"protocol": protocol, "prefix": prefix}
