@@ -160,6 +160,15 @@ You can get the configuration from `~/.config/megfile/aliases.conf`, like:
 protocol = s3+tos
 ```
 
+You can also define aliases with environment variables. `MEGFILE_ALIASES__<NAME>`
+is equivalent to a `NAME = <value>` entry in the `[alias]` section of
+`~/.config/megfile/megfile.conf`, and takes precedence over the config file for
+the same alias name:
+```
+$ export MEGFILE_ALIASES__TOS=s3+tos
+$ export MEGFILE_ALIASES__DATASET=s3+prod://bucket/prefix
+```
+
 You can use alias in path, like `tos://bucket/key`, the same as `s3+tos://bucket/key`.
 
 ## Benchmark
