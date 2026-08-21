@@ -163,6 +163,8 @@ HTTP_AUTH_HEADERS = (
     "Www-Authenticate",
     "Cookie",
     "Cookie2",
+    "Proxy-Authorization",
+    "Proxy-Authenticate",
     "X-Amz-Security-Token",
 )
 
