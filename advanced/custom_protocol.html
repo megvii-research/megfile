@@ -99,10 +99,10 @@
 <span class="nd">@SmartPath</span><span class="o">.</span><span class="n">register</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">CustomPath</span><span class="p">(</span><span class="n">URIPath</span><span class="p">):</span>
 
-    <span class="n">protocol</span> <span class="o">=</span> <span class="s2">&quot;custom&quot;</span>
+    <span class="n">protocol</span> <span class="o">=</span> <span class="s2">"custom"</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">open</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;rb&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IO</span><span class="p">[</span><span class="n">AnyStr</span><span class="p">]:</span>
-        <span class="k">return</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;test&#39;</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">open</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'rb'</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IO</span><span class="p">[</span><span class="n">AnyStr</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="sa">b</span><span class="s1">'test'</span><span class="p">)</span>
 
     <span class="o">...</span>
 </pre></div>
@@ -120,8 +120,8 @@
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">custom</span><span class="w"> </span><span class="kn">import</span> <span class="n">CustomPath</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">megfile</span><span class="w"> </span><span class="kn">import</span> <span class="n">smart_open</span>
 
-<span class="k">with</span> <span class="n">smart_open</span><span class="p">(</span><span class="s2">&quot;custom://path/to/file&quot;</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-    <span class="k">assert</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span> <span class="o">==</span> <span class="sa">b</span><span class="s1">&#39;test&#39;</span>
+<span class="k">with</span> <span class="n">smart_open</span><span class="p">(</span><span class="s2">"custom://path/to/file"</span><span class="p">,</span> <span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="k">assert</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span> <span class="o">==</span> <span class="sa">b</span><span class="s1">'test'</span>
 </pre></div>
 </div>
 </section>

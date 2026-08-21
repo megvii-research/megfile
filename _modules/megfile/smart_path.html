@@ -94,7 +94,29 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">ProtocolExistsError</span><span class="p">,</span> <span class="n">ProtocolNotFoundError</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">BasePath</span><span class="p">,</span> <span class="n">PathLike</span>
 
-<span class="n">LEGACY_ALIASES_CONFIG</span> <span class="o">=</span> <span class="s2">&quot;~/.config/megfile/aliases.conf&quot;</span>
+<span class="n">LEGACY_ALIASES_CONFIG</span> <span class="o">=</span> <span class="s2">"~/.config/megfile/aliases.conf"</span>
+<span class="n">ALIASES_ENV_PREFIX</span> <span class="o">=</span> <span class="s2">"MEGFILE_ALIASES__"</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_load_aliases_from_env</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Load alias definitions from environment variables.</span>
+
+<span class="sd">    ``MEGFILE_ALIASES__OSS=s3+oss`` is equivalent to the config file entry::</span>
+
+<span class="sd">        [alias]</span>
+<span class="sd">        oss = s3+oss</span>
+
+<span class="sd">    Alias names are lowercased, matching the case-insensitive behavior of ini</span>
+<span class="sd">    option names. Environment variables take precedence over the config file</span>
+<span class="sd">    for the same alias name.</span>
+<span class="sd">    """</span>
+    <span class="n">aliases</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">ALIASES_ENV_PREFIX</span><span class="p">):</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">key</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">ALIASES_ENV_PREFIX</span><span class="p">)</span> <span class="p">:]</span>
+            <span class="k">if</span> <span class="n">name</span><span class="p">:</span>
+                <span class="n">aliases</span><span class="p">[</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span> <span class="o">=</span> <span class="n">value</span>
+    <span class="k">return</span> <span class="n">aliases</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_bind_function</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">after_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">before_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -115,7 +137,7 @@
             <span class="k">return</span> <span class="n">result</span>
 
     <span class="n">smart_method</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="n">name</span>
-    <span class="n">smart_method</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Dynamically bound method for </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="n">smart_method</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"Dynamically bound method for </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span>
 
     <span class="k">return</span> <span class="n">smart_method</span>
 
@@ -144,30 +166,32 @@
         <span class="n">parser</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">config_path</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">section</span> <span class="ow">in</span> <span class="n">parser</span><span class="o">.</span><span class="n">sections</span><span class="p">():</span>
             <span class="n">configs</span><span class="p">[</span><span class="n">section</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">parser</span><span class="o">.</span><span class="n">items</span><span class="p">(</span><span class="n">section</span><span class="p">))</span>
-    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">protocol_or_path</span> <span class="ow">in</span> <span class="n">load_megfile_config</span><span class="p">(</span><span class="s2">&quot;alias&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="k">if</span> <span class="s2">&quot;://&quot;</span> <span class="ow">in</span> <span class="n">protocol_or_path</span><span class="p">:</span>
-            <span class="n">protocol</span><span class="p">,</span> <span class="n">prefix</span> <span class="o">=</span> <span class="n">protocol_or_path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;://&quot;</span><span class="p">,</span> <span class="n">maxsplit</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-            <span class="n">configs</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;protocol&quot;</span><span class="p">:</span> <span class="n">protocol</span><span class="p">,</span> <span class="s2">&quot;prefix&quot;</span><span class="p">:</span> <span class="n">prefix</span><span class="p">}</span>
+    <span class="n">alias_config</span> <span class="o">=</span> <span class="n">load_megfile_config</span><span class="p">(</span><span class="s2">"alias"</span><span class="p">)</span>
+    <span class="n">alias_config</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">_load_aliases_from_env</span><span class="p">())</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">protocol_or_path</span> <span class="ow">in</span> <span class="n">alias_config</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="s2">"://"</span> <span class="ow">in</span> <span class="n">protocol_or_path</span><span class="p">:</span>
+            <span class="n">protocol</span><span class="p">,</span> <span class="n">prefix</span> <span class="o">=</span> <span class="n">protocol_or_path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"://"</span><span class="p">,</span> <span class="n">maxsplit</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">configs</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"protocol"</span><span class="p">:</span> <span class="n">protocol</span><span class="p">,</span> <span class="s2">"prefix"</span><span class="p">:</span> <span class="n">prefix</span><span class="p">}</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">configs</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;protocol&quot;</span><span class="p">:</span> <span class="n">protocol_or_path</span><span class="p">}</span>
+            <span class="n">configs</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"protocol"</span><span class="p">:</span> <span class="n">protocol_or_path</span><span class="p">}</span>
     <span class="k">return</span> <span class="n">configs</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_to_aliased_path</span><span class="p">(</span><span class="n">pathlike</span><span class="p">,</span> <span class="n">other_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert path string to aliased path string&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Convert path string to aliased path string"""</span>
     <span class="k">if</span> <span class="n">pathlike</span><span class="o">.</span><span class="n">protocol</span> <span class="o">==</span> <span class="n">pathlike</span><span class="o">.</span><span class="n">_unaliased_protocol</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">other_path</span>
     <span class="n">aliases</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="n">pathlike</span><span class="o">.</span><span class="n">_aliases</span>
-    <span class="n">unaliased_prefix</span> <span class="o">=</span> <span class="n">aliases</span><span class="p">[</span><span class="n">pathlike</span><span class="o">.</span><span class="n">protocol</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;prefix&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
-    <span class="n">unaliased_prefix</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">://</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pathlike</span><span class="o">.</span><span class="n">_unaliased_protocol</span><span class="p">,</span> <span class="n">unaliased_prefix</span><span class="p">)</span>
+    <span class="n">unaliased_prefix</span> <span class="o">=</span> <span class="n">aliases</span><span class="p">[</span><span class="n">pathlike</span><span class="o">.</span><span class="n">protocol</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"prefix"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span>
+    <span class="n">unaliased_prefix</span> <span class="o">=</span> <span class="s2">"</span><span class="si">%s</span><span class="s2">://</span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="n">pathlike</span><span class="o">.</span><span class="n">_unaliased_protocol</span><span class="p">,</span> <span class="n">unaliased_prefix</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">other_path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">unaliased_prefix</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">other_path</span>
     <span class="n">path_without_protocol</span> <span class="o">=</span> <span class="n">other_path</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">unaliased_prefix</span><span class="p">)</span> <span class="p">:]</span>
-    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">pathlike</span><span class="o">.</span><span class="n">protocol</span><span class="si">}</span><span class="s2">://</span><span class="si">{</span><span class="n">path_without_protocol</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">pathlike</span><span class="o">.</span><span class="n">protocol</span><span class="si">}</span><span class="s2">://</span><span class="si">{</span><span class="n">path_without_protocol</span><span class="si">}</span><span class="s2">"</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_to_aliased_pathlike</span><span class="p">(</span><span class="n">pathlike</span><span class="p">,</span> <span class="n">other_pathlike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BasePath</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert pathlike object to aliased SmartPath object&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Convert pathlike object to aliased SmartPath object"""</span>
     <span class="n">other_path</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">other_pathlike</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">pathlike</span><span class="o">.</span><span class="n">protocol</span> <span class="o">!=</span> <span class="n">pathlike</span><span class="o">.</span><span class="n">_unaliased_protocol</span><span class="p">:</span>
         <span class="n">other_path</span> <span class="o">=</span> <span class="n">_to_aliased_path</span><span class="p">(</span><span class="n">pathlike</span><span class="p">,</span> <span class="n">other_path</span><span class="p">)</span>
@@ -175,48 +199,48 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_to_aliased_path_list</span><span class="p">(</span><span class="n">pathlike</span><span class="p">,</span> <span class="n">other_paths</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert list of path strings to aliased path strings&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Convert list of path strings to aliased path strings"""</span>
     <span class="k">return</span> <span class="p">[</span><span class="n">_to_aliased_path</span><span class="p">(</span><span class="n">pathlike</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">other_paths</span><span class="p">]</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_to_aliased_pathlike_list</span><span class="p">(</span><span class="n">pathlike</span><span class="p">,</span> <span class="n">other_pathlikes</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert list of pathlike objects to aliased SmartPath objects&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Convert list of pathlike objects to aliased SmartPath objects"""</span>
     <span class="k">return</span> <span class="p">[</span><span class="n">_to_aliased_pathlike</span><span class="p">(</span><span class="n">pathlike</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">other_pathlikes</span><span class="p">]</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_to_aliased_path_iterator</span><span class="p">(</span><span class="n">pathlike</span><span class="p">,</span> <span class="n">other_paths</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert iterator of path strings to aliased path strings&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Convert iterator of path strings to aliased path strings"""</span>
     <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">other_paths</span><span class="p">:</span>
         <span class="k">yield</span> <span class="n">_to_aliased_path</span><span class="p">(</span><span class="n">pathlike</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_to_aliased_pathlike_iterator</span><span class="p">(</span><span class="n">pathlike</span><span class="p">,</span> <span class="n">other_pathlikes</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert iterator of pathlike objects to aliased SmartPath objects&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Convert iterator of pathlike objects to aliased SmartPath objects"""</span>
     <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">other_pathlikes</span><span class="p">:</span>
         <span class="k">yield</span> <span class="n">_to_aliased_pathlike</span><span class="p">(</span><span class="n">pathlike</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_to_aliased_file_entry_iterator</span><span class="p">(</span><span class="n">pathlike</span><span class="p">,</span> <span class="n">file_entries</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert iterator of FileEntry objects with aliased paths&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Convert iterator of FileEntry objects with aliased paths"""</span>
     <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">file_entries</span><span class="p">:</span>
         <span class="k">yield</span> <span class="n">entry</span><span class="o">.</span><span class="n">_replace</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">_to_aliased_path</span><span class="p">(</span><span class="n">pathlike</span><span class="p">,</span> <span class="n">entry</span><span class="o">.</span><span class="n">path</span><span class="p">))</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_to_aliased_walk_iterator</span><span class="p">(</span><span class="n">pathlike</span><span class="p">,</span> <span class="n">walk_iterator</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert walk iterator with aliased paths&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Convert walk iterator with aliased paths"""</span>
     <span class="k">for</span> <span class="n">dirpath</span><span class="p">,</span> <span class="n">dirnames</span><span class="p">,</span> <span class="n">filenames</span> <span class="ow">in</span> <span class="n">walk_iterator</span><span class="p">:</span>
         <span class="n">aliased_dirpath</span> <span class="o">=</span> <span class="n">_to_aliased_path</span><span class="p">(</span><span class="n">pathlike</span><span class="p">,</span> <span class="n">dirpath</span><span class="p">)</span>
         <span class="k">yield</span> <span class="p">(</span><span class="n">aliased_dirpath</span><span class="p">,</span> <span class="n">dirnames</span><span class="p">,</span> <span class="n">filenames</span><span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_to_unaliased_path</span><span class="p">(</span><span class="n">pathlike</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert path string to unaliased path string&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Convert path string to unaliased path string"""</span>
     <span class="n">aliases</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="n">pathlike</span><span class="o">.</span><span class="n">_aliases</span>
     <span class="n">protocol</span><span class="p">,</span> <span class="n">path_without_protocol</span> <span class="o">=</span> <span class="n">pathlike</span><span class="o">.</span><span class="n">_split_protocol</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">protocol</span> <span class="ow">in</span> <span class="n">aliases</span><span class="p">:</span>
-        <span class="n">prefix</span> <span class="o">=</span> <span class="n">aliases</span><span class="p">[</span><span class="n">protocol</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;prefix&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
-        <span class="n">protocol</span> <span class="o">=</span> <span class="n">aliases</span><span class="p">[</span><span class="n">protocol</span><span class="p">][</span><span class="s2">&quot;protocol&quot;</span><span class="p">]</span>
-        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">://</span><span class="si">%s%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">path_without_protocol</span><span class="p">)</span>
+        <span class="n">prefix</span> <span class="o">=</span> <span class="n">aliases</span><span class="p">[</span><span class="n">protocol</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"prefix"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span>
+        <span class="n">protocol</span> <span class="o">=</span> <span class="n">aliases</span><span class="p">[</span><span class="n">protocol</span><span class="p">][</span><span class="s2">"protocol"</span><span class="p">]</span>
+        <span class="k">return</span> <span class="s2">"</span><span class="si">%s</span><span class="s2">://</span><span class="si">%s%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">path_without_protocol</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">path</span>
 
 
@@ -246,11 +270,11 @@
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_split_protocol</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">PathLike</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]:</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-            <span class="k">return</span> <span class="s2">&quot;file&quot;</span><span class="p">,</span> <span class="n">path</span>
+            <span class="k">return</span> <span class="s2">"file"</span><span class="p">,</span> <span class="n">path</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="n">protocol</span> <span class="o">=</span> <span class="n">get_url_scheme</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">protocol</span><span class="p">:</span>
-                <span class="n">protocol</span> <span class="o">=</span> <span class="s2">&quot;file&quot;</span>
+                <span class="n">protocol</span> <span class="o">=</span> <span class="s2">"file"</span>
                 <span class="n">path_without_protocol</span> <span class="o">=</span> <span class="n">path</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">path_without_protocol</span> <span class="o">=</span> <span class="n">path</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span> <span class="o">+</span> <span class="mi">3</span> <span class="p">:]</span>
@@ -259,7 +283,7 @@
             <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">protocol</span><span class="p">),</span> <span class="n">path</span><span class="o">.</span><span class="n">path_without_protocol</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="p">(</span><span class="n">PurePath</span><span class="p">,</span> <span class="n">BasePath</span><span class="p">)):</span>
             <span class="k">return</span> <span class="n">SmartPath</span><span class="o">.</span><span class="n">_split_protocol</span><span class="p">(</span><span class="n">fspath</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
-        <span class="k">raise</span> <span class="n">ProtocolNotFoundError</span><span class="p">(</span><span class="s2">&quot;protocol not found: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">path</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">ProtocolNotFoundError</span><span class="p">(</span><span class="s2">"protocol not found: </span><span class="si">%r</span><span class="s2">"</span> <span class="o">%</span> <span class="n">path</span><span class="p">)</span>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_extract_protocol</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">PathLike</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -268,10 +292,10 @@
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_create_pathlike</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">PathLike</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">BasePath</span><span class="p">:</span>
         <span class="n">protocol</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_extract_protocol</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">protocol</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;s3+&quot;</span><span class="p">):</span>
-            <span class="n">protocol</span> <span class="o">=</span> <span class="s2">&quot;s3&quot;</span>
+        <span class="k">if</span> <span class="n">protocol</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"s3+"</span><span class="p">):</span>
+            <span class="n">protocol</span> <span class="o">=</span> <span class="s2">"s3"</span>
         <span class="k">if</span> <span class="n">protocol</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_registered_protocols</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">ProtocolNotFoundError</span><span class="p">(</span><span class="s2">&quot;protocol </span><span class="si">%r</span><span class="s2"> not found: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">path</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="n">ProtocolNotFoundError</span><span class="p">(</span><span class="s2">"protocol </span><span class="si">%r</span><span class="s2"> not found: </span><span class="si">%r</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">path</span><span class="p">))</span>
         <span class="n">path_class</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_registered_protocols</span><span class="p">[</span><span class="n">protocol</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">path_class</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
 
@@ -281,7 +305,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">register</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path_class</span><span class="p">,</span> <span class="n">override_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
         <span class="n">protocol</span> <span class="o">=</span> <span class="n">path_class</span><span class="o">.</span><span class="n">protocol</span>
         <span class="k">if</span> <span class="n">protocol</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_registered_protocols</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">override_ok</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">ProtocolExistsError</span><span class="p">(</span><span class="s2">&quot;protocol already exists: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">protocol</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">ProtocolExistsError</span><span class="p">(</span><span class="s2">"protocol already exists: </span><span class="si">%r</span><span class="s2">"</span> <span class="o">%</span> <span class="n">protocol</span><span class="p">)</span>
         <span class="bp">cls</span><span class="o">.</span><span class="n">_registered_protocols</span><span class="p">[</span><span class="n">protocol</span><span class="p">]</span> <span class="o">=</span> <span class="n">path_class</span>
         <span class="k">return</span> <span class="n">path_class</span></div>
 
@@ -296,11 +320,11 @@
 <div class="viewcode-block" id="SmartPath.relpath">
 <a class="viewcode-back" href="../../megfile.smart_path.html#megfile.smart_path.SmartPath.relpath">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">relpath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the relative path of given path</span>
+<span class="w">        </span><span class="sd">"""Return the relative path of given path</span>
 
 <span class="sd">        :param start: Given start directory</span>
 <span class="sd">        :returns: Relative path from start</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">start</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">start</span> <span class="o">=</span> <span class="n">_to_unaliased_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pathlike</span><span class="o">.</span><span class="n">relpath</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">)</span></div>
@@ -308,100 +332,100 @@
 
     <span class="nd">@cached_property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">parts</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;A tuple giving access to the path’s various components&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""A tuple giving access to the path’s various components"""</span>
         <span class="n">parts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pathlike</span><span class="o">.</span><span class="n">parts</span>
         <span class="n">parts</span> <span class="o">=</span> <span class="p">(</span><span class="n">_to_aliased_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="o">*</span><span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
         <span class="k">return</span> <span class="n">parts</span>
 
     <span class="nd">@cached_property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">parents</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;URIPathParents&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">parents</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"URIPathParents"</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        An immutable sequence providing access to the logical ancestors of the path</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="n">URIPathParents</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
-    <span class="n">symlink</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;symlink&quot;</span><span class="p">,</span> <span class="n">before_callback</span><span class="o">=</span><span class="n">_to_unaliased_path</span><span class="p">)</span>
-    <span class="n">symlink_to</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;symlink_to&quot;</span><span class="p">,</span> <span class="n">before_callback</span><span class="o">=</span><span class="n">_to_unaliased_path</span><span class="p">)</span>
-    <span class="n">hardlink_to</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;hardlink_to&quot;</span><span class="p">,</span> <span class="n">before_callback</span><span class="o">=</span><span class="n">_to_unaliased_path</span><span class="p">)</span>
-    <span class="n">readlink</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;readlink&quot;</span><span class="p">,</span> <span class="n">_to_aliased_pathlike</span><span class="p">)</span>
-    <span class="n">is_dir</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;is_dir&quot;</span><span class="p">)</span>
-    <span class="n">is_file</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;is_file&quot;</span><span class="p">)</span>
-    <span class="n">is_symlink</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;is_symlink&quot;</span><span class="p">)</span>
-    <span class="n">access</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;access&quot;</span><span class="p">)</span>
-    <span class="n">exists</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;exists&quot;</span><span class="p">)</span>
-    <span class="n">listdir</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;listdir&quot;</span><span class="p">,</span> <span class="n">_to_aliased_path_list</span><span class="p">)</span>
-    <span class="n">scandir</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;scandir&quot;</span><span class="p">,</span> <span class="n">_to_aliased_file_entry_iterator</span><span class="p">)</span>
-    <span class="n">getsize</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;getsize&quot;</span><span class="p">)</span>
-    <span class="n">getmtime</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;getmtime&quot;</span><span class="p">)</span>
-    <span class="n">stat</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;stat&quot;</span><span class="p">)</span>
-    <span class="n">lstat</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;lstat&quot;</span><span class="p">)</span>
-    <span class="n">remove</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;remove&quot;</span><span class="p">)</span>
-    <span class="n">rename</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;rename&quot;</span><span class="p">,</span> <span class="n">_to_aliased_pathlike</span><span class="p">,</span> <span class="n">_to_unaliased_path</span><span class="p">)</span>
-    <span class="n">replace</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;replace&quot;</span><span class="p">,</span> <span class="n">_to_aliased_pathlike</span><span class="p">,</span> <span class="n">_to_unaliased_path</span><span class="p">)</span>
-    <span class="n">unlink</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;unlink&quot;</span><span class="p">)</span>
-    <span class="n">mkdir</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;mkdir&quot;</span><span class="p">)</span>
-    <span class="nb">open</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;open&quot;</span><span class="p">)</span>
-    <span class="n">touch</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;touch&quot;</span><span class="p">)</span>
-    <span class="n">walk</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;walk&quot;</span><span class="p">,</span> <span class="n">_to_aliased_walk_iterator</span><span class="p">)</span>
-    <span class="n">scan</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;scan&quot;</span><span class="p">,</span> <span class="n">_to_aliased_path_iterator</span><span class="p">)</span>
-    <span class="n">scan_stat</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;scan_stat&quot;</span><span class="p">,</span> <span class="n">_to_aliased_file_entry_iterator</span><span class="p">)</span>
-    <span class="n">glob</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;glob&quot;</span><span class="p">,</span> <span class="n">_to_aliased_pathlike_list</span><span class="p">)</span>
-    <span class="n">iglob</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;iglob&quot;</span><span class="p">,</span> <span class="n">_to_aliased_pathlike_iterator</span><span class="p">)</span>
-    <span class="n">glob_stat</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;glob_stat&quot;</span><span class="p">,</span> <span class="n">_to_aliased_file_entry_iterator</span><span class="p">)</span>
-    <span class="n">load</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;load&quot;</span><span class="p">)</span>
-    <span class="n">save</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;save&quot;</span><span class="p">)</span>
-    <span class="n">joinpath</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;joinpath&quot;</span><span class="p">,</span> <span class="n">_to_aliased_pathlike</span><span class="p">)</span>
-    <span class="n">abspath</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;abspath&quot;</span><span class="p">,</span> <span class="n">_to_aliased_path</span><span class="p">)</span>
-    <span class="n">realpath</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;realpath&quot;</span><span class="p">,</span> <span class="n">_to_aliased_path</span><span class="p">)</span>
-    <span class="n">is_absolute</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;is_absolute&quot;</span><span class="p">)</span>
-    <span class="n">is_mount</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;is_mount&quot;</span><span class="p">)</span>
-    <span class="n">md5</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;md5&quot;</span><span class="p">)</span>
+    <span class="n">symlink</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"symlink"</span><span class="p">,</span> <span class="n">before_callback</span><span class="o">=</span><span class="n">_to_unaliased_path</span><span class="p">)</span>
+    <span class="n">symlink_to</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"symlink_to"</span><span class="p">,</span> <span class="n">before_callback</span><span class="o">=</span><span class="n">_to_unaliased_path</span><span class="p">)</span>
+    <span class="n">hardlink_to</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"hardlink_to"</span><span class="p">,</span> <span class="n">before_callback</span><span class="o">=</span><span class="n">_to_unaliased_path</span><span class="p">)</span>
+    <span class="n">readlink</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"readlink"</span><span class="p">,</span> <span class="n">_to_aliased_pathlike</span><span class="p">)</span>
+    <span class="n">is_dir</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"is_dir"</span><span class="p">)</span>
+    <span class="n">is_file</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"is_file"</span><span class="p">)</span>
+    <span class="n">is_symlink</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"is_symlink"</span><span class="p">)</span>
+    <span class="n">access</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"access"</span><span class="p">)</span>
+    <span class="n">exists</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"exists"</span><span class="p">)</span>
+    <span class="n">listdir</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"listdir"</span><span class="p">,</span> <span class="n">_to_aliased_path_list</span><span class="p">)</span>
+    <span class="n">scandir</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"scandir"</span><span class="p">,</span> <span class="n">_to_aliased_file_entry_iterator</span><span class="p">)</span>
+    <span class="n">getsize</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"getsize"</span><span class="p">)</span>
+    <span class="n">getmtime</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"getmtime"</span><span class="p">)</span>
+    <span class="n">stat</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"stat"</span><span class="p">)</span>
+    <span class="n">lstat</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"lstat"</span><span class="p">)</span>
+    <span class="n">remove</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"remove"</span><span class="p">)</span>
+    <span class="n">rename</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"rename"</span><span class="p">,</span> <span class="n">_to_aliased_pathlike</span><span class="p">,</span> <span class="n">_to_unaliased_path</span><span class="p">)</span>
+    <span class="n">replace</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"replace"</span><span class="p">,</span> <span class="n">_to_aliased_pathlike</span><span class="p">,</span> <span class="n">_to_unaliased_path</span><span class="p">)</span>
+    <span class="n">unlink</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"unlink"</span><span class="p">)</span>
+    <span class="n">mkdir</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"mkdir"</span><span class="p">)</span>
+    <span class="nb">open</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"open"</span><span class="p">)</span>
+    <span class="n">touch</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"touch"</span><span class="p">)</span>
+    <span class="n">walk</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"walk"</span><span class="p">,</span> <span class="n">_to_aliased_walk_iterator</span><span class="p">)</span>
+    <span class="n">scan</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"scan"</span><span class="p">,</span> <span class="n">_to_aliased_path_iterator</span><span class="p">)</span>
+    <span class="n">scan_stat</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"scan_stat"</span><span class="p">,</span> <span class="n">_to_aliased_file_entry_iterator</span><span class="p">)</span>
+    <span class="n">glob</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"glob"</span><span class="p">,</span> <span class="n">_to_aliased_pathlike_list</span><span class="p">)</span>
+    <span class="n">iglob</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"iglob"</span><span class="p">,</span> <span class="n">_to_aliased_pathlike_iterator</span><span class="p">)</span>
+    <span class="n">glob_stat</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"glob_stat"</span><span class="p">,</span> <span class="n">_to_aliased_file_entry_iterator</span><span class="p">)</span>
+    <span class="n">load</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"load"</span><span class="p">)</span>
+    <span class="n">save</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"save"</span><span class="p">)</span>
+    <span class="n">joinpath</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"joinpath"</span><span class="p">,</span> <span class="n">_to_aliased_pathlike</span><span class="p">)</span>
+    <span class="n">abspath</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"abspath"</span><span class="p">,</span> <span class="n">_to_aliased_path</span><span class="p">)</span>
+    <span class="n">realpath</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"realpath"</span><span class="p">,</span> <span class="n">_to_aliased_path</span><span class="p">)</span>
+    <span class="n">is_absolute</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"is_absolute"</span><span class="p">)</span>
+    <span class="n">is_mount</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"is_mount"</span><span class="p">)</span>
+    <span class="n">md5</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"md5"</span><span class="p">)</span>
 
-    <span class="n">as_uri</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;as_uri&quot;</span><span class="p">,</span> <span class="n">_to_aliased_path</span><span class="p">)</span>
-    <span class="n">as_posix</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;as_posix&quot;</span><span class="p">,</span> <span class="n">_to_aliased_path</span><span class="p">)</span>
-    <span class="n">__fspath__</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;__fspath__&quot;</span><span class="p">,</span> <span class="n">_to_aliased_path</span><span class="p">)</span>
-    <span class="fm">__truediv__</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;__truediv__&quot;</span><span class="p">,</span> <span class="n">_to_aliased_pathlike</span><span class="p">)</span>
+    <span class="n">as_uri</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"as_uri"</span><span class="p">,</span> <span class="n">_to_aliased_path</span><span class="p">)</span>
+    <span class="n">as_posix</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"as_posix"</span><span class="p">,</span> <span class="n">_to_aliased_path</span><span class="p">)</span>
+    <span class="n">__fspath__</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"__fspath__"</span><span class="p">,</span> <span class="n">_to_aliased_path</span><span class="p">)</span>
+    <span class="fm">__truediv__</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"__truediv__"</span><span class="p">,</span> <span class="n">_to_aliased_pathlike</span><span class="p">)</span>
 
-    <span class="n">is_reserved</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;is_reserved&quot;</span><span class="p">)</span>
-    <span class="n">match</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;match&quot;</span><span class="p">,</span> <span class="n">before_callback</span><span class="o">=</span><span class="n">_to_unaliased_path</span><span class="p">)</span>
-    <span class="n">relative_to</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;relative_to&quot;</span><span class="p">,</span> <span class="n">before_callback</span><span class="o">=</span><span class="n">_to_unaliased_path</span><span class="p">)</span>
-    <span class="n">with_name</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;with_name&quot;</span><span class="p">,</span> <span class="n">_to_aliased_pathlike</span><span class="p">)</span>
-    <span class="n">with_suffix</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;with_suffix&quot;</span><span class="p">,</span> <span class="n">_to_aliased_pathlike</span><span class="p">)</span>
-    <span class="n">with_stem</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;with_stem&quot;</span><span class="p">,</span> <span class="n">_to_aliased_pathlike</span><span class="p">)</span>
-    <span class="n">iterdir</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;iterdir&quot;</span><span class="p">,</span> <span class="n">_to_aliased_pathlike_iterator</span><span class="p">)</span>
-    <span class="n">cwd</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;cwd&quot;</span><span class="p">,</span> <span class="n">_to_aliased_pathlike</span><span class="p">)</span>
-    <span class="n">home</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;home&quot;</span><span class="p">)</span>
-    <span class="n">expanduser</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;expanduser&quot;</span><span class="p">)</span>
-    <span class="n">resolve</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;resolve&quot;</span><span class="p">,</span> <span class="n">_to_aliased_pathlike</span><span class="p">)</span>
-    <span class="n">chmod</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;chmod&quot;</span><span class="p">)</span>
-    <span class="n">lchmod</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;lchmod&quot;</span><span class="p">)</span>
-    <span class="n">group</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;group&quot;</span><span class="p">)</span>
-    <span class="n">is_socket</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;is_socket&quot;</span><span class="p">)</span>
-    <span class="n">is_fifo</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;is_fifo&quot;</span><span class="p">)</span>
-    <span class="n">is_block_device</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;is_block_device&quot;</span><span class="p">)</span>
-    <span class="n">is_char_device</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;is_char_device&quot;</span><span class="p">)</span>
-    <span class="n">owner</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;owner&quot;</span><span class="p">)</span>
-    <span class="n">absolute</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;absolute&quot;</span><span class="p">,</span> <span class="n">_to_aliased_pathlike</span><span class="p">)</span>
-    <span class="n">rmdir</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;rmdir&quot;</span><span class="p">)</span>
+    <span class="n">is_reserved</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"is_reserved"</span><span class="p">)</span>
+    <span class="n">match</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"match"</span><span class="p">,</span> <span class="n">before_callback</span><span class="o">=</span><span class="n">_to_unaliased_path</span><span class="p">)</span>
+    <span class="n">relative_to</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"relative_to"</span><span class="p">,</span> <span class="n">before_callback</span><span class="o">=</span><span class="n">_to_unaliased_path</span><span class="p">)</span>
+    <span class="n">with_name</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"with_name"</span><span class="p">,</span> <span class="n">_to_aliased_pathlike</span><span class="p">)</span>
+    <span class="n">with_suffix</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"with_suffix"</span><span class="p">,</span> <span class="n">_to_aliased_pathlike</span><span class="p">)</span>
+    <span class="n">with_stem</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"with_stem"</span><span class="p">,</span> <span class="n">_to_aliased_pathlike</span><span class="p">)</span>
+    <span class="n">iterdir</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"iterdir"</span><span class="p">,</span> <span class="n">_to_aliased_pathlike_iterator</span><span class="p">)</span>
+    <span class="n">cwd</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"cwd"</span><span class="p">,</span> <span class="n">_to_aliased_pathlike</span><span class="p">)</span>
+    <span class="n">home</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"home"</span><span class="p">)</span>
+    <span class="n">expanduser</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"expanduser"</span><span class="p">)</span>
+    <span class="n">resolve</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"resolve"</span><span class="p">,</span> <span class="n">_to_aliased_pathlike</span><span class="p">)</span>
+    <span class="n">chmod</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"chmod"</span><span class="p">)</span>
+    <span class="n">lchmod</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"lchmod"</span><span class="p">)</span>
+    <span class="n">group</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"group"</span><span class="p">)</span>
+    <span class="n">is_socket</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"is_socket"</span><span class="p">)</span>
+    <span class="n">is_fifo</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"is_fifo"</span><span class="p">)</span>
+    <span class="n">is_block_device</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"is_block_device"</span><span class="p">)</span>
+    <span class="n">is_char_device</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"is_char_device"</span><span class="p">)</span>
+    <span class="n">owner</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"owner"</span><span class="p">)</span>
+    <span class="n">absolute</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"absolute"</span><span class="p">,</span> <span class="n">_to_aliased_pathlike</span><span class="p">)</span>
+    <span class="n">rmdir</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"rmdir"</span><span class="p">)</span>
     <span class="n">is_relative_to</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span>
-        <span class="s2">&quot;is_relative_to&quot;</span><span class="p">,</span> <span class="n">before_callback</span><span class="o">=</span><span class="n">_to_unaliased_path</span>
+        <span class="s2">"is_relative_to"</span><span class="p">,</span> <span class="n">before_callback</span><span class="o">=</span><span class="n">_to_unaliased_path</span>
     <span class="p">)</span>
-    <span class="n">read_bytes</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;read_bytes&quot;</span><span class="p">)</span>
-    <span class="n">read_text</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;read_text&quot;</span><span class="p">)</span>
-    <span class="n">rglob</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;rglob&quot;</span><span class="p">,</span> <span class="n">_to_aliased_pathlike_list</span><span class="p">)</span>
-    <span class="n">samefile</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;samefile&quot;</span><span class="p">)</span>
-    <span class="n">write_bytes</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;write_bytes&quot;</span><span class="p">)</span>
-    <span class="n">write_text</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;write_text&quot;</span><span class="p">)</span>
-    <span class="n">utime</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">&quot;utime&quot;</span><span class="p">)</span>
+    <span class="n">read_bytes</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"read_bytes"</span><span class="p">)</span>
+    <span class="n">read_text</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"read_text"</span><span class="p">)</span>
+    <span class="n">rglob</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"rglob"</span><span class="p">,</span> <span class="n">_to_aliased_pathlike_list</span><span class="p">)</span>
+    <span class="n">samefile</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"samefile"</span><span class="p">)</span>
+    <span class="n">write_bytes</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"write_bytes"</span><span class="p">)</span>
+    <span class="n">write_text</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"write_text"</span><span class="p">)</span>
+    <span class="n">utime</span> <span class="o">=</span> <span class="n">_bind_function</span><span class="p">(</span><span class="s2">"utime"</span><span class="p">)</span>
 
-    <span class="n">drive</span> <span class="o">=</span> <span class="n">_bind_property</span><span class="p">(</span><span class="s2">&quot;drive&quot;</span><span class="p">)</span>
-    <span class="n">root</span> <span class="o">=</span> <span class="n">_bind_property</span><span class="p">(</span><span class="s2">&quot;root&quot;</span><span class="p">,</span> <span class="n">_to_aliased_path</span><span class="p">)</span>
-    <span class="n">anchor</span> <span class="o">=</span> <span class="n">_bind_property</span><span class="p">(</span><span class="s2">&quot;anchor&quot;</span><span class="p">,</span> <span class="n">_to_aliased_path</span><span class="p">)</span>
-    <span class="n">parent</span> <span class="o">=</span> <span class="n">_bind_property</span><span class="p">(</span><span class="s2">&quot;parent&quot;</span><span class="p">,</span> <span class="n">_to_aliased_pathlike</span><span class="p">)</span>
-    <span class="n">name</span> <span class="o">=</span> <span class="n">_bind_property</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
-    <span class="n">suffix</span> <span class="o">=</span> <span class="n">_bind_property</span><span class="p">(</span><span class="s2">&quot;suffix&quot;</span><span class="p">)</span>
-    <span class="n">suffixes</span> <span class="o">=</span> <span class="n">_bind_property</span><span class="p">(</span><span class="s2">&quot;suffixes&quot;</span><span class="p">)</span>
-    <span class="n">stem</span> <span class="o">=</span> <span class="n">_bind_property</span><span class="p">(</span><span class="s2">&quot;stem&quot;</span><span class="p">)</span></div>
+    <span class="n">drive</span> <span class="o">=</span> <span class="n">_bind_property</span><span class="p">(</span><span class="s2">"drive"</span><span class="p">)</span>
+    <span class="n">root</span> <span class="o">=</span> <span class="n">_bind_property</span><span class="p">(</span><span class="s2">"root"</span><span class="p">,</span> <span class="n">_to_aliased_path</span><span class="p">)</span>
+    <span class="n">anchor</span> <span class="o">=</span> <span class="n">_bind_property</span><span class="p">(</span><span class="s2">"anchor"</span><span class="p">,</span> <span class="n">_to_aliased_path</span><span class="p">)</span>
+    <span class="n">parent</span> <span class="o">=</span> <span class="n">_bind_property</span><span class="p">(</span><span class="s2">"parent"</span><span class="p">,</span> <span class="n">_to_aliased_pathlike</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">_bind_property</span><span class="p">(</span><span class="s2">"name"</span><span class="p">)</span>
+    <span class="n">suffix</span> <span class="o">=</span> <span class="n">_bind_property</span><span class="p">(</span><span class="s2">"suffix"</span><span class="p">)</span>
+    <span class="n">suffixes</span> <span class="o">=</span> <span class="n">_bind_property</span><span class="p">(</span><span class="s2">"suffixes"</span><span class="p">)</span>
+    <span class="n">stem</span> <span class="o">=</span> <span class="n">_bind_property</span><span class="p">(</span><span class="s2">"stem"</span><span class="p">)</span></div>
 
 
 

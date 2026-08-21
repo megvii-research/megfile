@@ -120,12 +120,12 @@
 <p>You can set <code class="docutils literal notranslate"><span class="pre">cookies</span></code>, <code class="docutils literal notranslate"><span class="pre">headers</span></code> and other parameters of <code class="docutils literal notranslate"><span class="pre">requests.request</span></code> in <code class="docutils literal notranslate"><span class="pre">HttpPath</span></code>‘s property <code class="docutils literal notranslate"><span class="pre">request_kwargs</span></code>, like:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">megfile</span><span class="w"> </span><span class="kn">import</span> <span class="n">HttpPath</span><span class="p">,</span> <span class="n">smart_copy</span>
 
-<span class="n">url</span> <span class="o">=</span> <span class="n">HttpPath</span><span class="p">(</span><span class="s1">&#39;https://megvii-research.github.io/megfile/&#39;</span><span class="p">)</span>
+<span class="n">url</span> <span class="o">=</span> <span class="n">HttpPath</span><span class="p">(</span><span class="s1">'https://megvii-research.github.io/megfile/'</span><span class="p">)</span>
 <span class="n">url</span><span class="o">.</span><span class="n">request_kwargs</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">&#39;cookies&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;value&#39;</span><span class="p">},</span>
-    <span class="s1">&#39;headers&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;value&#39;</span><span class="p">},</span>
+    <span class="s1">'cookies'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'key'</span><span class="p">:</span> <span class="s1">'value'</span><span class="p">},</span>
+    <span class="s1">'headers'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'key'</span><span class="p">:</span> <span class="s1">'value'</span><span class="p">},</span>
 <span class="p">}</span>
-<span class="n">smart_copy</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="s1">&#39;index.html&#39;</span><span class="p">)</span>
+<span class="n">smart_copy</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="s1">'index.html'</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>

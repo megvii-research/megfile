@@ -155,23 +155,23 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">megfile</span><span class="w"> </span><span class="kn">import</span> <span class="n">smart_open</span><span class="p">,</span> <span class="n">smart_exists</span><span class="p">,</span> <span class="n">smart_sync</span><span class="p">,</span> <span class="n">smart_remove</span><span class="p">,</span> <span class="n">smart_glob</span>
 
 <span class="c1"># open a file in s3 bucket</span>
-<span class="k">with</span> <span class="n">smart_open</span><span class="p">(</span><span class="s1">&#39;s3://playground/megfile-test&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
-    <span class="n">fp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;megfile is not silver bullet&#39;</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">smart_open</span><span class="p">(</span><span class="s1">'s3://playground/megfile-test'</span><span class="p">,</span> <span class="s1">'w'</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+    <span class="n">fp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">'megfile is not silver bullet'</span><span class="p">)</span>
 
 <span class="c1"># test if file in s3 bucket exist</span>
-<span class="n">smart_exists</span><span class="p">(</span><span class="s1">&#39;s3://playground/megfile-test&#39;</span><span class="p">)</span>
+<span class="n">smart_exists</span><span class="p">(</span><span class="s1">'s3://playground/megfile-test'</span><span class="p">)</span>
 
 <span class="c1"># or in local file system</span>
-<span class="n">smart_exists</span><span class="p">(</span><span class="s1">&#39;/tmp/playground/megfile-test&#39;</span><span class="p">)</span>
+<span class="n">smart_exists</span><span class="p">(</span><span class="s1">'/tmp/playground/megfile-test'</span><span class="p">)</span>
 
 <span class="c1"># copy files or directories</span>
-<span class="n">smart_sync</span><span class="p">(</span><span class="s1">&#39;s3://playground/megfile-test&#39;</span><span class="p">,</span> <span class="s1">&#39;/tmp/playground/megfile-test&#39;</span><span class="p">)</span>
+<span class="n">smart_sync</span><span class="p">(</span><span class="s1">'s3://playground/megfile-test'</span><span class="p">,</span> <span class="s1">'/tmp/playground/megfile-test'</span><span class="p">)</span>
 
 <span class="c1"># remove files or directories</span>
-<span class="n">smart_remove</span><span class="p">(</span><span class="s1">&#39;s3://playground/megfile-test&#39;</span><span class="p">)</span>
+<span class="n">smart_remove</span><span class="p">(</span><span class="s1">'s3://playground/megfile-test'</span><span class="p">)</span>
 
 <span class="c1"># glob files or directories in s3 bucket</span>
-<span class="n">smart_glob</span><span class="p">(</span><span class="s1">&#39;s3://playground/megfile-?.{mp4,avi}&#39;</span><span class="p">)</span>
+<span class="n">smart_glob</span><span class="p">(</span><span class="s1">'s3://playground/megfile-?.{mp4,avi}'</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -180,11 +180,11 @@
 <p><code class="docutils literal notranslate"><span class="pre">SmartPath</span></code> has a similar interface with <code class="docutils literal notranslate"><span class="pre">pathlib.Path</span></code>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">megfile.smart_path</span><span class="w"> </span><span class="kn">import</span> <span class="n">SmartPath</span>
 
-<span class="n">path</span> <span class="o">=</span> <span class="n">SmartPath</span><span class="p">(</span><span class="s1">&#39;s3://playground/megfile-test&#39;</span><span class="p">)</span>
+<span class="n">path</span> <span class="o">=</span> <span class="n">SmartPath</span><span class="p">(</span><span class="s1">'s3://playground/megfile-test'</span><span class="p">)</span>
 <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
     <span class="k">with</span> <span class="n">path</span><span class="o">.</span><span class="n">open</span><span class="p">()</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">7</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="n">result</span> <span class="o">==</span> <span class="sa">b</span><span class="s1">&#39;megfile&#39;</span>
+        <span class="k">assert</span> <span class="n">result</span> <span class="o">==</span> <span class="sa">b</span><span class="s1">'megfile'</span>
 </pre></div>
 </div>
 </section>
@@ -209,10 +209,10 @@ $<span class="w"> </span>megfile<span class="w"> </span>cp<span class="w"> </spa
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip3<span class="w"> </span>install<span class="w"> </span>megfile
 
 <span class="c1"># for hdfs support</span>
-pip3<span class="w"> </span>install<span class="w"> </span><span class="s1">&#39;megfile[hdfs]&#39;</span>
+pip3<span class="w"> </span>install<span class="w"> </span><span class="s1">'megfile[hdfs]'</span>
 
 <span class="c1"># for webdav support</span>
-pip3<span class="w"> </span>install<span class="w"> </span><span class="s1">&#39;megfile[webdav]&#39;</span>
+pip3<span class="w"> </span>install<span class="w"> </span><span class="s1">'megfile[webdav]'</span>
 </pre></div>
 </div>
 </section>
@@ -270,6 +270,14 @@ $ megfile config alias tos s3+tos
 <p>You can get the configuration from <code class="docutils literal notranslate"><span class="pre">~/.config/megfile/aliases.conf</span></code>, like:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">tos</span><span class="p">]</span>
 <span class="n">protocol</span> <span class="o">=</span> <span class="n">s3</span><span class="o">+</span><span class="n">tos</span>
+</pre></div>
+</div>
+<p>You can also define aliases with environment variables. <code class="docutils literal notranslate"><span class="pre">MEGFILE_ALIASES__&lt;NAME&gt;</span></code>
+is equivalent to a <code class="docutils literal notranslate"><span class="pre">NAME</span> <span class="pre">=</span> <span class="pre">&lt;value&gt;</span></code> entry in the <code class="docutils literal notranslate"><span class="pre">[alias]</span></code> section of
+<code class="docutils literal notranslate"><span class="pre">~/.config/megfile/megfile.conf</span></code>, and takes precedence over the config file for
+the same alias name:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ export MEGFILE_ALIASES__TOS=s3+tos
+$ export MEGFILE_ALIASES__DATASET=s3+prod://bucket/prefix
 </pre></div>
 </div>
 <p>You can use alias in path, like <code class="docutils literal notranslate"><span class="pre">tos://bucket/key</span></code>, the same as <code class="docutils literal notranslate"><span class="pre">s3+tos://bucket/key</span></code>.</p>
