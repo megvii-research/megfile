@@ -12,7 +12,7 @@ from megfile.config import (
     READER_BLOCK_SIZE,
     READER_MAX_BUFFER_SIZE,
 )
-from megfile.errors import _create_missing_ok_generator, raise_hdfs_error
+from megfile.errors import SameFileError, _create_missing_ok_generator, raise_hdfs_error
 from megfile.interfaces import ContextIterator, FileEntry, PathLike, StatResult, URIPath
 from megfile.lib.compat import fspath
 from megfile.lib.glob import FSFunc, iglob
@@ -375,17 +375,21 @@ class HdfsPath(URIPath):
         with raise_hdfs_error(self.path_with_protocol):
             self._client.makedirs(self.path_without_protocol, permission=mode)
 
-    def rename(
-        self, dst_path: PathLike, overwrite: bool = True, recursive: bool = True
-    ) -> "HdfsPath":
+    def rename(self, dst_path: PathLike, recursive: bool = True) -> "HdfsPath":
         """
         Move hdfs file path from src_path to dst_path
 
         :param dst_path: Given destination path
-        :param overwrite: whether or not overwrite file when exists
         :param recursive: whether or not rename directory recursively
         """
         dst_path = self.from_path(dst_path)
+        if self.path_without_protocol.rstrip(
+            "/"
+        ) == dst_path.path_without_protocol.rstrip("/"):
+            raise SameFileError(
+                "%r and %r are the same file"
+                % (self.path_with_protocol, dst_path.path_with_protocol)
+            )
         src_stat = self.stat()
         if src_stat.is_dir():
             if not recursive:
@@ -393,27 +397,24 @@ class HdfsPath(URIPath):
             for filename in self.iterdir():
                 filename.rename(
                     dst_path.joinpath(filename.relative_to(self.path_with_protocol)),
-                    overwrite=overwrite,
                     recursive=recursive,
                 )
         else:
-            if overwrite:
-                dst_path.remove(missing_ok=True)
-            if overwrite or not dst_path.exists():
-                with raise_hdfs_error(self.path_with_protocol):
-                    self._client.rename(
-                        self.path_without_protocol, dst_path.path_without_protocol
-                    )
+            dst_path.remove(missing_ok=True)
+            with raise_hdfs_error(self.path_with_protocol):
+                self._client.rename(
+                    self.path_without_protocol, dst_path.path_without_protocol
+                )
         self.remove(missing_ok=True)
         return dst_path
 
-    def move(self, dst_path: PathLike, overwrite: bool = True) -> None:
+    def move(self, dst_path: PathLike) -> None:
         """
         Move file/directory path from src_path to dst_path
 
         :param dst_path: Given destination path
         """
-        self.rename(dst_path=dst_path, overwrite=overwrite, recursive=True)
+        self.rename(dst_path=dst_path, recursive=True)
 
     def remove(self, missing_ok: bool = False) -> None:
         """

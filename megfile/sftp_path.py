@@ -921,14 +921,11 @@ class SftpPath(URIPath):
     def _is_same_protocol(self, path):
         return is_sftp(path)
 
-    def rename(
-        self, dst_path: PathLike, overwrite: bool = True, recursive: bool = True
-    ) -> "SftpPath":
+    def rename(self, dst_path: PathLike, recursive: bool = True) -> "SftpPath":
         """
         rename file on sftp
 
         :param dst_path: Given destination path
-        :param overwrite: whether or not overwrite file when exists
         :param recursive: whether or not rename directory recursively
         """
         if not self._is_same_protocol(dst_path):
@@ -941,40 +938,36 @@ class SftpPath(URIPath):
             raise IsADirectoryError("Is a directory: %r" % self.path_with_protocol)
 
         if self._is_same_backend(dst_path):
-            if overwrite:
-                dst_path.remove(missing_ok=True)
-                self._client.rename(self._real_path, dst_path._real_path)
-            else:
-                self.sync(dst_path, overwrite=overwrite)
-                self.remove(missing_ok=True)
+            if self._real_path.rstrip("/") == dst_path._real_path.rstrip("/"):
+                raise SameFileError(
+                    "%r and %r are the same file"
+                    % (self.path_with_protocol, dst_path.path_with_protocol)
+                )
+            dst_path.remove(missing_ok=True)
+            self._client.rename(self._real_path, dst_path._real_path)
         else:
             if src_stat.is_dir():
                 for file_entry in self.scandir():
                     self.from_path(file_entry.path).rename(
                         dst_path.joinpath(file_entry.name),
-                        overwrite=overwrite,
                         recursive=recursive,
                     )
                 self._client.rmdir(self._real_path)
             else:
-                if overwrite or not dst_path.exists():
-                    with self.open("rb") as fsrc:
-                        with dst_path.open("wb") as fdst:
-                            copyfileobj(fsrc, fdst)
+                self.copy(dst_path)
                 self.unlink()
 
         dst_path.utime(src_stat.st_atime, src_stat.st_mtime)
         dst_path.chmod(src_stat.st_mode)
         return dst_path
 
-    def replace(self, dst_path: PathLike, overwrite: bool = True) -> "SftpPath":
+    def replace(self, dst_path: PathLike) -> "SftpPath":
         """
         move file on sftp
 
         :param dst_path: Given destination path
-        :param overwrite: whether or not overwrite file when exists
         """
-        return self.rename(dst_path=dst_path, overwrite=overwrite)
+        return self.rename(dst_path=dst_path)
 
     def remove(self, missing_ok: bool = False) -> None:
         """

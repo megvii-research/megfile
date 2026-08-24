@@ -564,7 +564,6 @@ def fs_lstat(path: PathLike) -> StatResult:
 def fs_rename(
     src_path: PathLike,
     dst_path: PathLike,
-    overwrite: bool = True,
     recursive: bool = True,
 ) -> None:
     """
@@ -572,21 +571,19 @@ def fs_rename(
 
     :param src_path: Given path
     :param dst_path: Given destination path
-    :param overwrite: whether or not overwrite file when exists
     :param recursive: whether or not rename directory recursively
     """
-    FSPath(src_path).rename(dst_path, overwrite=overwrite, recursive=recursive)
+    FSPath(src_path).rename(dst_path, recursive=recursive)
 
 
-def fs_move(src_path: PathLike, dst_path: PathLike, overwrite: bool = True) -> None:
+def fs_move(src_path: PathLike, dst_path: PathLike) -> None:
     """
     rename file on fs
 
     :param src_path: Given path
     :param dst_path: Given destination path
-    :param overwrite: whether or not overwrite file when exists
     """
-    return fs_rename(src_path, dst_path, overwrite=overwrite)
+    return fs_rename(src_path, dst_path)
 
 
 def fs_open(path: PathLike, mode: str = "r", **kwargs) -> IO:
