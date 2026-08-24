@@ -393,3 +393,59 @@ def test__patch_make_request(mocker):
         )
     )
     assert client._endpoint.status == "redirected"
+
+
+def test__patch_make_request_strip_auth_headers_on_cross_domain_redirect():
+    from botocore.awsrequest import AWSPreparedRequest, AWSResponse
+
+    from megfile.config import HTTP_AUTH_HEADERS
+
+    class FakeEndpoint:
+        def __init__(self):
+            self.status = "start"
+
+        def _send(self, request):
+            if self.status == "start":
+                self.status = "redirected"
+                return AWSResponse(
+                    url="http://proxy",
+                    status_code=301,
+                    headers={"Location": "http://real/path"},
+                    raw=b"",
+                )
+            return AWSResponse(
+                url="http://real/path",
+                status_code=200,
+                headers={},
+                raw=b"",
+            )
+
+    class FakeClient:
+        def __init__(self):
+            self._endpoint = FakeEndpoint()
+
+        def _make_request(self, operation_model, request_dict, request_context):
+            return None
+
+    client = _patch_make_request(FakeClient(), redirect=True)
+
+    request = AWSPreparedRequest(
+        method="GET",
+        url="http://proxy",
+        headers={
+            "Authorization": "AWS4-HMAC-SHA256 Credential=...",
+            "Proxy-Authorization": "Basic cHJveHk6cGFzcw==",
+            "Proxy-Authenticate": "Basic realm=proxy",
+            "X-Amz-Security-Token": "token",
+            "X-Amz-Date": "20260821T000000Z",
+        },
+        body=b"",
+        stream_output=b"",
+    )
+    response = client._endpoint._send(request)
+
+    assert response.status_code == 200
+    assert request.url == "http://real/path"
+    for name in HTTP_AUTH_HEADERS:
+        assert name not in request.headers
+    assert request.headers["X-Amz-Date"] == "20260821T000000Z"
