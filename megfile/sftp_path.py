@@ -9,7 +9,7 @@ import socket
 import subprocess  # nosec B404
 from functools import cached_property
 from logging import getLogger as get_logger
-from stat import S_ISDIR, S_ISLNK, S_ISREG
+from stat import S_ISDIR, S_ISLNK
 from typing import IO, BinaryIO, Callable, Iterator, List, Optional, Tuple, Type, Union
 from urllib.parse import urlsplit, urlunsplit
 
@@ -71,8 +71,8 @@ def get_private_key():
         private_key_path = os.getenv(SFTP_PRIVATE_KEY_PATH)
         if not os.path.exists(private_key_path):
             raise FileNotFoundError(
-                "Private key file not exist, "
-                f"path:{private_key_path}, env:'{SFTP_PRIVATE_KEY_PATH}'"
+                "Private key file not exist, path:%r, env:%r"
+                % (private_key_path, SFTP_PRIVATE_KEY_PATH)
             )
         return key_with_types[key_type].from_private_key_file(
             private_key_path, password=os.getenv(SFTP_PRIVATE_KEY_PASSWORD)
@@ -430,7 +430,7 @@ def sftp_concat(src_paths: List[PathLike], dst_path: PathLike) -> None:
     exec_result = dst_path_obj._exec_command(command)
     if exec_result.returncode != 0:
         _logger.error(exec_result.stderr)
-        raise OSError(f"Failed to concat {src_paths} to {dst_path}")
+        raise OSError("Failed to concat %r to %r" % (src_paths, dst_path))
 
 
 def sftp_copy(
@@ -477,9 +477,9 @@ def sftp_download(
     from megfile.fs_path import FSPath, is_fs
 
     if not is_fs(dst_url):
-        raise OSError(f"dst_url is not fs path: {dst_url}")
+        raise OSError("dst_url is not fs path: %r" % dst_url)
     if not is_sftp(src_url) and not isinstance(src_url, SftpPath):
-        raise OSError(f"src_url is not sftp path: {src_url}")
+        raise OSError("src_url is not sftp path: %r" % src_url)
 
     dst_path = FSPath(dst_url)
     if not overwrite and dst_path.exists():
@@ -536,9 +536,9 @@ def sftp_upload(
     from megfile.fs_path import FSPath, is_fs
 
     if not is_fs(src_url):
-        raise OSError(f"src_url is not fs path: {src_url}")
+        raise OSError("src_url is not fs path: %r" % src_url)
     if not is_sftp(dst_url) and not isinstance(dst_url, SftpPath):
-        raise OSError(f"dst_url is not sftp path: {dst_url}")
+        raise OSError("dst_url is not sftp path: %r" % dst_url)
 
     if followlinks and os.path.islink(src_url):
         src_url = os.readlink(src_url)
@@ -831,8 +831,7 @@ class SftpPath(URIPath):
         """
         try:
             stat = self.stat(follow_symlinks=followlinks)
-            if S_ISREG(stat.st_mode):
-                return True
+            return stat.is_file()
         except FileNotFoundError:
             pass
         return False
@@ -884,7 +883,7 @@ class SftpPath(URIPath):
         """
         if self.exists():
             if not exist_ok:
-                raise FileExistsError(f"File exists: '{self.path_with_protocol}'")
+                raise FileExistsError("File exists: %r" % self.path_with_protocol)
             return
 
         if parents:
@@ -947,6 +946,7 @@ class SftpPath(URIPath):
             else:
                 self.sync(dst_path, overwrite=overwrite)
                 self.remove(missing_ok=True)
+            return dst_path
         else:
             if src_stat.is_dir():
                 for file_entry in self.scandir():
@@ -983,14 +983,73 @@ class SftpPath(URIPath):
         :param missing_ok: if False and target file/directory not exists,
             raise FileNotFoundError
         """
-        if missing_ok and not self.exists():
-            return
-        if self.is_dir():
-            for file_entry in self.scandir():
+        stat = self._stat_or_none(follow_symlinks=False)
+        if stat is None:
+            if missing_ok:
+                return
+            raise FileNotFoundError("No such file: %r" % self.path_with_protocol)
+        if stat.is_dir():
+            for file_entry in self._scandir_with_stat(stat):
                 self.from_path(file_entry.path).remove(missing_ok=missing_ok)
             self._client.rmdir(self._real_path)
         else:
             self._client.unlink(self._real_path)
+
+    def _scandir_with_stat(
+        self, stat: StatResult, follow_root_symlink: bool = False
+    ) -> ContextIterator:
+        """
+        Get all content of a known existing path.
+        """
+        real_path = self._real_path
+        if stat.is_symlink():
+            if follow_root_symlink:
+                stat = self.stat(follow_symlinks=True)
+            else:
+                raise NotADirectoryError(
+                    "Not a directory: %r" % self.path_with_protocol
+                )
+        if not stat.is_dir():
+            raise NotADirectoryError("Not a directory: %r" % self.path_with_protocol)
+
+        def create_generator():
+            for name in self._client.listdir(real_path):
+                current_path = self.joinpath(name)
+                yield FileEntry(
+                    current_path.name,
+                    current_path.path_with_protocol,
+                    current_path.lstat(),
+                )
+
+        return ContextIterator(create_generator())
+
+    def _scan_stat_with_stat(
+        self, stat: StatResult, missing_ok: bool, followlinks: bool
+    ) -> Iterator[FileEntry]:
+        if stat.is_file():
+            yield FileEntry(
+                self.name,
+                self.path_with_protocol,
+                stat,
+            )
+            return
+
+        with self._scandir_with_stat(stat) as entries:
+            entries = list(entries)
+        for entry in sorted(entries, key=lambda entry: entry.name):
+            current_path = self.from_path(entry.path)
+            if followlinks and entry.is_symlink():
+                entry = FileEntry(
+                    entry.name,
+                    entry.path,
+                    current_path.stat(follow_symlinks=True),
+                )
+            if entry.is_dir():
+                yield from current_path._scan_stat_with_stat(
+                    entry.stat, missing_ok=missing_ok, followlinks=followlinks
+                )
+            else:
+                yield entry
 
     def scan(self, missing_ok: bool = True, followlinks: bool = False) -> Iterator[str]:
         """
@@ -1023,30 +1082,14 @@ class SftpPath(URIPath):
         """
 
         def create_generator() -> Iterator[FileEntry]:
-            try:
-                stat = self.stat(follow_symlinks=followlinks)
-            except FileNotFoundError:
+            stat = self._stat_or_none(follow_symlinks=followlinks)
+            if stat is None:
                 return
-            if S_ISREG(stat.st_mode):
-                yield FileEntry(
-                    self.name,
-                    self.path_with_protocol,
-                    self.stat(follow_symlinks=followlinks),
-                )
-                return
-
-            for name in self.listdir():
-                current_path = self.joinpath(name)
-                if current_path.is_dir():
-                    yield from current_path.scan_stat(
-                        missing_ok=missing_ok, followlinks=followlinks
-                    )
-                else:
-                    yield FileEntry(
-                        current_path.name,
-                        current_path.path_with_protocol,
-                        current_path.stat(follow_symlinks=followlinks),
-                    )
+            if stat.is_symlink() and not followlinks:
+                stat = self._stat_or_none(follow_symlinks=True)
+                if stat is None:
+                    return
+            yield from self._scan_stat_with_stat(stat, missing_ok, followlinks)
 
         return _create_missing_ok_generator(
             create_generator(),
@@ -1062,23 +1105,8 @@ class SftpPath(URIPath):
 
         :returns: An iterator contains all contents have prefix path
         """
-        real_path = self._real_path
         stat = self.stat(follow_symlinks=False)
-        if stat.is_symlink():
-            real_path = self.readlink()._real_path
-        elif not stat.is_dir():
-            raise NotADirectoryError(f"Not a directory: '{self.path_with_protocol}'")
-
-        def create_generator():
-            for name in self._client.listdir(real_path):
-                current_path = self.joinpath(name)
-                yield FileEntry(
-                    current_path.name,
-                    current_path.path_with_protocol,
-                    current_path.lstat(),
-                )
-
-        return ContextIterator(create_generator())
+        return self._scandir_with_stat(stat, follow_root_symlink=True)
 
     def stat(self, follow_symlinks=True) -> StatResult:
         """
@@ -1099,8 +1127,13 @@ class SftpPath(URIPath):
 
         :param missing_ok: if False and target file not exists, raise FileNotFoundError
         """
-        if missing_ok and not self.exists():
-            return
+        stat = self._stat_or_none(follow_symlinks=False)
+        if stat is None:
+            if missing_ok:
+                return
+            raise FileNotFoundError("No such file: %r" % self.path_with_protocol)
+        if stat.is_dir():
+            raise IsADirectoryError("Is a directory: %r" % self.path_with_protocol)
         self._client.unlink(self._real_path)
 
     def walk(
@@ -1129,31 +1162,40 @@ class SftpPath(URIPath):
         :param followlinks: False if regard symlink as file, else True
         :returns: A 3-tuple generator
         """
-        if not self.exists(followlinks=followlinks):
+        stat = self._stat_or_none(follow_symlinks=followlinks)
+        if stat is not None and stat.is_symlink() and not followlinks:
+            stat = self._stat_or_none(follow_symlinks=True)
+        if stat is None or stat.is_file():
             return
 
-        if self.is_file(followlinks=followlinks):
-            return
-
-        stack = [self._real_path]
+        stack = [(self, stat)]
         while stack:
-            root = stack.pop()
+            root_path, root_stat = stack.pop()
             dirs, files = [], []
-            filenames = self._client.listdir(root)
-            for name in filenames:
-                current_path = self._generate_path_object(root).joinpath(name)
-                if current_path.is_file(followlinks=followlinks):
-                    files.append(name)
-                elif current_path.is_dir(followlinks=followlinks):
-                    dirs.append(name)
+            child_stats = {}
+            with root_path._scandir_with_stat(root_stat) as entries:
+                for entry in entries:
+                    if followlinks and entry.is_symlink():
+                        current_path = root_path.joinpath(entry.name)
+                        entry = FileEntry(
+                            entry.name,
+                            entry.path,
+                            current_path.stat(follow_symlinks=True),
+                        )
+                    if entry.is_dir():
+                        dirs.append(entry.name)
+                        child_stats[entry.name] = entry.stat
+                    elif entry.is_file():
+                        files.append(entry.name)
 
             dirs = sorted(dirs)
             files = sorted(files)
 
-            yield self._generate_path_object(root).path_with_protocol, dirs, files
+            yield root_path.path_with_protocol, dirs, files
 
             stack.extend(
-                (os.path.join(root, directory) for directory in reversed(dirs))
+                (root_path.joinpath(directory), child_stats[directory])
+                for directory in reversed(dirs)
             )
 
     def resolve(self, strict=False) -> "SftpPath":
@@ -1198,7 +1240,7 @@ class SftpPath(URIPath):
         """
         dst_path = self.from_path(dst_path)
         if dst_path.exists(followlinks=False):
-            raise FileExistsError(f"File exists: '{dst_path.path_with_protocol}'")
+            raise FileExistsError("File exists: %r" % dst_path.path_with_protocol)
         return self._client.symlink(self._real_path, dst_path._real_path)
 
     def readlink(self) -> "SftpPath":
@@ -1207,10 +1249,10 @@ class SftpPath(URIPath):
         which the symbolic link points.
         """
         if not self.is_symlink():
-            raise OSError("Not a symlink: %s" % self.path_with_protocol)
+            raise OSError("Not a symlink: %r" % self.path_with_protocol)
         path = self._client.readlink(self._real_path)
         if not path:
-            raise OSError("Not a symlink: %s" % self.path_with_protocol)
+            raise OSError("Not a symlink: %r" % self.path_with_protocol)
         if not path.startswith("/"):
             return self.parent.joinpath(path)
         return self._generate_path_object(path)
@@ -1260,12 +1302,18 @@ class SftpPath(URIPath):
             decoding errors are to be handled—this cannot be used in binary mode.
         :returns: File-Like object
         """
+        stat = self._stat_or_none(follow_symlinks=False)
+        if stat is not None and stat.is_symlink():
+            stat = self._stat_or_none(follow_symlinks=True)
         if "w" in mode or "x" in mode or "a" in mode:
-            if self.is_dir():
+            if stat is not None and stat.is_dir():
                 raise IsADirectoryError("Is a directory: %r" % self.path_with_protocol)
             self.parent.mkdir(parents=True, exist_ok=True)
-        elif not self.exists():
-            raise FileNotFoundError("No such file: %r" % self.path_with_protocol)
+        else:
+            if stat is None:
+                raise FileNotFoundError("No such file: %r" % self.path_with_protocol)
+            if stat.is_dir():
+                raise IsADirectoryError("Is a directory: %r" % self.path_with_protocol)
 
         if atomic and mode not in ("r", "rb"):
             fs_func = FSFuncForAtomic(
@@ -1314,8 +1362,8 @@ class SftpPath(URIPath):
         """
         Remove this directory. The directory must be empty.
         """
-        if len(self.listdir()) > 0:
-            raise OSError(f"Directory not empty: '{self.path_with_protocol}'")
+        if len(self._client.listdir(self._real_path)) > 0:
+            raise OSError("Directory not empty: %r" % self.path_with_protocol)
         return self._client.rmdir(self._real_path)
 
     def _exec_command(
@@ -1368,14 +1416,19 @@ class SftpPath(URIPath):
         :raises OSError: If there is an error copying the file.
         """
         if followlinks and self.is_symlink():
-            return self.readlink().copy(dst_path=dst_path, callback=callback)
+            return self.readlink().copy(
+                dst_path=dst_path,
+                callback=callback,
+                overwrite=overwrite,
+            )
 
         if not self._is_same_protocol(dst_path):
             raise OSError("Not a %s path: %r" % (self.protocol, dst_path))
         if str(dst_path).endswith("/"):
             raise IsADirectoryError("Is a directory: %r" % dst_path)
 
-        if self.is_dir():
+        src_stat = self.stat(follow_symlinks=followlinks)
+        if src_stat.is_dir():
             raise IsADirectoryError("Is a directory: %r" % self.path_with_protocol)
 
         if not overwrite and self.from_path(dst_path).exists():
@@ -1386,7 +1439,7 @@ class SftpPath(URIPath):
         if self._is_same_backend(dst_path):
             if self._real_path == dst_path._real_path:
                 raise SameFileError(
-                    f"'{self.path}' and '{dst_path.path}' are the same file"
+                    "%r and %r are the same file" % (self.path, dst_path.path)
                 )
             exec_result = self._exec_command(
                 ["cp", self._real_path, dst_path._real_path]
@@ -1395,13 +1448,14 @@ class SftpPath(URIPath):
                 _logger.error(exec_result.stderr)
                 raise OSError(f"Copy file error, returncode: {exec_result.returncode}")
             if callback:
-                callback(self.stat(follow_symlinks=followlinks).size)
+                callback(src_stat.size)
         else:
             with self.open("rb") as fsrc:
                 with dst_path.open("wb") as fdst:
                     copyfileobj(fsrc, fdst, callback)
 
-        src_stat = self.stat()
+        if src_stat.is_symlink():
+            src_stat = self.stat()
         dst_path.utime(src_stat.st_atime, src_stat.st_mtime)
         dst_path.chmod(src_stat.st_mode)
 
@@ -1429,12 +1483,13 @@ class SftpPath(URIPath):
             dst_path = self.from_path(dst_file_path)
             src_path = self.from_path(src_file_path)
 
+            dst_stat = dst_path._stat_or_none(follow_symlinks=False)
             if force:
                 pass
-            elif not overwrite and dst_path.exists():
+            elif not overwrite and dst_stat is not None:
                 continue
-            elif dst_path.exists() and is_same_file(
-                src_path.stat(), dst_path.stat(), "copy"
+            elif dst_stat is not None and is_same_file(
+                src_path.stat(), dst_stat, "copy"
             ):
                 continue
 
