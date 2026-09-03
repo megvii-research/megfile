@@ -235,7 +235,7 @@ def test_s3_buffered_writer_write_multipart_autoscale(client, mocker):
     assert put_object_func.call_count == 0
     create_multipart_upload_func.assert_called_once_with(Bucket=BUCKET, Key=KEY)
 
-    assert upload_part_func.call_count == 16
+    assert upload_part_func.call_count == 21
 
     complete_multipart_upload_func.assert_called_once_with(
         Bucket=BUCKET,
@@ -258,13 +258,19 @@ def test_s3_buffered_writer_autoscale_block_size(client, mocker):
     ) as writer:
         writer._block_autoscale = True
 
-        writer._part_number = 999
+        writer._part_number = 1279
+        assert writer._block_size == 1
+
+        writer._part_number = 1280
         assert writer._block_size == 4
 
-        writer._part_number = 9999
-        assert writer._block_size == 8
+        writer._part_number = 2559
+        assert writer._block_size == 4
 
-        writer._part_number = 10000
+        writer._part_number = 2560
+        assert writer._block_size == 12
+
+        writer._part_number = 9999
         assert writer._block_size == 12
 
         writer._block_autoscale = False
