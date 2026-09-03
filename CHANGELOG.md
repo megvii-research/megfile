@@ -1,3 +1,9 @@
+## 5.0.17 - 2026.09.03
+- feat
+    - Redesign S3 writer block autoscaling to preserve upload concurrency for 8–10 GiB streams and raise the autoscale ceiling
+- fix
+    - Strip proxy authentication headers from S3 requests on cross-domain redirects
+
 ## 5.0.16 - 2026.08.21
 - feat
     - support defining aliases via `MEGFILE_ALIASES__` environment variables
