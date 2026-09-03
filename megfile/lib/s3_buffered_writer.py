@@ -42,6 +42,7 @@ class S3BufferedWriter(Writable[bytes]):
     # Multi-upload part size must be between 5 MiB and 5 GiB.
     # There is no minimum size limit on the last part of your multipart upload.
     MIN_BLOCK_SIZE = 8 * 2**20
+    MAX_BLOCK_SIZE = 5 * 2**30
 
     def __init__(
         self,
@@ -115,15 +116,25 @@ class S3BufferedWriter(Writable[bytes]):
     @property
     def _block_size(self) -> int:
         if self._block_autoscale:
-            if self._part_number < 10:
+            # Growth starts at part 1280 (~10GiB at the 8MiB default), so
+            # 8-10GiB streams keep the base block size end to end instead of
+            # collapsing per-file concurrency (max_buffer_size / block_size)
+            # from part 10 (~80MiB). Tiers are x1/x4/x16; capping at x16
+            # keeps peak memory at ~2x block (~256MiB at the 8MiB default)
+            # while raising the autoscale ceiling from ~592GiB to ~980GiB.
+            if self._part_number < 1280:
                 return self._base_block_size
-            elif self._part_number < 100:
-                return min(self._base_block_size * 2, self._max_buffer_size)
-            elif self._part_number < 1000:
-                return min(self._base_block_size * 4, self._max_buffer_size)
-            elif self._part_number < 10000:
-                return min(self._base_block_size * 8, self._max_buffer_size)
-            return min(self._base_block_size * 16, self._max_buffer_size)  # unreachable
+            elif self._part_number < 2560:
+                return min(
+                    self._base_block_size * 4,
+                    self._max_buffer_size,
+                    self.MAX_BLOCK_SIZE,
+                )
+            return min(
+                self._base_block_size * 16,
+                self._max_buffer_size,
+                self.MAX_BLOCK_SIZE,
+            )
         return self._base_block_size
 
     @property
