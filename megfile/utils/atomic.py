@@ -1,6 +1,8 @@
+import os
 import typing as T
 from io import TextIOWrapper
 from logging import getLogger
+from uuid import uuid4
 
 from megfile.interfaces import FileLike
 
@@ -38,7 +40,8 @@ class WrapAtomic(FileLike):
 
         self._path = path
         self._mode = mode
-        self._temp_path = self._path + ".temp"
+        _dir, _base = os.path.split(self._path)
+        self._temp_path = os.path.join(_dir, f".{_base}.{uuid4().hex[:8]}.temp")
 
         if self._should_copy():
             self.fs_func.copy(self._path, self._temp_path)
