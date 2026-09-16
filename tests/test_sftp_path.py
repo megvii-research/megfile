@@ -331,7 +331,12 @@ def test_sftp_open_atomic_write_new_file(sftp_mocker):
     assert path.exists() is True
     with path.open("r") as f:
         assert f.read() == "hello atomic"
-    assert SftpPath(path.path_with_protocol + ".temp").exists() is False
+    temp_files = [
+        name
+        for name in path.parent.listdir()
+        if name.startswith(f".{path.name}.") and name.endswith(".temp")
+    ]
+    assert temp_files == []
 
 
 def test_sftp_open_atomic_overwrite_and_abort(sftp_mocker):
@@ -353,4 +358,9 @@ def test_sftp_open_atomic_overwrite_and_abort(sftp_mocker):
 
     with path.open("r") as f:
         assert f.read() == "updated content"
-    assert SftpPath(path.path_with_protocol + ".temp").exists() is False
+    temp_files = [
+        name
+        for name in path.parent.listdir()
+        if name.startswith(f".{path.name}.") and name.endswith(".temp")
+    ]
+    assert temp_files == []
