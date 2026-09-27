@@ -625,41 +625,37 @@ def smart_remove(path: PathLike, missing_ok: bool = False) -> None:
     SmartPath(path).remove(missing_ok=missing_ok)
 
 
-def smart_rename(
-    src_path: PathLike, dst_path: PathLike, overwrite: bool = True
-) -> None:
+def smart_rename(src_path: PathLike, dst_path: PathLike) -> None:
     """
     Move file on s3 or fs. `s3://` or `s3://bucket` is not allowed to move
 
     :param src_path: Given source path
     :param dst_path: Given destination path
-    :param overwrite: whether or not overwrite file when exists
     """
     src_protocol = SmartPath._extract_protocol(src_path)
     dst_protocol = SmartPath._extract_protocol(dst_path)
     if src_protocol == dst_protocol:
-        SmartPath(src_path).rename(dst_path, overwrite=overwrite, recursive=False)
+        SmartPath(src_path).rename(dst_path, recursive=False)
         return
     if smart_isdir(src_path):
         raise IsADirectoryError("%r is a directory" % src_path)
-    smart_copy(src_path, dst_path, overwrite=overwrite)
+    smart_copy(src_path, dst_path)
     smart_unlink(src_path)
 
 
-def smart_move(src_path: PathLike, dst_path: PathLike, overwrite: bool = True) -> None:
+def smart_move(src_path: PathLike, dst_path: PathLike) -> None:
     """
     Move file/directory on s3 or fs. `s3://` or `s3://bucket` is not allowed to move
 
     :param src_path: Given source path
     :param dst_path: Given destination path
-    :param overwrite: whether or not overwrite file when exists
     """
     src_protocol = SmartPath._extract_protocol(src_path)
     dst_protocol = SmartPath._extract_protocol(dst_path)
     if src_protocol == dst_protocol:
-        SmartPath(src_path).rename(dst_path, overwrite=overwrite, recursive=True)
+        SmartPath(src_path).rename(dst_path, recursive=True)
         return
-    smart_sync(src_path, dst_path, followlinks=True, overwrite=overwrite)
+    smart_sync(src_path, dst_path, followlinks=True)
     smart_remove(src_path)
 
 

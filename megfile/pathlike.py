@@ -729,26 +729,23 @@ class BasePath:
     def rename(
         self: Self,
         dst_path: "PathLike",
-        overwrite: bool = True,
         recursive: bool = True,
     ) -> Self:
         """
         rename file
 
         :param dst_path: Given destination path
-        :param overwrite: whether or not overwrite file when exists
         :param recursive: whether or not rename directory recursively
         """
         raise NotImplementedError(f"'rename' is unsupported on '{type(self)}'")
 
-    def replace(self: Self, dst_path: "PathLike", overwrite: bool = True) -> Self:
+    def replace(self: Self, dst_path: "PathLike") -> Self:
         """
         move file
 
         :param dst_path: Given destination path
-        :param overwrite: whether or not overwrite file when exists
         """
-        return self.rename(dst_path=dst_path, overwrite=overwrite)
+        return self.rename(dst_path=dst_path)
 
     def md5(self, recalculate: bool = False, followlinks: bool = False) -> str:
         raise NotImplementedError(f"'md5' is unsupported on '{type(self)}'")

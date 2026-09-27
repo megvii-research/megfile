@@ -7,6 +7,7 @@ from typing import List
 
 import pytest
 
+from megfile.errors import SameFileError
 from tests.compat import sftp2
 
 
@@ -454,6 +455,12 @@ def test_sftp2_rename(sftp2_mocker):
     with sftp2.sftp2_open("sftp2://username@host/A/test", "w") as f:
         f.write("test")
 
+    with pytest.raises(SameFileError):
+        sftp2.sftp2_rename(
+            "sftp2://username@host/A/test", "sftp2://username@host/A/test"
+        )
+    assert sftp2.sftp2_exists("sftp2://username@host/A/test") is True
+
     sftp2.sftp2_rename("sftp2://username@host/A/test", "sftp2://username@host/A/test2")
     assert sftp2.sftp2_exists("sftp2://username@host/A/test") is False
     assert sftp2.sftp2_exists("sftp2://username@host/A/test2") is True
@@ -738,9 +745,7 @@ def test_sftp2_rename_different_backend(sftp2_mocker):
 
     # When renaming between different backends, it should copy and delete
     # This is simulated by the mock, but tests the code path
-    sftp2.sftp2_rename(
-        "sftp2://username@host/A/test", "sftp2://username@host/B/test", overwrite=True
-    )
+    sftp2.sftp2_rename("sftp2://username@host/A/test", "sftp2://username@host/B/test")
     assert sftp2.sftp2_exists("sftp2://username@host/B/test") is True
     assert sftp2.sftp2_exists("sftp2://username@host/A/test") is False
 
@@ -876,7 +881,7 @@ def test_sftp2_rename_cross_backend(sftp2_mocker):
 
     # Rename file to different location (same backend)
     Sftp2Path("sftp2://username@host/src/file.txt").rename(
-        "sftp2://username@host/dst/file.txt", overwrite=True
+        "sftp2://username@host/dst/file.txt"
     )
 
     assert sftp2.sftp2_exists("sftp2://username@host/dst/file.txt") is True

@@ -636,9 +636,7 @@ class Sftp2Path(URIPath):
     def _is_same_protocol(self, path):
         return is_sftp2(path)
 
-    def rename(
-        self, dst_path: PathLike, overwrite: bool = True, recursive: bool = True
-    ) -> "Sftp2Path":
+    def rename(self, dst_path: PathLike, recursive: bool = True) -> "Sftp2Path":
         """Rename file on sftp2"""
         if not self._is_same_protocol(dst_path):
             raise OSError(f"Not a {self.protocol} path: {dst_path!r}")
@@ -649,35 +647,32 @@ class Sftp2Path(URIPath):
             raise IsADirectoryError("Is a directory: %r" % self.path_with_protocol)
 
         if self._is_same_backend(dst_path):
-            if overwrite:
-                dst_path.remove(missing_ok=True)
-                self._client.rename(self._remote_path, dst_path._remote_path)
-            else:
-                self.sync(dst_path, overwrite=overwrite)
-                self.remove(missing_ok=True)
+            if self._remote_path.rstrip("/") == dst_path._remote_path.rstrip("/"):
+                raise SameFileError(
+                    "%r and %r are the same file"
+                    % (self.path_with_protocol, dst_path.path_with_protocol)
+                )
+            dst_path.remove(missing_ok=True)
+            self._client.rename(self._remote_path, dst_path._remote_path)
         else:
             if src_stat.is_dir():
                 for file_entry in self.scandir():
                     self.from_path(file_entry.path).rename(
                         dst_path.joinpath(file_entry.name),
-                        overwrite=overwrite,
                         recursive=recursive,
                     )
                 self._client.rmdir(self._remote_path)
             else:
-                if overwrite or not dst_path.exists():
-                    with self.open("rb") as fsrc:
-                        with dst_path.open("wb") as fdst:
-                            copyfileobj(fsrc, fdst)
+                self.copy(dst_path)
                 self.unlink()
 
         dst_path.utime(src_stat.st_atime, src_stat.st_mtime)
         dst_path.chmod(src_stat.st_mode)
         return dst_path
 
-    def replace(self, dst_path: PathLike, overwrite: bool = True) -> "Sftp2Path":
+    def replace(self, dst_path: PathLike) -> "Sftp2Path":
         """Move file on sftp2"""
-        return self.rename(dst_path=dst_path, overwrite=overwrite)
+        return self.rename(dst_path=dst_path)
 
     def remove(self, missing_ok: bool = False) -> None:
         """Remove the file or directory on sftp2"""

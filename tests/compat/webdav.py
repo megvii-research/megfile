@@ -339,7 +339,6 @@ def webdav_realpath(path: PathLike) -> str:
 def webdav_rename(
     src_path: PathLike,
     dst_path: PathLike,
-    overwrite: bool = True,
     recursive: bool = True,
 ) -> "WebdavPath":
     """
@@ -347,25 +346,19 @@ def webdav_rename(
 
     :param src_path: Given path
     :param dst_path: Given destination path
-    :param overwrite: whether or not overwrite file when exists
     :param recursive: whether or not rename directory recursively
     """
-    return WebdavPath(src_path).rename(
-        dst_path, overwrite=overwrite, recursive=recursive
-    )
+    return WebdavPath(src_path).rename(dst_path, recursive=recursive)
 
 
-def webdav_move(
-    src_path: PathLike, dst_path: PathLike, overwrite: bool = True
-) -> "WebdavPath":
+def webdav_move(src_path: PathLike, dst_path: PathLike) -> "WebdavPath":
     """
     Move file on WebDAV
 
     :param src_path: Given path
     :param dst_path: Given destination path
-    :param overwrite: whether or not overwrite file when exists
     """
-    return WebdavPath(src_path).replace(dst_path, overwrite=overwrite)
+    return WebdavPath(src_path).replace(dst_path)
 
 
 def webdav_remove(path: PathLike, missing_ok: bool = False) -> None:

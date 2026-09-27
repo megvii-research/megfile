@@ -495,7 +495,7 @@ def test_smart_move(mocker):
     funcA.return_value = None
     res = smart.smart_move("s3://bucket/a", "s3://bucket/b")
     assert res is None
-    funcA.assert_called_once_with("s3://bucket/b", overwrite=True, recursive=True)
+    funcA.assert_called_once_with("s3://bucket/b", recursive=True)
 
     res = smart.smart_move("/bucket/a", "/bucket/b")
     assert res is None
@@ -505,7 +505,7 @@ def test_smart_move(mocker):
     func_smart_remove = mocker.patch("megfile.smart.smart_remove")
     smart.smart_move("/bucket/a", "s3://bucket/b")
     func_smart_sync.assert_called_once_with(
-        "/bucket/a", "s3://bucket/b", followlinks=True, overwrite=True
+        "/bucket/a", "s3://bucket/b", followlinks=True
     )
     func_smart_remove.assert_called_once_with("/bucket/a")
 
@@ -516,7 +516,7 @@ def test_smart_rename(funcA, mocker):
     funcA.return_value = None
     res = smart.smart_rename("s3://bucket/a", "s3://bucket/b")
     assert res is None
-    funcA.assert_called_once_with("s3://bucket/b", overwrite=True, recursive=False)
+    funcA.assert_called_once_with("s3://bucket/b", recursive=False)
     smart_isdir.assert_not_called()
 
 
@@ -547,6 +547,30 @@ def test_smart_rename_fs(s3_empty_client, filesystem):
     smart.smart_rename("tmp_rename/src_copy", "s3://bucket/src_copy")
     assert smart.smart_exists("s3://bucket/src_copy")
     assert not smart.smart_exists("tmp_rename/src_copy")
+
+
+def test_smart_rename_cross_protocol_failure_keeps_source(mocker):
+    smart_isdir = mocker.patch("megfile.smart.smart_isdir", return_value=False)
+    smart_copy = mocker.patch("megfile.smart.smart_copy", side_effect=OSError)
+    smart_unlink = mocker.patch("megfile.smart.smart_unlink")
+
+    with pytest.raises(OSError):
+        smart.smart_rename("/bucket/a", "s3://bucket/a")
+
+    smart_isdir.assert_called_once_with("/bucket/a")
+    smart_copy.assert_called_once_with("/bucket/a", "s3://bucket/a")
+    smart_unlink.assert_not_called()
+
+
+def test_smart_move_cross_protocol_failure_keeps_source(mocker):
+    smart_sync = mocker.patch("megfile.smart.smart_sync", side_effect=OSError)
+    smart_remove = mocker.patch("megfile.smart.smart_remove")
+
+    with pytest.raises(OSError):
+        smart.smart_move("/bucket/a", "s3://bucket/a")
+
+    smart_sync.assert_called_once_with("/bucket/a", "s3://bucket/a", followlinks=True)
+    smart_remove.assert_not_called()
 
 
 @patch.object(SmartPath, "unlink")

@@ -494,7 +494,6 @@ def sftp2_realpath(path: PathLike) -> str:
 def sftp2_rename(
     src_path: PathLike,
     dst_path: PathLike,
-    overwrite: bool = True,
     recursive: bool = True,
 ) -> "Sftp2Path":
     """
@@ -502,25 +501,19 @@ def sftp2_rename(
 
     :param src_path: Given path
     :param dst_path: Given destination path
-    :param overwrite: whether or not overwrite file when exists
     :param recursive: whether or not rename directory recursively
     """
-    return Sftp2Path(src_path).rename(
-        dst_path, overwrite=overwrite, recursive=recursive
-    )
+    return Sftp2Path(src_path).rename(dst_path, recursive=recursive)
 
 
-def sftp2_move(
-    src_path: PathLike, dst_path: PathLike, overwrite: bool = True
-) -> "Sftp2Path":
+def sftp2_move(src_path: PathLike, dst_path: PathLike) -> "Sftp2Path":
     """
     move file on sftp2
 
     :param src_path: Given path
     :param dst_path: Given destination path
-    :param overwrite: whether or not overwrite file when exists
     """
-    return Sftp2Path(src_path).replace(dst_path, overwrite=overwrite)
+    return Sftp2Path(src_path).replace(dst_path)
 
 
 def sftp2_remove(path: PathLike, missing_ok: bool = False) -> None:

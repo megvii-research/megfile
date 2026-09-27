@@ -190,15 +190,14 @@ def s3_hasbucket(path: PathLike) -> bool:
     return S3Path(path).hasbucket()
 
 
-def s3_move(src_url: PathLike, dst_url: PathLike, overwrite: bool = True) -> None:
+def s3_move(src_url: PathLike, dst_url: PathLike) -> None:
     """
     Move file/directory path from src_url to dst_url
 
     :param src_url: Given path
     :param dst_url: Given destination path
-    :param overwrite: whether or not overwrite file when exists
     """
-    return S3Path(src_url).move(dst_url, overwrite=overwrite)
+    return S3Path(src_url).move(dst_url)
 
 
 def s3_remove(path: PathLike, missing_ok: bool = False) -> None:
@@ -417,17 +416,14 @@ def s3_readlink(path) -> str:
     return S3Path(path).readlink().path_with_protocol
 
 
-def s3_rename(
-    src_url: PathLike, dst_url: PathLike, overwrite: bool = True, recursive: bool = True
-) -> None:
+def s3_rename(src_url: PathLike, dst_url: PathLike, recursive: bool = True) -> None:
     """
     Move s3 file path from src_url to dst_url
 
     :param dst_url: Given destination path
-    :param overwrite: whether or not overwrite file when exists
     :param recursive: whether or not rename directory recursively
     """
-    S3Path(src_url).rename(dst_url, overwrite=overwrite, recursive=recursive)
+    S3Path(src_url).rename(dst_url, recursive=recursive)
 
 
 def s3_glob(

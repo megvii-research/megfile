@@ -364,14 +364,12 @@ def cp(
     "-T", "--no-target-directory", is_flag=True, help="treat dst_path as a normal file."
 )
 @click.option("-g", "--progress-bar", is_flag=True, help="Show progress bar.")
-@click.option("--skip", is_flag=True, help="Skip existed files.")
 def mv(
     src_path: str,
     dst_path: str,
     recursive: bool,
     no_target_directory: bool,
     progress_bar: bool,
-    skip: bool,
 ):
     if not no_target_directory and (dst_path.endswith("/") or smart_isdir(dst_path)):
         dst_path = smart_path_join(dst_path, os.path.basename(src_path))
@@ -386,21 +384,15 @@ def mv(
         if recursive:
             if src_protocol == dst_protocol:
                 with tqdm(total=1) as t:
-                    SmartPath(src_path).rename(
-                        dst_path, overwrite=not skip, recursive=True
-                    )
+                    SmartPath(src_path).rename(dst_path, recursive=True)
                     t.update(1)
             else:
-                smart_sync_with_progress(
-                    src_path, dst_path, followlinks=True, overwrite=not skip
-                )
+                smart_sync_with_progress(src_path, dst_path, followlinks=True)
                 smart_remove(src_path)
         else:
             if src_protocol == dst_protocol:
                 with tqdm(total=1) as t:
-                    SmartPath(src_path).rename(
-                        dst_path, overwrite=not skip, recursive=False
-                    )
+                    SmartPath(src_path).rename(dst_path, recursive=False)
                     t.update(1)
             else:
                 file_size = smart_stat(src_path).size
@@ -415,12 +407,12 @@ def mv(
                 def callback(length: int):
                     sbar.update(length)
 
-                smart_copy(src_path, dst_path, callback=callback, overwrite=not skip)
+                smart_copy(src_path, dst_path, callback=callback)
                 smart_unlink(src_path)
                 sbar.close()
     else:
         move_func = smart_move if recursive else smart_rename
-        move_func(src_path, dst_path, overwrite=not skip)
+        move_func(src_path, dst_path)
 
 
 @cli.command(short_help="Remove files from path.")
