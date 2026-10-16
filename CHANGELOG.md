@@ -1,3 +1,7 @@
+## 5.0.18 - 2026.10.16
+- fix
+    - Use unique temp paths in atomic write to avoid shared-inode races
+
 ## 5.0.17 - 2026.09.03
 - feat
     - Redesign S3 writer block autoscaling to preserve upload concurrency for 8–10 GiB streams and raise the autoscale ceiling
