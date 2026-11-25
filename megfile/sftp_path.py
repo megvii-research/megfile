@@ -3,10 +3,13 @@ import base64
 import hashlib
 import io
 import os
+import posixpath
 import random
 import shlex
 import socket
 import subprocess  # nosec B404
+import tempfile
+from contextlib import ExitStack
 from functools import cached_property
 from logging import getLogger as get_logger
 from stat import S_ISDIR, S_ISLNK, S_ISREG
@@ -20,6 +23,7 @@ from megfile.errors import SameFileError, _create_missing_ok_generator, patch_me
 from megfile.interfaces import ContextIterator, FileEntry, PathLike, StatResult
 from megfile.lib.compare import is_same_file
 from megfile.lib.compat import fspath
+from megfile.lib.compat.file_lock import file_lock
 from megfile.lib.glob import FSFunc, iglob
 from megfile.pathlike import URIPath
 from megfile.smart_path import SmartPath
@@ -205,8 +209,6 @@ def _get_ssh_client(
     password: Optional[str] = None,
     default_policy: Type[paramiko.MissingHostKeyPolicy] = paramiko.RejectPolicy,
 ) -> paramiko.SSHClient:
-    import fcntl
-
     hostname, port, username, password, private_key = provide_connect_info(
         hostname=hostname, port=port, username=username, password=password
     )
@@ -222,35 +224,30 @@ def _get_ssh_client(
     ssh_client.load_system_host_keys()
     ssh_client.set_missing_host_key_policy(policy)
     max_unauth_connections = int(os.getenv(SFTP_MAX_UNAUTH_CONN, 10))
-    try:
-        fd = os.open(
-            os.path.join(
-                "/tmp",  # nosec B108
-                f"megfile-sftp-{hostname}-{random.randint(1, max_unauth_connections)}",  # nosec B311
-            ),
-            os.O_WRONLY | os.O_CREAT | os.O_TRUNC,
+    slot = random.randint(1, max_unauth_connections)  # nosec B311
+    lock_name = f"megfile-sftp-{hostname.replace(':', '_')}-{slot}"
+    with ExitStack() as stack:
+        try:
+            fd = os.open(
+                os.path.join(tempfile.gettempdir(), lock_name),
+                os.O_WRONLY | os.O_CREAT,
+                0o600,
+            )
+        except OSError:
+            _logger.warning("Could not open SFTP connection lock", exc_info=True)
+        else:
+            stack.callback(os.close, fd)
+            stack.enter_context(file_lock(fd))
+        ssh_client.connect(
+            hostname=hostname,
+            port=port,
+            username=username,
+            password=password,
+            pkey=private_key,
+            timeout=DEFAULT_SSH_CONNECT_TIMEOUT,
+            auth_timeout=DEFAULT_SSH_CONNECT_TIMEOUT,
+            banner_timeout=DEFAULT_SSH_CONNECT_TIMEOUT,
         )
-    except Exception:  # pragma: no cover
-        _logger.warning(
-            "Can't create file lock in '/tmp', "
-            "please control the SFTP concurrency count by yourself."
-        )
-        fd = None
-    if fd:
-        fcntl.flock(fd, fcntl.LOCK_EX)
-    ssh_client.connect(
-        hostname=hostname,
-        port=port,
-        username=username,
-        password=password,
-        pkey=private_key,
-        timeout=DEFAULT_SSH_CONNECT_TIMEOUT,
-        auth_timeout=DEFAULT_SSH_CONNECT_TIMEOUT,
-        banner_timeout=DEFAULT_SSH_CONNECT_TIMEOUT,
-    )
-    if fd:
-        fcntl.flock(fd, fcntl.LOCK_UN)
-        os.close(fd)
     atexit.register(ssh_client.close)
     return ssh_client
 
@@ -494,7 +491,7 @@ def sftp_download(
         src_path = src_path.readlink()
     if src_path.is_dir():
         raise IsADirectoryError("Is a directory: %r" % src_url)
-    if str(dst_url).endswith("/"):
+    if str(dst_url).endswith(("/", os.sep)):
         raise IsADirectoryError("Is a directory: %r" % dst_url)
 
     dst_path.parent.makedirs(exist_ok=True)
@@ -598,7 +595,7 @@ class SftpPath(URIPath):
             self._root_dir = "/"
         else:
             self._root_dir = self._client.normalize(".")
-        self._real_path = os.path.join(self._root_dir, parts.path.lstrip("/"))
+        self._real_path = posixpath.join(self._root_dir, parts.path.lstrip("/"))
 
     @cached_property
     def parts(self) -> Tuple[str, ...]:
@@ -627,7 +624,7 @@ class SftpPath(URIPath):
         if resolve or self._root_dir == "/":
             sftp_local_path = f"//{sftp_local_path.lstrip('/')}"
         else:
-            sftp_local_path = os.path.relpath(sftp_local_path, start=self._root_dir)
+            sftp_local_path = posixpath.relpath(sftp_local_path, start=self._root_dir)
             if sftp_local_path == ".":
                 sftp_local_path = "/"
         new_parts = self._urlsplit_parts._replace(path=sftp_local_path)
@@ -787,7 +784,7 @@ class SftpPath(URIPath):
         def _is_dir(path: PathLike, followlinks: bool = False):
             return self.from_path(path).is_dir(followlinks=followlinks)
 
-        fs = FSFunc(_exist, _is_dir, _scandir)
+        fs = FSFunc(_exist, _is_dir, _scandir, posixpath)
         for real_path in _create_missing_ok_generator(
             iglob(fspath(glob_path), recursive=recursive, fs=fs),
             missing_ok=missing_ok,
@@ -1153,7 +1150,7 @@ class SftpPath(URIPath):
             yield self._generate_path_object(root).path_with_protocol, dirs, files
 
             stack.extend(
-                (os.path.join(root, directory) for directory in reversed(dirs))
+                (posixpath.join(root, directory) for directory in reversed(dirs))
             )
 
     def resolve(self, strict=False) -> "SftpPath":
@@ -1276,6 +1273,7 @@ class SftpPath(URIPath):
                     *args, **kwargs
                 ),
                 unlink=lambda path: self.from_path(path).unlink(),
+                path_ops=posixpath,
             )
             return WrapAtomic(
                 self.path_with_protocol,
@@ -1381,7 +1379,7 @@ class SftpPath(URIPath):
         if not overwrite and self.from_path(dst_path).exists():
             return
 
-        self.from_path(os.path.dirname(fspath(dst_path))).makedirs(exist_ok=True)
+        self.from_path(posixpath.dirname(fspath(dst_path))).makedirs(exist_ok=True)
         dst_path = self.from_path(dst_path)
         if self._is_same_backend(dst_path):
             if self._real_path == dst_path._real_path:

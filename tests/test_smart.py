@@ -1,6 +1,7 @@
 import os
 from io import BytesIO, StringIO
 from pathlib import Path
+from typing import Any
 
 import pytest
 from mock import patch
@@ -1119,3 +1120,17 @@ def test__get_copy_func():
     assert smart._get_copy_func("s3", "s3+a") == smart._default_copy_func
     assert smart._get_copy_func("s3", "file") == smart._copy_funcs["s3"]["file"]
     assert smart._get_copy_func("s3+a", "file") == smart._copy_funcs["s3"]["file"]
+
+
+def test_nested_sync_roundtrip(tmp_path: Path, s3_empty_client: Any) -> None:
+    """Preserve directory components across both transfer directions."""
+    source = tmp_path / "source"
+    nested = Path("folder") / "下一层" / "file.bin"
+    (source / nested).parent.mkdir(parents=True)
+    (source / nested).write_bytes(b"\x00\xff")
+    smart.smart_sync(source, "s3://bucket/upload", force=True)
+    keys = s3_empty_client.list_objects_v2(Bucket="bucket")["Contents"]
+    assert [entry["Key"] for entry in keys] == ["upload/folder/下一层/file.bin"]
+    target = tmp_path / "target"
+    smart.smart_sync("s3://bucket/upload", target, force=True)
+    assert (target / nested).read_bytes() == b"\x00\xff"

@@ -2,6 +2,7 @@ import getpass
 import hashlib
 import io
 import os
+import posixpath
 import shlex
 import socket
 import subprocess
@@ -556,7 +557,7 @@ class Sftp2Path(URIPath):
         def _is_dir(path: PathLike, followlinks: bool = False):
             return self.from_path(path).is_dir(followlinks=followlinks)
 
-        fs = FSFunc(_exist, _is_dir, _scandir)
+        fs = FSFunc(_exist, _is_dir, _scandir, posixpath)
         for remote_path in _create_missing_ok_generator(
             iglob(fspath(glob_path), recursive=recursive, fs=fs),
             missing_ok=missing_ok,
@@ -828,7 +829,7 @@ class Sftp2Path(URIPath):
             yield self._generate_path_object(root).path_with_protocol, dirs, files
 
             stack.extend(
-                (os.path.join(root, directory) for directory in reversed(dirs))
+                (posixpath.join(root, directory) for directory in reversed(dirs))
             )
 
     def resolve(self, strict=False) -> "Sftp2Path":
@@ -997,7 +998,7 @@ class Sftp2Path(URIPath):
         if not overwrite and self.from_path(dst_path).exists():
             return
 
-        self.from_path(os.path.dirname(fspath(dst_path))).makedirs(exist_ok=True)
+        self.from_path(posixpath.dirname(fspath(dst_path))).makedirs(exist_ok=True)
         dst_path = self.from_path(dst_path)
 
         if self._is_same_backend(dst_path):

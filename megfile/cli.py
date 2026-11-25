@@ -1,4 +1,5 @@
 import os
+import posixpath
 import shlex
 import shutil
 import signal
@@ -24,10 +25,12 @@ from megfile.config import (
 )
 from megfile.hdfs_path import DEFAULT_HDFS_TIMEOUT
 from megfile.interfaces import FileEntry
+from megfile.lib.compat.local_uri import local_path
 from megfile.lib.glob import get_non_glob_dir, has_magic
 from megfile.s3_path import get_s3_session
 from megfile.sftp_path import sftp_add_host_key
 from megfile.smart import (
+    _join_transfer_path,
     _smart_sync_single_file,
     smart_cache,
     smart_copy,
@@ -41,7 +44,6 @@ from megfile.smart import (
     smart_makedirs,
     smart_move,
     smart_open,
-    smart_path_join,
     smart_readlink,
     smart_relpath,
     smart_remove,
@@ -94,9 +96,23 @@ def safe_cli():  # pragma: no cover
             sys.exit(1)
 
 
+def _directory_target(src_path: str, dst_path: str) -> str:
+    """Append the source basename when the destination denotes a directory."""
+    target = SmartPath(dst_path)
+    local_target = target.pathlike.protocol == "file"
+    separators = ("/", os.sep) if local_target else ("/",)
+    if dst_path.endswith(separators) or smart_isdir(dst_path):
+        source = SmartPath(src_path)
+        local_source = source.pathlike.protocol == "file"
+        path_ops = os.path if local_source else posixpath
+        name = path_ops.basename(src_path)
+        if name:
+            return _join_transfer_path(dst_path, name, local_source=local_source)
+    return dst_path
+
+
 def get_echo_path(file_stat, base_path: str = "", full: bool = False):
-    if base_path.startswith("file://"):
-        base_path = base_path[7:]
+    base_path = local_path(base_path)
     if base_path == file_stat.path:
         path = file_stat.name
     elif full:
@@ -128,7 +144,7 @@ def human_echo(file_stat, base_path: str = "", full: bool = False):
 
 def smart_list_stat(path):
     if smart_isfile(path):
-        yield FileEntry(os.path.basename(path), path, smart_stat(path))
+        yield FileEntry(SmartPath(path).name, path, smart_stat(path))
     else:
         yield from smart_scandir(path)
 
@@ -306,8 +322,8 @@ def cp(
     progress_bar: bool,
     skip: bool,
 ):
-    if not no_target_directory and (dst_path.endswith("/") or smart_isdir(dst_path)):
-        dst_path = smart_path_join(dst_path, os.path.basename(src_path))
+    if not no_target_directory:
+        dst_path = _directory_target(src_path, dst_path)
 
     _sftp_prompt_host_key(src_path)
     _sftp_prompt_host_key(dst_path)
@@ -373,8 +389,8 @@ def mv(
     progress_bar: bool,
     skip: bool,
 ):
-    if not no_target_directory and (dst_path.endswith("/") or smart_isdir(dst_path)):
-        dst_path = smart_path_join(dst_path, os.path.basename(src_path))
+    if not no_target_directory:
+        dst_path = _directory_target(src_path, dst_path)
 
     _sftp_prompt_host_key(src_path)
     _sftp_prompt_host_key(dst_path)

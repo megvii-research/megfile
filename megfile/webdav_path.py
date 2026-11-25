@@ -1,6 +1,7 @@
 import hashlib
 import io
 import os
+import posixpath
 import re
 import shlex
 import subprocess
@@ -95,10 +96,10 @@ def _make_stat(info: dict) -> StatResult:
 
 def _make_entry(info: dict, root_relative: str, root_absolute: str) -> FileEntry:
     path = info.get("path", "").rstrip("/")
-    name = os.path.basename(path)
+    name = posixpath.basename(path)
     return FileEntry(
         name,
-        os.path.join(root_absolute, os.path.relpath(path, root_relative)),
+        posixpath.join(root_absolute, posixpath.relpath(path, root_relative)),
         _make_stat(info),
     )
 

@@ -1,9 +1,11 @@
 # pyre-ignore-all-errors[16]
 import os
+import posixpath
 import stat
 from collections.abc import Sequence
 from enum import Enum
 from functools import cached_property
+from pathlib import PureWindowsPath
 from typing import (
     IO,
     Any,
@@ -856,7 +858,8 @@ class URIPath(BasePath):
                     % (type(self), type(other_path))
                 )
         elif isinstance(other_path, _PathLike):
-            other_path = fspath(other_path)
+            if not isinstance(other_path, PureWindowsPath):
+                other_path = fspath(other_path)
         elif not isinstance(other_path, str):
             raise TypeError("%r is not 'PathLike' object" % other_path)
         return self.joinpath(other_path)
@@ -866,7 +869,15 @@ class URIPath(BasePath):
         Calling this method is equivalent to combining the path
         with each of the other arguments in turn
         """
-        return self.from_path(uri_join(str(self), *map(str, other_paths)))
+        segments = []
+        for part in other_paths:
+            if isinstance(part, PureWindowsPath):
+                segments.append(part.as_posix())
+            elif isinstance(part, BasePath) and part.protocol == "file":
+                segments.append(fspath(part).replace(os.sep, "/"))
+            else:
+                segments.append(str(part))
+        return self.from_path(uri_join(str(self), *segments))
 
     @cached_property
     def parts(self) -> Tuple[str, ...]:
@@ -921,6 +932,11 @@ class URIPathParents(Sequence):
     def __init__(self, path):
         # We don't store the instance to avoid reference cycles
         self.cls = type(path)
+        self.path_ops = (
+            os.path
+            if getattr(path, "_unaliased_protocol", path.protocol) == "file"
+            else posixpath
+        )
         parts = path.parts
         if len(parts) > 0 and parts[0] == path.protocol + "://":
             self.prefix = parts[0]
@@ -933,7 +949,7 @@ class URIPathParents(Sequence):
         if (
             (self.prefix == "" or "://" in self.prefix)
             and len(self.parts) > 0
-            and self.parts[0] != "/"
+            and not self.path_ops.isabs(self.parts[0])
         ):
             return len(self.parts)
         return max(len(self.parts) - 1, 0)
@@ -945,7 +961,7 @@ class URIPathParents(Sequence):
             raise IndexError(idx)
 
         if len(self.parts[: -idx - 1]) > 1:
-            other_path = os.path.join(*self.parts[: -idx - 1])
+            other_path = self.path_ops.join(*self.parts[: -idx - 1])
         elif len(self.parts[: -idx - 1]) == 1:
             other_path = self.parts[: -idx - 1][0]
         else:

@@ -2,6 +2,7 @@
 import hashlib
 import io
 import os
+import posixpath
 import sys
 from functools import cached_property, lru_cache
 from logging import getLogger
@@ -283,7 +284,7 @@ class HdfsPath(URIPath):
         def _is_dir(path: PathLike, followlinks: bool = False):
             return self.from_path(path).is_dir(followlinks=followlinks)
 
-        fs_func = FSFunc(_exist, _is_dir, _scandir)
+        fs_func = FSFunc(_exist, _is_dir, _scandir, posixpath)
         for real_path in _create_missing_ok_generator(
             iglob(fspath(glob_path), recursive=recursive, fs=fs_func),
             missing_ok=missing_ok,

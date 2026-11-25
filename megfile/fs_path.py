@@ -23,6 +23,7 @@ from megfile.interfaces import (
 )
 from megfile.lib.compare import is_same_file
 from megfile.lib.compat import fspath
+from megfile.lib.compat.local_uri import file_uri, local_path
 from megfile.lib.glob import iglob
 from megfile.lib.joinpath import path_join
 from megfile.lib.url import get_url_scheme
@@ -167,10 +168,7 @@ class FSPath(URIPath):
         """Return path with protocol, like file:///root"""
         if isinstance(self.path, int):
             return self.path
-        protocol_prefix = self.protocol + "://"
-        if self.path.startswith(protocol_prefix):  # pyre-ignore[16]
-            return self.path  # pyre-ignore[7]
-        return protocol_prefix + self.path  # pyre-ignore[58]
+        return file_uri(self.path)
 
     @cached_property
     def path_without_protocol(self) -> Union[str, int]:
@@ -180,7 +178,7 @@ class FSPath(URIPath):
         """
         if isinstance(self.path, int):
             return self.path
-        return super().path_without_protocol
+        return local_path(self.path)
 
     def is_absolute(self) -> bool:
         """Test whether a path is absolute
@@ -477,6 +475,18 @@ class FSPath(URIPath):
         self._check_int_path()
         return fspath(os.path.realpath(self.path_without_protocol))  # pyre-ignore[6]
 
+    def relative_to(self, *other: PathLike) -> "FSPath":
+        """Return the path relative to a local ancestor.
+
+        :param other: One or more components of the ancestor path.
+        :raises ValueError: If the paths have different anchors or are unrelated.
+        """
+        if not other:
+            raise TypeError("need at least one argument")
+        base = pathlib.Path(*(local_path(fspath(part)) for part in other))
+        relative = pathlib.Path(fspath(self)).relative_to(base)
+        return self.from_path(str(relative) if relative.parts else "")
+
     def relpath(self, start: Optional[str] = None) -> str:
         """Return the relative path of given path
 
@@ -487,7 +497,7 @@ class FSPath(URIPath):
         return fspath(
             os.path.relpath(
                 self.path_without_protocol,  # pyre-ignore[6]
-                start=start,
+                start=local_path(fspath(start)) if start is not None else None,
             )
         )
 

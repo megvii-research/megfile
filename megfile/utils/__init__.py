@@ -2,6 +2,7 @@ import hashlib
 import inspect
 import math
 import os
+import tempfile
 import uuid
 from copy import copy
 from functools import cached_property, wraps
@@ -254,7 +255,10 @@ def necessary_params(func: Callable, **kwargs):
     return res_kwargs
 
 
-def generate_cache_path(filename: str, cache_dir: str = "/tmp") -> str:  # nosec B108
+def generate_cache_path(filename: str, cache_dir: Optional[str] = None) -> str:
+    """Generate a cache filename in the requested or system temp directory."""
+    if cache_dir is None:
+        cache_dir = tempfile.gettempdir()
     suffix = os.path.splitext(filename)[1]
     return os.path.join(cache_dir, str(uuid.uuid4()) + suffix)
 
