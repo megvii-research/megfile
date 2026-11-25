@@ -10,7 +10,7 @@ from functools import cached_property
 from logging import getLogger as get_logger
 from stat import S_ISDIR, S_ISLNK, S_ISREG
 from typing import IO, BinaryIO, Callable, Iterator, List, Optional, Tuple, Union
-from urllib.parse import urlsplit, urlunsplit
+from urllib.parse import SplitResult, urlsplit
 
 import ssh2.session  # type: ignore
 import ssh2.sftp  # type: ignore
@@ -114,7 +114,7 @@ def _get_ssh2_session(
     port: Optional[int] = None,
     username: Optional[str] = None,
     password: Optional[str] = None,
-) -> ssh2.session.Session:
+) -> ssh2.session.Session:  # pyre-ignore[11]
     """Create SSH2 session"""
     hostname, port, username, password, private_key = provide_connect_info(
         hostname=hostname, port=port, username=username, password=password
@@ -228,7 +228,7 @@ def _get_sftp2_client(
     port: Optional[int] = None,
     username: Optional[str] = None,
     password: Optional[str] = None,
-) -> ssh2.sftp.SFTP:
+) -> ssh2.sftp.SFTP:  # pyre-ignore[11]
     """Get SFTP2 client"""
     session = get_ssh2_session(hostname, port, username, password)
     sftp = session.sftp_init()
@@ -332,7 +332,7 @@ class Sftp2RawFile(io.RawIOBase):
             n = self.readinto(buffer)
             return bytes(buffer[:n])
 
-    def write(self, data: bytes) -> int:
+    def write(self, data: bytes) -> int:  # pyre-ignore[14]
         if self._closed:
             raise ValueError("I/O operation on closed file")
         _, bytes_written = self.sftp_handle.write(bytes(data))
@@ -421,13 +421,13 @@ class Sftp2Path(URIPath):
     def __init__(self, path: "PathLike", *other_paths: "PathLike"):
         super().__init__(path, *other_paths)
         parts = urlsplit(self.path)
-        self._urlsplit_parts = parts
+        self._urlsplit_parts: SplitResult = parts
         self._remote_path = parts.path or "/"
 
     @cached_property
     def parts(self) -> Tuple[str, ...]:
         """A tuple giving access to the path's various components"""
-        parts = [urlunsplit(self._urlsplit_parts._replace(path=""))]
+        parts = [self._urlsplit_parts._replace(path="").geturl()]
         path = self._urlsplit_parts.path.lstrip("/")
         if path != "":
             parts.extend(path.split("/"))
@@ -496,7 +496,7 @@ class Sftp2Path(URIPath):
 
     def _generate_path_object(self, sftp_local_path: str, resolve: bool = False):
         new_parts = self._urlsplit_parts._replace(path=sftp_local_path)
-        return self.from_path(urlunsplit(new_parts))
+        return self.from_path(new_parts.geturl())
 
     def exists(self, followlinks: bool = False) -> bool:
         """
@@ -784,7 +784,7 @@ class Sftp2Path(URIPath):
             else:
                 stat = self._client.lstat(self._remote_path)
             return _make_stat(stat)
-        except SFTPProtocolError as e:  # pytype: disable=mro-error
+        except SFTPProtocolError as e:  # pyre-ignore[66]  # pytype: disable=mro-error
             raise FileNotFoundError(
                 f"No such file or directory: {self.path_with_protocol!r}"
             ) from e

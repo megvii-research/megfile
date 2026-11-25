@@ -130,8 +130,9 @@ class FSPath(URIPath):
         if not isinstance(path, int):
             if len(other_paths) > 0:
                 path = self.from_path(path).joinpath(*other_paths)
-            path = str(path)
-        self.path = path
+            self.path = str(path)
+        else:
+            self.path = path
 
     def _check_int_path(self) -> None:
         if isinstance(self.path_without_protocol, int):
@@ -326,8 +327,8 @@ class FSPath(URIPath):
         ):
             yield FileEntry(
                 path_obj.name,
-                path_obj.path,  # pyre-ignore[6]
-                _make_stat(os.lstat(path_obj.path)),  # pyre-ignore[6]
+                path_obj.path,
+                _make_stat(os.lstat(path_obj.path)),
             )
 
     def expanduser(self):
@@ -790,12 +791,13 @@ class FSPath(URIPath):
         callback: Optional[Callable[[int], None]] = None,
         followlinks: bool = False,
     ):
-        if isinstance(self.path_without_protocol, int):
+        source = self.path_without_protocol
+        if isinstance(source, int):
             with open(fspath(dst_path), "wb") as fdst:
-                copyfd(self.path_without_protocol, fdst, callback)
+                copyfd(source, fdst, callback)
         else:
             shutil.copy2(
-                self.path_without_protocol,  # pyre-ignore[6]
+                source,
                 fspath(dst_path),
                 follow_symlinks=followlinks,
             )
@@ -990,7 +992,8 @@ class FSPath(URIPath):
             ).mkdir(parents=True, exist_ok=True)
 
         if atomic and mode not in ("r", "rb"):
-            if isinstance(self.path_without_protocol, int):
+            path = self.path_without_protocol
+            if isinstance(path, int):
                 raise TypeError("atomic is not supported for file descriptor path")
 
             fs_func = FSFuncForAtomic(
@@ -1001,7 +1004,7 @@ class FSPath(URIPath):
                 unlink=os.unlink,
             )
             return WrapAtomic(
-                self.path_without_protocol,
+                path,
                 mode,
                 fs_func,
                 buffering=buffering,

@@ -1,7 +1,7 @@
 """Cross-process locking for SFTP authentication slots."""
 
 import errno
-import os
+import sys
 import time
 from collections.abc import Generator
 from contextlib import contextmanager
@@ -13,7 +13,7 @@ def file_lock(fd: int) -> Generator[None, None, None]:
 
     :param fd: Open, writable descriptor positioned at the start of a lock file.
     """
-    if os.name == "nt":
+    if sys.platform == "win32":
         import msvcrt
 
         # LK_LOCK has a fixed retry limit; authentication can take longer.

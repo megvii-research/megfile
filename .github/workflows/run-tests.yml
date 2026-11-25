@@ -8,6 +8,7 @@ on:
 
 jobs:
   windows:
+    name: Unit Test (py3.12, windows-2025)
     runs-on: windows-2025
     steps:
       - uses: actions/checkout@v4
