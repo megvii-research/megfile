@@ -59,25 +59,36 @@ def _make_stat(stat: paramiko.SFTPAttributes) -> StatResult:
     )
 
 
-def get_private_key():
-    key_with_types = {
-        "DSA": paramiko.DSSKey,
+def get_private_key() -> Optional[paramiko.PKey]:
+    """Load the private key configured for SFTP authentication.
+
+    :returns: The private key, or None if no private key path is configured.
+    :raises FileNotFoundError: If the configured key file does not exist.
+    :raises ValueError: If the configured key type is unsupported.
+    """
+    private_key_path = os.getenv(SFTP_PRIVATE_KEY_PATH)
+    if not private_key_path:
+        return None
+    if not os.path.exists(private_key_path):
+        raise FileNotFoundError(
+            "Private key file not exist, "
+            f"path:{private_key_path}, env:'{SFTP_PRIVATE_KEY_PATH}'"
+        )
+
+    key_types = {
         "RSA": paramiko.RSAKey,
         "ECDSA": paramiko.ECDSAKey,
         "ED25519": paramiko.Ed25519Key,
     }
     key_type = os.getenv(SFTP_PRIVATE_KEY_TYPE, "RSA").upper()
-    if os.getenv(SFTP_PRIVATE_KEY_PATH):
-        private_key_path = os.getenv(SFTP_PRIVATE_KEY_PATH)
-        if not os.path.exists(private_key_path):
-            raise FileNotFoundError(
-                "Private key file not exist, "
-                f"path:{private_key_path}, env:'{SFTP_PRIVATE_KEY_PATH}'"
-            )
-        return key_with_types[key_type].from_private_key_file(
-            private_key_path, password=os.getenv(SFTP_PRIVATE_KEY_PASSWORD)
+    if key_type not in key_types:
+        raise ValueError(
+            f"Unsupported {SFTP_PRIVATE_KEY_TYPE}={key_type!r}. "
+            f"Use a private key of one of these types: {', '.join(key_types)}."
         )
-    return None
+    return key_types[key_type].from_private_key_file(
+        private_key_path, password=os.getenv(SFTP_PRIVATE_KEY_PASSWORD)
+    )
 
 
 def provide_connect_info(

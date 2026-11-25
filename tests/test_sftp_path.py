@@ -1,13 +1,18 @@
 import io
 import os
 import subprocess
+from pathlib import Path
 
 import paramiko
 import pytest
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import ec, ed25519, rsa
 
 from megfile.sftp_path import (
     SFTP_PASSWORD,
+    SFTP_PRIVATE_KEY_PASSWORD,
     SFTP_PRIVATE_KEY_PATH,
+    SFTP_PRIVATE_KEY_TYPE,
     SFTP_USERNAME,
     SftpPath,
     _get_sftp_client,
@@ -114,6 +119,56 @@ def test_sync(sftp_mocker):
 def test_get_private_key(fs):
     with pytest.raises(FileNotFoundError):
         os.environ["SFTP_PRIVATE_KEY_PATH"] = "/file_not_exist"
+        get_private_key()
+
+
+@pytest.mark.parametrize("key_type", ["rsa", "eCdSa", "Ed25519"])
+def test_load_encrypted_private_key(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, key_type: str
+) -> None:
+    """Load each supported key using its configured passphrase."""
+    if key_type == "rsa":
+        key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    elif key_type == "eCdSa":
+        key = ec.generate_private_key(ec.SECP256R1())
+    else:
+        key = ed25519.Ed25519PrivateKey.generate()
+    path = tmp_path / "key"
+    path.write_bytes(
+        key.private_bytes(
+            serialization.Encoding.PEM,
+            serialization.PrivateFormat.OpenSSH,
+            serialization.BestAvailableEncryption(b"test-passphrase"),
+        )
+    )
+    monkeypatch.setenv(SFTP_PRIVATE_KEY_PATH, str(path))
+    monkeypatch.setenv(SFTP_PRIVATE_KEY_TYPE, key_type)
+    monkeypatch.setenv(SFTP_PRIVATE_KEY_PASSWORD, "test-passphrase")
+    loaded = get_private_key()
+    assert loaded is not None
+    expected = key.public_key().public_bytes(
+        serialization.Encoding.OpenSSH, serialization.PublicFormat.OpenSSH
+    )
+    assert loaded.get_base64().encode() == expected.split()[1]
+
+    monkeypatch.setenv(SFTP_PRIVATE_KEY_PASSWORD, "wrong-passphrase")
+    with pytest.raises(paramiko.SSHException):
+        get_private_key()
+
+
+@pytest.mark.parametrize("key_type", ["DSA", "unknown"])
+def test_unsupported_private_key_type(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, key_type: str
+) -> None:
+    """Only validate the key type when a private key path is configured."""
+    monkeypatch.setenv(SFTP_PRIVATE_KEY_TYPE, key_type)
+    monkeypatch.delenv(SFTP_PRIVATE_KEY_PATH, raising=False)
+    assert get_private_key() is None
+
+    path = tmp_path / "key"
+    path.touch()
+    monkeypatch.setenv(SFTP_PRIVATE_KEY_PATH, str(path))
+    with pytest.raises(ValueError, match=f"{key_type.upper()}.*RSA, ECDSA, ED25519"):
         get_private_key()
 
 
