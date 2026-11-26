@@ -4,6 +4,7 @@ from typing import Generator
 import pytest
 from mock import PropertyMock, patch
 from moto import mock_aws
+from pytest_mock import MockerFixture
 
 from megfile.errors import S3FileExistsError, S3FileNotFoundError
 from megfile.lib.compat import fspath
@@ -459,6 +460,26 @@ def test_relative_to(oss_alias):
         assert path.relative_to("foo") == S3Path("bar")
     with pytest.raises(ValueError):
         path.relative_to("oss://baz")
+
+
+@pytest.mark.parametrize(
+    "protocol", sorted(set(SmartPath._registered_protocols) - {"stdio"}) + ["s3+oss"]
+)
+def test_relative_to_component_boundary(protocol: str, mocker: MockerFixture) -> None:
+    """Check ancestor matching at path component boundaries."""
+    if protocol == "sftp":
+        mocker.patch(
+            "megfile.sftp_path.get_sftp_client"
+        ).return_value.normalize.return_value = "/"
+    base = f"{protocol}://host/data"
+    sibling = SmartPath(f"{base}2/a")
+    with pytest.raises(ValueError):
+        sibling.relative_to(base)
+    assert not sibling.is_relative_to(base)
+    child = SmartPath(f"{base}/a")
+    assert str(child.relative_to(base)) == "a"
+    assert str(child.relative_to(base + "/")) == "a"
+    assert str(child.relative_to(child)) == ""
 
 
 def test_relative_to_relative():

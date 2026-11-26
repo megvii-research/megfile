@@ -378,23 +378,22 @@ class BasePath:
             return False
 
     def relative_to(self: Self, *other: str) -> Self:
-        """
-        Compute a version of this path relative to the path represented by other.
-        If it’s impossible, ValueError is raised.
+        """Return the path relative to an ancestor.
+
+        :param other: One or more components of the ancestor path.
+        :raises ValueError: If the given path is unrelated.
         """
         if not other:
             raise TypeError("need at least one argument")
 
-        other_path = self.from_path(other[0])
-        if len(other) > 0:
-            other_path = other_path.joinpath(*other[1:])
-        other_path = other_path.path_with_protocol
+        other_path = self.from_path(other[0]).joinpath(*other[1:]).path_with_protocol
         path = self.path_with_protocol
+        if path == other_path:
+            return type(self)("")  # pyre-ignore[19]
 
-        if path.startswith(other_path):
-            relative = path[len(other_path) :]
-            relative = relative.lstrip("/")
-            return type(self)(relative)  # pyre-ignore[19]
+        prefix = other_path if other_path.endswith("/") else other_path + "/"
+        if path.startswith(prefix):
+            return type(self)(path[len(prefix) :].lstrip("/"))  # pyre-ignore[19]
 
         raise ValueError("%r does not start with %r" % (path, other))
 
