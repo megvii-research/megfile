@@ -1,4 +1,5 @@
 import os
+import sys
 from collections import defaultdict
 from functools import partial
 from pathlib import PureWindowsPath
@@ -420,7 +421,7 @@ def _join_transfer_path(
     if target.pathlike.protocol == "file" and not local_source:
         for part in parts:
             if part in ("", ".", "..") or (
-                os.name == "nt"
+                sys.platform == "win32"
                 and (
                     any(c in '<>:"/\\|?*' or ord(c) < 32 for c in part)
                     or part.endswith((" ", "."))

@@ -1,7 +1,7 @@
 """Conversions between native paths and megfile file URIs."""
 
-import os
 import re
+import sys
 
 
 def local_path(uri: str) -> str:
@@ -12,7 +12,7 @@ def local_path(uri: str) -> str:
     if not uri.startswith("file://"):
         return uri
     path = uri[7:]
-    if os.name == "nt" and re.match(r"^/[a-zA-Z]:/", path):
+    if sys.platform == "win32" and re.match(r"^/[a-zA-Z]:/", path):
         return path[1:]
     return path
 
@@ -24,7 +24,7 @@ def file_uri(path: str) -> str:
     """
     if path.startswith("file://"):
         return path
-    if os.name == "nt":
+    if sys.platform == "win32":
         path = path.replace("\\", "/")
         if re.match(r"^[a-zA-Z]:/", path):
             path = "/" + path

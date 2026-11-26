@@ -1,5 +1,6 @@
 import multiprocessing
 import os
+import sys
 from multiprocessing.connection import Connection
 from pathlib import Path, PureWindowsPath
 
@@ -27,7 +28,7 @@ def test_remote_components() -> None:
         _join_transfer_path("target", "../outside", local_source=False)
 
 
-@pytest.mark.skipif(os.name != "nt", reason="native Windows path rules")
+@pytest.mark.skipif(sys.platform != "win32", reason="native Windows path rules")
 def test_native_windows_paths() -> None:
     assert FSPath(r"C:\one\two").as_uri() == "file:///C:/one/two"
     for path in (r"C:\one\two", r"\\server\share\two", r"one\two"):
