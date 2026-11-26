@@ -1417,6 +1417,7 @@ def test_smart_open_read_s3_file_not_found(mocker, s3_empty_client):
     with pytest.raises(FileNotFoundError) as error:
         with smart.smart_open("s3://non-exist-bucket/key", "w") as f:
             f.write("test")
+    f.abort()
     assert "non-exist-bucket" in str(error.value)
 
     s3_empty_client.create_bucket(Bucket="bucket")
@@ -2914,6 +2915,7 @@ def test_s3_pipe_open_raises_exceptions(s3_empty_client):
     with pytest.raises(FileNotFoundError) as error:
         with s3.s3_pipe_open("s3://bucket/key", "wb") as f:
             f.write(b"test")
+    f.abort()
     assert "bucket" in str(error.value)
 
     s3_empty_client.create_bucket(Bucket="bucket")
@@ -2987,6 +2989,7 @@ def test_s3_cached_open_raises_exceptions(mocker, s3_empty_client, fs):
     with pytest.raises(FileNotFoundError) as error:
         with s3.s3_cached_open("s3://bucket/key", "wb", cache_path=cache_path) as f:
             f.write(b"test")
+    f.abort()
     assert "bucket" in str(error.value)
 
     s3_empty_client.create_bucket(Bucket="bucket")
@@ -3009,33 +3012,35 @@ def test_s3_buffered_open(mocker, s3_empty_client, fs):
     content = b"test data for s3_buffered_open"
     s3_empty_client.create_bucket(Bucket="bucket")
 
-    writer = s3.s3_buffered_open("s3://bucket/key", "wb")
-    assert isinstance(writer, s3_path.S3BufferedWriter)
+    with s3.s3_buffered_open("s3://bucket/key", "wb") as writer:
+        assert isinstance(writer, s3_path.S3BufferedWriter)
 
-    writer = s3.s3_buffered_open("s3://bucket/key", "ab", cache_path="/test")
-    assert isinstance(writer, S3CachedHandler)
+    with s3.s3_buffered_open("s3://bucket/key", "ab", cache_path="/test") as writer:
+        assert isinstance(writer, S3CachedHandler)
 
-    writer = s3.s3_buffered_open("s3://bucket/key", "wb", limited_seekable=True)
-    assert isinstance(writer, s3_path.S3LimitedSeekableWriter)
+    with s3.s3_buffered_open("s3://bucket/key", "wb", limited_seekable=True) as writer:
+        assert isinstance(writer, s3_path.S3LimitedSeekableWriter)
 
-    writer = s3.s3_buffered_open("s3://bucket/key.pkl", "wb")
-    assert isinstance(writer, BufferedWriter)
+    with s3.s3_buffered_open("s3://bucket/key.pkl", "wb") as writer:
+        assert isinstance(writer, BufferedWriter)
 
     # s3_empty_client.put_object(Bucket="bucket", Key="key", Body=pickle.dumps("test"))
     # reader = s3.s3_buffered_open("s3://bucket/key", "rb")
     # assert isinstance(reader, BufferedReader)
 
     s3_empty_client.put_object(Bucket="bucket", Key="key.pkl", Body=content)
-    reader = s3.s3_buffered_open("s3://bucket/key.pkl", "rb")
-    assert isinstance(reader, BufferedReader)
+    with s3.s3_buffered_open("s3://bucket/key.pkl", "rb") as reader:
+        assert isinstance(reader, BufferedReader)
 
     s3_empty_client.put_object(Bucket="bucket", Key="key", Body=content)
-    reader = s3.s3_buffered_open("s3://bucket/key", "rb", block_forward=1)
-    assert isinstance(reader, s3_path.S3PrefetchReader)
-    assert reader._block_forward == 1
+    with s3.s3_buffered_open("s3://bucket/key", "rb", block_forward=1) as reader:
+        assert isinstance(reader, s3_path.S3PrefetchReader)
+        assert reader._block_forward == 1
 
-    reader = s3.s3_buffered_open("s3://bucket/key", "rb", share_cache_key="share")
-    assert isinstance(reader, s3_path.S3ShareCacheReader)
+    with s3.s3_buffered_open(
+        "s3://bucket/key", "rb", share_cache_key="share"
+    ) as reader:
+        assert isinstance(reader, s3_path.S3ShareCacheReader)
 
     with s3.s3_buffered_open("s3://bucket/key", "wb") as writer:
         assert writer.name == "s3://bucket/key"
@@ -3074,6 +3079,7 @@ def test_s3_buffered_open_raises_exceptions(mocker, s3_empty_client, fs):
     with pytest.raises(FileNotFoundError) as error:
         with s3.s3_buffered_open("s3://bucket/key", "wb") as f:
             f.write(b"test")
+    f.abort()
     assert "bucket" in str(error.value)
 
     s3_empty_client.create_bucket(Bucket="bucket")
@@ -3129,17 +3135,17 @@ def test_s3_open(s3_empty_client):
     s3_empty_client.create_bucket(Bucket="bucket")
     s3_empty_client.put_object(Bucket="bucket", Key="key", Body=content)
 
-    writer = s3.s3_open("s3://bucket/key", "wb")
-    assert isinstance(writer, s3_path.S3BufferedWriter)
+    with s3.s3_open("s3://bucket/key", "wb") as writer:
+        assert isinstance(writer, s3_path.S3BufferedWriter)
 
-    reader = s3.s3_open("s3://bucket/key", "rb")
-    assert isinstance(reader, s3_path.S3PrefetchReader)
+    with s3.s3_open("s3://bucket/key", "rb") as reader:
+        assert isinstance(reader, s3_path.S3PrefetchReader)
 
-    writer = s3.s3_open("s3://bucket/key", "ab")
-    assert isinstance(writer, S3MemoryHandler)
+    with s3.s3_open("s3://bucket/key", "ab") as writer:
+        assert isinstance(writer, S3MemoryHandler)
 
-    writer = s3.s3_open("s3://bucket/key", "wb+")
-    assert isinstance(writer, S3MemoryHandler)
+    with s3.s3_open("s3://bucket/key", "wb+") as writer:
+        assert isinstance(writer, S3MemoryHandler)
 
 
 def test_s3_getmd5(s3_empty_client):

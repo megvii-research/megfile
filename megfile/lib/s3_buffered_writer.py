@@ -236,13 +236,22 @@ class S3BufferedWriter(Writable[bytes]):
     def _abort(self):
         _logger.debug("abort file: %r" % self.name)
 
-        if self._is_multipart:
-            with raise_s3_error(self.name):
-                self._client.abort_multipart_upload(
-                    Bucket=self._bucket, Key=self._key, UploadId=self._upload_id
-                )
-
-        self._shutdown()
+        try:
+            # Cancel queued parts to avoid unnecessary uploads. Running workers
+            # may still create the upload ID or send a part, so wait before aborting.
+            running = []
+            for future in self._uploading_futures:
+                if not future.cancel() and future.running():
+                    running.append(future)
+            if running:
+                wait(running)
+            if self.__upload_id is not None:
+                with raise_s3_error(self.name):
+                    self._client.abort_multipart_upload(
+                        Bucket=self._bucket, Key=self._key, UploadId=self.__upload_id
+                    )
+        finally:
+            self._shutdown()
 
     def _close(self):
         _logger.debug("close file: %r" % self.name)
