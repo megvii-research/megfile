@@ -6,7 +6,10 @@ import botocore
 import moto
 import moto.s3
 import pytest
+from botocore.client import BaseClient
+from pytest_mock import MockerFixture
 
+from megfile.errors import S3UnknownError
 from megfile.lib.s3_buffered_writer import S3BufferedWriter
 from megfile.s3_path import _patch_make_request
 from tests.test_s3 import s3_empty_client  # noqa: F401
@@ -16,11 +19,10 @@ KEY = "key"
 
 CONTENT = b"block0\n block1\n block2"
 
-moto.s3.models.UPLOAD_PART_MIN_SIZE = 5
-
 
 @pytest.fixture
-def client(s3_empty_client, fs):
+def client(s3_empty_client, fs, monkeypatch):
+    monkeypatch.setattr(moto.s3.models, "S3_UPLOAD_PART_MIN_SIZE", 5)
     s3_empty_client.create_bucket(Bucket=BUCKET)
     return s3_empty_client
 
@@ -46,6 +48,53 @@ def test_s3_buffered_writer_write(client):
 
     content = client.get_object(Bucket=BUCKET, Key=KEY)["Body"].read()
     assert content == CONTENT + b"\n" + CONTENT
+
+
+def test_abort_cancels_queued_part(client: BaseClient, mocker: MockerFixture) -> None:
+    writer = S3BufferedWriter(
+        BUCKET, KEY, s3_client=client, block_size=5, max_workers=1
+    )
+    started, release = Event(), Event()
+    upload = client.upload_part
+
+    def blocked_upload(**kwargs: object) -> dict:
+        started.set()
+        assert release.wait(timeout=5)
+        return upload(**kwargs)
+
+    upload_part = mocker.patch.object(client, "upload_part", side_effect=blocked_upload)
+    try:
+        writer.write(b"first")
+        assert started.wait(timeout=5)
+        writer.write(b"second")
+        queued = next(f for f in writer._uploading_futures if not f.running())
+        queued.add_done_callback(lambda _: release.set())
+        writer.abort()
+    finally:
+        release.set()
+        writer.abort()
+
+    assert queued.cancelled()
+    upload_part.assert_called_once()
+    assert not client.list_multipart_uploads(Bucket=BUCKET).get("Uploads")
+
+
+def test_abort_after_failed_multipart_close(
+    client: BaseClient, mocker: MockerFixture
+) -> None:
+    complete = mocker.patch.object(
+        client, "complete_multipart_upload", side_effect=RuntimeError("commit failed")
+    )
+    writer = S3BufferedWriter(BUCKET, KEY, s3_client=client, block_size=5)
+    writer.write(CONTENT)
+    with pytest.raises(S3UnknownError, match="commit failed"):
+        writer.close()
+
+    assert not writer.closed
+    assert writer.abort()
+    writer.close()
+    complete.assert_called_once()
+    assert not client.list_multipart_uploads(Bucket=BUCKET).get("Uploads")
 
 
 def test_s3_buffered_writer_write_max_worker(client, mocker):
@@ -191,26 +240,26 @@ def test_s3_buffered_writer_write_multipart_pending(client, mocker):
     mocker.patch.object(client, "upload_part", side_effect=fake_upload_part)
     mocker.patch("megfile.lib.s3_buffered_writer.wait", side_effect=fake_wait)
 
-    writer = S3BufferedWriter(
+    with S3BufferedWriter(
         BUCKET, KEY, s3_client=client, block_size=5, max_buffer_size=10
-    )
-    writer._buffer_size_before_wait = None
+    ) as writer:
+        writer._buffer_size_before_wait = None
 
-    writer.write(CONTENT)
-    assert writer._buffer_size_before_wait == 22
-    writer._buffer_size_before_wait = None
-    assert writer._total_buffer_size == 0
+        writer.write(CONTENT)
+        assert writer._buffer_size_before_wait == 22
+        writer._buffer_size_before_wait = None
+        assert writer._total_buffer_size == 0
 
-    writer.write(b"\n")
-    assert writer._buffer_size_before_wait is None
-    assert writer._total_buffer_size == 0
+        writer.write(b"\n")
+        assert writer._buffer_size_before_wait is None
+        assert writer._total_buffer_size == 0
 
-    writer.write(CONTENT)
-    assert writer._buffer_size_before_wait == 23
-    writer._buffer_size_before_wait = None
-    assert writer._total_buffer_size == 0
+        writer.write(CONTENT)
+        assert writer._buffer_size_before_wait == 23
+        writer._buffer_size_before_wait = None
+        assert writer._total_buffer_size == 0
 
-    assert writer._is_multipart
+        assert writer._is_multipart
 
 
 def test_s3_buffered_writer_write_multipart_autoscale(client, mocker):

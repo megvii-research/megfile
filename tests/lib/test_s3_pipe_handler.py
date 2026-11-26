@@ -99,8 +99,10 @@ def test_s3_pipe_handler_error(error_client):
         with S3PipeHandler(BUCKET, KEY, "wb", s3_client=error_client) as writer:
             writer._async_task.join()
             writer._raise_exception()
+    writer.abort()
 
     with pytest.raises(S3Exception):
         with S3PipeHandler(BUCKET, KEY, "rb", s3_client=error_client) as reader:
             reader._async_task.join()
             reader._raise_exception()
+    reader.abort()

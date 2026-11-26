@@ -13,18 +13,17 @@ KEY = "key"
 
 CONTENT = b"block0\n block1\n block2"
 
-moto.s3.models.UPLOAD_PART_MIN_SIZE = 4
-
 
 @pytest.fixture
-def client(s3_empty_client):
+def client(s3_empty_client, monkeypatch):
+    monkeypatch.setattr(moto.s3.models, "S3_UPLOAD_PART_MIN_SIZE", 4)
     s3_empty_client.create_bucket(Bucket=BUCKET)
     return s3_empty_client
 
 
 def test_seekable(client):
-    writer = S3LimitedSeekableWriter(BUCKET, KEY, s3_client=client)
-    assert writer.seekable() is True
+    with S3LimitedSeekableWriter(BUCKET, KEY, s3_client=client) as writer:
+        assert writer.seekable() is True
 
 
 def test_commit_on_exit(client):
@@ -36,60 +35,59 @@ def test_commit_on_exit(client):
 
 
 def test_write(client):
-    writer = S3LimitedSeekableWriter(BUCKET, KEY, s3_client=client, block_size=4)
+    with S3LimitedSeekableWriter(BUCKET, KEY, s3_client=client, block_size=4) as writer:
+        writer.write(b"abc")
+        assert writer._head_size == 3
+        assert writer._part_number == 0
+        assert writer.tell() == 3
+        writer.write(b"de")
+        assert writer._head_size == 4
+        assert writer._part_number == 1
+        assert writer._buffer.getvalue() == b"e"
+        assert writer.tell() == 5
+        writer.write(b"fghij")
+        assert writer._part_number == 1
+        assert writer._buffer.getvalue() == b"efghij"
+        assert writer._multipart_upload["Parts"] == []
+        assert writer.tell() == 10
+        writer.write(b"klmno")
+        assert writer._part_number == 2
+        assert writer._buffer.getvalue() == b"lmno"
+        assert writer._multipart_upload["Parts"] == [
+            {"ETag": '"0f6430efebf97198427b56542a35c88d"', "PartNumber": 2}
+        ]
+        assert writer.tell() == 15
+        writer.write(b"pqrst")
+        assert writer._part_number == 3
+        assert writer._buffer.getvalue() == b"qrst"
+        assert writer._multipart_upload["Parts"] == [
+            {"ETag": '"0f6430efebf97198427b56542a35c88d"', "PartNumber": 2},
+            {"ETag": '"816cabd1c0334ed363555889d9f4dbe4"', "PartNumber": 3},
+        ]
+        assert writer.tell() == 20
 
-    writer.write(b"abc")
-    assert writer._head_size == 3
-    assert writer._part_number == 0
-    assert writer.tell() == 3
-    writer.write(b"de")
-    assert writer._head_size == 4
-    assert writer._part_number == 1
-    assert writer._buffer.getvalue() == b"e"
-    assert writer.tell() == 5
-    writer.write(b"fghij")
-    assert writer._part_number == 1
-    assert writer._buffer.getvalue() == b"efghij"
-    assert writer._multipart_upload["Parts"] == []
-    assert writer.tell() == 10
-    writer.write(b"klmno")
-    assert writer._part_number == 2
-    assert writer._buffer.getvalue() == b"lmno"
-    assert writer._multipart_upload["Parts"] == [
-        {"ETag": '"0f6430efebf97198427b56542a35c88d"', "PartNumber": 2}
-    ]
-    assert writer.tell() == 15
-    writer.write(b"pqrst")
-    assert writer._part_number == 3
-    assert writer._buffer.getvalue() == b"qrst"
-    assert writer._multipart_upload["Parts"] == [
-        {"ETag": '"0f6430efebf97198427b56542a35c88d"', "PartNumber": 2},
-        {"ETag": '"816cabd1c0334ed363555889d9f4dbe4"', "PartNumber": 3},
-    ]
-    assert writer.tell() == 20
+        # seek to head
+        writer.seek(1)
+        writer.write(b"BCD")
+        assert writer._head_buffer.getvalue() == b"aBCD"
+        assert writer.tell() == 4
 
-    # seek to head
-    writer.seek(1)
-    writer.write(b"BCD")
-    assert writer._head_buffer.getvalue() == b"aBCD"
-    assert writer.tell() == 4
+        # seek to tail
+        writer.seek(-4, 2)
+        writer.write(b"QR")
+        assert writer._buffer.getvalue() == b"QRst"
+        assert writer.tell() == 18
 
-    # seek to tail
-    writer.seek(-4, 2)
-    writer.write(b"QR")
-    assert writer._buffer.getvalue() == b"QRst"
-    assert writer.tell() == 18
+        writer.seek(2)
+        writer.write(b"ab")
+        with pytest.raises(OSError):
+            writer.write(b"cd")
 
-    writer.seek(2)
-    writer.write(b"ab")
-    with pytest.raises(OSError):
-        writer.write(b"cd")
+        with pytest.raises(OSError):
+            writer.seek(5)
 
-    with pytest.raises(OSError):
-        writer.seek(5)
-
-    with pytest.raises(OSError):
-        writer.seek(5, 3)
+        with pytest.raises(OSError):
+            writer.seek(5, 3)
 
 
 def test_s3_buffered_writer_write_large_bytes(client):
@@ -107,17 +105,16 @@ def test_s3_buffered_writer_write_large_bytes(client):
 
 
 def test_write_block_size(client):
-    writer = S3LimitedSeekableWriter(BUCKET, KEY, s3_client=client, block_size=4)
-
-    writer.write(b"abcd")
-    assert writer.tell() == 4
-    writer.write(b"efgh")
-    assert writer.tell() == 8
-    writer.write(b"ijkl")
-    assert writer.tell() == 12
-    writer.seek(0)
-    writer.write(b"ABCD")
-    assert writer.tell() == 4
+    with S3LimitedSeekableWriter(BUCKET, KEY, s3_client=client, block_size=4) as writer:
+        writer.write(b"abcd")
+        assert writer.tell() == 4
+        writer.write(b"efgh")
+        assert writer.tell() == 8
+        writer.write(b"ijkl")
+        assert writer.tell() == 12
+        writer.seek(0)
+        writer.write(b"ABCD")
+        assert writer.tell() == 4
 
 
 def test_write_three_blocks(client):
@@ -187,22 +184,21 @@ def test_write_one_block(client):
 
 
 def test_write_multi_seek(client):
-    writer = S3LimitedSeekableWriter(BUCKET, KEY, s3_client=client, block_size=4)
-
-    writer.write(b"abcde")
-    writer.write(b"fghij")
-    writer.seek(1)
-    writer.write(b"BCD")
-    writer.seek(-4, 1)
-    writer.write(b"A")
-    writer.seek(0, 2)
-    writer.write(b"kl")
-    writer.seek(2)
-    writer.write(b"c")
-    writer.seek(0, 2)
-    writer.write(b"m")
-    assert writer._head_buffer.getvalue() == b"ABcD"
-    assert writer._buffer.getvalue() == b"ijklm"
+    with S3LimitedSeekableWriter(BUCKET, KEY, s3_client=client, block_size=4) as writer:
+        writer.write(b"abcde")
+        writer.write(b"fghij")
+        writer.seek(1)
+        writer.write(b"BCD")
+        writer.seek(-4, 1)
+        writer.write(b"A")
+        writer.seek(0, 2)
+        writer.write(b"kl")
+        writer.seek(2)
+        writer.write(b"c")
+        writer.seek(0, 2)
+        writer.write(b"m")
+        assert writer._head_buffer.getvalue() == b"ABcD"
+        assert writer._buffer.getvalue() == b"ijklm"
 
 
 def test_write_multi_seek_head_only(client):
@@ -230,51 +226,48 @@ def test_write_multi_seek_head_only(client):
 
 
 def test_write_multi_seek_tail_only(client):
-    writer = S3LimitedSeekableWriter(BUCKET, KEY, s3_client=client, block_size=4)
+    with S3LimitedSeekableWriter(BUCKET, KEY, s3_client=client, block_size=4) as writer:
+        writer.write(b"abcdefghijklmno")
+        assert writer._head_buffer.getvalue() == b"abcd"
+        assert writer._buffer.getvalue() == b"lmno"
 
-    writer.write(b"abcdefghijklmno")
-    assert writer._head_buffer.getvalue() == b"abcd"
-    assert writer._buffer.getvalue() == b"lmno"
+        writer.seek(-1, 1)
+        writer.write(b"O")
+        writer.seek(12)
+        writer.write(b"M")
+        assert writer._buffer.getvalue() == b"lMnO"
 
-    writer.seek(-1, 1)
-    writer.write(b"O")
-    writer.seek(12)
-    writer.write(b"M")
-    assert writer._buffer.getvalue() == b"lMnO"
+        writer.seek(0, 2)
+        writer.write(b"P")
+        assert writer._buffer.getvalue() == b"lMnOP"
 
-    writer.seek(0, 2)
-    writer.write(b"P")
-    assert writer._buffer.getvalue() == b"lMnOP"
+        writer.seek(-2, 1)
+        writer.write(b"opq")
 
-    writer.seek(-2, 1)
-    writer.write(b"opq")
-
-    assert writer._buffer.getvalue() == b"lMnopq"
+        assert writer._buffer.getvalue() == b"lMnopq"
 
 
 def test_seek_out_of_head_nor_tail(client):
-    writer = S3LimitedSeekableWriter(BUCKET, KEY, s3_client=client, block_size=4)
-
-    writer.write(b"abcde")
-    writer.write(b"fghij")
-    writer.write(b"klmno")
-    with pytest.raises(Exception) as error:
-        writer.seek(-6, 2)
-    assert "9" in str(error.value)
-    with pytest.raises(Exception) as error:
-        writer.seek(9)
-    assert "9" in str(error.value)
+    with S3LimitedSeekableWriter(BUCKET, KEY, s3_client=client, block_size=4) as writer:
+        writer.write(b"abcde")
+        writer.write(b"fghij")
+        writer.write(b"klmno")
+        with pytest.raises(Exception) as error:
+            writer.seek(-6, 2)
+        assert "9" in str(error.value)
+        with pytest.raises(Exception) as error:
+            writer.seek(9)
+        assert "9" in str(error.value)
 
 
 def test_write_head_part_overflow(client):
-    writer = S3LimitedSeekableWriter(BUCKET, KEY, s3_client=client, block_size=4)
-
-    writer.write(b"abcde")
-    writer.seek(1)
-    with pytest.raises(Exception) as error:
-        writer.write(b"BCDE")
-    assert "3" in str(error.value)  # writer._head_block_size - 1
-    assert "4" in str(error.value)  # len('BCDE')
+    with S3LimitedSeekableWriter(BUCKET, KEY, s3_client=client, block_size=4) as writer:
+        writer.write(b"abcde")
+        writer.seek(1)
+        with pytest.raises(Exception) as error:
+            writer.write(b"BCDE")
+        assert "3" in str(error.value)  # writer._head_block_size - 1
+        assert "4" in str(error.value)  # len('BCDE')
 
 
 def test_write_random(client):
