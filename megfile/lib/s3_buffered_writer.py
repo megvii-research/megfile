@@ -237,6 +237,8 @@ class S3BufferedWriter(Writable[bytes]):
         _logger.debug("abort file: %r" % self.name)
 
         try:
+            # Cancel queued parts to avoid unnecessary uploads. Running workers
+            # may still create the upload ID or send a part, so wait before aborting.
             running = []
             for future in self._uploading_futures:
                 if not future.cancel() and future.running():
