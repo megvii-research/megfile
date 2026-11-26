@@ -1,3 +1,7 @@
+## 5.1.0 - Unreleased
+
+- **Breaking change**: The `sftp://` backend now requires `paramiko>=5.0.1,<6.0`. Migrate DSA user and host keys before upgrading. Legacy servers must offer alternatives to SHA-1 key exchange and RSA/SHA-1 signatures. Existing RSA keys work with RSA/SHA-2 signatures. Even password login requires a compatible host signature and key exchange. Servers limited to SHA-256 DH group exchange must offer groups of at least 2048 bits.
+
 ## 5.0.18 - 2026.10.16
 - fix
     - Use unique temp paths in atomic write to avoid shared-inode races
