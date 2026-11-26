@@ -24,7 +24,9 @@ def test_remote_components() -> None:
     assert _join_transfer_path("s3://b", r"a/x\y", local_source=False) == (
         r"s3://b/a/x\y"
     )
-    with pytest.raises(ValueError):
+    with pytest.raises(
+        ValueError, match=r"component '\.\.' violates local naming rules"
+    ):
         _join_transfer_path("target", "../outside", local_source=False)
 
 

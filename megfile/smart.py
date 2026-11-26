@@ -429,7 +429,7 @@ def _join_transfer_path(
                 )
             ):
                 raise ValueError(
-                    f"Remote path component cannot be stored locally: {part!r}"
+                    f"Remote path component {part!r} violates local naming rules"
                 )
     return fspath(target.joinpath(*parts))
 
