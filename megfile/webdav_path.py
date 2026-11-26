@@ -9,7 +9,7 @@ import time
 from functools import cached_property
 from logging import getLogger as get_logger
 from typing import IO, BinaryIO, Callable, Iterable, Iterator, List, Optional, Tuple
-from urllib.parse import SplitResult, quote, unquote, urlsplit
+from urllib.parse import quote, unquote, urlsplit, urlunsplit
 
 import dateutil.parser
 from webdav3.client import Client as WebdavClient
@@ -309,7 +309,7 @@ class WebdavPath(URIPath):
     def __init__(self, path: "PathLike", *other_paths: "PathLike"):
         super().__init__(path, *other_paths)
         parts = urlsplit(self.path)
-        self._urlsplit_parts: SplitResult = parts
+        self._urlsplit_parts = parts
 
         # Normalize scheme to webdav/webdavs
         if parts.scheme == "http":
@@ -330,7 +330,7 @@ class WebdavPath(URIPath):
     @cached_property
     def parts(self) -> Tuple[str, ...]:
         """A tuple giving access to the path's various components"""
-        parts = [self._urlsplit_parts._replace(path="").geturl()]
+        parts = [urlunsplit(self._urlsplit_parts._replace(path=""))]
         path = self._urlsplit_parts.path.lstrip("/")
         if path != "":
             parts.extend(path.split("/"))
@@ -353,7 +353,7 @@ class WebdavPath(URIPath):
         new_parts = self._urlsplit_parts._replace(
             scheme=self._webdav_scheme, path=quote(webdav_path, safe="/")
         )
-        return self.from_path(new_parts.geturl())
+        return self.from_path(urlunsplit(new_parts))  # pyre-ignore[6]
 
     def exists(self, followlinks: bool = False) -> bool:
         """

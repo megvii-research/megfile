@@ -10,7 +10,7 @@ from functools import cached_property
 from logging import getLogger as get_logger
 from stat import S_ISDIR, S_ISLNK, S_ISREG
 from typing import IO, BinaryIO, Callable, Iterator, List, Optional, Tuple, Union
-from urllib.parse import SplitResult, urlsplit
+from urllib.parse import urlsplit, urlunsplit
 
 import ssh2.session  # type: ignore
 import ssh2.sftp  # type: ignore
@@ -421,13 +421,13 @@ class Sftp2Path(URIPath):
     def __init__(self, path: "PathLike", *other_paths: "PathLike"):
         super().__init__(path, *other_paths)
         parts = urlsplit(self.path)
-        self._urlsplit_parts: SplitResult = parts
+        self._urlsplit_parts = parts
         self._remote_path = parts.path or "/"
 
     @cached_property
     def parts(self) -> Tuple[str, ...]:
         """A tuple giving access to the path's various components"""
-        parts = [self._urlsplit_parts._replace(path="").geturl()]
+        parts = [urlunsplit(self._urlsplit_parts._replace(path=""))]
         path = self._urlsplit_parts.path.lstrip("/")
         if path != "":
             parts.extend(path.split("/"))
@@ -496,7 +496,7 @@ class Sftp2Path(URIPath):
 
     def _generate_path_object(self, sftp_local_path: str, resolve: bool = False):
         new_parts = self._urlsplit_parts._replace(path=sftp_local_path)
-        return self.from_path(new_parts.geturl())
+        return self.from_path(urlunsplit(new_parts))
 
     def exists(self, followlinks: bool = False) -> bool:
         """
