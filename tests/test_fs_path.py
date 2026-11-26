@@ -49,7 +49,7 @@ def test_rename(fs):
         f.write("test")
 
     os.makedirs("test1/dir1", exist_ok=True)
-    FSPath("test").rename("test1", overwrite=False)
+    FSPath("test").rename("test1")
     assert os.path.exists("test1")
     assert not os.path.exists("test")
     with open("test1/dir1/file", "r") as f:
@@ -58,12 +58,12 @@ def test_rename(fs):
     os.makedirs("test2", exist_ok=True)
     with open("test2/file", "w") as f:
         f.write("test1")
-    FSPath("test1/file").rename("test2/file", overwrite=False)
+    FSPath("test1/file").rename("test2/file")
     assert os.path.exists("test2/file")
     assert not os.path.exists("test1/file")
 
     with open("test2/file", "r") as f:
-        assert f.read() == "test1"
+        assert f.read() == "test"
 
 
 def test_copy_symlink(fs):

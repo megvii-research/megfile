@@ -1063,16 +1063,10 @@ def test_fs_rename(filesystem):
 
     with open(dst, "w") as f:
         f.write("test1")
-    fs.fs_rename(src, dst, overwrite=False)
-    with open(dst, "r") as f:
-        assert f.read() == "test1"
-
-    with open(src, "w") as f:
-        f.write("test")
-
-    fs.fs_rename(src, dst, overwrite=True)
+    fs.fs_rename(src, dst)
     with open(dst, "r") as f:
         assert f.read() == "test"
+    assert not os.path.exists(src)
 
 
 def test_fs_rename_file_in_diff_dir(filesystem):
@@ -1086,6 +1080,23 @@ def test_fs_rename_file_in_diff_dir(filesystem):
     fs.fs_rename(src, dst)
     assert os.path.exists(dst)
     assert not os.path.exists(src)
+
+
+def test_fs_rename_failure_keeps_source(filesystem):
+    src = "file"
+    dst_parent = "dst_parent"
+    dst = os.path.join(dst_parent, "file")
+    with open(src, "w") as f:
+        f.write("test")
+    with open(dst_parent, "w") as f:
+        f.write("not a directory")
+
+    with pytest.raises(FileExistsError):
+        fs.fs_rename(src, dst)
+
+    assert os.path.exists(src)
+    with open(src, "r") as f:
+        assert f.read() == "test"
 
 
 def test_fs_rename_dir():
@@ -1158,22 +1169,7 @@ def test_fs_move_dir():
         with open(os.path.join(tmpdir, "src_copy/src_file"), "w") as f:
             f.write("test")
 
-        fs.fs_move(
-            os.path.join(tmpdir, "src"),
-            os.path.join(tmpdir, "src_copy"),
-            overwrite=False,
-        )
-        with open(os.path.join(tmpdir, "src_copy/src_file"), "r") as f:
-            assert f.read() == "test"
-
-        os.mkdir(os.path.join(tmpdir, "src"))
-        with open(os.path.join(tmpdir, "src/src_file"), "w") as f:
-            f.write("")
-        fs.fs_move(
-            os.path.join(tmpdir, "src"),
-            os.path.join(tmpdir, "src_copy"),
-            overwrite=True,
-        )
+        fs.fs_move(os.path.join(tmpdir, "src"), os.path.join(tmpdir, "src_copy"))
         with open(os.path.join(tmpdir, "src_copy/src_file"), "r") as f:
             assert f.read() == ""
 

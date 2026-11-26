@@ -359,6 +359,10 @@ def test_rename_same_backend(webdav_mocker):
     with webdav.webdav_open("webdav://host/A/file.txt", "w") as f:
         f.write("test content")
 
+    with pytest.raises(SameFileError):
+        WebdavPath("webdav://host/A/file.txt").rename("webdav://host/A/file.txt")
+    assert WebdavPath("webdav://host/A/file.txt").exists()
+
     # Rename within same backend should use WebDAV's native move
     WebdavPath("webdav://host/A/file.txt").rename("webdav://host/B/file.txt")
 

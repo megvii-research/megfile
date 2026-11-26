@@ -96,20 +96,14 @@ def fs_copy(
     )
 
 
-def _fs_rename_file(
-    src_path: PathLike, dst_path: PathLike, overwrite: bool = True
-) -> None:
+def _fs_rename_file(src_path: PathLike, dst_path: PathLike) -> None:
     """
     rename file on fs
 
     :param src_path: Given path
     :param dst_path: Given destination path
-    :param overwrite: whether or not overwrite file when exists
     """
     src_path, dst_path = fspath(src_path), fspath(dst_path)
-
-    if not overwrite and os.path.exists(dst_path):
-        return
 
     dst_dir = os.path.dirname(dst_path)
     if dst_dir and dst_dir != ".":
@@ -491,23 +485,18 @@ class FSPath(URIPath):
             )
         )
 
-    def rename(
-        self, dst_path: PathLike, overwrite: bool = True, recursive: bool = True
-    ) -> "FSPath":
+    def rename(self, dst_path: PathLike, recursive: bool = True) -> "FSPath":
         """
         rename file on fs
 
         :param dst_path: Given destination path
-        :param overwrite: whether or not overwrite file when exists
         :param recursive: whether or not rename directory recursively
         """
         self._check_int_path()
 
         src_path, dst_path = fspath(self.path_without_protocol), fspath(dst_path)
         if os.path.isfile(src_path):
-            _fs_rename_file(src_path, dst_path, overwrite=overwrite)
-            if os.path.exists(src_path):
-                os.remove(src_path)
+            _fs_rename_file(src_path, dst_path)
             return self.from_path(dst_path)
         if not os.path.exists(src_path):
             raise FileNotFoundError("No such file: %r" % self.path_with_protocol)
@@ -526,24 +515,22 @@ class FSPath(URIPath):
                 if os.path.exists(dst_file_path) and file_entry.is_dir():
                     self.from_path(src_file_path).rename(
                         dst_file_path,
-                        overwrite=overwrite,
                         recursive=recursive,
                     )
                 else:
-                    _fs_rename_file(src_file_path, dst_file_path, overwrite=overwrite)
+                    _fs_rename_file(src_file_path, dst_file_path)
 
             shutil.rmtree(src_path, ignore_errors=True)
 
         return self.from_path(dst_path)
 
-    def replace(self, dst_path: PathLike, overwrite: bool = True) -> "FSPath":
+    def replace(self, dst_path: PathLike) -> "FSPath":
         """
         move file on fs
 
         :param dst_path: Given destination path
-        :param overwrite: whether or not overwrite file when exists
         """
-        return self.rename(dst_path=dst_path, overwrite=overwrite)
+        return self.rename(dst_path=dst_path)
 
     def remove(self, missing_ok: bool = False) -> None:
         """

@@ -579,14 +579,11 @@ class WebdavPath(URIPath):
         """Check if path is a WebDAV path"""
         return is_webdav(path)
 
-    def rename(
-        self, dst_path: PathLike, overwrite: bool = True, recursive: bool = True
-    ) -> "WebdavPath":
+    def rename(self, dst_path: PathLike, recursive: bool = True) -> "WebdavPath":
         """
         Rename file on WebDAV
 
         :param dst_path: Given destination path
-        :param overwrite: whether or not overwrite file when exists
         :param recursive: whether or not rename directory recursively
         """
         if not self._is_same_protocol(dst_path):
@@ -598,37 +595,33 @@ class WebdavPath(URIPath):
             raise IsADirectoryError("Is a directory: %r" % self.path_with_protocol)
 
         if self._is_same_backend(dst_path):
-            if overwrite:
-                dst_path.remove(missing_ok=True)
-            self._client.move(
-                self._remote_path, dst_path._remote_path, overwrite=overwrite
-            )
+            if self._remote_path.rstrip("/") == dst_path._remote_path.rstrip("/"):
+                raise SameFileError(
+                    "%r and %r are the same file"
+                    % (self.path_with_protocol, dst_path.path_with_protocol)
+                )
+            self._client.move(self._remote_path, dst_path._remote_path, overwrite=True)
         else:
             if src_stat.is_dir():
                 for file_entry in self.scandir():
                     self.from_path(file_entry.path).rename(
                         dst_path.joinpath(file_entry.name),
-                        overwrite=overwrite,
                         recursive=recursive,
                     )
                 self.rmdir()
             else:
-                if overwrite or not dst_path.exists():
-                    with self.open("rb") as fsrc:
-                        with dst_path.open("wb") as fdst:
-                            copyfileobj(fsrc, fdst)
+                self.copy(dst_path)
                 self.unlink()
 
         return dst_path
 
-    def replace(self, dst_path: PathLike, overwrite: bool = True) -> "WebdavPath":
+    def replace(self, dst_path: PathLike) -> "WebdavPath":
         """
         Move file on WebDAV
 
         :param dst_path: Given destination path
-        :param overwrite: whether or not overwrite file when exists
         """
-        return self.rename(dst_path=dst_path, overwrite=overwrite)
+        return self.rename(dst_path=dst_path)
 
     def remove(self, missing_ok: bool = False) -> None:
         """
