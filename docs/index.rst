@@ -12,6 +12,7 @@ Welcome to megfile's documentation!
 
    readme
    path_format
+   windows
    configuration
    megfile
    cli

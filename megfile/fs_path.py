@@ -99,23 +99,24 @@ def fs_copy(
 
 def _fs_rename_file(
     src_path: PathLike, dst_path: PathLike, overwrite: bool = True
-) -> None:
-    """
-    rename file on fs
+) -> bool:
+    """Move a local entry, creating its destination directory if needed.
 
     :param src_path: Given path
     :param dst_path: Given destination path
     :param overwrite: whether or not overwrite file when exists
+    :returns: False if an existing destination prevented the move.
     """
     src_path, dst_path = fspath(src_path), fspath(dst_path)
 
     if not overwrite and os.path.exists(dst_path):
-        return
+        return False
 
     dst_dir = os.path.dirname(dst_path)
     if dst_dir and dst_dir != ".":
         os.makedirs(dst_dir, exist_ok=True)
     shutil.move(src_path, dst_path)
+    return True
 
 
 @SmartPath.register
@@ -515,15 +516,23 @@ class FSPath(URIPath):
         self._check_int_path()
 
         src_path, dst_path = fspath(self.path_without_protocol), fspath(dst_path)
-        if os.path.isfile(src_path):
-            _fs_rename_file(src_path, dst_path, overwrite=overwrite)
-            if os.path.exists(src_path):
-                os.remove(src_path)
-            return self.from_path(dst_path)
         if not os.path.exists(src_path):
             raise FileNotFoundError("No such file: %r" % self.path_with_protocol)
         if not recursive and os.path.isdir(src_path):
             raise IsADirectoryError("Is a directory: %r" % self.path_with_protocol)
+
+        if os.path.exists(dst_path) and os.path.samestat(
+            os.lstat(src_path), os.lstat(dst_path)
+        ):
+            # A case-only rename may still need to update the directory entry.
+            if src_path != dst_path:
+                os.replace(src_path, dst_path)
+            return self.from_path(dst_path)
+
+        if os.path.isfile(src_path):
+            if not _fs_rename_file(src_path, dst_path, overwrite=overwrite):
+                os.remove(src_path)
+            return self.from_path(dst_path)
 
         os.makedirs(dst_path, exist_ok=True)
 

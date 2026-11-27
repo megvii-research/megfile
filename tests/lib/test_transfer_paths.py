@@ -40,6 +40,26 @@ def test_native_windows_paths() -> None:
         _join_transfer_path("target", r"a/x\y", local_source=False)
 
 
+@pytest.mark.parametrize("overwrite", [True, False])
+@pytest.mark.parametrize("name", ["report", "REPORT"])
+@pytest.mark.parametrize("directory", [False, True], ids=["file", "directory"])
+def test_local_rename(
+    tmp_path: Path, name: str, overwrite: bool, directory: bool
+) -> None:
+    """Keep the contents and requested spelling of a renamed entry."""
+    source = tmp_path / "report"
+    target = tmp_path / name
+    if directory:
+        source.mkdir()
+    content = source / "child.txt" if directory else source
+    content.write_bytes(b"report")
+
+    FSPath(source).rename(target, overwrite=overwrite)
+
+    assert [entry.name for entry in tmp_path.iterdir()] == [name]
+    assert (target / "child.txt" if directory else target).read_bytes() == b"report"
+
+
 def test_lock_exception(tmp_path: Path) -> None:
     path = tmp_path / "slot"
     with path.open("wb") as first, path.open("rb+") as second:
