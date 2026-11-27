@@ -1,6 +1,8 @@
 import os
+import sys
 from collections import defaultdict
 from functools import partial
+from pathlib import PureWindowsPath
 from typing import (
     IO,
     Any,
@@ -405,6 +407,33 @@ def smart_copy(
             raise
 
 
+def _join_transfer_path(
+    destination: PathLike, relative: str, *, local_source: bool
+) -> str:
+    """Rebuild a source-relative path using the destination's path rules.
+
+    :param destination: Destination root.
+    :param relative: Relative path in the source backend's syntax.
+    :param local_source: Whether the source uses native filesystem separators.
+    """
+    parts = relative.split(os.sep if local_source else "/")
+    target = SmartPath(destination)
+    if target.pathlike.protocol == "file" and not local_source:
+        for part in parts:
+            if part in ("", ".", "..") or (
+                sys.platform == "win32"
+                and (
+                    any(c in '<>:"/\\|?*' or ord(c) < 32 for c in part)
+                    or part.endswith((" ", "."))
+                    or PureWindowsPath(part).is_reserved()
+                )
+            ):
+                raise ValueError(
+                    f"Remote path component {part!r} violates local naming rules"
+                )
+    return fspath(target.joinpath(*parts))
+
+
 def _smart_sync_single_file(items: dict):
     src_root_path = items["src_root_path"]
     dst_root_path = items["dst_root_path"]
@@ -417,10 +446,14 @@ def _smart_sync_single_file(items: dict):
     force = items["force"]
     overwrite = items["overwrite"]
 
-    content_path = smart_relpath(src_file_path, start=src_root_path)
+    source = SmartPath(src_file_path)
+    content_path = source.relpath(start=src_root_path)
     if len(content_path) and content_path != ".":
-        content_path = content_path.lstrip("/")
-        dst_abs_file_path = smart_path_join(dst_root_path, content_path)
+        dst_abs_file_path = _join_transfer_path(
+            dst_root_path,
+            content_path,
+            local_source=source.pathlike.protocol == "file",
+        )
     else:
         # if content_path is empty, which means smart_isfile(src_path) is True,
         # this function is equal to smart_copy
@@ -1065,7 +1098,7 @@ class SmartCacher(FileCacher):
         """
         :param path: Path to cache
         :type path: str
-        :param cache_path: Path to cache file, defaults to None, will use ``/tmp``
+        :param cache_path: Cache filename. Defaults to the system temp directory.
         :type cache_path: Optional[str], optional
         :param mode: Mode to open cache file, defaults to "r"
         :type mode: str, optional

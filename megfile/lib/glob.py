@@ -3,8 +3,10 @@
 """remove once py35 is dead"""
 
 import os
+import posixpath
 import re
 from collections import OrderedDict
+from types import ModuleType
 from typing import Callable, Iterator, List, NamedTuple, Tuple
 
 from megfile.lib import fnmatch
@@ -14,6 +16,7 @@ class FSFunc(NamedTuple):
     exists: Callable[[str], bool]
     isdir: Callable[[str], bool]
     scandir: Callable[[str], Iterator[Tuple[str, bool]]]
+    path_ops: ModuleType = os.path
 
 
 def _exists(path: str) -> bool:
@@ -74,7 +77,7 @@ def _iglob(pathname: str, recursive: bool, dironly: bool, fs: FSFunc) -> Iterato
         protocol, path_without_protocol = pathname.split("://", 1)
     else:
         protocol, path_without_protocol = "", pathname
-    dirname, basename = os.path.split(path_without_protocol)
+    dirname, basename = fs.path_ops.split(path_without_protocol)
     if protocol:
         dirname = "://".join([protocol, dirname])
     if not has_magic(pathname):
@@ -112,7 +115,7 @@ def _iglob(pathname: str, recursive: bool, dironly: bool, fs: FSFunc) -> Iterato
         glob_in_dir = _glob0
     for dirname in dirs:
         for name in glob_in_dir(dirname, basename, dironly, fs):
-            yield os.path.join(dirname, name)
+            yield fs.path_ops.join(dirname, name)
 
 
 # These 2 helper functions non-recursively glob inside a literal directory.
@@ -122,6 +125,8 @@ def _glob1(dirname: str, pattern: str, dironly: bool, fs: FSFunc) -> List[str]:
     names = list(_iterdir(dirname, dironly, fs))
     if not _ishidden(pattern):
         names = (x for x in names if not _ishidden(x))
+    if fs.path_ops is posixpath:
+        return [name for name in names if fnmatch.fnmatchcase(name, pattern)]
     return fnmatch.filter(names, pattern)  # pyre-ignore[6]
 
 
@@ -132,7 +137,7 @@ def _glob0(dirname: str, basename: str, dironly: bool, fs: FSFunc) -> List[str]:
         if fs.isdir(dirname):
             return [basename]
     else:
-        if fs.exists(os.path.join(dirname, basename)):
+        if fs.exists(fs.path_ops.join(dirname, basename)):
             return [basename]
     return []
 
@@ -170,9 +175,9 @@ def _rlistdir(dirname: str, dironly: bool, fs: FSFunc) -> Iterator[str]:
         if not _ishidden(x):
             for _ in range(c):
                 yield x
-            path = os.path.join(dirname, x) if dirname else x
+            path = fs.path_ops.join(dirname, x) if dirname else x
             for y in _rlistdir(path, dironly, fs):
-                yield os.path.join(x, y)
+                yield fs.path_ops.join(x, y)
 
 
 magic_check = re.compile(r"([*?[{])")
@@ -312,19 +317,19 @@ def ungloblize(glob: str) -> List[str]:
     return path_list
 
 
-def get_non_glob_dir(glob: str):
-    root_dir = []
-    if glob.startswith("/"):
-        root_dir.append("/")
-    elif "//" in glob:
-        protocol_or_domain, glob = glob.rsplit("//", 1)
-        root_dir.append(f"{protocol_or_domain}//")
-    for name in glob.split("/"):
-        if has_magic(name):
-            break
-        root_dir.append(name)
-    if root_dir:
-        root_dir = os.path.join(*root_dir)
-    else:
-        root_dir = "."
-    return root_dir
+def get_non_glob_dir(glob: str) -> str:
+    """Return the literal directory prefix of a local or remote glob."""
+    protocol, sep, body = glob.partition("://")
+    path = body if sep else glob
+    drive = ""
+    if not sep or protocol == "file":
+        drive, path = os.path.splitdrive(path)
+        path = path.replace(os.sep, "/")
+    magic = magic_check.search(path)
+    if magic:
+        prefix = path[: magic.start()]
+        # Keep the root slash(es), including the double slash of absolute SFTP URLs.
+        head, slash, _ = prefix.rpartition("/")
+        path = head + slash if head.endswith("/") else head or slash
+    result = protocol + sep + drive + path if sep else drive + path
+    return result or "."

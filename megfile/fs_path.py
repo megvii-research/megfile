@@ -23,6 +23,7 @@ from megfile.interfaces import (
 )
 from megfile.lib.compare import is_same_file
 from megfile.lib.compat import fspath
+from megfile.lib.compat.local_uri import file_uri, local_path
 from megfile.lib.glob import iglob
 from megfile.lib.joinpath import path_join
 from megfile.lib.url import get_url_scheme
@@ -98,23 +99,24 @@ def fs_copy(
 
 def _fs_rename_file(
     src_path: PathLike, dst_path: PathLike, overwrite: bool = True
-) -> None:
-    """
-    rename file on fs
+) -> bool:
+    """Move a local entry, creating its destination directory if needed.
 
     :param src_path: Given path
     :param dst_path: Given destination path
     :param overwrite: whether or not overwrite file when exists
+    :returns: False if an existing destination prevented the move.
     """
     src_path, dst_path = fspath(src_path), fspath(dst_path)
 
     if not overwrite and os.path.exists(dst_path):
-        return
+        return False
 
     dst_dir = os.path.dirname(dst_path)
     if dst_dir and dst_dir != ".":
         os.makedirs(dst_dir, exist_ok=True)
     shutil.move(src_path, dst_path)
+    return True
 
 
 @SmartPath.register
@@ -129,8 +131,9 @@ class FSPath(URIPath):
         if not isinstance(path, int):
             if len(other_paths) > 0:
                 path = self.from_path(path).joinpath(*other_paths)
-            path = str(path)
-        self.path = path
+            self.path = str(path)
+        else:
+            self.path = path
 
     def _check_int_path(self) -> None:
         if isinstance(self.path_without_protocol, int):
@@ -167,10 +170,7 @@ class FSPath(URIPath):
         """Return path with protocol, like file:///root"""
         if isinstance(self.path, int):
             return self.path
-        protocol_prefix = self.protocol + "://"
-        if self.path.startswith(protocol_prefix):  # pyre-ignore[16]
-            return self.path  # pyre-ignore[7]
-        return protocol_prefix + self.path  # pyre-ignore[58]
+        return file_uri(self.path)
 
     @cached_property
     def path_without_protocol(self) -> Union[str, int]:
@@ -180,7 +180,7 @@ class FSPath(URIPath):
         """
         if isinstance(self.path, int):
             return self.path
-        return super().path_without_protocol
+        return local_path(self.path)
 
     def is_absolute(self) -> bool:
         """Test whether a path is absolute
@@ -328,8 +328,8 @@ class FSPath(URIPath):
         ):
             yield FileEntry(
                 path_obj.name,
-                path_obj.path,  # pyre-ignore[6]
-                _make_stat(os.lstat(path_obj.path)),  # pyre-ignore[6]
+                path_obj.path,
+                _make_stat(os.lstat(path_obj.path)),
             )
 
     def expanduser(self):
@@ -477,6 +477,18 @@ class FSPath(URIPath):
         self._check_int_path()
         return fspath(os.path.realpath(self.path_without_protocol))  # pyre-ignore[6]
 
+    def relative_to(self, *other: PathLike) -> "FSPath":
+        """Return the path relative to a local ancestor.
+
+        :param other: One or more components of the ancestor path.
+        :raises ValueError: If the paths have different anchors or are unrelated.
+        """
+        if not other:
+            raise TypeError("need at least one argument")
+        base = pathlib.Path(*(local_path(fspath(part)) for part in other))
+        relative = pathlib.Path(fspath(self)).relative_to(base)
+        return self.from_path(str(relative) if relative.parts else "")
+
     def relpath(self, start: Optional[str] = None) -> str:
         """Return the relative path of given path
 
@@ -487,7 +499,7 @@ class FSPath(URIPath):
         return fspath(
             os.path.relpath(
                 self.path_without_protocol,  # pyre-ignore[6]
-                start=start,
+                start=local_path(fspath(start)) if start is not None else None,
             )
         )
 
@@ -504,15 +516,23 @@ class FSPath(URIPath):
         self._check_int_path()
 
         src_path, dst_path = fspath(self.path_without_protocol), fspath(dst_path)
-        if os.path.isfile(src_path):
-            _fs_rename_file(src_path, dst_path, overwrite=overwrite)
-            if os.path.exists(src_path):
-                os.remove(src_path)
-            return self.from_path(dst_path)
         if not os.path.exists(src_path):
             raise FileNotFoundError("No such file: %r" % self.path_with_protocol)
         if not recursive and os.path.isdir(src_path):
             raise IsADirectoryError("Is a directory: %r" % self.path_with_protocol)
+
+        if os.path.exists(dst_path) and os.path.samestat(
+            os.lstat(src_path), os.lstat(dst_path)
+        ):
+            # A case-only rename may still need to update the directory entry.
+            if src_path != dst_path:
+                os.replace(src_path, dst_path)
+            return self.from_path(dst_path)
+
+        if os.path.isfile(src_path):
+            if not _fs_rename_file(src_path, dst_path, overwrite=overwrite):
+                os.remove(src_path)
+            return self.from_path(dst_path)
 
         os.makedirs(dst_path, exist_ok=True)
 
@@ -780,12 +800,13 @@ class FSPath(URIPath):
         callback: Optional[Callable[[int], None]] = None,
         followlinks: bool = False,
     ):
-        if isinstance(self.path_without_protocol, int):
+        source = self.path_without_protocol
+        if isinstance(source, int):
             with open(fspath(dst_path), "wb") as fdst:
-                copyfd(self.path_without_protocol, fdst, callback)
+                copyfd(source, fdst, callback)
         else:
             shutil.copy2(
-                self.path_without_protocol,  # pyre-ignore[6]
+                source,
                 fspath(dst_path),
                 follow_symlinks=followlinks,
             )
@@ -980,7 +1001,8 @@ class FSPath(URIPath):
             ).mkdir(parents=True, exist_ok=True)
 
         if atomic and mode not in ("r", "rb"):
-            if isinstance(self.path_without_protocol, int):
+            path = self.path_without_protocol
+            if isinstance(path, int):
                 raise TypeError("atomic is not supported for file descriptor path")
 
             fs_func = FSFuncForAtomic(
@@ -991,7 +1013,7 @@ class FSPath(URIPath):
                 unlink=os.unlink,
             )
             return WrapAtomic(
-                self.path_without_protocol,
+                path,
                 mode,
                 fs_func,
                 buffering=buffering,

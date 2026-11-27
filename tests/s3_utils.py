@@ -1,10 +1,12 @@
+import os
+
 import boto3
 
 
 def make_moto_s3_client(monkeypatch=None):
     if monkeypatch is not None:
-        monkeypatch.setenv("AWS_CONFIG_FILE", "/dev/null")
-        monkeypatch.setenv("AWS_SHARED_CREDENTIALS_FILE", "/dev/null")
+        monkeypatch.setenv("AWS_CONFIG_FILE", os.devnull)
+        monkeypatch.setenv("AWS_SHARED_CREDENTIALS_FILE", os.devnull)
 
     return boto3.client(
         "s3",

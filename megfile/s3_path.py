@@ -1,6 +1,7 @@
 import hashlib
 import io
 import os
+import posixpath
 import re
 import time
 from collections import deque
@@ -840,7 +841,7 @@ def _s3_glob_stat_single_path(
         s3_pathname = replace_recursive_wildcard(s3_pathname)
     protocol, profile_name = _parse_s3_url_profile(s3_pathname)
     top_prefix, wildcard_part = split_magic(s3_pathname)
-    top_dir = os.path.dirname(top_prefix) if wildcard_part else top_prefix
+    top_dir = posixpath.dirname(top_prefix) if wildcard_part else top_prefix
     search_dir = wildcard_part.endswith("/")
     recursive_scan = should_recursive_glob(wildcard_part, search_dir)
 
@@ -872,7 +873,7 @@ def _s3_glob_stat_single_path(
                         if path.endswith("/"):
                             continue
                         yield FileEntry(S3Path(path).name, path, _make_stat(content))
-                    dirname = os.path.dirname(path)
+                    dirname = posixpath.dirname(path)
                     while dirname not in dirnames and dirname != top_dir:
                         # TODO: optimize memory usage and file path order
                         dirnames.add(dirname)
@@ -881,12 +882,12 @@ def _s3_glob_stat_single_path(
                             yield FileEntry(
                                 S3Path(path).name, path, StatResult(isdir=True)
                             )
-                        dirname = os.path.dirname(dirname)
+                        dirname = posixpath.dirname(dirname)
                 for common_prefix in resp.get("CommonPrefixes", []):
                     path = _s3_path_join(
                         f"{protocol}://", bucket, common_prefix["Prefix"]
                     )
-                    dirname = os.path.dirname(path)
+                    dirname = posixpath.dirname(path)
                     if dirname not in dirnames and dirname != top_dir:
                         dirnames.add(dirname)
                         path = dirname + "/" if search_dir else dirname
@@ -1422,7 +1423,7 @@ def s3_download(
     dst_url = fspath(dst_url)
     if not is_fs(dst_url):
         raise OSError(f"dst_url is not fs path: {dst_url}")
-    if not dst_url or dst_url.endswith("/"):
+    if not dst_url or dst_url.endswith(("/", os.sep)):
         raise S3IsADirectoryError("Is a directory: %r" % dst_url)
 
     dst_path = FSPath(dst_url)

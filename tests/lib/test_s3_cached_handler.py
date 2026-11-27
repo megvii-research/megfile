@@ -1,8 +1,15 @@
+import gc
 import os
+import sys
+from pathlib import Path
+from typing import Any, BinaryIO
+from unittest.mock import Mock
 
 import pytest
 
+from megfile.errors import S3FileNotFoundError
 from megfile.lib.s3_cached_handler import S3CachedHandler
+from megfile.s3_path import s3_cached_open
 from tests.test_s3 import s3_empty_client  # noqa: F401
 
 BUCKET = "bucket"
@@ -18,16 +25,28 @@ def client(s3_empty_client, fs):
     return s3_empty_client
 
 
-def test_s3_cached_handler_close(client):
-    writer = S3CachedHandler(BUCKET, KEY, "wb", s3_client=client, cache_path=CACHE_PATH)
-    assert writer.closed is False
-    writer.close()
-    assert writer.closed is True
+def test_s3_cached_handler_close(tmp_path: Path, s3_empty_client: Any) -> None:
+    """Close and abort must both release the cache on the native filesystem."""
+    client = s3_empty_client
+    client.create_bucket(Bucket=BUCKET)
+    url = f"s3://{BUCKET}/{KEY}"
+    cache = tmp_path / "cache"
+    with s3_cached_open(url, "wb", cache_path=str(cache)) as writer:
+        assert not writer.closed
+        writer.write(CONTENT)
+    assert writer.closed
+    assert not cache.exists()
 
-    reader = S3CachedHandler(BUCKET, KEY, "rb", s3_client=client, cache_path=CACHE_PATH)
-    assert reader.closed is False
-    reader.close()
-    assert reader.closed is True
+    with s3_cached_open(url, "wb", cache_path=str(cache)) as writer:
+        writer.write(b"discard")
+        writer.abort()
+    assert not cache.exists()
+
+    with s3_cached_open(url, "rb", cache_path=str(cache)) as reader:
+        assert not reader.closed
+        assert reader.read() == CONTENT
+    assert reader.closed
+    assert not cache.exists()
 
 
 def test_s3_cached_handler_mode(client):
@@ -45,7 +64,53 @@ def test_s3_cached_handler_generate_cache_path(client):
     assert isinstance(writer._cache_path, str)
 
 
-def test_s3_cached_handler_read(client):
+def test_cached_open_failed_download(
+    tmp_path: Path, s3_empty_client: Any, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A partial download during open must never be uploaded on finalization."""
+    client = s3_empty_client
+    client.create_bucket(Bucket=BUCKET)
+    client.put_object(Bucket=BUCKET, Key=KEY, Body=CONTENT)
+    upload = Mock(wraps=client.upload_fileobj)
+    monkeypatch.setattr(client, "upload_fileobj", upload)
+
+    def interrupted_download(bucket: str, key: str, stream: BinaryIO) -> None:
+        """Leave partial data in the local cache before reporting a failure."""
+        stream.write(b"partial")
+        raise S3FileNotFoundError(2, "download interrupted")
+
+    monkeypatch.setattr(client, "download_fileobj", interrupted_download)
+    cache = tmp_path / "cache"
+    with pytest.raises(S3FileNotFoundError, match="download interrupted") as failure:
+        s3_cached_open(f"s3://{BUCKET}/{KEY}", "rb+", cache_path=str(cache))
+
+    assert not cache.exists()
+    del failure
+    gc.collect()
+    assert client.get_object(Bucket=BUCKET, Key=KEY)["Body"].read() == CONTENT
+    upload.assert_not_called()
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="POSIX unlinks the open cache")
+def test_cached_open_unlink_failure(
+    tmp_path: Path, s3_empty_client: Any, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """An unlink error opening a writer must preserve the existing object."""
+    client = s3_empty_client
+    client.create_bucket(Bucket=BUCKET)
+    client.put_object(Bucket=BUCKET, Key=KEY, Body=CONTENT)
+    with monkeypatch.context() as patch:
+        patch.setattr(os, "unlink", Mock(side_effect=PermissionError))
+        with pytest.raises(PermissionError):
+            s3_cached_open(
+                f"s3://{BUCKET}/{KEY}", "wb", cache_path=str(tmp_path / "cache")
+            )
+    gc.collect()
+    assert client.get_object(Bucket=BUCKET, Key=KEY)["Body"].read() == CONTENT
+
+
+def test_s3_cached_handler_read(client: Any) -> None:
+    """Read cached data and remove the cache according to platform semantics."""
     client.put_object(Bucket=BUCKET, Key=KEY, Body=CONTENT)
 
     with S3CachedHandler(
@@ -54,8 +119,8 @@ def test_s3_cached_handler_read(client):
         assert reader.readline() == b"block0\n"
         assert reader.read() == b" block1\n block2"
 
-        # 文件打开后就被删除
-        assert not os.path.exists(CACHE_PATH)
+        if sys.platform != "win32":
+            assert not os.path.exists(CACHE_PATH)
     assert not os.path.exists(CACHE_PATH)
 
 

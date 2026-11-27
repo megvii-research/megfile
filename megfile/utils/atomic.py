@@ -2,6 +2,7 @@ import os
 import typing as T
 from io import TextIOWrapper
 from logging import getLogger
+from types import ModuleType
 from uuid import uuid4
 
 from megfile.interfaces import FileLike
@@ -15,6 +16,7 @@ class FSFuncForAtomic(T.NamedTuple):
     replace: T.Callable[[str, str], T.Any]
     open: T.Callable[..., T.IO]
     unlink: T.Callable[[str], T.Any]
+    path_ops: ModuleType = os.path
 
 
 class WrapAtomic(FileLike):
@@ -40,8 +42,9 @@ class WrapAtomic(FileLike):
 
         self._path = path
         self._mode = mode
-        _dir, _base = os.path.split(self._path)
-        self._temp_path = os.path.join(_dir, f".{_base}.{uuid4().hex[:8]}.temp")
+        path_ops = fs_func.path_ops
+        _dir, _base = path_ops.split(self._path)
+        self._temp_path = path_ops.join(_dir, f".{_base}.{uuid4().hex[:8]}.temp")
 
         if self._should_copy():
             self.fs_func.copy(self._path, self._temp_path)

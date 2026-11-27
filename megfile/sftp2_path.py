@@ -2,6 +2,7 @@ import getpass
 import hashlib
 import io
 import os
+import posixpath
 import shlex
 import socket
 import subprocess
@@ -113,7 +114,7 @@ def _get_ssh2_session(
     port: Optional[int] = None,
     username: Optional[str] = None,
     password: Optional[str] = None,
-) -> ssh2.session.Session:
+) -> ssh2.session.Session:  # pyre-ignore[11]
     """Create SSH2 session"""
     hostname, port, username, password, private_key = provide_connect_info(
         hostname=hostname, port=port, username=username, password=password
@@ -227,7 +228,7 @@ def _get_sftp2_client(
     port: Optional[int] = None,
     username: Optional[str] = None,
     password: Optional[str] = None,
-) -> ssh2.sftp.SFTP:
+) -> ssh2.sftp.SFTP:  # pyre-ignore[11]
     """Get SFTP2 client"""
     session = get_ssh2_session(hostname, port, username, password)
     sftp = session.sftp_init()
@@ -331,7 +332,7 @@ class Sftp2RawFile(io.RawIOBase):
             n = self.readinto(buffer)
             return bytes(buffer[:n])
 
-    def write(self, data: bytes) -> int:
+    def write(self, data: bytes) -> int:  # pyre-ignore[14]
         if self._closed:
             raise ValueError("I/O operation on closed file")
         _, bytes_written = self.sftp_handle.write(bytes(data))
@@ -556,7 +557,7 @@ class Sftp2Path(URIPath):
         def _is_dir(path: PathLike, followlinks: bool = False):
             return self.from_path(path).is_dir(followlinks=followlinks)
 
-        fs = FSFunc(_exist, _is_dir, _scandir)
+        fs = FSFunc(_exist, _is_dir, _scandir, posixpath)
         for remote_path in _create_missing_ok_generator(
             iglob(fspath(glob_path), recursive=recursive, fs=fs),
             missing_ok=missing_ok,
@@ -783,7 +784,7 @@ class Sftp2Path(URIPath):
             else:
                 stat = self._client.lstat(self._remote_path)
             return _make_stat(stat)
-        except SFTPProtocolError as e:  # pytype: disable=mro-error
+        except SFTPProtocolError as e:  # pyre-ignore[66]  # pytype: disable=mro-error
             raise FileNotFoundError(
                 f"No such file or directory: {self.path_with_protocol!r}"
             ) from e
@@ -828,7 +829,7 @@ class Sftp2Path(URIPath):
             yield self._generate_path_object(root).path_with_protocol, dirs, files
 
             stack.extend(
-                (os.path.join(root, directory) for directory in reversed(dirs))
+                (posixpath.join(root, directory) for directory in reversed(dirs))
             )
 
     def resolve(self, strict=False) -> "Sftp2Path":
@@ -997,7 +998,7 @@ class Sftp2Path(URIPath):
         if not overwrite and self.from_path(dst_path).exists():
             return
 
-        self.from_path(os.path.dirname(fspath(dst_path))).makedirs(exist_ok=True)
+        self.from_path(posixpath.dirname(fspath(dst_path))).makedirs(exist_ok=True)
         dst_path = self.from_path(dst_path)
 
         if self._is_same_backend(dst_path):
