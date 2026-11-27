@@ -17,14 +17,15 @@ jobs:
           python-version: "3.12"
       - name: Install package and test dependencies
         run: >-
-          python -m pip install ".[hdfs,sftp2,webdav]" pytest pytest-mock
-          pytest-socket pyfakefs mock requests_mock "moto[s3]>=5,<5.2"
-      - name: Collect tests
-        run: python -m pytest --collect-only -q tests
-      - name: Test native paths and nested transfers
-        run: >-
-          python -m pytest -q tests/lib/test_transfer_paths.py
-          tests/test_smart.py::test_nested_sync_roundtrip
+          python -m pip install ".[hdfs,sftp2,webdav]" pytest pytest-cov pytest-mock
+          pytest-retry pytest-socket pyfakefs mock requests_mock "moto[s3]>=5,<5.2"
+      - uses: msys2/setup-msys2@v2
+        with:
+          install: make
+          path-type: inherit
+      - name: Run unit-test
+        shell: msys2 {0}
+        run: make test
 
   test:
     runs-on: ${{ matrix.os }}
